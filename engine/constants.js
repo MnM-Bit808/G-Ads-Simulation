@@ -409,6 +409,43 @@ export const SMART_BIDDING_MIN_CONVERSIONS = 30;
  */
 export const COLD_START_CONV_RATE = 0.025;
 
+/**
+ * Spread of a bid strategy's conversion-rate estimate, before the learning
+ * multiplier. Shrinks with the square root of observed conversions, which is
+ * how sampling error actually behaves.
+ *
+ * At 1 conversion the estimate is worthless; at 30 - the SMART_BIDDING floor -
+ * it is still around 27% out; by 400 it has settled near 8%. That gradient is
+ * the point: automation is not wrong because it is stupid, it is wrong because
+ * it has not seen enough yet.
+ */
+export const PREDICTION_ERROR_BASE = 1.5;
+export const PREDICTION_ERROR_CLAMP = [0.05, 0.80];
+
+/**
+ * Clicks an advertiser needs in one hour of the day before its own history for
+ * that hour is worth more than its aggregate.
+ *
+ * This is the only legitimate route to dayparting for a bid strategy. v0.1 let
+ * Target CPA read the true hourly conversion curve, so automation dayparted
+ * perfectly from round one and never paid for the privilege (DECISIONS D2).
+ */
+export const MIN_HOUR_OBSERVATIONS = 25;
+
+/**
+ * How hard the budget-spending strategies push relative to the keyword bid.
+ *
+ * They do not solve for a bid that exactly exhausts the budget - pacing does
+ * that (13.4). They bid to win and let pacing throttle, which is both simpler
+ * and closer to how the real thing behaves.
+ */
+export const MAX_CLICKS_AGGRESSION = 1.6;
+export const MAX_CONV_AGGRESSION = 1.6;
+
+/** No strategy may bid below this, or above this multiple of the keyword bid. */
+export const MIN_BID_PAISE = 100;
+export const MAX_BID_MULTIPLE = 4.0;
+
 // ---------------------------------------------------------------------------
 // Attribution and returns (spec 11.3, 14)
 // ---------------------------------------------------------------------------
@@ -551,6 +588,13 @@ export const PROVENANCE = {
   LEARNING_ERROR_MULTIPLIER: 'INVENTED',
   SMART_BIDDING_MIN_CONVERSIONS: 'INVENTED',
   COLD_START_CONV_RATE: 'INVENTED',
+  PREDICTION_ERROR_BASE: 'INVENTED',
+  PREDICTION_ERROR_CLAMP: 'INVENTED',
+  MIN_HOUR_OBSERVATIONS: 'INVENTED',
+  MAX_CLICKS_AGGRESSION: 'INVENTED',
+  MAX_CONV_AGGRESSION: 'INVENTED',
+  MIN_BID_PAISE: 'INVENTED',
+  MAX_BID_MULTIPLE: 'INVENTED',
   MONTHLY_BUDGET_PAISE: 'INVENTED',
   RANK_BUDGET_MULTIPLIERS: 'INVENTED',
   CAPEX_ALLOCATION_PAISE: 'INVENTED',

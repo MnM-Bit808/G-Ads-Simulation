@@ -309,6 +309,43 @@ conversion volume, plus a learning period after every strategy change.
 has not arrived cannot inform a bid, which is precisely why bid strategies look
 broken when checked too early.
 
+**The query parameter is gone, and its absence is the guarantee.** Spec 12.2
+passes `estimatedConvRate(bidding, query, hour, rng)`. But a query carries
+`convMultiplier` and the position affinities — the truth — and `getPublicView`
+withholds those from everyone, including the advertiser they favour (C4). A
+strategy able to reach them would be the v0.1 oracle wearing a different name.
+
+So the signature is `estimatedConvRate(bidding, hour, rng)`. A strategy may read
+its own history, the hour, and its own product catalogue. Nothing else. Two
+tests enforce it: one asserts the arity, one reads the module's source and fails
+if it so much as names an affinity.
+
+**Dayparting therefore has to be earned.** A strategy bids more in a good hour
+only once it has logged `MIN_HOUR_OBSERVATIONS` clicks in that hour and formed
+its own opinion. Early on it has not, so it dayparts badly — the honest version
+of what automation does. v0.1's Target CPA dayparted perfectly from round one
+because it was reading the answer.
+
+**All five bid formulas are invented.** Spec 10 and 12 name the strategies and
+describe the error around the estimate, but never say how an estimate becomes a
+bid — audit item A12, unresolved until now:
+
+| | bid |
+|---|---|
+| `manual` | keyword bid |
+| `maxClicks` | keyword bid × 1.6, no hour shaping |
+| `targetCpa` | target × estimated conversion rate |
+| `targetRoas` | (own order value × estimated rate) ÷ target |
+| `maxConv` | keyword bid × 1.6 × (this hour's estimate ÷ own average) |
+
+The budget-spending strategies deliberately do **not** solve for a bid that
+exhausts the budget, as the v0.1 binary search did. They bid to win and let
+pacing throttle them, which is simpler and closer to the real thing.
+
+**A zero ROAS target now throws.** v0.1 silently substituted 1, turning a
+nonsensical setting into a plausible-looking bid. "Spend without limit" should
+fail loudly rather than quietly become "spend at 1× return".
+
 ### D3. Quality improvements were free sliders — `FIXED v0.2`
 **Sim v0.1:** drag a slider from 4 to 9, costs drop instantly.
 **Sim v0.3:** you write real ad copy and Claude grades it. Improving quality costs
