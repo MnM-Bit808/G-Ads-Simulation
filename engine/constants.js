@@ -452,6 +452,16 @@ export const CAPEX_TARGETS = {
 };
 
 /**
+ * Points added to the graded landing page score at full commitment.
+ *
+ * The landing page target is the odd one out: the other two move a business
+ * number directly, while this one moves a GRADED number that the ad grader
+ * also writes. Expressing it as points added after grading keeps the two
+ * mechanisms separable - two things writing one number is how L6 happened.
+ */
+export const CAPEX_LANDING_PAGE_MAX_POINTS = 3;
+
+/**
  * An S-curve, not a diminishing one. Interpolated linearly between points.
  *
  * The shape is the whole mechanic. With diminishing returns the first tranche
@@ -547,4 +557,5 @@ export const PROVENANCE = {
   CAPEX_DELAY_ROUNDS: 'INVENTED',
   CAPEX_TARGETS: 'INVENTED',
   CAPEX_TIER_CURVE: 'INVENTED',
+  CAPEX_LANDING_PAGE_MAX_POINTS: 'INVENTED',
 };

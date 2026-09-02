@@ -18,6 +18,9 @@ import {
   PRICE_TIERS, PURPOSES, SCHEMA_VERSION,
   QUERY_SET_RULES, DAY_OF_WEEK_CURVE, HOUR_PROFILES,
 } from './constants.js';
+// The grid itself belongs to positions.js. A query's *home* on that grid is a
+// query concept and stays here.
+import { cellKey, allCells } from './positions.js';
 
 /** Derived from the curves themselves, so the two can never disagree. */
 export const DAYS_PER_WEEK = DAY_OF_WEEK_CURVE.length;
@@ -48,26 +51,6 @@ export const RULES = {
 const INTENTS = ['commercial', 'informational', 'brand', 'irrelevant'];
 const HOUR_PROFILE_NAMES = ['business', 'evening', 'flat'];
 const TOTAL_BP = 10000;
-
-/**
- * Canonical name for a grid cell.
- *
- * @param {string} price one of PRICE_TIERS
- * @param {string} purpose one of PURPOSES
- * @returns {string} e.g. "premium|lifestyle"
- */
-export function cellKey(price, purpose) {
-  return `${price}|${purpose}`;
-}
-
-/** Every cell, in a fixed order so iteration is deterministic (R1). */
-export function allCells() {
-  const cells = [];
-  for (const price of PRICE_TIERS) {
-    for (const purpose of PURPOSES) cells.push(cellKey(price, purpose));
-  }
-  return cells;
-}
 
 /**
  * The cell a query belongs to: the price x purpose pair whose combined affinity

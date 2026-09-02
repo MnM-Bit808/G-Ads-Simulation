@@ -1,6 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import { QUERY_SET } from '../content/querySet.js';
-import { validateQuerySet, homeCell, allCells, weeklySearches } from '../engine/querySet.js';
+import { validateQuerySet, homeCell, weeklySearches } from '../engine/querySet.js';
+import { allCells } from '../engine/positions.js';
 import { BRAND_IDS } from '../content/brands.js';
 import { TAG_VOCABULARY, QUERY_SET_RULES } from '../engine/constants.js';
 

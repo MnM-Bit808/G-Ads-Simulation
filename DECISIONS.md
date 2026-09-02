@@ -690,6 +690,25 @@ performance goods are bought on stated specs and either do the job or do not;
 lifestyle goods are bought on appearance, and how something looks on you is only
 knowable once it arrives.
 
+**The 43 / 32 / 25 gross-versus-net gaps quoted elsewhere in this file are
+BASE TIER figures, not cell figures.** Building `positions.js` made that
+distinction matter. Once the purpose modifier is applied the gaps move a long
+way in both directions:
+
+| | Performance (ret ×0.85) | Lifestyle (ret ×1.20) |
+|---|---|---|
+| Value | 34% | **56%** |
+| Mid | 27% | 41% |
+| Premium | 21% | 32% |
+
+So the headline numbers describe a row, and no advertiser actually occupies a
+row. **Value-Lifestyle is the worst place on the grid to optimise to gross** —
+a 56% overpayment, sustained, invisible on the dashboard. Premium-Performance
+gets off lightest at 21%, which is still enough to matter.
+
+That spread is a feature: the section 14 trap does not punish everyone equally,
+and which cell you chose decides how badly it hurts.
+
 ### F9. Territory volume is engineered for balance — `OPEN`
 Volume is split 52 / 28 / 20 across Value / Mid / Premium, derived so that each
 tier's *total margin potential* comes out roughly equal — Premium generates about

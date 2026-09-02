@@ -1,0 +1,452 @@
+import { describe, test, expect } from 'vitest';
+import {
+  cellKey, parseCell, allCells, isValidPosition,
+  businessFor, breakEvenCpcPaise, grossBreakEvenCpcPaise, marginPerOrderPaise,
+  capexEffect, liveCapexPaise, landingPageBonus,
+  canReposition, isOneStep, reposition,
+} from '../engine/positions.js';
+import {
+  PRICE_TIERS, PURPOSES, POSITION_ECONOMICS, PURPOSE_MODIFIERS,
+  CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
+  CAPEX_LANDING_PAGE_MAX_POINTS, REPOSITION_ROUND, REPOSITION_COST_PAISE,
+} from '../engine/constants.js';
+
+const pos = (price, purpose) => ({ price, purpose, setAtRound: 0, repositionedAtRound: null });
+const noCapex = { committed: { sizeGuide: 0, photography: 0, landingPage: 0 }, pending: [] };
+
+describe('the grid', () => {
+  test('has six cells', () => {
+    expect(allCells()).toHaveLength(PRICE_TIERS.length * PURPOSES.length);
+    expect(allCells()).toHaveLength(6);
+  });
+
+  test('cellKey and parseCell round-trip', () => {
+    for (const price of PRICE_TIERS) {
+      for (const purpose of PURPOSES) {
+        expect(parseCell(cellKey(price, purpose))).toEqual({ price, purpose });
+      }
+    }
+  });
+
+  test('cell order is fixed, so anything iterating it is deterministic (R1)', () => {
+    expect(allCells()).toEqual(allCells());
+    expect(allCells()[0]).toBe(cellKey(PRICE_TIERS[0], PURPOSES[0]));
+  });
+
+  test('parseCell rejects nonsense rather than returning a half-built cell', () => {
+    expect(() => parseCell('value')).toThrow();
+    expect(() => parseCell('cheap|performance')).toThrow();
+    expect(() => parseCell('value|sporty')).toThrow();
+  });
+
+  test('isValidPosition checks both axes', () => {
+    expect(isValidPosition(pos('value', 'performance'))).toBe(true);
+    expect(isValidPosition(pos('value', 'sporty'))).toBe(false);
+    expect(isValidPosition(pos('cheap', 'performance'))).toBe(false);
+    expect(isValidPosition(null)).toBe(false);
+  });
+});
+
+describe('economics derive from position (spec 4.2, DECISIONS F6)', () => {
+  test('every cell yields a complete business block', () => {
+    const fields = ['convRateBase', 'aovMeanPaise', 'aovSpread', 'marginPct',
+      'returnRate', 'returnWindowRounds'];
+    for (const price of PRICE_TIERS) {
+      for (const purpose of PURPOSES) {
+        const b = businessFor(pos(price, purpose), noCapex, 1);
+        for (const f of fields) expect(b[f], `${price}|${purpose}.${f}`).toBeTypeOf('number');
+      }
+    }
+  });
+
+  test('order value comes from the price tier alone', () => {
+    for (const price of PRICE_TIERS) {
+      for (const purpose of PURPOSES) {
+        expect(businessFor(pos(price, purpose), noCapex, 1).aovMeanPaise)
+          .toBe(POSITION_ECONOMICS[price].aovMeanPaise);
+      }
+    }
+  });
+
+  test('purpose modulates conversion and returns, and nothing else', () => {
+    const perf = businessFor(pos('mid', 'performance'), noCapex, 1);
+    const life = businessFor(pos('mid', 'lifestyle'), noCapex, 1);
+    expect(perf.aovMeanPaise).toBe(life.aovMeanPaise);
+    expect(perf.marginPct).toBe(life.marginPct);
+    expect(life.convRateBase).toBeGreaterThan(perf.convRateBase);
+    expect(life.returnRate).toBeGreaterThan(perf.returnRate);
+  });
+
+  test('the purpose modifiers are applied, not merely present', () => {
+    const base = POSITION_ECONOMICS.mid;
+    const b = businessFor(pos('mid', 'lifestyle'), noCapex, 1);
+    expect(b.convRateBase).toBeCloseTo(base.convRateBase * PURPOSE_MODIFIERS.lifestyle.conv, 10);
+    expect(b.returnRate).toBeCloseTo(base.returnRate * PURPOSE_MODIFIERS.lifestyle.ret, 10);
+  });
+
+  test('the return rate is clamped, so a modifier can never push it past 1', () => {
+    for (const price of PRICE_TIERS) {
+      for (const purpose of PURPOSES) {
+        const r = businessFor(pos(price, purpose), noCapex, 1).returnRate;
+        expect(r).toBeGreaterThanOrEqual(0);
+        expect(r).toBeLessThan(1);
+      }
+    }
+  });
+
+  test('an invalid position throws rather than yielding a silent default', () => {
+    expect(() => businessFor(pos('cheap', 'performance'), noCapex, 1)).toThrow();
+  });
+});
+
+describe('break-even (spec 4.4)', () => {
+  const be = (price, purpose) => breakEvenCpcPaise(businessFor(pos(price, purpose), noCapex, 1));
+
+  test('matches the figures the spec documents', () => {
+    expect(be('value', 'performance')).toBe(1352);
+    expect(be('value', 'lifestyle')).toBe(1419);
+    expect(be('mid', 'performance')).toBe(2503);
+    expect(be('mid', 'lifestyle')).toBe(2737);
+    expect(be('premium', 'performance')).toBe(3557);
+    expect(be('premium', 'lifestyle')).toBe(3981);
+  });
+
+  test('returns integer paise (R7)', () => {
+    for (const cell of allCells()) {
+      const { price, purpose } = parseCell(cell);
+      expect(Number.isSafeInteger(be(price, purpose)), cell).toBe(true);
+    }
+  });
+
+  test('I4: the purpose axis moves break-even by under 15% within a price row', () => {
+    for (const price of PRICE_TIERS) {
+      const a = be(price, 'performance');
+      const b = be(price, 'lifestyle');
+      expect(Math.abs(b - a) / Math.min(a, b), `${price} purpose spread`).toBeLessThan(0.15);
+    }
+  });
+
+  test('I4: the price axis moves it more than 2x top to bottom', () => {
+    for (const purpose of PURPOSES) {
+      expect(be('premium', purpose) / be('value', purpose), purpose).toBeGreaterThan(2);
+    }
+  });
+
+  test('the axes stay in their lanes: price moves it far more than purpose', () => {
+    const purposeSpread = Math.max(...PRICE_TIERS.map(
+      (p) => Math.abs(be(p, 'lifestyle') - be(p, 'performance')) / be(p, 'performance'),
+    ));
+    const priceSpread = be('premium', 'performance') / be('value', 'performance') - 1;
+    expect(priceSpread).toBeGreaterThan(purposeSpread * 5);
+  });
+
+  test('the documented 43/32/25 gross-net gaps are the BASE tier figures', () => {
+    // Worth pinning: DECISIONS quotes these for the price tier alone. The
+    // purpose modifier then moves them a long way in both directions, so the
+    // headline numbers describe a row, not any actual cell an advertiser
+    // occupies.
+    const baseGap = (price) => 1 / (1 - POSITION_ECONOMICS[price].returnRate) - 1;
+    expect(baseGap('value')).toBeCloseTo(0.43, 2);
+    expect(baseGap('mid')).toBeCloseTo(0.32, 2);
+    expect(baseGap('premium')).toBeCloseTo(0.25, 2);
+  });
+
+  test('gross always exceeds net, and the gap is widest where margin is thinnest', () => {
+    // The section 14 trap: an advertiser optimising to gross conversions
+    // believes it can pay the gross figure. Value is punished hardest.
+    const gap = (price, purpose) => {
+      const b = businessFor(pos(price, purpose), noCapex, 1);
+      return grossBreakEvenCpcPaise(b) / breakEvenCpcPaise(b) - 1;
+    };
+    for (const purpose of PURPOSES) {
+      expect(gap('value', purpose), purpose).toBeGreaterThan(gap('mid', purpose));
+      expect(gap('mid', purpose), purpose).toBeGreaterThan(gap('premium', purpose));
+      expect(gap('premium', purpose), purpose).toBeGreaterThan(0.15);
+    }
+  });
+
+  test('a lifestyle brand is punished harder than a performance one', () => {
+    // Lifestyle returns run 1.2x, performance 0.85x, so the same price tier
+    // faces a very different gross-net gap depending on what it sells. Value
+    // lifestyle is the worst place in the grid to optimise to gross.
+    const gap = (price, purpose) => {
+      const b = businessFor(pos(price, purpose), noCapex, 1);
+      return grossBreakEvenCpcPaise(b) / breakEvenCpcPaise(b) - 1;
+    };
+    expect(gap('value', 'lifestyle')).toBeGreaterThan(gap('value', 'performance'));
+    expect(gap('value', 'lifestyle')).toBeGreaterThan(0.5);
+  });
+
+  test('margin potential per order runs premium > mid > value', () => {
+    const m = (price) => marginPerOrderPaise(businessFor(pos(price, 'performance'), noCapex, 1));
+    expect(m('premium')).toBeGreaterThan(m('mid'));
+    expect(m('mid')).toBeGreaterThan(m('value'));
+  });
+
+  test('premium generates roughly 2.7x value per thousand searches', () => {
+    // This ratio is what the 52/28/20 territory split is derived from. If it
+    // drifts, the volume split stops balancing the positions.
+    const per1000 = (price) => {
+      const b = businessFor(pos(price, 'performance'), noCapex, 1);
+      return 1000 * b.convRateBase * marginPerOrderPaise(b);
+    };
+    const ratio = per1000('premium') / per1000('value');
+    expect(ratio).toBeGreaterThan(2.4);
+    expect(ratio).toBeLessThan(3.0);
+  });
+});
+
+describe('capex: the S-curve (spec 13.3, DECISIONS D7)', () => {
+  test('zero commitment has no effect', () => {
+    expect(capexEffect(0)).toBe(1);
+  });
+
+  test('reads the curve at its authored points', () => {
+    for (const point of CAPEX_TIER_CURVE) {
+      expect(capexEffect(point.paise), String(point.paise)).toBeCloseTo(point.effect, 10);
+    }
+  });
+
+  test('interpolates between them', () => {
+    const mid = (CAPEX_TIER_CURVE[1].paise + CAPEX_TIER_CURVE[2].paise) / 2;
+    expect(capexEffect(mid)).toBeGreaterThan(CAPEX_TIER_CURVE[1].effect);
+    expect(capexEffect(mid)).toBeLessThan(CAPEX_TIER_CURVE[2].effect);
+  });
+
+  test('spending past the top tier buys nothing further', () => {
+    const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1];
+    expect(capexEffect(top.paise * 3)).toBe(top.effect);
+  });
+
+  test('is monotonic', () => {
+    let prev = 0;
+    for (let p = 0; p <= CAPEX_ALLOCATION_PAISE; p += 500000) {
+      const e = capexEffect(p);
+      expect(e).toBeGreaterThanOrEqual(prev);
+      prev = e;
+    }
+  });
+
+  test('splitting three ways underperforms committing, at equal spend', () => {
+    // The whole reason the curve is an S. With diminishing returns the first
+    // tranche on a fresh target would always be the cheapest gain and
+    // spreading thin would be strictly optimal.
+    const third = Math.floor(CAPEX_ALLOCATION_PAISE / 3);
+    const spread = capexEffect(third) - 1;
+    const committed = capexEffect(CAPEX_ALLOCATION_PAISE) - 1;
+    expect(spread * 3).toBeLessThan(committed * 1.35);
+    expect(capexEffect(third)).toBeLessThan(capexEffect(CAPEX_ALLOCATION_PAISE));
+  });
+});
+
+describe('capex: the delay (spec 13.3)', () => {
+  const capex = {
+    committed: { sizeGuide: 10000000, photography: 0, landingPage: 0 },
+    pending: [{ target: 'sizeGuide', paise: 10000000, liveAtRound: 1 + CAPEX_DELAY_ROUNDS }],
+  };
+
+  test('a tranche is inert before its live round', () => {
+    expect(liveCapexPaise(capex, 'sizeGuide', 1)).toBe(0);
+    expect(liveCapexPaise(capex, 'sizeGuide', CAPEX_DELAY_ROUNDS)).toBe(0);
+  });
+
+  test('and live from that round onward', () => {
+    expect(liveCapexPaise(capex, 'sizeGuide', 1 + CAPEX_DELAY_ROUNDS)).toBe(10000000);
+    expect(liveCapexPaise(capex, 'sizeGuide', 12)).toBe(10000000);
+  });
+
+  test('commissioned at round 1, live at round 4', () => {
+    expect(1 + CAPEX_DELAY_ROUNDS).toBe(4);
+  });
+
+  test('a target with nothing committed reads zero', () => {
+    expect(liveCapexPaise(capex, 'photography', 12)).toBe(0);
+  });
+
+  test('is cumulative across both allocations', () => {
+    const twice = {
+      committed: { sizeGuide: 8000000, photography: 0, landingPage: 0 },
+      pending: [{ target: 'sizeGuide', paise: 5000000, liveAtRound: 8 }],
+    };
+    expect(liveCapexPaise(twice, 'sizeGuide', 7)).toBe(3000000);
+    expect(liveCapexPaise(twice, 'sizeGuide', 8)).toBe(8000000);
+  });
+});
+
+describe('capex: what each target actually moves', () => {
+  const withCapex = (target, paise) => ({
+    committed: { sizeGuide: 0, photography: 0, landingPage: 0, [target]: paise },
+    pending: [],
+  });
+  const base = businessFor(pos('value', 'performance'), noCapex, 5);
+
+  test('the size guide lowers the return rate and touches nothing else', () => {
+    const b = businessFor(pos('value', 'performance'), withCapex('sizeGuide', CAPEX_ALLOCATION_PAISE), 5);
+    expect(b.returnRate).toBeLessThan(base.returnRate);
+    expect(b.convRateBase).toBeCloseTo(base.convRateBase, 10);
+    expect(b.aovMeanPaise).toBe(base.aovMeanPaise);
+  });
+
+  test('photography raises the conversion rate and touches nothing else', () => {
+    const b = businessFor(pos('value', 'performance'), withCapex('photography', CAPEX_ALLOCATION_PAISE), 5);
+    expect(b.convRateBase).toBeGreaterThan(base.convRateBase);
+    expect(b.returnRate).toBeCloseTo(base.returnRate, 10);
+  });
+
+  test('the landing page target does not touch the business block at all', () => {
+    // It moves a GRADED number instead, applied after grading, so the grader
+    // and the investment stay separable.
+    const b = businessFor(pos('value', 'performance'), withCapex('landingPage', CAPEX_ALLOCATION_PAISE), 5);
+    expect(b).toEqual(base);
+  });
+
+  test('both effects together are larger than either alone', () => {
+    const both = {
+      committed: { sizeGuide: 5000000, photography: 5000000, landingPage: 0 },
+      pending: [],
+    };
+    const b = businessFor(pos('value', 'performance'), both, 5);
+    expect(b.returnRate).toBeLessThan(base.returnRate);
+    expect(b.convRateBase).toBeGreaterThan(base.convRateBase);
+  });
+
+  test('a full size-guide investment lifts break-even meaningfully', () => {
+    const b = businessFor(pos('value', 'performance'), withCapex('sizeGuide', CAPEX_ALLOCATION_PAISE), 5);
+    expect(breakEvenCpcPaise(b)).toBeGreaterThan(breakEvenCpcPaise(base));
+  });
+
+  test('the value tier gains most from the size guide, premium least', () => {
+    // Returns are 30% at the cheap end and 20% at the top, so the same fix is
+    // worth more where more orders come back. This is what makes the capex
+    // choice position-dependent rather than a re-skinned slider.
+    const gain = (price) => {
+      const before = businessFor(pos(price, 'performance'), noCapex, 5);
+      const after = businessFor(pos(price, 'performance'), withCapex('sizeGuide', CAPEX_ALLOCATION_PAISE), 5);
+      return breakEvenCpcPaise(after) / breakEvenCpcPaise(before) - 1;
+    };
+    expect(gain('value')).toBeGreaterThan(gain('premium'));
+  });
+});
+
+describe('landingPageBonus', () => {
+  test('is zero with no investment', () => {
+    expect(landingPageBonus(noCapex, 5)).toBe(0);
+  });
+
+  test('reaches the full allowance at full commitment', () => {
+    const capex = {
+      committed: { sizeGuide: 0, photography: 0, landingPage: CAPEX_ALLOCATION_PAISE },
+      pending: [],
+    };
+    expect(landingPageBonus(capex, 5)).toBe(CAPEX_LANDING_PAGE_MAX_POINTS);
+  });
+
+  test('respects the delay', () => {
+    const capex = {
+      committed: { sizeGuide: 0, photography: 0, landingPage: CAPEX_ALLOCATION_PAISE },
+      pending: [{ target: 'landingPage', paise: CAPEX_ALLOCATION_PAISE, liveAtRound: 8 }],
+    };
+    expect(landingPageBonus(capex, 7)).toBe(0);
+    expect(landingPageBonus(capex, 8)).toBe(CAPEX_LANDING_PAGE_MAX_POINTS);
+  });
+
+  test('is a whole number of points, since the graded score is', () => {
+    for (let p = 0; p <= CAPEX_ALLOCATION_PAISE; p += 250000) {
+      const capex = { committed: { sizeGuide: 0, photography: 0, landingPage: p }, pending: [] };
+      expect(Number.isInteger(landingPageBonus(capex, 5))).toBe(true);
+    }
+  });
+});
+
+describe('repositioning (spec 4.5)', () => {
+  const at = (round, already = null) => ({
+    position: { price: 'value', purpose: 'performance', setAtRound: 0, repositionedAtRound: already },
+  });
+
+  test('is permitted only at round 5', () => {
+    expect(REPOSITION_ROUND).toBe(5);
+    expect(canReposition(at(5), 5)).toBe(true);
+    for (const r of [1, 2, 3, 4, 6, 9, 12]) expect(canReposition(at(r), r), `round ${r}`).toBe(false);
+  });
+
+  test('only once', () => {
+    expect(canReposition(at(5, 5), 5)).toBe(false);
+  });
+
+  test('one grid step: a price step is allowed', () => {
+    expect(isOneStep({ price: 'value', purpose: 'performance' }, { price: 'mid', purpose: 'performance' })).toBe(true);
+  });
+
+  test('one grid step: a purpose step is allowed', () => {
+    expect(isOneStep({ price: 'value', purpose: 'performance' }, { price: 'value', purpose: 'lifestyle' })).toBe(true);
+  });
+
+  test('two price tiers is not one step: that is a different company', () => {
+    expect(isOneStep({ price: 'value', purpose: 'performance' }, { price: 'premium', purpose: 'performance' })).toBe(false);
+  });
+
+  test('moving both axes at once is not one step', () => {
+    expect(isOneStep({ price: 'value', purpose: 'performance' }, { price: 'mid', purpose: 'lifestyle' })).toBe(false);
+  });
+
+  test('staying put is not a step', () => {
+    expect(isOneStep({ price: 'mid', purpose: 'lifestyle' }, { price: 'mid', purpose: 'lifestyle' })).toBe(false);
+  });
+
+  test('reposition records the round it happened', () => {
+    const next = reposition(at(5).position, { price: 'mid', purpose: 'performance' }, 5);
+    expect(next.price).toBe('mid');
+    expect(next.repositionedAtRound).toBe(5);
+    expect(next.setAtRound).toBe(0);
+  });
+
+  test('it refuses an illegal move rather than silently clamping', () => {
+    expect(() => reposition(at(5).position, { price: 'premium', purpose: 'lifestyle' }, 5))
+      .toThrow(/one step/i);
+  });
+
+  test('it refuses the wrong round', () => {
+    expect(() => reposition(at(3).position, { price: 'mid', purpose: 'performance' }, 3))
+      .toThrow(/round/i);
+  });
+
+  test('it refuses a second move', () => {
+    expect(() => reposition(at(5, 5).position, { price: 'mid', purpose: 'performance' }, 5))
+      .toThrow(/once/i);
+  });
+
+  test('the cost is a full capex allocation, which is the point', () => {
+    expect(REPOSITION_COST_PAISE).toBe(CAPEX_ALLOCATION_PAISE);
+  });
+
+  test('it does not mutate the position it was given (R1)', () => {
+    const before = at(5).position;
+    const snapshot = JSON.stringify(before);
+    reposition(before, { price: 'mid', purpose: 'performance' }, 5);
+    expect(JSON.stringify(before)).toBe(snapshot);
+  });
+});
+
+describe('purity (R1)', () => {
+  test('businessFor does not mutate its inputs', () => {
+    const p = pos('mid', 'lifestyle');
+    const capex = { committed: { sizeGuide: 5000000, photography: 0, landingPage: 0 }, pending: [] };
+    const before = JSON.stringify([p, capex]);
+    businessFor(p, capex, 5);
+    expect(JSON.stringify([p, capex])).toBe(before);
+  });
+
+  test('and never returns the shared constants object', () => {
+    // A caller mutating the returned block must not corrupt POSITION_ECONOMICS
+    // for every other advertiser in the game.
+    const b = businessFor(pos('mid', 'performance'), noCapex, 1);
+    expect(b).not.toBe(POSITION_ECONOMICS.mid);
+    b.marginPct = 0.99;
+    expect(POSITION_ECONOMICS.mid.marginPct).not.toBe(0.99);
+  });
+
+  test('repeated calls agree', () => {
+    const p = pos('premium', 'performance');
+    expect(businessFor(p, noCapex, 5)).toEqual(businessFor(p, noCapex, 5));
+  });
+});

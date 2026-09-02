@@ -1,10 +1,11 @@
 import { describe, test, expect } from 'vitest';
 import {
-  validateQuerySet, assertValidQuerySet, homeCell, cellKey, RULES,
+  validateQuerySet, assertValidQuerySet, homeCell, RULES,
   searches, weeklySearches, daySearches, DAYS_PER_WEEK, HOURS_PER_DAY,
 } from '../engine/querySet.js';
 import { makeQuerySet, broken, TEST_ADVERTISER_IDS } from './fixtures/querySet.js';
 import { PRICE_TIERS, PURPOSES, DAY_OF_WEEK_CURVE, HOUR_PROFILES } from '../engine/constants.js';
+import { cellKey } from '../engine/positions.js';
 
 const opts = { advertiserIds: TEST_ADVERTISER_IDS };
 const rulesBroken = (qs) => validateQuerySet(qs, opts).errors.map((e) => e.rule);
