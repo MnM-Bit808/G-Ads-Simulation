@@ -1,0 +1,18 @@
+# Installed packages. Never committed — npm rebuilds these from package.json,
+# and they are tens of thousands of files of someone else's code.
+node_modules/
+
+# Test and build output
+coverage/
+dist/
+.vitest/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor and OS clutter
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+{
+  "name": "ads-search-simulator",
+  "version": "0.3.0",
+  "description": "Google Ads search auction simulator, built as a learning tool for paid search advertising",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.9"
+  }
+}
