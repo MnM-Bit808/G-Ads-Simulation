@@ -103,7 +103,7 @@ const TERRITORY = {
   'mid|performance': {
     bp: 1250,
     queries: [
-      { t: 'gym leggings women', tags: ['leggings', 'gym', 'women'], w: 12, head: true, soft: true, hp: 'evening' },
+      { t: 'gym leggings', tags: ['leggings', 'gym'], w: 12, head: true, soft: true, hp: 'evening' },
       { t: 'workout leggings', tags: ['leggings', 'training'], w: 11, head: true, soft: true, hp: 'evening' },
       { t: 'sports bra high impact', tags: ['sports-bra', 'training', 'women'], w: 9, head: true, soft: true, ret: 1.2, hp: 'evening' },
       { t: 'gym tights for women', tags: ['leggings', 'gym', 'women'], w: 8, head: true, hp: 'evening' },
@@ -130,7 +130,7 @@ const TERRITORY = {
     bp: 1102,
     queries: [
       { t: 'athleisure leggings', tags: ['leggings', 'casual'], w: 12, head: true, soft: true, hp: 'evening' },
-      { t: 'co ord set women', tags: ['co-ord-set', 'women'], w: 11, head: true, soft: true, val: 1.35, hp: 'evening' },
+      { t: 'co ord set', tags: ['co-ord-set'], w: 11, head: true, soft: true, val: 1.35, hp: 'evening' },
       { t: 'everyday leggings', tags: ['leggings', 'everyday'], w: 9, head: true, soft: true, hp: 'evening' },
       { t: 'joggers for women', tags: ['joggers', 'casual', 'women'], w: 9, head: true, ret: 0.9, hp: 'evening' },
       { t: 'lounge pants women', tags: ['pants', 'lounge', 'women'], w: 7, ret: 0.9, hp: 'evening' },

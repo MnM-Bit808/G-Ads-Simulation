@@ -26,6 +26,36 @@ describe('shape', () => {
     }
   });
 
+  test('the obvious keywords a player would write have a literal query to match', () => {
+    // reportedScore counts only impressions where the query text literally
+    // equals the keyword (A4). If the canonical two-word search is missing
+    // from the set, the most natural keyword in the market never earns a
+    // Quality Score at all, and the whole 9.3 diagnostic is dead for it.
+    //
+    // Found by running the real set through matching: an exact-match keyword
+    // "gym leggings" caught nothing, because every query carried a modifier.
+    const OBVIOUS = [
+      'gym leggings', 'workout leggings', 'co ord set', 'everyday leggings',
+      'seamless leggings', 'compression leggings', 'squat proof leggings',
+      'cheap athleisure', 'premium athleisure',
+    ];
+    const texts = new Set(QUERY_SET.queries.map((q) => q.text));
+    const missing = OBVIOUS.filter((t) => !texts.has(t));
+    expect(missing, `no literal query for: ${missing.join(', ')}`).toEqual([]);
+  });
+
+  test('every cell has a head term short enough to be typed as a keyword', () => {
+    // Three words, not two. "cheap gym leggings" is every bit as plausible a
+    // keyword as "gym leggings", and holding the Value cells to two would mean
+    // contorting the content to satisfy an arbitrary bar.
+    for (const cell of allCells()) {
+      const short = commercial.filter(
+        (q) => homeCell(q) === cell && q.isHeadTerm && q.text.split(' ').length <= 3,
+      );
+      expect(short.length, cell).toBeGreaterThan(0);
+    }
+  });
+
   test('every cell has more head terms than the floor, not exactly the floor', () => {
     // Sitting on a minimum means the next edit breaks it silently.
     for (const cell of allCells()) {

@@ -88,6 +88,29 @@ If in play the landing page rating never leaves `average`, the fix is to widen t
 factor range, not to move the threshold — the threshold is what makes the three
 components comparable to each other.
 
+### A7. The broad-match quality penalty is half the size the range implies — `OPEN`
+`queryKeywordFit` is specified as spanning 0.50–1.15, scaled by how much of a
+keyword's tag set the query carries. Building `matching.js` showed the bottom
+half of that range is structurally unreachable **for the match type it exists
+to penalise**.
+
+Broad match fires at `BROAD_MATCH_MIN_OVERLAP` (0.50) or above. An overlap of
+exactly 0.50 maps to a fit of 0.825. So no broad match can ever score below
+0.825 — anything that would have has already failed to match.
+
+The effective penalty is therefore **0.825 to 1.15, a 28% swing in ad rank**,
+not the 57% the stated range suggests. Measured against the real query set, a
+broad `gym leggings` keyword reaches fits between 0.825 and 1.150 exactly.
+
+28% is still a real penalty and the lesson survives. But the two constants are
+**coupled and cannot be tuned independently**: lowering the overlap threshold
+widens the reachable fit range *and* makes broad match catch more traffic at
+the same time. Worth knowing before calibration starts reaching for either one.
+
+The floor of 0.50 is reachable only by an exact or phrase keyword whose tags
+happen not to overlap the query's — which in practice means the tagger tagged
+the keyword differently from the query, and is rare.
+
 ---
 
 ## B. Auction and pricing
