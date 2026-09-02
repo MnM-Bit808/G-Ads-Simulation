@@ -79,6 +79,22 @@ Score forever. So spec 7.4 requires at least three "head term" queries per grid
 cell — short strings a player would plausibly type as a keyword. Without them the
 entire §9.3 diagnostic is dead weight.
 
+Running the real set through `matching.js` proved the point: an exact-match
+keyword on `gym leggings`, the most obvious search in this market, caught
+**nothing**, because every query in the set carried a modifier. Two head terms
+were rewritten to their bare canonical form and a test now guards it.
+
+**The trailing window excludes the current round.** The spec says "trailing
+window of `QUALITY_WINDOW_ROUNDS`" without saying whether the round in progress
+counts, and the answer decides whether the CLAUDE.md trap holds at all.
+
+It is computed from completed prior rounds only. Nothing a player does this
+round can move the number they are looking at: improving ad copy lifts
+`qualitySignal` in the very next auction while `reportedScore` sits unchanged.
+That is exactly the lag that makes Quality Score confusing in a real account.
+Including the current round would let the two move together, and the split
+would quietly stop teaching anything.
+
 ### A6. Landing page ratings are compressed — `OPEN`
 `landingFactor` spans 0.85–1.05, so an own-vs-field ratio can reach at most about
 1.235, against a `RATING_UPPER_THRESHOLD` of 1.10. "Above average" on landing page

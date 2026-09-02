@@ -283,7 +283,7 @@ export function validateQuerySet(querySet, options = {}) {
       fail(RULES.HEAD_TERMS_PER_CELL,
         `cell ${cell} has ${heads} head terms, below the minimum of `
         + `${QUERY_SET_RULES.minHeadTermsPerCell}. Without them a player's keyword may `
-        + 'never literally appear as a query and reportedScore stays null forever.');
+        + 'never literally appear as a query, and its Quality Score stays null forever.');
     }
 
     const share = territoryBp > 0 ? cellBp.get(cell) / territoryBp : 0;

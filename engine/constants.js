@@ -229,6 +229,41 @@ export const QUALITY_FACTOR_RANGES = {
   contextFactor: { min: 0.95, max: 1.05 },
 };
 
+/**
+ * How much less relevant the same ad is to a searcher who is not buying.
+ *
+ * Applied to the graded adRelevance before it is mapped onto its factor range,
+ * rather than multiplied onto the output, so the result cannot leave the range
+ * and need not be clamped back into it.
+ */
+export const RELEVANCE_INTENT_MULTIPLIERS = {
+  commercial: 1.0,
+  brand: 1.0,
+  informational: 0.80,
+  irrelevant: 0.60,
+};
+
+/**
+ * A small hourly wobble in click probability - people browse more attentively
+ * in the evening and less at four in the morning.
+ *
+ * The narrowest factor in the signal by a wide margin, and deliberately so:
+ * it is texture, not a lever anyone should be playing against.
+ */
+export const CONTEXT_FACTOR_CURVE = [
+  0.96, 0.95, 0.95, 0.95, 0.96, 0.97, 0.98, 0.99,
+  1.00, 1.01, 1.01, 1.02, 1.02, 1.01, 1.01, 1.02,
+  1.02, 1.03, 1.04, 1.05, 1.05, 1.04, 1.02, 0.99,
+];
+
+/**
+ * Spread of the multiplicative noise on the quality signal in sampled mode.
+ *
+ * Lognormal, shifted so its mean is exactly 1 - noise must blur the signal
+ * without quietly inflating or deflating it.
+ */
+export const QUALITY_NOISE_SIGMA = 0.08;
+
 export const QUALITY_WINDOW_ROUNDS = 13;
 export const QUALITY_MIN_IMPRESSIONS = 500;
 export const RATING_UPPER_THRESHOLD = 1.10;
@@ -486,6 +521,9 @@ export const PROVENANCE = {
   AUCTIONS_PER_QUERY_HOUR: 'INVENTED',
   QUALITY_FACTOR_RANGES: 'INVENTED',
   QUALITY_MIN_IMPRESSIONS: 'INVENTED',
+  RELEVANCE_INTENT_MULTIPLIERS: 'INVENTED',
+  CONTEXT_FACTOR_CURVE: 'INVENTED',
+  QUALITY_NOISE_SIGMA: 'INVENTED',
   RATING_UPPER_THRESHOLD: 'INVENTED',
   RATING_LOWER_THRESHOLD: 'INVENTED',
   DEFAULT_UNGRADED_QUALITY: 'INVENTED',
