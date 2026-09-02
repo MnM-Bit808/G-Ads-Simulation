@@ -16,8 +16,12 @@
 
 import {
   PRICE_TIERS, PURPOSES, SCHEMA_VERSION,
-  QUERY_SET_RULES,
+  QUERY_SET_RULES, DAY_OF_WEEK_CURVE, HOUR_PROFILES,
 } from './constants.js';
+
+/** Derived from the curves themselves, so the two can never disagree. */
+export const DAYS_PER_WEEK = DAY_OF_WEEK_CURVE.length;
+export const HOURS_PER_DAY = HOUR_PROFILES.business.length;
 
 /** Rule identifiers, so failures can be asserted on rather than string-matched. */
 export const RULES = {
@@ -366,6 +370,91 @@ export function assertValidQuerySet(querySet, options = {}) {
     throw error;
   }
   return querySet;
+}
+
+// ===========================================================================
+// Volume composition (spec 7.2)
+// ===========================================================================
+
+/**
+ * How many people search this query in this hour of this day.
+ *
+ *   weeklyVolume x volumeShareBp/10000 x DAY_OF_WEEK_CURVE[day]
+ *                                      x HOUR_PROFILES[hourProfile][hour]
+ *
+ * One mechanism, not two. v0.1 carried a global hourly demand curve *and* a
+ * per-query hour profile and multiplied both, so every query was shaped twice
+ * by the clock — the L6 defect. There is now exactly one hourly weighting and
+ * it belongs to the query.
+ *
+ * Both curves are normalised over their range, so summing this across every
+ * query, day and hour returns weeklyVolume exactly. That conservation is
+ * asserted in the tests and is the cheapest way to catch a weighting applied
+ * twice or dropped.
+ *
+ * Returns a fractional count, deliberately. The engine never simulates
+ * individual searches — one auction resolution carries a weighted slice of an
+ * hour's volume (spec 11.5) — so whole numbers here would be a false precision.
+ * This is not money and R7 does not apply.
+ *
+ * @param {object} querySet the set the query belongs to, for weeklyVolume
+ * @param {object} query
+ * @param {number} day 0..6, 0 is Monday
+ * @param {number} hour 0..23
+ * @returns {number} expected searches, fractional
+ */
+export function searches(querySet, query, day, hour) {
+  if (!Number.isInteger(day) || day < 0 || day >= DAYS_PER_WEEK) {
+    throw new RangeError(`day must be an integer 0..${DAYS_PER_WEEK - 1}, got ${String(day)}`);
+  }
+  if (!Number.isInteger(hour) || hour < 0 || hour >= HOURS_PER_DAY) {
+    throw new RangeError(`hour must be an integer 0..${HOURS_PER_DAY - 1}, got ${String(hour)}`);
+  }
+
+  const profile = HOUR_PROFILES[query.hourProfile];
+  if (!profile) {
+    throw new RangeError(
+      `unknown hourProfile "${query.hourProfile}" on query ${query.id ?? '(no id)'}`,
+    );
+  }
+
+  return (querySet.weeklyVolume * query.volumeShareBp) / TOTAL_BP
+    * DAY_OF_WEEK_CURVE[day]
+    * profile[hour];
+}
+
+/**
+ * Expected searches for one query across a whole day.
+ *
+ * @param {object} querySet
+ * @param {object} query
+ * @param {number} day 0..6
+ * @returns {number} fractional count
+ */
+export function daySearches(querySet, query, day) {
+  let total = 0;
+  for (let hour = 0; hour < HOURS_PER_DAY; hour++) {
+    total += searches(querySet, query, day, hour);
+  }
+  return total;
+}
+
+/**
+ * Expected searches for one query across a whole round.
+ *
+ * Equals weeklyVolume x volumeShareBp/10000, since both curves are normalised.
+ * The hour profile decides *when* the searches happen, never how many there are.
+ *
+ * @param {object} querySet
+ * @param {object} query
+ * @returns {number} fractional count
+ */
+export function weeklySearches(querySet, query) {
+  let total = 0;
+  for (let day = 0; day < DAYS_PER_WEEK; day++) {
+    total += daySearches(querySet, query, day);
+  }
+  return total;
 }
 
 function checkAffinity(obj, keys, label, at, fail) {

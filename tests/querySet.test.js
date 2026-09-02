@@ -1,9 +1,10 @@
 import { describe, test, expect } from 'vitest';
 import {
   validateQuerySet, assertValidQuerySet, homeCell, cellKey, RULES,
+  searches, weeklySearches, daySearches, DAYS_PER_WEEK, HOURS_PER_DAY,
 } from '../engine/querySet.js';
 import { makeQuerySet, broken, TEST_ADVERTISER_IDS } from './fixtures/querySet.js';
-import { PRICE_TIERS, PURPOSES } from '../engine/constants.js';
+import { PRICE_TIERS, PURPOSES, DAY_OF_WEEK_CURVE, HOUR_PROFILES } from '../engine/constants.js';
 
 const opts = { advertiserIds: TEST_ADVERTISER_IDS };
 const rulesBroken = (qs) => validateQuerySet(qs, opts).errors.map((e) => e.rule);
@@ -353,5 +354,177 @@ describe('validation is pure (R1)', () => {
   test('repeated calls give identical results', () => {
     const qs = makeQuerySet();
     expect(validateQuerySet(qs, opts)).toEqual(validateQuerySet(qs, opts));
+  });
+});
+
+// ===========================================================================
+// Volume composition (spec 7.2)
+// ===========================================================================
+
+describe('searches — conservation', () => {
+  test('the whole week across every query sums to exactly weeklyVolume', () => {
+    // This is the L6 regression test. v0.1 applied a global hourly demand curve
+    // AND a per-query hour profile, double-counting one against the other. If
+    // any weighting is applied twice, or dropped, this total stops matching.
+    const qs = makeQuerySet();
+    let total = 0;
+    for (const q of qs.queries) {
+      for (let d = 0; d < DAYS_PER_WEEK; d++) {
+        for (let h = 0; h < HOURS_PER_DAY; h++) total += searches(qs, q, d, h);
+      }
+    }
+    expect(total / qs.weeklyVolume).toBeCloseTo(1, 9);
+  });
+
+  test('one query over a week equals its share of weeklyVolume', () => {
+    const qs = makeQuerySet();
+    const q = qs.queries[0];
+    let total = 0;
+    for (let d = 0; d < DAYS_PER_WEEK; d++) {
+      for (let h = 0; h < HOURS_PER_DAY; h++) total += searches(qs, q, d, h);
+    }
+    const expected = (qs.weeklyVolume * q.volumeShareBp) / 10000;
+    expect(total).toBeCloseTo(expected, 6);
+  });
+
+  test('weeklySearches agrees with summing hour by hour', () => {
+    const qs = makeQuerySet();
+    const q = qs.queries[5];
+    let manual = 0;
+    for (let d = 0; d < DAYS_PER_WEEK; d++) {
+      for (let h = 0; h < HOURS_PER_DAY; h++) manual += searches(qs, q, d, h);
+    }
+    expect(weeklySearches(qs, q)).toBeCloseTo(manual, 6);
+  });
+
+  test('daySearches agrees with summing that day hour by hour', () => {
+    const qs = makeQuerySet();
+    const q = qs.queries[5];
+    let manual = 0;
+    for (let h = 0; h < HOURS_PER_DAY; h++) manual += searches(qs, q, 3, h);
+    expect(daySearches(qs, q, 3)).toBeCloseTo(manual, 6);
+  });
+
+  test('the days of one query sum to its week', () => {
+    const qs = makeQuerySet();
+    const q = qs.queries[9];
+    let total = 0;
+    for (let d = 0; d < DAYS_PER_WEEK; d++) total += daySearches(qs, q, d);
+    expect(total).toBeCloseTo(weeklySearches(qs, q), 6);
+  });
+});
+
+describe('searches — each weighting applies exactly once', () => {
+  test('the ratio between two days matches DAY_OF_WEEK_CURVE', () => {
+    // If the day curve were applied twice the ratio would be squared.
+    const qs = makeQuerySet();
+    const q = qs.queries[0];
+    const ratio = searches(qs, q, 5, 12) / searches(qs, q, 0, 12);
+    expect(ratio).toBeCloseTo(DAY_OF_WEEK_CURVE[5] / DAY_OF_WEEK_CURVE[0], 10);
+  });
+
+  test('the ratio between two hours matches the query hour profile', () => {
+    const qs = makeQuerySet();
+    const q = qs.queries.find((x) => x.hourProfile === 'evening');
+    const profile = HOUR_PROFILES.evening;
+    const ratio = searches(qs, q, 0, 20) / searches(qs, q, 0, 3);
+    expect(ratio).toBeCloseTo(profile[20] / profile[3], 10);
+  });
+
+  test('doubling a query share doubles its volume and nothing else', () => {
+    const qs = makeQuerySet();
+    const q = qs.queries[0];
+    const before = searches(qs, q, 2, 14);
+    const doubled = { ...q, volumeShareBp: q.volumeShareBp * 2 };
+    expect(searches(qs, doubled, 2, 14)).toBeCloseTo(before * 2, 9);
+  });
+});
+
+describe('searches — hour profiles actually differ', () => {
+  test('a business query peaks late morning, an evening query peaks at night', () => {
+    const qs = makeQuerySet();
+    const business = qs.queries.find((x) => x.hourProfile === 'business');
+    const evening = qs.queries.find((x) => x.hourProfile === 'evening');
+
+    const peakHour = (q) => {
+      let best = 0;
+      for (let h = 1; h < HOURS_PER_DAY; h++) {
+        if (searches(qs, q, 0, h) > searches(qs, q, 0, best)) best = h;
+      }
+      return best;
+    };
+
+    expect(peakHour(business)).toBe(11);
+    expect(peakHour(evening)).toBe(20);
+  });
+
+  test('two queries with the same share but different profiles differ by hour', () => {
+    const qs = makeQuerySet();
+    const base = qs.queries[0];
+    const a = { ...base, hourProfile: 'business' };
+    const b = { ...base, hourProfile: 'evening' };
+    expect(searches(qs, a, 0, 11)).toBeGreaterThan(searches(qs, b, 0, 11));
+    expect(searches(qs, b, 0, 21)).toBeGreaterThan(searches(qs, a, 0, 21));
+  });
+
+  test('but they still carry the same weekly total', () => {
+    // The profile reshapes when the searches happen, never how many there are.
+    const qs = makeQuerySet();
+    const base = qs.queries[0];
+    const a = { ...base, hourProfile: 'business' };
+    const b = { ...base, hourProfile: 'evening' };
+    expect(weeklySearches(qs, a)).toBeCloseTo(weeklySearches(qs, b), 6);
+  });
+});
+
+describe('searches — edges and guards', () => {
+  test('a zero share yields no searches at any hour', () => {
+    const qs = makeQuerySet();
+    const q = { ...qs.queries[0], volumeShareBp: 0 };
+    for (let h = 0; h < HOURS_PER_DAY; h++) expect(searches(qs, q, 0, h)).toBe(0);
+  });
+
+  test('every hour of every day is non-negative and finite', () => {
+    const qs = makeQuerySet();
+    for (const q of qs.queries) {
+      for (let d = 0; d < DAYS_PER_WEEK; d++) {
+        for (let h = 0; h < HOURS_PER_DAY; h++) {
+          const v = searches(qs, q, d, h);
+          expect(Number.isFinite(v)).toBe(true);
+          expect(v).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+  });
+
+  test('an out of range day or hour throws rather than returning a wrong number', () => {
+    const qs = makeQuerySet();
+    const q = qs.queries[0];
+    expect(() => searches(qs, q, -1, 0)).toThrow();
+    expect(() => searches(qs, q, DAYS_PER_WEEK, 0)).toThrow();
+    expect(() => searches(qs, q, 0, -1)).toThrow();
+    expect(() => searches(qs, q, 0, HOURS_PER_DAY)).toThrow();
+    expect(() => searches(qs, q, 1.5, 0)).toThrow();
+  });
+
+  test('an unknown hour profile throws', () => {
+    const qs = makeQuerySet();
+    const q = { ...qs.queries[0], hourProfile: 'nocturnal' };
+    expect(() => searches(qs, q, 0, 0)).toThrow(/nocturnal/);
+  });
+});
+
+describe('searches — purity (R1)', () => {
+  test('identical arguments give identical results', () => {
+    const qs = makeQuerySet();
+    const q = qs.queries[3];
+    expect(searches(qs, q, 4, 17)).toBe(searches(qs, q, 4, 17));
+  });
+
+  test('it does not mutate the query or the set', () => {
+    const qs = makeQuerySet();
+    const before = JSON.stringify(qs);
+    for (let h = 0; h < HOURS_PER_DAY; h++) searches(qs, qs.queries[0], 0, h);
+    expect(JSON.stringify(qs)).toBe(before);
   });
 });
