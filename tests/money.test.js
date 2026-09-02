@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import {
   rupeesToPaise, paiseToRupees, formatINR,
-  mulRate, allocate, sumPaise, isPaise, assertPaise, clamp,
+  mulRate, allocate, sumPaise, isPaise, assertPaise,
 } from '../engine/money.js';
 
 describe('paise conversion', () => {
@@ -169,10 +169,3 @@ describe('formatINR', () => {
   });
 });
 
-describe('clamp', () => {
-  test('bounds a value both ways', () => {
-    expect(clamp(5, 0, 10)).toBe(5);
-    expect(clamp(-1, 0, 10)).toBe(0);
-    expect(clamp(11, 0, 10)).toBe(10);
-  });
-});

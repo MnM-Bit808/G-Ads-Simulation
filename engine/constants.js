@@ -284,13 +284,14 @@ export const RATING_TO_SCORE_TABLE = (() => {
 export const BROAD_MATCH_MIN_OVERLAP = 0.50;
 
 /**
- * Provisional vocabulary. Tightly coupled to whatever queryGen produces, so
- * treat it as a starting point to be revised in step 2, not a settled list.
+ * Fixed alongside content/querySet.js. Every tag here is used by at least one
+ * query, and every query tag is here — asserted by the query set tests, so the
+ * two cannot drift.
  */
 export const TAG_VOCABULARY = [
   // product
-  'leggings', 'sports-bra', 'tshirt', 'tank', 'shorts', 'joggers', 'jacket',
-  'co-ord-set', 'socks',
+  'leggings', 'sports-bra', 'tshirt', 'tank', 'shorts', 'joggers',
+  'hoodie', 'pants', 'co-ord-set',
   // attribute
   'high-waisted', 'seamless', 'compression', 'squat-proof', 'pocketed',
   'flared', 'cropped', 'oversized', 'quick-dry', 'sweat-wicking',
@@ -298,10 +299,15 @@ export const TAG_VOCABULARY = [
   // use
   'gym', 'running', 'yoga', 'training', 'cycling', 'casual', 'everyday',
   'travel', 'lounge',
-  // audience
-  'women', 'men', 'plus-size',
-  // price signal
-  'cheap', 'budget', 'sale', 'discount', 'premium', 'luxury', 'value',
+  // audience — one entry only: the vertical is women's athleisure, and 'men'
+  // or 'plus-size' would be tags no query could ever legitimately carry
+  'women',
+  // price signal. No 'value' tag: it would read as the Value price tier and
+  // the two mean different things
+  'cheap', 'budget', 'sale', 'discount', 'premium', 'luxury', 'combo',
+  // how premium goods are actually searched: by material and construction
+  // rather than by an adjective meaning expensive
+  'fabric',
   // intent
   'buy', 'compare', 'research', 'how-to', 'size-guide', 'care',
   // other

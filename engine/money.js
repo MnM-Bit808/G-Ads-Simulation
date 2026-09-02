@@ -42,19 +42,6 @@ export function assertPaise(v, label = 'value') {
 }
 
 /**
- * Bound a number both ways. A general numeric helper, parked here rather than in
- * a module of its own; see the note in the step 1 summary.
- *
- * @param {number} v
- * @param {number} lo
- * @param {number} hi
- * @returns {number}
- */
-export function clamp(v, lo, hi) {
-  return Math.min(hi, Math.max(lo, v));
-}
-
-/**
  * Convert rupees to integer paise, rounding half up.
  *
  * @param {number} rupees
