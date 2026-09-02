@@ -137,6 +137,26 @@ exactly when the field is deep, which is when it should be expensive. v0.3 price
 against the first entrant below you regardless of whether they were shown, and
 falls back to the floor only when nobody is below you at all.
 
+**A second correction, found while building `auction.js`.** Spec 10.2 as written
+would let a *below-floor* rival sitting beneath you set your price. That inverts
+the mechanic: adding a weak competitor would **lower** your cost beneath the
+reserve, so a deeper field would be cheaper than a thin one.
+
+The floor is a reserve price, not merely an eligibility gate. You always pay at
+least enough to clear it, so `beatRank` is the greater of the rank below you and
+`AD_RANK_FLOOR`. Neither half of this is stated outright in the spec; both are
+now enforced and tested.
+
+**And one thing worth recording because it looks like a bug and is not.** The
+`min(bid, price)` cap almost never binds. Clearing the floor means
+`bid x qs >= floor`, so `bid >= floor/qs`, while the price is `ceil(floor/qs) + 1`
+— at most two paise more. Anyone who qualifies to show can essentially always
+afford the price *by construction*, and the same argument holds against a live
+rival, since outranking them implies you can outbid them. So the cap guards the
+rounding increment rather than expressing an economic constraint. It stays,
+because that rounding edge is real, and it is tested at the exact bid where it
+bites.
+
 ### B6. The SERP contains only ads — `WONTFIX`
 **Real:** shopping carousels, local packs, AI overviews and organic results compete
 for the same attention and change effective CTR.
