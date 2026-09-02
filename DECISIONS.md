@@ -399,6 +399,35 @@ deliberately omitted as one complication too many. Candidate for v0.4.
 No devices, geography, audiences, or multiple campaigns. Negatives are campaign
 level only. One market.
 
+### E7. Two readings the validator had to settle — `FIXED v0.3`
+Spec 7.4 requires "every one of the 6 cells has >= 15 queries and >= 8% of total
+volume". Building the validator exposed that neither half of that sentence is
+fully determined, so both readings are recorded here rather than left implicit
+in the code.
+
+**Which cell does a query belong to?** Queries carry no cell field — they carry
+a `priceAffinity` and a `purposeAffinity`. A query's cell is therefore the
+price x purpose pair where the product of the two peaks, with ties resolving to
+the first cell in a fixed order so the result is deterministic (R1).
+
+**Only commercial queries have a cell.** Informational and irrelevant traffic is
+waste, not territory, and brand traffic belongs to a trademark owner rather than
+to a position. Had they been assigned cells by the same argmax, a set could
+satisfy "15 queries per cell" while offering a position fifteen searches for
+laundry advice. The rule exists to guarantee every position enough ground to
+build a keyword strategy on, and only commercial traffic is ground.
+
+**Shares are of territory volume, not total volume.** This follows from the
+above and from the 5% irrelevant floor: with a deliberate slice of the market
+worthless to everyone, tier shares of *total* volume could never sum to the
+52/28/20 target. So both the 8% cell floor and the 52/28/20 tier split are
+measured against commercial volume alone.
+
+`QUERY_SET_RULES` in `constants.js` carries the thresholds, tagged `INVENTED`.
+The 5-point tier tolerance is the loosest of them and the one most likely to
+need revisiting once a real set exists — too tight and no generated set will
+ever pass, too loose and invariant I3 cannot balance.
+
 ---
 
 ## F. Positioning, statistics and economics

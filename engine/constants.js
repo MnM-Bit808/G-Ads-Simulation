@@ -309,6 +309,34 @@ export const TAG_VOCABULARY = [
 ];
 
 // ---------------------------------------------------------------------------
+// Query set validation (spec 7.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * The thresholds engine/querySet.js enforces.
+ *
+ * Two readings of spec 7.4 were needed and are recorded in DECISIONS E7:
+ *
+ *  - A query's cell is the price x purpose pair where its combined affinity
+ *    peaks, and only COMMERCIAL queries have one. Informational and irrelevant
+ *    traffic is waste rather than territory, and brand traffic belongs to a
+ *    trademark owner. Counting either would let a set look well-supplied while
+ *    offering a position nothing it actually wants to buy.
+ *
+ *  - Cell and tier shares are therefore fractions of TERRITORY volume, not of
+ *    total volume. With 5%+ of volume deliberately worthless, shares of the
+ *    total could never reach 52/28/20.
+ */
+export const QUERY_SET_RULES = {
+  minQueriesPerCell: 15,
+  minHeadTermsPerCell: 3,
+  minCellVolumeShare: 0.08,
+  minIrrelevantVolumeShare: 0.05,
+  tierVolumeTargets: { value: 0.52, mid: 0.28, premium: 0.20 },
+  tierVolumeTolerance: 0.05,
+};
+
+// ---------------------------------------------------------------------------
 // Conversion chain (spec 12.1)
 // ---------------------------------------------------------------------------
 
@@ -458,6 +486,7 @@ export const PROVENANCE = {
   RATING_TO_SCORE_TABLE: 'INVENTED',
   BROAD_MATCH_MIN_OVERLAP: 'INVENTED',
   TAG_VOCABULARY: 'INVENTED',
+  QUERY_SET_RULES: 'INVENTED',
   BRAND_OWNER_MULTIPLIER: 'INVENTED',
   BRAND_POACHER_MULTIPLIER: 'INVENTED',
   INFORMATIONAL_CONV_MULTIPLIER: 'INVENTED',
