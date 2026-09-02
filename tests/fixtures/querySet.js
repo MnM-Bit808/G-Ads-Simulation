@@ -12,11 +12,14 @@
 
 import { PRICE_TIERS, PURPOSES, TAG_VOCABULARY, SCHEMA_VERSION } from '../../engine/constants.js';
 import { allocate } from '../../engine/money.js';
+import { BRAND_IDS } from '../../content/brands.js';
 
-export const TEST_ADVERTISER_IDS = [
-  'vella', 'northgate', 'marlow', 'budgetbox', 'kestrel',
-  'anvil', 'lumen', 'satva', 'orbit',
-];
+/**
+ * The real roster, not a parallel list. A fixture that invented its own
+ * advertiser ids would keep passing after the roster changed, which is the
+ * kind of drift these tests exist to catch.
+ */
+export const TEST_ADVERTISER_IDS = [...BRAND_IDS];
 
 const HOUR_PROFILES = ['business', 'evening', 'flat'];
 

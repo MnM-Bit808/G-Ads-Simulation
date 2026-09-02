@@ -198,6 +198,41 @@ guessing. Ads must be hand-authored per cell so a careful reader can tell
 
 ---
 
+### C6. Brand identities are pre-decided and deliberately meaningless — `FIXED v0.3`
+**Real:** an advertiser names its own brand, and the name usually carries some
+signal — "Decathlon" and "Lululemon" do not read alike.
+
+**Sim v0.3:** nine identities are authored once in `content/brands.js` and
+frozen. The player takes one at round 0; the other eight go to the rivals.
+
+Two problems forced this, both found while building the query set validator.
+
+**The player could not have had a brand query.** Spec 17 loads and validates
+the query set at step 1, but the player named their brand at step 7. At
+validation time the player did not exist, yet 7.4 requires a brand query for
+all nine advertisers. As written those rules could not both hold. Pre-deciding
+the roster puts all nine brand queries in the frozen set, and removes the
+name-uniqueness check entirely — names cannot collide when they come from one
+list. It also dissolves the last of the round 0 circular dependency, since the
+roster is now complete before anything is generated.
+
+**Names had to stop signalling position.** Rival placement is seeded per game,
+so a name carrying a price or purpose signal would eventually land in a cell
+that contradicts it. This is not a cosmetic problem: 17.1 makes position
+*inferable from ad copy*, so a name pulling the other way actively degrades the
+inference the round 0 decision depends on. The v0.1 prototype's "BudgetBox" is
+exactly the failure mode, and `tests/brands.test.js` now refuses any name
+containing a price or purpose word.
+
+**So position is signalled entirely through ad copy**, authored per cell. That
+is the honest place for it — a brand is not premium because of its name. It is
+also true of most real D2C labels, which are coined words chosen to be
+memorable rather than descriptive.
+
+**What is lost:** the player picks a name from nine rather than typing their
+own. At the most overloaded moment of the game that is arguably a gain, but it
+is a real reduction in expression and is recorded as such.
+
 ## D. Budget, bidding and capital
 
 ### D1. Budget model was outdated — `FIXED v0.3`

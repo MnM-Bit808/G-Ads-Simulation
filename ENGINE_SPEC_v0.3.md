@@ -345,6 +345,10 @@ engine/
   report.js       RoundReport construction and revision (15)
   insights.js     Auction Insights + getPublicView (16)
   serialise.js    load/save, schemaVersion enforcement (L16)
+content/
+  brands.js       the nine brand identities, frozen (7.5)
+  adCopy.js       rival ad copy authored per cell (17.1)
+  querySet.json   the generated set, hand-corrected and frozen (7.1)
 agents/
   policies.js     rule-based policies, used by tests
   llmPolicy.js    Claude-backed, same interface
@@ -433,11 +437,40 @@ Throws loudly on any failure. Same philosophy as L16.
 - **>= 3 `isHeadTerm` queries per cell.** These are the short strings a player would
   plausibly type as a keyword. Without them, literal-match `reportedScore` (9.3)
   never populates and the entire diagnostic is dead weight **(H4)**
-- at least one `brandOwner` query per advertiser
+- at least one `brandOwner` query per advertiser, for all nine — see 7.5
 - every query carries tags; every tag is in `tagVocabulary`
 - no duplicate query text
 
 ---
+
+### 7.5 The brand roster is fixed in advance
+
+Nine brand identities — id, name, domain — are authored once in
+`content/brands.js` and frozen alongside the query set. **The player chooses
+one of the nine as their own at round 0; the other eight go to the rivals.**
+
+This resolves two things that could not otherwise both hold.
+
+**The player would have had no brand query.** §17 loads and validates the query
+set at step 1, but the player named their brand at step 7. At validation time
+the player did not exist, yet 7.4 requires a brand query for all nine
+advertisers. Pre-deciding the roster makes all nine brand queries part of the
+frozen set, and removes the uniqueness check entirely — names cannot collide
+when they come from one list.
+
+**Names must be position-neutral.** Rival placement is seeded per game (17.1),
+so any name carrying a price or purpose signal would eventually land in a cell
+that contradicts it. A rival called "BudgetBox" appearing in Premium would
+actively mislead, because 17.1 makes position *inferable from ad copy* — and an
+incoherent name poisons that inference.
+
+So the names are abstract and signal nothing, which is also true of most real
+D2C brands. **Position is signalled entirely through ad copy**, authored per
+cell at placement, which is the honest place for it. A brand is not premium
+because of its name.
+
+Cost to the player: they pick a name from nine rather than typing one. At the
+most overloaded moment of the game that is arguably a gain.
 
 ## 8. Matching and eligibility
 
@@ -1178,15 +1211,16 @@ No circular dependencies, nothing deferred.
 
 ```
 SETUP     1. load + validate query set                          (7.4)
-          2. place 8 rivals into cells                          (17.1)
-          3. generate rival keywords, ads, capex, weekly splits
-          4. grade + tag rival assets
+          2. player picks brand identity, one of the nine       (7.5)
+          3. place 8 rivals into cells, seeded and constrained  (17.1)
+             and give them the eight remaining identities
+          4. generate rival keywords, ads, capex, weekly splits
+          5. grade + tag rival assets
 
-BRIEFING  5. show market briefing                               (17.2)
-          6. show all 8 rivals' ad copy, unordered
+BRIEFING  6. show market briefing                               (17.2)
+          7. show all 8 rivals' ad copy, unordered
 
-PLAYER    7. name brand            (validated unique against rival names and copy)
-          8. pick position                                      (6 cells)
+PLAYER    8. pick position                                      (6 cells)
           9. allocate capex                                     (13.3)
          10. build keywords + write ads
          11. split month 1 budget across four weeks
