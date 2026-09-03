@@ -324,6 +324,68 @@ describe('state advances correctly', () => {
   });
 });
 
+describe('the engine writes observed history (spec 12.2)', () => {
+  // The test spec 19 asks for and that was never written. Every strategies
+  // test supplies observedConvRate by hand, so the suite looked identical
+  // whether or not the engine ever wrote one - and it never did. Smart
+  // bidding fell back to COLD_START_CONV_RATE for all twelve rounds while
+  // observedConversions climbed into the hundreds, so the estimate grew
+  // steadily more confident about a number that never updated.
+  const fresh = deformed(STATE, (x) => {
+    for (const a of x.advertisers) {
+      a.campaign.strategy = 'targetCpa';
+      a.bidding = { learningRoundsRemaining: 0, observedConvRate: null, observedConversions: 0, observedClicks: 0, observedByHour: null };
+    }
+  });
+
+  const rounds = [];
+  let s = fresh;
+  for (let r = 1; r <= 4; r++) {
+    const out = runRound(s, { mode: 'expected' });
+    s = out.nextGameState;
+    rounds.push({ raw: out.raw, state: s });
+  }
+  const bidding = (i) => rounds[i].state.advertisers[0].bidding;
+
+  test('observedConvRate is written, not left null', () => {
+    expect(bidding(0).observedConvRate).toBeGreaterThan(0);
+  });
+
+  test('it is landed conversions over every click paid for', () => {
+    let conv = 0;
+    let clicks = 0;
+    for (const { raw } of rounds) clicks += raw.byAdvertiser[PLAYER_ID].clicks;
+    conv = bidding(3).observedConversions;
+    expect(bidding(3).observedConvRate).toBeCloseTo(conv / clicks, 12);
+    expect(bidding(3).observedClicks).toBeCloseTo(clicks, 6);
+  });
+
+  test('it reads LOW at first and converges upward', () => {
+    // Clicks are paid for immediately; their conversions arrive over the next
+    // three rounds. So the observed rate starts near 55% of the truth and
+    // climbs. This IS the lesson in 12.2 - a bid strategy checked too early
+    // is not broken, it is uninformed - and it only exists because the
+    // denominator counts clicks that have not paid out yet.
+    const rates = rounds.map((_, i) => bidding(i).observedConvRate);
+    for (let i = 1; i < rates.length; i++) {
+      expect(rates[i], `round ${i + 1}`).toBeGreaterThan(rates[i - 1]);
+    }
+  });
+
+  test('it stays null until the first click, so cold start still fires', () => {
+    const dark = deformed(STATE, (x) => {
+      for (const a of x.advertisers) {
+        a.campaign.monthlyBudgetPaise = 0;
+        a.campaign.weeklySplitPaise = [0, 0, 0, 0];
+        a.bidding = { learningRoundsRemaining: 0, observedConvRate: null, observedConversions: 0, observedClicks: 0, observedByHour: null };
+      }
+    });
+    const out = runRound(dark, { mode: 'expected' });
+    expect(out.raw.byAdvertiser[PLAYER_ID].clicks).toBe(0);
+    expect(out.nextGameState.advertisers[0].bidding.observedConvRate).toBeNull();
+  });
+});
+
 describe('decisions arrive pre-computed (R2)', () => {
   test('a submitted campaign change takes effect this round', () => {
     const result = runRound(STATE, {

@@ -122,8 +122,13 @@ export function makeAdvertisers(over = {}) {
       }],
       bidding: {
         learningRoundsRemaining: 0,
+        // Seeded consistently: the engine now derives observedConvRate as
+        // observedConversions / observedClicks, so a history of 120
+        // conversions has to carry the clicks that produced them or the
+        // fixture hands every test a rate it invented.
         observedConvRate: 0.028,
         observedConversions: 120,
+        observedClicks: 4286,
         observedByHour: null,
       },
       pendingConversions: [],

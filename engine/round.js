@@ -594,7 +594,7 @@ function advanceState(gameState, advertisers, acc, settled, raw) {
         campaign: advanceCampaign(a.campaign, rawRow, nextRound, newMonth, rankAllocation, a.id),
         pendingConversions: s.pendingConversions,
         pendingReturns: s.pendingReturns,
-        bidding: updateBidding(a.bidding, s.landed),
+        bidding: updateBidding(a.bidding, s.landed, entry.acc.clicks),
         qualityHistory: appendQualityHistory(a.qualityHistory, s.qualityRow),
       };
     }),
@@ -662,14 +662,38 @@ function rankByGrossProfit(history, raw, advertisers, round) {
  *
  * A conversion that has not arrived cannot inform a bid, which is precisely
  * why bid strategies look broken when checked too early (DECISIONS D2).
+ *
+ * THE DENOMINATOR IS EVERY CLICK EVER PAID FOR, and that asymmetry is the
+ * whole lesson. Clicks are charged the moment they happen; their conversions
+ * arrive over the following three rounds. So an account's observed rate opens
+ * at roughly 55% of its true rate and climbs for three rounds before it means
+ * anything. A strategy reading it at round 2 is not broken, it is uninformed,
+ * and there is no way to tell those apart from inside the account.
+ *
+ * Cumulative rather than windowed. A trailing window would respond to a real
+ * change in the business, but on a twelve-round game with a three-round lag
+ * any window short enough to respond is too thin to be worth reading. The cost
+ * is that an advertiser is anchored to its own past for a long time, which is
+ * also true of the real thing.
+ *
+ * Null until the first click, so COLD_START_CONV_RATE still governs an account
+ * that has never run.
+ *
+ * @param {object} bidding the advertiser's own bidding block
+ * @param {Array<object>} landed conversions that arrived this round
+ * @param {number} clicks this round's clicks, fractional
+ * @returns {object} a new bidding block
  */
-function updateBidding(bidding, landed) {
+function updateBidding(bidding, landed, clicks) {
   let count = 0;
   for (const e of landed) count += e.count;
   const observedConversions = (bidding.observedConversions ?? 0) + count;
+  const observedClicks = (bidding.observedClicks ?? 0) + clicks;
   return {
     ...bidding,
     observedConversions,
+    observedClicks,
+    observedConvRate: observedClicks > 0 ? observedConversions / observedClicks : null,
     learningRoundsRemaining: Math.max(0, (bidding.learningRoundsRemaining ?? 0) - 1),
   };
 }
