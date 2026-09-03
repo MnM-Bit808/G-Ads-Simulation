@@ -204,10 +204,14 @@ export function runRound(gameState, options = {}) {
   if (_isCounterfactual) return { round, raw, nextGameState };
 
   const { report, insights } = buildRoundOutput({ round, raw, advertisers });
-  nextGameState.history = reviseReports(
-    [...(gameState.history ?? []), report],
-    { currentRound: round, raw, advertisers },
-  );
+  // The reviser sees only EARLIER rounds. This round's own conversions are
+  // already in the report that was just built, so handing it this report too
+  // would land the lag-0 share of them - 55% of the distribution - a second
+  // time, and stamp a revision on a report nobody had read yet.
+  nextGameState.history = [
+    ...reviseReports(gameState.history ?? [], { currentRound: round, raw, advertisers }),
+    report,
+  ];
   nextGameState.marketContext = [...(gameState.marketContext ?? []), raw.marketContext];
 
   return { round, report, insights, raw, nextGameState };

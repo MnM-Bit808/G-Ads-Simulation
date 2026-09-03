@@ -119,6 +119,29 @@ describe('reports are revised, and remember what they first said (spec 11.4)', (
     expect(revised.conversions.stillPending).toBeLessThan(first.conversions.stillPending);
   });
 
+  test('the report stored in history is the report that was returned', () => {
+    // The reviser must never see the round it is currently building. It used
+    // to: runRound appended the fresh report and then revised the whole array,
+    // so the round's own lag-0 conversions - 55% of the distribution - landed
+    // twice, once when the report was built and once when the reviser walked
+    // over it. Round 1 stored 131.33 conversions where runRound returned 65.66.
+    //
+    // Every other test in this block compares R1.report against history, so the
+    // defect lived exactly in the gap between those two objects and none of
+    // them could see it. This is the assertion that closes the gap.
+    const stored = R1.nextGameState.history.find((h) => h.round === 1);
+    expect(stored).toEqual(R1.report);
+  });
+
+  test('a report is never revised in the round that created it', () => {
+    // The general form of the above: conversions from THIS round's clicks are
+    // already in this round's report. Only earlier rounds have late arrivals.
+    for (const result of [R1, R2]) {
+      const own = result.nextGameState.history.find((h) => h.round === result.round);
+      expect(own.revisedAtRound, `round ${result.round}`).toBeNull();
+    }
+  });
+
   test('a round with nothing late is left untouched', () => {
     const untouched = reviseReports([R1.report], {
       currentRound: 9, raw: { byAdvertiser: {} }, advertisers: STATE.advertisers,

@@ -4,17 +4,20 @@
  * These govern the two CALIBRATE constants and the fairness of the grid. They
  * are slower than the rest of the suite because several play whole games.
  *
- * I3 CURRENTLY FAILS AND IS NOT ASSERTED AS PASSING.
+ * I3 PASSES, after two corrections and one bug.
  *
- * Measured for the first time here: six identical advertisers, one per cell,
- * playing twelve rounds, produce a 4.20x spread in cumulative net profit
- * against a 15% target. Mid-market wins and Value comes last, which is the
- * reverse of the design's intent — Mid was meant to be the squeezed position
- * with no territory of its own.
+ * First measurement: 4.20x spread, 76% worst deviation against a 15% target —
+ * and 90% of that turned out to be the harness rather than the grid. Holding
+ * keyword coverage constant took it to 1.32x; allocating each cell's volume by
+ * 1/break-even, rather than splitting each tier evenly between its purposes,
+ * took it to 12%. Then the double-counted lag-0 conversions in report history
+ * (see report.test.js, 'the report stored in history is the report that was
+ * returned') turned out to be inflating every settled figure this file sums.
+ * Removing them took it to 7.1% and a 1.14x spread.
  *
- * Writing an assertion that passes at 76% would be dressing a failure as a
- * result. Instead the measurement runs, prints, and pins the current figure so
- * a change is visible; the 15% target is a `todo` naming work not yet done.
+ * The assertions below hold the SPEC's 15% target, not the current 7.1%.
+ * Ratcheting a test down to whatever was last measured turns every later
+ * change into a failure with nothing behind it.
  */
 
 import { describe, test, expect } from 'vitest';
