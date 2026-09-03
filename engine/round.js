@@ -33,7 +33,7 @@
 
 import {
   ADVERTISER_COUNT, ROUNDS_PER_MONTH, POSITION_CTR_MULTIPLIERS, TOP_SLOTS,
-  AUCTIONS_PER_QUERY_HOUR, MAX_SLOTS,
+  AUCTIONS_PER_QUERY_HOUR, MAX_SLOTS, ATTRIBUTION_LAG_DISTRIBUTION,
 } from './constants.js';
 import { assertPaise, mulRate, allocate } from './money.js';
 import { substream } from './rng.js';
@@ -355,6 +355,7 @@ function recordAuction({
     const a = acc[i];
     a.impressions += impressions;
     a.clicks += clicks;
+    a.hourlyClicks[hour] += clicks;
     a.costPaise += cost;
     a.spentTodayPaise += cost;
     a.positionCounts[row.position - 1] += impressions;
@@ -380,6 +381,10 @@ function recordAuction({
         bucket.count += clicks * convRate;
         bucket.valuePaise += clicks * convRate * value;
         convAccum[i].set(query.id, bucket);
+        // Kept separately from the money buckets, which are per query because
+        // order value and return rate are. This one is per hour and counts
+        // only, which is all the hour-of-day history needs.
+        a.hourlyConv[hour] += clicks * convRate;
       }
     }
 
@@ -480,14 +485,47 @@ function settleRound({ advertisers, business, acc, convAccum, queries, round, pe
     const allReturns = [...(advertiser.pendingReturns ?? []), ...returns];
     const { resolved, remaining: remainingReturns } = resolveReturns(allReturns, round);
 
+    // The same lag, applied to a count per hour of day. At most 24 x 4 entries
+    // in flight, which is why this is a separate queue rather than an hour
+    // stamped onto every per-query conversion: that would be 150 x 24 x 4.
+    const allHourly = [...(advertiser.pendingHourly ?? []), ...queueHourly(acc[i].hourlyConv, round)];
+    const landedHourly = allHourly.filter((e) => e.dueRound <= round);
+    const pendingHourly = allHourly.filter((e) => e.dueRound > round);
+
     return {
       landed,
       resolvedReturns: resolved,
       pendingConversions: remaining,
       pendingReturns: remainingReturns,
+      landedHourly,
+      pendingHourly,
       qualityRow: finaliseQualityRows(acc[i].qualityRows, round),
     };
   });
+}
+
+/**
+ * Spread one round's hourly conversion counts across the attribution lag.
+ *
+ * Conversions have to reach the hour-of-day history on the SAME clock as the
+ * aggregate. If they arrived at click time the hourly branch would read 100%
+ * of the truth while observedConvRate read 55%, and an advertiser crossing
+ * MIN_HOUR_OBSERVATIONS would see its belief jump for a reason invisible to
+ * it — bypassing the lag that is the whole lesson of spec 12.2.
+ *
+ * @param {number[]} hourlyConv 24 click-time conversion counts
+ * @param {number} round the click round
+ * @returns {Array<{dueRound: number, hour: number, count: number}>}
+ */
+function queueHourly(hourlyConv, round) {
+  const out = [];
+  for (const [lag, share] of ATTRIBUTION_LAG_DISTRIBUTION.entries()) {
+    for (let hour = 0; hour < HOURS_PER_DAY; hour++) {
+      const count = hourlyConv[hour] * share;
+      if (count > 0) out.push({ dueRound: round + lag, hour, count });
+    }
+  }
+  return out;
 }
 
 function finaliseQualityRows(rows, round) {
@@ -594,7 +632,8 @@ function advanceState(gameState, advertisers, acc, settled, raw) {
         campaign: advanceCampaign(a.campaign, rawRow, nextRound, newMonth, rankAllocation, a.id),
         pendingConversions: s.pendingConversions,
         pendingReturns: s.pendingReturns,
-        bidding: updateBidding(a.bidding, s.landed, entry.acc.clicks),
+        bidding: updateBidding(a.bidding, s.landed, entry.acc, s.landedHourly),
+        pendingHourly: s.pendingHourly,
         qualityHistory: appendQualityHistory(a.qualityHistory, s.qualityRow),
       };
     }),
@@ -684,18 +723,44 @@ function rankByGrossProfit(history, raw, advertisers, round) {
  * @param {number} clicks this round's clicks, fractional
  * @returns {object} a new bidding block
  */
-function updateBidding(bidding, landed, clicks) {
+function updateBidding(bidding, landed, acc, landedHourly) {
   let count = 0;
   for (const e of landed) count += e.count;
   const observedConversions = (bidding.observedConversions ?? 0) + count;
-  const observedClicks = (bidding.observedClicks ?? 0) + clicks;
+  const observedClicks = (bidding.observedClicks ?? 0) + acc.clicks;
   return {
     ...bidding,
     observedConversions,
     observedClicks,
     observedConvRate: observedClicks > 0 ? observedConversions / observedClicks : null,
+    observedByHour: updateHourly(bidding.observedByHour, acc.hourlyClicks, landedHourly),
     learningRoundsRemaining: Math.max(0, (bidding.learningRoundsRemaining ?? 0) - 1),
   };
+}
+
+/**
+ * Cumulative clicks and LANDED conversions, per hour of day (spec 12.2, D2).
+ *
+ * This is the only legitimate route to dayparting for a bid strategy. v0.1 let
+ * Target CPA read the true hourly conversion curve, so automation dayparted
+ * perfectly from round one and never paid for the privilege. Here it has to
+ * accumulate MIN_HOUR_OBSERVATIONS clicks in an hour before its own history
+ * for that hour outweighs its aggregate — so early on it dayparts badly, which
+ * is the honest version.
+ *
+ * @param {Array<{clicks: number, conversions: number}>|null} previous
+ * @param {number[]} hourlyClicks this round's clicks by hour
+ * @param {Array<{hour: number, count: number}>} landedHourly conversions arriving now
+ * @returns {Array<{clicks: number, conversions: number}>}
+ */
+function updateHourly(previous, hourlyClicks, landedHourly) {
+  const out = [];
+  for (let hour = 0; hour < HOURS_PER_DAY; hour++) {
+    const before = previous?.[hour] ?? { clicks: 0, conversions: 0 };
+    out.push({ clicks: before.clicks + hourlyClicks[hour], conversions: before.conversions });
+  }
+  for (const e of landedHourly ?? []) out[e.hour].conversions += e.count;
+  return out;
 }
 
 function appendQualityHistory(history, rows) {
@@ -722,6 +787,8 @@ function freshAccumulator() {
     topImpressions: 0,
     absTopImpressions: 0,
     positionCounts: new Array(MAX_SLOTS).fill(0),
+    hourlyClicks: new Array(HOURS_PER_DAY).fill(0),
+    hourlyConv: new Array(HOURS_PER_DAY).fill(0),
     dailySpendPaise: new Array(DAYS_PER_WEEK).fill(0),
     spentTodayPaise: 0,
     byKeyword: new Map(),

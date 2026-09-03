@@ -1,7 +1,10 @@
 import { describe, test, expect } from 'vitest';
 import { runRound } from '../engine/round.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
-import { ATTRIBUTION_LAG_DISTRIBUTION, MAX_SLOTS, ROUNDS_PER_MONTH } from '../engine/constants.js';
+import {
+  ATTRIBUTION_LAG_DISTRIBUTION, MAX_SLOTS, ROUNDS_PER_MONTH,
+  HOURLY_INTENT_CURVE, MIN_HOUR_OBSERVATIONS,
+} from '../engine/constants.js';
 
 const STATE = makeGameState();
 const EXPECTED = runRound(STATE, { mode: 'expected' });
@@ -383,6 +386,60 @@ describe('the engine writes observed history (spec 12.2)', () => {
     const out = runRound(dark, { mode: 'expected' });
     expect(out.raw.byAdvertiser[PLAYER_ID].clicks).toBe(0);
     expect(out.nextGameState.advertisers[0].bidding.observedConvRate).toBeNull();
+  });
+});
+
+describe('hour-of-day history, so dayparting can be earned (DECISIONS D2)', () => {
+  // observedByHour was written as a literal null by round.js and populated by
+  // nothing, so MIN_HOUR_OBSERVATIONS was unreachable and the hourly branch of
+  // observedRateFor was dead code. A bid strategy had no route to dayparting
+  // at all - which is the v0.1 oracle problem inverted: instead of knowing the
+  // hourly curve for free, it could never learn it.
+  let s = deformed(STATE, (x) => {
+    for (const a of x.advertisers) {
+      a.bidding = { learningRoundsRemaining: 0, observedConvRate: null, observedConversions: 0, observedClicks: 0, observedByHour: null };
+    }
+  });
+  for (let r = 1; r <= 3; r++) s = runRound(s, { mode: 'expected' }).nextGameState;
+  const hourly = s.advertisers[0].bidding.observedByHour;
+
+  test('it is populated, one entry per hour', () => {
+    expect(Array.isArray(hourly)).toBe(true);
+    expect(hourly).toHaveLength(24);
+    for (const h of hourly) expect(h.clicks).toBeGreaterThan(0);
+  });
+
+  test('the hours carry real signal: the best hour is the intent peak', () => {
+    // HOURLY_INTENT_CURVE peaks at 15:00 and the volume profiles peak at 11,
+    // 19 and 20 (invariant I5 keeps them apart). If the hourly history did not
+    // carry the intent curve there would be nothing for dayparting to find,
+    // and DECISIONS H4 would be false.
+    const rates = hourly.map((h) => h.conversions / h.clicks);
+    const best = rates.indexOf(Math.max(...rates));
+    expect(best).toBe(HOURLY_INTENT_CURVE.indexOf(Math.max(...HOURLY_INTENT_CURVE)));
+  });
+
+  test('most hours clear MIN_HOUR_OBSERVATIONS, but not the dead of night', () => {
+    // The branch has to be REACHABLE or dayparting cannot be earned at all.
+    // It also has to stay unreachable somewhere, or it is not earned - an
+    // advertiser should not form an opinion about 3am off nine clicks. After
+    // three rounds 19 of 24 hours qualify and the overnight ones do not.
+    const cleared = hourly.map((h) => h.clicks >= MIN_HOUR_OBSERVATIONS);
+    expect(cleared.filter(Boolean).length).toBeGreaterThan(12);
+    expect(cleared.filter(Boolean).length).toBeLessThan(24);
+    expect(cleared.slice(2, 5).some(Boolean)).toBe(false);
+  });
+
+  test('hourly conversions lag exactly as the aggregate does', () => {
+    // Clicks are counted the moment they happen; conversions are added only
+    // when they LAND. If the hourly branch counted conversions at click time
+    // it would read 100% of truth while the aggregate read 55%, and crossing
+    // the observation threshold would jump an advertiser's belief upward for
+    // no reason it could see.
+    const totalHourlyConv = hourly.reduce((a, h) => a + h.conversions, 0);
+    const totalHourlyClicks = hourly.reduce((a, h) => a + h.clicks, 0);
+    expect(totalHourlyConv).toBeCloseTo(s.advertisers[0].bidding.observedConversions, 6);
+    expect(totalHourlyClicks).toBeCloseTo(s.advertisers[0].bidding.observedClicks, 6);
   });
 });
 
