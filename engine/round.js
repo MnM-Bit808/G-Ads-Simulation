@@ -24,9 +24,11 @@
  *
  * WHAT IT RETURNS
  *
- * Raw accumulators, not a RoundReport. Shaping them into the report of spec 15
- * belongs to report.js, and the pairwise matrix belongs to insights.js; both
- * are later steps. `runRound`'s return type gains its final form then.
+ * `{ round, report, insights, raw, nextGameState }`. The report is spec 15's
+ * shape, built by report.js; the insights are the six metrics per advertiser,
+ * built by insights.js from the pairwise matrix. `raw` stays exposed because
+ * the calibration harness and the tests want the accumulators before anyone
+ * has rounded or renamed anything.
  */
 
 import {
@@ -42,6 +44,7 @@ import { businessFor, landingPageBonus } from './positions.js';
 import { resolveAuction } from './auction.js';
 import { estimatedConvRate, effectiveBidPaise } from './strategies.js';
 import { dailyTargetPaise, pacingContext, participationFrom } from './pacing.js';
+import { buildRoundOutput, reviseReports } from './report.js';
 import {
   effectiveConvRate, retentionRate, sampleOrderValuePaise,
   queueConversions, landDueConversions, queueReturns, resolveReturns,
@@ -191,7 +194,20 @@ export function runRound(gameState, options = {}) {
     }
   }
 
-  return { round, raw, nextGameState: advanceState(gameState, advertisers, acc, settled, raw) };
+  const nextGameState = advanceState(gameState, advertisers, acc, settled, raw);
+
+  // The counterfactual pass wants none of this: it is a hypothetical whose
+  // only job is to be diffed against the real round.
+  if (_isCounterfactual) return { round, raw, nextGameState };
+
+  const { report, insights } = buildRoundOutput({ round, raw, advertisers });
+  nextGameState.history = reviseReports(
+    [...(gameState.history ?? []), report],
+    { currentRound: round, raw, advertisers },
+  );
+  nextGameState.marketContext = [...(gameState.marketContext ?? []), raw.marketContext];
+
+  return { round, report, insights, raw, nextGameState };
 }
 
 // ---------------------------------------------------------------------------

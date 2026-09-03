@@ -210,6 +210,11 @@ export function queueReturns(landed, round, returnWindowRounds) {
     const rate = entry.returnRate ?? 0;
     if (rate <= 0) continue;
     out.push({
+      // Carried through so a resolved return can be attributed back to the
+      // round whose click earned it. Reports are keyed by click round and
+      // revised in place (spec 11.4), and a return that could not name its
+      // click round would have nowhere to go.
+      clickedInRound: entry.clickedInRound,
       landedInRound: round,
       resolvesInRound: round + returnWindowRounds,
       count: entry.count * rate,
