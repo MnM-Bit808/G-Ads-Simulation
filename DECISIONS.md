@@ -844,6 +844,20 @@ observation, an estimate, or an impossibility — is itself part of the educatio
 different and more competitive market where the missed traffic would have been more
 expensive anyway. It answered the wrong question.
 
+### G1a. The counterfactual always runs noise-free — `FIXED v0.3`
+Whatever mode the round itself used, the counterfactual pass runs in
+`expected` mode.
+
+G1 calls this a number the simulation knows exactly and Google can only
+estimate. Sampling it would contradict that: you would be comparing a noisy
+observation against a noisy hypothetical and reading the difference as
+opportunity, when much of the difference was noise.
+
+It also keeps a sampled round inside its performance budget. Two sampled
+passes measured 2,217ms against a 1,500ms ceiling; a sampled main pass plus an
+expected counterfactual is about 1,230ms. The right answer and the fast one
+happened to coincide, which is worth recording as luck rather than judgement.
+
 ### G2. Competitors' true impression share — *by design*
 Auction Insights in this simulation reports rivals' impression share computed from
 truth. Google estimates it. The difference is small but it is a difference, and it

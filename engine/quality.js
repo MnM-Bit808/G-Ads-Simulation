@@ -113,7 +113,24 @@ export function qualitySignal(gradedQuality, query, keyword, hour, rng, mode) {
   if (mode !== 'expected' && mode !== 'sampled') {
     throw new RangeError(`mode must be "expected" or "sampled", got "${mode}"`);
   }
+  const { base, components, ungraded } = qualitySignalBase(gradedQuality, query, keyword);
+  return { signal: applyHourAndNoise(base, hour, rng, mode), components, ungraded };
+}
 
+/**
+ * The part of the signal that does not depend on the hour.
+ *
+ * Split out so `round.js` can compute it once per advertiser-query instead of
+ * once per auction. Nothing here varies across the 168 hours of a round, and
+ * recomputing it 226,800 times would put a round well outside its performance
+ * budget for no gain.
+ *
+ * @param {object|null} gradedQuality
+ * @param {{tags?: string[], intent: string}} query
+ * @param {{text: string, matchType: string, tags?: string[]}} keyword
+ * @returns {{base: number, components: object, ungraded: boolean}}
+ */
+export function qualitySignalBase(gradedQuality, query, keyword) {
   const ungraded = gradedQuality == null;
   const grade = ungraded ? DEFAULT_UNGRADED_QUALITY : gradedQuality;
 
@@ -123,23 +140,33 @@ export function qualitySignal(gradedQuality, query, keyword, hour, rng, mode) {
     landingPage: landingFactor(grade.landingPage),
   };
 
-  let signal = components.expectedCtr
+  const base = components.expectedCtr
     * queryKeywordFit(query, keyword)
     * components.adRelevance
-    * components.landingPage
-    * contextFactor(hour);
+    * components.landingPage;
 
-  if (mode === 'sampled') {
-    if (typeof rng !== 'function') {
-      throw new TypeError('sampled mode needs an rng: the engine never reaches for one (R1)');
-    }
-    // Lognormal, shifted so the mean is exactly 1. Noise must blur the signal
-    // without quietly inflating it.
-    const s = QUALITY_NOISE_SIGMA;
-    signal *= Math.exp(normal(rng) * s - (s * s) / 2);
+  return { base, components, ungraded };
+}
+
+/**
+ * Finish a precomputed base signal for one particular auction.
+ *
+ * @param {number} base from qualitySignalBase
+ * @param {number} hour 0-23
+ * @param {(() => number)|null} rng required in sampled mode
+ * @param {'expected'|'sampled'} mode
+ * @returns {number}
+ */
+export function applyHourAndNoise(base, hour, rng, mode) {
+  const signal = base * contextFactor(hour);
+  if (mode !== 'sampled') return signal;
+  if (typeof rng !== 'function') {
+    throw new TypeError('sampled mode needs an rng: the engine never reaches for one (R1)');
   }
-
-  return { signal, components, ungraded };
+  // Lognormal, shifted so the mean is exactly 1. Noise must blur the signal
+  // without quietly inflating it.
+  const s = QUALITY_NOISE_SIGMA;
+  return signal * Math.exp(normal(rng) * s - (s * s) / 2);
 }
 
 /**

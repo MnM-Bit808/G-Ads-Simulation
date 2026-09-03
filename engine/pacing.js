@@ -154,6 +154,42 @@ export function participationFraction({
     throw new RangeError(`hour must be 0..${HOURS_PER_DAY - 1}, got ${String(hour)}`);
   }
   if (dayTargetPaise === 0) return 0;
+  return participationFrom(pacingContext(dayTargetPaise, hour), spentTodayPaise, monthRemainingPaise);
+}
+
+/**
+ * The parts of a pacing decision that depend only on the advertiser's daily
+ * target and the hour.
+ *
+ * Hoisted out because `round.js` evaluates pacing on the order of a million
+ * times per sampled round, and recomputing a curve lookup and two divisions
+ * inside that loop is most of a round's budget. Same arithmetic, computed once
+ * per advertiser-hour instead of once per auction.
+ *
+ * @param {number} dayTargetPaise
+ * @param {number} hour 0-23
+ * @returns {{dayTargetPaise: number, projected: number, remainingShare: number, ceiling: number}}
+ */
+export function pacingContext(dayTargetPaise, hour) {
+  return {
+    dayTargetPaise,
+    projected: projectedHourSpendPaise(dayTargetPaise, hour),
+    remainingShare: remainingReference(hour),
+    ceiling: dayTargetPaise * DAILY_BUDGET_OVERSPEND_CAP,
+  };
+}
+
+/**
+ * Finish a pacing decision from a precomputed context.
+ *
+ * @param {object} ctx from pacingContext
+ * @param {number} spentTodayPaise
+ * @param {number} monthRemainingPaise
+ * @returns {number} 0..1
+ */
+export function participationFrom(ctx, spentTodayPaise, monthRemainingPaise) {
+  const { dayTargetPaise, projected, remainingShare, ceiling } = ctx;
+  if (dayTargetPaise === 0) return 0;
 
   // Spread what is left of the day's budget over what the pacer believes is
   // left of the day's demand:
@@ -169,7 +205,6 @@ export function participationFraction({
   // hour's allowance opened. On an evening-heavy account that shut it out of
   // 20:00, its single best hour of the day, for reasons no player could ever
   // have diagnosed. Pacing has to be smooth to be legible.
-  const remainingShare = remainingReference(hour);
   const remainingPlan = dayTargetPaise - spentTodayPaise;
   const planFraction = remainingShare > 0
     ? remainingPlan / (dayTargetPaise * remainingShare)
@@ -177,12 +212,11 @@ export function participationFraction({
 
   // The two hard ceilings are expressed against what this hour is projected to
   // cost, so they compare like with like.
-  const projected = projectedHourSpendPaise(dayTargetPaise, hour);
   if (projected <= 0) {
     return monthRemainingPaise > 0 && remainingPlan > 0 ? clamp(planFraction, 0, 1) : 0;
   }
 
-  const dayCeilingFraction = (dayTargetPaise * DAILY_BUDGET_OVERSPEND_CAP - spentTodayPaise) / projected;
+  const dayCeilingFraction = (ceiling - spentTodayPaise) / projected;
   const monthCeilingFraction = monthRemainingPaise / projected;
 
   return clamp(Math.min(planFraction, dayCeilingFraction, monthCeilingFraction), 0, 1);

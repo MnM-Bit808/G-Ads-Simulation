@@ -1348,11 +1348,22 @@ formula read. `ATHLEISURE_RETURN_RATE` is superseded by `POSITION_ECONOMICS`.
 
 These are tests, not constants. A `CALIBRATE` value is wrong until they pass.
 
-**I1 — Budget must bind.** Every advertiser, playing the baseline policy, must be
-able to exhaust its monthly budget at a CPC below its own net break-even. If
-budgets cannot be spent profitably, `lostToBudget` never fires, `missedToBudget`
-returns zero, the monthly pot never binds, and the entire section 13 scheme does
-nothing. This is what governs `WEEKLY_VOLUME`.
+**I1 — Budget must bind.** An advertiser playing the baseline policy, **running
+alone against passive rivals**, must be able to exhaust its monthly budget at a
+CPC below its own net break-even. If budgets cannot be spent profitably,
+`lostToBudget` never fires, `missedToBudget` returns zero, the monthly pot never
+binds, and the entire section 13 scheme does nothing. This is what governs
+`WEEKLY_VOLUME`.
+
+**The "running alone" clause was added after `round.js` first ran.** The
+original wording asked that *every* advertiser exhaust its budget
+simultaneously, and the first full round showed why that is the wrong test: in
+a live nine-advertiser market, spend ranged from 7% to 100% of budget, and the
+advertisers at the bottom were there because they were being **outranked**, not
+because the market was too small. An advertiser losing 39% of its impressions
+to rank *should* spend less. Testing all nine at once measures competition,
+not market size, and would push `WEEKLY_VOLUME` up to compensate for something
+volume cannot fix.
 
 **I2 — The market must be affordable.** Median CPC across the game must sit below
 the Value tier's net break-even (~1352 paise) for a competently run Value account.
