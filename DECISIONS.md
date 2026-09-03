@@ -458,6 +458,44 @@ noise, fully deterministic, no new fudge factor.
 **And it produces a lesson we did not previously have:** an account whose demand
 pattern is unusual gets paced worse than an average one.
 
+---
+
+**Correction, after building `pacing.js`: the mismatch does NOT produce 2× days,
+and the entry above overclaimed.** Measured across all three hour profiles at
+2.5× market appetite, a day lands within 0.2% of its target. The reason is
+simple and was not obvious in advance: the pacer re-reads actual spend every
+hour, so it self-corrects continuously and converges. Total overspend is
+negligible no matter how badly the reference curve misjudges the shape.
+
+**The 2× cap is therefore a safety rail, not an active mechanic.** It is
+implemented and enforced, and a test confirms it binds when it would otherwise
+be exceeded — but in ordinary play it does not fire. Spec 19's *"a single day
+may exceed the daily budget up to the cap"* passes only marginally, and pretending
+otherwise would be exactly the kind of quiet falsehood this file exists to catch.
+
+**What the mismatch actually costs is far more interesting: mis-timed spend.**
+An evening-heavy account is throttled to zero from 19:00 onward, because the
+pacer — planning against a day that peaks in the early afternoon — let it spend
+freely all morning on mediocre traffic. Hours 19–22 carry over 20% of that
+account's demand and receive under half that share of its budget.
+
+A business-profile account, whose demand sits closer to the generic curve, keeps
+substantially more of its own peak. So the original claim survives in a better
+form: **an unusual account is paced worse — not by overspending, but by having
+its money gone before its best hours arrive.**
+
+That is a sharper lesson than a 2× day, and the player's fix for it is
+dayparting, which is precisely the tool the simulation wants them to reach for.
+
+**One control-law note, because it looks like a tuning detail and is not.** The
+first implementation compared spend against the plan *cumulative to the current
+hour*. It stuttered: an account a whisker ahead of plan dropped to zero
+participation for a whole hour, then snapped back to full. On an evening account
+that shut it out of 20:00 — its single best hour — for reasons no player could
+have diagnosed. The control law now spreads what is left of the budget over what
+is left of the day, which is smooth by construction. Pacing has to be legible or
+the diagnosis it supports is worthless.
+
 ### D10. The weekly split is a decision Google does not offer — `OPEN`
 **Real:** you set a daily budget. There is no weekly allocation control.
 
