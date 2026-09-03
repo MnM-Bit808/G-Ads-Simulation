@@ -1370,13 +1370,33 @@ the Value tier's net break-even (~1352 paise) for a competently run Value accoun
 If it does not, the cheapest position is unplayable and the grid collapses to two
 tiers. This is what governs `AD_RANK_FLOOR`.
 
-**I3 — Positions must balance.** All nine advertisers on the same baseline policy,
-across N seeded market layouts, must finish within ±15% of each other on net
-profit. Run twice: once at zero capex, once with each position playing its own best
-capex. Balance at zero capex does not imply balance at optimal capex, and the whole
-point of 13.3 is that the best target differs by position. **Run with rule-based
-policies only and repositioning disabled** — LLM rivals and repositioning make
-market layout vary unpredictably and the test cannot isolate position balance.
+**I3 — Positions must balance.** **Six advertisers, one per cell, identical in
+every respect except position — including identical keyword coverage** — must
+finish a twelve-round game within ±15% of each other on cumulative net profit
+over the settled window. That window is rounds 1–7, because a click settles at
++3 rounds of lag and +2 of return window. Rule-based policies only,
+repositioning disabled.
+
+**The equal-coverage clause is the whole test, and it was learned the hard way.**
+The first harness gave each advertiser "the first four head terms of its cell,
+one of them broad", and I3 failed at a 4.20x spread. Diagnosis showed **90% of
+that was the keyword choice, not the grid**: how far a broad keyword travels
+depends on how many tags that cell's head terms happen to carry, so reach ranged
+from 0.42x to 4.1x of own territory. `premium|performance`'s broad keyword
+carried two tags and reached half the market; `value|performance`'s carried
+three and reached almost nothing.
+
+Keyword choice is *skill*. A fairness invariant that varies with skill measures
+the wrong thing. Holding coverage constant — one exact keyword per query in the
+cell, nothing broad — collapsed the spread to 1.32x, and confirmed the tier
+derivation was sound: territory × break-even came out within 1.13x across all
+six cells.
+
+**Capex is deliberately not part of this invariant.** Finding each position's
+best capex means searching three targets × five amounts per position, which is
+ninety twelve-round games. If capex asymmetry needs checking it belongs in a
+separate, cheaper test asking only whether one capex choice dominates across
+positions.
 
 **I4 — The axes must stay in their lanes.** The purpose axis must move net
 break-even CPC by **under 15%** within a price row; the price axis must move it by

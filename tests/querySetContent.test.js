@@ -1,7 +1,11 @@
 import { describe, test, expect } from 'vitest';
 import { QUERY_SET } from '../content/querySet.js';
 import { validateQuerySet, homeCell, weeklySearches } from '../engine/querySet.js';
-import { allCells } from '../engine/positions.js';
+import {
+  allCells, parseCell, businessFor, breakEvenCpcPaise,
+} from '../engine/positions.js';
+
+const EMPTY_CAPEX = { committed: { sizeGuide: 0, photography: 0, landingPage: 0 }, pending: [] };
 import { BRAND_IDS } from '../content/brands.js';
 import { TAG_VOCABULARY, QUERY_SET_RULES } from '../engine/constants.js';
 
@@ -121,11 +125,31 @@ describe('the traps are actually reachable', () => {
 });
 
 describe('territory economics', () => {
-  test('the tier split lands on 52/28/20', () => {
+  test('the tier split stays near 52/28/20, inside the validator tolerance', () => {
+    // No longer exactly 52/28/20. Each CELL's share now tracks 1/break-even
+    // rather than each tier being split evenly between its two purposes, which
+    // left the lower-break-even cell of each pair short. The tier totals shift
+    // slightly as a consequence — to 52.7/27.9/19.4 — and the validator's
+    // five-point tolerance is what governs, not the headline figures.
     const { value, mid, premium } = result.stats.tierVolumeShare;
-    expect(value).toBeCloseTo(0.52, 2);
-    expect(mid).toBeCloseTo(0.28, 2);
-    expect(premium).toBeCloseTo(0.20, 2);
+    for (const [tier, share, target] of [
+      ['value', value, 0.52], ['mid', mid, 0.28], ['premium', premium, 0.20],
+    ]) {
+      expect(Math.abs(share - target), tier)
+        .toBeLessThan(QUERY_SET_RULES.tierVolumeTolerance);
+    }
+  });
+
+  test('each cell share tracks the inverse of its break-even', () => {
+    // The property that makes the grid fair: territory x break-even roughly
+    // equal across all six, so no position is structurally richer than another.
+    const products = allCells().map((cell) => {
+      const { price, purpose } = parseCell(cell);
+      const be = breakEvenCpcPaise(businessFor({ price, purpose }, EMPTY_CAPEX, 1));
+      return result.stats.cellVolumeShare[cell] * be;
+    });
+    const spread = Math.max(...products) / Math.min(...products);
+    expect(spread).toBeLessThan(1.2);
   });
 
   test('every cell clears the volume floor with headroom', () => {

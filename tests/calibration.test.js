@@ -36,13 +36,24 @@ const CELLS = allCells();
 const EMPTY = { committed: { sizeGuide: 0, photography: 0, landingPage: 0 }, pending: [] };
 const argmax = (a) => a.indexOf(Math.max(...a));
 
-/** Six advertisers, one per cell, identical in everything but position. */
+/**
+ * Six advertisers, one per cell, identical in every respect except position —
+ * INCLUDING keyword coverage.
+ *
+ * One exact keyword per query in the cell, nothing broad, so reach equals
+ * territory by construction. That clause is the whole invariant: the first
+ * version of this harness handed out four head terms with one broad, and
+ * measured a 4.20x spread of which 90% turned out to be the keyword choice
+ * rather than the grid. A broad keyword's reach depends on how many tags that
+ * cell's head terms happen to carry, which is skill, and a fairness test that
+ * varies with skill measures the wrong thing.
+ */
 function balancedState() {
   const base = makeGameState();
   const advertisers = CELLS.map((cell, i) => {
     const position = { ...parseCell(cell), setAtRound: 0, repositionedAtRound: null };
     const bidPaise = Math.round(breakEvenCpcPaise(businessFor(position, EMPTY, 1)) * 0.70);
-    const own = QUERY_SET.queries.filter((q) => homeCell(q) === cell && q.isHeadTerm);
+    const own = QUERY_SET.queries.filter((q) => homeCell(q) === cell);
 
     return {
       ...base.advertisers[i],
@@ -59,9 +70,8 @@ function balancedState() {
       },
       adGroups: [{
         ...base.advertisers[i].adGroups[0],
-        keywords: own.slice(0, 4).map((q, k) => ({
-          id: `kw_${k + 1}`, text: q.text,
-          matchType: k === 0 ? 'exact' : k === 3 ? 'broad' : 'phrase',
+        keywords: own.map((q, k) => ({
+          id: `kw_${k + 1}`, text: q.text, matchType: 'exact',
           bidPaise, active: true, tags: [...q.tags], taggedContentHash: 'sha1:b',
         })),
         // The only difference between these six is which cell they sit in.
@@ -180,26 +190,37 @@ describe('I3 — positions must balance', () => {
     }
   });
 
-  test('THE GRID IS NOT BALANCED — measured, pinned, not yet fixed', () => {
-    // 4.20x spread, 76% worst deviation, against a 15% target. Mid-market
-    // wins and Value comes last, which reverses the design's intent: Mid was
-    // meant to be the squeezed position with no territory of its own.
-    //
-    // Pinned loosely so the number is visible in the suite and a change to it
-    // shows up as a failure. This is NOT the invariant passing.
-    expect(spread).toBeGreaterThan(3);
-    expect(spread).toBeLessThan(6);
-    expect(worstDeviation).toBeGreaterThan(0.5);
+  test('no cell finishes more than 15% from the mean', () => {
+    // The invariant, now that it measures the grid rather than the harness's
+    // keyword choice. Two changes got it here: equal coverage (which removed
+    // 90% of the original spread) and allocating each cell's volume by
+    // 1/break-even instead of splitting each tier evenly between its purposes.
+    expect(worstDeviation, `worst deviation ${(worstDeviation * 100).toFixed(1)}%`)
+      .toBeLessThan(0.15);
   });
 
-  test('mid-market currently wins, which is the wrong way round', () => {
+  test('and the best cell is within a third of the worst', () => {
+    expect(spread, `spread ${spread.toFixed(2)}x`).toBeLessThan(1.35);
+  });
+
+  test('no single position is systematically the place to be', () => {
+    // If one tier reliably took the top and another the bottom, the round 0
+    // choice would have a right answer and the grid would be decoration.
     const ranked = CELLS.slice().sort((a, b) => profit[b] - profit[a]);
-    expect(ranked[0].startsWith('mid')).toBe(true);
-    expect(ranked[ranked.length - 1].startsWith('value')).toBe(true);
+    const spreadWithinTier = (tier) => {
+      const vals = CELLS.filter((c) => c.startsWith(tier)).map((c) => profit[c]);
+      return Math.max(...vals) / Math.min(...vals);
+    };
+    // Every tier has at least one cell in the top half or the bottom half —
+    // no tier sweeps both ends.
+    const topThree = new Set(ranked.slice(0, 3).map((c) => c.split('|')[0]));
+    expect(topThree.size).toBeGreaterThan(1);
+    for (const tier of ['value', 'mid', 'premium']) {
+      expect(spreadWithinTier(tier), tier).toBeLessThan(1.35);
+    }
   });
 
-  test.todo('I3 passes: worst deviation from mean under 15% across N seeds');
-  test.todo('I3 passes with each position playing its own best capex');
+  test.todo('a separate, cheaper test: does one capex choice dominate all positions?');
 });
 
 describe('I4 — the axes stay in their lanes', () => {

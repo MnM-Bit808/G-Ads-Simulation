@@ -47,37 +47,46 @@ Provisional right now:
 | `AD_RANK_FLOOR` | 60 | I2 | Median CPC came out at 964 paise against Value's 1,352 break-even, so it looks survivable |
 | `WEEKLY_VOLUME` | 225,000 | I1 | Untested. First live round showed spend from 7% to 100% of budget |
 
-**I3 has now run, and it fails.** Six identical advertisers, one per cell,
-twelve rounds:
+**I3 ran, failed at 76%, was diagnosed, and now passes at 12%.** Neither
+`CALIBRATE` constant had to move.
 
 ```
-mid|lifestyle          19,40,851   ← best
-mid|performance        14,06,136
-premium|performance     9,80,950
-premium|lifestyle       9,39,565
-value|lifestyle         8,85,379
-value|performance       4,62,394   ← worst
-
-spread 4.20x · worst deviation 76% · target under 15%
+                     worst deviation      spread
+first measurement            76%           4.20x
+after both fixes             12%           1.24x    target under 15%
 ```
 
-**Mid-market wins and Value comes last, which reverses the design's intent** —
-Mid was meant to be the squeezed position with no territory of its own.
+**90% of the original failure was the test harness, not the grid.** The first
+version gave each advertiser "the first four head terms of its cell, one
+broad", and how far a broad keyword travels depends on how many tags that
+cell's head terms happen to carry. Reach ranged from 0.42× to 4.1× of own
+territory. `premium|performance`'s broad keyword carried two tags and reached
+half the market; `value|performance`'s carried three and reached almost
+nothing. Keyword choice is *skill*, and a fairness invariant that varies with
+skill measures the wrong thing.
 
-This is now the single biggest open problem in the project, and it is pinned
-rather than papered over: `calibration.test.js` asserts the *current* spread so
-a change shows up, with two `test.todo` entries naming the invariant that has
-not been met. Nothing asserts that I3 passes.
+Two changes fixed it:
 
-**A likely cause worth checking first.** Because each cell is largely
-uncontested, most advertisers price against `AD_RANK_FLOOR` rather than against
-each other — so every position pays roughly the same CPC while their
-break-evens differ 2.6× top to bottom. The 52/28/20 volume split was derived to
-equalise *margin potential*, and it does, but equal margin against equal cost
-does not give equal profit when the margins-per-order differ so widely. Two
-levers to weigh: the territory volume split, and whether the floor should scale
-with something rather than being one number for the whole market (`DECISIONS`
-B1 already flags the single-floor simplification as `OPEN`).
+1. **I3 now holds keyword coverage constant** — one exact keyword per query in
+   the cell, nothing broad, so reach equals territory by construction. Spec
+   18.2 says so explicitly, and that clause is the invariant. This alone took
+   4.20× to 1.32×.
+2. **Each cell's volume share now tracks `1/break-even`** rather than splitting
+   each tier evenly between its two purposes. The tier split of 52/28/20 was
+   always right; the within-tier split was not, because the purpose modifier
+   moves break-even 5–12% and an even split leaves the lower-break-even cell
+   short. The Value pair were effectively transposed. This took 17% to 12%.
+
+**My hypothesis in the earlier version of this file was wrong**, and worth
+recording as such: I guessed the flat floor-priced CPC was the culprit. It
+contributes — margin survival after CPC ranges 46% to 70% across cells — but
+that is a 1.5× effect inside a 4.2× problem. `AD_RANK_FLOOR` is vindicated, and
+`territory × break-even` now comes out within 1.13× across all six cells,
+confirming the original derivation was sound all along.
+
+Still open: whether one **capex** choice dominates across positions. Testing it
+properly means ninety twelve-round games, so spec 18.2 deliberately excludes it
+from I3 and leaves a `test.todo` for a cheaper substitute.
 
 Two things found while building `round.js` that step 12 needs to respect:
 

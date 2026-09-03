@@ -30,10 +30,30 @@
  * positioning lesson goes with them.
  *
  * VOLUME BUDGET, in basis points of 10000
- *   commercial     8400   territory, split 52/28/20 across price tiers
+ *   commercial     8400   territory, allocated per cell — see below
  *   brand           600   one per advertiser, all nine (7.5)
  *   informational   400   converts at 10% of baseline. A trap, not a signpost
  *   irrelevant      600   converts at exactly zero. This waste is the lesson
+ *
+ * HOW THE COMMERCIAL 8400 IS SPLIT
+ *
+ * Each cell's share tracks 1/break-even, so that territory x break-even comes
+ * out roughly equal across all six and no position is structurally richer.
+ *
+ * The first version split the three price tiers 52/28/20 — which was right —
+ * and then split each tier EVENLY between its two purposes, which was not. The
+ * purpose modifier moves break-even by 5-12%, so an even split leaves the
+ * lower-break-even cell of each pair short of volume. In the Value tier the
+ * two were effectively transposed: value|performance has the lower break-even
+ * and needs MORE volume, and it had less.
+ *
+ * Diagnosing I3 found this. Tier shares now land at 52.7 / 27.9 / 19.4, inside
+ * the validator's five-point tolerance, and the per-cell figures are:
+ *
+ *   value|performance   2266   27.0%      premium|performance   861   10.3%
+ *   value|lifestyle     2159   25.7%      premium|lifestyle     770    9.2%
+ *   mid|performance     1224   14.6%
+ *   mid|lifestyle       1120   13.3%
  */
 
 import { TAG_VOCABULARY, SCHEMA_VERSION, PRICE_TIERS, WEEKLY_VOLUME } from '../engine/constants.js';
@@ -49,7 +69,7 @@ const TERRITORY = {
   // multipacks, offers and clearance - marketplace vocabulary. Only two queries
   // here lead with an adjective; the rest name a number or a deal.
   'value|performance': {
-    bp: 2100,
+    bp: 2266,
     queries: [
       { t: 'cheap gym leggings', tags: ['leggings', 'gym', 'cheap', 'women'], w: 11, head: true, soft: true, hp: 'evening' },
       { t: 'gym wear sale', tags: ['gym', 'sale'], w: 10, head: true, soft: true, conv: 1.2, hp: 'evening' },
@@ -75,7 +95,7 @@ const TERRITORY = {
   },
 
   'value|lifestyle': {
-    bp: 2268,
+    bp: 2159,
     queries: [
       { t: 'cheap athleisure', tags: ['casual', 'cheap', 'women'], w: 11, head: true, soft: true, hp: 'evening' },
       { t: 'co ord set sale', tags: ['co-ord-set', 'sale'], w: 10, head: true, soft: true, val: 1.3, conv: 1.2, hp: 'evening' },
@@ -101,7 +121,7 @@ const TERRITORY = {
   },
 
   'mid|performance': {
-    bp: 1250,
+    bp: 1224,
     queries: [
       { t: 'gym leggings', tags: ['leggings', 'gym'], w: 12, head: true, soft: true, hp: 'evening' },
       { t: 'workout leggings', tags: ['leggings', 'training'], w: 11, head: true, soft: true, hp: 'evening' },
@@ -127,7 +147,7 @@ const TERRITORY = {
   },
 
   'mid|lifestyle': {
-    bp: 1102,
+    bp: 1120,
     queries: [
       { t: 'athleisure leggings', tags: ['leggings', 'casual'], w: 12, head: true, soft: true, hp: 'evening' },
       { t: 'co ord set', tags: ['co-ord-set'], w: 11, head: true, soft: true, val: 1.35, hp: 'evening' },
@@ -157,7 +177,7 @@ const TERRITORY = {
   // fit and whether the thing does what it claims - the word "premium" is what
   // a brand writes, not what a buyer types.
   'premium|performance': {
-    bp: 900,
+    bp: 861,
     queries: [
       { t: 'seamless leggings', tags: ['leggings', 'seamless'], w: 12, head: true, soft: true, ret: 1.15, hp: 'evening' },
       { t: 'compression leggings', tags: ['leggings', 'compression'], w: 11, head: true, soft: true, ret: 1.15, hp: 'evening' },
@@ -183,7 +203,7 @@ const TERRITORY = {
   },
 
   'premium|lifestyle': {
-    bp: 780,
+    bp: 770,
     queries: [
       { t: 'premium athleisure', tags: ['casual', 'premium'], w: 12, head: true, soft: true, hp: 'evening' },
       { t: 'designer leggings', tags: ['leggings', 'luxury'], w: 11, head: true, soft: true, ret: 1.15, hp: 'evening' },
