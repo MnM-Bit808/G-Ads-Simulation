@@ -793,6 +793,32 @@ Real markets are not balanced. This one is, deliberately, so that the round 0 ch
 is a genuine trade-off (a high ceiling on thin volume against a low ceiling on thick
 volume) rather than a right answer. Invariant I3 tests it.
 
+### F10. The spec's conversion chain would have double-counted purpose — `FIXED v0.3`
+Spec 12.1 sets out the conversion chain as:
+
+```
+business.convRateBase × query.convMultiplier × priceAffinity × purposeAffinity
+                      × PURPOSE_MODIFIERS[purpose].conv × brandFactor × hourlyIntent
+```
+
+and spec 14 does the same with `PURPOSE_MODIFIERS[purpose].ret` for returns.
+
+**Both would apply the purpose modifier twice.** `businessFor` already folds it
+into `business.convRateBase` and `business.returnRate` — it has to, because
+`breakEvenCpcPaise` reads the same block, and the 4.4 table (1352 / 1419 / 2503
+/ 2737 / 3557 / 3981) only comes out right when the modifier is included.
+
+So the chain in `attribution.js` re-applies neither. A lifestyle brand's
+conversion rate would otherwise have been 1.21× its intended value and its
+return rate 1.44× — both quietly, both in the direction of making lifestyle
+positions look better at converting and worse at retaining than designed.
+
+This is the L6 defect trying to happen again in a new place, and it is the
+third time a "both of these are in the formula" reading has turned out to be
+one time too many. The pattern is worth naming: **when a derived object and a
+formula both mention the same modifier, one of them is wrong.** Two tests pin
+it, one for conversion and one for returns.
+
 ---
 
 ## G. Things the simulation knows that reality cannot
