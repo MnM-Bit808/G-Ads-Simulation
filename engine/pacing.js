@@ -42,6 +42,7 @@
 
 import {
   PACING_REFERENCE_CURVE, DAILY_BUDGET_OVERSPEND_CAP,
+  ROUNDS_PER_MONTH, MONTHLY_BUDGET_PAISE, RANK_BUDGET_MULTIPLIERS,
 } from './constants.js';
 import { clamp } from './num.js';
 import { assertPaise } from './money.js';
@@ -231,6 +232,86 @@ export function participationFrom(ctx, spentTodayPaise, monthRemainingPaise) {
 export function dailyCeilingPaise(dayTargetPaise) {
   assertPaise(dayTargetPaise, 'dayTargetPaise');
   return Math.round(dayTargetPaise * DAILY_BUDGET_OVERSPEND_CAP);
+}
+
+// ---------------------------------------------------------------------------
+// The allocation schedule (spec 13.1, 13.2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Which month a round belongs to. 0, 1 or 2.
+ *
+ * @param {number} round 1-based
+ * @returns {number}
+ */
+export function monthIndexForRound(round) {
+  return Math.floor((round - 1) / ROUNDS_PER_MONTH);
+}
+
+/**
+ * Does this round open a new month?
+ *
+ * The transition matters because the month is a hard cap with no carry-over
+ * (13.2). Without a reset, `monthSpentPaise` accumulates across the whole game
+ * against one month's allowance — a heavy spender exhausts it inside month 1
+ * and goes dark for the remaining eight rounds. Only a multi-round run exposes
+ * that, which is why it survived until calibration.
+ *
+ * @param {number} round 1-based
+ * @returns {boolean}
+ */
+export function opensNewMonth(round) {
+  return round >= 1 && (round - 1) % ROUNDS_PER_MONTH === 0;
+}
+
+/**
+ * Month 3's allocations, redistributed by rank (13.1).
+ *
+ * The pool stays constant — the multipliers sum to the advertiser count — so
+ * only the split changes. If total market money moved between months, CPCs
+ * would move with it and nobody could read their own performance.
+ *
+ * @param {string[]} rankedIds best first
+ * @param {number} [poolPerAdvertiserPaise]
+ * @returns {Object<string, number>} advertiser id to paise
+ */
+export function rankAllocations(rankedIds, poolPerAdvertiserPaise = MONTHLY_BUDGET_PAISE) {
+  const n = rankedIds.length;
+  if (n === 0) return {};
+
+  // RANK_BUDGET_MULTIPLIERS is authored for nine advertisers and sums to nine.
+  // Taking the first six of them sums to 6.67, which would inflate the pool by
+  // 11% — and D5 is explicit that the pool must not move, or CPCs shift for
+  // reasons the player cannot attribute to anything they did. So the slice is
+  // renormalised to sum to the count actually in play. This matters for the
+  // balance harness, and for any advertiser going inactive mid-game.
+  const slice = rankedIds.map((_, rank) => RANK_BUDGET_MULTIPLIERS[rank]
+    ?? RANK_BUDGET_MULTIPLIERS[RANK_BUDGET_MULTIPLIERS.length - 1]);
+  const sum = slice.reduce((a, b) => a + b, 0);
+  const scale = sum > 0 ? n / sum : 1;
+
+  const out = {};
+  rankedIds.forEach((id, rank) => {
+    out[id] = Math.round(poolPerAdvertiserPaise * slice[rank] * scale);
+  });
+  return out;
+}
+
+/**
+ * The allocation an advertiser receives for the month a round opens.
+ *
+ * Months 1 and 2 are identical for everyone by design: a learner will make a
+ * mess of month 1, and if the damage carried forward one early mistake would
+ * make the remaining rounds unwinnable and teach nothing.
+ *
+ * @param {number} round
+ * @param {string} advertiserId
+ * @param {Object<string, number>|null} rankAllocation month 3 only
+ * @returns {number} integer paise
+ */
+export function allocationForRound(round, advertiserId, rankAllocation) {
+  if (monthIndexForRound(round) < 2 || !rankAllocation) return MONTHLY_BUDGET_PAISE;
+  return rankAllocation[advertiserId] ?? MONTHLY_BUDGET_PAISE;
 }
 
 /**

@@ -47,11 +47,37 @@ Provisional right now:
 | `AD_RANK_FLOOR` | 60 | I2 | Median CPC came out at 964 paise against Value's 1,352 break-even, so it looks survivable |
 | `WEEKLY_VOLUME` | 225,000 | I1 | Untested. First live round showed spend from 7% to 100% of budget |
 
-**I3, the balance invariant, has never run.** It asks that nine advertisers on a
-common baseline policy finish within ±15% of each other across N seeded market
-layouts, twice — once at zero capex and once with each position playing its own
-best capex. If a position reliably wins, the grid is wrong, not the player. This
-is the single biggest open risk in the project.
+**I3 has now run, and it fails.** Six identical advertisers, one per cell,
+twelve rounds:
+
+```
+mid|lifestyle          19,40,851   ← best
+mid|performance        14,06,136
+premium|performance     9,80,950
+premium|lifestyle       9,39,565
+value|lifestyle         8,85,379
+value|performance       4,62,394   ← worst
+
+spread 4.20x · worst deviation 76% · target under 15%
+```
+
+**Mid-market wins and Value comes last, which reverses the design's intent** —
+Mid was meant to be the squeezed position with no territory of its own.
+
+This is now the single biggest open problem in the project, and it is pinned
+rather than papered over: `calibration.test.js` asserts the *current* spread so
+a change shows up, with two `test.todo` entries naming the invariant that has
+not been met. Nothing asserts that I3 passes.
+
+**A likely cause worth checking first.** Because each cell is largely
+uncontested, most advertisers price against `AD_RANK_FLOOR` rather than against
+each other — so every position pays roughly the same CPC while their
+break-evens differ 2.6× top to bottom. The 52/28/20 volume split was derived to
+equalise *margin potential*, and it does, but equal margin against equal cost
+does not give equal profit when the margins-per-order differ so widely. Two
+levers to weigh: the territory volume split, and whether the floor should scale
+with something rather than being one number for the whole market (`DECISIONS`
+B1 already flags the single-floor simplification as `OPEN`).
 
 Two things found while building `round.js` that step 12 needs to respect:
 

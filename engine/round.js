@@ -35,7 +35,7 @@ import {
   ADVERTISER_COUNT, ROUNDS_PER_MONTH, POSITION_CTR_MULTIPLIERS, TOP_SLOTS,
   AUCTIONS_PER_QUERY_HOUR, MAX_SLOTS,
 } from './constants.js';
-import { assertPaise, mulRate } from './money.js';
+import { assertPaise, mulRate, allocate } from './money.js';
 import { substream } from './rng.js';
 import { searches, DAYS_PER_WEEK, HOURS_PER_DAY } from './querySet.js';
 import { isBlocked, findMatches, selectAdGroup, normalise } from './matching.js';
@@ -43,7 +43,10 @@ import { qualitySignalBase, applyHourAndNoise } from './quality.js';
 import { businessFor, landingPageBonus } from './positions.js';
 import { resolveAuction } from './auction.js';
 import { estimatedConvRate, effectiveBidPaise } from './strategies.js';
-import { dailyTargetPaise, pacingContext, participationFrom } from './pacing.js';
+import {
+  dailyTargetPaise, pacingContext, participationFrom,
+  opensNewMonth, rankAllocations, allocationForRound,
+} from './pacing.js';
 import { buildRoundOutput, reviseReports } from './report.js';
 import {
   effectiveConvRate, retentionRate, sampleOrderValuePaise,
@@ -558,10 +561,24 @@ function applyDecision(advertiser, decision) {
 
 function advanceState(gameState, advertisers, acc, settled, raw) {
   const byId = new Map(advertisers.map((a, i) => [a.id, { a, acc: acc[i], settled: settled[i] }]));
+  const nextRound = gameState.round + 1;
+  const schedule = gameState.budgetSchedule ?? {};
+
+  // Month 3's split is decided by rank on cumulative gross profit through the
+  // snapshot round, and captured THERE rather than read later, because history
+  // keeps being revised and "as reported at round 8" has to mean at round 8.
+  let rankedIds = schedule.rankedAtSnapshot ?? null;
+  if (gameState.round === (schedule.rankSnapshotRound ?? 8)) {
+    rankedIds = rankByGrossProfit(gameState.history, raw, advertisers, gameState.round);
+  }
+
+  const rankAllocation = rankedIds ? rankAllocations(rankedIds) : null;
+  const newMonth = opensNewMonth(nextRound);
 
   return {
     ...gameState,
-    round: gameState.round + 1,
+    round: nextRound,
+    budgetSchedule: { ...schedule, rankedAtSnapshot: rankedIds },
     advertisers: gameState.advertisers.map((original) => {
       const entry = byId.get(original.id);
       if (!entry) return original;
@@ -570,7 +587,7 @@ function advanceState(gameState, advertisers, acc, settled, raw) {
 
       return {
         ...a,
-        campaign: { ...a.campaign, monthSpentPaise: rawRow.monthSpentPaise },
+        campaign: advanceCampaign(a.campaign, rawRow, nextRound, newMonth, rankAllocation, a.id),
         pendingConversions: s.pendingConversions,
         pendingReturns: s.pendingReturns,
         bidding: updateBidding(a.bidding, s.landed),
@@ -578,6 +595,62 @@ function advanceState(gameState, advertisers, acc, settled, raw) {
       };
     }),
   };
+}
+
+/**
+ * Carry a campaign into the next round, resetting it if a month turns over.
+ *
+ * There is no carry-over (spec 13.2): unspent money is lost and the new
+ * allocation starts clean. Without the reset, `monthSpentPaise` accumulates
+ * across the whole game against one month's allowance, and an advertiser
+ * spending its full weekly budget exhausts the month inside four rounds and
+ * goes dark for the remaining eight. Nothing shorter than a full game exposes
+ * that, which is why it survived until calibration.
+ *
+ * The weekly split resets to an even quarter of the new allocation. A player
+ * who wants it uneven resubmits one; the caller's decision overrides this.
+ */
+function advanceCampaign(campaign, rawRow, nextRound, newMonth, rankAllocation, advertiserId) {
+  if (!newMonth) {
+    return { ...campaign, monthSpentPaise: rawRow.monthSpentPaise };
+  }
+  const monthlyBudgetPaise = allocationForRound(nextRound, advertiserId, rankAllocation);
+  return {
+    ...campaign,
+    monthlyBudgetPaise,
+    monthSpentPaise: 0,
+    weeklySplitPaise: allocate(monthlyBudgetPaise, new Array(ROUNDS_PER_MONTH).fill(1)),
+  };
+}
+
+/**
+ * Rank advertisers on cumulative gross profit across every round so far, as
+ * the reports stand right now (spec 13.1).
+ *
+ * Gross, not net, and provisional rather than settled — both deliberate. An
+ * advertiser managing to this number buys traffic that converts well and comes
+ * straight back, and a round-8 click shows all of its cost against about half
+ * of its revenue. Cumulative rather than the snapshot round alone, so going
+ * dark before the deadline costs the profit those rounds would have made
+ * (DECISIONS D4).
+ */
+function rankByGrossProfit(history, raw, advertisers, round) {
+  const totals = new Map(advertisers.map((a) => [a.id, 0]));
+
+  for (const report of history ?? []) {
+    for (const [id, row] of Object.entries(report.byAdvertiser)) {
+      if (totals.has(id)) totals.set(id, totals.get(id) + row.money.grossProfitPaise);
+    }
+  }
+  // This round's own report is not in history yet.
+  const { report } = buildRoundOutput({ round, raw, advertisers });
+  for (const [id, row] of Object.entries(report.byAdvertiser)) {
+    if (totals.has(id)) totals.set(id, totals.get(id) + row.money.grossProfitPaise);
+  }
+
+  return [...totals.entries()]
+    .sort((x, y) => (y[1] - x[1]) || (x[0] < y[0] ? -1 : 1))
+    .map(([id]) => id);
 }
 
 /**
