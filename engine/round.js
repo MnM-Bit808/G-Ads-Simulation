@@ -34,6 +34,7 @@
 import {
   ADVERTISER_COUNT, ROUNDS_PER_MONTH, POSITION_CTR_MULTIPLIERS, TOP_SLOTS,
   AUCTIONS_PER_QUERY_HOUR, MAX_SLOTS, ATTRIBUTION_LAG_DISTRIBUTION,
+  REPOSITION_COST_PAISE,
 } from './constants.js';
 import { assertPaise, mulRate, allocate } from './money.js';
 import { substream } from './rng.js';
@@ -85,6 +86,7 @@ export function runRound(gameState, options = {}) {
   const queries = querySet.queries;
   const advertisers = gameState.advertisers
     .map((a) => applyDecision(a, decisions[a.id]))
+    .map((a) => applyBudgetAdjustments(a, round, gameState.budgetSchedule))
     .filter((a) => a.active !== false);
 
   const n = advertisers.length;
@@ -591,6 +593,72 @@ function runCounterfactual(gameState, options, advertiserId) {
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
+
+/**
+ * What a structural decision does to the month's ad budget (spec 13.3, 4.5).
+ *
+ * Two adjustments, both landing in the round the decision was taken, which for
+ * both is the first round of a month. They are applied AFTER the decision is
+ * merged, because the decision is what creates them, and they persist for the
+ * rest of the month because advanceCampaign only rewrites monthlyBudgetPaise
+ * at a boundary.
+ *
+ * CAPEX NOT COMMITTED becomes ad budget. Without this, capital investment is
+ * free and taking the maximum every time is strictly dominant - the three
+ * round delay was carrying the whole of "not investing is viable" by itself.
+ * With it, a non-investor's spend rises in months 1 and 2 and falls back in
+ * month 3, which D8 records as a real and deliberate confound and is the
+ * reason marketContext exists.
+ *
+ * REPOSITIONING is charged. 4.5 says the cost is drawn from the month 2
+ * budget; the constant existed and nothing read it.
+ *
+ * THE WEEKLY SPLIT IS RESPREAD, and that is a judgement call worth naming. The
+ * month is the hard cap but the WEEK is what pacing actually binds on, so
+ * raising the cap alone would leave the rollover unreachable and the mechanic
+ * inert. The split keeps its shape - allocate() spreads the new total across
+ * the old weights - so a front-loaded plan stays front-loaded. It is
+ * idempotent for a split that already sums to the month, which is what a
+ * caller aware of the rollover would submit.
+ *
+ * @param {object} advertiser after its decision has been applied
+ * @param {number} round
+ * @param {object} schedule gameState.budgetSchedule
+ * @returns {object} the advertiser, unchanged when nothing applies
+ */
+function applyBudgetAdjustments(advertiser, round, schedule) {
+  let delta = 0;
+  let capex = advertiser.capex;
+
+  if ((schedule?.capexAllocationRounds ?? []).includes(round)) {
+    const unspent = capex?.remainingUnallocatedPaise ?? 0;
+    if (unspent > 0) {
+      assertPaise(unspent, 'capex.remainingUnallocatedPaise');
+      delta += unspent;
+      // Banked, so a four round month cannot claim it four times.
+      capex = { ...capex, remainingUnallocatedPaise: 0 };
+    }
+  }
+
+  if (advertiser.position?.repositionedAtRound === round) {
+    delta -= REPOSITION_COST_PAISE;
+  }
+
+  if (delta === 0) return advertiser;
+
+  const campaign = advertiser.campaign;
+  const monthlyBudgetPaise = Math.max(0, campaign.monthlyBudgetPaise + delta);
+  const weights = campaign.weeklySplitPaise ?? [];
+  const weeklySplitPaise = weights.length > 0 && weights.some((w) => w > 0)
+    ? allocate(monthlyBudgetPaise, weights)
+    : weights;
+
+  return {
+    ...advertiser,
+    capex,
+    campaign: { ...campaign, monthlyBudgetPaise, weeklySplitPaise },
+  };
+}
 
 function applyDecision(advertiser, decision) {
   if (!decision) return advertiser;

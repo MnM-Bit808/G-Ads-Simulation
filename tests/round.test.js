@@ -3,7 +3,8 @@ import { runRound } from '../engine/round.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
 import {
   ATTRIBUTION_LAG_DISTRIBUTION, MAX_SLOTS, ROUNDS_PER_MONTH,
-  HOURLY_INTENT_CURVE, MIN_HOUR_OBSERVATIONS,
+  HOURLY_INTENT_CURVE, MIN_HOUR_OBSERVATIONS, CAPEX_ALLOCATION_PAISE,
+  MONTHLY_BUDGET_PAISE, REPOSITION_COST_PAISE, REPOSITION_ROUND,
 } from '../engine/constants.js';
 
 const STATE = makeGameState();
@@ -440,6 +441,85 @@ describe('hour-of-day history, so dayparting can be earned (DECISIONS D2)', () =
     const totalHourlyClicks = hourly.reduce((a, h) => a + h.clicks, 0);
     expect(totalHourlyConv).toBeCloseTo(s.advertisers[0].bidding.observedConversions, 6);
     expect(totalHourlyClicks).toBeCloseTo(s.advertisers[0].bidding.observedClicks, 6);
+  });
+});
+
+describe('capex that is not committed becomes ad budget (spec 13.3, D8)', () => {
+  // 13.3: "Unspent capex rolls into the current month's ad budget, raising
+  // that month's hard cap accordingly. Months 1 and 2 can therefore reach
+  // 2,68,000." Nothing implemented it, so capex cost nothing and investing
+  // the maximum was strictly dominant - the delay was carrying the whole of
+  // "don't invest is viable" on its own.
+  const holder = deformed(STATE, (x) => {
+    x.advertisers[0].capex.remainingUnallocatedPaise = CAPEX_ALLOCATION_PAISE;
+  });
+  const out = runRound(holder, { mode: 'expected' });
+  const row = out.raw.byAdvertiser[PLAYER_ID];
+
+  test('the month cap rises by exactly what was left uncommitted', () => {
+    expect(row.monthlyBudgetPaise)
+      .toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE);
+  });
+
+  test('the weekly split is respread, or the money is unreachable', () => {
+    // The month is the cap but the WEEK is what pacing binds on. Raising one
+    // without the other leaves the rollover stranded and the mechanic inert.
+    const next = out.nextGameState.advertisers[0].campaign;
+    expect(next.weeklySplitPaise.reduce((a, b) => a + b, 0))
+      .toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE);
+  });
+
+  test('it is banked once, not every round of the month', () => {
+    const after = out.nextGameState.advertisers[0];
+    expect(after.capex.remainingUnallocatedPaise).toBe(0);
+    const r2 = runRound(out.nextGameState, { mode: 'expected' });
+    expect(r2.raw.byAdvertiser[PLAYER_ID].monthlyBudgetPaise)
+      .toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE);
+  });
+
+  test('an advertiser that committed everything gets nothing back', () => {
+    const spender = runRound(STATE, { mode: 'expected' });
+    expect(spender.raw.byAdvertiser[PLAYER_ID].monthlyBudgetPaise)
+      .toBe(MONTHLY_BUDGET_PAISE);
+  });
+
+  test('and it only lands on a capex allocation round', () => {
+    const midMonth = deformed(STATE, (x) => {
+      x.round = 3;
+      x.advertisers[0].capex.remainingUnallocatedPaise = CAPEX_ALLOCATION_PAISE;
+    });
+    expect(runRound(midMonth, { mode: 'expected' }).raw.byAdvertiser[PLAYER_ID].monthlyBudgetPaise)
+      .toBe(MONTHLY_BUDGET_PAISE);
+  });
+});
+
+describe('repositioning is paid for (spec 4.5)', () => {
+  // "Costs REPOSITION_COST_PAISE, drawn from the month-2 budget." The constant
+  // existed, the ledger defended it, and no code read it. The only assertion
+  // anywhere compared it to CAPEX_ALLOCATION_PAISE - two constants checked
+  // against each other, which would pass with the mechanic deleted.
+  const moved = deformed(STATE, (x) => {
+    x.round = REPOSITION_ROUND;
+    x.advertisers[0].position = {
+      price: 'mid', purpose: 'performance', setAtRound: 0, repositionedAtRound: REPOSITION_ROUND,
+    };
+  });
+
+  test('the month it lands in is lighter by the cost', () => {
+    expect(runRound(moved, { mode: 'expected' }).raw.byAdvertiser[PLAYER_ID].monthlyBudgetPaise)
+      .toBe(MONTHLY_BUDGET_PAISE - REPOSITION_COST_PAISE);
+  });
+
+  test('an advertiser that stayed put pays nothing', () => {
+    const stayed = deformed(STATE, (x) => { x.round = REPOSITION_ROUND; });
+    expect(runRound(stayed, { mode: 'expected' }).raw.byAdvertiser[PLAYER_ID].monthlyBudgetPaise)
+      .toBe(MONTHLY_BUDGET_PAISE);
+  });
+
+  test('it is charged once, not for the rest of the game', () => {
+    const after = runRound(moved, { mode: 'expected' }).nextGameState;
+    expect(runRound(after, { mode: 'expected' }).raw.byAdvertiser[PLAYER_ID].monthlyBudgetPaise)
+      .toBe(MONTHLY_BUDGET_PAISE - REPOSITION_COST_PAISE);
   });
 });
 

@@ -441,6 +441,32 @@ advertiser count and median CPC every round, and the UI must surface it. Then
 a real and valuable read rather than noise. Without that surface, this mechanic
 costs more than it is worth.
 
+---
+
+**Correction, after building the rollover: the confound is an order of magnitude
+smaller than this entry assumed.** The rollover was described here in the present
+tense for three commits before any code implemented it. Once it existed, the
+market was measured both ways, nine advertisers, expected mode, rounds 1–4:
+
+| | month cap | actual spend | median CPC |
+|---|---|---|---|
+| all nine invest fully | ₹15,12,000 | ₹2,21,000 | 979 paise |
+| all nine decline | ₹24,12,000 | ₹2,52,000 | 979 paise |
+
+**Money rises 60%. Spend rises 14%. Median CPC does not move.** The market at
+these bids is demand-limited rather than budget-limited, so most of the extra
+money simply cannot be spent, and the price is set by `AD_RANK_FLOOR` and rival
+ad rank rather than by how much budget is in the room.
+
+So the D5 confound this entry exists to worry about is real but small, and the
+`marketContext` surface is worth keeping for the *rivals going dark* case — which
+is a genuine 100% swing in one advertiser's presence — rather than for this one.
+
+The measurement also says something about the rollover as a game mechanic: at the
+fixture's disciplined bids it buys a non-investor 14% more traffic, not 60%. That
+is a real cost to investing, but a smaller one than 13.3 implies, and it will grow
+only for an advertiser aggressive enough to be budget-limited in the first place.
+
 ### D9. The 2× daily overspend cap needs manufactured forecast error — `FIXED v0.3`
 **Real:** Google may spend up to twice your daily budget on a given day, balanced by
 underspending others, because pacing is a *prediction* and predictions are wrong.
