@@ -18,8 +18,13 @@ tell the difference. Accuracy outranks features here.
 
 ## Read before writing any code
 
+- `HANDOVER.md` — **read this first.** Where the build has got to, what is still
+  resting on a guess, how the work is done, and the traps. Shortest route in.
 - `ENGINE_SPEC_v0.3.md` — the specification. It is the source of truth.
 - `DECISIONS.md` — every departure from real Google Ads and why.
+
+Then `git log --oneline` and read the last few commit messages in full. They
+carry the reasoning behind each module and what building it exposed.
 
 `ENGINE_SPEC_v0.2.md` is superseded and kept only for reference. Section 21 of v0.3
 lists what changed and why.
@@ -92,6 +97,9 @@ Commit after every green test run. Small commits, present tense, one concern eac
 - Comments explain *why*, never *what*.
 
 ## Build order
+
+Steps 1–11 are done. `HANDOVER.md` has the current position and what step 12
+needs to respect.
 
 1. `constants.js`, `money.js`, `rng.js`
 2. `querySet.js` + tests — nothing downstream is trustworthy without a valid set
