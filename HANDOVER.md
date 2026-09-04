@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-Thirteen of fourteen build-order steps done. **791 tests, all passing, 1 todo.**
+**Every build-order step is done.** 922 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -20,22 +20,68 @@ Thirteen of fourteen build-order steps done. **791 tests, all passing, 1 todo.**
 ✅  3  auction                        ✅ 10  report, insights
 ✅  4  matching                       ✅ 11  serialise
 ✅  5  quality                        ✅ 12  calibration
-✅  6  positions                      🟨 13  agents  — six policies done, LLM half to go
-✅  7  strategies                     ⬜ 14  ui
+✅  6  positions                      🟨 13  agents  — llmPolicy + queryGen left
+✅  7  strategies                     🟨 14  ui      — slices 1 and 2 done
 ```
 
-Plus two modules the spec's layout did not have: **`game.js`** (the caller loop)
-and **`content/adCopy.js`** (rival copy per cell, a draft awaiting a read).
+Plus three modules the spec's layout never had, all of them caller-layer:
 
-All five calibration invariants pass. Neither `CALIBRATE` constant moved, and
-both are now argued rather than merely untested:
+| | what it is |
+|---|---|
+| `game.js` | the round loop. Diffs decisions and writes learning periods (12.3), appends to `decisionLog` (12.4), attaches each advertiser's own Quality Score (15.2). |
+| `setup.js` | round 0 (§17). Seeded rival placement, the briefing, the player's opening decisions, and the one redo (17.3). It is in NO build-order step — the order predates `game.js`. |
+| `dev-server.js` | 40 lines of `node:http` so `ui/` can import the real engine. `npm run dev`. |
+
+**It is playable.** `npm run dev`, then http://localhost:5173. Round 0 asks for
+brand, position, capital, keywords, ad copy and a weekly split; the dashboard
+plays a week at a time against six rule-based rivals.
+
+All five calibration invariants pass. Neither `CALIBRATE` constant moved without
+argument:
 
 | | value | why it is where it is |
 |---|---|---|
-| `AD_RANK_FLOOR` | 60 | Raising it is regressive. A flat reserve takes the same absolute paise from every cell — a small bite out of Premium's ceiling, a fatal one out of Value's. Measured over a full game, floor 150 takes I3 from 2.8% to 50.8%; 250 wipes the Value tier out. |
-| `WEEKLY_VOLUME` | 350000 | Pinned from both sides. Below ~315,000 I1 fails — a competently covered advertiser cannot exhaust its month, so section 13 does nothing. Above ~375,000 I3 fails — the flat budget cap bites unequally across break-evens that differ 2.7x. It was 225,000, where I1 reached 73%. |
+| `AD_RANK_FLOOR` | 60 | Raising it is regressive. A flat reserve takes the same absolute paise from every cell — a small bite out of Premium's ceiling, a fatal one out of Value's. Floor 150 takes I3 from 2.8% to 50.8%; 250 wipes the Value tier out. |
+| `WEEKLY_VOLUME` | 350000 | Pinned from both sides. Below ~315,000 I1 fails — a competently covered advertiser cannot exhaust its month. Above ~375,000 I3 fails — the flat budget cap bites unequally across break-evens differing 2.7x. |
 
-I3 now sits at **2.8% worst deviation, 1.05x spread**, against a 15% target.
+I3 sits at **2.8% worst deviation, 1.05x spread** against a 15% target.
+
+---
+
+## What is next: slice three of the interface
+
+The dashboard shows a week. Round 0 opens the account. **Nothing lets the player
+change anything between weeks**, which is the whole game.
+
+`ui/app.js` already passes `() => null` as the player's controller, so the seam
+exists: a controller returns `{ campaign, adGroups }` and `game.js` does the
+rest — it diffs against the previous state, writes the learning period when
+12.3 says to, and logs the decision. Slice three fills that return value from a
+form.
+
+What the form needs, in rough order of how much it teaches:
+
+1. **Negatives written straight from the search terms report.** 8.2 makes that
+   report the only tool for writing them, and 15.2 makes it a primary surface.
+   The table already marks rows that took clicks and returned nothing. A button
+   on the row is the whole interaction, and it is the most valuable thing in the
+   slice.
+2. **Bids and match types per keyword**, plus adding and removing keywords. The
+   tagger runs offline, so a new keyword can be tagged as it is typed.
+3. **Bid strategy and its parameter.** Changing either triggers a learning
+   period (12.3), and `game.js` already detects that — the form must SAY so
+   before the player commits, or the penalty arrives unexplained.
+4. **The weekly split**, against the burn-down the dashboard already draws.
+5. **Dayparting**, six blocks. The least urgent: nothing in the interface yet
+   shows the hourly pattern that would make it a reasoned choice rather than a
+   guess.
+
+Two things to respect. **A decision must be previewable before it is
+committed** — the whole design is about acting on incomplete information, and a
+form that hides consequences it could show is being cruel rather than honest.
+And **the view may not compute economics**: `tests/ui.test.js` fails if a `ui/`
+file names a constant it should import, and that guard has already fired once
+and was right.
 
 ---
 
@@ -114,21 +160,32 @@ constant-side, and they have not been discussed yet.
 
 ## Still open
 
-- **All six policies are written.** `agents/` still needs `llmPolicy.js`,
-  `grader.js`, `keywordTagger.js` and `queryGen.js` — the Claude-backed half of
-  step 13. Rival ad grades are hand-authored so the suite stays offline.
-- **`content/adCopy.js` has been read and corrected**, six changes, mid-market
-  confirmed. One detail is still unverified: whether Japanese and Korean yarn is
-  what Indian premium activewear actually signals with, or whether it is
-  recycled technical fabric or a named mill. A one-line change either way.
+- **`agents/` needs `llmPolicy.js` and `queryGen.js`.** §2 asks for two of eight
+  rivals to be Claude-backed; the market already has six distinct characters
+  without it, so this is optional in a way the others were not. `queryGen` is
+  arguably already done by hand — the set is frozen and 7.1 says it is generated
+  once then hand-corrected, so building a generator now would regenerate an
+  artefact reviewed twice.
+- **`grader.js` and `keywordTagger.js` are built but only ever run offline.**
+  Both take their transport as an argument and `agents/claude.js` supplies a
+  real one; nothing has yet passed it. The first live model call in this project
+  has not been made.
 - **The query set was reviewed once** and Value and Premium were rewritten after
   that review. The corrected set has still not been read end to end.
-- **Rival placement (17.1) has no implementation.** `RIVAL_PLACEMENT_CONSTRAINTS`
-  is read by nothing but a constants test.
-- **`CAPEX_TARGETS` is read by nothing**, not even a test. The `QUALITY_WEIGHTS`
-  pattern v0.3 deleted, recurring. The provenance tests check tag ⇄ constant in
-  both directions but never that a constant is *read*.
-- **Nothing has been played.** Longest run is twelve rounds in a test.
+- **`content/adCopy.js` is read and corrected.** One detail unverified: whether
+  Japanese and Korean yarn is what Indian premium activewear signals with, or
+  whether it is recycled technical fabric or a named mill.
+- **The W11 display findings are unactioned.** A round's reported profit peaks
+  at 117% of truth one round after the click and decays for four more; a 50%
+  real improvement in ad quality never moves the reported score, because the
+  ratio was already past 1.10 and three levels cannot express anything between.
+  Both are design conversations, not defects.
+- **There is no linter.** `ui/dashboard.js` shipped a `ReferenceError` to the
+  browser that a 917-test suite could not see, because no test reads function
+  bodies. `tests/ui.test.js` has a module-load smoke test that is labelled weak
+  on purpose. This is the one gap where a dependency would genuinely pay.
+- **Nobody has played it as a learner.** It has been driven end to end from a
+  script and read on screen, which is not the same thing.
 
 ---
 
