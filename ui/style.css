@@ -225,3 +225,165 @@ td.num { font-variant-numeric: tabular-nums; }
   padding: 0.1rem 0.4rem;
   margin-right: 0.35rem;
 }
+
+/* =========================================================================
+   Round 0
+   ========================================================================= */
+
+.setup { display: flex; flex-direction: column; gap: 1rem; max-width: 980px; margin: 0 auto; }
+.setup-card { padding: 1.1rem 1.25rem 1.25rem; }
+
+button.ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none; }
+
+/* --- chips (brand, capex amounts) --------------------------------------- */
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 0.45rem 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.chip .muted { font-size: 0.72rem; font-family: var(--mono); }
+.chip.on { border-color: var(--accent); background: rgba(122, 162, 247, 0.12); }
+.chip.on strong { color: var(--accent); }
+.chip.small { flex-direction: row; font-family: var(--mono); font-size: 0.78rem; padding: 0.3rem 0.55rem; }
+.chip:disabled { opacity: 0.3; cursor: default; }
+
+/* --- the briefing ------------------------------------------------------- */
+
+.anchor {
+  margin: 1rem 0 0.4rem;
+  padding: 0.85rem 1rem;
+  background: var(--panel-2);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 7px 7px 0;
+}
+.anchor-formula { font-size: 0.78rem; color: var(--muted); }
+.anchor-sum { font-family: var(--mono); font-size: 1.05rem; margin: 0.35rem 0 0.5rem; }
+.anchor-caveat { margin: 0; font-size: 0.84rem; line-height: 1.5; color: var(--warn); }
+
+.hints { margin: 0.4rem 0 0; padding-left: 1.1rem; color: var(--muted); font-size: 0.84rem; }
+.hints li { margin-bottom: 0.35rem; }
+
+/* --- rival ads ---------------------------------------------------------- */
+
+.rival-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 0.7rem; }
+.rival {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+}
+.rival-name { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.4rem; }
+.rival-headline { color: var(--accent); font-size: 0.86rem; line-height: 1.35; }
+.rival-desc { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.4; }
+
+/* --- the grid of cells -------------------------------------------------- */
+
+.cell-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+@media (max-width: 700px) { .cell-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.cell {
+  text-align: left;
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+  cursor: pointer;
+}
+.cell.on { border-color: var(--accent); background: rgba(122, 162, 247, 0.12); }
+.cell-name { font-weight: 600; margin-bottom: 0.3rem; text-transform: capitalize; }
+.cell-econ { font-family: var(--mono); font-size: 0.76rem; color: var(--ink); }
+.cell-vol { font-size: 0.74rem; color: var(--muted); margin-top: 0.15rem; }
+
+/* --- capex -------------------------------------------------------------- */
+
+.capex-row {
+  display: grid;
+  grid-template-columns: 8rem auto;
+  gap: 0.4rem 0.9rem;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #21252e;
+}
+.capex-label { font-weight: 600; font-size: 0.88rem; }
+.capex-why { grid-column: 2; font-size: 0.76rem; line-height: 1.4; }
+.capex-summary { margin: 0.9rem 0 0; font-size: 0.86rem; }
+.capex-summary strong { font-family: var(--mono); color: var(--accent); }
+
+/* --- forms -------------------------------------------------------------- */
+
+.field { display: block; margin-bottom: 0.7rem; }
+.field-label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.25rem; }
+.field-hint { display: inline-block; font-size: 0.74rem; color: var(--muted); margin-top: 0.2rem; }
+
+input, select {
+  font: inherit;
+  width: 100%;
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+}
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+select, input[type="number"] { font-family: var(--mono); font-size: 0.85rem; }
+
+.count { font-family: var(--mono); }
+.count.over { color: var(--bad); }
+
+.research { margin-bottom: 1rem; }
+.research tr.own-territory td:first-child::before {
+  content: "● ";
+  color: var(--accent);
+}
+button.add {
+  width: auto;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0.12rem 0.5rem;
+  font-size: 0.74rem;
+  font-weight: 500;
+}
+button.add:disabled { color: var(--muted); }
+
+.picked select, .picked input { padding: 0.2rem 0.4rem; font-size: 0.78rem; }
+.picked td { vertical-align: middle; }
+
+.split-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; }
+@media (max-width: 620px) { .split-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.problems {
+  margin: 0.8rem 0 0;
+  padding: 0.6rem 0.8rem 0.6rem 1.9rem;
+  background: rgba(240, 113, 120, 0.1);
+  border: 1px solid var(--bad);
+  border-radius: 7px;
+  color: var(--bad);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+p.problems { padding-left: 0.8rem; }
+
+/* --- go ----------------------------------------------------------------- */
+
+.start { text-align: center; padding: 0.5rem 0 2rem; }
+.start .go { font-size: 1rem; padding: 0.7rem 1.6rem; }
+.start .note { border: 0; max-width: 46rem; margin: 0.9rem auto 0; }

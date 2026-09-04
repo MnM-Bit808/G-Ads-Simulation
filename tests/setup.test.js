@@ -354,7 +354,34 @@ describe('startGame produces a game that runs (spec 17)', () => {
     expect(own.advertisers[0].adGroups[0].gradedQuality.expectedCtr).toBe(9);
   });
 
-  test('an unaffordable weekly split is refused, not quietly corrected', () => {
+  test('a split may spend the capital the player declined to invest (13.3)', () => {
+    // Found by playing round 0 on screen. The interface offered a 1,98,000
+    // month - 1,68,000 plus 30,000 of uncommitted capital, exactly as 13.3
+    // says - and startGame rejected the split for exceeding 1,68,000.
+    //
+    // The player's month really is the larger figure. Only the validation needs
+    // to know: monthlyBudgetPaise stays at the base and round.js adds the
+    // rollover at the capex allocation round, where it also rescales the split.
+    const kept = CAPEX_ALLOCATION_PAISE - 7000000;
+    const withRollover = start({ player: choices({
+      capex: {
+        committed: { sizeGuide: 0, photography: 7000000, landingPage: 0 },
+        pending: [{ target: 'photography', paise: 7000000, liveAtRound: 4 }],
+        remainingUnallocatedPaise: kept,
+      },
+      weeklySplitPaise: new Array(ROUNDS_PER_MONTH)
+        .fill(Math.floor((MONTHLY_BUDGET_PAISE + kept) / ROUNDS_PER_MONTH)),
+    }) });
+    expect(withRollover.advertisers[0].campaign.weeklySplitPaise
+      .reduce((a, b) => a + b, 0)).toBeGreaterThan(MONTHLY_BUDGET_PAISE);
+
+    // And the first round really does hand it over.
+    const out = submitRound(withRollover, {}, { mode: 'expected' });
+    expect(out.report.byAdvertiser[PLAYER_BRAND].budget.monthlyBudgetPaise)
+      .toBe(MONTHLY_BUDGET_PAISE + kept);
+  });
+
+  test('but a split beyond even that is refused, not quietly corrected', () => {
     expect(() => start({
       player: choices({ weeklySplitPaise: new Array(ROUNDS_PER_MONTH).fill(MONTHLY_BUDGET_PAISE) }),
     })).toThrow(/weekly split/i);

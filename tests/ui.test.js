@@ -85,6 +85,48 @@ describe('the interface uses the real engine (spec 6, build step 14)', () => {
   });
 });
 
+describe('every interface module at least loads', () => {
+  // A weak guard, and worth naming as weak. It catches a syntax error, a bad
+  // import path and a missing export. It does NOT catch a stale identifier
+  // inside a function body — this suite watched `brief is not defined` reach
+  // the browser, left behind when the dashboard was split out of app.js.
+  //
+  // Catching that properly needs a linter or a DOM, and this project has
+  // neither. Until it has one, the interface is verified by opening it.
+
+  // Named explicitly rather than built from the directory listing: a dynamic
+  // import of a computed path cannot be resolved statically, and the test below
+  // makes sure this map never falls behind the directory.
+  const LOADABLE = {
+    'dom.js': () => import('../ui/dom.js'),
+    'dashboard.js': () => import('../ui/dashboard.js'),
+    'round-zero.js': () => import('../ui/round-zero.js'),
+  };
+
+  test('the list of modules to load is complete', () => {
+    // app.js is excluded on purpose: it reaches for `document` at import time,
+    // because wiring the buttons is the first thing it does.
+    const onDisk = source.map((s) => s.file).filter((f) => f !== 'app.js').sort();
+    expect(Object.keys(LOADABLE).sort()).toEqual(onDisk);
+  });
+
+  test('each module imports cleanly', async () => {
+    for (const [file, load] of Object.entries(LOADABLE)) {
+      const module = await load();
+      expect(Object.keys(module).length, file).toBeGreaterThan(0);
+    }
+  });
+
+  test('and the ones that draw a screen export a render function', async () => {
+    for (const file of ['dashboard.js', 'round-zero.js']) {
+      const module = await LOADABLE[file]();
+      const renders = Object.entries(module).filter(([name]) => name.startsWith('render'));
+      expect(renders.length, file).toBe(1);
+      expect(typeof renders[0][1], file).toBe('function');
+    }
+  });
+});
+
 describe('the dev server serves the project, not just the interface', () => {
   const server = readFileSync(fileURLToPath(new URL('../dev-server.js', import.meta.url)), 'utf8');
 
