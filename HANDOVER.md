@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 946 tests, all passing, 1 todo.
+**Every build-order step is done.** 993 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -21,7 +21,7 @@ still resting on a guess.
 ✅  4  matching                       ✅ 11  serialise
 ✅  5  quality                        ✅ 12  calibration
 ✅  6  positions                      🟨 13  agents  — llmPolicy + queryGen left
-✅  7  strategies                     🟨 14  ui      — slices 1–3, form items 1–2
+✅  7  strategies                     🟨 14  ui      — slices 1–3, form items 1–5
 ```
 
 Plus three modules the spec's layout never had, all of them caller-layer:
@@ -32,13 +32,18 @@ Plus three modules the spec's layout never had, all of them caller-layer:
 | `setup.js` | round 0 (§17). Seeded rival placement, the briefing, the player's opening decisions, and the one redo (17.3). It is in NO build-order step — the order predates `game.js`. |
 | `dev-server.js` | 40 lines of `node:http` so `ui/` can import the real engine. `npm run dev`. |
 
+`ui/` is five modules: `app.js` (the loop), `round-zero.js`, `dashboard.js`,
+`decisions.js` (the between-weeks form) and `ending.js` (the last screen, and
+the only reader `decisionLog` has ever had).
+
 **It is playable end to end, and has been played end to end.** `npm run dev`,
 then http://localhost:5173. Round 0 asks for brand, position, capital,
 keywords, ad copy and a weekly split; the dashboard plays a week at a time
 against six rule-based rivals; and the decision form now lets the player write
 negatives, change bids and match types, pause keywords and add new ones between
-weeks. A full twelve rounds runs through the interface with no console errors
-and ends correctly on `Game over`.
+weeks, choose a bid strategy, take the round-5 capital allocation and use the
+one repositioning window. A full twelve rounds runs through the interface with
+no console errors and ends on a screen that says what the twelve weeks came to.
 
 **The rescue works**, which is what slice three was for. The account this
 project keeps coming back to — `premium|lifestyle`, five keywords taken off the
@@ -83,32 +88,79 @@ byte-identical to the `() => null` controller it replaced. There is a test for
 exactly that, and it is the one that would fail if someone "simplified"
 `createDraft` to take the advertiser record directly.
 
-Done, and verified in a browser:
+All of it verified by opening a browser, because `npm test` cannot see any of
+it (see *Verifying the interface*).
 
 1. ✅ **Negatives written from the search terms report.** A block button on the
    row writes an exact negative for that one search. The composer writes broad
    and phrase negatives with a live preview.
 2. ✅ **Bids, match types, pausing, and adding keywords** from a mid-game
    keyword planner. New keywords are tagged offline as they are typed (8.4).
+3. ✅ **Bid strategy and its parameter**, with the learning period named before
+   the commit and again while it bites.
+4. ✅ **The round-5 window** — the capital top-up and the one repositioning step,
+   together, because they are drawn from the same month.
+5. ✅ **Month 3 explained, and an end screen** (`ui/ending.js`).
 
-Left to build, in the order agreed:
+Left to build:
 
-3. **Bid strategy and its parameter.** The player is locked to `manual` for the
-   whole game, so four of the five strategies are unreachable and 12.2's lesson
-   — smart bidding is noisy on a thin account, and Premium suffers worst
-   because it is data-starved — cannot be experienced at all. Changing either
-   triggers a learning period (12.3), `game.js` already detects it, and the
-   form must SAY so before the player commits, or the penalty lands two rounds
-   later with nothing connecting it to the cause. That is the confusion this
-   simulator exists to teach deliberately, not to inflict by accident.
-4. **A round-5 screen: the capex top-up and the repositioning window.** Both are
-   dead spec today — see *Specified mechanics with no route in* below.
-5. **Month 3's allocation explained, and an end screen.** The game currently
-   stops on week 12's dashboard with no final standing.
 6. **The weekly split**, against the burn-down the dashboard already draws.
+   **Read `advanceCampaign` in `round.js` first:** at every month boundary it
+   RESETS `weeklySplitPaise` to an even split, and `applyBudgetAdjustments`
+   rescales it again whenever capital rolls in. A split control has to contend
+   with both, or the player's front-loaded plan will silently flatten at the
+   start of month 2 and they will never know why.
 7. **Dayparting**, six blocks. Still the least urgent: nothing in the interface
    shows the hourly pattern that would make it a reasoned choice rather than a
    guess.
+
+### What items 3 to 5 settled that is worth not relearning
+
+**The learning period is asked of `game.js`, not restated.** `willTriggerLearning`
+calls the same `triggersLearning` that `submitRound` will call. If the two ever
+disagreed, the player would be warned about a penalty they do not get, or worse,
+not warned about one they do.
+
+**The bid-strategy parameter is locked to the strategy that uses it**, and that
+is a fix for a sharp edge in 12.3 rather than tidiness. 12.3 triggers a learning
+period on "changing any value in `strategyParams`", and that object carries BOTH
+`targetCpaPaise` and `targetRoas` at all times whatever is running. Left
+editable, nudging the target ROAS while running Target CPA would cost two rounds
+of doubled prediction error for a number that touches no bid. `setStrategyParam`
+therefore takes no key: the strategy decides which parameter exists.
+**Anything else that writes decisions will hit this** — an `llmPolicy` most of
+all.
+
+The decision still submits the WHOLE params object, both keys, because
+`applyDecision` merges `campaign` shallowly and a partial one would drop the
+other strategy's parameter. `rawBid` then throws rather than substituting a
+plausible number, which is correct and also means the failure would be loud.
+
+**`STRATEGY_PARAM` restates knowledge that lives in `rawBid`, so it is checked
+against the engine rather than trusted:** every strategy the table gives a key
+to must throw without it, every strategy it gives none to must run on empty
+params. Same principle as the negatives preview calling `blockedBy`.
+
+**The capital allocation is submitted whether or not the player touches it.**
+Omitting `capex` is not declining it — it means the allocation is never claimed
+and ₹1,00,000 disappears, no investment AND no rollover. So the default is an
+explicit zero, stated on the card and listed under `Next week` with no undo
+button, because there the default IS the decision. Round 1 is deliberately not
+offered: round 0 spent that allocation, and asking again would hand the player
+the rollover on top of an investment already made.
+
+**`monthBudgetAfter` mirrors `applyBudgetAdjustments`**, which is a drift risk,
+so five cases assert it equals what the round actually reports — including both
+round-5 decisions at once, which is the case that matters: committing everything
+AND moving leaves ₹68,000 of a ₹1,68,000 month.
+
+**The rank is two integers.** `budgetSchedule.rankedAtSnapshot` orders every
+advertiser by gross profit; `rankOf` returns `{position, of}` and the array goes
+no further, so no screen can show a rival's standing even by accident. Showing
+the player their own rank was a deliberate call: they can read it off their own
+month-3 budget anyway (₹1,17,600 against ₹1,68,000 is the last-place multiplier
+and nothing else), and 13.3 is explicit that a budget swinging for reasons
+nobody can attribute is worse than the mechanic is worth.
 
 ### Three rules the form obeys, and why
 
@@ -158,50 +210,84 @@ handed, because history is the copy that gets revised (11.4).
 
 ---
 
-## Specified mechanics with no route in
+## Two defects the interface found in the engine and caller
 
-Found by playing twelve rounds through the interface. None of these is a defect
-in `engine/`; all three are things the spec asks for that nothing can currently
-reach.
+Both were reachable by nothing before the form existed, which is exactly why
+they survived. Both produced numbers, and one of them had been on screen since
+slice one.
 
-- **The round-5 capital allocation (13.3).** Two allocations of ₹1,00,000,
-  cumulative, the second at round 5. Round 0 spends the first. **Nothing spends
-  the second.** `round.js` (`applyBudgetAdjustments`) only rolls over
-  `remainingUnallocatedPaise`, and `game.js` only sets that when a
-  `decision.capex` arrives. No capex decision at round 5 means no investment
-  *and* no rollover. The policies decline it deliberately
-  (`policies.js`, `disciplined`), so the market stays symmetric under R6 — but
-  ₹1,00,000 per advertiser per game evaporates.
-- **The repositioning window at round 5 (4.5).** `game.js` implements it and
-  `canReposition` guards it. No interface offers it.
-- **Month 3's redistribution is invisible.** A twelve-round account's month-3
-  budget dropped from ₹1,68,000 to ₹1,17,600 — the 0.70 multiplier for ninth
-  place — and nothing on screen said the ranking had happened, where the player
-  placed, or that it was fixed at round 8. 13.3 warns about exactly this: a
-  budget that swings for reasons the player cannot attribute is worse than the
-  mechanic is worth. The rule *is* stated in the round 0 briefing; the result
-  is not stated anywhere.
+### Capital could be committed in any round, for free (`game.js`)
 
----
+`applyCapex` never checked the round. The engine does not DEBIT capital: it
+converts whatever was left uncommitted into ad budget, and only at
+`capexAllocationRounds`. So a commitment made in any other round had no
+allocation to consume and nothing to forfeit. Measured before the guard:
+
+```
+round 1: committed=10000000 liveAtRound=4    legal
+round 5: committed=10000000 liveAtRound=8    legal
+round 7: committed=10000000 liveAtRound=10   free
+```
+
+₹1,00,000 of investment, repeatable every round. It throws now, and a state
+with no `budgetSchedule` refuses rather than guessing.
+
+### `stillPending` was the whole queue, not the round's own clicks (`report.js`)
+
+It summed the advertiser's entire pending queue, which made it the only field in
+an `AdvertiserRoundReport` not about that round's cohort — `final`, `returned`,
+`costPaise` and everything else are — and it broke the revision below it, which
+subtracts only that round's late landings. Measured over eight rounds:
+
+| round | final | stillPending |
+|---|---|---|
+| 1 | 195.0 | 0.00 |
+| 3 | 195.0 | 42.91 — plateaus, nothing of its own outstanding |
+| 8 | 107.3 | 130.68 — the entire account queue |
+
+Summing across reports gave 421.30 against a true outstanding of 130.68. **The
+dashboard had been showing an over-count under Conversions since slice one**,
+and nothing noticed until the end screen tried to total it. Corrected to the
+round's own cohort it now equals the true outstanding for every round, and the
+ending reads 9 of 12 weeks settled — which is what a three-round lag predicts.
+
+**It decays to 7.1e-15, not to zero**, because it decays by SUBTRACTING
+fractional landings from a fractional total. Anything asking "has this settled"
+needs a tolerance. `ui/ending.js` has one and `report.test.js` uses
+`toBeCloseTo`.
+
+**The shape of both:** a field or a guard that nothing exercised. The pattern
+worth carrying forward is that building the first real caller for a path is when
+you find out whether the path was right.
 
 ## What building the form exposed
 
-Two bugs, both invisible to a 946-test suite, both found by using it:
+Four bugs in the interface itself, none of them visible to a 993-test suite, all
+found by using it:
 
 - **The planner composer lost its match type, its bid and its filter on every
   add**, because adding a keyword rebuilds the card. Building an ad group from
   the planner was eight fiddly steps instead of eight clicks. Fixed by holding
   that state on `ctx` rather than in the render function.
-- **The over-block warning only fired on conversions already earned.** So the
-  stronger case — reach given up sight unseen, on searches you have never
-  bought — said nothing at all.
+- **The over-block warning only fired on conversions already earned**, so the
+  stronger case — reach given up sight unseen, on searches never bought — said
+  nothing at all.
+- **`willTriggerLearning` compared the draft's position against itself**, so a
+  repositioning would have reported no learning period on the one change that
+  most certainly causes one. Shipped in item 3 and unreachable until item 4 gave
+  the form a way to move. It needs `base.position`.
+- **The round-5 card claimed repositioning resets your Quality Scores.** It does
+  not. 4.5 calls the loss "a consequence, not a rule to implement" — keeping a
+  keyword keeps its history, and only the ones you REPLACE start from nothing.
+  Moving with the old keywords in place kept every score: `4 7 4 4 7` before and
+  after. **This one matters most of the four**, because the others were friction
+  and this was the screen teaching something false about the exact mechanic it
+  was explaining.
 
 And one thing that was not a bug: at exactly 1100px wide the dashboard grid is
 two columns, not four, because `@media (max-width: 1100px)` is inclusive. A
-`span-2` card measuring full width there is correct. Measure `matchMedia` before
+`span-2` card measuring full width there is correct. Check `matchMedia` before
 believing a layout report.
-
----
 
 ## What the audit pass changed, and why it still matters
 
@@ -312,11 +398,17 @@ constant-side, and they have not been discussed yet.
 - **There is no linter.** `ui/dashboard.js` shipped a `ReferenceError` to the
   browser that a 917-test suite could not see, because no test reads function
   bodies. `tests/ui.test.js` has a module-load smoke test that is labelled weak
-  on purpose. This is the one gap where a dependency would genuinely pay.
-- **Nobody has played it as a learner.** It has now been played end to end,
-  twelve rounds, and an account has been rescued from a losing position through
-  the form. But it was driven from a script by someone who knows what the
-  engine does, which is not the same thing as somebody learning from it.
+  on purpose. This is the one gap where a dependency would genuinely pay, and
+  four more interface bugs have gone past it since that was written.
+- **Nobody has played it as a learner.** It has now been played end to end
+  several times, an account has been rescued from a losing position through the
+  form, and every control has been exercised. But it was driven from a script by
+  someone who knows what the engine does, which is not the same thing as
+  somebody learning from it. **This is now the largest untested claim in the
+  project** — everything else has either a test or a measurement behind it.
+- **The end screen has never been read by someone who did not build it.** It is
+  the one surface whose whole job is reflection rather than mechanism, and the
+  only evidence it works is that its numbers are right.
 
 ---
 
@@ -429,13 +521,19 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
 
 ### Verifying the interface
 
-- **`npm test` is the gate, and it did not catch the last four interface bugs.**
+- **`npm test` is the gate, and it has not caught a single interface bug yet.**
   The suite reads SOURCE, not function bodies: it can tell you that `ui/` still
   imports the engine and carries no physics of its own, and it cannot tell you
   that a stale identifier reaches the browser, that a form field forgets what
-  you typed into it, or that a warning never fires. Two of the four were found
-  only by using the thing. **Open the browser before believing the interface
-  works.** A green suite is necessary and it is not evidence.
+  you typed into it, that a warning never fires, or that a card is explaining a
+  mechanic incorrectly. Every one of the eight found so far came from opening
+  it. **Open the browser before believing the interface works.** A green suite
+  is necessary and it is not evidence.
+- **The pure part of a screen belongs outside the render function.** Everything
+  in `decisions.js` and `ending.js` that can be wrong silently — the diff, the
+  preview, the month arithmetic, the reading-back of `decisionLog` — is an
+  exported function with tests, and only the drawing needs a browser. That is
+  what made 47 of this session's tests possible at all.
 - **Screenshots lie when the browser pane is hidden.** The viewport collapses,
   `window.innerWidth` reads 0, every card measures 32px and the page reports
   horizontal overflow. It is indistinguishable from a layout bug. When that
