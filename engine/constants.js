@@ -156,9 +156,17 @@ export const HOUR_PROFILES = {
  * Conversion rate by hour — a multiplier, not a distribution, so it is
  * normalised to a mean of exactly 1 rather than a sum of 1.
  *
- * That normalisation is load-bearing. If the mean drifted from 1 this curve
- * would quietly change the average conversion rate and invalidate every
- * break-even figure in spec 4.4.
+ * THAT MEAN IS OVER UNIFORM HOURS, AND IT IS NOT THE MEAN THAT MATTERS.
+ * Conversions arrive weighted by clicks, clicks follow demand, and demand sits
+ * in the hours where this curve is high. Measured against the real query set,
+ * the traffic-weighted mean is 1.146, not 1.
+ *
+ * An earlier version of this comment claimed the normalisation was what kept
+ * spec 4.4's break-even figures honest. It never did: it protects a mean nobody
+ * experiences. The 14.6% is real, deliberate, and folded into
+ * realisedBreakEvenCpcPaise, which is the figure 4.4 now calls operative.
+ * Normalising against traffic instead would couple this file to the query set,
+ * which is a worse trade than naming the number.
  *
  * Peaks at 15:00, deliberately away from both the late-morning search peak and
  * the evening browse peak. The lesson is that the busiest hour and the

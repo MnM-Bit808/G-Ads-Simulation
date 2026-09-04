@@ -213,14 +213,28 @@ describe('I4 — the axes stay in their lanes (spec 4.4)', () => {
   });
 
   test('gross break-even always exceeds net, most sharply at the cheap end', () => {
-    const gap = (price) => {
+    // PER CELL, not per row. This used to read POSITION_ECONOMICS alone and
+    // never apply PURPOSE_MODIFIERS, so it checked the 43/32/25 figures that
+    // DECISIONS F8 explicitly says are base-tier and that no advertiser
+    // occupies. The real spread runs 20.5% at Premium-Performance to 56.3% at
+    // Value-Lifestyle, and which cell you chose decides how badly section 14
+    // hurts.
+    const gap = (price, purpose) => {
       const t = C.POSITION_ECONOMICS[price];
-      const gross = t.aovMeanPaise * t.marginPct * t.convRateBase;
-      const net = gross * (1 - t.returnRate);
-      return gross / net - 1;
+      const m = C.PURPOSE_MODIFIERS[purpose];
+      return 1 / (1 - t.returnRate * m.ret) - 1;
     };
-    expect(gap('value')).toBeGreaterThan(gap('mid'));
-    expect(gap('mid')).toBeGreaterThan(gap('premium'));
+    for (const purpose of ['performance', 'lifestyle']) {
+      expect(gap('value', purpose), purpose).toBeGreaterThan(gap('mid', purpose));
+      expect(gap('mid', purpose), purpose).toBeGreaterThan(gap('premium', purpose));
+    }
+    // Lifestyle is punished harder than performance in every row, because it
+    // returns more, and that is the point of the F8 table.
+    for (const price of ['value', 'mid', 'premium']) {
+      expect(gap(price, 'lifestyle'), price).toBeGreaterThan(gap(price, 'performance'));
+    }
+    expect(gap('value', 'lifestyle')).toBeCloseTo(0.5625, 4);
+    expect(gap('mid', 'performance')).toBeCloseTo(0.2563, 4);
   });
 });
 

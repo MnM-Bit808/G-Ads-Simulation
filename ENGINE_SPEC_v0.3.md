@@ -129,12 +129,23 @@ Applied on top of the price tier. `INVENTED`.
 
 | | Performance | Lifestyle |
 |---|---|---|
-| conversion x | 0.90 | 1.10 |
+| conversion x | 0.94 | 1.06 |
 | return rate x | 0.85 | 1.20 |
 
 Performance goods are bought on stated specs — they either do the job or they
 don't, and mostly they do. Lifestyle goods are bought on appearance, and *how it
 looks on me* is only knowable after it arrives.
+
+**Conversion was 0.90/1.10 and is deliberately weaker now.** The query set
+already carries a purpose effect on economics, and a better one: lifestyle
+territory has genuinely bigger baskets (it is full of co-ord sets) and genuinely
+fewer returns (oversized and modal fit anybody; compression and high-impact do
+not). Both are per-query and argued. Applying a blunt modifier on top of them
+put the *realised* purpose gap at 12.2 / 17.0 / 20.5%, through I4's bound in two
+rows out of three — invisible, because I4 read only this table. The return
+modifier stays: it is the half the query set reinforces rather than duplicates,
+and shrinking it would widen the gap rather than narrow it. See `DECISIONS.md`
+F11.
 
 ### 4.4 What each position can pay
 
@@ -148,25 +159,60 @@ break-even CPC (net) = aovMeanPaise
                      x convRateBase
 ```
 
+**There are two of these figures and they are not the same number.** Conflating
+them is what made this section wrong for four commits.
+
+**Neutral-query break-even** — `breakEvenCpcPaise`, computed from 4.2 and 4.3
+alone, for a query whose every multiplier is 1 at an hour of average intent:
+
 | | Performance | Lifestyle |
 |---|---|---|
-| **Value** | 1352 paise | 1419 paise (+5.0%) |
-| **Mid** | 2503 paise | 2737 paise (+9.4%) |
-| **Premium** | 3557 paise | 3981 paise (+11.9%) |
+| **Value** | 1412 paise | 1368 paise |
+| **Mid** | 2615 paise | 2637 paise |
+| **Premium** | 3715 paise | 3836 paise |
 
-Note the intended property: **the purpose axis moves break-even by ~5–12% within a
-price row, while the price axis moves it 2.6–2.8x top to bottom.** If a change to
-the constants breaks that property, the axes have started doing each other's job.
+**Nobody buys that query.** What an advertiser buys is its own territory, and by
+construction (7.1, `homeCell`) territory is exactly the set where *both* of its
+affinities peak, so the affinity product runs near 2.0. `HOURLY_INTENT_CURVE`
+compounds it: normalised to a mean of 1 across 24 uniform hours, its
+*traffic-weighted* mean is 1.146, because clicks arrive where demand is and
+demand sits where intent is high.
 
-**Headroom warning.** Premium already sits at 11.9%. Invariant I4 tests against 15%
-to leave room, but the margin is thin — any increase to `PURPOSE_MODIFIERS` will
-push Premium through it. If the purpose axis needs to be stronger, strengthen the
-*query affinities* (7.1) instead, which change which queries you want without
-changing what you can pay for them.
+**Realised break-even** — `realisedBreakEvenCpcPaise`, volume-weighted over a
+position's own territory. **This is the operative ceiling**, and it is what I2,
+the round 0 briefing (17.2) and the test fixtures quote:
 
-Gross break-even (ignoring returns) is materially higher in every cell — 43% higher
-for Value, 32% for Mid, 25% for Premium. That gap is the section 14 trap, and it is
-widest exactly where the margin is thinnest.
+| | Performance | Lifestyle | gap |
+|---|---|---|---|
+| **Value** | 3456 paise | 3577 paise | +3.5% |
+| **Mid** | 6105 paise | 6589 paise | +7.9% |
+| **Premium** | 8327 paise | 9261 paise | +11.2% |
+
+Note the intended property: **the purpose axis moves break-even by under 12%
+within a price row, while the price axis moves it 2.7x top to bottom.** If a
+change to the constants *or to the query set* breaks that property, the axes have
+started doing each other's job. **I4 must be checked against the realised table**
+— checking only the neutral one is how a 20.5% purpose gap went unseen.
+
+**Headroom warning, corrected.** The old warning said Premium sat at 11.9% and
+that any increase to `PURPOSE_MODIFIERS` would push it through 15%. It was aimed
+at the wrong constant: Premium was already at 20.5% realised, and the excess came
+from the query set. Strengthening the query affinities — the remedy this section
+used to recommend — would have made it worse, not better. The lever that works
+is whichever of the two is the *weaker argument*, and today that is the modifier.
+
+Gross break-even (ignoring returns) is materially higher in every cell. Per cell,
+not per row — no advertiser occupies a row:
+
+| | Performance | Lifestyle |
+|---|---|---|
+| **Value** | +34.2% | **+56.3%** |
+| **Mid** | +25.6% | +40.4% |
+| **Premium** | +20.5% | +31.6% |
+
+That gap is the section 14 trap. It is widest at Value-Lifestyle, which is the
+worst place on the grid to optimise to gross, and narrowest at
+Premium-Performance, where it still costs a fifth.
 
 ### 4.5 Position is fixed, with one exception
 
@@ -1260,9 +1306,20 @@ Show what a real founder could research. Withhold what you only learn by operati
 - typical order values and margins for all three tiers — competitor prices are on
   their websites; apparel margin norms are common knowledge
 - **one fully worked anchor**, mid-market, with the arithmetic visible:
-  `₹2,400 x 52% x 76% x 2.8% = ₹26.56 you can pay per click`
+  `₹2,400 x 52% x 76% x 2.8% = ₹26.56 on an average search`
+- **and the sentence that makes it usable**: *"that is what a search worth
+  nothing in particular is worth to you. The searches you choose to compete for
+  are worth appreciably more — roughly double — which is the entire reason
+  choosing a position matters."*
 - the break-even formula itself
 - the month-3 ranking rule, stated in full (13.1)
+
+**The second bullet is not optional.** The worked anchor is the neutral-query
+figure from 4.4, and every advertiser's real ceiling is about 2.4x it. A player
+handed ₹26 and no warning bids ₹26, loses every auction, and concludes the
+arithmetic they were taught does not work. Giving the direction and rough size
+without the exact multiplier keeps the affinities withheld (C4) while leaving the
+player able to reason. The precise figure is earned by running the keyword.
 
 **Withheld, with directional hints only:**
 
@@ -1400,8 +1457,16 @@ positions.
 
 **I4 — The axes must stay in their lanes.** The purpose axis must move net
 break-even CPC by **under 15%** within a price row; the price axis must move it by
-more than 2x top to bottom (4.4). At the v0.3 constants the widest purpose gap is
-Premium at 11.9%, so the headroom is roughly three points — see the warning in 4.4.
+more than 2x top to bottom (4.4).
+
+**Checked on the REALISED figures, not only the constants.** This invariant read
+`breakEvenCpcPaise` alone for four commits, which measures a neutral query that
+no advertiser ever buys. On that measure the widest purpose gap was Premium at
+11.9% and looked safe. On the figures an advertiser actually faces it was 20.5%,
+and Mid was 17.0% — through the bound in two rows out of three, because the query
+set was applying a second purpose effect on top of `PURPOSE_MODIFIERS` through
+basket size and return rate. Both tables are now asserted. The realised gaps are
+3.5 / 7.9 / 11.2% and the realised price axis is 2.68x. See `DECISIONS.md` F11.
 
 **I5 — The peaks must not coincide.** `HOURLY_INTENT_CURVE`'s peak hour must differ
 by at least 3 hours from every `HOUR_PROFILES` peak. If demand peak and intent peak

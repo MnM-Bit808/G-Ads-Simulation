@@ -694,9 +694,20 @@ Mid-afternoon is defensible as a considered-purchase window, but it is
 illustrative and should never be quoted as a fact about any industry.
 
 **The curve is normalised to a mean of exactly 1, not a sum of 1**, because it is
-a multiplier rather than a distribution. If the mean drifted from 1 it would
-silently change the average conversion rate and invalidate every break-even
-figure in spec 4.4. Tested.
+a multiplier rather than a distribution.
+
+**Correction: that mean is over uniform hours, and it is not the mean that
+matters.** This entry claimed the normalisation was what kept spec 4.4's
+break-even figures honest, and said it was tested. It protects a mean nobody
+experiences. Conversions arrive weighted by clicks, clicks follow demand, and
+demand sits in the hours where this curve is high — so measured against the real
+query set the **traffic-weighted mean is 1.146**, and every position converts
+about 15% better than 4.2's `convRateBase` implies.
+
+The 14.6% is real and deliberate, and it is folded into
+`realisedBreakEvenCpcPaise`, which 4.4 now calls the operative figure.
+Normalising against traffic instead would couple `constants.js` to the query set,
+which is a worse trade than naming the number. See F11.
 
 **`PACING_REFERENCE_CURVE` peaks at 13:00**, between the late-morning and evening
 peaks and matching neither. That mismatch is the entire mechanism in D9 — it is
@@ -798,9 +809,9 @@ way in both directions:
 
 | | Performance (ret ×0.85) | Lifestyle (ret ×1.20) |
 |---|---|---|
-| Value | 34% | **56%** |
-| Mid | 27% | 41% |
-| Premium | 21% | 32% |
+| Value | 34.2% | **56.3%** |
+| Mid | 25.6% | 40.4% |
+| Premium | 20.5% | 31.6% |
 
 So the headline numbers describe a row, and no advertiser actually occupies a
 row. **Value-Lifestyle is the worst place on the grid to optimise to gross** —
