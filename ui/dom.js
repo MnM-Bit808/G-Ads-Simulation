@@ -76,12 +76,27 @@ export function figure(label, value, sub, tone) {
   return box;
 }
 
-/** A labelled form field. */
+/**
+ * A labelled form field.
+ *
+ * `hint` may be a string or a node. It used to be passed to `el()`, which sets
+ * `textContent` — so round 0's character counters, which are spans, rendered
+ * as the literal text "[object HTMLSpanElement]" under every headline and
+ * description from the day they were written. Nothing caught it: the counters
+ * are cosmetic, no test reads them, and they are small grey text at the end of
+ * a long form.
+ */
 export function field(label, control, hint) {
   const wrap = el('label', 'field');
   wrap.append(el('span', 'field-label', label));
   wrap.append(control);
-  if (hint) wrap.append(el('span', 'field-hint', hint));
+  if (hint instanceof Node) {
+    const box = el('span', 'field-hint');
+    box.append(hint);
+    wrap.append(box);
+  } else if (hint) {
+    wrap.append(el('span', 'field-hint', hint));
+  }
   return wrap;
 }
 

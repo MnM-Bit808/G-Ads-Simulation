@@ -62,6 +62,27 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
   };
 
   const root = el('div', 'setup');
+
+  /**
+   * Everything a keystroke changes, and nothing a keystroke does not.
+   *
+   * `rerender` replaces the whole form, which is right for a click — a new cell,
+   * a keyword added — and catastrophic for typing: the input you are typing
+   * into is destroyed, focus falls to <body>, and every character after the
+   * first is swallowed. Typing "Built" into a headline by hand produced "B".
+   * A script re-queried the field after each character and never saw it.
+   *
+   * So a keystroke writes into the draft and then refreshes only the things
+   * DERIVED from it — the character counters, the copy warnings, the budget
+   * total, and whether the Go button is allowed to be pressed.
+   */
+  const live = { ad: null, budget: null, start: null };
+  const revalidate = () => {
+    live.ad?.();
+    live.budget?.();
+    live.start?.();
+  };
+
   const rerender = () => {
     root.replaceChildren();
     add(root,
@@ -71,9 +92,9 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
       sectionPosition(brief, draft, rerender),
       sectionCapex(draft, rerender),
       sectionKeywords(querySet, draft, rerender),
-      sectionAd(draft, rerender),
-      sectionBudget(draft, rerender),
-      sectionStart(draft, onStart));
+      sectionAd(draft, revalidate, live),
+      sectionBudget(draft, revalidate, live),
+      sectionStart(draft, onStart, live));
   };
   rerender();
   return root;
@@ -363,53 +384,75 @@ function sectionKeywords(querySet, draft, rerender) {
 // 10. The ad
 // ---------------------------------------------------------------------------
 
-function sectionAd(draft, rerender) {
+function sectionAd(draft, revalidate, live) {
   const node = card('Your ad', 'the only thing your rivals can see about you');
 
-  const counter = (value, max) => {
-    const over = value.length > max;
-    return el('span', `count${over ? ' over' : ''}`, `${value.length}/${max}`);
+  const counters = [];
+  const counter = (max) => {
+    const node2 = el('span', 'count');
+    counters.push({ node: node2, max, read: null });
+    return node2;
+  };
+
+  const addField = (label, box, max, read, hint) => {
+    const mark = max == null ? hint : counter(max);
+    if (max != null) counters[counters.length - 1].read = read;
+    node.append(field(label, box, mark));
   };
 
   draft.ad.headlines.forEach((text, i) => {
     const box = input({
       value: text,
       maxlength: String(HEADLINE_MAX_CHARS + 20),
-      onInput: (value) => { draft.ad.headlines[i] = value; rerender(); },
+      // No rerender: this box is the one being typed into.
+      onInput: (value) => { draft.ad.headlines[i] = value; revalidate(); },
     });
-    node.append(field(`Headline ${i + 1}`, box, counter(text, HEADLINE_MAX_CHARS)));
+    addField(`Headline ${i + 1}`, box, HEADLINE_MAX_CHARS, () => draft.ad.headlines[i]);
   });
 
   draft.ad.descriptions.forEach((text, i) => {
     const box = input({
       value: text,
       maxlength: String(DESCRIPTION_MAX_CHARS + 40),
-      onInput: (value) => { draft.ad.descriptions[i] = value; rerender(); },
+      onInput: (value) => { draft.ad.descriptions[i] = value; revalidate(); },
     });
-    node.append(field(`Description ${i + 1}`, box, counter(text, DESCRIPTION_MAX_CHARS)));
+    addField(`Description ${i + 1}`, box, DESCRIPTION_MAX_CHARS, () => draft.ad.descriptions[i]);
   });
 
   const page = input({
     value: draft.ad.landingPageDescription,
-    onInput: (value) => { draft.ad.landingPageDescription = value; rerender(); },
+    onInput: (value) => { draft.ad.landingPageDescription = value; revalidate(); },
   });
-  node.append(field('Landing page', page,
-    'Describe the page they arrive on. Nobody else sees this; it is graded.'));
+  addField('Landing page', page, null, null,
+    'Describe the page they arrive on. Nobody else sees this; it is graded.');
+
+  const problems = el('div');
+  node.append(problems);
 
   // Rules, not judgements. The numeric grade is earned by running the ad.
-  const problems = validateAdCopy(draft.ad).violations;
-  const rival = namesARival(draft.ad, BRAND_IDENTITIES.map((b) => b.name));
-  if (rival) {
-    problems.push(
-      `names "${rival}". Bidding on a rival's brand is allowed; naming them in `
-      + 'your ad is not, and it will cost you ad relevance.',
-    );
-  }
-  if (problems.length > 0) {
-    const list = el('ul', 'problems');
-    for (const problem of problems) list.append(el('li', null, problem));
-    node.append(list);
-  }
+  live.ad = () => {
+    for (const c of counters) {
+      const value = c.read?.() ?? '';
+      c.node.textContent = `${value.length}/${c.max}`;
+      c.node.className = value.length > c.max ? 'count over' : 'count';
+    }
+
+    const found = validateAdCopy(draft.ad).violations;
+    const rival = namesARival(draft.ad, BRAND_IDENTITIES.map((b) => b.name));
+    if (rival) {
+      found.push(
+        `names "${rival}". Bidding on a rival's brand is allowed; naming them in `
+        + 'your ad is not, and it will cost you ad relevance.',
+      );
+    }
+    problems.replaceChildren();
+    if (found.length > 0) {
+      const list = el('ul', 'problems');
+      for (const problem of found) list.append(el('li', null, problem));
+      problems.append(list);
+    }
+  };
+  live.ad();
   return node;
 }
 
@@ -428,7 +471,7 @@ function evenSplit(total) {
   return split;
 }
 
-function sectionBudget(draft, rerender) {
+function sectionBudget(draft, revalidate, live) {
   const total = monthlyBudget(draft);
   if (!draft.split || draft.split.reduce((a, b) => a + b, 0) !== total) {
     draft.split = evenSplit(total);
@@ -441,19 +484,25 @@ function sectionBudget(draft, rerender) {
       type: 'number', value: String(Math.round(amount / 100)), min: '0', step: '100',
       onInput: (value) => {
         draft.split[i] = Math.max(0, Math.round(Number(value) * 100));
-        rerender();
+        revalidate();
       },
     });
     row.append(field(`Week ${i + 1}`, box));
   });
   node.append(row);
 
-  const planned = draft.split.reduce((a, b) => a + b, 0);
-  const over = planned > total;
-  node.append(el('p', over ? 'problems' : 'muted',
-    over
+  const summary = el('p');
+  node.append(summary);
+  live.budget = () => {
+    const planned = draft.split.reduce((a, b) => a + b, 0);
+    const over = planned > total;
+    summary.className = over ? 'problems' : 'muted';
+    summary.textContent = over
       ? `${rupees(planned)} planned against ${rupees(total)} available. The month is a hard cap.`
-      : `${rupees(planned)} planned, ${rupees(total - planned)} unallocated.`));
+      : `${rupees(planned)} planned, ${rupees(total - planned)} unallocated.`;
+  };
+  live.budget();
+
   node.append(el('p', 'note',
     'Unspent money is lost at the month boundary — there is no carry-over. '
     + `Months 1 and 2 are identical for everyone; month 3 is redistributed by `
@@ -465,25 +514,35 @@ function sectionBudget(draft, rerender) {
 // 12. Go
 // ---------------------------------------------------------------------------
 
-function sectionStart(draft, onStart) {
+function sectionStart(draft, onStart, live) {
   const node = el('div', 'start');
-  const problems = [];
-  if (draft.keywords.length === 0) problems.push('You need at least one keyword.');
-  if (!validateAdCopy(draft.ad).valid) problems.push('Your ad is not finished.');
-  if (draft.split.reduce((a, b) => a + b, 0) > monthlyBudget(draft)) {
-    problems.push('Your weekly split asks for more than the month holds.');
-  }
-
-  if (problems.length > 0) {
-    const list = el('ul', 'problems');
-    for (const problem of problems) list.append(el('li', null, problem));
-    node.append(list);
-  }
+  const problems = el('div');
+  node.append(problems);
 
   const go = el('button', 'go');
   go.type = 'button';
   go.textContent = 'Open the account';
-  go.disabled = problems.length > 0;
+
+  // Recomputed on every keystroke rather than only when the form is rebuilt,
+  // or the Go button would stay disabled until something else was clicked —
+  // the player finishes typing their last headline and nothing happens.
+  live.start = () => {
+    const found = [];
+    if (draft.keywords.length === 0) found.push('You need at least one keyword.');
+    if (!validateAdCopy(draft.ad).valid) found.push('Your ad is not finished.');
+    if (draft.split.reduce((a, b) => a + b, 0) > monthlyBudget(draft)) {
+      found.push('Your weekly split asks for more than the month holds.');
+    }
+
+    problems.replaceChildren();
+    if (found.length > 0) {
+      const list = el('ul', 'problems');
+      for (const problem of found) list.append(el('li', null, problem));
+      problems.append(list);
+    }
+    go.disabled = found.length > 0;
+  };
+  live.start();
   go.addEventListener('click', () => {
     const remaining = CAPEX_ALLOCATION_PAISE - committed(draft);
     const pending = Object.entries(draft.capex)
