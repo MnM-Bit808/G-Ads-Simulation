@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 993 tests, all passing, 1 todo.
+**Every build-order step is done.** 1014 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -21,7 +21,7 @@ still resting on a guess.
 ✅  4  matching                       ✅ 11  serialise
 ✅  5  quality                        ✅ 12  calibration
 ✅  6  positions                      🟨 13  agents  — llmPolicy + queryGen left
-✅  7  strategies                     🟨 14  ui      — slices 1–3, form items 1–5
+✅  7  strategies                     ✅ 14  ui      — every control the spec has
 ```
 
 Plus three modules the spec's layout never had, all of them caller-layer:
@@ -41,9 +41,11 @@ then http://localhost:5173. Round 0 asks for brand, position, capital,
 keywords, ad copy and a weekly split; the dashboard plays a week at a time
 against six rule-based rivals; and the decision form now lets the player write
 negatives, change bids and match types, pause keywords and add new ones between
-weeks, choose a bid strategy, take the round-5 capital allocation and use the
-one repositioning window. A full twelve rounds runs through the interface with
-no console errors and ends on a screen that says what the twelve weeks came to.
+weeks, choose a bid strategy, take the round-5 capital allocation, use the one
+repositioning window, divide the month across its four weeks and bid the hours
+of the day. **Every control spec v0.3 describes is now reachable.** A full
+twelve rounds runs through the interface with no console errors and ends on a
+screen that says what the twelve weeks came to.
 
 **The rescue works**, which is what slice three was for. The account this
 project keeps coming back to — `premium|lifestyle`, five keywords taken off the
@@ -71,7 +73,7 @@ I3 sits at **2.8% worst deviation, 1.05x spread** against a 15% target.
 
 ---
 
-## The decision form, and what is left of it
+## The decision form
 
 `ui/decisions.js` is the form. It owns a **draft** and the cards that edit it.
 
@@ -101,18 +103,12 @@ it (see *Verifying the interface*).
 4. ✅ **The round-5 window** — the capital top-up and the one repositioning step,
    together, because they are drawn from the same month.
 5. ✅ **Month 3 explained, and an end screen** (`ui/ending.js`).
+6. ✅ **The weekly split**, with what each spent week actually cost beside what
+   it was planned.
+7. ✅ **Dayparting**, six blocks, over the player's own hour-of-day history.
 
-Left to build:
-
-6. **The weekly split**, against the burn-down the dashboard already draws.
-   **Read `advanceCampaign` in `round.js` first:** at every month boundary it
-   RESETS `weeklySplitPaise` to an even split, and `applyBudgetAdjustments`
-   rescales it again whenever capital rolls in. A split control has to contend
-   with both, or the player's front-loaded plan will silently flatten at the
-   start of month 2 and they will never know why.
-7. **Dayparting**, six blocks. Still the least urgent: nothing in the interface
-   shows the hourly pattern that would make it a reasoned choice rather than a
-   guess.
+**Nothing is left of the list.** What is left of the project is in *Still open*,
+and none of it is interface.
 
 ### What items 3 to 5 settled that is worth not relearning
 
@@ -162,6 +158,60 @@ month-3 budget anyway (₹1,17,600 against ₹1,68,000 is the last-place multipl
 and nothing else), and 13.3 is explicit that a budget swinging for reasons
 nobody can attribute is worse than the mechanic is worth.
 
+### What items 6 and 7 settled
+
+**The split resets every month, and the card has to say so.**
+`advanceCampaign` re-evens `weeklySplitPaise` at every month boundary, because
+the month's total can change — month 3 is redistributed by rank. A shape set in
+month 1 does not survive into month 2. The card re-asks at the top of each
+month rather than pretending the plan carried, and a test pins the reset so
+nobody later "fixes" the card on the assumption it persists.
+`applyBudgetAdjustments` also rescales the split whenever capital rolls in,
+which preserves the shape but not the amounts — so at an allocation round the
+card tells the player to set the shape rather than the exact rupees.
+
+**Spent weeks are read-only.** `buildBudgets` only ever reads
+`split[(round - 1) % ROUNDS_PER_MONTH]`, so editing a week that has already run
+changes nothing. A control that does nothing is worse than no control. They
+show what they actually SPENT beside what they were planned, which is the
+comparison 13.2's burn-down exists for.
+
+**The split warning asks the operative question, not the tidy one.** The first
+version asked `validateWeeklySplit`, which sums the WHOLE split against the
+WHOLE month — right at round 0 where `setup.js` asks it, wrong mid-month. With
+weeks 1 and 2 under their plan there is MORE in the pot than the total implies,
+and the card warned about a ₹3,21,000 plan when only ₹1,87,000 was planned
+ahead. It now compares the weeks still to run against what is left, which
+collapses to exactly `validateWeeklySplit` at the top of a month — and a test
+asserts they agree there, which is where the engine has an opinion at all.
+Mid-month it has none; 13.2's cap simply binds during the round.
+
+**Dayparting reads `bidding.observedByHour`, and that is the whole trick.** It
+is cumulative clicks and LANDED conversions per hour of day, written by the
+engine and already carried in `getSelfView` — the same history a bid strategy
+must accumulate before it can daypart at all (12.2, D2). So the card needed no
+new data and leaks nothing: `HOUR_PROFILES` and `HOURLY_INTENT_CURVE` are the
+model and `tests/ui.test.js` fails if a `ui/` file names them.
+
+**The card says nothing about which hours are good**, because I5 forces the
+demand peak and the intent peak at least three hours apart and the table makes
+that visible on its own. Measured on a played account at week 5:
+
+| block | clicks | conversion rate |
+|---|---|---|
+| Afternoon | 1,390 | **3.63%** |
+| Evening | **2,241** | 3.00% |
+| Night | 1,460 | 2.21% |
+
+The busiest block is not the best-converting one, and noticing that is the
+entirety of H4. Being told it would be a different and much smaller lesson.
+
+**−100% is "bids the minimum", not an off switch.** `daypartMultiplier` returns
+zero, and `effectiveBidPaise` then clamps to `MIN_BID_PAISE` rather than to
+nothing — so it is a bid of ₹1. It behaves like an off switch only because ₹1
+lands under `AD_RANK_FLOOR`. Two tests pin the ends: every block at −100% cuts
+impressions by over 99%, and +100% on evening raises what the account spends.
+
 ### Three rules the form obeys, and why
 
 **A decision must be previewable before it is committed.** The whole design is
@@ -210,7 +260,7 @@ handed, because history is the copy that gets revised (11.4).
 
 ---
 
-## Two defects the interface found in the engine and caller
+## Three things the interface found in the engine and caller
 
 Both were reachable by nothing before the form existed, which is exactly why
 they survived. Both produced numbers, and one of them had been on screen since
@@ -256,33 +306,60 @@ fractional landings from a fractional total. Anything asking "has this settled"
 needs a tolerance. `ui/ending.js` has one and `report.test.js` uses
 `toBeCloseTo`.
 
-**The shape of both:** a field or a guard that nothing exercised. The pattern
-worth carrying forward is that building the first real caller for a path is when
-you find out whether the path was right.
+### Two fields 15.2 asks for that the report never carried (`report.js`)
+
+`budget.weeklySplitPaise` and `budget.roundsRemainingInMonth` are both listed in
+15.2 and neither existed. 13.2 asks the UI for "a burn-down of remaining pot
+against **rounds remaining**", and the second number could not be drawn — so the
+dashboard showed half a burn-down from slice one until item 6. It now reads
+`₹1,99,036 left, 1 week to spend it`.
+
+`roundsRemainingInMonth` counts the rounds AFTER the one being reported, which
+is the figure a burn-down wants: what is left, and how long there is to spend it.
+
+**The shape of all three:** a field or a guard that nothing exercised. The
+pattern worth carrying forward is that building the first real caller for a path
+is when you find out whether the path was right — and that the spec's own field
+lists are worth diffing against the code, because two of these were simply never
+implemented and nothing noticed for eleven build steps.
 
 ## What building the form exposed
 
-Four bugs in the interface itself, none of them visible to a 993-test suite, all
-found by using it:
+Nine bugs in the interface itself. `npm test` caught exactly one of them — a
+syntax error, by the module-load smoke test that is labelled weak on purpose and
+that had never caught anything before. Every other one came from opening it.
 
-- **The planner composer lost its match type, its bid and its filter on every
-  add**, because adding a keyword rebuilds the card. Building an ad group from
-  the planner was eight fiddly steps instead of eight clicks. Fixed by holding
-  that state on `ctx` rather than in the render function.
-- **The over-block warning only fired on conversions already earned**, so the
-  stronger case — reach given up sight unseen, on searches never bought — said
-  nothing at all.
+The ones worth remembering, because they are kinds rather than incidents:
+
+- **A screen that taught something false.** The round-5 card claimed
+  repositioning resets your Quality Scores. It does not: 4.5 calls the loss "a
+  consequence, not a rule to implement" — keeping a keyword keeps its history,
+  and only the ones you REPLACE start from nothing. Moving with the old keywords
+  in place kept every score (`4 7 4 4 7` before and after). **This is the worst
+  class of interface bug in this project**, because the screen was explaining
+  the exact mechanic it was getting wrong.
+- **A warning that cried wolf.** The split card summed all four weeks against
+  the month mid-month, warning about a ₹3,21,000 plan when only ₹1,87,000 was
+  planned ahead. A warning that fires when nothing is wrong trains the player to
+  ignore it.
+- **An engine string on screen.** The same card printed
+  `validateWeeklySplit`'s own message, which quotes raw paise because it is
+  written for a thrown error: the player was shown "totals 35100000 paise". R7
+  puts formatting at the display layer. **The verdict may be the engine's; the
+  sentence has to be this layer's.**
+- **A promise the screen did not keep.** The end screen offers "every decision,
+  week by week" and knew nothing about the weekly split or the hour adjustments
+  — a week where four blocks and a week budget changed logged one line about
+  capital.
 - **`willTriggerLearning` compared the draft's position against itself**, so a
   repositioning would have reported no learning period on the one change that
-  most certainly causes one. Shipped in item 3 and unreachable until item 4 gave
-  the form a way to move. It needs `base.position`.
-- **The round-5 card claimed repositioning resets your Quality Scores.** It does
-  not. 4.5 calls the loss "a consequence, not a rule to implement" — keeping a
-  keyword keeps its history, and only the ones you REPLACE start from nothing.
-  Moving with the old keywords in place kept every score: `4 7 4 4 7` before and
-  after. **This one matters most of the four**, because the others were friction
-  and this was the screen teaching something false about the exact mechanic it
-  was explaining.
+  most certainly causes one. Shipped in item 3, unreachable until item 4.
+- **`spentByWeek` was computed and never attached to `ctx`** — a defined
+  function nothing calls and an undefined lookup rendering as an em dash.
+- Three more that were friction rather than falsehood: the planner composer
+  losing its match type, bid and filter on every add; the over-block warning
+  firing only on conversions already earned; and the split outlook not redrawing
+  as you typed into it.
 
 And one thing that was not a bug: at exactly 1100px wide the dashboard grid is
 two columns, not four, because `@media (max-width: 1100px)` is inclusive. A
@@ -365,6 +442,9 @@ constant-side, and they have not been discussed yet.
 
 ## Still open
 
+**None of it is interface.** Build step 14 is finished; what follows is content,
+tooling and one untested claim.
+
 - **`agents/` needs `llmPolicy.js` and `queryGen.js`.** §2 asks for two of eight
   rivals to be Claude-backed; the market already has six distinct characters
   without it, so this is optional in a way the others were not. `queryGen` is
@@ -398,8 +478,11 @@ constant-side, and they have not been discussed yet.
 - **There is no linter.** `ui/dashboard.js` shipped a `ReferenceError` to the
   browser that a 917-test suite could not see, because no test reads function
   bodies. `tests/ui.test.js` has a module-load smoke test that is labelled weak
-  on purpose. This is the one gap where a dependency would genuinely pay, and
-  four more interface bugs have gone past it since that was written.
+  on purpose — it has since caught exactly one thing, a syntax error, out of
+  nine interface bugs. **This is the one gap where a dependency would genuinely
+  pay**, and it is now the clearest remaining win in the project: eight of those
+  nine would have been caught by a linter and a DOM test, and finding them cost
+  a browser session each.
 - **Nobody has played it as a learner.** It has now been played end to end
   several times, an account has been rescued from a losing position through the
   form, and every control has been exercised. But it was driven from a script by
@@ -521,14 +604,15 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
 
 ### Verifying the interface
 
-- **`npm test` is the gate, and it has not caught a single interface bug yet.**
+- **`npm test` is the gate, and it has caught one interface bug out of nine.**
   The suite reads SOURCE, not function bodies: it can tell you that `ui/` still
   imports the engine and carries no physics of its own, and it cannot tell you
   that a stale identifier reaches the browser, that a form field forgets what
-  you typed into it, that a warning never fires, or that a card is explaining a
-  mechanic incorrectly. Every one of the eight found so far came from opening
-  it. **Open the browser before believing the interface works.** A green suite
-  is necessary and it is not evidence.
+  you typed into it, that a warning fires when nothing is wrong, that an engine
+  string is being printed raw, or that a card is explaining a mechanic
+  incorrectly. The one it caught was a syntax error. **Open the browser before
+  believing the interface works.** A green suite is necessary and it is not
+  evidence.
 - **The pure part of a screen belongs outside the render function.** Everything
   in `decisions.js` and `ending.js` that can be wrong silently — the diff, the
   preview, the month arithmetic, the reading-back of `decisionLog` — is an
