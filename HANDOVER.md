@@ -12,93 +12,128 @@ still resting on a guess.
 
 ## Where we are
 
-Eleven of fourteen build-order steps done. **650 tests, all passing.**
+Thirteen of fourteen build-order steps done. **755 tests, all passing, 1 todo.**
 
 ```
-✅  1  constants, money, rng          ✅  7  strategies
-✅  2  querySet + content             ✅  8  pacing, attribution
-✅  3  auction                        ✅  9  round
-✅  4  matching                       ✅ 10  report, insights
-✅  5  quality                        ✅ 11  serialise
-✅  6  positions                      ⬜ 12  calibration   ← next
-                                      ⬜ 13  agents
-                                      ⬜ 14  ui
+✅  1  constants, money, rng          ✅  8  pacing, attribution
+✅  2  querySet + content             ✅  9  round
+✅  3  auction                        ✅ 10  report, insights
+✅  4  matching                       ✅ 11  serialise
+✅  5  quality                        ✅ 12  calibration
+✅  6  positions                      🟨 13  agents  — disciplined done, five to go
+✅  7  strategies                     ⬜ 14  ui
 ```
 
-The engine runs end to end. A round is 168 hours × 151 queries × 9 advertisers,
-resolves ~25,200 auctions, and takes **242ms** in expected mode, **1,240ms**
-sampled with one counterfactual. Both inside the spec 19 budgets.
+Plus two modules the spec's layout did not have: **`game.js`** (the caller loop)
+and **`content/adCopy.js`** (rival copy per cell, a draft awaiting a read).
 
-`git log` is a genuine record — each commit message explains what was built and
-what it exposed. Reading the last dozen is the fastest way in.
+All five calibration invariants pass. Neither `CALIBRATE` constant moved, and
+both are now argued rather than merely untested:
+
+| | value | why it is where it is |
+|---|---|---|
+| `AD_RANK_FLOOR` | 60 | Raising it is regressive. A flat reserve takes the same absolute paise from every cell — a small bite out of Premium's ceiling, a fatal one out of Value's. Measured over a full game, floor 150 takes I3 from 2.8% to 50.8%; 250 wipes the Value tier out. |
+| `WEEKLY_VOLUME` | 225000 | I1 passes at 100% of a month. But note the weakness below. |
+
+I3 now sits at **2.8% worst deviation, 1.05x spread**, against a 15% target.
 
 ---
 
-## Step 12 is the interesting one
+## What the last session changed, and why it matters
 
-`calibration.test.js` settles the two `CALIBRATE` constants and runs the balance
-invariants in spec 18.2. **Nothing about the market's fairness has been verified
-yet**, and there is real reason to expect problems.
+An audit pass found nineteen things. Four were already covered by the ledger and
+were withdrawn or narrowed — that is the system working. The rest produced eight
+commits, and three of them were engine defects producing wrong numbers:
 
-Provisional right now:
+- **Reports were double-counting their own lag-0 conversions.** `runRound`
+  appended the fresh report to history and then revised the whole array,
+  including that report, so 55% of every advertiser's conversions landed twice.
+  Round 1 stored 131.33 where `runRound` returned 65.66. Eight revision tests
+  missed it because they all compared `R1.report` against `history`, and the
+  defect lived exactly in the gap between those two objects.
+- **`observedConvRate` was never written.** It stayed null for twelve rounds
+  while `observedConversions` climbed into the hundreds, so smart bidding grew
+  steadily more confident about `COLD_START_CONV_RATE`. The spec-19 test for it
+  was never written, and every strategies test supplied the value by hand.
+- **`observedByHour` was hard-coded null**, so `MIN_HOUR_OBSERVATIONS` was
+  unreachable and a bid strategy had no route to dayparting at all.
 
-| | value | governed by | what is known |
-|---|---|---|---|
-| `AD_RANK_FLOOR` | 60 | I2 | Median CPC came out at 964 paise against Value's 1,352 break-even, so it looks survivable |
-| `WEEKLY_VOLUME` | 225,000 | I1 | Untested. First live round showed spend from 7% to 100% of budget |
+And one design defect worth understanding before touching anything:
 
-**I3 ran, failed at 76%, was diagnosed, and now passes at 12%.** Neither
-`CALIBRATE` constant had to move.
+- **The purpose axis was applied twice.** `PURPOSE_MODIFIERS` *and* the query
+  set, which gives lifestyle territory bigger baskets and fewer returns. Both
+  are true; both push the same way. The realised purpose gap was 12/17/20%
+  against I4's 15% bound, invisible because **I4 read `constants.js` and
+  nothing else** — it measured a quantity no auction experiences. Fixed by
+  shrinking the `INVENTED` modifier rather than flattening the argued content.
 
-```
-                     worst deviation      spread
-first measurement            76%           4.20x
-after both fixes             12%           1.24x    target under 15%
-```
+---
 
-**90% of the original failure was the test harness, not the grid.** The first
-version gave each advertiser "the first four head terms of its cell, one
-broad", and how far a broad keyword travels depends on how many tags that
-cell's head terms happen to carry. Reach ranged from 0.42× to 4.1× of own
-territory. `premium|performance`'s broad keyword carried two tags and reached
-half the market; `value|performance`'s carried three and reached almost
-nothing. Keyword choice is *skill*, and a fairness invariant that varies with
-skill measures the wrong thing.
+## The thing that governs everything downstream
 
-Two changes fixed it:
+**`breakEvenCpcPaise` is not the number an advertiser can pay.** It is the
+ceiling on a neutral query — every multiplier 1, every hour average — and nobody
+buys that query. Territory is by construction where both of a position's
+affinities peak, so the affinity product runs near 2.0, and the intent curve
+compounds it (its mean is 1 over uniform hours and **1.146 over traffic**).
 
-1. **I3 now holds keyword coverage constant** — one exact keyword per query in
-   the cell, nothing broad, so reach equals territory by construction. Spec
-   18.2 says so explicitly, and that clause is the invariant. This alone took
-   4.20× to 1.32×.
-2. **Each cell's volume share now tracks `1/break-even`** rather than splitting
-   each tier evenly between its two purposes. The tier split of 52/28/20 was
-   always right; the within-tier split was not, because the purpose modifier
-   moves break-even 5–12% and an even split leaves the lower-break-even cell
-   short. The Value pair were effectively transposed. This took 17% to 12%.
+Use **`realisedBreakEvenCpcPaise`** for anything operational. The old figure had
+the fixtures bidding 29% of what they could afford, which is why the market read
+as placid and everyone priced against the reserve. Corrected, median CPC went
+979 → 2008 and `lostToBudget` started firing for the first time.
 
-**My hypothesis in the earlier version of this file was wrong**, and worth
-recording as such: I guessed the flat floor-priced CPC was the culprit. It
-contributes — margin survival after CPC ranges 46% to 70% across cells — but
-that is a 1.5× effect inside a 4.2× problem. `AD_RANK_FLOOR` is vindicated, and
-`territory × break-even` now comes out within 1.13× across all six cells,
-confirming the original derivation was sound all along.
+---
 
-Still open: whether one **capex** choice dominates across positions. Testing it
-properly means ninety twelve-round games, so spec 18.2 deliberately excludes it
-from I3 and leaves a `test.todo` for a cheaper substitute.
+## Is twelve rounds long enough to learn from?
 
-Two things found while building `round.js` that step 12 needs to respect:
+Measured rather than argued, because W11 was closed by design argument alone.
+Short answer: **long enough for anything that settles inside a round, not long
+enough for the three lessons the design cares most about.**
 
-- **I1 was rewritten.** It originally asked that every advertiser exhaust its
-  budget simultaneously. The first live round showed the low spenders were being
-  *outranked*, not starved of market — an advertiser losing 39% of impressions
-  to rank *should* spend less. Testing all nine at once measures competition,
-  not market size, and would push `WEEKLY_VOLUME` up to compensate for something
-  volume cannot fix. It is now scoped to one advertiser against passive rivals.
-- **Balance must be tested with rule-based policies and repositioning off.** LLM
-  rivals and mid-game repositioning make market layout vary unpredictably, and
-  the test cannot isolate position balance through that.
+- **A round's reported profit overshoots.** 64% of truth at the click, **117%
+  one round later**, then four rounds of decay. Conversions land faster than
+  returns resolve, so every round looks best exactly one round after you stopped
+  being able to change it.
+- **Five of the eleven decisions in a game are made with no settled round to
+  look at.** First fully-settled feedback arrives at round 7.
+- **The quality diagnostic never moves.** Lifting `expectedCtr` 6 → 9 — a 50%
+  improvement — moves the own/field ratio from 1.137 to 1.488 over eight rounds
+  and the displayed score not at all, because the ratio was already past
+  `RATING_UPPER_THRESHOLD` and three levels cannot express anything between.
+  A6 records this as landing-page compression; it is every component.
+- **The noise floor is flat.** `QUALITY_NOISE_SIGMA` is a volume-independent 8%
+  that swamps the Poisson term, so every advertiser sits at 9-10% CV regardless
+  of size. **F7's Premium claim does not hold on reported outcomes** — 10.5%
+  against 8.8%, not the 3x it describes. It *does* hold on the bid strategy's
+  internal estimate: sigma 0.141 against 0.050 at round 12.
+
+None of that needs a longer game. The cheapest fixes are display-side and
+constant-side, and they have not been discussed yet.
+
+---
+
+## Still open
+
+- **Five policies to write**: `spender`, `automator`, `cautious`,
+  `brandDefender`, `grossOptimiser`. The interface, the guards and
+  `disciplined` are done and committed.
+- **`content/adCopy.js` is a draft and has not been read by a human.** A naive
+  classifier recovers all six cells, which only proves it is not *generically*
+  bad. Same standing as the query set.
+- **The query set was reviewed once** and Value and Premium were rewritten after
+  that review. The corrected set has still not been read end to end.
+- **`agents/` still needs** `llmPolicy.js`, `grader.js`, `keywordTagger.js`,
+  `queryGen.js`. Rival grades are hand-authored so the suite stays offline.
+- **Rival placement (17.1) has no implementation.** `RIVAL_PLACEMENT_CONSTRAINTS`
+  is read by nothing but a constants test.
+- **I1 does not actually pin `WEEKLY_VOLUME`.** It asserts >50% of a month over
+  four rounds; reality is 100%, and the constant can fall to ~90,000 before the
+  test notices. It also never checks the "at a CPC below break-even" clause it
+  is built around.
+- **`CAPEX_TARGETS` is read by nothing**, not even a test. The `QUALITY_WEIGHTS`
+  pattern v0.3 deleted, recurring. The provenance tests check tag ⇄ constant in
+  both directions but never that a constant is *read*.
+- **Nothing has been played.** Longest run is twelve rounds in a test.
 
 ---
 
@@ -190,7 +225,7 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   cannot run. `vitest.config.js` excludes it deliberately. Its `BUG CHECK` cases
   encode real traps and have been ported as their modules were built.
 - **The in-test performance bound is looser than the spec's** (3000ms against
-  1500ms) because vitest running 650 tests on a loaded machine measures 1.5–2×
+  1500ms) because vitest running 755 tests on a loaded machine measures 1.5–2×
   the engine's real cost. The spec budget was not moved; see the comment in
   `round.test.js`.
 
