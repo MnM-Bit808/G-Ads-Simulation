@@ -27,6 +27,8 @@
  * clicking is earned by running the keyword.
  */
 
+import { businessFor } from './positions.js';
+
 const RATES = ['impressionShare', 'overlapRate', 'positionAboveRate', 'outrankingShare'];
 
 /**
@@ -141,6 +143,79 @@ export function getPublicView(gameState, viewerId, context = null) {
 
   return view;
 }
+
+/**
+ * Everything one advertiser may see about ITSELF (spec 16.1, R3a).
+ *
+ * WHY THIS EXISTS
+ *
+ * R3a said a controller is passed "exactly two things": its own
+ * AdvertiserRoundReport and getPublicView(). Taken literally that makes a
+ * policy unable to read its own bid — the report keys breakdown.byKeyword by
+ * keyword id and carries impressions, clicks, cost and conversions, but no
+ * text, no match type and no bidPaise. "Raise my bid 10%" is not expressible.
+ *
+ * R3's actual rule is that no advertiser may read ANOTHER'S bid, budget, costs,
+ * quality, conversions, margins or economics. Its own are its own. So R3a is
+ * amended to "never GameState, never another advertiser's record", and this is
+ * the third thing a controller receives.
+ *
+ * WHAT IS DELIBERATELY ABSENT, AND WHY IT MATTERS MOST
+ *
+ * `business.convRateBase` and `business.returnRate` are NOT here. They are the
+ * truth. Handing them to a controller would be the v0.1 oracle under a new
+ * name: a policy that can read its own true conversion rate never has to learn
+ * one, and DECISIONS D2 exists because that is exactly what made automation
+ * look free. An advertiser knows its own catalogue — what it charges and what
+ * it costs to make. It has to DISCOVER how often people buy and how much comes
+ * back, from its own report, like everybody else.
+ *
+ * `aovSpread` is included: an advertiser knows the shape of its own order book.
+ *
+ * @param {object} gameState
+ * @param {string} viewerId
+ * @returns {object}
+ */
+export function getSelfView(gameState, viewerId) {
+  const self = gameState.advertisers.find((a) => a.id === viewerId);
+  if (!self) throw new RangeError(`unknown advertiser "${viewerId}"`);
+
+  // Derived, never stored — spec 5.2 lists a business block but the engine
+  // computes it from position and live capex each round, so reading a stored
+  // one would silently hand back undefined.
+  const business = businessFor(self.position, self.capex, gameState.round);
+  return {
+    round: gameState.round,
+    id: self.id,
+    name: self.name,
+    domain: self.domain,
+    position: { ...self.position },
+    // Own catalogue only. What you sell and what it costs you, never how well
+    // it converts or how much of it comes back.
+    catalogue: {
+      aovMeanPaise: business.aovMeanPaise,
+      aovSpread: business.aovSpread,
+      marginPct: business.marginPct,
+    },
+    campaign: structuredClone(self.campaign),
+    adGroups: structuredClone(self.adGroups),
+    bidding: structuredClone(self.bidding),
+    capex: structuredClone(self.capex),
+  };
+}
+
+/**
+ * Field names that must never appear anywhere in a SELF view.
+ *
+ * Shorter than the public list on purpose: most of what is forbidden there is
+ * an advertiser's own business here. These two are the truth, and the whole of
+ * D2 rests on a controller not being handed them.
+ */
+export const FORBIDDEN_IN_SELF_VIEW = Object.freeze([
+  'convRateBase', 'returnRate', 'priceAffinity', 'purposeAffinity',
+  'convMultiplier', 'valueMultiplier', 'returnRateMultiplier',
+  'advertisers', 'querySet', 'history', 'marketContext',
+]);
 
 /**
  * Field names that must never appear anywhere in a public view.

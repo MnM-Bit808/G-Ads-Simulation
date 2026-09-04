@@ -1,7 +1,10 @@
 import { describe, test, expect } from 'vitest';
 import { runRound } from '../engine/round.js';
 import { advertiserReport, reviseReports } from '../engine/report.js';
-import { getPublicView, insightsFor, FORBIDDEN_IN_PUBLIC_VIEW } from '../engine/insights.js';
+import {
+  getPublicView, getSelfView, insightsFor,
+  FORBIDDEN_IN_PUBLIC_VIEW, FORBIDDEN_IN_SELF_VIEW,
+} from '../engine/insights.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 
 const STATE = makeGameState();
@@ -244,6 +247,65 @@ describe('Auction Insights (spec 16)', () => {
 
   test('an unknown advertiser throws rather than returning an empty row', () => {
     expect(() => insightsFor(R1.raw.pairwise, R1.raw.byAdvertiser, 'ghost')).toThrow(/ghost/);
+  });
+});
+
+describe('getSelfView: what an advertiser knows about itself (R3a)', () => {
+  const self = getSelfView(STATE, PLAYER_ID);
+
+  test('it carries the settings a controller needs to change them', () => {
+    // R3a as originally written said a controller gets "exactly two things",
+    // its report and getPublicView. Neither carries a bid: breakdown.byKeyword
+    // is keyed by keyword id and holds impressions, clicks, cost and
+    // conversions, with no text, no match type and no bidPaise. "Raise my bid
+    // 10%" was not expressible. R3a now reads "never GameState, never another
+    // advertiser's record" and this is the third thing.
+    expect(self.adGroups[0].keywords[0]).toHaveProperty('bidPaise');
+    expect(self.adGroups[0].keywords[0]).toHaveProperty('matchType');
+    expect(self.campaign).toHaveProperty('strategy');
+    expect(self.campaign).toHaveProperty('negatives');
+    expect(self.position).toHaveProperty('price');
+    expect(self.bidding).toHaveProperty('observedConvRate');
+  });
+
+  test('the catalogue is what you sell, not how well it sells', () => {
+    // The line that matters. An advertiser knows its own order value and
+    // margin - it set them. It must DISCOVER its conversion rate and its
+    // return rate from its own report. A controller handed convRateBase never
+    // has to learn one, which is the v0.1 oracle wearing a new name and the
+    // whole reason DECISIONS D2 exists.
+    expect(self.catalogue).toHaveProperty('aovMeanPaise');
+    expect(self.catalogue).toHaveProperty('marginPct');
+    expect(self.catalogue).not.toHaveProperty('convRateBase');
+    expect(self.catalogue).not.toHaveProperty('returnRate');
+  });
+
+  test('and no forbidden field appears anywhere in it', () => {
+    const json = JSON.stringify(self);
+    for (const field of FORBIDDEN_IN_SELF_VIEW) {
+      expect(json.includes(`"${field}"`), field).toBe(false);
+    }
+  });
+
+  test('it holds no trace of any other advertiser', () => {
+    const json = JSON.stringify(self);
+    for (const other of STATE.advertisers) {
+      if (other.id === PLAYER_ID) continue;
+      expect(json.includes(other.id), other.id).toBe(false);
+      expect(json.includes(other.domain), other.domain).toBe(false);
+    }
+  });
+
+  test('mutating the view cannot reach back into the state', () => {
+    const copy = getSelfView(STATE, PLAYER_ID);
+    copy.adGroups[0].keywords[0].bidPaise = 999999;
+    copy.campaign.negatives.push({ text: 'x', matchType: 'broad' });
+    expect(STATE.advertisers[0].adGroups[0].keywords[0].bidPaise).not.toBe(999999);
+    expect(STATE.advertisers[0].campaign.negatives).toHaveLength(0);
+  });
+
+  test('an unknown advertiser throws rather than returning an empty shell', () => {
+    expect(() => getSelfView(STATE, 'ghost')).toThrow(/ghost/);
   });
 });
 

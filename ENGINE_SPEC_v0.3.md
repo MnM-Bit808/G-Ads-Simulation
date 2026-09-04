@@ -25,10 +25,19 @@ advertiser read *any* query's affinity or conversion multipliers, including its
 own. Enforced by `insights.getPublicView()` and structurally by R3a.
 
 **R3a — Controllers receive views, never state.** A policy or model controller is
-passed exactly two things: its own `AdvertiserRoundReport` and the output of
-`getPublicView()`. `GameState` is never passed to a controller. This is
+passed three things and no others: its own `AdvertiserRoundReport`, the output of
+`getSelfView()`, and the output of `getPublicView()`. **`GameState` is never
+passed to a controller, and neither is any other advertiser's record.** This is
 architectural, not a test — you cannot prove a controller ignored a field it was
 handed **(W12)**.
+
+**Amended from "exactly two things".** As originally written this rule made a
+policy unable to read its own bid: `breakdown.byKeyword` is keyed by keyword id
+and carries impressions, clicks, cost and conversions, but no text, no match type
+and no `bidPaise`, so "raise my bid 10%" was not expressible. R3's actual rule is
+that no advertiser may read *another's* private data; its own is its own.
+`getSelfView` (16.2) is that third thing, and it withholds `convRateBase` and
+`returnRate` — the truth — for the reason in `DECISIONS.md` D2.
 
 **R4 — Every invented number lives in `constants.js`** tagged `DOCUMENTED`,
 `ESTIMATED`, `INVENTED` or `CALIBRATE`, and has an entry in `DECISIONS.md`.
@@ -1248,6 +1257,31 @@ and knowing how well a query converts for you (earned by running it).
 
 Never exposed: bids, budgets, costs, quality, conversions, positions, position
 economics, capex.
+
+### 16.2 `getSelfView` **(R3a)**
+
+```js
+getSelfView(gameState, viewerId) -> {
+  round,
+  id, name, domain,
+  position:  { price, purpose, setAtRound, repositionedAtRound },
+  catalogue: { aovMeanPaise, aovSpread, marginPct },
+  campaign, adGroups, bidding, capex        // this advertiser's own, deep-copied
+}
+```
+
+Everything an advertiser knows about itself, and nothing about anyone else. It is
+the third thing a controller receives, and it is what makes R3a implementable.
+
+**`convRateBase` and `returnRate` are deliberately absent.** They are the truth.
+A controller handed its own true conversion rate never has to learn one, which is
+precisely the v0.1 oracle that `DECISIONS.md` D2 exists to have removed — it
+would arrive by a different door and do the same damage. An advertiser knows its
+own catalogue, because it set the prices. It discovers how often people buy and
+how much comes back from its own report, like everybody else.
+
+Deep-copied on the way out, so a controller cannot write through the view into
+`GameState`.
 
 ---
 
