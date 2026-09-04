@@ -12,7 +12,7 @@ import { allCells, parseCell } from '../engine/positions.js';
 import { homeCell } from '../engine/querySet.js';
 import {
   ADVERTISER_COUNT, RIVAL_PLACEMENT_CONSTRAINTS, MONTHLY_BUDGET_PAISE,
-  ROUNDS_PER_MONTH, PRICE_TIERS, PURPOSES, CAPEX_ALLOCATION_PAISE,
+  ROUNDS_PER_MONTH, PRICE_TIERS, PURPOSES, CAPEX_ALLOCATION_PAISE, TAG_VOCABULARY,
 } from '../engine/constants.js';
 
 const PLAYER_BRAND = BRAND_IDENTITIES[0].id;
@@ -279,16 +279,29 @@ describe('startGame produces a game that runs (spec 17)', () => {
     expect(spend).toBeGreaterThan(0);
   });
 
-  test('the player keywords are untagged, so broad is inert (8.4)', () => {
-    // The other half of the round 0 degradation, and this one STAYS: there is
-    // no keywordTagger.js yet. An untagged keyword works normally on exact and
-    // phrase and matches nothing on broad, which is safe rather than fatal -
-    // unlike the ungraded ad, which was neither.
+  test('the player keywords are tagged, per step 12', () => {
+    // The other half of "grade + tag player assets". Untagged is a safe
+    // degradation (8.4) and it was still an asymmetry: every rival is tagged at
+    // placement, so broad match worked for eight advertisers and not the ninth,
+    // in a game about match types.
     for (const keyword of state.advertisers[0].adGroups[0].keywords) {
-      expect(keyword.tags).toEqual([]);
-      expect(keyword.taggedContentHash).toBeNull();
-      expect(keyword.matchType).not.toBe('broad');
+      expect(keyword.tags.length, keyword.text).toBeGreaterThan(0);
+      expect(keyword.taggedContentHash, keyword.text).toMatch(/^sha1:/);
+      for (const tag of keyword.tags) expect(TAG_VOCABULARY).toContain(tag);
     }
+  });
+
+  test('so the player can use broad match, like every rival can', () => {
+    const broad = start({ player: choices({
+      keywords: choices().keywords.map((k) => ({ ...k, matchType: 'broad' })),
+    }) });
+    const out = submitRound(broad, {}, { mode: 'expected' });
+    const mine = out.report.byAdvertiser[PLAYER_BRAND];
+    // Broad reaches further than the phrase baseline. Untagged, it reached
+    // nothing at all and this would be zero.
+    expect(mine.traffic.eligibleAuctions)
+      .toBeGreaterThan(submitRound(state, {}, { mode: 'expected' })
+        .report.byAdvertiser[PLAYER_BRAND].traffic.eligibleAuctions);
   });
 
   test('the player is graded before round 1, per step 12', () => {

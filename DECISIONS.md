@@ -708,6 +708,49 @@ The 5-point tier tolerance is the loosest of them and the one most likely to
 need revisiting once a real set exists — too tight and no generated set will
 ever pass, too loose and invariant I3 cannot balance.
 
+### E8. The tagger decides how far "broad" reaches — `OPEN`
+`tagOverlap` divides by the KEYWORD's tag count, not the query's:
+
+```
+overlap = shared tags / keyword tag count
+```
+
+So the NUMBER of tags a keyword carries decides how far it travels. Broad match
+fires at 0.50, so a keyword with n tags needs a query carrying ceil(n/2) of
+them. Against the real query set, where queries carry two to four tags:
+
+| keyword tags | query must share | queries with that many tags |
+|---|---|---|
+| 3–4 | 2 | 150 of 151 |
+| 5–6 | 3 | 106 of 151 |
+| 7–8 | 4 | **11 of 151** |
+
+**There is a cliff between six and seven**, so `agents/keywordTagger.js` caps at
+six. Past it a broad keyword is inert in practice while looking perfectly
+well-formed — the same shape of failure as the ungraded ad in A8: a degradation
+that is not safe, because nothing tells you it happened.
+
+**The half worth arguing about is that this is the TAGGER's decision, not the
+advertiser's.** A player selects "broad" and how broad it actually turns out to
+be depends on how verbosely something else described their keyword. Commit
+67aecbd found the same mechanism from the other end: `premium|performance`'s
+broad head term carried two tags and reached half the market, while
+`value|performance`'s carried three and reached almost nothing — a 4.2x swing in
+invariant I3 that had nothing to do with the grid.
+
+**Kept, because the semantics are right even if the control is in an odd
+place.** A specific keyword should broad-match narrowly and a generic one
+broadly, which is how the real thing behaves: "seamless compression leggings"
+ought to reach less than "leggings". The tagger's job is to describe the keyword
+faithfully and let reach follow, which is why its prompt says to use as few tags
+as capture the keyword honestly and warns that every extra tag makes it
+stricter rather than broader.
+
+**What would change the answer:** if play shows people writing a broad keyword
+and getting reach they cannot predict, the fix is to surface the tags in the
+interface rather than to change the formula. A player who can see that their
+keyword carries five tags can reason about it; one who cannot is guessing.
+
 ---
 
 ## F. Positioning, statistics and economics

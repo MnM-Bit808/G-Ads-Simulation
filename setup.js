@@ -23,14 +23,20 @@
  * are placed, and rivals are placed before the briefing that describes the
  * market they now constitute. Nothing here is deferred and nothing is guessed.
  *
- * THE PLAYER STARTS DEGRADED, AND THAT IS DELIBERATE
+ * STEP 12 IS NOT OPTIONAL
  *
- * Their keywords carry no tags and their ad is ungraded, because
- * `agents/keywordTagger.js` and `agents/grader.js` do not exist yet. Both
- * degradations are specified rather than accidental: an untagged keyword works
- * normally on exact and phrase and is inert on broad (8.4), and an ungraded ad
- * uses DEFAULT_UNGRADED_QUALITY and raises an `ungraded_ad` warning (9.5). The
- * game is playable without them, which is exactly what those clauses are for.
+ * "Grade + tag player assets -> round 1" is the last line of 17's own diagram,
+ * and both halves turned out to matter more than the safe-degradation clauses
+ * suggest. An ungraded ad grades 3/3/3, which sits below AD_RANK_FLOOR at any
+ * cautious bid, so the player entered every auction and showed in none
+ * (DECISIONS A8). An untagged keyword is inert on broad (8.4) while every rival
+ * is tagged at placement — broad match working for eight advertisers and not
+ * the ninth, in a game about match types.
+ *
+ * Both now run here, OFFLINE, so round 0 completes with no API key and the
+ * suite stays network-free. `agents/grader.js` and `agents/keywordTagger.js`
+ * take their transport as an argument; a caller with a key can pass one and get
+ * a better grade and better tags for the same interface.
  */
 
 import {
@@ -47,6 +53,7 @@ import { allocate, mulRate } from './engine/money.js';
 import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
 import { gradeAdOffline } from './agents/grader.js';
+import { tagKeywordsOffline } from './agents/keywordTagger.js';
 
 const REDO_DEADLINE_ROUND = 3;
 
@@ -463,15 +470,19 @@ function buildPlayer(identity, choices, querySet) {
     },
     adGroups: [{
       id: 'ag_main',
-      keywords: keywords.map((k, i) => ({
+      // Spec 17 step 12 again: TAG the player's assets, not just grade them.
+      // Untagged is a safe degradation (8.4) and it is still an asymmetry -
+      // every rival is tagged at placement, so broad match works for eight
+      // advertisers and not for the ninth, in a game about match types.
+      keywords: tagKeywordsOffline(keywords.map((k, i) => ({
         id: k.id ?? `kw_${i + 1}`,
         text: k.text,
         matchType: k.matchType ?? 'phrase',
         bidPaise: k.bidPaise,
         active: k.active ?? true,
-        tags: k.tags ?? [],                    // untagged: inert on broad (8.4)
-        taggedContentHash: k.taggedContentHash ?? null,
-      })),
+        tags: k.tags,
+        taggedContentHash: k.taggedContentHash,
+      }))),
       ad: playerAd,
       // Spec 17 step 12: grade the player's assets before round 1. Offline
       // unless a grade was supplied, because round 0 has to complete without
