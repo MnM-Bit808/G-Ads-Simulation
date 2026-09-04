@@ -284,12 +284,14 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
 - **`engine-audit.test.mjs`** at the repo root is a v0.1 prototype artefact that
   cannot run. `vitest.config.js` excludes it deliberately. Its `BUG CHECK` cases
   encode real traps and have been ported as their modules were built.
-- **`ads-auction-sandbox.jsx` and `ad-copy-grader.jsx`** at the root are the same
-  kind of artefact, and more dangerous now that a real interface exists: each
-  carries its OWN demand curve, conversion multipliers and auction, so they look
-  like the UI and agree with nothing. `ui/` imports the real engine, and
-  `tests/ui.test.js` fails if it ever stops. Consider deleting the two `.jsx`
-  files; they are kept only because nobody has read them for salvage yet.
+- **The two `.jsx` prototypes are gone**, and the reason is worth keeping. Each
+  carried its OWN demand curve, conversion multipliers and auction, so once a
+  real interface existed they looked like the UI and agreed with nothing.
+  `git log` still has them if anything needs salvaging. `ui/` imports the real
+  engine and `tests/ui.test.js` fails if that ever stops — which is the guard
+  that replaced them.
+- **`files.zip`** at the root holds a `CLAUDE.md` and `DECISIONS.md` from before
+  the first commit, so git never captured them. Kept as provenance, not code.
 - **The performance suite runs alone**, via `npm run test:perf` and its own
   config. Inside the parallel suite the same round reported 496ms and 1991ms
   twenty seconds apart, and switching to CPU time only moved the problem — GC
