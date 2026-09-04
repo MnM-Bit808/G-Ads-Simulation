@@ -584,3 +584,24 @@ tr.unsettled td:first-child::after { content: " ← still arriving"; font-size: 
 .thin-hours td:nth-child(5) { color: var(--muted); }
 .thin-hours td:first-child::after { content: " ·"; color: var(--warn); }
 .staged-row.daypart { border-left-color: var(--warn); }
+
+/* --- the quality score, decomposed --------------------------------------- */
+
+.quality-cell { min-width: 9rem; }
+.quality-score { font-family: var(--mono); font-size: 1.05rem; text-align: right; }
+.quality-score.muted { color: var(--muted); }
+.quality-parts { margin-top: 0.25rem; }
+.quality-part {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.68rem;
+  line-height: 1.5;
+  cursor: help;
+}
+.quality-part-label { color: var(--muted); }
+.quality-part-rating { font-family: var(--mono); }
+.quality-part.above .quality-part-rating { color: var(--good); }
+.quality-part.average .quality-part-rating { color: var(--muted); }
+.quality-part.below .quality-part-rating { color: var(--bad); }
+.quality-part-grade { font-family: var(--mono); color: var(--ink); margin-left: auto; margin-right: 0.4rem; }

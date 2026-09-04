@@ -22,7 +22,7 @@
 import { el, table, figure, rupees, whole, pct, ratio } from './dom.js';
 import { getPublicView } from '../engine/insights.js';
 import { briefing } from '../setup.js';
-import { renderDecisions, addNegative, blocksTerm } from './decisions.js';
+import { renderDecisions, addNegative, blocksTerm, effectiveGrades } from './decisions.js';
 import { rankOf } from './ending.js';
 import { MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH } from '../engine/constants.js';
 
@@ -380,6 +380,9 @@ export function renderDashboard(game, onDecisionChange) {
     weeklyVolume: view.weeklyVolume,
     texts: new Map(view.querySet.map((q) => [q.id, q.text])),
     quality: row.quality,
+    // The grader's own 1-10 for this ad, with the landing-page capital folded
+    // in. The player's own data, and until now never on screen.
+    grades: effectiveGrades(game.draft),
     money: row.money,
     // What a founder could research (17.2), from the same function round 0
     // uses — so the two screens cannot disagree about the grid.

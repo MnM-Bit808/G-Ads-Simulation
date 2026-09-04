@@ -32,11 +32,13 @@
 import { el, add, table, field, input, select, rupees, whole, ratio } from './dom.js';
 import { blockedBy, normalise, tokenise } from '../engine/matching.js';
 import { STRATEGIES, daypartMultiplier } from '../engine/strategies.js';
-import { canReposition, isOneStep, allCells, parseCell, cellKey } from '../engine/positions.js';
+import {
+  canReposition, isOneStep, allCells, parseCell, cellKey, landingPageBonus,
+} from '../engine/positions.js';
 import {
   LEARNING_ROUNDS, MAX_BID_MULTIPLE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
   CAPEX_TIER_CURVE, REPOSITION_COST_PAISE, ROUNDS_PER_MONTH,
-  DAYPART_BLOCKS, MIN_HOUR_OBSERVATIONS,
+  DAYPART_BLOCKS, MIN_HOUR_OBSERVATIONS, QUALITY_MIN_IMPRESSIONS, QUALITY_WINDOW_ROUNDS,
 } from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
@@ -143,6 +145,10 @@ export function createDraft(selfView, options = {}) {
     // learningRoundsRemaining — an advertiser's own measurements, never the
     // truth behind them (16.2).
     bidding: structuredClone(selfView.bidding ?? {}),
+    // The grader's own 1-10 for this ad. It has always been in getSelfView and
+    // has never been on screen, so a player rewriting a headline had no way to
+    // see whether it helped.
+    gradedQuality: structuredClone(adGroups[0]?.gradedQuality ?? null),
     position: structuredClone(selfView.position ?? null),
 
     // 13.3 and 4.5, both of which are open for one round only.
@@ -151,6 +157,10 @@ export function createDraft(selfView, options = {}) {
     repositionOpen: canReposition({ position: selfView.position }, selfView.round),
     capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
     committed: structuredClone(selfView.capex?.committed ?? {}),
+    // The whole block, not just `committed`: `liveCapexPaise` subtracts
+    // tranches that have not reached `liveAtRound` yet, and a capex block
+    // without `pending` would count money that is still being built.
+    capexBlock: structuredClone(selfView.capex ?? {}),
     monthlyBudgetPaise: selfView.campaign?.monthlyBudgetPaise ?? 0,
     monthSpentPaise: selfView.campaign?.monthSpentPaise ?? 0,
 
@@ -580,6 +590,81 @@ export function splitOutlook(draft) {
 const sameSplit = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 const signed = (percent) => (percent > 0 ? `+${percent}%` : `${percent}%`);
 const hourLabel = (hour) => (hour === 24 ? 'midnight' : `${String(hour).padStart(2, '0')}:00`);
+
+// ---------------------------------------------------------------------------
+// The Quality Score (9.3)
+// ---------------------------------------------------------------------------
+
+/** Worst first. `expectedCtr` breaks a tie because the score table weights it double. */
+const RATING_ORDER = { below: 0, average: 1, above: 2 };
+
+const QUALITY_COMPONENTS = [
+  ['expectedCtr', 'Expected CTR', 'whether people click your ad when they see it'],
+  ['adRelevance', 'Ad relevance', 'whether your ad answers what they searched for'],
+  ['landingPage', 'Landing page', 'whether the page you send them to matches the ad'],
+];
+
+/**
+ * The Quality Score, decomposed — which is the only form in which it says
+ * anything.
+ *
+ * The screen used to render `score.score` alone and drop the three ratings
+ * `reportedScore` returns beside it. That is the least informative quarter of
+ * the diagnostic: the number cannot tell you WHICH part is weak, and it barely
+ * moves. Measured on a played account, lifting `expectedCtr` from 6 to 9 takes
+ * the own/field ratio from 1.145 to 1.676 and leaves the displayed score at 8,
+ * because both are past `RATING_UPPER_THRESHOLD` and three levels have nothing
+ * between them to say. Google shows all four figures for the same reason.
+ *
+ * @param {object|null} score output of `reportedScore`
+ * @returns {{value: number|null, ratings: object[], weakest: object|null, note: string}}
+ */
+export function effectiveGrades(draft) {
+  const graded = draft.gradedQuality;
+  if (!graded) return null;
+  // 13.3 adds the landing-page capital as points AFTER grading and never
+  // writes them back, so the stored grade understates an account that invested.
+  // The engine's own function, not a restatement of the curve.
+  const bonus = landingPageBonus(draft.capexBlock ?? {}, draft.round);
+  return {
+    expectedCtr: graded.expectedCtr,
+    adRelevance: graded.adRelevance,
+    landingPage: Math.min(10, graded.landingPage + bonus),
+  };
+}
+
+export function qualitySummary(score, graded = null) {
+  if (!score) {
+    return {
+      value: null,
+      ratings: [],
+      weakest: null,
+      note: `No score yet. It needs ${whole(QUALITY_MIN_IMPRESSIONS)} impressions on the `
+        + "keyword's own literal search before it will say anything, and it only "
+        + 'ever counts rounds that have already finished.',
+    };
+  }
+
+  const ratings = QUALITY_COMPONENTS.map(([key, label, meaning]) => ({
+    key, label, meaning, rating: score[key], graded: graded?.[key] ?? null,
+  }));
+
+  // Judged on the GRADE where there is one, because that is what the player
+  // controls and what moves the moment they rewrite a headline. The rating can
+  // be pinned by a threshold - landing page cannot read "above" at any grade -
+  // so ranking on it alone would point at the wrong thing.
+  const ranked = [...ratings].sort((a, b) => (
+    graded
+      ? (a.graded - b.graded) || (a.key === 'expectedCtr' ? -1 : b.key === 'expectedCtr' ? 1 : 0)
+      : (RATING_ORDER[a.rating] ?? 1) - (RATING_ORDER[b.rating] ?? 1)
+        || (a.key === 'expectedCtr' ? -1 : b.key === 'expectedCtr' ? 1 : 0)
+  ));
+  const weakest = graded
+    ? (ranked[0].graded >= 9 ? null : ranked[0])
+    : (ranked[0].rating === 'above' ? null : ranked[0]);
+
+  return { value: score.score, ratings, weakest, note: null };
+}
 
 // ---------------------------------------------------------------------------
 // Dayparting (13.4, H4)
@@ -1719,7 +1804,7 @@ function keywordsCard(ctx, refresh) {
         stats ? rupees(stats.costPaise) : '—',
         stats && stats.clicks > 0 ? rupees(stats.costPaise / stats.clicks) : '—',
         stats && stats.conversions > 0 ? stats.conversions.toFixed(1) : '0',
-        score ? String(score.score) : '—',
+        qualityCell(score, ctx.grades),
         toggle,
       ],
     };
@@ -1739,6 +1824,8 @@ function keywordsCard(ctx, refresh) {
   }
 
   node.append(planner(ctx, refresh));
+
+  node.append(qualityNote(ctx));
   node.append(el('p', 'note',
     'Exact and phrase match on the words. Broad matches on meaning through the '
     + 'tags — and nobody can tell you in advance how far it will travel, which '
@@ -1749,11 +1836,81 @@ function keywordsCard(ctx, refresh) {
 }
 
 /**
+ * The Quality Score cell: the number, and the three ratings it is made of.
+ *
+ * The three ratings are the part that can actually be acted on. The 1-10
+ * number is deliberately coarse and deliberately lagging, and the card says so
+ * rather than leaving a player to conclude their ad copy does not matter when
+ * it does not move.
+ */
+function qualityCell(score, graded) {
+  const summary = qualitySummary(score, graded);
+  const box = el('div', 'quality-cell');
+
+  if (summary.value == null) {
+    box.append(el('div', 'quality-score muted', '—'));
+    box.title = summary.note;
+    return box;
+  }
+
+  box.append(el('div', 'quality-score', String(summary.value)));
+  const list = el('div', 'quality-parts');
+  for (const part of summary.ratings) {
+    const row = el('div', `quality-part ${part.rating}`);
+    row.append(el('span', 'quality-part-label', part.label));
+    if (part.graded != null) row.append(el('span', 'quality-part-grade', `${part.graded}/10`));
+    row.append(el('span', 'quality-part-rating', part.rating));
+    row.title = part.meaning;
+    list.append(row);
+  }
+  box.append(list);
+  return box;
+}
+
+/**
  * Keyword Planner, mid-game: text, weekly volume, intent, and nothing else.
  *
  * The same list round 0 offered, and the same withholding — what a search does
  * after the click is earned by running it (16.1, C4).
  */
+/**
+ * What the Quality Score is, and what it is not.
+ *
+ * Without this the column reads as a grade out of ten for your ad. It is not:
+ * it is a comparison against everyone else who appeared on the same searches,
+ * over completed rounds only, in three levels per component. Better copy shows
+ * up in what you PAY and where you RANK on the very next round, and may never
+ * move this column at all - which is a true and useful thing to know, and a
+ * miserable thing to work out on your own.
+ */
+function qualityNote(ctx) {
+  const weakest = ctx.draft.keywords
+    .map((k) => qualitySummary(ctx.quality?.[k.id], ctx.grades).weakest)
+    .find(Boolean);
+
+  const note = el('p', 'note');
+  note.append(document.createTextNode(
+    'Quality is a comparison, not a grade: it measures you against everyone else '
+    + `who appeared on the same searches, over the last ${QUALITY_WINDOW_ROUNDS} finished `
+    + 'rounds. It is coarse on purpose — three levels per component — so a real '
+    + 'improvement can leave it exactly where it was. ',
+  ));
+  note.append(el('strong', null,
+    'Better copy shows up in your CPC and your position first, and here late or never.'));
+  note.append(document.createTextNode(
+    ' The number beside each component is the grade your copy earned, which moves '
+    + 'the moment you rewrite it — including the landing-page capital, which is '
+    + 'added after grading.',
+  ));
+  if (weakest) {
+    note.append(document.createTextNode(
+      ` The weakest part of your ad right now is ${weakest.label.toLowerCase()} — `
+      + `${weakest.meaning}.`,
+    ));
+  }
+  return note;
+}
+
 function planner(ctx, refresh) {
   // Held on ctx rather than here, because adding a keyword rebuilds this card.
   // Found by using it: you set "phrase, ₹55", add one keyword, and the box

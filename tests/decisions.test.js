@@ -6,7 +6,7 @@ import { allCells, parseCell, cellKey, isOneStep } from '../engine/positions.js'
 import { validateWeeklySplit } from '../engine/pacing.js';
 import {
   LEARNING_ROUNDS, REPOSITION_ROUND, CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE,
-  DAYPART_BLOCKS,
+  DAYPART_BLOCKS, QUALITY_MIN_IMPRESSIONS,
 } from '../engine/constants.js';
 import { submitRound, triggersLearning } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -18,7 +18,7 @@ import {
   setStrategy, setStrategyParam, willTriggerLearning, STRATEGY_PARAM,
   setCapex, setPosition, monthBudgetAfter,
   setWeekBudget, splitProblem, splitOutlook,
-  setDaypart, daypartRows,
+  setDaypart, daypartRows, qualitySummary, effectiveGrades,
 } from '../ui/decisions.js';
 
 /**
@@ -751,6 +751,100 @@ describe('dayparting (13.4, H4)', () => {
     const after = submitRound(STATE, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' });
     const cost = (r) => r.report.byAdvertiser[PLAYER_ID].traffic.costPaise;
     expect(cost(after)).toBeGreaterThan(cost(before));
+  });
+});
+
+describe('the Quality Score display (9.3, 9.4)', () => {
+  test('a null score says WHY there is no score, not just that there is none', () => {
+    // 9.3 returns null below QUALITY_MIN_IMPRESSIONS across the window. An em
+    // dash on its own reads as "your ad is unrated"; the reason is that the
+    // keyword has not been seen enough times yet, which is a different and
+    // actionable thing.
+    const summary = qualitySummary(null);
+    expect(summary.value).toBeNull();
+    expect(summary.ratings).toEqual([]);
+    expect(summary.note).toMatch(new RegExp(String(QUALITY_MIN_IMPRESSIONS)));
+  });
+
+  test('it shows all three components, which is what Google shows', () => {
+    // The screen displayed the 1-10 number alone and threw away the three
+    // ratings reportedScore returns. The number is the least informative
+    // quarter of the diagnostic: it cannot say WHICH part is weak.
+    const summary = qualitySummary({
+      score: 8, expectedCtr: 'above', adRelevance: 'average', landingPage: 'below',
+    });
+    expect(summary.value).toBe(8);
+    expect(summary.ratings.map((r) => r.rating)).toEqual(['above', 'average', 'below']);
+    expect(summary.ratings.map((r) => r.label))
+      .toEqual(['Expected CTR', 'Ad relevance', 'Landing page']);
+  });
+
+  test('it names the component most worth working on', () => {
+    const weakest = (s) => qualitySummary(s).weakest?.label ?? null;
+
+    expect(weakest({ score: 5, expectedCtr: 'above', adRelevance: 'average', landingPage: 'below' }))
+      .toBe('Landing page');
+    expect(weakest({ score: 7, expectedCtr: 'average', adRelevance: 'above', landingPage: 'above' }))
+      .toBe('Expected CTR');
+    // Nothing to point at when every component is already ahead of the field.
+    expect(weakest({ score: 10, expectedCtr: 'above', adRelevance: 'above', landingPage: 'above' }))
+      .toBeNull();
+  });
+
+  test('it shows the grade the player earned, not only the field comparison', () => {
+    // The falsehood this fixes. A player who commits the whole 1,00,000 capital
+    // allocation to their landing page STILL reads "landingPage: average",
+    // because landingFactor tops out at a field ratio of 1.0925 against a 1.10
+    // threshold - "above" is unreachable at any grade, which 9.4 does not
+    // realise when it calls the rating "reachable but narrow".
+    //
+    // The rating cannot be fixed from here; it is a constants question that
+    // moves the auction. What CAN be fixed is that the player never saw the
+    // grade at all. Their own 1-10, which moves the moment they rewrite a
+    // headline, was in getSelfView and simply never displayed.
+    const summary = qualitySummary(
+      { score: 8, expectedCtr: 'above', adRelevance: 'average', landingPage: 'average' },
+      { expectedCtr: 7, adRelevance: 5, landingPage: 10 },
+    );
+    expect(summary.ratings.map((r) => r.graded)).toEqual([7, 5, 10]);
+    // And the one to work on is judged on the GRADE, which the player controls,
+    // rather than on a rating that may be pinned by the threshold.
+    expect(summary.weakest.label).toBe('Ad relevance');
+  });
+
+  test('with no grades it still works, and points at the rating instead', () => {
+    const summary = qualitySummary(
+      { score: 8, expectedCtr: 'above', adRelevance: 'average', landingPage: 'below' },
+      null,
+    );
+    expect(summary.ratings.map((r) => r.graded)).toEqual([null, null, null]);
+    expect(summary.weakest.label).toBe('Landing page');
+  });
+
+  test('the landing page grade includes the capital spent on it (13.3)', () => {
+    // landingPageBonus is applied at auction time and never written back into
+    // gradedQuality, so reading the stored grade alone would tell a player who
+    // invested that nothing happened.
+    const plain = createDraft(selfView());
+    const invested = createDraft(getSelfView({
+      ...STATE,
+      advertisers: STATE.advertisers.map((a) => (a.id === PLAYER_ID
+        ? { ...a, capex: { ...a.capex, committed: { sizeGuide: 0, photography: 0, landingPage: CAPEX_ALLOCATION_PAISE } } }
+        : a)),
+    }, PLAYER_ID));
+
+    expect(effectiveGrades(invested).landingPage)
+      .toBeGreaterThan(effectiveGrades(plain).landingPage);
+    expect(effectiveGrades(invested).landingPage).toBeLessThanOrEqual(10);
+    expect(effectiveGrades(invested).expectedCtr).toBe(effectiveGrades(plain).expectedCtr);
+  });
+
+  test('and it breaks a tie toward expected CTR, because the engine weights it double', () => {
+    // RATING_TO_SCORE_TABLE scores expectedCtr 2x the other two (DECISIONS A4).
+    // So when two components are equally behind, that is the one to fix first.
+    expect(qualitySummary({
+      score: 4, expectedCtr: 'below', adRelevance: 'below', landingPage: 'above',
+    }).weakest.label).toBe('Expected CTR');
   });
 });
 
