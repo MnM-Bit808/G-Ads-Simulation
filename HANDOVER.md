@@ -192,27 +192,21 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
 
 ---
 
-## Still open
+## Decisions taken by recommendation rather than discussion
 
-- **The three `RoundReport` sub-questions** were answered by my recommendation
-  rather than by explicit discussion: no rival rows in an advertiser's slice,
-  breakdown per keyword *and* per query, and `AsFirstReported` twins on every
-  revised figure. All built and tested; worth confirming they are what was
+- **The three `RoundReport` sub-questions**: no rival rows in an advertiser's
+  slice, breakdown per keyword *and* per query, and `AsFirstReported` twins on
+  every revised figure. All built and tested; worth confirming they are what was
   wanted.
-- **The query set is frozen but was reviewed only once**, via a published
-  artifact. Value and Premium were rewritten after that review to use
-  marketplace and material vocabulary; the corrected set has not been read
-  end to end by a human.
-- **Rival ad copy does not exist yet.** Spec 17.1 requires it authored per cell
-  and *diagnostic* — a player must be able to infer position from it. The
-  fixture uses one generic ad for all nine, which is fine for tests and useless
-  for round 0. This is content work, and it is load-bearing.
-- **`content/adCopy.js` is in the spec's module layout and not yet written.**
-- **Nothing has been played.** The longest run is three consecutive rounds in a
-  test. Whether twelve rounds is legible, whether the traps land, whether the
-  feedback loop is too slow to learn from — all unknown.
+- **`PURPOSE_MODIFIERS.conv` is 0.94/1.06**, chosen so the *realised* purpose gap
+  lands where spec 4.4 always claimed it was. The alternative was flattening the
+  query set's baskets and returns, which would have asserted something false
+  about apparel to protect an invariant. See `DECISIONS.md` F11.
+- **Ad copy grades sit on the rival, not the cell** (`adCopy.js`), so position
+  cannot carry hidden ad quality. Challenge it if you disagree.
 
 ---
+
 
 ## Things that will bite
 
