@@ -79,9 +79,23 @@ What the form needs, in rough order of how much it teaches:
 Two things to respect. **A decision must be previewable before it is
 committed** — the whole design is about acting on incomplete information, and a
 form that hides consequences it could show is being cruel rather than honest.
+Changing a bid strategy is the sharp case: it triggers a learning period (12.3),
+`game.js` already detects it, and if the interface does not say so BEFORE the
+player commits, the penalty lands two rounds later with nothing connecting it to
+the cause. That is the confusion this simulator exists to teach deliberately,
+not to inflict by accident.
+
 And **the view may not compute economics**: `tests/ui.test.js` fails if a `ui/`
 file names a constant it should import, and that guard has already fired once
 and was right.
+
+**What finished looks like.** A player who opens the account into a losing
+position can read the search terms report, see which searches are taking their
+money, block them, move their bids, and watch it change over the following
+weeks. That is currently impossible — the account this session played into
+premium|lifestyle bought Value-tier traffic because the keyword planner sorts by
+volume, lost money for three straight weeks, and had no way to do anything about
+it. Slice three is done when that account can be rescued.
 
 ---
 
@@ -276,10 +290,38 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   like the UI and agree with nothing. `ui/` imports the real engine, and
   `tests/ui.test.js` fails if it ever stops. Consider deleting the two `.jsx`
   files; they are kept only because nobody has read them for salvage yet.
-- **The in-test performance bound is looser than the spec's** (3000ms against
-  1500ms) because vitest running 755 tests on a loaded machine measures 1.5–2×
-  the engine's real cost. The spec budget was not moved; see the comment in
-  `round.test.js`.
+- **The performance suite runs alone**, via `npm run test:perf` and its own
+  config. Inside the parallel suite the same round reported 496ms and 1991ms
+  twenty seconds apart, and switching to CPU time only moved the problem — GC
+  under that much memory pressure is real CPU. A timing assertion that fires on
+  machine weather is worse than none, because it teaches you to rerun until it
+  passes.
+
+### The one that will cost you an afternoon
+
+- **A player decision must be RETURNED from a controller, never written into
+  state.** `playRound` collects what each controller returns and hands it to
+  `submitRound`, and `submitRound` is what applies structural changes, writes
+  the learning period when 12.3 says to, and appends to `decisionLog` for
+  12.4's replay. Reaching into `game.state.advertisers[0]` from the interface
+  and editing a bid there produces a game that runs, looks right, and silently
+  never triggers a learning period or logs a decision. Three mechanics gone,
+  no error. This is the exact shape of half the defects this project has found.
+
+### Verifying the interface
+
+- **Screenshots lie when the browser pane is hidden.** The viewport collapses,
+  `window.innerWidth` reads 0, every card measures 32px and the page reports
+  horizontal overflow. It is indistinguishable from a layout bug. When that
+  happens, read the DOM with `javascript_tool` instead — measure
+  `getBoundingClientRect()` and `innerHTML` rather than trusting a picture.
+- **The console keeps errors across navigations.** Stale entries from a previous
+  load read exactly like current failures, complete with line numbers from files
+  that have since changed. Open a fresh tab to check whether an error is real.
+- **The round 0 form rebuilds itself on every keystroke**, because each input
+  calls `rerender()`. Driving it from a script means re-querying the element
+  after every single change, and setting `.value` does nothing on its own —
+  dispatch an `input` event or the handler never runs.
 
 ---
 
