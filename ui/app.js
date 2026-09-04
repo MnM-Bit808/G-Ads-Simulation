@@ -27,6 +27,7 @@ import { el } from './dom.js';
 import { renderRoundZero } from './round-zero.js';
 import { renderDashboard } from './dashboard.js';
 import { createDraft, toDecision, changes } from './decisions.js';
+import { renderEnding } from './ending.js';
 
 const ROOT_SEED = 20260902;
 
@@ -87,6 +88,14 @@ function begin({ playerBrandId, player }) {
     ])),
   };
   refreshDraft();
+  // The account as round 0 left it, kept so the end screen can diff the
+  // decision log against something. A snapshot for display, not state the
+  // engine owns — `game.draft.base` is already that snapshot, deep-copied out
+  // of `getSelfView` a line ago.
+  game.opening = {
+    negatives: game.draft.base.negatives,
+    keywords: game.draft.base.keywords,
+  };
   render();
 }
 
@@ -164,11 +173,27 @@ function render() {
       'The account is open and nothing has run yet. Run the week to buy some traffic.'));
     return;
   }
-  app.replaceChildren(renderDashboard(game, () => {
+  const dashboard = renderDashboard(game, () => {
     // Only the button, so staging a change does not rebuild the screen under
     // the cursor. The dashboard redraws its own cards.
     nextButton.textContent = commitLabel();
-  }));
+  });
+
+  // The ending goes ABOVE the last week rather than replacing it: the final
+  // dashboard is still the most detailed thing in the game, and a summary that
+  // hid it would answer fewer questions than it raised.
+  if (game.reports.length >= TOTAL_ROUNDS) {
+    const ending = el('section', 'grid');
+    ending.append(renderEnding({
+      state: game.state,
+      history: game.state.history,
+      playerId: game.playerId,
+      opening: game.opening,
+    }));
+    app.replaceChildren(ending, dashboard);
+    return;
+  }
+  app.replaceChildren(dashboard);
 }
 
 nextButton.addEventListener('click', async () => {
@@ -187,6 +212,9 @@ nextButton.addEventListener('click', async () => {
   game.insights.push(out.insights);
   // Rebuilt from the account the round produced, so what the form shows is
   // what the engine now holds — staged changes have become real ones.
+  // `game.opening` is deliberately NOT refreshed: it is the round 0 snapshot
+  // the end screen diffs the decision log against, and re-taking it every
+  // round would make every week's diff empty.
   refreshDraft();
   render();
 });

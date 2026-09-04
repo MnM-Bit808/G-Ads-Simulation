@@ -531,3 +531,34 @@ tr.costly td { color: var(--bad); }
 
 .staged-row.position { border-left-color: var(--bad); }
 .staged-row.capital { border-left-color: var(--good); }
+
+/* --- the end of the game ------------------------------------------------- */
+
+tr.unsettled td { color: var(--muted); font-style: italic; }
+tr.unsettled td:first-child::after { content: " ← still arriving"; font-size: 0.7rem; }
+
+.rank-line { margin: 0.9rem 0 0; font-size: 0.88rem; line-height: 1.5; }
+.rank-line strong { font-family: var(--mono); color: var(--accent); }
+
+.rank-note {
+  margin: 0.9rem 0 0;
+  padding: 0.6rem 0.8rem;
+  background: rgba(224, 175, 104, 0.08);
+  border-left: 3px solid var(--warn);
+  border-radius: 0 7px 7px 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.rank-note strong { font-family: var(--mono); color: var(--warn); }
+
+.decision-log { display: flex; flex-direction: column; gap: 0.5rem; }
+.log-row { display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.7rem; align-items: baseline; }
+.log-week {
+  font-size: 0.7rem;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.log-lines { font-size: 0.82rem; line-height: 1.55; }
+.log-lines div + div { margin-top: 0.15rem; }

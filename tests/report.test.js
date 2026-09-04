@@ -187,6 +187,36 @@ describe('reports are revised, and remember what they first said (spec 11.4)', (
     expect(revised.conversions.stillPending).toBeLessThan(first.conversions.stillPending);
   });
 
+  test('stillPending is this round\'s own clicks, not the whole queue', () => {
+    // Every other figure in an AdvertiserRoundReport is about this round's
+    // cohort. This one summed the advertiser's entire pending queue, so a
+    // round carried other rounds' backlog, the revision below could never
+    // clear it, and summing the field across a game triple-counted it.
+    let state = makeGameState();
+    for (let i = 0; i < 6; i++) state = runRound(state, { mode: 'expected' }).nextGameState;
+
+    const queue = state.advertisers.find((a) => a.id === PLAYER_ID).pendingConversions;
+    for (const stored of state.history) {
+      const owed = queue
+        .filter((e) => e.clickedInRound === stored.round)
+        .reduce((a, e) => a + e.count, 0);
+      expect(stored.byAdvertiser[PLAYER_ID].conversions.stillPending, `round ${stored.round}`)
+        .toBeCloseTo(owed, 6);
+    }
+  });
+
+  test('and it reaches exactly zero once a round has fully landed', () => {
+    let state = makeGameState();
+    for (let i = 0; i < 6; i++) state = runRound(state, { mode: 'expected' }).nextGameState;
+    // Lag runs to three rounds, so round 1 is long settled by round 6. Close
+    // to zero rather than equal to it: the figure decays by SUBTRACTING each
+    // late landing from a fractional total, so it lands on float residue
+    // (7.1e-15 here) rather than on nothing. Anything reading this as "has it
+    // settled" needs a tolerance, and ui/ending.js uses one.
+    expect(state.history[0].byAdvertiser[PLAYER_ID].conversions.stillPending)
+      .toBeCloseTo(0, 9);
+  });
+
   test('the report stored in history is the report that was returned', () => {
     // The reviser must never see the round it is currently building. It used
     // to: runRound appended the fresh report and then revised the whole array,

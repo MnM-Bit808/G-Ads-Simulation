@@ -23,6 +23,8 @@ import { el, table, figure, rupees, whole, pct, ratio } from './dom.js';
 import { getPublicView } from '../engine/insights.js';
 import { briefing } from '../setup.js';
 import { renderDecisions, addNegative, blocksTerm } from './decisions.js';
+import { rankOf } from './ending.js';
+import { MONTHLY_BUDGET_PAISE } from '../engine/constants.js';
 
 // ---------------------------------------------------------------------------
 // Panels
@@ -254,7 +256,7 @@ function renderInsights(root, game) {
 }
 
 /** 13.2 requires a burn-down of the remaining pot against rounds remaining. */
-function renderBudget(root, row) {
+function renderBudget(root, row, game) {
   const body = root.querySelector('[data-slot="budget-body"]');
   body.replaceChildren();
   const b = row.budget;
@@ -279,6 +281,23 @@ function renderBudget(root, row) {
 
   body.append(el('p', 'note',
     'Unspent money is lost at the month boundary. There is no carry-over.'));
+
+  // 13.3 asks for market context to be surfaced precisely so that money moving
+  // between months is attributable. Month 3's pool is split by rank, and until
+  // this existed the budget simply shrank in silence — a twelve-round account
+  // went from ₹1,68,000 to ₹1,17,600 with nothing on screen saying why.
+  const ranked = rankOf(game.state, game.playerId);
+  if (ranked && b.monthlyBudgetPaise !== MONTHLY_BUDGET_PAISE) {
+    const note = el('p', 'rank-note');
+    note.append(document.createTextNode('This month is not the same size as the last two. You finished week 8 ranked '));
+    note.append(el('strong', null, `${ranked.position} of ${ranked.of}`));
+    note.append(document.createTextNode(
+      ' on cumulative gross profit, and month 3 was split on that ranking — the '
+      + 'pool is unchanged, only the shares moved. Gross, so returns were not '
+      + 'netted off; and as reported at week 8, when attribution had not caught up.',
+    ));
+    body.append(note);
+  }
 }
 
 function renderMarket(root, game) {
@@ -325,7 +344,7 @@ export function renderDashboard(game, onDecisionChange) {
   renderShare(root, row);
   renderRevised(root, game);
   renderInsights(root, game);
-  renderBudget(root, row);
+  renderBudget(root, row, game);
   renderMarket(root, game);
 
   // The public view, not content/querySet.js: the form may see a search's

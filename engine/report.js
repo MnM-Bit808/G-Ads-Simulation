@@ -48,7 +48,20 @@ export function buildRoundReport({ round, raw, advertisers }) {
     const ownLanded = (r.landed ?? []).filter((e) => e.clickedInRound === round);
     const conversions = sum(ownLanded, (e) => e.count);
     const grossRevenuePaise = sum(ownLanded, (e) => e.valuePaise);
-    const stillPending = sum(r.pendingConversions ?? [], (e) => e.count);
+    // THIS round's clicks that have not converted yet, and no one else's.
+    //
+    // It used to sum the advertiser's WHOLE pending queue, which made it the
+    // only field in an AdvertiserRoundReport that was not about this round's
+    // cohort - `final`, `returned`, `costPaise` and every other figure here are
+    // - and it broke the revision arithmetic below, which subtracts only this
+    // round's late landings. The result plateaued instead of decaying: rounds
+    // 3, 4 and 5 all read 42.91 for the rest of the game with nothing of their
+    // own outstanding, round 8 read 130.68 (the entire account queue), and
+    // summing the field across twelve reports triple-counted it.
+    const stillPending = sum(
+      (r.pendingConversions ?? []).filter((e) => e.clickedInRound === round),
+      (e) => e.count,
+    );
 
     const money = moneyBlock({
       costPaise: r.costPaise,
