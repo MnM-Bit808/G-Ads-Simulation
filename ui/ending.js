@@ -27,7 +27,6 @@
  */
 
 import { el, add, table, figure, rupees, whole, ratio } from './dom.js';
-import { cellKey } from '../engine/positions.js';
 import {
   CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE, DAYPART_BLOCKS,
 } from '../engine/constants.js';

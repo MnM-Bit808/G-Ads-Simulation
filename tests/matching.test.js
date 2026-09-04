@@ -157,8 +157,6 @@ describe('broad match runs on tags, not on words (spec 8.1)', () => {
 });
 
 describe('untagged keywords (spec 8.4)', () => {
-  const untagged = { tags: [] };
-
   test('exact still works', () => {
     expect(matchesKeyword(q('gym leggings'), kw('gym leggings', 'exact', []))).toBe(true);
   });

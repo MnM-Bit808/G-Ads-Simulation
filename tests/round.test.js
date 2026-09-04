@@ -489,10 +489,9 @@ describe('the engine writes observed history (spec 12.2)', () => {
   });
 
   test('it is landed conversions over every click paid for', () => {
-    let conv = 0;
     let clicks = 0;
     for (const { raw } of rounds) clicks += raw.byAdvertiser[PLAYER_ID].clicks;
-    conv = bidding(3).observedConversions;
+    const conv = bidding(3).observedConversions;
     expect(bidding(3).observedConvRate).toBeCloseTo(conv / clicks, 12);
     expect(bidding(3).observedClicks).toBeCloseTo(clicks, 6);
   });

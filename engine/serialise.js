@@ -50,7 +50,7 @@ export function deserialise(json) {
   try {
     parsed = JSON.parse(json);
   } catch (cause) {
-    throw new Error(`save file is not valid JSON: ${cause.message}`);
+    throw new Error(`save file is not valid JSON: ${cause.message}`, { cause });
   }
 
   if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {

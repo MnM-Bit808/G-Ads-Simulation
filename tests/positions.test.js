@@ -4,7 +4,7 @@ import {
   businessFor, breakEvenCpcPaise, grossBreakEvenCpcPaise, marginPerOrderPaise,
   capexEffect, liveCapexPaise, landingPageBonus,
   canReposition, isOneStep, reposition,
-  realisedBreakEvenCpcPaise, realisedConvRate, territoryQueries,
+  realisedBreakEvenCpcPaise, territoryQueries,
 } from '../engine/positions.js';
 import { homeCell } from '../engine/querySet.js';
 import { QUERY_SET } from '../content/querySet.js';

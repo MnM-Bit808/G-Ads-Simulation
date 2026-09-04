@@ -171,7 +171,7 @@ export function runRound(gameState, options = {}) {
           const { ladder } = resolveAuction(entrants);
           recordAuction({
             ladder, entrants, acc, pairwise, convAccum,
-            advertisers, business, query, q, hour, day,
+            advertisers, business, query, hour,
             budgets, perAdvertiserRng, mode,
           });
         }
@@ -249,7 +249,7 @@ export function runRound(gameState, options = {}) {
  * 226,800 and the round misses its budget.
  */
 function buildEntryPlans(advertisers, business, queries, round) {
-  return advertisers.map((advertiser, i) => {
+  return advertisers.map((advertiser) => {
     const bonus = landingPageBonus(advertiser.capex, round);
     return queries.map((query) => {
       if (isBlocked(query, advertiser.campaign.negatives)) return null;
@@ -353,7 +353,7 @@ function buildBudgets(advertisers, round) {
 
 function recordAuction({
   ladder, entrants, acc, pairwise, convAccum,
-  advertisers, business, query, q, hour, day, budgets, perAdvertiserRng, mode,
+  advertisers, business, query, hour, budgets, perAdvertiserRng, mode,
 }) {
   const byId = new Map(entrants.map((e) => [e.id, e]));
   const shown = [];

@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 import { POLICIES, controllerFor, disciplined, affordableCpcPaise } from '../agents/policies.js';
 import { playGame, playRound } from '../game.js';
 import { getSelfView, getPublicView } from '../engine/insights.js';
-import { advertiserReport } from '../engine/report.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 
 const STATE = makeGameState();

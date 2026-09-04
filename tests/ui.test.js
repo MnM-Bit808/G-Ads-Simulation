@@ -85,14 +85,32 @@ describe('the interface uses the real engine (spec 6, build step 14)', () => {
   });
 });
 
+describe('the linter is part of the gate (eslint.config.js)', () => {
+  // The stale identifier this suite could never see - `brief is not defined`,
+  // left behind when the dashboard was split out of app.js - is `no-undef`.
+  // The dead function whose value rendered as an em dash is `no-unused-vars`.
+  // Both reached a browser. So the lint runs INSIDE `npm test` rather than as
+  // a separate command nobody remembers, and this test is what stops it being
+  // quietly unwired again.
+  const pkg = JSON.parse(readFileSync(fileURLToPath(new URL('../package.json', import.meta.url)), 'utf8'));
+
+  test('npm test does not go green without it', () => {
+    expect(pkg.scripts.test).toMatch(/eslint/);
+    expect(pkg.scripts.test).toMatch(/vitest/);
+  });
+
+  test('and it covers the view, which is what it is for', () => {
+    const config = readFileSync(fileURLToPath(new URL('../eslint.config.js', import.meta.url)), 'utf8');
+    expect(config).toMatch(/ui\/\*\*/);
+    expect(config).toMatch(/globals\.browser/);
+  });
+});
+
 describe('every interface module at least loads', () => {
-  // A weak guard, and worth naming as weak. It catches a syntax error, a bad
-  // import path and a missing export. It does NOT catch a stale identifier
-  // inside a function body — this suite watched `brief is not defined` reach
-  // the browser, left behind when the dashboard was split out of app.js.
-  //
-  // Catching that properly needs a linter or a DOM, and this project has
-  // neither. Until it has one, the interface is verified by opening it.
+  // Weaker than the linter and kept anyway: it is the only thing here that
+  // EXECUTES a module, so it catches a bad import path and a missing export
+  // that static analysis reads straight past. It has caught one real bug, a
+  // syntax error, in nine.
 
   // Named explicitly rather than built from the directory listing: a dynamic
   // import of a computed path cannot be resolved statically, and the test below

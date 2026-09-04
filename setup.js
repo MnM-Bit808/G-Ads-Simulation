@@ -405,7 +405,7 @@ export function startGame({ rootSeed, playerBrandId, player, querySet }) {
   const rivals = rivalIdentities.map((brand, i) =>
     buildRival(brand, placement[i], i + 1, querySet, rng));
 
-  const playerAdvertiser = buildPlayer(identity, player, querySet);
+  const playerAdvertiser = buildPlayer(identity, player);
 
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -435,7 +435,7 @@ export function startGame({ rootSeed, playerBrandId, player, querySet }) {
  * degradations (8.4, 9.5), not oversights: broad match is inert until something
  * tags the keyword, and an unevaluated ad performs like an unevaluated ad.
  */
-function buildPlayer(identity, choices, querySet) {
+function buildPlayer(identity, choices) {
   const { position: raw, capex, keywords, ad, weeklySplitPaise } = choices;
   const position = { ...parseCell(cellKey(raw.price, raw.purpose)), setAtRound: 0, repositionedAtRound: null };
 

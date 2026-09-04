@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import {
-  placeRivals, placementIsLegal, buildRival, briefing, rivalAdsForBriefing,
+  placeRivals, placementIsLegal, briefing, rivalAdsForBriefing,
   startGame, redoRoundZero, canRedoRoundZero, REDO_DEADLINE_ROUND,
 } from '../setup.js';
 import { playGame, submitRound } from '../game.js';
@@ -8,11 +8,11 @@ import { disciplined } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { AD_COPY_BY_CELL } from '../content/adCopy.js';
-import { allCells, parseCell } from '../engine/positions.js';
+import { allCells } from '../engine/positions.js';
 import { homeCell } from '../engine/querySet.js';
 import {
-  ADVERTISER_COUNT, RIVAL_PLACEMENT_CONSTRAINTS, MONTHLY_BUDGET_PAISE,
-  ROUNDS_PER_MONTH, PRICE_TIERS, PURPOSES, CAPEX_ALLOCATION_PAISE, TAG_VOCABULARY,
+  ADVERTISER_COUNT, MONTHLY_BUDGET_PAISE,
+  ROUNDS_PER_MONTH, PRICE_TIERS, CAPEX_ALLOCATION_PAISE, TAG_VOCABULARY,
 } from '../engine/constants.js';
 
 const PLAYER_BRAND = BRAND_IDENTITIES[0].id;

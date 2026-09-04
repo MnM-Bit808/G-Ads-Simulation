@@ -190,7 +190,6 @@ function clampGrade(value) {
  */
 export function heuristicGrade(ad, context = {}) {
   const headlines = ad?.headlines ?? [];
-  const descriptions = ad?.descriptions ?? [];
   const text = adText(ad);
 
   // Expected CTR: does it give a reason to click? Numbers, offers and

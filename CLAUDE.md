@@ -76,6 +76,12 @@ Tests first, then implementation, then run them and iterate until green.
 npm test
 ```
 
+That runs `eslint .` first and `vitest run` second, so a lint error stops you
+before a single test runs. The linter is there because `no-undef` and
+`no-unused-vars` are two bugs this project shipped to a browser that no test
+could see — the suite reads source as text, not as code. `npm run lint` alone
+if you want just that.
+
 ```bash
 npm test -- auction
 ```
