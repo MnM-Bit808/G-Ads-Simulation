@@ -1,8 +1,18 @@
 /**
  * Rival ad copy, authored per cell (spec 17.1).
  *
- * DRAFT. This is content, and content is the one thing in this project a test
- * cannot validate. Read it end to end and correct it.
+ * READ AND CORRECTED. This is content, and content is the one thing in this
+ * project a test cannot validate, so it went past a human end to end and came
+ * back with six corrections — all applied, all recorded in the commit that made
+ * them. Mid-market, the cell most at risk of being unreadable against Premium,
+ * is confirmed as reading well.
+ *
+ * **One detail remains unverified**: the Japanese and Korean yarn signal in the
+ * Premium cells. It replaced an Italian one, which is a European premium
+ * signal rather than an Indian one — but whether Indian premium activewear
+ * actually leads with Japanese yarn, or with recycled technical fabric, or with
+ * a named mill, is a judgement nobody in this project has confirmed. It is a
+ * one-line change if somebody who knows the market says otherwise.
  *
  * WHY IT IS LOAD-BEARING
  *

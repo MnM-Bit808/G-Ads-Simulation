@@ -117,9 +117,10 @@ constant-side, and they have not been discussed yet.
 - **All six policies are written.** `agents/` still needs `llmPolicy.js`,
   `grader.js`, `keywordTagger.js` and `queryGen.js` — the Claude-backed half of
   step 13. Rival ad grades are hand-authored so the suite stays offline.
-- **`content/adCopy.js` is a draft and has not been read by a human.** A naive
-  classifier recovers all six cells, which only proves it is not *generically*
-  bad. Same standing as the query set.
+- **`content/adCopy.js` has been read and corrected**, six changes, mid-market
+  confirmed. One detail is still unverified: whether Japanese and Korean yarn is
+  what Indian premium activewear actually signals with, or whether it is
+  recycled technical fabric or a named mill. A one-line change either way.
 - **The query set was reviewed once** and Value and Premium were rewritten after
   that review. The corrected set has still not been read end to end.
 - **Rival placement (17.1) has no implementation.** `RIVAL_PLACEMENT_CONSTRAINTS`
