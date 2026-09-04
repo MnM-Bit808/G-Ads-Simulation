@@ -21,10 +21,12 @@ import { startGame, redoRoundZero, canRedoRoundZero } from '../setup.js';
 import { playRound } from '../game.js';
 import { POLICIES } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
+import { getSelfView } from '../engine/insights.js';
 import { TOTAL_ROUNDS } from '../engine/constants.js';
 import { el } from './dom.js';
 import { renderRoundZero } from './round-zero.js';
 import { renderDashboard } from './dashboard.js';
+import { createDraft, toDecision, changes } from './decisions.js';
 
 const ROOT_SEED = 20260902;
 
@@ -64,14 +66,39 @@ function begin({ playerBrandId, player }) {
     state,
     reports: [],
     insights: [],
-    // The player's own controller returns null: their decisions come from the
-    // interface, not from a policy. Slice three gives them a form.
+    draft: null,
+    // Display preferences, which the view is allowed to keep. Nothing the
+    // engine owns lives here.
+    view: { termsRange: 'all' },
+    // The player's own controller returns whatever the form has staged, and
+    // `null` when it has staged nothing — which is exactly what this returned
+    // before slice three existed. `playRound` collects it and `submitRound`
+    // applies it, so the player enters a round by the same door a policy does
+    // (R6), and the learning period and the decision log both happen.
     controllers: Object.fromEntries(state.advertisers.map((a, i) => [
       a.id,
-      i === 0 ? () => null : POLICIES[CAST[(i - 1) % CAST.length]],
+      i === 0 ? () => toDecision(game.draft) : POLICIES[CAST[(i - 1) % CAST.length]],
+    ])),
+    // 12.4: every logged decision carries where it came from, or a replay
+    // cannot tell a player's week from a policy's.
+    sources: Object.fromEntries(state.advertisers.map((a, i) => [
+      a.id,
+      i === 0 ? 'player' : `policy:${CAST[(i - 1) % CAST.length]}`,
     ])),
   };
+  refreshDraft();
   render();
+}
+
+/**
+ * Rebuild the form's working copy from the account as it now stands.
+ *
+ * From `getSelfView`, never from `state.advertisers[0]`. The view is deep
+ * copied on the way out, so the form cannot write through into `GameState` —
+ * which is the failure this whole seam is arranged to make impossible.
+ */
+function refreshDraft() {
+  game.draft = createDraft(getSelfView(game.state, game.playerId));
 }
 
 function chrome() {
@@ -96,11 +123,24 @@ function chrome() {
   label.textContent = played === 0 ? 'no weeks played' : `week ${played} of ${TOTAL_ROUNDS}`;
   nextButton.hidden = false;
   nextButton.disabled = played >= TOTAL_ROUNDS;
-  nextButton.textContent = played >= TOTAL_ROUNDS ? 'Game over' : 'Run the week';
+  nextButton.textContent = played >= TOTAL_ROUNDS ? 'Game over' : commitLabel();
 
   // 17.3: one redo, up to the end of round 3. A learning affordance rather
   // than a game mechanic, so it is offered plainly and then withdrawn.
   redoButton.hidden = !canRedoRoundZero(game.state);
+}
+
+/**
+ * The commit button says how much it is about to commit.
+ *
+ * A decision has to be previewable before it is taken, and the button is the
+ * last thing between a staged change and a week that cannot be replayed.
+ */
+function commitLabel() {
+  const staged = game?.draft ? changes(game.draft).length : 0;
+  return staged === 0
+    ? 'Run the week'
+    : `Run the week · ${staged} change${staged === 1 ? '' : 's'}`;
 }
 
 function render() {
@@ -119,7 +159,11 @@ function render() {
       'The account is open and nothing has run yet. Run the week to buy some traffic.'));
     return;
   }
-  app.replaceChildren(renderDashboard(game));
+  app.replaceChildren(renderDashboard(game, () => {
+    // Only the button, so staging a change does not rebuild the screen under
+    // the cursor. The dashboard redraws its own cards.
+    nextButton.textContent = commitLabel();
+  }));
 }
 
 nextButton.addEventListener('click', async () => {
@@ -128,10 +172,17 @@ nextButton.addEventListener('click', async () => {
   // Yield once so the button repaints before the round blocks the thread.
   await new Promise((resolve) => setTimeout(resolve, 0));
 
-  const out = await playRound(game.state, game.controllers, { mode: 'expected' });
+  // The player's controller reads `game.draft`, so nothing is passed here.
+  const out = await playRound(game.state, game.controllers, {
+    mode: 'expected',
+    sources: game.sources,
+  });
   game.state = out.nextGameState;
   game.reports.push(out.report);
   game.insights.push(out.insights);
+  // Rebuilt from the account the round produced, so what the form shows is
+  // what the engine now holds — staged changes have become real ones.
+  refreshDraft();
   render();
 });
 

@@ -20,7 +20,8 @@
  */
 
 import { el, table, figure, rupees, whole, pct, ratio } from './dom.js';
-import { QUERY_SET } from '../content/querySet.js';
+import { getPublicView } from '../engine/insights.js';
+import { renderDecisions, addNegative, blocksTerm } from './decisions.js';
 
 // ---------------------------------------------------------------------------
 // Panels
@@ -125,59 +126,108 @@ function renderRevised(root, game) {
     + 'were made on incomplete information.'));
 }
 
-/** 15.2 and 8.2: the search terms report, and the only route to negatives. */
-function renderTerms(root, row) {
-  const texts = new Map(QUERY_SET.queries.map((q) => [q.id, q.text]));
-  const rows = Object.entries(row.breakdown.byQuery)
+/**
+ * Add up one breakdown across the rounds in view.
+ *
+ * Not economics — addition, of figures the engine produced. It reads
+ * `state.history` rather than the reports the screen was handed, because
+ * history is the copy that gets REVISED (11.4): a round's conversions keep
+ * arriving for three more rounds and its returns resolve two after that.
+ * Summing the reports as first issued would understate every settled week.
+ *
+ * @param {object} game
+ * @param {'byQuery'|'byKeyword'} which
+ * @param {'week'|'all'} range
+ */
+function accumulate(game, which, range) {
+  const rounds = range === 'week' ? game.state.history.slice(-1) : game.state.history;
+
+  const out = {};
+  for (const stored of rounds) {
+    const breakdown = stored.byAdvertiser?.[game.playerId]?.breakdown?.[which];
+    for (const [id, r] of Object.entries(breakdown ?? {})) {
+      const acc = out[id] ?? (out[id] = { impressions: 0, clicks: 0, costPaise: 0, conversions: 0 });
+      acc.impressions += r.impressions ?? 0;
+      acc.clicks += r.clicks ?? 0;
+      acc.costPaise += r.costPaise ?? 0;
+      acc.conversions += r.conversions ?? 0;
+    }
+  }
+  return out;
+}
+
+/**
+ * 15.2 and 8.2: the search terms report, and the only route to negatives.
+ * A button on the row is the whole interaction.
+ *
+ * IT DEFAULTS TO EVERY WEEK PLAYED rather than to the week just run. One week
+ * is the wrong basis for a negative and the interface should not invite it: a
+ * row showing no conversions today may show two next week, because W11's
+ * revision has not finished with it. Blocking an unsettled zero is precisely
+ * the mistake this report exists to expose.
+ */
+function renderTerms(root, game, ctx) {
+  const range = game.view.termsRange;
+  const rows = Object.entries(ctx.terms)
     .filter(([, r]) => r.impressions > 0)
     .sort((a, b) => b[1].costPaise - a[1].costPaise)
-    .slice(0, 40)
-    .map(([id, r]) => ({
-      className: r.clicks >= 5 && r.conversions === 0 ? 'wasted' : null,
-      cells: [
-        texts.get(id) ?? id,
-        whole(r.impressions),
-        whole(r.clicks),
-        rupees(r.costPaise),
-        r.conversions > 0 ? r.conversions.toFixed(1) : '0',
-        r.clicks > 0 ? rupees(r.costPaise / r.clicks) : '—',
-      ],
-    }));
+    .map(([id, r]) => {
+      const text = ctx.texts.get(id) ?? id;
+      const blocked = blocksTerm(game.draft, text);
+
+      const button = el('button', 'add');
+      button.type = 'button';
+      button.textContent = blocked ? 'blocked' : 'block';
+      button.disabled = Boolean(blocked);
+      button.title = blocked
+        ? `blocked by the ${blocked.matchType} negative "${blocked.text}"`
+        : 'writes an exact negative for this search and nothing else';
+      button.addEventListener('click', () => {
+        addNegative(game.draft, { text, matchType: 'exact' });
+        ctx.refresh();
+      });
+
+      return {
+        className: blocked ? 'blocked-row' : (r.clicks >= 5 && r.conversions === 0 ? 'wasted' : null),
+        cells: [
+          text,
+          whole(r.impressions),
+          whole(r.clicks),
+          rupees(r.costPaise),
+          r.conversions > 0 ? r.conversions.toFixed(1) : '0',
+          r.clicks > 0 ? rupees(r.costPaise / r.clicks) : '—',
+          button,
+        ],
+      };
+    });
 
   table(
     root.querySelector('[data-slot="terms-table"]'),
     ['Search term', { label: 'Impr', num: true }, { label: 'Clicks', num: true },
-      { label: 'Cost', num: true }, { label: 'Conv', num: true }, { label: 'CPC', num: true }],
+      { label: 'Cost', num: true }, { label: 'Conv', num: true }, { label: 'CPC', num: true }, ''],
     rows,
   );
-}
 
-function renderQuality(root, row, game) {
-  const keywords = game.state.advertisers[0].adGroups[0].keywords;
-  const byKeyword = row.breakdown.byKeyword;
-  table(
-    root.querySelector('[data-slot="quality-table"]'),
-    ['Keyword', 'Match', { label: 'Clicks', num: true }, { label: 'Quality', num: true }],
-    keywords.map((k) => {
-      const score = row.quality?.[k.id];
-      const stats = byKeyword[k.id];
-      // A block wrapper, not a span: the tags go on their own line under the
-      // keyword, and a block child inside an inline element is not valid HTML.
-      const text = el('div');
-      text.append(el('div', null, k.text));
-      const tags = el('div', 'tag-row');
-      for (const tag of k.tags.slice(0, 4)) tags.append(el('span', 'tag', tag));
-      if (k.tags.length > 0) text.append(tags);
-      return {
-        cells: [
-          text,
-          k.matchType,
-          stats ? whole(stats.clicks) : '0',
-          score ? String(score.score) : '—',
-        ],
-      };
-    }),
-  );
+  const played = game.state.history.length;
+  const chips = root.querySelector('[data-slot="terms-range"]');
+  chips.replaceChildren();
+  for (const [key, label] of [
+    ['all', `all ${played} week${played === 1 ? '' : 's'}`],
+    ['week', 'this week only'],
+  ]) {
+    const chip = el('button', `chip small${range === key ? ' on' : ''}`, label);
+    chip.type = 'button';
+    chip.addEventListener('click', () => { game.view.termsRange = key; ctx.refresh(); });
+    chips.append(chip);
+  }
+
+  root.querySelector('[data-slot="terms-note"]').textContent = range === 'week'
+    ? 'One week, and none of it settled. A click takes three rounds to arrive and '
+      + 'two more to survive its return window, so a zero in this column is not '
+      + 'yet evidence of anything.'
+    : 'Every week you have played, with conversions as they stand after revision. '
+      + 'Block writes an exact negative for that one search; to catch a whole '
+      + 'family of them at once, name the words below.';
 }
 
 function renderInsights(root, game) {
@@ -247,12 +297,24 @@ function renderMarket(root, game) {
 
 
 /**
- * Draw one round for one advertiser.
+ * Draw one round for one advertiser, and the form that changes the next one.
  *
- * @param {object} game the running game: state, reports, insights, playerId
+ * The search terms table and the decision form move together: blocking a row
+ * greys that row out immediately, so the cost of a broad negative lands in the
+ * report it was written from rather than being discovered next week. One
+ * `ctx` carries what both of them need, and `ctx.refresh` — written back by
+ * `renderDecisions` — redraws them as a pair.
+ *
+ * Nothing here writes to `game.state`. The form edits a draft built from
+ * `getSelfView`, and `app.js` hands that draft back through the player's
+ * controller, which is the only door a decision may enter by.
+ *
+ * @param {object} game the running game: state, reports, insights, playerId,
+ *   draft, view
+ * @param {Function} [onDecisionChange] so the header can say how much is staged
  * @returns {HTMLElement}
  */
-export function renderDashboard(game) {
+export function renderDashboard(game, onDecisionChange) {
   const report = game.reports[game.reports.length - 1];
   const row = report.byAdvertiser[game.playerId];
   const root = document.getElementById('tpl-dashboard').content
@@ -261,10 +323,35 @@ export function renderDashboard(game) {
   renderHeadline(root, row);
   renderShare(root, row);
   renderRevised(root, game);
-  renderTerms(root, row);
-  renderQuality(root, row, game);
   renderInsights(root, game);
   renderBudget(root, row);
   renderMarket(root, game);
+
+  // The public view, not content/querySet.js: the form may see a search's
+  // text, volume and intent and nothing else (16.1), and taking it from here
+  // means that is enforced rather than merely intended.
+  const view = getPublicView(game.state, game.playerId);
+  const ctx = {
+    draft: game.draft,
+    queries: view.querySet,
+    weeklyVolume: view.weeklyVolume,
+    texts: new Map(view.querySet.map((q) => [q.id, q.text])),
+    quality: row.quality,
+    terms: null,
+    byKeyword: null,
+    /** Both breakdowns follow whichever range the report is showing. */
+    sync: () => {
+      ctx.terms = accumulate(game, 'byQuery', game.view.termsRange);
+      ctx.byKeyword = accumulate(game, 'byKeyword', game.view.termsRange);
+    },
+    onChange: () => {
+      renderTerms(root, game, ctx);
+      onDecisionChange?.();
+    },
+  };
+  ctx.sync();
+
+  root.querySelector('[data-slot="decisions"]').replaceWith(renderDecisions(ctx));
+  renderTerms(root, game, ctx);
   return root;
 }

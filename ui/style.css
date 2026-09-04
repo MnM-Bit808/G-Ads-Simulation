@@ -387,3 +387,72 @@ p.problems { padding-left: 0.8rem; }
 .start { text-align: center; padding: 0.5rem 0 2rem; }
 .start .go { font-size: 1rem; padding: 0.7rem 1.6rem; }
 .start .note { border: 0; max-width: 46rem; margin: 0.9rem auto 0; }
+
+/* --- the decision form (slice three) ------------------------------------- */
+
+/*
+ * `display: contents` so the cards inside take part in the dashboard grid.
+ * The region exists to be redrawn in one go when something is staged; it is
+ * not a box and must not become one.
+ */
+.decision-region, .decision-summary, .decision-forms { display: contents; }
+
+.range { display: flex; gap: 0.4rem; margin-bottom: 0.7rem; }
+
+.terms td:last-child, .picked td:last-child { width: 1%; white-space: nowrap; }
+.blocked-row td { color: var(--muted); text-decoration: line-through; }
+.blocked-row td:last-child { text-decoration: none; }
+
+/* --- staged changes ------------------------------------------------------ */
+
+.staged { display: flex; flex-direction: column; gap: 0.4rem; }
+.staged-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 7px;
+  padding: 0.5rem 0.7rem;
+}
+.staged-row.negative-added, .staged-row.keyword-paused { border-left-color: var(--warn); }
+.staged-row.keyword-added { border-left-color: var(--good); }
+.staged-label { font-size: 0.87rem; }
+.staged-detail { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
+
+/* --- negatives ----------------------------------------------------------- */
+
+.neg-compose {
+  display: grid;
+  grid-template-columns: 1fr 9rem auto;
+  gap: 0.7rem;
+  align-items: end;
+  margin: 0.9rem 0 0.2rem;
+}
+.neg-compose .field { margin-bottom: 0; }
+.neg-compose > button.add { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+@media (max-width: 620px) { .neg-compose { grid-template-columns: 1fr; align-items: stretch; } }
+
+.neg-preview { margin-top: 0.6rem; }
+.neg-preview table { margin-top: 0.5rem; }
+.neg-headline { margin: 0; font-size: 0.86rem; }
+.neg-headline strong { font-family: var(--mono); color: var(--warn); }
+tr.costly td { color: var(--bad); }
+
+/* --- keywords ------------------------------------------------------------ */
+
+.kw-text.paused { color: var(--muted); }
+.paused-row td { opacity: 0.55; }
+.tag.warn { color: var(--warn); border-color: var(--warn); }
+
+.planner { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: 0.8rem; }
+.planner summary {
+  cursor: pointer;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+.planner .neg-compose { grid-template-columns: 1fr 8rem 7rem; }
