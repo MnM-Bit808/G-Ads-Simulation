@@ -50,12 +50,27 @@ const argmax = (a) => a.indexOf(Math.max(...a));
  * rather than the grid. A broad keyword's reach depends on how many tags that
  * cell's head terms happen to carry, which is skill, and a fairness test that
  * varies with skill measures the wrong thing.
+ *
+ * ONE CONSEQUENCE WORTH KNOWING, because "six advertisers play twelve rounds"
+ * reads as though a market happens here. It does not. Equal coverage means
+ * each cell holds exact keywords only on its own queries, so EVERY AUCTION HAS
+ * EXACTLY ONE ENTRANT, beatRank always falls back to AD_RANK_FLOOR, and the
+ * bid is never the binding constraint. Multiplying every bid by 2.45 changes
+ * the result of this harness by nothing at all - verified.
+ *
+ * So I3 measures the TERRITORY economics in isolation and says nothing about
+ * the auction. That is the right thing for a fairness invariant to do, and it
+ * is also why the flat reserve matters so much here: raising AD_RANK_FLOOR
+ * takes the same absolute paise from every cell, which is a small bite out of
+ * Premium and a fatal one out of Value. Measured, a floor of 150 takes worst
+ * deviation from 2.8% to over 50%, and 250 wipes the Value tier out entirely.
  */
 function balancedState() {
   const base = makeGameState();
   const advertisers = CELLS.map((cell, i) => {
     const position = { ...parseCell(cell), setAtRound: 0, repositionedAtRound: null };
-    const bidPaise = Math.round(breakEvenCpcPaise(businessFor(position, EMPTY, 1)) * 0.70);
+    const business = businessFor(position, EMPTY, 1);
+    const bidPaise = Math.round(realisedBreakEvenCpcPaise(business, QUERY_SET, position) * 0.70);
     const own = QUERY_SET.queries.filter((q) => homeCell(q) === cell);
 
     return {
@@ -150,26 +165,56 @@ describe('I1 — budget must bind', () => {
 });
 
 describe('I2 — the market must be affordable', () => {
-  test('median CPC sits below the Value tier net break-even', () => {
-    // If it does not, the cheapest position is unplayable and the grid
-    // collapses to two tiers.
-    const state = makeGameState();
-    const out = runRound(state, { mode: 'expected' });
-    const valueBreakEven = breakEvenCpcPaise(
-      businessFor({ price: 'value', purpose: 'performance' }, EMPTY, 1),
-    );
+  const state = makeGameState();
+  const out = runRound(state, { mode: 'expected' });
+  const valueBreakEven = realisedBreakEvenCpcPaise(
+    businessFor({ price: 'value', purpose: 'performance' }, EMPTY, 1),
+    QUERY_SET, { price: 'value', purpose: 'performance' },
+  );
+
+  test('median CPC sits below what the Value tier can really pay', () => {
+    // Against the REALISED ceiling, not breakEvenCpcPaise. The neutral-query
+    // figure is 1412 and the real one is 3456, so this bar used to be set at
+    // 41% of the right height - passing it said almost nothing.
     expect(out.raw.marketContext.medianCpcPaise).toBeLessThan(valueBreakEven);
   });
 
-  test('every position pays less than it can afford, on average', () => {
-    const state = makeGameState();
-    const out = runRound(state, { mode: 'expected' });
+  test('and the market it measures is alive', () => {
+    // Without this, I2 passes on a DEAD market. At AD_RANK_FLOOR >= 400 nobody
+    // clears the reserve, nothing transacts, medianCpcPaise is 0, and "median
+    // CPC below break-even" goes green at exactly the setting that destroys
+    // the thing it exists to protect. Measured: floor 400 gives 0 impressions,
+    // 0 spend, and a passing assertion above.
+    expect(out.raw.marketContext.medianCpcPaise).toBeGreaterThan(0);
+    expect(out.raw.marketContext.totalMarketSpendPaise).toBeGreaterThan(0);
+    const impressions = state.advertisers
+      .reduce((a, x) => a + out.raw.byAdvertiser[x.id].impressions, 0);
+    expect(impressions).toBeGreaterThan(0);
+  });
+
+  test('no position is priced out of its own territory', () => {
+    // This replaces an assertion that could not fail. It compared each
+    // advertiser's CPC against its own break-even while the fixture bid 70% of
+    // that same break-even and the auction guarantees cpc <= bid - so it was
+    // true by construction and would have passed against an auction that
+    // simply returned the bid.
+    //
+    // lostToRank is not capped by the bid rule. If a tier were being priced
+    // out - the "grid collapses to two tiers" failure I2 exists to catch - it
+    // would show up here and nowhere else.
     for (const a of state.advertisers) {
-      const row = out.raw.byAdvertiser[a.id];
-      if (row.clicks < 100) continue;
-      const cpc = row.costPaise / row.clicks;
-      const affordable = breakEvenCpcPaise(businessFor(a.position, a.capex, 1));
-      expect(cpc, `${a.id} (${a.position.price})`).toBeLessThan(affordable);
+      const r = out.raw.byAdvertiser[a.id];
+      const lostToRank = r.lostToRank / r.eligibleAuctions;
+      expect(lostToRank, `${a.id} (${a.position.price})`).toBeLessThan(0.55);
+    }
+    for (const price of ['value', 'mid', 'premium']) {
+      const best = Math.max(...state.advertisers
+        .filter((a) => a.position.price === price)
+        .map((a) => {
+          const r = out.raw.byAdvertiser[a.id];
+          return r.impressions / r.eligibleAuctions;
+        }));
+      expect(best, price).toBeGreaterThan(0.4);
     }
   });
 

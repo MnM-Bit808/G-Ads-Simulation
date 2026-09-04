@@ -9,7 +9,7 @@ import { QUERY_SET } from '../../content/querySet.js';
 import { BRAND_IDENTITIES } from '../../content/brands.js';
 import { homeCell } from '../../engine/querySet.js';
 import {
-  allCells, parseCell, businessFor, breakEvenCpcPaise,
+  allCells, parseCell, businessFor, realisedBreakEvenCpcPaise,
 } from '../../engine/positions.js';
 import {
   SCHEMA_VERSION, MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH,
@@ -45,16 +45,22 @@ function positionFor(index) {
 
 /**
  * A bid a competent advertiser in this cell would actually make: comfortably
- * under its own net break-even.
+ * under its own net break-even ON ITS OWN TERRITORY.
  *
  * The first fixture gave everyone the same 2500 paise, which is nearly double
  * what the Value tier can afford. Every Value advertiser was structurally
  * bankrupt and the whole market read as broken when it was the fixture that
  * was wrong.
+ *
+ * The second fixture used breakEvenCpcPaise, which is the ceiling on a NEUTRAL
+ * query - every multiplier at 1, every hour equally likely - and no advertiser
+ * ever buys that query. So every advertiser here was bidding around 29% of
+ * what it could actually afford, nobody ever met their reserve, and the market
+ * read as placid. Median CPC 979 became 2000 when this was corrected.
  */
 function bidFor(position) {
   const business = businessFor(position, EMPTY_CAPEX, 1);
-  return Math.round(breakEvenCpcPaise(business) * 0.70);
+  return Math.round(realisedBreakEvenCpcPaise(business, QUERY_SET, position) * 0.70);
 }
 
 /**
