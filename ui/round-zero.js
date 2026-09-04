@@ -17,6 +17,14 @@
  * nothing else. `priceAffinity`, `purposeAffinity` and `convMultiplier` are
  * withheld from everyone including the advertiser they favour (16.1, C4), and
  * `tests/ui.test.js` fails if this file so much as names one.
+ *
+ * IT USED TO MARK THE PLAYER'S OWN TERRITORY with a dot, using `homeCell()` —
+ * which is computed from exactly those two affinities. It was a leak, and it
+ * was doing the round 0 decision FOR the player: which of these searches are
+ * mine is the question 4.1 says positioning answers, and reading the words is
+ * how a founder answers it. The evidence it was not even helping is in
+ * HANDOVER: the account that bought the top five rows by volume had the dot on
+ * screen the whole time.
  */
 
 import {
@@ -25,7 +33,6 @@ import {
 import { briefing, placeRivals, buildRival } from '../setup.js';
 import { BRAND_IDENTITIES, assignIdentities } from '../content/brands.js';
 import { allCells, parseCell } from '../engine/positions.js';
-import { homeCell } from '../engine/querySet.js';
 import { validateAdCopy, namesARival } from '../agents/grader.js';
 import { heuristicTags } from '../agents/keywordTagger.js';
 import {
@@ -305,10 +312,6 @@ function sectionKeywords(querySet, draft, rerender) {
   const all = researchList(querySet);
   const chosen = new Set(draft.keywords.map((k) => k.text));
 
-  // The player's own territory first: the searches this position is for.
-  const mine = new Set(querySet.queries
-    .filter((q) => homeCell(q) === draft.cell).map((q) => q.text));
-
   const search = input({
     placeholder: 'search the keyword planner…',
     onInput: (value) => {
@@ -317,7 +320,8 @@ function sectionKeywords(querySet, draft, rerender) {
     },
   });
   node.append(field('Research', search,
-    `${all.length} searches, with weekly volume. Volume is public; what converts is not.`));
+    `${all.length} searches, sorted by weekly volume. Volume is public; what a `
+    + 'search is worth to you is not.'));
 
   const listBox = el('div', 'scroll research');
   node.append(listBox);
@@ -335,10 +339,7 @@ function sectionKeywords(querySet, draft, rerender) {
           draft.keywords.push({ text: q.text, matchType: 'phrase', bidPaise: 3000 });
           rerender();
         });
-        return {
-          className: mine.has(q.text) ? 'own-territory' : null,
-          cells: [q.text, whole(q.weekly), q.intent, button],
-        };
+        return { cells: [q.text, whole(q.weekly), q.intent, button] };
       });
     const node2 = el('table', 'mini');
     table(node2, ['Search term', { label: 'Weekly', num: true }, 'Intent', ''], rows);
@@ -377,6 +378,11 @@ function sectionKeywords(querySet, draft, rerender) {
     'Exact and phrase match on the words. Broad matches on meaning, using those '
     + 'tags — and the fewer tags a keyword carries, the further it travels. '
     + 'Broad will find you searches you did not ask for, and you pay for those too.'));
+  node.append(el('p', 'note',
+    'This list is in the order Keyword Planner gives it: biggest first. That is '
+    + 'not the order to buy in. Nobody can tell you which of these searches are '
+    + 'yours — you have the words, the volume and the intent, and the arithmetic '
+    + 'from the briefing. Reading them is the job.'));
   return node;
 }
 

@@ -348,10 +348,6 @@ select, input[type="number"] { font-family: var(--mono); font-size: 0.85rem; }
 .count.over { color: var(--bad); }
 
 .research { margin-bottom: 1rem; }
-.research tr.own-territory td:first-child::before {
-  content: "● ";
-  color: var(--accent);
-}
 button.add {
   width: auto;
   background: transparent;

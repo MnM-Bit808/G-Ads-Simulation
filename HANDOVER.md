@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1016 tests, all passing, 1 todo.
+**Every build-order step is done.** 1024 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -347,6 +347,15 @@ The ones worth remembering, because they are kinds rather than incidents:
   written. No test reads them and they are small grey text at the end of a long
   form.
 
+- **A screen that leaked what the spec withholds.** Round 0 marked the player's
+  own territory in the keyword planner with a dot, computed by `homeCell()` —
+  which reads `priceAffinity` and `purposeAffinity`, the two fields 16.1
+  withholds "from every viewer, including the advertiser the affinity favours".
+  It also did the round 0 decision FOR the player: which of these searches are
+  mine is the question 4.1 says positioning answers. Removed, and
+  `tests/ui.test.js` now fails if any `ui/` file names those fields or the
+  functions that derive them — a guard built from the engine's own
+  `FORBIDDEN_IN_PUBLIC_VIEW` rather than a copy of it.
 - **A screen that taught something false.** The round-5 card claimed
   repositioning resets your Quality Scores. It does not: 4.5 calls the loss "a
   consequence, not a rule to implement" — keeping a keyword keeps its history,
@@ -481,16 +490,6 @@ tooling and one untested claim.
   real improvement in ad quality never moves the reported score, because the
   ratio was already past 1.10 and three levels cannot express anything between.
   Both are design conversations, not defects.
-- **Round 0 marks your own territory in the keyword planner, and 16.1 says it
-  should not.** `ui/round-zero.js` uses `homeCell(q)` to put a dot beside the
-  searches in the player's cell — and `homeCell` is computed from
-  `priceAffinity` and `purposeAffinity`, which 16.1 withholds "from every
-  viewer, including the advertiser the affinity favours". It is deliberate and
-  it does real teaching work in round 0, where the player has no report at all.
-  The mid-game planner added in the decision form does NOT carry the dot, on the
-  grounds that by then the player has evidence. **So the two screens now
-  disagree about whether you can see your own territory, which is worse than
-  either answer.** Undecided, and worth deciding.
 - ~~There is no linter.~~ **There is one now**, and it runs inside `npm test`
   (`eslint . && vitest run`), so a lint error stops you before a test runs.
   Correctness only, no style. Its first run found ten pieces of dead code

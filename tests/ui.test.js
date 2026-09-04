@@ -2,6 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { FORBIDDEN_IN_PUBLIC_VIEW } from '../engine/insights.js';
 
 /**
  * The interface is a view. It is not tested here for what it draws — that needs
@@ -71,6 +72,38 @@ describe('the interface uses the real engine (spec 6, build step 14)', () => {
     // nowhere else — but it must divide, not carry a second unit around.
     const all = source.map((s) => s.text).join('\n');
     expect(all).toMatch(/\/\s*100/);
+  });
+
+  test('it never reads what 16.1 withholds from every viewer', () => {
+    // The guard that was missing. round-zero.js marked the player's own
+    // territory in the keyword planner with a dot, computed by homeCell() —
+    // which reads priceAffinity and purposeAffinity, the two fields 16.1
+    // withholds "from every viewer, including the advertiser the affinity
+    // favours". It shipped in slice two and survived four sessions.
+    //
+    // The list is the ENGINE'S, not a copy: FORBIDDEN_IN_PUBLIC_VIEW is what
+    // getPublicView strips, so a field added there is guarded here for free.
+    // Only the query-side fields apply — an advertiser's own bid and budget are
+    // its own business (16.2), and the form edits them.
+    const queryFields = [
+      'priceAffinity', 'purposeAffinity', 'convMultiplier', 'valueMultiplier',
+      'returnRateMultiplier', 'isHeadTerm', 'hourProfile',
+    ];
+    for (const name of queryFields) {
+      expect(FORBIDDEN_IN_PUBLIC_VIEW, `${name} is no longer withheld by the engine`)
+        .toContain(name);
+    }
+
+    // And the functions that DERIVE them, which is how the dot got in: the
+    // affinities were never named, only asked about.
+    const derived = ['homeCell', 'territoryQueries', 'realisedConvRate', 'businessFor'];
+
+    for (const { file, text } of source) {
+      const body = stripped(text);
+      for (const name of [...queryFields, ...derived]) {
+        expect(body.includes(name), `${file} reads ${name}`).toBe(false);
+      }
+    }
   });
 
   test('it holds no game state the engine should own', () => {
