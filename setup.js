@@ -46,6 +46,7 @@ import { validateWeeklySplit } from './engine/pacing.js';
 import { allocate, mulRate } from './engine/money.js';
 import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
+import { gradeAdOffline } from './agents/grader.js';
 
 const REDO_DEADLINE_ROUND = 3;
 
@@ -440,6 +441,8 @@ function buildPlayer(identity, choices, querySet) {
     throw new RangeError('the player needs at least one keyword to enter an auction');
   }
 
+  const playerAd = ad ?? { headlines: [], descriptions: [], landingPageDescription: '' };
+
   return {
     id: identity.id,
     name: identity.name,
@@ -469,8 +472,17 @@ function buildPlayer(identity, choices, querySet) {
         tags: k.tags ?? [],                    // untagged: inert on broad (8.4)
         taggedContentHash: k.taggedContentHash ?? null,
       })),
-      ad: ad ?? { headlines: [], descriptions: [], landingPageDescription: '' },
-      gradedQuality: choices.gradedQuality ?? null,   // ungraded: 3/3/3 + warning (9.5)
+      ad: playerAd,
+      // Spec 17 step 12: grade the player's assets before round 1. Offline
+      // unless a grade was supplied, because round 0 has to complete without
+      // an API key - and because leaving it null is not a neutral choice.
+      // DECISIONS A8: an ungraded ad grades 3/3/3, which sits below
+      // AD_RANK_FLOOR at any cautious bid, so the player would enter every
+      // auction and show in none.
+      gradedQuality: choices.gradedQuality ?? gradeAdOffline(playerAd, {
+        keywords,
+        rivalNames: BRAND_IDENTITIES.filter((b) => b.id !== identity.id).map((b) => b.name),
+      }, 0),
     }],
     bidding: {
       learningRoundsRemaining: 0,

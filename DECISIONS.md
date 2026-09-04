@@ -170,6 +170,27 @@ describes what happens before that module exists.
 
 ---
 
+**Resolved for the player.** `agents/grader.js` exists, and round 0 now grades
+the player's copy at step 12 rather than leaving `gradedQuality` null. It grades
+offline by default, so this holds with no API key and no network.
+
+| the player writes | grade | impressions |
+|---|---|---|
+| three generic headlines | 4 / 3 / 3 | 18,579 |
+| specific, benefit-led copy | 8 / 4 / 8 | 26,349 |
+
+Writing better copy is now worth 42% more traffic, which is the incentive 9.5
+was reaching for and could not deliver while the only alternative to a good ad
+was one that could not enter the auction.
+
+**The interaction stays on this list**, because nothing about the constants
+changed. An advertiser who somehow reaches round 1 ungraded is still below the
+reserve, and `DEFAULT_UNGRADED_QUALITY` and `AD_RANK_FLOOR` still sit either
+side of a line neither was chosen with reference to. What changed is that
+nothing routes a player there any more.
+
+---
+
 ## B. Auction and pricing
 
 ### B1. Ad rank threshold is a constant — `CALIBRATE`

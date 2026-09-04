@@ -465,12 +465,6 @@ describe('every constant is read by something (R4, hard rule 7)', () => {
       + 'predictionErrorSigma falls with sqrt(n) and has no threshold. Spec 12.2 '
       + 'quotes it to say what "high error" means, and strategies.test.js checks '
       + 'the curve is still large there. Not debt.',
-    HEADLINE_MAX_CHARS:
-      'DEBT: agents/grader.js and the round 0 ad editor will enforce it. '
-      + 'adCopy.test.js checks the authored rival copy fits, which is every ad '
-      + 'that exists today.',
-    DESCRIPTION_MAX_CHARS:
-      'DEBT: as HEADLINE_MAX_CHARS.',
   };
 
   test('no constant is read by nothing at all', () => {

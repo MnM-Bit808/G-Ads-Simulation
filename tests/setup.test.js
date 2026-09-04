@@ -279,54 +279,66 @@ describe('startGame produces a game that runs (spec 17)', () => {
     expect(spend).toBeGreaterThan(0);
   });
 
-  test('an ungraded ad on a cautious bid cannot clear the floor, and says so', async () => {
-    // 9.5's degradation, followed to its end. DEFAULT_UNGRADED_QUALITY is
-    // 3/3/3, which gives a signal of 0.031, so an ad rank of 60 needs a bid of
-    // 1,961 paise - and `disciplined`, reasoning from a cold-start conversion
-    // estimate, bids about 1,512. The player is not outbid; it is below the
-    // reserve and never enters.
-    //
-    // That is harsher than "should not perform like a good one", and it is the
-    // strongest argument for building agents/grader.js before a UI. What makes
-    // it survivable meanwhile is that it is fully DIAGNOSED: 100% lost to rank,
-    // plus the warning naming the cause.
+  test('the player keywords are untagged, so broad is inert (8.4)', () => {
+    // The other half of the round 0 degradation, and this one STAYS: there is
+    // no keywordTagger.js yet. An untagged keyword works normally on exact and
+    // phrase and matches nothing on broad, which is safe rather than fatal -
+    // unlike the ungraded ad, which was neither.
+    for (const keyword of state.advertisers[0].adGroups[0].keywords) {
+      expect(keyword.tags).toEqual([]);
+      expect(keyword.taggedContentHash).toBeNull();
+      expect(keyword.matchType).not.toBe('broad');
+    }
+  });
+
+  test('the player is graded before round 1, per step 12', () => {
+    // Round 0's last step is "grade + tag player assets -> round 1", and it is
+    // not optional. Leaving gradedQuality null is not neutral: DECISIONS A8
+    // measured that an ungraded ad grades 3/3/3, which sits below
+    // AD_RANK_FLOOR at any cautious bid, so the player would enter every
+    // auction and show in none.
+    const graded = state.advertisers[0].adGroups[0].gradedQuality;
+    expect(graded).not.toBeNull();
+    expect(graded.gradedAtRound).toBe(0);
+    expect(graded.contentHash).toMatch(/^sha1:/);
+    expect(graded.source).toBe('heuristic');
+  });
+
+  test('graded offline, so round 0 completes without an API key (R2)', () => {
+    // The grader takes its transport as an argument. Round 0 supplies none, so
+    // the whole of setup runs with no network and no key - which is what makes
+    // the game playable and the suite honest.
+    for (const component of ['expectedCtr', 'adRelevance', 'landingPage']) {
+      expect(state.advertisers[0].adGroups[0].gradedQuality[component])
+        .toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  test('and it can now actually compete', async () => {
+    // The measurement that motivated all of this. With the ungraded 3/3/3 the
+    // same advertiser on the same policy got zero impressions from 33,670
+    // eligible auctions.
     const { reports } = await playGame(
       state,
       Object.fromEntries(state.advertisers.map((a) => [a.id, disciplined])),
       { mode: 'expected', rounds: 1 },
     );
     const mine = reports[0].byAdvertiser[PLAYER_BRAND];
-    expect(mine.traffic.eligibleAuctions).toBeGreaterThan(0);
-    expect(mine.traffic.impressions).toBe(0);
-    expect(mine.share.lostToRank).toBeCloseTo(1, 2);
-    expect(mine.warnings).toContain('ungraded_ad');
-  });
-
-  test('and bidding over the reserve gets it back in', async () => {
-    const richer = start({ player: choices({
-      keywords: choices().keywords.map((k) => ({ ...k, bidPaise: 2400 })),
-    }) });
-    const out = submitRound(richer, {}, { mode: 'expected' });
-    const mine = out.report.byAdvertiser[PLAYER_BRAND];
     expect(mine.traffic.impressions).toBeGreaterThan(0);
-    // Still warned: it is paying a premium to be seen with an ad nobody graded.
-    expect(mine.warnings).toContain('ungraded_ad');
+    expect(mine.warnings).not.toContain('ungraded_ad');
   });
 
-  test('the player starts ungraded, and is told so (9.5)', () => {
-    expect(state.advertisers[0].adGroups[0].gradedQuality).toBeNull();
-    const out = submitRound(state, {}, { mode: 'expected' });
-    expect(out.report.byAdvertiser[PLAYER_BRAND].warnings).toContain('ungraded_ad');
-  });
-
-  test('and untagged, so broad match is inert but exact and phrase work (8.4)', () => {
-    for (const keyword of state.advertisers[0].adGroups[0].keywords) {
-      expect(keyword.tags).toEqual([]);
-      expect(keyword.taggedContentHash).toBeNull();
-    }
-    const out = submitRound(state, {}, { mode: 'expected' });
-    // It still enters auctions: the degradation is safe, not fatal.
-    expect(out.report.byAdvertiser[PLAYER_BRAND].traffic.impressions).toBeGreaterThan(0);
+  test('a supplied grade is respected rather than overwritten', () => {
+    const own = startGame({
+      rootSeed: 20260902, playerBrandId: PLAYER_BRAND, querySet: QUERY_SET,
+      player: choices({
+        gradedQuality: {
+          expectedCtr: 9, adRelevance: 8, landingPage: 7,
+          gradedAtRound: 0, contentHash: 'sha1:mine',
+        },
+      }),
+    });
+    expect(own.advertisers[0].adGroups[0].gradedQuality.expectedCtr).toBe(9);
   });
 
   test('an unaffordable weekly split is refused, not quietly corrected', () => {
