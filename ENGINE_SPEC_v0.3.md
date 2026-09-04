@@ -412,8 +412,21 @@ agents/
   queryGen.js     Claude-backed query set generator
 tests/
 ui/
+game.js         the caller loop — see below
 DECISIONS.md
 ```
+
+**`game.js` is new in this revision and sits outside `engine/`.** The layout had
+no home for the caller, and four obligations the engine deliberately refuses had
+nowhere to live: diffing decisions to write learning periods (12.3), appending to
+`decisionLog` (12.4), committing capital and leaving the remainder to roll into ad
+budget (13.3), and applying a repositioning (4.5). `runRound` cannot do any of
+them — 12.3 says outright that a pure function cannot detect that a setting
+changed — and `agents/` holds controllers rather than orchestration.
+
+It is outside `engine/` because it holds the controllers, and a controller may be
+Claude-backed while the engine may not be (R2). A structural test asserts this
+file cannot reach a model or the network.
 
 ---
 
