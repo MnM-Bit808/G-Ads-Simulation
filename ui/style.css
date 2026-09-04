@@ -456,3 +456,48 @@ tr.costly td { color: var(--bad); }
   color: var(--accent);
 }
 .planner .neg-compose { grid-template-columns: 1fr 8rem 7rem; }
+
+/* --- bidding ------------------------------------------------------------- */
+
+.strategy-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 0.9rem;
+}
+.strategy {
+  text-align: left;
+  background: var(--panel-2);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+}
+.strategy.on { border-color: var(--accent); background: rgba(122, 162, 247, 0.12); }
+.strategy-name { font-weight: 600; margin-bottom: 0.25rem; }
+.strategy-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+.strategy-predicts {
+  font-size: 0.7rem;
+  font-family: var(--mono);
+  color: var(--muted);
+  margin-top: 0.4rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--line);
+}
+.strategy.on .strategy-name { color: var(--accent); }
+
+.bid-warn:empty { display: none; }
+.bid-warn .note { border: 0; padding-left: 0; }
+
+.learning-now {
+  margin: 0 0 0.9rem;
+  padding: 0.6rem 0.8rem;
+  background: rgba(224, 175, 104, 0.1);
+  border: 1px solid var(--warn);
+  border-radius: 7px;
+  color: var(--warn);
+  font-size: 0.83rem;
+  line-height: 1.45;
+}
+.staged-row.strategy, .staged-row.strategy-param { border-left-color: var(--bad); }

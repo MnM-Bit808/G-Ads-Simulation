@@ -1,6 +1,8 @@
 import { describe, test, expect } from 'vitest';
 import { getSelfView, getPublicView } from '../engine/insights.js';
 import { blockedBy, matchesKeyword } from '../engine/matching.js';
+import { STRATEGIES, effectiveBidPaise } from '../engine/strategies.js';
+import { LEARNING_ROUNDS } from '../engine/constants.js';
 import { submitRound, triggersLearning } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
@@ -8,6 +10,7 @@ import {
   createDraft, toDecision, changes,
   addNegative, dropNegative, blocksTerm,
   addKeyword, updateKeyword, previewNegative,
+  setStrategy, setStrategyParam, willTriggerLearning, STRATEGY_PARAM,
 } from '../ui/decisions.js';
 
 /**
@@ -262,7 +265,7 @@ describe('keywords (bids, match types, adding and pausing)', () => {
   });
 });
 
-describe('what the form must NOT do to the learning period (12.3)', () => {
+describe('the learning period (12.3)', () => {
   test('no negative, bid, match type or keyword change triggers one', () => {
     const draft = createDraft(selfView());
     addNegative(draft, { text: 'free', matchType: 'broad' });
@@ -272,6 +275,114 @@ describe('what the form must NOT do to the learning period (12.3)', () => {
 
     // The engine's own predicate, not a restatement of it.
     expect(triggersLearning(player(), toDecision(draft))).toBe(false);
+    expect(willTriggerLearning(draft)).toBe(false);
+  });
+
+  test('switching strategy triggers one, and the form knows before it is sent', () => {
+    const draft = createDraft(selfView());
+    setStrategy(draft, 'targetCpa');
+    expect(willTriggerLearning(draft)).toBe(true);
+    expect(triggersLearning(player(), toDecision(draft))).toBe(true);
+  });
+
+  test('changing the parameter triggers one too', () => {
+    const draft = createDraft(selfView());
+    setStrategy(draft, 'targetCpa');
+    const decision = toDecision(draft);
+    // From a state where targetCpa is already running, so only the number moves.
+    const running = withCampaign(decision.campaign);
+    const next = createDraft(getSelfView(running, PLAYER_ID));
+    expect(willTriggerLearning(next)).toBe(false);
+
+    setStrategyParam(next, next.strategyParams.targetCpaPaise + 5000);
+    expect(willTriggerLearning(next)).toBe(true);
+    expect(triggersLearning(running.advertisers[0], toDecision(next))).toBe(true);
+  });
+
+  test('the form says so in the change it stages, not only after the fact', () => {
+    const draft = createDraft(selfView());
+    setStrategy(draft, 'maxConv');
+    const [row] = changes(draft);
+    expect(row.kind).toBe('strategy');
+    expect(row.detail).toMatch(/learning/i);
+    expect(row.detail).toContain(String(LEARNING_ROUNDS));
+  });
+
+  test('switching away and back again decides nothing', () => {
+    const draft = createDraft(selfView());
+    const was = draft.strategy;
+    setStrategy(draft, 'targetRoas');
+    expect(toDecision(draft)).not.toBeNull();
+    setStrategy(draft, was);
+    expect(toDecision(draft)).toBeNull();
+  });
+});
+
+describe('the parameter is locked to the strategy that uses it', () => {
+  test('STRATEGY_PARAM agrees with the engine about who needs what', () => {
+    // The mapping is knowledge about `rawBid`, restated in the view. So it is
+    // checked against the engine rather than trusted: a strategy this table
+    // says needs a parameter must FAIL without it, and one it says needs none
+    // must run on empty params.
+    const args = {
+      keyword: { bidPaise: 3000 },
+      business: { aovMeanPaise: 240000 },
+      bidding: { observedConvRate: 0.02, observedConversions: 50 },
+      daypartAdjustments: [0, 0, 0, 0, 0, 0],
+      hour: 12,
+      rng: null,
+    };
+    for (const [strategy, key] of Object.entries(STRATEGY_PARAM)) {
+      expect(Object.keys(STRATEGIES), strategy).toContain(strategy);
+      const run = (strategyParams) => effectiveBidPaise({ ...args, strategy, strategyParams });
+      if (key) {
+        expect(() => run({}), `${strategy} without ${key}`).toThrow();
+        expect(() => run({ [key]: key === 'targetRoas' ? 4 : 40000 }), strategy).not.toThrow();
+      } else {
+        expect(() => run({}), `${strategy} needs nothing`).not.toThrow();
+      }
+    }
+  });
+
+  test('a strategy with no parameter refuses one', () => {
+    const draft = createDraft(selfView());
+    setStrategy(draft, 'maxClicks');
+    expect(setStrategyParam(draft, 50000).ok).toBe(false);
+  });
+
+  test('a target CPA is whole paise above zero (R7)', () => {
+    const draft = createDraft(selfView());
+    setStrategy(draft, 'targetCpa');
+    const was = draft.strategyParams.targetCpaPaise;
+    for (const bad of [0, -1, 1.5, NaN, Infinity, '40000']) {
+      expect(setStrategyParam(draft, bad).ok, String(bad)).toBe(false);
+    }
+    expect(draft.strategyParams.targetCpaPaise).toBe(was);
+    expect(setStrategyParam(draft, 55000).ok).toBe(true);
+  });
+
+  test('a target ROAS is a positive ratio, and may be fractional', () => {
+    const draft = createDraft(selfView());
+    setStrategy(draft, 'targetRoas');
+    for (const bad of [0, -2, NaN, Infinity, '4']) {
+      expect(setStrategyParam(draft, bad).ok, String(bad)).toBe(false);
+    }
+    expect(setStrategyParam(draft, 3.5).ok).toBe(true);
+    expect(draft.strategyParams.targetRoas).toBe(3.5);
+  });
+
+  test('the unused parameter is carried through untouched', () => {
+    // applyDecision merges `campaign` shallowly, so a strategyParams object
+    // missing a key REPLACES the stored one and loses it. A later switch to
+    // that strategy would then throw inside rawBid.
+    const draft = createDraft(selfView());
+    const roasWas = draft.strategyParams.targetRoas;
+    setStrategy(draft, 'targetCpa');
+    setStrategyParam(draft, 61000);
+
+    const params = toDecision(draft).campaign.strategyParams;
+    expect(params.targetCpaPaise).toBe(61000);
+    expect(params.targetRoas).toBe(roasWas);
   });
 });
 
@@ -300,6 +411,27 @@ describe('the round actually receives it', () => {
       .toBeLessThan(before.report.byAdvertiser[PLAYER_ID].traffic.eligibleAuctions);
   });
 
+  test('a strategy change arrives as a real learning period', () => {
+    const draft = createDraft(selfView());
+    setStrategy(draft, 'targetCpa');
+    setStrategyParam(draft, 50000);
+
+    const out = submitRound(STATE, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' });
+    const after = out.nextGameState.advertisers.find((a) => a.id === PLAYER_ID);
+
+    expect(after.campaign.strategy).toBe('targetCpa');
+    expect(after.campaign.strategyParams.targetCpaPaise).toBe(50000);
+    // Written by submitRound, then decremented once by the round it started in.
+    expect(after.bidding.learningRoundsRemaining).toBe(LEARNING_ROUNDS - 1);
+  });
+
+  test('and a round that changes nothing starts no learning period', () => {
+    const out = submitRound(STATE, { [PLAYER_ID]: toDecision(createDraft(selfView())) },
+      { mode: 'expected' });
+    const after = out.nextGameState.advertisers.find((a) => a.id === PLAYER_ID);
+    expect(after.bidding.learningRoundsRemaining).toBe(0);
+  });
+
   test('and the decision is logged, which is what makes 12.4 replayable', () => {
     const draft = createDraft(selfView());
     addNegative(draft, { text: 'free', matchType: 'broad' });
@@ -314,11 +446,13 @@ describe('the round actually receives it', () => {
 
 // ---------------------------------------------------------------------------
 
-function withNegatives(negatives) {
+function withCampaign(patch) {
   return {
     ...STATE,
     advertisers: STATE.advertisers.map((a) => (a.id === PLAYER_ID
-      ? { ...a, campaign: { ...a.campaign, negatives } }
+      ? { ...a, campaign: { ...a.campaign, ...patch } }
       : a)),
   };
 }
+
+const withNegatives = (negatives) => withCampaign({ negatives });

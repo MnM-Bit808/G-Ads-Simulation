@@ -29,13 +29,55 @@
  * one of them changed, which is exactly how the v0.1 prototypes went wrong.
  */
 
-import { el, add, table, field, input, select, rupees, whole } from './dom.js';
+import { el, add, table, field, input, select, rupees, whole, ratio } from './dom.js';
 import { blockedBy, normalise, tokenise } from '../engine/matching.js';
+import { STRATEGIES } from '../engine/strategies.js';
+import { LEARNING_ROUNDS, MAX_BID_MULTIPLE } from '../engine/constants.js';
+import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
 
 /** The three string negatives of 8.2, and no fourth. Tags never appear (H3). */
 export const NEGATIVE_TYPES = ['broad', 'phrase', 'exact'];
 const MATCH_TYPES = ['exact', 'phrase', 'broad'];
+
+/**
+ * Which `strategyParams` key each strategy actually reads.
+ *
+ * This is knowledge about `rawBid` in `engine/strategies.js`, restated here so
+ * the form can lock the parameter to the strategy using it. It is therefore
+ * CHECKED against the engine rather than trusted: `decisions.test.js` asserts
+ * every strategy this table gives a key to throws without it, and every
+ * strategy it gives none to runs on empty params.
+ *
+ * The lock exists because of a sharp edge in 12.3. That section triggers a
+ * learning period on "changing any value in `strategyParams`" — and the params
+ * object carries BOTH keys at all times, whatever is running. Left editable,
+ * nudging the target ROAS while running Target CPA would cost two rounds of
+ * doubled prediction error for a number that touches no bid.
+ */
+export const STRATEGY_PARAM = Object.freeze({
+  manual: null,
+  maxClicks: null,
+  targetCpa: 'targetCpaPaise',
+  targetRoas: 'targetRoas',
+  maxConv: null,
+});
+
+/**
+ * How each strategy is described on screen.
+ *
+ * `predicts` is taken from the engine (`STRATEGIES[x].predictsConversions`)
+ * rather than repeated here, because it is the fact that matters: a strategy
+ * that never predicts conversions cannot be hurt by a learning period, which is
+ * why manual behaves predictably on a thin account (12.2).
+ */
+const STRATEGY_COPY = {
+  manual: ['Manual CPC', 'Bids exactly what you set, every hour, whatever the data says.'],
+  maxClicks: ['Maximise clicks', 'Buys as much traffic as the budget allows. It does not care what converts.'],
+  targetCpa: ['Target CPA', 'Bids for a cost per conversion you name, from what it has learned converts.'],
+  targetRoas: ['Target ROAS', 'Bids for a return on ad spend you name, using your own order value.'],
+  maxConv: ['Maximise conversions', 'Like maximise clicks, but leaning toward the hours its history says convert.'],
+};
 
 const NEGATIVE_HELP = {
   broad: 'blocks any search containing all these words, in any order',
@@ -59,14 +101,26 @@ export function createDraft(selfView) {
   const adGroups = structuredClone(selfView.adGroups ?? []);
   const negatives = structuredClone(selfView.campaign?.negatives ?? []);
   const keywords = structuredClone(adGroups[0]?.keywords ?? []);
+  const strategy = selfView.campaign?.strategy ?? 'manual';
+  const strategyParams = structuredClone(selfView.campaign?.strategyParams ?? {});
 
   return {
     adGroups,
     negatives,
     keywords,
+    strategy,
+    strategyParams,
+    // Read-only here: what the account knows about itself, for the form to
+    // show. `bidding` carries observedConvRate, observedConversions and
+    // learningRoundsRemaining — an advertiser's own measurements, never the
+    // truth behind them (16.2).
+    bidding: structuredClone(selfView.bidding ?? {}),
+    position: structuredClone(selfView.position ?? null),
     base: {
       negatives: structuredClone(negatives),
       keywords: structuredClone(keywords),
+      strategy,
+      strategyParams: structuredClone(strategyParams),
     },
   };
 }
@@ -86,10 +140,20 @@ export function createDraft(selfView) {
  */
 export function toDecision(draft) {
   const decision = {};
+  const campaign = {};
 
   if (!sameNegatives(draft.negatives, draft.base.negatives)) {
-    decision.campaign = { negatives: structuredClone(draft.negatives) };
+    campaign.negatives = structuredClone(draft.negatives);
   }
+  if (biddingChanged(draft)) {
+    campaign.strategy = draft.strategy;
+    // The WHOLE params object, both keys, always. `applyDecision` merges
+    // `campaign` shallowly, so a partial one would replace the stored object
+    // and drop the parameter the other strategy needs — and `rawBid` throws
+    // when it is missing rather than substituting a plausible number.
+    campaign.strategyParams = structuredClone(draft.strategyParams);
+  }
+  if (Object.keys(campaign).length > 0) decision.campaign = campaign;
   if (!sameKeywords(draft.keywords, draft.base.keywords)) {
     decision.adGroups = structuredClone(draft.adGroups).map((group, i) => (
       i === 0 ? { ...group, keywords: structuredClone(draft.keywords) } : group
@@ -109,6 +173,30 @@ export function toDecision(draft) {
  */
 export function changes(draft) {
   const rows = [];
+
+  if (draft.strategy !== draft.base.strategy) {
+    rows.push({
+      kind: 'strategy',
+      label: `Bidding: ${strategyName(draft.base.strategy)} → ${strategyName(draft.strategy)}`,
+      detail: learningWarning(),
+      undo: () => setStrategy(draft, draft.base.strategy),
+    });
+  } else {
+    // Only reported when the strategy itself held still; otherwise the switch
+    // above already carries the same learning period and saying it twice would
+    // make one decision look like two.
+    const key = STRATEGY_PARAM[draft.strategy];
+    if (key && draft.strategyParams[key] !== draft.base.strategyParams[key]) {
+      const format = key === 'targetCpaPaise' ? rupees : ratio;
+      rows.push({
+        kind: 'strategy-param',
+        label: `${paramLabel(draft.strategy)} ${format(draft.base.strategyParams[key])}`
+          + ` → ${format(draft.strategyParams[key])}`,
+        detail: learningWarning(),
+        undo: () => setStrategyParam(draft, draft.base.strategyParams[key]),
+      });
+    }
+  }
 
   for (const negative of draft.negatives) {
     if (findNegative(draft.base.negatives, negative) === -1) {
@@ -178,6 +266,86 @@ export function changes(draft) {
     }
   }
   return rows;
+}
+
+// ---------------------------------------------------------------------------
+// Bidding (12)
+// ---------------------------------------------------------------------------
+
+/**
+ * Choose a bid strategy.
+ *
+ * @param {object} draft
+ * @param {string} strategy one of `STRATEGIES`
+ * @returns {{ok: boolean, reason?: string}}
+ */
+export function setStrategy(draft, strategy) {
+  if (!STRATEGIES[strategy]) return { ok: false, reason: `unknown strategy "${strategy}"` };
+  draft.strategy = strategy;
+  return { ok: true };
+}
+
+/**
+ * Set the parameter belonging to the strategy currently chosen.
+ *
+ * There is no key argument on purpose. The strategy decides which parameter
+ * exists, so the lock is structural rather than a rule the caller has to
+ * remember — see `STRATEGY_PARAM` for why that matters under 12.3.
+ *
+ * @param {object} draft
+ * @param {number} value paise for a target CPA, a plain ratio for a target ROAS
+ * @returns {{ok: boolean, reason?: string}}
+ */
+export function setStrategyParam(draft, value) {
+  const key = STRATEGY_PARAM[draft.strategy];
+  if (!key) {
+    return { ok: false, reason: `${strategyName(draft.strategy)} takes no target` };
+  }
+  if (key === 'targetCpaPaise' && !isPaise(value)) {
+    return { ok: false, reason: 'a target CPA is a whole number of paise above zero' };
+  }
+  if (key === 'targetRoas' && !(typeof value === 'number' && Number.isFinite(value) && value > 0)) {
+    return { ok: false, reason: 'a target ROAS is a ratio above zero' };
+  }
+  draft.strategyParams = { ...draft.strategyParams, [key]: value };
+  return { ok: true };
+}
+
+/**
+ * Will submitting this draft restart the learning clock?
+ *
+ * Asks `game.js`'s own predicate — the one `submitRound` will ask — rather than
+ * restating 12.3 in the view. If the two ever disagreed, the player would be
+ * warned about a penalty they do not get, or worse, not warned about one they
+ * do.
+ *
+ * @param {object} draft
+ * @returns {boolean}
+ */
+export function willTriggerLearning(draft) {
+  const decision = toDecision(draft);
+  if (!decision) return false;
+  // The shape `triggersLearning` reads: the account as it stands, before this
+  // decision. Nothing else of an advertiser is consulted.
+  return triggersLearning({
+    campaign: { strategy: draft.base.strategy, strategyParams: draft.base.strategyParams },
+    position: draft.position ?? {},
+  }, decision);
+}
+
+const strategyName = (id) => STRATEGY_COPY[id]?.[0] ?? id;
+const paramLabel = (id) => (STRATEGY_PARAM[id] === 'targetCpaPaise' ? 'Target CPA' : 'Target ROAS');
+
+const learningWarning = () => `restarts the learning period: ${LEARNING_ROUNDS} weeks `
+  + 'of much wider guesses while the bid model re-learns';
+
+function biddingChanged(draft) {
+  if (draft.strategy !== draft.base.strategy) return true;
+  const before = draft.base.strategyParams ?? {};
+  const after = draft.strategyParams ?? {};
+  const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
+  for (const key of keys) if (before[key] !== after[key]) return true;
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -417,7 +585,9 @@ export function renderDecisions(ctx) {
   const drawSummary = () => summary.replaceChildren(...summaryCard(ctx));
   const drawAll = () => {
     drawSummary();
-    forms.replaceChildren(negativesCard(ctx, refresh), keywordsCard(ctx, refresh));
+    forms.replaceChildren(
+      biddingCard(ctx, refresh), negativesCard(ctx, refresh), keywordsCard(ctx, refresh),
+    );
   };
 
   function refresh({ summaryOnly = false } = {}) {
@@ -467,6 +637,161 @@ function summaryCard(ctx) {
     + 'the result arrives a week later — later still for anything that depends '
     + 'on conversions.'));
   return [node];
+}
+
+// --- bidding ---------------------------------------------------------------
+
+/**
+ * How bids are decided, and what changing that costs.
+ *
+ * THE WARNING IS THE POINT OF THIS CARD. Switching strategy or moving its
+ * target restarts a learning period (12.3), during which every conversion-rate
+ * guess is multiplied wider. The penalty then lands a round or two later, in
+ * numbers that look like bad luck. If the interface does not say so BEFORE the
+ * player commits, it inflicts by accident the confusion the simulator exists to
+ * teach deliberately.
+ *
+ * WHAT IT REFUSES TO SHOW. Not the prediction error. `predictionErrorSigma`
+ * takes nothing but the advertiser's own history and would be trivial to put on
+ * screen — and 17.2 says outright that the statistical consequence of a low
+ * conversion rate "must be discovered, not read off a card". So this shows what
+ * a real account shows: conversions observed, the rate they imply, and whether
+ * a learning period is running.
+ */
+function biddingCard(ctx, refresh) {
+  const draft = ctx.draft;
+  const node = card('Bidding', 'how your bid is decided, every hour');
+  const learningLeft = draft.bidding?.learningRoundsRemaining ?? 0;
+
+  if (learningLeft > 0) {
+    // A learning period only ever counts DOWN, so any remaining now means the
+    // week on screen ran under it as well. Saying so is the difference between
+    // a player who can attribute a bad week and one who reads it as the market.
+    node.append(el('p', 'learning-now',
+      `Learning: ${learningLeft} more week${learningLeft === 1 ? '' : 's'}. `
+      + 'While it runs, this account\'s guess at what converts is much wider '
+      + 'than usual — including for the week you are looking at, which was '
+      + 'bought under it.'));
+  }
+
+  const grid = el('div', 'strategy-grid');
+  for (const [id, [name, description]] of Object.entries(STRATEGY_COPY)) {
+    const box = el('button', `strategy${id === draft.strategy ? ' on' : ''}`);
+    box.type = 'button';
+    box.append(el('div', 'strategy-name', name));
+    box.append(el('div', 'strategy-desc', description));
+    // From the engine, not repeated here. It is the fact that decides whether a
+    // learning period can hurt you at all.
+    box.append(el('div', 'strategy-predicts',
+      STRATEGIES[id].predictsConversions
+        ? 'predicts conversions — a learning period slows it down'
+        : 'never predicts conversions — a learning period cannot touch it'));
+    box.addEventListener('click', () => { setStrategy(draft, id); refresh(); });
+    grid.append(box);
+  }
+  node.append(grid);
+
+  const warn = el('div', 'bid-warn');
+  const drawWarning = () => warn.replaceChildren(...warningBody(ctx));
+
+  const key = STRATEGY_PARAM[draft.strategy];
+  if (key) {
+    const isCpa = key === 'targetCpaPaise';
+    const box = input({
+      type: 'number',
+      value: isCpa
+        ? String(Math.round(draft.strategyParams[key] / 100))
+        : String(draft.strategyParams[key]),
+      min: isCpa ? '1' : '0.1',
+      step: isCpa ? '10' : '0.1',
+      onInput: (value) => {
+        const parsed = isCpa ? Math.round(Number(value) * 100) : Number(value);
+        if (setStrategyParam(draft, parsed).ok) {
+          // Summary only: a full redraw here would rebuild this box and take
+          // the caret with it.
+          drawWarning();
+          refresh({ summaryOnly: true });
+        }
+      },
+    });
+    node.append(field(
+      isCpa ? 'Target CPA (₹)' : 'Target ROAS',
+      box,
+      isCpa ? ownCpaHint(ctx) : ownRoasHint(ctx),
+    ));
+  }
+
+  drawWarning();
+  node.append(warn);
+
+  node.append(el('p', 'note',
+    `Your keyword bids stay the ceiling. No strategy may bid more than `
+    + `${MAX_BID_MULTIPLE}× what you set on a keyword, so raising a bid still `
+    + 'widens what automation is allowed to do and lowering one still closes it down.'));
+  return node;
+}
+
+/** The consequence, before the button rather than after it. */
+function warningBody(ctx) {
+  const draft = ctx.draft;
+  const out = [];
+
+  const predicts = STRATEGIES[draft.strategy]?.predictsConversions;
+
+  if (willTriggerLearning(draft)) {
+    out.push(predicts
+      ? el('p', 'problems',
+        `This restarts the learning period. For the next ${LEARNING_ROUNDS} weeks the `
+        + 'bid model guesses much more widely than usual, and it will cost you '
+        + 'money you cannot easily attribute to this decision — which is exactly '
+        + 'why it is being said here rather than left for you to find.')
+      // The period is still WRITTEN — 12.3 triggers on any switch — it simply
+      // has nothing to slow down while a strategy that never predicts is
+      // running. Saying only "restarts the learning period" here would
+      // contradict the tile above it, and saying nothing would hide the trap
+      // waiting for anyone who switches back before it expires.
+      : el('p', 'note',
+        `This still starts a ${LEARNING_ROUNDS} week learning period, but it costs `
+        + `${strategyName(draft.strategy)} nothing, because it never predicts `
+        + 'conversions. It matters only if you switch back to one that does '
+        + 'before the period runs out.'));
+  }
+
+  if (predicts) {
+    const seen = draft.bidding?.observedConversions ?? 0;
+    const rate = draft.bidding?.observedConvRate;
+    const line = el('p', 'note');
+    line.append(document.createTextNode(
+      'A strategy that predicts conversions predicts from the ones it has '
+      + `actually seen land. This account has seen ${seen.toFixed(1)}`
+      + (rate == null ? '' : `, a rate of ${(100 * rate).toFixed(2)}%`)
+      + '. Below about thirty, that guess is very rough — and conversions '
+      + 'arrive rounds after the click that earned them, so it is always '
+      + 'behind what you did last.',
+    ));
+    out.push(line);
+  }
+  return out;
+}
+
+/** The player's own cost per conversion, over whichever weeks are on screen. */
+function ownCpaHint(ctx) {
+  let cost = 0;
+  let conversions = 0;
+  for (const row of Object.values(ctx.byKeyword ?? {})) {
+    cost += row.costPaise;
+    conversions += row.conversions;
+  }
+  return conversions > 0
+    ? `you have paid ${rupees(cost / conversions)} a conversion over the weeks shown above`
+    : 'you have no conversions yet to compare this against';
+}
+
+function ownRoasHint(ctx) {
+  const net = ctx.money?.netRoas;
+  return Number.isFinite(net)
+    ? `your net return last week was ${ratio(net)}, and it is still being revised`
+    : 'you have no return to compare this against yet';
 }
 
 // --- negatives -------------------------------------------------------------

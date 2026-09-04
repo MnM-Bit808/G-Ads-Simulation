@@ -337,6 +337,7 @@ export function renderDashboard(game, onDecisionChange) {
     weeklyVolume: view.weeklyVolume,
     texts: new Map(view.querySet.map((q) => [q.id, q.text])),
     quality: row.quality,
+    money: row.money,
     terms: null,
     byKeyword: null,
     /** Both breakdowns follow whichever range the report is showing. */
