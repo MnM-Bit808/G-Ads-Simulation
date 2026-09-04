@@ -21,6 +21,7 @@
 
 import { el, table, figure, rupees, whole, pct, ratio } from './dom.js';
 import { getPublicView } from '../engine/insights.js';
+import { briefing } from '../setup.js';
 import { renderDecisions, addNegative, blocksTerm } from './decisions.js';
 
 // ---------------------------------------------------------------------------
@@ -338,6 +339,9 @@ export function renderDashboard(game, onDecisionChange) {
     texts: new Map(view.querySet.map((q) => [q.id, q.text])),
     quality: row.quality,
     money: row.money,
+    // What a founder could research (17.2), from the same function round 0
+    // uses — so the two screens cannot disagree about the grid.
+    brief: briefing(game.state.querySet),
     terms: null,
     byKeyword: null,
     /** Both breakdowns follow whichever range the report is showing. */

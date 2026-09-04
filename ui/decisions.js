@@ -32,7 +32,11 @@
 import { el, add, table, field, input, select, rupees, whole, ratio } from './dom.js';
 import { blockedBy, normalise, tokenise } from '../engine/matching.js';
 import { STRATEGIES } from '../engine/strategies.js';
-import { LEARNING_ROUNDS, MAX_BID_MULTIPLE } from '../engine/constants.js';
+import { canReposition, isOneStep, allCells, parseCell, cellKey } from '../engine/positions.js';
+import {
+  LEARNING_ROUNDS, MAX_BID_MULTIPLE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
+  CAPEX_TIER_CURVE, REPOSITION_COST_PAISE,
+} from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
 
@@ -95,7 +99,30 @@ const NEGATIVE_HELP = {
  * @param {object} selfView output of `getSelfView` — never an advertiser record
  * @returns {object} draft
  */
-export function createDraft(selfView) {
+/**
+ * The amounts the S-curve actually distinguishes, taken from the curve itself.
+ *
+ * Not a hand-copied list. `CAPEX_TIER_CURVE` is what `businessFor` interpolates
+ * between, so offering exactly its knots means every choice on screen is a
+ * point the model has an opinion about, and a change to the curve moves the
+ * form with it.
+ */
+export const CAPEX_STEPS = CAPEX_TIER_CURVE.map((point) => point.paise);
+
+/** The three targets of 13.3, and what each one moves. */
+const CAPEX_TARGETS = [
+  ['sizeGuide', 'Size guide', 'Fewer returns.'],
+  ['photography', 'Photography', 'More of your visitors buy.'],
+  ['landingPage', 'Landing page', 'Better quality, so a cheaper click.'],
+];
+
+/**
+ * @param {object} selfView output of `getSelfView` — never an advertiser record
+ * @param {object} [options]
+ * @param {number[]} [options.allocationRounds] `budgetSchedule.capexAllocationRounds`
+ * @returns {object} draft
+ */
+export function createDraft(selfView, options = {}) {
   // Cloned again although getSelfView already cloned. Cheap, and it means this
   // function is safe whatever a future caller hands it.
   const adGroups = structuredClone(selfView.adGroups ?? []);
@@ -116,14 +143,35 @@ export function createDraft(selfView) {
     // truth behind them (16.2).
     bidding: structuredClone(selfView.bidding ?? {}),
     position: structuredClone(selfView.position ?? null),
+
+    // 13.3 and 4.5, both of which are open for one round only.
+    round: selfView.round,
+    capexOpen: inGameAllocationRounds(options.allocationRounds).includes(selfView.round),
+    repositionOpen: canReposition({ position: selfView.position }, selfView.round),
+    capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
+    committed: structuredClone(selfView.capex?.committed ?? {}),
+    monthlyBudgetPaise: selfView.campaign?.monthlyBudgetPaise ?? 0,
+
     base: {
       negatives: structuredClone(negatives),
       keywords: structuredClone(keywords),
       strategy,
       strategyParams: structuredClone(strategyParams),
+      position: structuredClone(selfView.position ?? null),
     },
   };
 }
+
+/**
+ * The allocation rounds a PLAYING advertiser is asked about.
+ *
+ * The first one is spent in round 0 (spec 17 step 9), before the game starts —
+ * `setup.js` has already written `remainingUnallocatedPaise` from those
+ * choices. Offering it again in round 1 would let the player claim the rollover
+ * on top of an investment they already made, so every allocation round except
+ * the first belongs to the decision form.
+ */
+const inGameAllocationRounds = (rounds) => (rounds ?? []).slice(1);
 
 /**
  * The decision to submit, or null when nothing changed.
@@ -159,6 +207,17 @@ export function toDecision(draft) {
       i === 0 ? { ...group, keywords: structuredClone(draft.keywords) } : group
     ));
   }
+
+  // Sent whether or not the player touched it, and only in an allocation
+  // round. Omitting it does not mean "decline": it means the allocation is
+  // never claimed, so `remainingUnallocatedPaise` stays zero and ₹1,00,000
+  // vanishes — no investment AND no rollover into the month's budget.
+  // Declining has to be an explicit zero.
+  if (draft.capexOpen) decision.capex = { ...draft.capex };
+
+  if (draft.repositionOpen && movedPosition(draft)) {
+    decision.position = { price: draft.position.price, purpose: draft.position.purpose };
+  }
   return Object.keys(decision).length > 0 ? decision : null;
 }
 
@@ -173,6 +232,34 @@ export function toDecision(draft) {
  */
 export function changes(draft) {
   const rows = [];
+
+  if (draft.repositionOpen && movedPosition(draft)) {
+    rows.push({
+      kind: 'position',
+      label: `Position: ${cellOf(draft.base.position)} → ${cellOf(draft.position)}`,
+      detail: `costs ${rupees(REPOSITION_COST_PAISE)} from this month, restarts the `
+        + 'learning period, and any keyword you replace starts with no Quality Score',
+      undo: () => setPosition(draft, cellOf(draft.base.position)),
+    });
+  }
+
+  if (draft.capexOpen) {
+    const spent = capexSpent(draft);
+    const parts = CAPEX_TARGETS
+      .filter(([key]) => draft.capex[key] > 0)
+      .map(([key, label]) => `${rupees(draft.capex[key])} to ${label.toLowerCase()}`);
+    rows.push({
+      kind: 'capital',
+      label: parts.length > 0
+        ? `Capital: ${parts.join(', ')}`
+        : `Capital: nothing committed to the business`,
+      detail: `${rupees(CAPEX_ALLOCATION_PAISE - spent)} joins this month's advertising `
+        + `budget instead${spent > 0 ? `, and the rest goes live in week ${draft.round + CAPEX_DELAY_ROUNDS}` : ''}`,
+      // Nothing to take back when nothing was committed: the default IS the
+      // decision, and the row is here to say so rather than to be undone.
+      undo: spent > 0 ? () => resetCapex(draft) : null,
+    });
+  }
 
   if (draft.strategy !== draft.base.strategy) {
     rows.push({
@@ -269,6 +356,98 @@ export function changes(draft) {
 }
 
 // ---------------------------------------------------------------------------
+// Capital (13.3) and position (4.5) — one round each
+// ---------------------------------------------------------------------------
+
+/**
+ * Commit part of this round's allocation to one target.
+ *
+ * Cumulative across allocations (13.3): what is set here is added to what was
+ * committed before, so a round-1 split lands somewhere different on the S-curve
+ * once it is topped up.
+ *
+ * @param {object} draft
+ * @param {string} target sizeGuide | photography | landingPage
+ * @param {number} paise
+ * @returns {{ok: boolean, reason?: string}}
+ */
+export function setCapex(draft, target, paise) {
+  if (!draft.capexOpen) return { ok: false, reason: 'no capital is allocated this round' };
+  if (!(target in draft.capex)) return { ok: false, reason: `unknown target "${target}"` };
+  if (!Number.isSafeInteger(paise) || paise < 0) {
+    return { ok: false, reason: 'an amount is a whole number of paise, or none' };
+  }
+  const others = capexSpent(draft) - draft.capex[target];
+  if (others + paise > CAPEX_ALLOCATION_PAISE) {
+    return { ok: false, reason: `that is more than the ${rupees(CAPEX_ALLOCATION_PAISE)} available` };
+  }
+  draft.capex = { ...draft.capex, [target]: paise };
+  return { ok: true };
+}
+
+/** Back to committing nothing, which rolls the whole allocation into budget. */
+export function resetCapex(draft) {
+  draft.capex = { sizeGuide: 0, photography: 0, landingPage: 0 };
+}
+
+/**
+ * Move one step on the grid, or back to where you started.
+ *
+ * Guarded by the engine's own `isOneStep` rather than a restatement of 4.5.
+ * `reposition` throws on anything illegal instead of clamping — a silently
+ * corrected move would charge the cost and deliver a cell nobody asked for —
+ * so the form must not offer one.
+ *
+ * @param {object} draft
+ * @param {string} cell e.g. "mid|lifestyle"
+ * @returns {{ok: boolean, reason?: string}}
+ */
+export function setPosition(draft, cell) {
+  if (!draft.repositionOpen) {
+    return { ok: false, reason: 'the repositioning window is not open' };
+  }
+  if (!allCells().includes(cell)) return { ok: false, reason: `not a grid cell: "${cell}"` };
+
+  const to = parseCell(cell);
+  const from = draft.base.position;
+  const back = to.price === from.price && to.purpose === from.purpose;
+  if (!back && !isOneStep(from, to)) {
+    return { ok: false, reason: 'that is more than one step from where you are' };
+  }
+  draft.position = { ...draft.position, price: to.price, purpose: to.purpose };
+  return { ok: true };
+}
+
+/**
+ * The month's advertising budget this draft would produce.
+ *
+ * Mirrors `applyBudgetAdjustments` in `engine/round.js`, which at an allocation
+ * round adds whatever capital was left uncommitted and subtracts the
+ * repositioning cost from the same month. The two interact, and a player who
+ * commits everything AND moves finds their month halved — which has to be a
+ * figure on screen rather than a discovery. `decisions.test.js` asserts this
+ * agrees with what the round actually reports, so the mirror cannot drift.
+ *
+ * @param {object} draft
+ * @returns {number} integer paise
+ */
+export function monthBudgetAfter(draft) {
+  let delta = draft.capexOpen ? CAPEX_ALLOCATION_PAISE - capexSpent(draft) : 0;
+  if (draft.repositionOpen && movedPosition(draft)) delta -= REPOSITION_COST_PAISE;
+  return Math.max(0, draft.monthlyBudgetPaise + delta);
+}
+
+const capexSpent = (draft) => Object.values(draft.capex).reduce((a, b) => a + b, 0);
+const cellOf = (position) => cellKey(position.price, position.purpose);
+
+function movedPosition(draft) {
+  const from = draft.base.position;
+  const to = draft.position;
+  if (!from || !to) return false;
+  return from.price !== to.price || from.purpose !== to.purpose;
+}
+
+// ---------------------------------------------------------------------------
 // Bidding (12)
 // ---------------------------------------------------------------------------
 
@@ -325,11 +504,13 @@ export function setStrategyParam(draft, value) {
 export function willTriggerLearning(draft) {
   const decision = toDecision(draft);
   if (!decision) return false;
-  // The shape `triggersLearning` reads: the account as it stands, before this
-  // decision. Nothing else of an advertiser is consulted.
+  // The shape `triggersLearning` reads: the account as it stands BEFORE this
+  // decision. `base.position`, not `draft.position` — handing it the draft's
+  // own position would compare the new cell against itself and report no
+  // learning period on the one change that most certainly causes one.
   return triggersLearning({
     campaign: { strategy: draft.base.strategy, strategyParams: draft.base.strategyParams },
-    position: draft.position ?? {},
+    position: draft.base.position ?? {},
   }, decision);
 }
 
@@ -585,9 +766,15 @@ export function renderDecisions(ctx) {
   const drawSummary = () => summary.replaceChildren(...summaryCard(ctx));
   const drawAll = () => {
     drawSummary();
-    forms.replaceChildren(
-      biddingCard(ctx, refresh), negativesCard(ctx, refresh), keywordsCard(ctx, refresh),
-    );
+    forms.replaceChildren(...[
+      // First, and only for the one round it exists: 13.3's second allocation
+      // and 4.5's single repositioning window both open at the start of month
+      // two and are gone the week after.
+      windowCard(ctx, refresh),
+      biddingCard(ctx, refresh),
+      negativesCard(ctx, refresh),
+      keywordsCard(ctx, refresh),
+    ].filter(Boolean));
   };
 
   function refresh({ summaryOnly = false } = {}) {
@@ -624,11 +811,17 @@ function summaryCard(ctx) {
     const body = el('div');
     body.append(el('div', 'staged-label', row.label));
     body.append(el('div', 'staged-detail', row.detail));
-    const undo = el('button', 'add');
-    undo.type = 'button';
-    undo.textContent = 'undo';
-    undo.addEventListener('click', () => { row.undo(); ctx.refresh(); });
-    item.append(body, undo);
+    item.append(body);
+    // A row without an undo is one where the default IS the decision — this
+    // round's capital, when none of it was committed. It is listed because it
+    // is being submitted, not because it can be taken back.
+    if (row.undo) {
+      const undo = el('button', 'add');
+      undo.type = 'button';
+      undo.textContent = 'undo';
+      undo.addEventListener('click', () => { row.undo(); ctx.refresh(); });
+      item.append(undo);
+    }
     list.append(item);
   }
   node.append(list);
@@ -637,6 +830,147 @@ function summaryCard(ctx) {
     + 'the result arrives a week later — later still for anything that depends '
     + 'on conversions.'));
   return [node];
+}
+
+// --- the one-round window --------------------------------------------------
+
+/**
+ * Capital (13.3) and repositioning (4.5), both open for a single round.
+ *
+ * WHY IT IS ALWAYS SUBMITTED. The engine never debits capital; it converts
+ * whatever was left uncommitted into this month's ad budget, and only at an
+ * allocation round. So a player who ignores this card entirely must still be
+ * making the "commit nothing" decision, or ₹1,00,000 simply disappears. The
+ * default is therefore stated here and listed under Next week, rather than
+ * being a silence that costs money.
+ *
+ * WHY THE TWO SIT TOGETHER. They are drawn from the same month. The rollover
+ * adds to it and the repositioning cost subtracts from it, so committing
+ * everything AND moving leaves a month worth a fraction of the ordinary one.
+ * That figure has to be visible while the choice is being made.
+ */
+function windowCard(ctx, refresh) {
+  const draft = ctx.draft;
+  if (!draft.capexOpen && !draft.repositionOpen) return null;
+
+  const both = draft.capexOpen && draft.repositionOpen;
+  const node = card('This week only', both
+    ? 'capital to invest, and your one chance to move'
+    : (draft.capexOpen ? 'capital to invest' : 'your one chance to move'));
+
+  if (draft.capexOpen) node.append(capitalSection(ctx, refresh));
+  if (draft.repositionOpen) node.append(positionSection(ctx, refresh));
+
+  const month = el('p', 'month-after');
+  month.append(document.createTextNode('This leaves you '));
+  month.append(el('strong', null, rupees(monthBudgetAfter(draft))));
+  month.append(document.createTextNode(' to advertise with this month, spread across four weeks.'));
+  node.append(month);
+  return node;
+}
+
+function capitalSection(ctx, refresh) {
+  const draft = ctx.draft;
+  const box = el('div', 'window-section');
+  box.append(el('p', 'field-label',
+    `Capital · ${rupees(CAPEX_ALLOCATION_PAISE)}, and it does not carry forward`));
+
+  const spent = capexSpent(draft);
+  const left = CAPEX_ALLOCATION_PAISE - spent;
+
+  for (const [key, label, why] of CAPEX_TARGETS) {
+    const already = draft.committed[key] ?? 0;
+    const row = el('div', 'capex-row');
+
+    const name = el('div', 'capex-label');
+    name.append(el('div', null, label));
+    // 13.3 makes investment CUMULATIVE, so where a top-up lands on the S-curve
+    // depends entirely on what is already there. Without this figure the choice
+    // cannot be reasoned about at all.
+    if (already > 0) {
+      name.append(el('div', 'capex-already',
+        draft.capex[key] > 0
+          ? `${rupees(already)} → ${rupees(already + draft.capex[key])}`
+          : `${rupees(already)} already`));
+    }
+    row.append(name);
+
+    const chips = el('div', 'chips');
+    for (const amount of CAPEX_STEPS) {
+      const chip = el('button', `chip small${draft.capex[key] === amount ? ' on' : ''}`);
+      chip.type = 'button';
+      chip.textContent = amount === 0 ? 'none' : rupees(amount);
+      chip.disabled = amount > draft.capex[key] + left;
+      chip.addEventListener('click', () => { setCapex(draft, key, amount); refresh(); });
+      chips.append(chip);
+    }
+    row.append(chips);
+    row.append(el('div', 'capex-why muted', why));
+    box.append(row);
+  }
+
+  box.append(el('p', 'note',
+    `Anything you do not commit joins this month's advertising budget instead. `
+    + `What you do commit goes live in week ${draft.round + CAPEX_DELAY_ROUNDS}, which leaves `
+    + 'the rest of the game to pay it back — and spreading it thin genuinely '
+    + 'underperforms committing, because the first small tranche on a target '
+    + 'buys a half-built thing that helps nobody.'));
+  return box;
+}
+
+function positionSection(ctx, refresh) {
+  const draft = ctx.draft;
+  const box = el('div', 'window-section');
+  box.append(el('p', 'field-label',
+    `Position · one step, once, for ${rupees(REPOSITION_COST_PAISE)}`));
+
+  const from = draft.base.position;
+  const grid = el('div', 'cell-grid');
+  for (const cell of allCells()) {
+    const to = parseCell(cell);
+    const here = to.price === from.price && to.purpose === from.purpose;
+    const reachable = here || isOneStep(from, to);
+    const chosen = to.price === draft.position.price && to.purpose === draft.position.purpose;
+
+    const button = el('button', `cell${chosen ? ' on' : ''}${reachable ? '' : ' unreachable'}`);
+    button.type = 'button';
+    button.disabled = !reachable;
+    button.append(el('div', 'cell-name', `${to.price} · ${to.purpose}`));
+    // From the briefing, exactly as round 0 does it. 17.2 decides what a
+    // founder could research; reaching past it into POSITION_ECONOMICS is how a
+    // screen starts showing numbers the player was never meant to have.
+    const economics = ctx.brief.economicsByTier[to.price];
+    button.append(el('div', 'cell-econ',
+      `${rupees(economics.aovMeanPaise)} order · ${Math.round(100 * economics.marginPct)}% margin`));
+    button.append(el('div', 'cell-vol',
+      `${whole(ctx.brief.weeklySearchesByTier[to.price])} searches a week`));
+    if (here) button.append(el('div', 'cell-here', 'you are here'));
+    else if (!reachable) button.append(el('div', 'cell-here', 'more than one step'));
+
+    button.addEventListener('click', () => { setPosition(draft, cell); refresh(); });
+    grid.append(button);
+  }
+  box.append(grid);
+
+  if (movedPosition(draft)) {
+    // Careful with the Quality Score claim. 4.5 calls the loss "a consequence,
+    // not a rule to implement": keeping a keyword keeps its history, and only
+    // the ones you REPLACE start from nothing. Verified by moving with the old
+    // keywords in place — every score survived. Saying they all reset would be
+    // teaching something false about the thing being taught.
+    box.append(el('p', 'problems',
+      'Moving restarts the learning period. Your capital investment survives — '
+      + 'it is still your website — but your keywords do not: they were written '
+      + 'for the searches you are leaving, and rewriting them below is part of '
+      + 'the same decision. Every keyword you replace starts with no Quality '
+      + 'Score and earns one back only once it has the impressions for it.'));
+  }
+
+  box.append(el('p', 'note',
+    'Price sets what a click can be worth to you. Purpose sets which searches '
+    + 'are yours. One adjacent step is a repricing exercise a real brand could '
+    + 'run in a month; a leap across the grid is a different company.'));
+  return box;
 }
 
 // --- bidding ---------------------------------------------------------------

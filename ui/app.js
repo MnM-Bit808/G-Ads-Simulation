@@ -98,7 +98,12 @@ function begin({ playerBrandId, player }) {
  * which is the failure this whole seam is arranged to make impossible.
  */
 function refreshDraft() {
-  game.draft = createDraft(getSelfView(game.state, game.playerId));
+  game.draft = createDraft(getSelfView(game.state, game.playerId), {
+    // Not in getSelfView: the schedule is a rule of the game rather than
+    // anything private, and the form needs it to know whether this is the
+    // round capital is allocated in (13.3).
+    allocationRounds: game.state.budgetSchedule?.capexAllocationRounds,
+  });
 }
 
 function chrome() {

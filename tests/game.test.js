@@ -243,6 +243,35 @@ describe('capital is committed here (spec 13.3)', () => {
       [PLAYER_ID]: { capex: { billboards: 100 } },
     }, { mode: 'expected' })).toThrow(/billboards/);
   });
+
+  test('committing outside an allocation round throws', () => {
+    // The engine never DEBITS capital. It converts whatever was left
+    // uncommitted into ad budget, and only at capexAllocationRounds. So a
+    // commitment in any other round has no allocation to consume and nothing
+    // to forfeit: measured before this guard, round 7 recorded the tranche
+    // exactly as round 1 did with the month's budget untouched, which is
+    // ₹1,00,000 of free investment, repeatable every round.
+    const atSeven = deformed(STATE, (x) => { x.round = 7; });
+    expect(() => submitRound(atSeven, {
+      [PLAYER_ID]: { capex: { photography: CAPEX_ALLOCATION_PAISE } },
+    }, { mode: 'expected' })).toThrow(/only in round 1 and 5/);
+  });
+
+  test('and the second allocation round still works', () => {
+    const atFive = deformed(STATE, (x) => { x.round = REPOSITION_ROUND; });
+    const out = submitRound(atFive, {
+      [PLAYER_ID]: { capex: { photography: CAPEX_ALLOCATION_PAISE } },
+    }, { mode: 'expected' });
+    expect(out.nextGameState.advertisers[0].capex.pending.at(-1).liveAtRound)
+      .toBe(REPOSITION_ROUND + CAPEX_DELAY_ROUNDS);
+  });
+
+  test('a state with no budget schedule refuses rather than guessing', () => {
+    const noSchedule = deformed(STATE, (x) => { delete x.budgetSchedule; });
+    expect(() => submitRound(noSchedule, {
+      [PLAYER_ID]: { capex: { sizeGuide: 100 } },
+    }, { mode: 'expected' })).toThrow(/allocation round/);
+  });
 });
 
 describe('repositioning is applied here and charged by the round (spec 4.5)', () => {

@@ -96,7 +96,9 @@ export function submitRound(gameState, decisions, options = {}) {
   // only, which is all it declares.
   const prepared = {
     ...gameState,
-    advertisers: gameState.advertisers.map((a) => applyStructural(a, decisions[a.id], gameState.round)),
+    advertisers: gameState.advertisers.map((a) => applyStructural(
+      a, decisions[a.id], gameState.round, gameState.budgetSchedule,
+    )),
   };
 
   const result = runRound(prepared, {
@@ -229,7 +231,7 @@ function isRepositioning(advertiser, to) {
  * campaign, so they are applied here and the round is then run on the result.
  * `runRound` charges for both (13.3, 4.5); this only records them.
  */
-function applyStructural(advertiser, decision, round) {
+function applyStructural(advertiser, decision, round, budgetSchedule) {
   let next = advertiser;
 
   if (decision?.position && isRepositioning(advertiser, decision.position)) {
@@ -242,7 +244,7 @@ function applyStructural(advertiser, decision, round) {
   }
 
   if (decision?.capex) {
-    next = { ...next, capex: applyCapex(next.capex, decision.capex, round) };
+    next = { ...next, capex: applyCapex(next.capex, decision.capex, round, budgetSchedule) };
   }
 
   if (triggersLearning(advertiser, decision)) {
@@ -263,12 +265,29 @@ function applyStructural(advertiser, decision, round) {
  * `CAPEX_DELAY_ROUNDS` later, and whatever is left uncommitted is recorded so
  * `runRound` can roll it into the month's ad budget.
  *
+ * ONLY IN AN ALLOCATION ROUND, and the guard is not ceremonial. The engine
+ * never DEBITS capital: it only converts whatever was left uncommitted into ad
+ * budget, and only at `capexAllocationRounds` (`applyBudgetAdjustments`). So a
+ * commitment made in any other round has no allocation to consume and nothing
+ * to forfeit — it is a free ₹1,00,000 of investment, repeatable every round.
+ * Measured before this guard existed: round 7 recorded the tranche exactly as
+ * round 1 did, with the month's budget untouched.
+ *
  * @param {object} capex current block
  * @param {Object<string, number>} allocation paise per target
  * @param {number} round
+ * @param {{capexAllocationRounds?: number[]}} [budgetSchedule]
  * @returns {object} a new capex block
  */
-function applyCapex(capex, allocation, round) {
+function applyCapex(capex, allocation, round, budgetSchedule) {
+  const allowed = budgetSchedule?.capexAllocationRounds ?? [];
+  if (!allowed.includes(round)) {
+    throw new RangeError(
+      `capital may be committed only in ${allowed.length > 0 ? `round ${allowed.join(' and ')}` : 'a capex allocation round'}`
+      + `, not round ${round}`,
+    );
+  }
+
   const committed = { ...capex.committed };
   const pending = [...(capex.pending ?? [])];
   let spent = 0;

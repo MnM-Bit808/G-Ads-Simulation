@@ -2,7 +2,10 @@ import { describe, test, expect } from 'vitest';
 import { getSelfView, getPublicView } from '../engine/insights.js';
 import { blockedBy, matchesKeyword } from '../engine/matching.js';
 import { STRATEGIES, effectiveBidPaise } from '../engine/strategies.js';
-import { LEARNING_ROUNDS } from '../engine/constants.js';
+import { allCells, parseCell, cellKey, isOneStep } from '../engine/positions.js';
+import {
+  LEARNING_ROUNDS, REPOSITION_ROUND, CAPEX_ALLOCATION_PAISE,
+} from '../engine/constants.js';
 import { submitRound, triggersLearning } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
@@ -11,6 +14,7 @@ import {
   addNegative, dropNegative, blocksTerm,
   addKeyword, updateKeyword, previewNegative,
   setStrategy, setStrategyParam, willTriggerLearning, STRATEGY_PARAM,
+  setCapex, setPosition, monthBudgetAfter,
 } from '../ui/decisions.js';
 
 /**
@@ -384,6 +388,136 @@ describe('the parameter is locked to the strategy that uses it', () => {
     expect(params.targetCpaPaise).toBe(61000);
     expect(params.targetRoas).toBe(roasWas);
   });
+});
+
+describe('capital and position, one round each (13.3, 4.5)', () => {
+  const atFive = () => makeGameState({ round: REPOSITION_ROUND });
+  const draftAt = (state) => createDraft(getSelfView(state, PLAYER_ID),
+    { allocationRounds: state.budgetSchedule.capexAllocationRounds });
+
+  test('neither is offered in an ordinary round', () => {
+    const draft = draftAt(makeGameState({ round: 3 }));
+    expect(draft.capexOpen).toBe(false);
+    expect(draft.repositionOpen).toBe(false);
+    expect(toDecision(draft)).toBeNull();
+  });
+
+  test('the first allocation round is not offered either, because round 0 spent it', () => {
+    // setup.js already wrote remainingUnallocatedPaise from the round 0
+    // choices. Asking again in round 1 would hand the player the rollover on
+    // top of an investment they have already made.
+    const state = makeGameState({ round: 1 });
+    expect(state.budgetSchedule.capexAllocationRounds[0]).toBe(1);
+    expect(draftAt(state).capexOpen).toBe(false);
+  });
+
+  test('an untouched round 5 still claims the allocation, as an explicit zero', () => {
+    // Omitting `capex` does not mean "decline". It means the allocation is
+    // never claimed and ₹1,00,000 disappears: no investment AND no rollover.
+    const decision = toDecision(draftAt(atFive()));
+    expect(decision.capex).toEqual({ sizeGuide: 0, photography: 0, landingPage: 0 });
+  });
+
+  test('and it is listed as a decision, because it is one', () => {
+    const rows = changes(draftAt(atFive()));
+    const capital = rows.find((r) => r.kind === 'capital');
+    expect(capital).toBeDefined();
+    expect(capital.undo).toBeNull();       // the default is the decision
+    expect(capital.detail).toMatch(/advertising budget/);
+  });
+
+  test('an allocation may not exceed what is available', () => {
+    const draft = draftAt(atFive());
+    expect(setCapex(draft, 'photography', CAPEX_ALLOCATION_PAISE).ok).toBe(true);
+    expect(setCapex(draft, 'sizeGuide', 1).ok).toBe(false);
+    expect(setCapex(draft, 'photography', CAPEX_ALLOCATION_PAISE + 1).ok).toBe(false);
+    expect(setCapex(draft, 'billboards', 100).ok).toBe(false);
+    expect(draft.capex.photography).toBe(CAPEX_ALLOCATION_PAISE);
+  });
+
+  test('capital cannot be committed when the window is shut', () => {
+    const draft = draftAt(makeGameState({ round: 3 }));
+    expect(setCapex(draft, 'photography', 100).ok).toBe(false);
+  });
+
+  test('the grid allows one step and refuses two', () => {
+    const draft = draftAt(atFive());
+    const from = draft.base.position;
+    for (const cell of allCells()) {
+      const to = parseCell(cell);
+      const same = to.price === from.price && to.purpose === from.purpose;
+      // The engine's own rule, not a restatement of it.
+      expect(setPosition(draft, cell).ok, cell).toBe(same || isOneStep(from, to));
+      setPosition(draft, cellKey(from.price, from.purpose));
+    }
+  });
+
+  test('repositioning triggers a learning period, and the form knows first', () => {
+    const draft = draftAt(atFive());
+    const from = draft.base.position;
+    const step = allCells().map(parseCell).find((c) => isOneStep(from, c));
+    setPosition(draft, cellKey(step.price, step.purpose));
+
+    expect(willTriggerLearning(draft)).toBe(true);
+    const row = changes(draft).find((r) => r.kind === 'position');
+    expect(row.detail).toMatch(/learning/i);
+    expect(row.detail).toMatch(/Quality Score/i);
+  });
+
+  test('moving back to where you started decides nothing', () => {
+    const draft = draftAt(atFive());
+    const from = draft.base.position;
+    const step = allCells().map(parseCell).find((c) => isOneStep(from, c));
+    setPosition(draft, cellKey(step.price, step.purpose));
+    expect(toDecision(draft).position).toBeDefined();
+    setPosition(draft, cellKey(from.price, from.purpose));
+    expect(toDecision(draft).position).toBeUndefined();
+  });
+
+  test('repositioning is refused outside the window', () => {
+    const draft = draftAt(makeGameState({ round: 3 }));
+    expect(setPosition(draft, 'value|lifestyle').ok).toBe(false);
+  });
+});
+
+describe('the month the two of them leave you', () => {
+  const atFive = () => makeGameState({ round: REPOSITION_ROUND });
+  const draftAt = (state) => createDraft(getSelfView(state, PLAYER_ID),
+    { allocationRounds: state.budgetSchedule.capexAllocationRounds });
+
+  /**
+   * `monthBudgetAfter` mirrors `applyBudgetAdjustments`, which is a drift risk.
+   * So it is checked against what the round actually reports, for every
+   * combination of the two decisions that interact.
+   */
+  const cases = [
+    ['nothing committed, staying put', (d) => d],
+    ['everything committed', (d) => { setCapex(d, 'photography', CAPEX_ALLOCATION_PAISE); return d; }],
+    ['half committed', (d) => { setCapex(d, 'sizeGuide', CAPEX_ALLOCATION_PAISE / 2); return d; }],
+    ['moving, nothing committed', (d) => { setPosition(d, oneStepFrom(d)); return d; }],
+    ['moving AND committing everything', (d) => {
+      setCapex(d, 'landingPage', CAPEX_ALLOCATION_PAISE);
+      setPosition(d, oneStepFrom(d));
+      return d;
+    }],
+  ];
+
+  for (const [name, arrange] of cases) {
+    test(`agrees with the round: ${name}`, () => {
+      const state = atFive();
+      const draft = arrange(draftAt(state));
+      const predicted = monthBudgetAfter(draft);
+
+      const out = submitRound(state, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' });
+      expect(out.report.byAdvertiser[PLAYER_ID].budget.monthlyBudgetPaise).toBe(predicted);
+    });
+  }
+
+  function oneStepFrom(draft) {
+    const from = draft.base.position;
+    const to = allCells().map(parseCell).find((c) => isOneStep(from, c));
+    return cellKey(to.price, to.purpose);
+  }
 });
 
 describe('the round actually receives it', () => {
