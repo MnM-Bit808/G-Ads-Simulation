@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1014 tests, all passing, 1 todo.
+**Every build-order step is done.** 1016 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -325,11 +325,27 @@ implemented and nothing noticed for eleven build steps.
 
 ## What building the form exposed
 
-Nine bugs in the interface itself. `npm test` caught exactly one of them — a
-syntax error, by the module-load smoke test that is labelled weak on purpose and
-that had never caught anything before. Every other one came from opening it.
+Eleven bugs in the interface itself. Before the linter existed `npm test` caught
+exactly one of them — a syntax error. Every other one came from opening it, and
+the last two from driving it by hand rather than from a script.
 
 The ones worth remembering, because they are kinds rather than incidents:
+
+- **A form that could not be typed into.** Every keystroke in round 0's ad copy
+  called `rerender()`, which replaces the form and destroys the input being
+  typed into: focus fell to `<body>` and every character after the first was
+  swallowed. Typing "Built" by hand produced "B". **This file had recorded the
+  cause since slice two** — "the round 0 form rebuilds itself on every
+  keystroke, so driving it from a script means re-querying the element after
+  every change" — as a scripting hazard rather than as a bug, which is exactly
+  why it survived: a script re-queries and never notices. Fixed by separating a
+  structural rebuild (a click) from a keystroke, which now refreshes only what
+  it derives.
+- **A counter that never rendered.** `field()` passed its hint to `el()`, which
+  sets `textContent`, so round 0's character counters — spans — displayed the
+  literal string `[object HTMLSpanElement]` from the day the screen was
+  written. No test reads them and they are small grey text at the end of a long
+  form.
 
 - **A screen that taught something false.** The round-5 card claimed
   repositioning resets your Quality Scores. It does not: 4.5 calls the loss "a
@@ -475,20 +491,20 @@ tooling and one untested claim.
   grounds that by then the player has evidence. **So the two screens now
   disagree about whether you can see your own territory, which is worse than
   either answer.** Undecided, and worth deciding.
-- **There is no linter.** `ui/dashboard.js` shipped a `ReferenceError` to the
-  browser that a 917-test suite could not see, because no test reads function
-  bodies. `tests/ui.test.js` has a module-load smoke test that is labelled weak
-  on purpose — it has since caught exactly one thing, a syntax error, out of
-  nine interface bugs. **This is the one gap where a dependency would genuinely
-  pay**, and it is now the clearest remaining win in the project: eight of those
-  nine would have been caught by a linter and a DOM test, and finding them cost
-  a browser session each.
-- **Nobody has played it as a learner.** It has now been played end to end
-  several times, an account has been rescued from a losing position through the
-  form, and every control has been exercised. But it was driven from a script by
-  someone who knows what the engine does, which is not the same thing as
-  somebody learning from it. **This is now the largest untested claim in the
-  project** — everything else has either a test or a measurement behind it.
+- ~~There is no linter.~~ **There is one now**, and it runs inside `npm test`
+  (`eslint . && vitest run`), so a lint error stops you before a test runs.
+  Correctness only, no style. Its first run found ten pieces of dead code
+  including three unused parameters in `round.js` and an unused import added
+  that same session. It is mutation-tested: reintroducing `brief is not
+  defined` and an uncalled function into `dashboard.js` produces two eslint
+  errors and leaves all twelve `ui` tests green. `tests/ui.test.js` asserts the
+  wiring so it cannot be quietly removed.
+- **Nobody has played it as a learner.** Round 0 and a first week have now been
+  played BY HAND — real clicks, real typing, Tab between fields — and that
+  immediately found two bugs a script structurally could not (see below). The
+  rest has been driven from a script by someone who knows what the engine does,
+  which is not the same thing as somebody learning from it. **This is still the
+  largest untested claim in the project.**
 - **The end screen has never been read by someone who did not build it.** It is
   the one surface whose whole job is reflection rather than mechanism, and the
   only evidence it works is that its numbers are right.
