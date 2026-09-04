@@ -19,18 +19,42 @@
  * HOW THE TWO AXES ARE SIGNALLED
  *
  *   price    Value    a number, and the number is small. Discounts, combos,
- *                     "from ₹799". Price is the offer.
- *            Mid      no price at all — the pitch is the product doing its job
- *                     for a normal person. This is the hardest cell to write,
- *                     because "mid-market" is defined by what it is not.
- *            Premium  material and construction. Modal, cashmere blend, Italian
- *                     stretch, seamless. Never the word "expensive"; premium
- *                     brands signal cost by naming what they are made of.
+ *                     "from ₹799". Price is the offer, and **only Value makes
+ *                     one** — an offer is itself a price-tier signal, so a
+ *                     premium brand running "buy 2, save 20%" would contradict
+ *                     everything else in its ad.
+ *            Mid      no price and no material — the pitch is the product
+ *                     doing its job for a normal person, four sessions a week,
+ *                     wash after wash. The hardest cell to write, because
+ *                     mid-market is defined by what it is not, and the one
+ *                     most worth getting right: if a player cannot tell mid
+ *                     from premium, the middle of the grid is unreadable.
+ *            Premium  material and construction. Modal, cashmere blend,
+ *                     Japanese technical knit, seamless. Never the word
+ *                     "expensive"; premium brands signal cost by naming what
+ *                     they are made of.
  *
  *   purpose  Performance  the verb is TRAIN. Squat-proof, sweat-wicking,
  *                         compression, heavy lifts, high impact.
  *            Lifestyle    the verb is WEAR. Lounge, co-ord, everyday, soft,
  *                         studio to street.
+ *
+ * TWO RULES THE FIRST DRAFT BROKE, AND THE CORRECTIONS
+ *
+ * **The second description used to be boilerplate**, identical within each
+ * purpose pair — both mid cells shared "Sizes XS to XXL. Fit guide, 30-day
+ * returns, free delivery both ways" verbatim, and both premium cells shared
+ * theirs. Realistic, and it halved the signal available per ad. Every second
+ * line now carries something only that cell would say: Value's 15-day returns
+ * against Mid and Premium's 30, a fit guide that "admits when to size up" for
+ * the tier that has to be honest about fit, a fit consultation for the tier
+ * that can afford one.
+ *
+ * **And the sourcing was Italian**, which is a European premium-athleisure
+ * signal rather than an Indian one. Indian premium activewear signals with
+ * Japanese and Korean yarn, recycled technical fabric and knit construction.
+ * Corrected — this is the kind of detail that reads as invented to anyone who
+ * knows the market, and the whole point of the vertical is that it does not.
  *
  * WHY THE GRADES DO NOT VARY BY CELL
  *
@@ -58,13 +82,13 @@
 export const AD_COPY_BY_CELL = Object.freeze({
   'value|performance': {
     headlines: [
-      'Gym Leggings From Rs 799',
+      'Gym Leggings From ₹799',
       'Squat Proof, Not Pricey',
-      'High Impact Bras Rs 599',
+      '2 Sports Bras For ₹999',
     ],
     descriptions: [
-      'Train hard without overspending. Squat-proof leggings and high-impact bras.',
-      'Sizes XS to XXL. Easy 15-day returns. Free delivery over Rs 799.',
+      'Train hard, spend little. Squat-proof leggings and high-impact bras that hold.',
+      'Free delivery over ₹799. Easy 15-day returns, because gym fit is hard to guess.',
     ],
     landingPageDescription:
       'Category page sorted by price, low to high. Size chart, bulk combo offers.',
@@ -72,13 +96,13 @@ export const AD_COPY_BY_CELL = Object.freeze({
 
   'value|lifestyle': {
     headlines: [
-      'Co-ord Sets From Rs 1199',
+      'Co-ord Sets From ₹1199',
       'Comfy Everyday, Low Price',
       'Buy 2 Sets, Save 20%',
     ],
     descriptions: [
       'Soft co-ord sets and joggers that look put together, for a lot less.',
-      'New drops monthly. Sizes XS to XXL. Easy returns, no questions asked.',
+      'New drops monthly, sizes XS to XXL. Easy 15-day returns, no questions asked.',
     ],
     landingPageDescription:
       'Grid of co-ord sets with combo pricing. Reviews above the fold, size chart below.',
@@ -87,26 +111,26 @@ export const AD_COPY_BY_CELL = Object.freeze({
   'mid|performance': {
     headlines: [
       'Leggings Built To Train In',
-      'Sweat-Wicking, Squat-Proof',
-      'Four-Way Stretch Kit',
+      'Holds Up, Wash After Wash',
+      'Squat-Proof, Sweat-Wicking',
     ],
     descriptions: [
-      'Gym wear that holds its shape through heavy sessions and hotter summers.',
-      'Sizes XS to XXL. Fit guide, 30-day returns, free delivery both ways.',
+      'Gym wear that survives four sessions a week and a hot Indian summer.',
+      'Sizes XS to XXL, with a fit guide that admits when to size up. 30-day returns.',
     ],
     landingPageDescription:
-      'Product page with fabric specs, a fit guide, and reviews filtered by activity.',
+      'Product page with a fit guide, wash-test notes, and reviews filtered by activity.',
   },
 
   'mid|lifestyle': {
     headlines: [
       'Athleisure For All Day',
       'Studio To Street Co-ords',
-      'Soft Enough To Live In',
+      'The Set You Reach For',
     ],
     descriptions: [
-      'Everyday athleisure that works for the school run and the evening class.',
-      'Sizes XS to XXL. Fit guide, 30-day returns, free delivery both ways.',
+      'Everyday athleisure for the school run, the studio, and whatever comes after.',
+      'Sizes XS to XXL, with a fit guide for between-sizes. 30-day returns.',
     ],
     landingPageDescription:
       'Lookbook-led page, sets shown as outfits. Fit guide and reviews below.',
@@ -115,12 +139,12 @@ export const AD_COPY_BY_CELL = Object.freeze({
   'premium|performance': {
     headlines: [
       'Seamless Compression Kit',
-      'Italian Four-Way Stretch',
+      'Japanese Technical Knit',
       'Made For Heavy Lifts',
     ],
     descriptions: [
-      'Seamless, sculpting, second-skin. Knitted in Italy, tested under load.',
-      'Sizes XS to XXL. Fit consultation, 30-day returns, free delivery both ways.',
+      'Seamless, sculpting, second-skin. Japanese yarn, knitted to hold under load.',
+      'Fit consultation before you buy. 30-day returns, free delivery both ways.',
     ],
     landingPageDescription:
       'Long-form product page: yarn composition, knit structure, athlete testing notes.',
@@ -134,7 +158,7 @@ export const AD_COPY_BY_CELL = Object.freeze({
     ],
     descriptions: [
       'Loungewear in modal and cashmere blend, cut to hold its shape for years.',
-      'Sizes XS to XXL. Fit consultation, 30-day returns, free delivery both ways.',
+      'Fit consultation, and a care card in every box. 30-day returns.',
     ],
     landingPageDescription:
       'Editorial page: fabric provenance, care instructions, considered-purchase framing.',

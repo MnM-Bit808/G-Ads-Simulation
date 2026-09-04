@@ -67,16 +67,38 @@ describe('no cell borrows another cell voice', () => {
     for (const cell of CELLS) {
       const text = [...AD_COPY_BY_CELL[cell].headlines, ...AD_COPY_BY_CELL[cell].descriptions]
         .join(' ');
-      const namesPrice = /Rs\s?\d|%\s?off|save\s?\d/i.test(text);
+      const namesPrice = /₹\s?\d|%\s?off|save\s?\d/i.test(text);
       expect(namesPrice, `${cell}: ${namesPrice ? 'names' : 'does not name'} a price`)
         .toBe(cell.startsWith('value'));
     }
   });
 
+  test('an offer is a Value signal, and only Value makes one', () => {
+    // Correction to the first draft, where value|lifestyle carried the only
+    // offer in the set and stood out for the wrong reason. Both Value cells
+    // now make one and nobody else does — which is right, because a discount
+    // IS a price-tier signal. A premium brand running "buy 2, save 20%" would
+    // contradict every other word in its ad.
+    for (const cell of CELLS) {
+      const text = [...AD_COPY_BY_CELL[cell].headlines, ...AD_COPY_BY_CELL[cell].descriptions]
+        .join(' ');
+      const offers = /save \d|buy \d|for ₹\d|combo/i.test(text);
+      expect(offers, cell).toBe(cell.startsWith('value'));
+    }
+  });
+
+  test('the second description is not boilerplate shared between cells', () => {
+    // It used to be. Both mid cells and both premium cells shared their second
+    // line verbatim, which halved the signal available per ad in exactly the
+    // two tiers that are hardest to tell apart.
+    const seconds = CELLS.map((c) => AD_COPY_BY_CELL[c].descriptions[1]);
+    expect(new Set(seconds).size).toBe(CELLS.length);
+  });
+
   test('only Premium names a material', () => {
     // Premium brands signal cost by naming what a thing is made of, never by
     // saying it is expensive.
-    const materials = /modal|cashmere|italian|seamless|yarn|silk|bamboo/i;
+    const materials = /modal|cashmere|japanese|seamless|yarn|silk|bamboo|recycled/i;
     for (const cell of CELLS) {
       const text = JSON.stringify(AD_COPY_BY_CELL[cell]);
       expect(materials.test(text), cell).toBe(cell.startsWith('premium'));
@@ -90,8 +112,8 @@ describe('position is inferable from the words alone (spec 17.1)', () => {
   // copy is definitely too generic. Passing it does NOT mean the copy reads
   // well. That still needs a person, which is why the module header says so.
   const PRICE_TELLS = {
-    value: /rs\s?\d|save \d|combo|low price|for a lot less/i,
-    premium: /modal|cashmere|italian|seamless|consultation|provenance|outlast/i,
+    value: /₹\s?\d|save \d|combo|low price|for a lot less/i,
+    premium: /modal|cashmere|japanese|seamless|consultation|provenance|outlast/i,
   };
   const PURPOSE_TELLS = {
     performance: /train|squat|sweat|compression|high impact|lifts|gym/i,
