@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:perf": "vitest run --config vitest.perf.config.js"
   },
   "devDependencies": {
     "vitest": "^2.1.9"

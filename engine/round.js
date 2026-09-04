@@ -185,6 +185,7 @@ export function runRound(gameState, options = {}) {
       // the loop because the month ceiling has to bind during it, not after.
       monthSpentPaise: budgets[i].monthSpentPaise,
       weekBudgetPaise: budgets[i].weekBudgetPaise,
+      keywordForQuery: keywordForQuery(entryPlan[i], queries),
     }])),
     pairwise: { ...pairwise, ids: advertisers.map((a) => a.id) },
     marketContext: buildMarketContext(acc, advertisers),
@@ -369,10 +370,6 @@ function recordAuction({
 
     bump(a.byKeyword, e._plan.keyword.id, impressions, clicks, cost);
     bump(a.byQuery, query.id, impressions, clicks, cost);
-    // One advertiser matches one query through one ad group per round (8.6),
-    // so this mapping is total and lets a landed conversion reach the keyword
-    // that earned it as well as the query.
-    a.keywordForQuery.set(query.id, e._plan.keyword.id);
 
     // Conversions accumulate per advertiser-query and are queued once at the
     // end of the round: 1,350 queue calls instead of 226,800.
@@ -399,6 +396,28 @@ function recordAuction({
 
   recordPairwise(pairwise, ladder, byId, shown);
   recordQualityRows(acc, shown);
+}
+
+/**
+ * Which keyword each query was matched through, this round.
+ *
+ * One advertiser matches one query through one ad group per round (8.6), so
+ * this is a property of the entry plan rather than of any single auction, and
+ * it is read straight off the plan once - 151 entries - instead of being
+ * rewritten inside the hot loop.
+ *
+ * It WAS written in the loop, which in sampled mode meant roughly 600,000
+ * Map.set calls per round all storing the same value, and cost the round about
+ * 1.3 seconds of CPU. The measurement that caught it is the one in
+ * round.test.js, which only started reporting honestly once it stopped timing
+ * a wall clock under contention.
+ */
+function keywordForQuery(plans, queries) {
+  const map = new Map();
+  for (let q = 0; q < queries.length; q++) {
+    if (plans[q]) map.set(queries[q].id, plans[q].keyword.id);
+  }
+  return map;
 }
 
 function bump(map, key, impressions, clicks, cost) {
@@ -577,14 +596,30 @@ function finaliseQualityRows(rows, round) {
 function runCounterfactual(gameState, options, advertiserId) {
   const lifted = {
     ...gameState,
-    advertisers: gameState.advertisers.map((a) => (a.id !== advertiserId ? a : {
-      ...a,
-      campaign: {
-        ...a.campaign,
-        weeklySplitPaise: new Array(ROUNDS_PER_MONTH).fill(a.campaign.monthlyBudgetPaise),
-        monthSpentPaise: 0,
-      },
-    })),
+    advertisers: gameState.advertisers.map((a) => {
+      if (a.id !== advertiserId) return a;
+      // THE REMAINING pot, not the whole one. Spec 11.2 and DECISIONS G1 both
+      // say "raised to its remaining monthly pot", and this used to zero
+      // monthSpentPaise instead - which hands back the entire month and asks
+      // what the advertiser could have earned with money it does not have.
+      // In week four of a month that is 90% spent, that is ten times the real
+      // answer, and missedToBudget is a teaching output whose whole value is
+      // being believable.
+      //
+      // Keeping monthSpentPaise intact also keeps the month cap binding during
+      // the pass (13.2), so the hypothetical obeys the one ceiling that is not
+      // negotiable.
+      const remaining = Math.max(
+        0, a.campaign.monthlyBudgetPaise - (a.campaign.monthSpentPaise ?? 0),
+      );
+      return {
+        ...a,
+        campaign: {
+          ...a.campaign,
+          weeklySplitPaise: new Array(ROUNDS_PER_MONTH).fill(remaining),
+        },
+      };
+    }),
   };
   const { raw } = runRound(lifted, {
     ...options,
@@ -866,7 +901,6 @@ function freshAccumulator() {
     spentTodayPaise: 0,
     byKeyword: new Map(),
     byQuery: new Map(),
-    keywordForQuery: new Map(),
     qualityRows: new Map(),
     warnings: new Set(),
   };

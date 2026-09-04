@@ -105,8 +105,26 @@ function balancedState(weeklyVolume = WEEKLY_VOLUME) {
   return { ...base, querySet: { ...base.querySet, weeklyVolume }, advertisers };
 }
 
-/** Play a full game and return cumulative net profit per cell, settled rounds only. */
+/**
+ * Play a full game and return cumulative net profit per cell, settled rounds
+ * only.
+ *
+ * Memoised on volume, because this is a twelve-round six-advertiser game and
+ * the file asks for the default one twice - once for I3 and once for "a full
+ * game holds together". It is deterministic in expected mode, so the second
+ * call was recomputing a result it already had, and the wasted seconds showed
+ * up as flaky timing in the performance tests running alongside.
+ */
+const balancedCache = new Map();
+
 function playBalanced(weeklyVolume = WEEKLY_VOLUME) {
+  if (balancedCache.has(weeklyVolume)) return balancedCache.get(weeklyVolume);
+  const result = computeBalanced(weeklyVolume);
+  balancedCache.set(weeklyVolume, result);
+  return result;
+}
+
+function computeBalanced(weeklyVolume) {
   let s = balancedState(weeklyVolume);
   const rows = [];
   for (let r = 1; r <= TOTAL_ROUNDS; r++) {
