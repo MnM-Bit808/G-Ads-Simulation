@@ -292,6 +292,29 @@ memorable rather than descriptive.
 own. At the most overloaded moment of the game that is arguably a gain, but it
 is a real reduction in expression and is recorded as such.
 
+### C7. A policy's numbers live with the policy, not in `constants.js` — `OPEN`
+Hard rule 7 sends every unsourced number to `constants.js` with a provenance tag.
+`agents/policies.js` has eight of its own — an assumed return rate, an assumed
+conversion rate, a margin of safety, a maximum bid move — and none are there.
+
+**Because `constants.js` is the physics of the market and these are one
+competitor's opinions about how to play it.** If a rival's aggression lived in
+the file the engine reads, tuning a policy would move the market itself, and a
+change meant to make one competitor bolder would quietly change what every
+advertiser can afford. The two have to be separable or neither can be tuned
+safely.
+
+They keep the spirit of the rule: each is named, commented with what it means and
+why that value, and grouped at the top of the file rather than inlined where it
+is used. Every number is still findable in one place — just a different place,
+chosen so that strategy and physics do not share a blast radius.
+
+**The tell that this is the right line:** `ASSUMED_RETURN_RATE` is 0.25 because
+that is what the round 0 briefing tells the player (17.2), and it is *wrong* for
+every cell on the grid — Value-Lifestyle really returns 36%, Premium-Performance
+17%. A number that is deliberately wrong has no business in the file that defines
+what is true.
+
 ## D. Budget, bidding and capital
 
 ### D1. Budget model was outdated — `FIXED v0.3`
