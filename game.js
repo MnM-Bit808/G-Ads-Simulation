@@ -28,7 +28,8 @@
  */
 
 import { runRound } from './engine/round.js';
-import { advertiserReport } from './engine/report.js';
+import { advertiserReport, attachQualityScores } from './engine/report.js';
+import { reportedScore } from './engine/quality.js';
 import { getPublicView, getSelfView } from './engine/insights.js';
 import { logDecisions } from './engine/serialise.js';
 import { reposition, canReposition } from './engine/positions.js';
@@ -106,7 +107,47 @@ export function submitRound(gameState, decisions, options = {}) {
   result.nextGameState.decisionLog = logDecisions(
     gameState.decisionLog, gameState.round, decisions, sources,
   );
-  return result;
+
+  // The report leaves runRound with an empty `quality` block, because nothing
+  // in engine/ may read reportedScore (hard rule 4) - so the caller attaches
+  // it, and this is the caller. Until game.js existed nobody did, and a played
+  // game showed the player no Quality Score at all.
+  const report = withQualityScores(result.report, result.nextGameState, gameState.round);
+  return {
+    ...result,
+    report,
+    nextGameState: {
+      ...result.nextGameState,
+      history: result.nextGameState.history.map((h) => (h.round === report.round ? report : h)),
+    },
+  };
+}
+
+/**
+ * Each advertiser's own reported scores, attached to its own row (spec 15.2).
+ *
+ * `currentRound` is the round just played, which EXCLUDES it: 9.3 computes from
+ * completed prior rounds only, so the score a player reads beside round 5's
+ * numbers is built from rounds 1 to 4. That lag is the point - it is what makes
+ * "improving ad copy moves qualitySignal immediately and leaves reportedScore
+ * unchanged" true, and why round 1 shows null.
+ *
+ * Safe to store in history: the window only ever reads rounds strictly before
+ * this one, and qualityHistory is appended to rather than revised, so a round's
+ * score is stable once written. What the player saw stays what they saw.
+ */
+function withQualityScores(report, state, currentRound) {
+  const byAdvertiser = {};
+  for (const advertiser of state.advertisers) {
+    const own = {};
+    for (const group of advertiser.adGroups ?? []) {
+      for (const keyword of group.keywords ?? []) {
+        own[keyword.id] = reportedScore(advertiser, keyword.id, currentRound);
+      }
+    }
+    byAdvertiser[advertiser.id] = own;
+  }
+  return attachQualityScores(report, byAdvertiser);
 }
 
 /**

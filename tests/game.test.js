@@ -2,6 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { playRound, submitRound, playGame, triggersLearning } from '../game.js';
+import { advertiserReport } from '../engine/report.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
 import {
   LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
@@ -81,6 +82,57 @@ describe('controllers receive views, never state (R3a)', () => {
       expect(src.includes(escape), escape).toBe(false);
     }
     expect(/from\s*['"][^'"]*agents/.test(src)).toBe(false);
+  });
+});
+
+describe('the player is shown their Quality Score (spec 15.2, 9.3)', () => {
+  // Nothing in engine/ may read reportedScore (hard rule 4), so runRound hands
+  // back a report with an empty `quality` block and the CALLER fills it. Until
+  // game.js existed there was no caller, attachQualityScores was exported and
+  // invoked by nothing, and a played game showed the player no Quality Score
+  // at all - the diagnostic the whole of section 9 is built around.
+  //
+  // Found by playing twelve rounds and reading what a player would see.
+
+  test('round 1 shows null, because the window is completed rounds only', () => {
+    const out = submitRound(STATE, {}, { mode: 'expected' });
+    const quality = out.report.byAdvertiser[PLAYER_ID].quality;
+    expect(Object.keys(quality).length).toBeGreaterThan(0);
+    for (const [id, score] of Object.entries(quality)) {
+      expect(score, id).toBeNull();
+    }
+  });
+
+  test('and a later round shows a score for every keyword', async () => {
+    let state = STATE;
+    for (let r = 1; r <= 3; r++) {
+      state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+    }
+    const out = submitRound(state, {}, { mode: 'expected' });
+    const quality = out.report.byAdvertiser[PLAYER_ID].quality;
+    const scores = Object.values(quality).filter((s) => s !== null);
+    expect(scores.length).toBeGreaterThan(0);
+    for (const score of scores) {
+      expect(score.score).toBeGreaterThanOrEqual(1);
+      expect(score.score).toBeLessThanOrEqual(10);
+      expect(['above', 'average', 'below']).toContain(score.expectedCtr);
+    }
+  });
+
+  test('an advertiser sees its own scores and nobody else appears in its slice', () => {
+    const out = submitRound(STATE, {}, { mode: 'expected' });
+    const slice = advertiserReport(out.report, PLAYER_ID);
+    const own = new Set(STATE.advertisers[0].adGroups[0].keywords.map((k) => k.id));
+    for (const id of Object.keys(slice.quality)) {
+      expect(own.has(id), id).toBe(true);
+    }
+  });
+
+  test('the copy stored in history carries them too', () => {
+    const out = submitRound(STATE, {}, { mode: 'expected' });
+    const stored = out.nextGameState.history.find((h) => h.round === STATE.round);
+    expect(stored.byAdvertiser[PLAYER_ID].quality)
+      .toEqual(out.report.byAdvertiser[PLAYER_ID].quality);
   });
 });
 
