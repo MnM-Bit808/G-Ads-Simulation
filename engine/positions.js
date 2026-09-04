@@ -27,9 +27,11 @@ import {
   PRICE_TIERS, PURPOSES, POSITION_ECONOMICS, PURPOSE_MODIFIERS,
   RETURN_RATE_CLAMP_MAX, CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE,
   CAPEX_LANDING_PAGE_MAX_POINTS, REPOSITION_ROUND,
+  HOUR_PROFILES, HOURLY_INTENT_CURVE, CONV_RATE_CLAMP,
 } from './constants.js';
 import { clamp, lerp } from './num.js';
 import { mulRate } from './money.js';
+import { homeCell } from './querySet.js';
 
 // ---------------------------------------------------------------------------
 // The grid
@@ -157,6 +159,114 @@ export function breakEvenCpcPaise(business) {
  */
 export function grossBreakEvenCpcPaise(business) {
   return mulRate(business.aovMeanPaise, business.marginPct * business.convRateBase);
+}
+
+/**
+ * The queries a position is actually trying to buy.
+ *
+ * A query belongs to the cell where its combined affinity peaks, and only
+ * commercial queries belong anywhere - informational and irrelevant traffic is
+ * waste rather than territory, and brand traffic belongs to a trademark owner
+ * (DECISIONS E7).
+ *
+ * @param {object} querySet
+ * @param {{price: string, purpose: string}} position
+ * @returns {object[]} the queries in this position's territory
+ */
+export function territoryQueries(querySet, position) {
+  assertPosition(position);
+  const cell = cellKey(position.price, position.purpose);
+  return querySet.queries.filter((q) => homeCell(q) === cell);
+}
+
+/**
+ * The conversion rate a position ACTUALLY sees on its own territory.
+ *
+ * WHY THIS EXISTS AND WHY breakEvenCpcPaise IS NOT ENOUGH
+ *
+ * `business.convRateBase` is the rate on a NEUTRAL query - every query
+ * multiplier at 1, every hour equally likely. No advertiser ever buys that
+ * query. What it buys is its own territory, and by construction that is the
+ * set of queries where BOTH of its affinities peak, so the affinity product
+ * runs around 2.0. The intent curve compounds it: it is normalised to a mean
+ * of 1 across 24 uniform hours, but clicks arrive weighted by demand, and
+ * demand sits where intent is high, so its traffic-weighted mean is 1.146.
+ *
+ * The result is that a position's real ceiling is roughly 2.2 to 2.5 times the
+ * 4.4 table. Quoting the table as the operative number - which invariant I2,
+ * the round 0 briefing and the test fixtures all did - understates what every
+ * position can pay by more than half.
+ *
+ * WEIGHTED BY SEARCH VOLUME, NOT BY CLICKS. Clicks depend on position, which
+ * depends on bid, which is the thing this figure exists to inform. Volume
+ * weighting is both non-circular and the number a competent advertiser could
+ * work out from Keyword Planner before spending anything.
+ *
+ * @param {object} business from businessFor
+ * @param {object} querySet
+ * @param {{price: string, purpose: string}} position
+ * @returns {number} a conversion rate
+ */
+export function realisedConvRate(business, querySet, position) {
+  let weight = 0;
+  let total = 0;
+  for (const query of territoryQueries(querySet, position)) {
+    const profile = HOUR_PROFILES[query.hourProfile];
+    for (let hour = 0; hour < profile.length; hour++) {
+      const w = query.volumeShareBp * profile[hour];
+      weight += w;
+      total += w * clamp(
+        business.convRateBase
+          * query.convMultiplier
+          * query.priceAffinity[position.price]
+          * query.purposeAffinity[position.purpose]
+          * HOURLY_INTENT_CURVE[hour],
+        ...CONV_RATE_CLAMP,
+      );
+    }
+  }
+  return weight > 0 ? total / weight : business.convRateBase;
+}
+
+/**
+ * The most a position can pay for a click ON ITS OWN TERRITORY and break even.
+ *
+ * This is the operative ceiling - the number 4.4 calls "the number the whole
+ * simulation has to clear" - and it is what I2, the briefing and the fixtures
+ * should quote. `breakEvenCpcPaise` remains the figure for a neutral query and
+ * is what invariant I4 holds to its lane.
+ *
+ * Basket size and return rate are per query too, so both are folded in here
+ * rather than taken from the business block alone.
+ *
+ * @param {object} business from businessFor
+ * @param {object} querySet
+ * @param {{price: string, purpose: string}} position
+ * @returns {number} integer paise
+ */
+export function realisedBreakEvenCpcPaise(business, querySet, position) {
+  let weight = 0;
+  let total = 0;
+  for (const query of territoryQueries(querySet, position)) {
+    const profile = HOUR_PROFILES[query.hourProfile];
+    const retention = 1 - clamp(
+      business.returnRate * query.returnRateMultiplier, 0, RETURN_RATE_CLAMP_MAX,
+    );
+    const perOrder = business.aovMeanPaise * query.valueMultiplier * business.marginPct * retention;
+    for (let hour = 0; hour < profile.length; hour++) {
+      const w = query.volumeShareBp * profile[hour];
+      weight += w;
+      total += w * perOrder * clamp(
+        business.convRateBase
+          * query.convMultiplier
+          * query.priceAffinity[position.price]
+          * query.purposeAffinity[position.purpose]
+          * HOURLY_INTENT_CURVE[hour],
+        ...CONV_RATE_CLAMP,
+      );
+    }
+  }
+  return weight > 0 ? Math.round(total / weight) : breakEvenCpcPaise(business);
 }
 
 // ---------------------------------------------------------------------------

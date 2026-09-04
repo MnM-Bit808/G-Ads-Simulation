@@ -845,6 +845,72 @@ one time too many. The pattern is worth naming: **when a derived object and a
 formula both mention the same modifier, one of them is wrong.** Two tests pin
 it, one for conversion and one for returns.
 
+### F11. The purpose axis was applied twice — `FIXED`
+Spec 4.1 splits the grid so that **price sets the economics and purpose sets the
+territory**, and invariant I4 holds the purpose axis to under 15% of break-even
+within a price row. At the authored constants Premium sat at 11.9%, and 4.4
+warned that the headroom was thin and that any increase to `PURPOSE_MODIFIERS`
+would push it through.
+
+**Measured on the figures an advertiser actually faces, it was already through.**
+
+| | `PURPOSE_MODIFIERS` alone | realised on own territory |
+|---|---|---|
+| Value | 5.0% | 12.2% |
+| Mid | 9.3% | **17.0%** |
+| Premium | 11.9% | **20.5%** |
+
+I4 could not see it because I4 read `constants.js` and nothing else — it
+measured a quantity no auction ever experiences.
+
+**The second dose came from the query set, and the query set is right.**
+Lifestyle territory has genuinely bigger baskets: it is full of `co ord set`,
+`matching set`, `luxe lounge set`, and a set is a larger order than a tshirt.
+It has genuinely fewer returns: `oversized tshirt women`, `cotton joggers`,
+`modal lounge pants` fit almost anybody, while `compression leggings`,
+`squat proof leggings` and `high impact sports bra` do not. Both effects are
+per-query, argued, and visible to anyone reading the set. Both push the same
+direction as `PURPOSE_MODIFIERS`.
+
+The conversion affinities are innocent — the lifestyle/performance ratio within
+a price row measures 1.001, 0.992, 1.001. The duplication is entirely in
+baskets and returns.
+
+**So the modifier shrank rather than the content being flattened.**
+`PURPOSE_MODIFIERS.conv` moves from 0.90/1.10 to **0.94/1.06**. This is 4.4's
+own prescription run backwards: it says that if the purpose axis needs to be
+*stronger*, strengthen the query affinities rather than these numbers. The query
+set was already the stronger of the two, so these gave way. `ret` stays at
+0.85/1.20 — it is the better-argued half of 4.3, and shrinking it would *widen*
+the gap rather than narrow it, because the return modifier currently offsets the
+conversion modifier instead of compounding it.
+
+Flattening the query set was the first plan and was the wrong one. It would have
+asserted that compression leggings and modal lounge pants come back at the same
+rate, to protect an invariant, using content as the currency. `PURPOSE_MODIFIERS`
+is `INVENTED` with no empirical basis; the query set's multipliers are the
+closest thing in this project to an observation. The invented number gave way.
+
+**Result.** Realised purpose gap 3.5 / 7.9 / 11.2%, against the 5.0 / 9.3 / 11.9%
+the 4.4 table always claimed and never delivered. Price axis 2.68x realised.
+And in I3, where every lifestyle cell had been beating its performance twin:
+
+| | before | after |
+|---|---|---|
+| worst deviation | 7.1% | **2.8%** |
+| spread | 1.14x | **1.05x** |
+| lifestyle / performance | 1.094x | **0.999x** |
+
+**The cost, named.** The query set carries no purpose effect on *conversion*, so
+nothing else carries "performance goods are bought on stated specs, and mostly
+they do the job". That claim is now made more mildly. The purpose effect is
+concentrated in returns, where 4.3's argument is strongest and where the content
+reinforces it rather than duplicating it.
+
+**And a guard.** I3's "no single position is systematically the place to be" test
+only ever inspected price tiers, which is why a consistent 9.4% purpose tilt
+survived two commits inside the 15% band. It now checks both axes.
+
 ---
 
 ## G. Things the simulation knows that reality cannot

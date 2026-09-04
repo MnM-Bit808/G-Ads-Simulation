@@ -25,7 +25,7 @@ import { runRound } from '../engine/round.js';
 import { makeGameState } from './fixtures/gameState.js';
 import { homeCell } from '../engine/querySet.js';
 import {
-  allCells, parseCell, businessFor, breakEvenCpcPaise,
+  allCells, parseCell, businessFor, breakEvenCpcPaise, realisedBreakEvenCpcPaise,
 } from '../engine/positions.js';
 import { allocate } from '../engine/money.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -218,6 +218,19 @@ describe('I3 — positions must balance', () => {
     // no tier sweeps both ends.
     const topThree = new Set(ranked.slice(0, 3).map((c) => c.split('|')[0]));
     expect(topThree.size).toBeGreaterThan(1);
+
+    // AND THE PURPOSE AXIS, which this guard used to ignore entirely. It only
+    // ever looked at price tiers, so a systematic 9.4% lifestyle edge - every
+    // lifestyle cell beating its performance twin, in all three rows - sat
+    // inside the 15% band and went unseen for two commits. It was the purpose
+    // effect being applied twice, once by PURPOSE_MODIFIERS and once by the
+    // query set's baskets and returns. Fixed at the modifier; guarded here.
+    const side = (purpose) => CELLS.filter((c) => c.endsWith(purpose))
+      .reduce((a, c) => a + profit[c], 0);
+    const tilt = side('lifestyle') / side('performance');
+    expect(tilt, `lifestyle/performance ${tilt.toFixed(3)}x`).toBeGreaterThan(0.9);
+    expect(tilt, `lifestyle/performance ${tilt.toFixed(3)}x`).toBeLessThan(1.1);
+    expect(new Set(ranked.slice(0, 3).map((c) => c.split('|')[1])).size).toBe(2);
     for (const tier of ['value', 'mid', 'premium']) {
       expect(spreadWithinTier(tier), tier).toBeLessThan(1.35);
     }
@@ -242,6 +255,31 @@ describe('I4 — the axes stay in their lanes', () => {
   test('price moves it more than 2x top to bottom', () => {
     for (const purpose of ['performance', 'lifestyle']) {
       expect(be('premium', purpose) / be('value', purpose), purpose).toBeGreaterThan(2);
+    }
+  });
+
+  test('and the REALISED figures stay in their lanes too', () => {
+    // The lane that matters. I4 read constants.js only, so it measured a
+    // quantity no auction ever experiences - and while it sat comfortably at
+    // 5.0/9.3/11.9%, the figures an advertiser actually faced were
+    // 12.2/17.0/20.5%, through the bound in two rows out of three.
+    //
+    // The query set was adding a second purpose effect on top of
+    // PURPOSE_MODIFIERS: lifestyle territory has bigger baskets (it is full of
+    // co-ord sets) and fewer returns (oversized and modal fit anybody, while
+    // compression and high-impact do not). Both are TRUE, and both push the
+    // same way as the modifier. So the modifier shrank rather than the content
+    // being flattened to suit it. See DECISIONS F11.
+    const real = (price, purpose) => realisedBreakEvenCpcPaise(
+      businessFor({ price, purpose }, EMPTY, 1), QUERY_SET, { price, purpose },
+    );
+    for (const price of ['value', 'mid', 'premium']) {
+      const a = real(price, 'performance');
+      const b = real(price, 'lifestyle');
+      expect(Math.abs(b - a) / Math.min(a, b), price).toBeLessThan(0.15);
+    }
+    for (const purpose of ['performance', 'lifestyle']) {
+      expect(real('premium', purpose) / real('value', purpose), purpose).toBeGreaterThan(2);
     }
   });
 

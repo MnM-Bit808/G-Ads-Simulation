@@ -4,7 +4,10 @@ import {
   businessFor, breakEvenCpcPaise, grossBreakEvenCpcPaise, marginPerOrderPaise,
   capexEffect, liveCapexPaise, landingPageBonus,
   canReposition, isOneStep, reposition,
+  realisedBreakEvenCpcPaise, realisedConvRate, territoryQueries,
 } from '../engine/positions.js';
+import { homeCell } from '../engine/querySet.js';
+import { QUERY_SET } from '../content/querySet.js';
 import {
   PRICE_TIERS, PURPOSES, POSITION_ECONOMICS, PURPOSE_MODIFIERS,
   CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
@@ -103,12 +106,56 @@ describe('break-even (spec 4.4)', () => {
   const be = (price, purpose) => breakEvenCpcPaise(businessFor(pos(price, purpose), noCapex, 1));
 
   test('matches the figures the spec documents', () => {
-    expect(be('value', 'performance')).toBe(1352);
-    expect(be('value', 'lifestyle')).toBe(1419);
-    expect(be('mid', 'performance')).toBe(2503);
-    expect(be('mid', 'lifestyle')).toBe(2737);
-    expect(be('premium', 'performance')).toBe(3557);
-    expect(be('premium', 'lifestyle')).toBe(3981);
+    // These moved when PURPOSE_MODIFIERS.conv shrank from 0.90/1.10 to
+    // 0.94/1.06. They are the NEUTRAL-QUERY figures - every query multiplier
+    // at 1, every hour equally likely - and no advertiser ever buys that
+    // query. What a position can really pay is realisedBreakEvenCpcPaise,
+    // roughly 2.4x these, and that is what I2 and the briefing quote.
+    expect(be('value', 'performance')).toBe(1412);
+    expect(be('value', 'lifestyle')).toBe(1368);
+    expect(be('mid', 'performance')).toBe(2615);
+    expect(be('mid', 'lifestyle')).toBe(2637);
+    expect(be('premium', 'performance')).toBe(3715);
+    expect(be('premium', 'lifestyle')).toBe(3836);
+  });
+
+  test('the realised figure is what a position can really pay', () => {
+    // Territory is by construction the queries where BOTH affinities peak, so
+    // the affinity product runs near 2.0; and the intent curve's mean is 1
+    // across uniform hours but 1.146 across traffic. Together they put the
+    // real ceiling well above the neutral-query one, in every cell.
+    for (const cell of allCells()) {
+      const { price, purpose } = parseCell(cell);
+      const b = businessFor(pos(price, purpose), noCapex, 1);
+      const neutral = breakEvenCpcPaise(b);
+      const real = realisedBreakEvenCpcPaise(b, QUERY_SET, pos(price, purpose));
+      expect(real / neutral, cell).toBeGreaterThan(2);
+      expect(real / neutral, cell).toBeLessThan(3);
+      expect(Number.isSafeInteger(real), cell).toBe(true);
+    }
+  });
+
+  test('territory holds only commercial queries that this cell wins', () => {
+    for (const cell of allCells()) {
+      const { price, purpose } = parseCell(cell);
+      const qs = territoryQueries(QUERY_SET, pos(price, purpose));
+      expect(qs.length, cell).toBeGreaterThan(0);
+      for (const q of qs) {
+        expect(q.intent, q.id).toBe('commercial');
+        expect(homeCell(q), q.id).toBe(cell);
+      }
+    }
+  });
+
+  test('every territory query is claimed by exactly one cell', () => {
+    const seen = new Set();
+    for (const cell of allCells()) {
+      const { price, purpose } = parseCell(cell);
+      for (const q of territoryQueries(QUERY_SET, pos(price, purpose))) {
+        expect(seen.has(q.id), q.id).toBe(false);
+        seen.add(q.id);
+      }
+    }
   });
 
   test('returns integer paise (R7)', () => {

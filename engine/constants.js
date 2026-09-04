@@ -59,12 +59,41 @@ export const POSITION_ECONOMICS = {
 /**
  * Purpose sets the territory: which clicks you want. It must NOT materially
  * change what you can pay for them — invariant I4 holds the purpose axis to
- * under 15% of break-even within a price row, and Premium already sits at 11.9%.
- * If the purpose axis needs to be stronger, strengthen query affinities instead.
+ * under 15% of break-even within a price row.
+ *
+ * WHY conv IS 0.94/1.06 AND NOT 0.90/1.10
+ *
+ * Because the query set already carries a purpose effect on economics, and it
+ * carries a better one. Lifestyle territory has genuinely bigger baskets — it
+ * is full of "co ord set", "matching set", "lounge set", and a set IS a larger
+ * order — and genuinely fewer returns, because oversized tshirts and modal
+ * joggers fit anybody while compression leggings and high impact sports bras
+ * do not. Those are per-query, argued, and visible in the set.
+ *
+ * Measured on the REALISED figures (realisedBreakEvenCpcPaise), the old
+ * 0.90/1.10 put the purpose gap at 12.2 / 17.0 / 20.5% — through I4's 15%
+ * bound in two rows out of three, and invisible because I4 only ever read this
+ * file. Spec 4.4's headroom warning was aimed at the wrong constant.
+ *
+ * The fix is 4.4's own prescription run backwards. It says that if the purpose
+ * axis needs to be STRONGER, strengthen the query affinities rather than these
+ * numbers. The query set is already the stronger of the two, so these shrink
+ * instead. At 0.94/1.06 the realised gap is 3.5 / 7.9 / 11.2%, which is what
+ * the 4.4 table always claimed and never delivered.
+ *
+ * ret stays at 0.85/1.20. It is the better-argued half of 4.3, and it is the
+ * half the query set reinforces rather than duplicates. Shrinking it would
+ * WIDEN the break-even gap, not narrow it: the return modifier currently
+ * offsets the conversion modifier rather than compounding it.
+ *
+ * The cost, named: the query set carries no purpose effect on CONVERSION — the
+ * affinity ratio within a price row measures 1.001, 0.992, 1.001 — so nothing
+ * else carries "performance goods are bought on stated specs". That claim is
+ * now made more mildly. See DECISIONS F11.
  */
 export const PURPOSE_MODIFIERS = {
-  performance: { conv: 0.90, ret: 0.85 },
-  lifestyle: { conv: 1.10, ret: 1.20 },
+  performance: { conv: 0.94, ret: 0.85 },
+  lifestyle: { conv: 1.06, ret: 1.20 },
 };
 
 export const REPOSITION_COST_PAISE = 10000000; // ₹1,00,000

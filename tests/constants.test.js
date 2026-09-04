@@ -348,11 +348,17 @@ describe('conversion chain bounds (spec 12.1)', () => {
 
   test('the fully stacked best case is clamped, not merely large', () => {
     // Value base, its best affinities, brand-owner boost, peak intent hour.
+    // The affinity and multiplier maxima are the query set's real ceilings:
+    // priceAffinity 1.6, purposeAffinity 1.35, convMultiplier 1.4. An earlier
+    // version of this test stacked 1.6 x 1.3 and stopped there, which is not
+    // the best case - it under-stacked by a third, and when PURPOSE_MODIFIERS
+    // shrank to 0.94/1.06 the understatement fell below the clamp and the test
+    // read as though the chain could no longer run away. It can.
     const stacked = C.POSITION_ECONOMICS.value.convRateBase
       * C.PURPOSE_MODIFIERS.lifestyle.conv
       * C.BRAND_OWNER_MULTIPLIER
       * Math.max(...C.HOURLY_INTENT_CURVE)
-      * 1.6 * 1.3;
+      * 1.6 * 1.35 * 1.4;
     expect(stacked).toBeGreaterThan(C.CONV_RATE_CLAMP[1]);
   });
 
