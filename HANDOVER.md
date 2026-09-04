@@ -213,6 +213,12 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
 - **`engine-audit.test.mjs`** at the repo root is a v0.1 prototype artefact that
   cannot run. `vitest.config.js` excludes it deliberately. Its `BUG CHECK` cases
   encode real traps and have been ported as their modules were built.
+- **`ads-auction-sandbox.jsx` and `ad-copy-grader.jsx`** at the root are the same
+  kind of artefact, and more dangerous now that a real interface exists: each
+  carries its OWN demand curve, conversion multipliers and auction, so they look
+  like the UI and agree with nothing. `ui/` imports the real engine, and
+  `tests/ui.test.js` fails if it ever stops. Consider deleting the two `.jsx`
+  files; they are kept only because nobody has read them for salvage yet.
 - **The in-test performance bound is looser than the spec's** (3000ms against
   1500ms) because vitest running 755 tests on a loaded machine measures 1.5–2×
   the engine's real cost. The spec budget was not moved; see the comment in

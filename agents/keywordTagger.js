@@ -41,7 +41,7 @@
  * by the tagger rather than by the advertiser who chose it.
  */
 
-import { createHash } from 'node:crypto';
+import { contentHash } from './hash.js';
 import { TAG_VOCABULARY, BROAD_MATCH_MIN_OVERLAP } from '../engine/constants.js';
 
 /**
@@ -69,7 +69,7 @@ const VOCABULARY = new Set(TAG_VOCABULARY);
  */
 export function tagContentHashOf(keyword) {
   const canonical = String(keyword?.text ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
-  return `sha1:${createHash('sha1').update(canonical).digest('hex')}`;
+  return contentHash(canonical);
 }
 
 // ---------------------------------------------------------------------------

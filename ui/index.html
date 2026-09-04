@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search auction simulator</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<header class="bar">
+  <div class="identity">
+    <strong id="brand">—</strong>
+    <span id="position" class="muted">—</span>
+  </div>
+  <div class="round-nav">
+    <span id="round-label" class="muted">round —</span>
+    <button id="next" type="button">Run the week</button>
+  </div>
+</header>
+
+<main id="app">
+  <p class="loading">starting a game…</p>
+</main>
+
+<template id="tpl-dashboard">
+  <section class="grid">
+
+    <!-- Headline numbers ------------------------------------------------- -->
+    <article class="card span-4" data-slot="headline">
+      <h2>The week</h2>
+      <div class="figures" data-slot="figures"></div>
+      <p class="note" data-slot="settled"></p>
+    </article>
+
+    <!-- Where the impressions went. F12: share alone is misleading. -------- -->
+    <article class="card span-2" data-slot="share">
+      <h2>Where the impressions went</h2>
+      <div class="bars" data-slot="share-bars"></div>
+      <table class="mini" data-slot="positions"></table>
+      <p class="note">
+        Impression share says how often you <em>appeared</em>. It says nothing
+        about what appearing cost — a rival who never outranks you still raises
+        every click you buy.
+      </p>
+    </article>
+
+    <!-- W11: numbers move after you have read them. ----------------------- -->
+    <article class="card span-2" data-slot="revised">
+      <h2>Changed since you looked</h2>
+      <div data-slot="revised-body"></div>
+    </article>
+
+    <!-- 8.2 / 15.2: the only tool for writing negatives. ------------------ -->
+    <article class="card span-4" data-slot="terms">
+      <h2>Search terms <span class="muted">what your keywords actually matched</span></h2>
+      <div class="scroll"><table class="terms" data-slot="terms-table"></table></div>
+    </article>
+
+    <article class="card span-2" data-slot="quality">
+      <h2>Keywords</h2>
+      <table class="mini" data-slot="quality-table"></table>
+    </article>
+
+    <article class="card span-2" data-slot="insights">
+      <h2>Auction insights</h2>
+      <table class="mini" data-slot="insights-table"></table>
+      <p class="note">
+        Overlap rate is how often a rival appeared in auctions you appeared in.
+        It is not market share and it is not spend.
+      </p>
+    </article>
+
+    <article class="card span-2" data-slot="budget">
+      <h2>Budget</h2>
+      <div data-slot="budget-body"></div>
+    </article>
+
+    <article class="card span-2" data-slot="market">
+      <h2>The market</h2>
+      <table class="mini" data-slot="market-table"></table>
+    </article>
+
+  </section>
+</template>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

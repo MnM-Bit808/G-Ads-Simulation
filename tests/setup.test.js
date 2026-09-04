@@ -286,7 +286,7 @@ describe('startGame produces a game that runs (spec 17)', () => {
     // in a game about match types.
     for (const keyword of state.advertisers[0].adGroups[0].keywords) {
       expect(keyword.tags.length, keyword.text).toBeGreaterThan(0);
-      expect(keyword.taggedContentHash, keyword.text).toMatch(/^sha1:/);
+      expect(keyword.taggedContentHash, keyword.text).toMatch(/^h53:/);
       for (const tag of keyword.tags) expect(TAG_VOCABULARY).toContain(tag);
     }
   });
@@ -313,7 +313,7 @@ describe('startGame produces a game that runs (spec 17)', () => {
     const graded = state.advertisers[0].adGroups[0].gradedQuality;
     expect(graded).not.toBeNull();
     expect(graded.gradedAtRound).toBe(0);
-    expect(graded.contentHash).toMatch(/^sha1:/);
+    expect(graded.contentHash).toMatch(/^h53:/);
     expect(graded.source).toBe('heuristic');
   });
 

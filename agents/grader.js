@@ -34,7 +34,7 @@
  * that are actually observable in the text and is deliberately narrow-banded.
  */
 
-import { createHash } from 'node:crypto';
+import { contentHash } from './hash.js';
 import { HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS } from '../engine/constants.js';
 
 /** How far a rival's trademark in the ad text pulls `adRelevance` down (8.7). */
@@ -68,7 +68,7 @@ export function contentHashOf(ad) {
     descriptions: [...(ad?.descriptions ?? [])],
     landingPageDescription: ad?.landingPageDescription ?? '',
   });
-  return `sha1:${createHash('sha1').update(canonical).digest('hex')}`;
+  return contentHash(canonical);
 }
 
 /**

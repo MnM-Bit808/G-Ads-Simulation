@@ -258,7 +258,7 @@ describe('the model path', () => {
     expect(tagged).toHaveLength(3);
     for (const keyword of tagged) {
       expect(keyword.tags.length).toBeGreaterThan(0);
-      expect(keyword.taggedContentHash).toMatch(/^sha1:/);
+      expect(keyword.taggedContentHash).toMatch(/^h53:/);
     }
     expect(tagKeywordsOffline(group).map((k) => k.tags)).toEqual(tagged.map((k) => k.tags));
   });

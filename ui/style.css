@@ -1,0 +1,227 @@
+/*
+ * The interface, such as it is.
+ *
+ * Dense on purpose. This is a dashboard for reading numbers against each other,
+ * and the findings that shaped it are all about adjacency: impression share is
+ * misleading unless position mix and CPC sit beside it (DECISIONS F12), and a
+ * revised figure means nothing unless what you originally saw is next to it.
+ */
+
+:root {
+  --bg: #0f1115;
+  --panel: #171a21;
+  --panel-2: #1e222b;
+  --line: #2a2f3a;
+  --ink: #e6e9ef;
+  --muted: #8b93a4;
+  --accent: #7aa2f7;
+  --good: #7ec699;
+  --warn: #e0af68;
+  --bad: #f07178;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* --- the bar ------------------------------------------------------------ */
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.identity strong { font-size: 1rem; }
+.identity span { margin-left: 0.6rem; font-size: 0.85rem; }
+
+.round-nav { display: flex; align-items: center; gap: 0.9rem; }
+
+button {
+  font: inherit;
+  font-weight: 600;
+  color: #0f1115;
+  background: var(--accent);
+  border: 0;
+  border-radius: 6px;
+  padding: 0.45rem 0.95rem;
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.08); }
+button:disabled { opacity: 0.4; cursor: default; filter: none; }
+
+/* --- layout ------------------------------------------------------------- */
+
+main { padding: 1.25rem; max-width: 1500px; margin: 0 auto; }
+.loading { color: var(--muted); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+.span-2 { grid-column: span 2; }
+.span-4 { grid-column: span 4; }
+
+@media (max-width: 1100px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .span-4 { grid-column: span 2; }
+}
+@media (max-width: 620px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .span-2, .span-4 { grid-column: span 1; }
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.9rem 1rem 1rem;
+  min-width: 0;
+}
+
+.card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.card h2 .muted { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 0.5rem; }
+
+.muted { color: var(--muted); }
+.note {
+  margin: 0.8rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  padding-top: 0.6rem;
+}
+
+/* --- headline figures --------------------------------------------------- */
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.figure .label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.figure .value {
+  font-family: var(--mono);
+  font-size: 1.32rem;
+  line-height: 1.25;
+  margin-top: 0.15rem;
+}
+.figure .value.neg { color: var(--bad); }
+.figure .value.pos { color: var(--good); }
+.figure .sub { font-size: 0.74rem; color: var(--muted); font-family: var(--mono); }
+
+/* --- share bars --------------------------------------------------------- */
+
+.bars { display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 0.9rem; }
+
+.bar-row { display: grid; grid-template-columns: 5.5rem 1fr 3.2rem; align-items: center; gap: 0.6rem; }
+.bar-row .k { font-size: 0.78rem; color: var(--muted); }
+.bar-row .v { font-family: var(--mono); font-size: 0.8rem; text-align: right; }
+.track { height: 9px; background: var(--panel-2); border-radius: 5px; overflow: hidden; }
+.fill { height: 100%; border-radius: 5px; }
+.fill.shown { background: var(--good); }
+.fill.rank { background: var(--warn); }
+.fill.budget { background: var(--bad); }
+
+/* --- tables ------------------------------------------------------------- */
+
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 0.35rem 0.5rem 0.35rem 0;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+td {
+  padding: 0.34rem 0.5rem 0.34rem 0;
+  border-bottom: 1px solid #21252e;
+  vertical-align: top;
+}
+tbody tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-family: var(--mono); padding-right: 0; }
+td.num { font-variant-numeric: tabular-nums; }
+
+/*
+ * The scroll lives on a WRAPPER, never on the table.
+ * `display: block` on a <table> discards its internal layout algorithm, so the
+ * columns stop aligning and the headers run together - which is exactly what
+ * happened the first time this rendered.
+ */
+.scroll { max-height: 22rem; overflow-y: auto; }
+.scroll thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
+.terms td:first-child { width: 40%; }
+.wasted td { color: var(--bad); }
+.wasted td:first-child::after { content: " ← no conversions"; color: var(--muted); font-size: 0.72rem; }
+
+.tag-row { margin-top: 0.2rem; }
+.tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-family: var(--mono);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 0.3rem;
+  margin-right: 0.2rem;
+  color: var(--muted);
+}
+
+/* --- revision ----------------------------------------------------------- */
+
+.revision { display: grid; grid-template-columns: 1fr auto auto; gap: 0.4rem 0.8rem; align-items: baseline; }
+.revision .k { font-size: 0.8rem; color: var(--muted); }
+.revision .then, .revision .now { font-family: var(--mono); font-size: 0.86rem; text-align: right; }
+.revision .then { color: var(--muted); text-decoration: line-through; }
+.revision .now.up { color: var(--good); }
+.revision .now.down { color: var(--bad); }
+.revision .head { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); text-decoration: none; }
+
+/* --- burn-down ---------------------------------------------------------- */
+
+.burn { margin-bottom: 0.7rem; }
+.burn .track { height: 14px; }
+.burn .fill { background: var(--accent); }
+.burn .legend { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.78rem; margin-top: 0.35rem; }
+
+.warn-pill {
+  display: inline-block;
+  background: rgba(224, 175, 104, 0.14);
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  font-size: 0.74rem;
+  border-radius: 5px;
+  padding: 0.1rem 0.4rem;
+  margin-right: 0.35rem;
+}
