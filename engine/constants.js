@@ -543,12 +543,6 @@ export const DAILY_BUDGET_OVERSPEND_CAP = 2.0;
 export const CAPEX_ALLOCATION_PAISE = 10000000; // ₹1,00,000, at rounds 1 and 5
 export const CAPEX_DELAY_ROUNDS = 3;
 
-export const CAPEX_TARGETS = {
-  sizeGuide: 'returnRate',
-  photography: 'convRateBase',
-  landingPage: 'gradedLandingPage',
-};
-
 /**
  * Points added to the graded landing page score at full commitment.
  *
@@ -660,7 +654,6 @@ export const PROVENANCE = {
   RANK_BUDGET_MULTIPLIERS: 'INVENTED',
   CAPEX_ALLOCATION_PAISE: 'INVENTED',
   CAPEX_DELAY_ROUNDS: 'INVENTED',
-  CAPEX_TARGETS: 'INVENTED',
   CAPEX_TIER_CURVE: 'INVENTED',
   CAPEX_LANDING_PAGE_MAX_POINTS: 'INVENTED',
 };

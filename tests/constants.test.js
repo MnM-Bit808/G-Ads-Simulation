@@ -1,4 +1,7 @@
 import { describe, test, expect } from 'vitest';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as C from '../engine/constants.js';
 
 const sum = (a) => a.reduce((x, y) => x + y, 0);
@@ -393,6 +396,96 @@ describe('rival placement constraints (spec 17.1)', () => {
     expect(minPriceTiers).toBeLessThanOrEqual(3);
     expect(requireBothPurposes).toBe(true);
     expect(maxPerCell * cells).toBeGreaterThanOrEqual(C.ADVERTISER_COUNT - 1);
+  });
+});
+
+describe('every constant is read by something (R4, hard rule 7)', () => {
+  // The hole CAPEX_TARGETS came through.
+  //
+  // The provenance tests below check that every constant has a tag and every
+  // tag has a constant - both directions of the LEDGER. Neither asks whether
+  // any code consumes the number. So CAPEX_TARGETS sat in constants.js with a
+  // provenance entry and a paragraph of justification, read by nothing at all,
+  // not even a test. That is exactly the failure v0.3 deleted QUALITY_WEIGHTS
+  // and EXTENSIONS_IMPACT for, recurring in a new place, and the file's own
+  // header says "if a number leaves this file, delete its DECISIONS.md entry
+  // too" while nothing checked whether it had ever arrived anywhere.
+
+  const root = fileURLToPath(new URL('../', import.meta.url));
+  const stripComments = (text) => text
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/.*$/gm, '');
+
+  const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) return walk(full);
+    return entry.name.endsWith('.js') ? [full] : [];
+  });
+
+  const read = (files) => files.map((f) => stripComments(readFileSync(f, 'utf8'))).join('\n');
+
+  // Comments are stripped, so a constant merely DISCUSSED in prose does not
+  // count as consumed. CAPEX_TARGETS is named in three comments.
+  const SOURCE = read([
+    ...walk(join(root, 'engine')).filter((f) => !f.endsWith('constants.js')),
+    ...walk(join(root, 'content')),
+    ...walk(join(root, 'agents')),
+    join(root, 'game.js'),
+  ]);
+  const TESTS = read(walk(join(root, 'tests')));
+
+  const exported = Object.keys(C).filter((k) => k === k.toUpperCase() && k !== 'PROVENANCE');
+  const mentions = (text, name) => new RegExp(`\\b${name}\\b`).test(text);
+
+  /**
+   * Constants that only tests read, each with the reason.
+   *
+   * Two different things live here and it is worth keeping them apart.
+   *
+   * The first three are constants whose CONSUMER IS A TEST, legitimately and
+   * permanently: an invariant's threshold belongs to the invariant, and an
+   * invariant is a test. Those are not debt.
+   *
+   * The rest are debt - a number waiting for code that has not been written -
+   * and each names what will consume it. An entry here is a promise, and the
+   * third test below stops the promise being quietly forgotten.
+   */
+  const NOT_YET_CONSUMED = {
+    MIN_PEAK_SEPARATION_HOURS:
+      'invariant I5 IS a test (18.2), so its threshold belongs to one. Not debt.',
+    SMART_BIDDING_MIN_CONVERSIONS:
+      'names a milestone on a continuous curve rather than a branch in it - '
+      + 'predictionErrorSigma falls with sqrt(n) and has no threshold. Spec 12.2 '
+      + 'quotes it to say what "high error" means, and strategies.test.js checks '
+      + 'the curve is still large there. Not debt.',
+    RIVAL_PLACEMENT_CONSTRAINTS:
+      'DEBT: round 0 rival placement (17.1) is not built. Nothing seeds eight '
+      + 'rivals into cells yet, so nothing can honour minPriceTiers, '
+      + 'requireBothPurposes or maxPerCell.',
+    HEADLINE_MAX_CHARS:
+      'DEBT: agents/grader.js and the round 0 ad editor will enforce it. '
+      + 'adCopy.test.js checks the authored rival copy fits, which is every ad '
+      + 'that exists today.',
+    DESCRIPTION_MAX_CHARS:
+      'DEBT: as HEADLINE_MAX_CHARS.',
+  };
+
+  test('no constant is read by nothing at all', () => {
+    const orphans = exported.filter((n) => !mentions(SOURCE, n) && !mentions(TESTS, n));
+    expect(orphans, `read by nothing: ${orphans.join(', ')}`).toEqual([]);
+  });
+
+  test('every constant that only tests read is declared, with a reason', () => {
+    const testOnly = exported.filter((n) => !mentions(SOURCE, n) && mentions(TESTS, n));
+    const undeclared = testOnly.filter((n) => !(n in NOT_YET_CONSUMED));
+    expect(undeclared, `test-only and undeclared: ${undeclared.join(', ')}`).toEqual([]);
+  });
+
+  test('and that list has no stale entries', () => {
+    // The mirror of "PROVENANCE has no entries for constants that no longer
+    // exist". When a constant finally gets a reader, its excuse must go.
+    const stale = Object.keys(NOT_YET_CONSUMED).filter((n) => mentions(SOURCE, n));
+    expect(stale, `now read by source, remove from the list: ${stale.join(', ')}`).toEqual([]);
   });
 });
 

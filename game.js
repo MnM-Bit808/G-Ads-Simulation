@@ -33,7 +33,7 @@ import { getPublicView, getSelfView } from './engine/insights.js';
 import { logDecisions } from './engine/serialise.js';
 import { reposition, canReposition } from './engine/positions.js';
 import {
-  LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
+  LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, TOTAL_ROUNDS,
 } from './engine/constants.js';
 
 /**
@@ -114,11 +114,14 @@ export function submitRound(gameState, decisions, options = {}) {
  *
  * @param {object} gameState
  * @param {Object<string, Function>} controllers
- * @param {object} [options] `rounds` defaults to finishing the game
+ * @param {object} [options] `rounds` defaults to TOTAL_ROUNDS
  * @returns {Promise<{finalState: object, reports: object[]}>}
  */
 export async function playGame(gameState, controllers, options = {}) {
-  const { rounds = 12, ...rest } = options;
+  // TOTAL_ROUNDS, not a literal 12. The two agree today, which is exactly why
+  // the literal survived - it was found by a test asserting that every
+  // constant has a reader, not by anything going wrong.
+  const { rounds = TOTAL_ROUNDS, ...rest } = options;
   let state = gameState;
   const reports = [];
   while (state.round <= rounds) {
