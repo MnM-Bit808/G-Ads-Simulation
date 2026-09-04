@@ -426,11 +426,18 @@ describe('every constant is read by something (R4, hard rule 7)', () => {
 
   // Comments are stripped, so a constant merely DISCUSSED in prose does not
   // count as consumed. CAPEX_TARGETS is named in three comments.
+  // Every root-level module, not a named list. game.js was named explicitly
+  // when this guard was written and setup.js arrived a step later, invisible
+  // to it - which is the same shape of hole the guard exists to close.
+  const rootModules = readdirSync(root, { withFileTypes: true })
+    .filter((e) => e.isFile() && e.name.endsWith('.js') && !e.name.includes('config'))
+    .map((e) => join(root, e.name));
+
   const SOURCE = read([
     ...walk(join(root, 'engine')).filter((f) => !f.endsWith('constants.js')),
     ...walk(join(root, 'content')),
     ...walk(join(root, 'agents')),
-    join(root, 'game.js'),
+    ...rootModules,
   ]);
   const TESTS = read(walk(join(root, 'tests')));
 
@@ -458,10 +465,6 @@ describe('every constant is read by something (R4, hard rule 7)', () => {
       + 'predictionErrorSigma falls with sqrt(n) and has no threshold. Spec 12.2 '
       + 'quotes it to say what "high error" means, and strategies.test.js checks '
       + 'the curve is still large there. Not debt.',
-    RIVAL_PLACEMENT_CONSTRAINTS:
-      'DEBT: round 0 rival placement (17.1) is not built. Nothing seeds eight '
-      + 'rivals into cells yet, so nothing can honour minPriceTiers, '
-      + 'requireBothPurposes or maxPerCell.',
     HEADLINE_MAX_CHARS:
       'DEBT: agents/grader.js and the round 0 ad editor will enforce it. '
       + 'adCopy.test.js checks the authored rival copy fits, which is every ad '

@@ -127,6 +127,47 @@ The floor of 0.50 is reachable only by an exact or phrase keyword whose tags
 happen not to overlap the query's — which in practice means the tagger tagged
 the keyword differently from the query, and is rare.
 
+### A8. An ungraded ad cannot clear the reserve — `OPEN`
+Spec 9.5 says an ungraded ad uses `DEFAULT_UNGRADED_QUALITY` (3/3/3) and is
+"deliberately poor: an ad nobody has evaluated should not perform like a good
+one". Building round 0 showed that at the current constants it does not perform
+*at all*.
+
+3/3/3 gives a quality signal of **0.031**, so clearing `AD_RANK_FLOOR` of 60
+takes a bid of **1,961 paise**. A cold-start `disciplined` advertiser, reasoning
+from `ASSUMED_CONV_RATE`, bids about **1,512**. It is not outbid — it is below
+the reserve, enters every auction and shows in none.
+
+| bid | ad rank | impressions | lost to rank |
+|---|---|---|---|
+| 1,512 | 46 | 0 | 100% |
+| 1,800 | 55 | 0 | 100% |
+| 1,961 | 60 | 18,436 | 45% |
+| 2,400 | 73 | 25,445 | 24% |
+
+**"Should not perform like a good one" and "cannot enter" are different
+claims**, and two `INVENTED` constants — `DEFAULT_UNGRADED_QUALITY` and
+`AD_RANK_FLOOR` — happen to sit either side of the line. Neither was chosen with
+the other in mind.
+
+**Left as it is for now, because it is fully diagnosed.** The advertiser sees
+100% lost to rank and an `ungraded_ad` warning naming the cause, which is a
+complete explanation and an obvious remedy: get the ad graded, or pay a premium
+to be seen without one. That is a defensible lesson rather than a dead end.
+
+It became diagnosed only during this work — the warning was raised inside the
+*shown* branch of `recordAuction`, so the advertiser it most concerned was the
+only one who never received it. Fixed, and pinned by three tests.
+
+**What would change the answer:** if play shows people abandoning the game at
+round 1 rather than reading the warning, raise `DEFAULT_UNGRADED_QUALITY` to
+4/4/4, which clears the reserve at a cautious bid. Do not lower `AD_RANK_FLOOR`
+— it is calibrated against I2 and I3 and moving it is regressive (F12).
+
+The real fix is `agents/grader.js`. Spec 17 lists "grade + tag player assets" as
+step 12 of round 0, so a graded player was always the intended state; this entry
+describes what happens before that module exists.
+
 ---
 
 ## B. Auction and pricing

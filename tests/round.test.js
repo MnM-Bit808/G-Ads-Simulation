@@ -196,6 +196,44 @@ describe('conversions arrive late and settle later (spec 11.3, 14)', () => {
   });
 });
 
+describe('the ungraded warning names the ad, not the outcome (spec 9.5)', () => {
+  // 9.5: "If gradedQuality is null, the engine uses DEFAULT_UNGRADED_QUALITY and
+  // adds 'ungraded_ad' to report.warnings." It said nothing about winning.
+  //
+  // It used to be set inside the shown branch of recordAuction, so an
+  // advertiser whose 3/3/3 default held it below AD_RANK_FLOOR - which is
+  // exactly what an ungraded ad does at any cautious bid - entered every
+  // auction, showed in none, and was never told why. 100% lost to rank and no
+  // cause. The one advertiser who most needed the warning was the only one who
+  // could not get it.
+
+  test('an ungraded advertiser that never shows is still warned', () => {
+    const ungraded = deformed(STATE, (x) => {
+      x.advertisers[0].adGroups[0].gradedQuality = null;
+      // Below the reserve on purpose: eligible everywhere, shown nowhere.
+      for (const k of x.advertisers[0].adGroups[0].keywords) k.bidPaise = 200;
+    });
+    const out = runRound(ungraded, { mode: 'expected' });
+    const mine = out.report.byAdvertiser[PLAYER_ID];
+    expect(mine.traffic.eligibleAuctions).toBeGreaterThan(0);
+    expect(mine.traffic.impressions).toBe(0);
+    expect(mine.warnings).toContain('ungraded_ad');
+  });
+
+  test('and one that shows is warned too', () => {
+    const ungraded = deformed(STATE, (x) => {
+      x.advertisers[0].adGroups[0].gradedQuality = null;
+    });
+    const out = runRound(ungraded, { mode: 'expected' });
+    expect(out.report.byAdvertiser[PLAYER_ID].warnings).toContain('ungraded_ad');
+  });
+
+  test('a graded advertiser is not warned', () => {
+    expect(runRound(STATE, { mode: 'expected' }).report.byAdvertiser[PLAYER_ID].warnings)
+      .not.toContain('ungraded_ad');
+  });
+});
+
 describe('an open cell is not a free ride (spec 17.1)', () => {
   // 17.1 says taking a cell nobody else occupies is a legitimate strategy and
   // "not a free ride - rival broad match spills into every territory". Round 0's

@@ -1333,7 +1333,12 @@ Unconstrained placement would sometimes drop all eight rivals into one tier,
 leaving the player's choice a no-brainer rather than a decision.
 
 With eight rivals over six cells, at least two cells double up and at most one
-stays open. **Taking an open cell is a legitimate strategy** and is intended: it
+stays open. **That is a placement rule, not arithmetic** — eight rivals at two
+per cell fit into four, so an unguided draw regularly leaves two cells empty and
+a third of the grid uncontested. `placeRivals` occupies five or six cells
+deliberately, seeding the open one when there is one.
+
+**Taking an open cell is a legitimate strategy** and is intended: it
 rewards reading the market. It is not a free ride — rival broad match spills into
 every territory, and execution still decides the outcome.
 

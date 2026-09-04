@@ -100,6 +100,18 @@ export function runRound(gameState, options = {}) {
 
   // --- accumulators ---------------------------------------------------------
   const acc = advertisers.map(() => freshAccumulator());
+
+  // Spec 9.5 raises this when the AD is ungraded, not when an ungraded ad
+  // happens to win something. It used to be set inside the shown branch of
+  // recordAuction, so the one advertiser who most needed telling - the one
+  // whose 3/3/3 default is holding it below AD_RANK_FLOOR and out of every
+  // auction it enters - was the only one never told. It saw 100% lost to rank
+  // and no reason for it.
+  //
+  // Set once per round from the entry plan, which knows before the loop runs.
+  for (let i = 0; i < n; i++) {
+    if (entryPlan[i].some((plan) => plan?.ungraded)) acc[i].warnings.add('ungraded_ad');
+  }
   const pairwise = freshPairwise(n);
   const convAccum = advertisers.map(() => new Map());
 
@@ -364,7 +376,6 @@ function recordAuction({
     a.positionCounts[row.position - 1] += impressions;
     if (row.position <= TOP_SLOTS) a.topImpressions += impressions;
     if (row.position === 1) a.absTopImpressions += impressions;
-    if (e._plan.ungraded) a.warnings.add('ungraded_ad');
     budgets[i].weekSpentPaise += cost;
     budgets[i].monthSpentPaise += cost;
 
