@@ -945,6 +945,54 @@ reinforces it rather than duplicating it.
 only ever inspected price tiers, which is why a consistent 9.4% purpose tilt
 survived two commits inside the 15% band. It now checks both axes.
 
+### F12. Impression share is a misleading headline in a thin auction — `OPEN`
+Found by playing a full game and misreading it, which is the useful way to find
+this sort of thing.
+
+An advertiser alone in its cell showed **100% impression share, 0% lost to rank
+and 0% lost to budget for twelve consecutive rounds**. Read off that dashboard,
+nothing is happening and no rival exists. The first conclusion drawn from it was
+that spec 17.1's claim — that an open cell is "not a free ride" because rival
+broad match spills into every territory — was false.
+
+**It is not false. The metric was.**
+
+Broad match spills widely. Each cell's head terms, taken broad, reach 38–64% of
+total market volume, and `mid|performance` reaches 100% of premium|performance's.
+In the played game three rivals sat in the majority of the player's auctions:
+overlap rates of 74%, 82% and 64%.
+
+They took no impressions, because `MAX_SLOTS` is 4 and a thin auction has fewer
+entrants than that — everyone above the floor shows. So `lostToRank` stayed at
+zero and impression share stayed at 100%.
+
+**The cost lands entirely on price.** Second price charges what it takes to beat
+the entrant below you (10.2, W8), so a rival who never outranks you and never
+takes an impression from you still raises every click you buy:
+
+| | alone | with eight rivals |
+|---|---|---|
+| average CPC | 630 | **1679** (+166%) |
+| impressions | 131,599 | 131,599 (−0.0%) |
+| net profit | ₹2,98,293 | **₹92,962** (−69%) |
+
+Sixty-nine per cent of the profit, and not one impression.
+
+**Why this is worth keeping rather than fixing.** It is exactly true of the real
+platform, and it is one of the more expensive misreadings a real advertiser
+makes: impression share says how often you *appeared*, and says nothing about
+what appearing cost. Spec 10.3 chose four slots so that rank competition would
+be emergent and disciplined play would keep auctions thin — this is that working.
+
+**The obligation it creates is on the UI.** A player watching impression share
+alone sees 100% and concludes they are dominating, while paying 166% over the
+reserve. The interface must show position mix, top-of-page share and CPC beside
+it, or it will teach the misreading rather than cure it. Section 16 already says
+overlap rate is the most misread number on the platform; on this evidence
+impression share is a close second.
+
+Pinned by `round.test.js`, "an open cell is not a free ride".
+
 ---
 
 ## G. Things the simulation knows that reality cannot

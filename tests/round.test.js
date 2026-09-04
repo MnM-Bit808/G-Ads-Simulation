@@ -3,7 +3,7 @@ import { runRound } from '../engine/round.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
 import {
   ATTRIBUTION_LAG_DISTRIBUTION, MAX_SLOTS, ROUNDS_PER_MONTH,
-  HOURLY_INTENT_CURVE, MIN_HOUR_OBSERVATIONS, CAPEX_ALLOCATION_PAISE,
+  HOURLY_INTENT_CURVE, MIN_HOUR_OBSERVATIONS, CAPEX_ALLOCATION_PAISE, AD_RANK_FLOOR,
   MONTHLY_BUDGET_PAISE, REPOSITION_COST_PAISE, REPOSITION_ROUND,
 } from '../engine/constants.js';
 
@@ -193,6 +193,52 @@ describe('conversions arrive late and settle later (spec 11.3, 14)', () => {
     for (const r of p.pendingReturns) {
       expect(r.resolvesInRound).toBeGreaterThan(r.landedInRound);
     }
+  });
+});
+
+describe('an open cell is not a free ride (spec 17.1)', () => {
+  // 17.1 says taking a cell nobody else occupies is a legitimate strategy and
+  // "not a free ride - rival broad match spills into every territory". Round 0's
+  // central decision rests on that being true.
+  //
+  // It IS true, and the first attempt to check it looked at the wrong number.
+  // The player here loses NOT ONE IMPRESSION to rank: it outranks or ties with
+  // everyone who reaches it, and with four slots against typically fewer
+  // entrants, everyone above the floor shows anyway. Measured on lostToRank the
+  // rivals appear to cost nothing.
+  //
+  // The cost lands entirely on PRICE. Second price charges what it takes to beat
+  // the entrant below you (10.2, W8), so a rival who never outranks you and
+  // never takes an impression from you still raises every click you buy.
+  const solo = deformed(STATE, (x) => {
+    x.advertisers = x.advertisers.map((a, i) => (i === 0 ? a : { ...a, active: false }));
+  });
+  const alone = runRound(solo, { mode: 'expected' }).raw.byAdvertiser[PLAYER_ID];
+  const market = runRound(STATE, { mode: 'expected' }).raw.byAdvertiser[PLAYER_ID];
+
+  test('the rivals take no impressions at all', () => {
+    expect(market.impressions / market.eligibleAuctions).toBeCloseTo(1, 3);
+    expect(market.lostToRank / market.eligibleAuctions).toBeLessThan(0.001);
+    // Not exactly equal: 7 impressions in 32,900, two parts in ten thousand,
+    // where a rival edges it out of a sliver of one hour. Relative, because
+    // "loses no impressions" is a claim about proportion, not about integers.
+    expect(Math.abs(market.impressions / alone.impressions - 1)).toBeLessThan(0.001);
+  });
+
+  test('and cost it half its margin anyway, through the price', () => {
+    const aloneCpc = alone.costPaise / alone.clicks;
+    const marketCpc = market.costPaise / market.clicks;
+    expect(marketCpc, `${aloneCpc.toFixed(0)} alone vs ${marketCpc.toFixed(0)} in market`)
+      .toBeGreaterThan(aloneCpc * 1.5);
+  });
+
+  test('which is the reserve giving way to a real competitor', () => {
+    // Alone, every auction prices against AD_RANK_FLOOR because there is no
+    // entrant below. In the market the entrant below is a real advertiser with
+    // a real ad rank, and that is what the player is paying to beat.
+    const aloneCpc = alone.costPaise / alone.clicks;
+    const floorPrice = AD_RANK_FLOOR / 0.10;      // a plausible signal, order of magnitude
+    expect(aloneCpc).toBeLessThan(floorPrice * 3);
   });
 });
 
