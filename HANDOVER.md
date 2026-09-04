@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-Thirteen of fourteen build-order steps done. **755 tests, all passing, 1 todo.**
+Thirteen of fourteen build-order steps done. **791 tests, all passing, 1 todo.**
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -20,7 +20,7 @@ Thirteen of fourteen build-order steps done. **755 tests, all passing, 1 todo.**
 ✅  3  auction                        ✅ 10  report, insights
 ✅  4  matching                       ✅ 11  serialise
 ✅  5  quality                        ✅ 12  calibration
-✅  6  positions                      🟨 13  agents  — disciplined done, five to go
+✅  6  positions                      🟨 13  agents  — six policies done, LLM half to go
 ✅  7  strategies                     ⬜ 14  ui
 ```
 
@@ -114,16 +114,14 @@ constant-side, and they have not been discussed yet.
 
 ## Still open
 
-- **Five policies to write**: `spender`, `automator`, `cautious`,
-  `brandDefender`, `grossOptimiser`. The interface, the guards and
-  `disciplined` are done and committed.
+- **All six policies are written.** `agents/` still needs `llmPolicy.js`,
+  `grader.js`, `keywordTagger.js` and `queryGen.js` — the Claude-backed half of
+  step 13. Rival ad grades are hand-authored so the suite stays offline.
 - **`content/adCopy.js` is a draft and has not been read by a human.** A naive
   classifier recovers all six cells, which only proves it is not *generically*
   bad. Same standing as the query set.
 - **The query set was reviewed once** and Value and Premium were rewritten after
   that review. The corrected set has still not been read end to end.
-- **`agents/` still needs** `llmPolicy.js`, `grader.js`, `keywordTagger.js`,
-  `queryGen.js`. Rival grades are hand-authored so the suite stays offline.
 - **Rival placement (17.1) has no implementation.** `RIVAL_PLACEMENT_CONSTRAINTS`
   is read by nothing but a constants test.
 - **I1 does not actually pin `WEEKLY_VOLUME`.** It asserts >50% of a month over
