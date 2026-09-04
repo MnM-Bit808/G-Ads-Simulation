@@ -574,3 +574,13 @@ tr.unsettled td:first-child::after { content: " ← still arriving"; font-size: 
 .week-spent { font-family: var(--mono); font-size: 0.85rem; }
 .week-planned { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
 .staged-row.budget { border-left-color: var(--accent); }
+
+/* --- dayparting ---------------------------------------------------------- */
+
+.daypart td:nth-child(6) { width: 22%; }
+.daypart .track { height: 8px; }
+.daypart input[type="number"] { width: 5.5rem; padding: 0.2rem 0.4rem; font-size: 0.78rem; }
+.daypart td { vertical-align: middle; }
+.thin-hours td:nth-child(5) { color: var(--muted); }
+.thin-hours td:first-child::after { content: " ·"; color: var(--warn); }
+.staged-row.daypart { border-left-color: var(--warn); }

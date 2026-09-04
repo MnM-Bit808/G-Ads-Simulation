@@ -171,6 +171,30 @@ describe('summariseDecisions reads the log back (12.4)', () => {
       .toBe('Took the whole ₹1,00,000 as advertising budget');
   });
 
+  test('the budget plan and the hour adjustments are read back too', () => {
+    // Both were missing until a played game showed the log saying nothing about
+    // a week where the player had changed four hour blocks and a week budget.
+    expect(lines([entry(6, { campaign: { weeklySplitPaise: [4200000, 4200000, 12000000, 4200000] } })])[0])
+      .toBe('Planned the month as ₹42,000 / ₹42,000 / ₹1,20,000 / ₹42,000');
+    expect(lines([entry(6, { campaign: { daypartAdjustments: [-100, 0, 0, 35, 0, 0] } })])[0])
+      .toBe('Bid -100% late night, +35% afternoon');
+    expect(lines([entry(6, { campaign: { daypartAdjustments: [0, 0, 0, 0, 0, 0] } })])[0])
+      .toBe('Cleared every hour-of-day adjustment');
+  });
+
+  test('and neither is diffed, because their baseline moves on its own', () => {
+    // advanceCampaign re-evens the split at every month boundary without a
+    // decision, so diffing one submission against the previous would attribute
+    // the engine's reset to the player.
+    const log = [
+      entry(2, { campaign: { weeklySplitPaise: [4200000, 4200000, 4200000, 4200000] } }),
+      entry(6, { campaign: { weeklySplitPaise: [4200000, 4200000, 4200000, 4200000] } }),
+    ];
+    const rows = summariseDecisions(log, PLAYER, opening);
+    expect(rows).toHaveLength(2);
+    expect(rows[0].lines).toEqual(rows[1].lines);
+  });
+
   test('a move reads as a move', () => {
     expect(lines([entry(5, { position: { price: 'premium', purpose: 'lifestyle' } })])[0])
       .toBe('Moved to premium · lifestyle');

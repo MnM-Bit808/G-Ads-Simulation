@@ -31,11 +31,12 @@
 
 import { el, add, table, field, input, select, rupees, whole, ratio } from './dom.js';
 import { blockedBy, normalise, tokenise } from '../engine/matching.js';
-import { STRATEGIES } from '../engine/strategies.js';
+import { STRATEGIES, daypartMultiplier } from '../engine/strategies.js';
 import { canReposition, isOneStep, allCells, parseCell, cellKey } from '../engine/positions.js';
 import {
   LEARNING_ROUNDS, MAX_BID_MULTIPLE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
   CAPEX_TIER_CURVE, REPOSITION_COST_PAISE, ROUNDS_PER_MONTH,
+  DAYPART_BLOCKS, MIN_HOUR_OBSERVATIONS,
 } from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
@@ -159,6 +160,10 @@ export function createDraft(selfView, options = {}) {
     weeklySplitPaise: [...(selfView.campaign?.weeklySplitPaise ?? [])],
     weekIndex: (selfView.round - 1) % ROUNDS_PER_MONTH,
 
+    // 13.4's hour level. Percentages, one per DAYPART_BLOCKS entry.
+    daypartAdjustments: [...(selfView.campaign?.daypartAdjustments
+      ?? DAYPART_BLOCKS.map(() => 0))],
+
     base: {
       negatives: structuredClone(negatives),
       keywords: structuredClone(keywords),
@@ -166,6 +171,8 @@ export function createDraft(selfView, options = {}) {
       strategyParams: structuredClone(strategyParams),
       position: structuredClone(selfView.position ?? null),
       weeklySplitPaise: [...(selfView.campaign?.weeklySplitPaise ?? [])],
+      daypartAdjustments: [...(selfView.campaign?.daypartAdjustments
+        ?? DAYPART_BLOCKS.map(() => 0))],
     },
   };
 }
@@ -203,6 +210,9 @@ export function toDecision(draft) {
   }
   if (!sameSplit(draft.weeklySplitPaise, draft.base.weeklySplitPaise)) {
     campaign.weeklySplitPaise = [...draft.weeklySplitPaise];
+  }
+  if (!sameSplit(draft.daypartAdjustments, draft.base.daypartAdjustments)) {
+    campaign.daypartAdjustments = [...draft.daypartAdjustments];
   }
   if (biddingChanged(draft)) {
     campaign.strategy = draft.strategy;
@@ -282,6 +292,20 @@ export function changes(draft) {
         ? 'the week about to run'
         : `week ${index + 1} of this month, and the month resets the plan after that`,
       undo: () => setWeekBudget(draft, index, before),
+    });
+  });
+
+  draft.daypartAdjustments.forEach((percent, index) => {
+    const before = draft.base.daypartAdjustments[index];
+    if (percent === before) return;
+    const block = DAYPART_BLOCKS[index];
+    rows.push({
+      kind: 'daypart',
+      label: `${block.label} bid ${signed(before)} → ${signed(percent)}`,
+      detail: percent <= -100
+        ? `you will bid the minimum between ${hourLabel(block.start)} and ${hourLabel(block.end)}`
+        : `${hourLabel(block.start)} to ${hourLabel(block.end)}, every day`,
+      undo: () => setDaypart(draft, index, before),
     });
   });
 
@@ -554,6 +578,103 @@ export function splitOutlook(draft) {
 }
 
 const sameSplit = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
+const signed = (percent) => (percent > 0 ? `+${percent}%` : `${percent}%`);
+const hourLabel = (hour) => (hour === 24 ? 'midnight' : `${String(hour).padStart(2, '0')}:00`);
+
+// ---------------------------------------------------------------------------
+// Dayparting (13.4, H4)
+// ---------------------------------------------------------------------------
+
+/** What Google Ads allows, and what the engine's clamp can express. */
+const DAYPART_RANGE = [-100, 900];
+
+/**
+ * Adjust the bid for one block of the day.
+ *
+ * @param {object} draft
+ * @param {number} index into DAYPART_BLOCKS
+ * @param {number} percent -100..900
+ * @returns {{ok: boolean, reason?: string}}
+ */
+export function setDaypart(draft, index, percent) {
+  if (!Number.isInteger(index) || index < 0 || index >= DAYPART_BLOCKS.length) {
+    return { ok: false, reason: `no daypart block ${String(index)}` };
+  }
+  const [lo, hi] = DAYPART_RANGE;
+  if (!Number.isInteger(percent) || percent < lo || percent > hi) {
+    return { ok: false, reason: `an adjustment is a whole percentage from ${lo} to ${hi}` };
+  }
+  const next = [...draft.daypartAdjustments];
+  next[index] = percent;
+  draft.daypartAdjustments = next;
+  return { ok: true };
+}
+
+/**
+ * Each block of the day, with what this account has actually seen in it.
+ *
+ * THE DATA IS THE PLAYER'S OWN. `bidding.observedByHour` is cumulative clicks
+ * and LANDED conversions per hour of day, written by the engine and carried in
+ * `getSelfView` — the same history a bid strategy has to accumulate before it
+ * can daypart at all (12.2, D2). `HOUR_PROFILES` and `HOURLY_INTENT_CURVE` are
+ * the model and are never shown; `tests/ui.test.js` fails if this file so much
+ * as names them.
+ *
+ * That is what makes the choice reasoned rather than a guess, and it is why the
+ * lesson works: I5 forces the demand peak and the intent peak apart, so the
+ * block with the most clicks is NOT the block with the best conversion rate.
+ * The table puts both columns side by side and says nothing — the player reads
+ * it off.
+ *
+ * @param {object} draft
+ * @returns {Array<object>} one row per block
+ */
+export function daypartRows(draft) {
+  const observed = draft.bidding?.observedByHour ?? null;
+
+  return DAYPART_BLOCKS.map((block, index) => {
+    let clicks = 0;
+    let conversions = 0;
+    let thinHours = 0;
+    for (let hour = block.start; hour < block.end; hour++) {
+      const seen = observed?.[hour] ?? { clicks: 0, conversions: 0 };
+      clicks += seen.clicks;
+      conversions += seen.conversions;
+      // MIN_HOUR_OBSERVATIONS is per HOUR, not per block: a block can hold
+      // plenty of clicks and still have no hour the strategy would trust.
+      if (seen.clicks < MIN_HOUR_OBSERVATIONS) thinHours++;
+    }
+    const percent = draft.daypartAdjustments[index] ?? 0;
+    return {
+      index,
+      label: block.label,
+      start: block.start,
+      end: block.end,
+      clicks,
+      conversions,
+      rate: clicks > 0 ? conversions / clicks : null,
+      thin: thinHours > 0,
+      thinHours,
+      hours: block.end - block.start,
+      percent,
+      // The engine's own function, asked once per block. Every hour in a block
+      // shares an adjustment, so any hour of it answers for all of them.
+      multiplier: daypartMultiplier(draft.daypartAdjustments, block.start),
+    };
+  });
+}
+
+/** This account's conversion rate across every hour it has data for. */
+export function observedRateOverall(draft) {
+  const observed = draft.bidding?.observedByHour ?? [];
+  let clicks = 0;
+  let conversions = 0;
+  for (const hour of observed) {
+    clicks += hour.clicks;
+    conversions += hour.conversions;
+  }
+  return clicks > 0 ? conversions / clicks : null;
+}
 
 // ---------------------------------------------------------------------------
 // Bidding (12)
@@ -881,6 +1002,7 @@ export function renderDecisions(ctx) {
       windowCard(ctx, refresh),
       biddingCard(ctx, refresh),
       splitCard(ctx, refresh),
+      daypartCard(ctx, refresh),
       negativesCard(ctx, refresh),
       keywordsCard(ctx, refresh),
     ].filter(Boolean));
@@ -1348,6 +1470,80 @@ function outlookBody(ctx) {
       + 'is no carry-over — so it is worth nothing unless you allocate it.'));
   }
   return out;
+}
+
+// --- dayparting ------------------------------------------------------------
+
+/**
+ * The six blocks of the day, and what this account has seen in each of them.
+ *
+ * The card says nothing about which hours are good. It puts clicks beside
+ * conversion rate and lets the player read it, because I5 forces the demand
+ * peak and the intent peak at least three hours apart — so the busiest block is
+ * reliably NOT the best-converting one, and noticing that is the whole of H4.
+ * Being told it would be a different and much smaller lesson.
+ */
+function daypartCard(ctx, refresh) {
+  const draft = ctx.draft;
+  const node = card('Hours of the day', 'when you bid more, and when you bid less');
+  const rows = daypartRows(draft);
+  const overall = observedRateOverall(draft);
+  const best = Math.max(...rows.map((r) => r.rate ?? 0));
+
+  const list = el('table', 'mini daypart');
+  table(list, [
+    'Block', 'Hours', { label: 'Clicks', num: true }, { label: 'Conv', num: true },
+    { label: 'Rate', num: true }, '', { label: 'Bid', num: true },
+  ], rows.map((row) => {
+    const box = input({
+      type: 'number',
+      value: String(row.percent),
+      min: String(DAYPART_RANGE[0]),
+      max: String(DAYPART_RANGE[1]),
+      step: '5',
+      onInput: (value) => {
+        const percent = Math.round(Number(value));
+        if (setDaypart(draft, row.index, percent).ok) refresh({ summaryOnly: true });
+      },
+    });
+
+    // Relative to this account's own average, not to anything the model knows.
+    const track = el('div', 'track');
+    const fill = el('div', `fill ${row.rate != null && overall != null && row.rate >= overall ? 'shown' : 'rank'}`);
+    fill.style.width = `${best > 0 ? Math.round(100 * ((row.rate ?? 0) / best)) : 0}%`;
+    track.append(fill);
+
+    return {
+      className: row.thin ? 'thin-hours' : null,
+      cells: [
+        row.label,
+        `${hourLabel(row.start)}–${hourLabel(row.end)}`,
+        whole(row.clicks),
+        row.conversions > 0 ? row.conversions.toFixed(1) : '0',
+        row.rate == null ? '—' : `${(100 * row.rate).toFixed(2)}%`,
+        track,
+        box,
+      ],
+    };
+  }));
+  node.append(list);
+
+  const thin = rows.filter((r) => r.thin);
+  if (thin.length > 0) {
+    node.append(el('p', 'note',
+      `${thin.length} of these blocks contain hours with fewer than `
+      + `${MIN_HOUR_OBSERVATIONS} clicks, marked above. A conversion rate built on `
+      + 'a handful of clicks is noise, and a bid adjustment made on it is a guess '
+      + 'with extra steps.'));
+  }
+
+  node.append(el('p', 'note',
+    'An adjustment multiplies what you bid in those hours. It does not make more '
+    + "people search, and it does not add money: the day's budget is the same, so "
+    + 'bidding harder in the morning leaves less for the evening. −100% bids the '
+    + 'minimum, which in practice drops you under the reserve and out of the '
+    + 'auction.'));
+  return node;
 }
 
 // --- negatives -------------------------------------------------------------

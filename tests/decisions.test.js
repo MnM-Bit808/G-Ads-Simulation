@@ -1,11 +1,12 @@
 import { describe, test, expect } from 'vitest';
 import { getSelfView, getPublicView } from '../engine/insights.js';
 import { blockedBy, matchesKeyword } from '../engine/matching.js';
-import { STRATEGIES, effectiveBidPaise } from '../engine/strategies.js';
+import { STRATEGIES, effectiveBidPaise, daypartMultiplier } from '../engine/strategies.js';
 import { allCells, parseCell, cellKey, isOneStep } from '../engine/positions.js';
 import { validateWeeklySplit } from '../engine/pacing.js';
 import {
   LEARNING_ROUNDS, REPOSITION_ROUND, CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE,
+  DAYPART_BLOCKS,
 } from '../engine/constants.js';
 import { submitRound, triggersLearning } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -17,6 +18,7 @@ import {
   setStrategy, setStrategyParam, willTriggerLearning, STRATEGY_PARAM,
   setCapex, setPosition, monthBudgetAfter,
   setWeekBudget, splitProblem, splitOutlook,
+  setDaypart, daypartRows,
 } from '../ui/decisions.js';
 
 /**
@@ -639,6 +641,116 @@ describe('the weekly split (13.4)', () => {
     expect(state.round).toBe(5);
     expect(new Set(fresh).size).toBeLessThanOrEqual(2);   // even, give or take the remainder
     expect(fresh[3]).not.toBe(100000);
+  });
+});
+
+describe('dayparting (13.4, H4)', () => {
+  const hourly = (per) => Array.from({ length: 24 }, (_, hour) => per(hour));
+  const withHours = (observedByHour) => ({
+    ...STATE,
+    advertisers: STATE.advertisers.map((a) => (a.id === PLAYER_ID
+      ? { ...a, bidding: { ...a.bidding, observedByHour } }
+      : a)),
+  });
+  const draftOf = (state) => createDraft(getSelfView(state, PLAYER_ID));
+
+  test('the blocks are the engine\'s, and they carry the player\'s own hours', () => {
+    // observedByHour is cumulative clicks and LANDED conversions per hour of
+    // day — the advertiser's own measurement, in getSelfView, and the only
+    // honest basis for a dayparting decision. HOUR_PROFILES and
+    // HOURLY_INTENT_CURVE are the model and are never shown.
+    const draft = draftOf(withHours(hourly((h) => ({ clicks: 100, conversions: h < 12 ? 2 : 8 }))));
+    const rows = daypartRows(draft);
+
+    expect(rows).toHaveLength(DAYPART_BLOCKS.length);
+    expect(rows.map((r) => r.label)).toEqual(DAYPART_BLOCKS.map((b) => b.label));
+    const afternoon = rows.find((r) => r.label === 'Afternoon');
+    expect(afternoon.clicks).toBe(500);          // 12..17
+    expect(afternoon.conversions).toBe(40);
+    expect(afternoon.rate).toBeCloseTo(0.08, 9);
+    expect(rows.find((r) => r.label === 'Late night').rate).toBeCloseTo(0.02, 9);
+  });
+
+  test('a block with too few clicks to judge says so', () => {
+    const thin = draftOf(withHours(hourly(() => ({ clicks: 1, conversions: 0 }))));
+    expect(daypartRows(thin).every((r) => r.thin)).toBe(true);
+
+    const thick = draftOf(withHours(hourly(() => ({ clicks: 500, conversions: 20 }))));
+    expect(daypartRows(thick).some((r) => r.thin)).toBe(false);
+  });
+
+  test('an account that has run nothing yet has no hours to show', () => {
+    const draft = draftOf(withHours(null));
+    expect(daypartRows(draft).every((r) => r.clicks === 0 && r.rate === null)).toBe(true);
+  });
+
+  test('every row reports the multiplier the ENGINE will apply', () => {
+    // Not a restatement of `1 + percent / 100`. The engine's own
+    // daypartMultiplier decides what a bid gets multiplied by, including its
+    // floor at zero, and the row has to agree with it for every hour of the
+    // block or the card is describing a different game.
+    const draft = draftOf(STATE);
+    [-100, -30, 0, 45, 250].forEach((percent, i) => setDaypart(draft, i, percent));
+
+    for (const row of daypartRows(draft)) {
+      for (let hour = row.start; hour < row.end; hour++) {
+        expect(row.multiplier, `${row.label} h${hour}`)
+          .toBeCloseTo(daypartMultiplier(draft.daypartAdjustments, hour), 12);
+      }
+    }
+  });
+
+  test('an adjustment is a whole percentage inside the range the engine can use', () => {
+    const draft = draftOf(STATE);
+    for (const bad of [-101, 1.5, NaN, Infinity, '50', 1000]) {
+      expect(setDaypart(draft, 0, bad).ok, String(bad)).toBe(false);
+    }
+    expect(setDaypart(draft, 9, 10).ok).toBe(false);      // no such block
+    expect(setDaypart(draft, 0, -100).ok).toBe(true);
+    expect(draft.daypartAdjustments[0]).toBe(-100);
+  });
+
+  test('changing one produces campaign.daypartAdjustments and nothing else', () => {
+    const draft = draftOf(STATE);
+    setDaypart(draft, 3, 40);
+    const decision = toDecision(draft);
+    expect(Object.keys(decision)).toEqual(['campaign']);
+    expect(Object.keys(decision.campaign)).toEqual(['daypartAdjustments']);
+    expect(decision.campaign.daypartAdjustments[3]).toBe(40);
+  });
+
+  test('and it does not trigger a learning period (12.3)', () => {
+    const draft = draftOf(STATE);
+    setDaypart(draft, 3, 40);
+    expect(willTriggerLearning(draft)).toBe(false);
+    expect(triggersLearning(player(), toDecision(draft))).toBe(false);
+  });
+
+  test('turning every block down to the floor all but stops the account', () => {
+    // -100% takes the multiplier to zero, and effectiveBidPaise then clamps to
+    // MIN_BID_PAISE rather than to nothing — so it is not an off switch, it is
+    // a bid of ₹1. That lands below the ad rank floor, which is why it behaves
+    // like one. The card says "the minimum", not "off".
+    const draft = draftOf(STATE);
+    for (let i = 0; i < DAYPART_BLOCKS.length; i++) setDaypart(draft, i, -100);
+
+    const before = submitRound(STATE, {}, { mode: 'expected' });
+    const after = submitRound(STATE, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' });
+    const impressions = (r) => r.report.byAdvertiser[PLAYER_ID].traffic.impressions;
+
+    expect(impressions(before)).toBeGreaterThan(0);
+    expect(impressions(after)).toBeLessThan(impressions(before) * 0.01);
+  });
+
+  test('and raising a block raises what it spends there', () => {
+    const draft = draftOf(STATE);
+    const evening = DAYPART_BLOCKS.findIndex((b) => b.label === 'Evening');
+    setDaypart(draft, evening, 100);
+
+    const before = submitRound(STATE, {}, { mode: 'expected' });
+    const after = submitRound(STATE, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' });
+    const cost = (r) => r.report.byAdvertiser[PLAYER_ID].traffic.costPaise;
+    expect(cost(after)).toBeGreaterThan(cost(before));
   });
 });
 

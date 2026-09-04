@@ -28,7 +28,9 @@
 
 import { el, add, table, figure, rupees, whole, ratio } from './dom.js';
 import { cellKey } from '../engine/positions.js';
-import { CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE } from '../engine/constants.js';
+import {
+  CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE, DAYPART_BLOCKS,
+} from '../engine/constants.js';
 
 const STRATEGY_NAMES = {
   manual: 'Manual CPC',
@@ -177,6 +179,24 @@ export function summariseDecisions(decisionLog, playerId, opening) {
         ? ` at ${rupees(params.targetCpaPaise)}`
         : (decision.campaign.strategy === 'targetRoas' ? ` at ${ratio(params.targetRoas)}` : '');
       lines.push(`Switched bidding to ${name}${target}`);
+    }
+
+    // Reported as SUBMITTED rather than diffed, unlike negatives and keywords.
+    // Both of these are short fixed-length arrays whose baseline drifts without
+    // a decision — `advanceCampaign` re-evens the split at every month boundary
+    // — so a diff would attribute the engine's reset to the player. What they
+    // sent is unambiguous and needs no baseline at all.
+    if (decision.campaign?.weeklySplitPaise) {
+      lines.push(`Planned the month as ${decision.campaign.weeklySplitPaise.map(rupees).join(' / ')}`);
+    }
+
+    if (decision.campaign?.daypartAdjustments) {
+      const moved = decision.campaign.daypartAdjustments
+        .map((percent, i) => [percent, DAYPART_BLOCKS[i]?.label ?? `block ${i}`])
+        .filter(([percent]) => percent !== 0);
+      lines.push(moved.length === 0
+        ? 'Cleared every hour-of-day adjustment'
+        : `Bid ${moved.map(([percent, label]) => `${percent > 0 ? '+' : ''}${percent}% ${label.toLowerCase()}`).join(', ')}`);
     }
 
     if (decision.campaign?.negatives) {
