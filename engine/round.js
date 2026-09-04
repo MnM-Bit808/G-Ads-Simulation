@@ -197,6 +197,11 @@ export function runRound(gameState, options = {}) {
       // the loop because the month ceiling has to bind during it, not after.
       monthSpentPaise: budgets[i].monthSpentPaise,
       weekBudgetPaise: budgets[i].weekBudgetPaise,
+      // Spec 15.2 lists both of these in the report's budget block and neither
+      // was ever carried. 13.2 asks the UI for "a burn-down of remaining pot
+      // against rounds remaining", and the second number did not exist.
+      weeklySplitPaise: [...(a.campaign.weeklySplitPaise ?? [])],
+      roundsRemainingInMonth: ROUNDS_PER_MONTH - 1 - ((round - 1) % ROUNDS_PER_MONTH),
       keywordForQuery: keywordForQuery(entryPlan[i], queries),
     }])),
     pairwise: { ...pairwise, ids: advertisers.map((a) => a.id) },

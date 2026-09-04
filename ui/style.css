@@ -562,3 +562,15 @@ tr.unsettled td:first-child::after { content: " ← still arriving"; font-size: 
 }
 .log-lines { font-size: 0.82rem; line-height: 1.55; }
 .log-lines div + div { margin-top: 0.15rem; }
+
+/* --- the weekly split ---------------------------------------------------- */
+
+.week-done {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.55rem;
+}
+.week-spent { font-family: var(--mono); font-size: 0.85rem; }
+.week-planned { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
+.staged-row.budget { border-left-color: var(--accent); }

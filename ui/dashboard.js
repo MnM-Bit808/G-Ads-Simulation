@@ -24,7 +24,7 @@ import { getPublicView } from '../engine/insights.js';
 import { briefing } from '../setup.js';
 import { renderDecisions, addNegative, blocksTerm } from './decisions.js';
 import { rankOf } from './ending.js';
-import { MONTHLY_BUDGET_PAISE } from '../engine/constants.js';
+import { MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH } from '../engine/constants.js';
 
 // ---------------------------------------------------------------------------
 // Panels
@@ -160,6 +160,25 @@ function accumulate(game, which, range) {
 }
 
 /**
+ * What each week of the CURRENT month has spent so far, by week index.
+ *
+ * A month is ROUNDS_PER_MONTH rounds, and a round's index within it is
+ * `(round - 1) % ROUNDS_PER_MONTH` — the same arithmetic `buildBudgets` uses to
+ * pick which week's budget to spend.
+ */
+function spentByWeekOfMonth(game) {
+  const round = game.state.round;
+  const monthStart = round - ((round - 1) % ROUNDS_PER_MONTH);
+  const out = {};
+  for (const stored of game.state.history) {
+    if (stored.round < monthStart || stored.round >= monthStart + ROUNDS_PER_MONTH) continue;
+    const row = stored.byAdvertiser?.[game.playerId];
+    if (row) out[(stored.round - 1) % ROUNDS_PER_MONTH] = row.traffic.costPaise;
+  }
+  return out;
+}
+
+/**
  * 15.2 and 8.2: the search terms report, and the only route to negatives.
  * A button on the row is the whole interaction.
  *
@@ -269,7 +288,11 @@ function renderBudget(root, row, game) {
   track.append(fill);
   const legend = el('div', 'legend');
   legend.append(el('span', null, `${rupees(b.monthSpentPaise)} spent`));
-  legend.append(el('span', null, `${rupees(b.monthRemainingPaise)} left`));
+  // 13.2 asks for the pot AGAINST the weeks left to spend it in, and until the
+  // report carried roundsRemainingInMonth the second half could not be drawn.
+  legend.append(el('span', null,
+    `${rupees(b.monthRemainingPaise)} left, ${b.roundsRemainingInMonth} `
+    + `week${b.roundsRemainingInMonth === 1 ? '' : 's'} to spend it`));
   burn.append(track, legend);
   body.append(burn);
 
@@ -361,6 +384,9 @@ export function renderDashboard(game, onDecisionChange) {
     // What a founder could research (17.2), from the same function round 0
     // uses — so the two screens cannot disagree about the grid.
     brief: briefing(game.state.querySet),
+    // What each week of this month actually spent, so the split card can show
+    // it beside what that week was planned. Addition of report figures.
+    spentByWeek: spentByWeekOfMonth(game),
     terms: null,
     byKeyword: null,
     /** Both breakdowns follow whichever range the report is showing. */

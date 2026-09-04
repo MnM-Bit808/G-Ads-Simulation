@@ -3,8 +3,9 @@ import { getSelfView, getPublicView } from '../engine/insights.js';
 import { blockedBy, matchesKeyword } from '../engine/matching.js';
 import { STRATEGIES, effectiveBidPaise } from '../engine/strategies.js';
 import { allCells, parseCell, cellKey, isOneStep } from '../engine/positions.js';
+import { validateWeeklySplit } from '../engine/pacing.js';
 import {
-  LEARNING_ROUNDS, REPOSITION_ROUND, CAPEX_ALLOCATION_PAISE,
+  LEARNING_ROUNDS, REPOSITION_ROUND, CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE,
 } from '../engine/constants.js';
 import { submitRound, triggersLearning } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -15,6 +16,7 @@ import {
   addKeyword, updateKeyword, previewNegative,
   setStrategy, setStrategyParam, willTriggerLearning, STRATEGY_PARAM,
   setCapex, setPosition, monthBudgetAfter,
+  setWeekBudget, splitProblem, splitOutlook,
 } from '../ui/decisions.js';
 
 /**
@@ -518,6 +520,126 @@ describe('the month the two of them leave you', () => {
     const to = allCells().map(parseCell).find((c) => isOneStep(from, c));
     return cellKey(to.price, to.purpose);
   }
+});
+
+describe('the weekly split (13.4)', () => {
+  const draftAt = (state) => createDraft(getSelfView(state, PLAYER_ID),
+    { allocationRounds: state.budgetSchedule.capexAllocationRounds });
+
+  test('the draft knows which week the next round is', () => {
+    // buildBudgets reads split[(round - 1) % ROUNDS_PER_MONTH], so week 1 of a
+    // month is index 0 and the form has to point at the right box.
+    expect(draftAt(makeGameState({ round: 1 })).weekIndex).toBe(0);
+    expect(draftAt(makeGameState({ round: 3 })).weekIndex).toBe(2);
+    expect(draftAt(makeGameState({ round: 5 })).weekIndex).toBe(0);
+    expect(draftAt(makeGameState({ round: 8 })).weekIndex).toBe(3);
+  });
+
+  test('changing a week produces campaign.weeklySplitPaise and nothing else', () => {
+    const draft = draftAt(makeGameState({ round: 2 }));
+    expect(setWeekBudget(draft, 3, 5000000).ok).toBe(true);
+    const decision = toDecision(draft);
+    expect(Object.keys(decision)).toEqual(['campaign']);
+    expect(Object.keys(decision.campaign)).toEqual(['weeklySplitPaise']);
+    expect(decision.campaign.weeklySplitPaise[3]).toBe(5000000);
+  });
+
+  test('a week that has already run cannot be re-planned', () => {
+    // Editing it changes nothing in the engine - buildBudgets only ever reads
+    // the current index - so offering it would be a control that does nothing.
+    const draft = draftAt(makeGameState({ round: 3 }));
+    const was = draft.weeklySplitPaise[0];
+    expect(setWeekBudget(draft, 0, 1).ok).toBe(false);
+    expect(setWeekBudget(draft, 1, 1).ok).toBe(false);
+    expect(draft.weeklySplitPaise[0]).toBe(was);
+    expect(setWeekBudget(draft, 2, 1).ok).toBe(true);
+  });
+
+  test('a week is whole paise, and zero is allowed because going dark is a play', () => {
+    const draft = draftAt(makeGameState({ round: 1 }));
+    for (const bad of [-1, 1.5, NaN, Infinity, '400']) {
+      expect(setWeekBudget(draft, 2, bad).ok, String(bad)).toBe(false);
+    }
+    expect(setWeekBudget(draft, 2, 0).ok).toBe(true);
+  });
+
+  test('a split over the month is allowed, and warned about in rupees', () => {
+    // 13.2 makes the month a hard cap and says outright that burning the pot
+    // early is a player-caused, visible, forecastable cliff. So the form warns
+    // rather than refuses. R7 puts formatting at the display layer: the
+    // validator's own message quotes raw paise because it is written for a
+    // thrown error, and piping it to screen showed "totals 35100000 paise".
+    const draft = draftAt(makeGameState({ round: 1 }));
+    setWeekBudget(draft, 3, MONTHLY_BUDGET_PAISE);
+    expect(toDecision(draft)).not.toBeNull();
+    expect(splitProblem(draft)).toMatch(/₹/);
+    expect(splitProblem(draft)).not.toMatch(/paise/);
+  });
+
+  test('at the top of a month it agrees with the engine, which is where the engine has an opinion', () => {
+    // splitProblem compares the plan for the weeks STILL TO RUN against what is
+    // left of the month. At week 1 nothing has run, so it collapses to exactly
+    // the rule validateWeeklySplit enforces at round 0 — and must agree with it.
+    const draft = draftAt(makeGameState({ round: 1 }));
+    const agrees = () => expect(splitProblem(draft) === null)
+      .toBe(validateWeeklySplit(draft.weeklySplitPaise, draft.monthlyBudgetPaise).valid);
+
+    agrees();
+    setWeekBudget(draft, 3, MONTHLY_BUDGET_PAISE);
+    agrees();
+    setWeekBudget(draft, 3, 0);
+    agrees();
+  });
+
+  test('and mid-month it forgives weeks that came in under their plan', () => {
+    // The case that was crying wolf on screen: two weeks planned at their share
+    // and spent a fraction of it leave MORE in the pot, not less, so the whole
+    // split exceeding the whole month says nothing the player can act on.
+    let state = makeGameState({ round: 1 });
+    state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+    state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+
+    const draft = draftAt(state);
+    expect(draft.weekIndex).toBe(2);
+    expect(draft.monthSpentPaise).toBeGreaterThan(0);
+    // Plan every remaining rupee and not one more.
+    setWeekBudget(draft, 2, splitOutlook(draft).remainingPaise - draft.weeklySplitPaise[3]);
+    expect(validateWeeklySplit(draft.weeklySplitPaise, draft.monthlyBudgetPaise).valid).toBe(false);
+    expect(splitProblem(draft)).toBeNull();
+  });
+
+  test('changing the budget does not trigger a learning period (12.3)', () => {
+    const state = makeGameState({ round: 2 });
+    const draft = draftAt(state);
+    setWeekBudget(draft, 2, 4000000);
+    expect(willTriggerLearning(draft)).toBe(false);
+    expect(triggersLearning(state.advertisers[0], toDecision(draft))).toBe(false);
+  });
+
+  test('the round spends what the week was set to', () => {
+    const state = makeGameState({ round: 2 });
+    const draft = draftAt(state);
+    setWeekBudget(draft, 1, 2500000);
+    const out = submitRound(state, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' });
+    expect(out.report.byAdvertiser[PLAYER_ID].budget.weeklySplitPaise[1]).toBe(2500000);
+  });
+
+  test('and the month boundary flattens it again, which the form must say', () => {
+    // advanceCampaign RESETS weeklySplitPaise to an even split whenever a month
+    // turns over, because the month's total may have changed. A player's shape
+    // does not survive it. This is the trap item 6 exists to make visible.
+    let state = makeGameState({ round: 3 });
+    const draft = draftAt(state);
+    setWeekBudget(draft, 3, 100000);
+    state = submitRound(state, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' }).nextGameState;
+    expect(state.advertisers[0].campaign.weeklySplitPaise[3]).toBe(100000);
+
+    state = submitRound(state, {}, { mode: 'expected' }).nextGameState;   // round 4 -> 5
+    const fresh = state.advertisers[0].campaign.weeklySplitPaise;
+    expect(state.round).toBe(5);
+    expect(new Set(fresh).size).toBeLessThanOrEqual(2);   // even, give or take the remainder
+    expect(fresh[3]).not.toBe(100000);
+  });
 });
 
 describe('the round actually receives it', () => {

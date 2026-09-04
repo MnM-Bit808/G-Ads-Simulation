@@ -105,6 +105,11 @@ export function buildRoundReport({ round, raw, advertisers }) {
         monthSpentPaise: r.monthSpentPaise,
         monthRemainingPaise: Math.max(0, r.monthlyBudgetPaise - r.monthSpentPaise),
         weekBudgetPaise: r.weekBudgetPaise,
+        // 15.2 lists both. `roundsRemainingInMonth` counts the rounds AFTER
+        // this one, which is the figure 13.2's burn-down needs: what is left,
+        // and how many weeks are left to spend it in.
+        weeklySplitPaise: [...(r.weeklySplitPaise ?? [])],
+        roundsRemainingInMonth: r.roundsRemainingInMonth ?? 0,
         dailySpendPaise: [...r.dailySpendPaise],
       },
       quality: {},

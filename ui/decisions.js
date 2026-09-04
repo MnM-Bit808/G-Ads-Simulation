@@ -35,7 +35,7 @@ import { STRATEGIES } from '../engine/strategies.js';
 import { canReposition, isOneStep, allCells, parseCell, cellKey } from '../engine/positions.js';
 import {
   LEARNING_ROUNDS, MAX_BID_MULTIPLE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
-  CAPEX_TIER_CURVE, REPOSITION_COST_PAISE,
+  CAPEX_TIER_CURVE, REPOSITION_COST_PAISE, ROUNDS_PER_MONTH,
 } from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
@@ -151,6 +151,13 @@ export function createDraft(selfView, options = {}) {
     capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
     committed: structuredClone(selfView.capex?.committed ?? {}),
     monthlyBudgetPaise: selfView.campaign?.monthlyBudgetPaise ?? 0,
+    monthSpentPaise: selfView.campaign?.monthSpentPaise ?? 0,
+
+    // 13.4's middle level. `buildBudgets` reads
+    // `split[(round - 1) % ROUNDS_PER_MONTH]`, so this is the box the round
+    // about to run will actually spend from.
+    weeklySplitPaise: [...(selfView.campaign?.weeklySplitPaise ?? [])],
+    weekIndex: (selfView.round - 1) % ROUNDS_PER_MONTH,
 
     base: {
       negatives: structuredClone(negatives),
@@ -158,6 +165,7 @@ export function createDraft(selfView, options = {}) {
       strategy,
       strategyParams: structuredClone(strategyParams),
       position: structuredClone(selfView.position ?? null),
+      weeklySplitPaise: [...(selfView.campaign?.weeklySplitPaise ?? [])],
     },
   };
 }
@@ -192,6 +200,9 @@ export function toDecision(draft) {
 
   if (!sameNegatives(draft.negatives, draft.base.negatives)) {
     campaign.negatives = structuredClone(draft.negatives);
+  }
+  if (!sameSplit(draft.weeklySplitPaise, draft.base.weeklySplitPaise)) {
+    campaign.weeklySplitPaise = [...draft.weeklySplitPaise];
   }
   if (biddingChanged(draft)) {
     campaign.strategy = draft.strategy;
@@ -260,6 +271,19 @@ export function changes(draft) {
       undo: spent > 0 ? () => resetCapex(draft) : null,
     });
   }
+
+  draft.weeklySplitPaise.forEach((paise, index) => {
+    const before = draft.base.weeklySplitPaise[index];
+    if (paise === before) return;
+    rows.push({
+      kind: 'budget',
+      label: `Week ${index + 1} budget ${rupees(before)} → ${rupees(paise)}`,
+      detail: index === draft.weekIndex
+        ? 'the week about to run'
+        : `week ${index + 1} of this month, and the month resets the plan after that`,
+      undo: () => setWeekBudget(draft, index, before),
+    });
+  });
 
   if (draft.strategy !== draft.base.strategy) {
     rows.push({
@@ -446,6 +470,90 @@ function movedPosition(draft) {
   if (!from || !to) return false;
   return from.price !== to.price || from.purpose !== to.purpose;
 }
+
+// ---------------------------------------------------------------------------
+// The weekly split (13.4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Plan one week of this month.
+ *
+ * A week that has already run is refused. `buildBudgets` only ever reads the
+ * index of the round about to play, so editing a spent week changes nothing —
+ * offering it would be a control that does nothing, which is worse than not
+ * offering it.
+ *
+ * Zero is allowed. Going dark for a week is a legitimate play and 13.2 discusses
+ * it directly; it is the month's hard cap that is not negotiable, not this.
+ *
+ * @param {object} draft
+ * @param {number} index 0..ROUNDS_PER_MONTH-1
+ * @param {number} paise
+ * @returns {{ok: boolean, reason?: string}}
+ */
+export function setWeekBudget(draft, index, paise) {
+  if (!Number.isInteger(index) || index < 0 || index >= draft.weeklySplitPaise.length) {
+    return { ok: false, reason: `no week ${String(index)} in this month` };
+  }
+  if (index < draft.weekIndex) {
+    return { ok: false, reason: 'that week has already run' };
+  }
+  if (!Number.isSafeInteger(paise) || paise < 0) {
+    return { ok: false, reason: 'a week is a whole number of paise, or nothing' };
+  }
+  const next = [...draft.weeklySplitPaise];
+  next[index] = paise;
+  draft.weeklySplitPaise = next;
+  return { ok: true };
+}
+
+/**
+ * What is wrong with this plan, said in rupees, or null.
+ *
+ * It compares what is planned for the weeks STILL TO RUN against what is left
+ * of the month, and not the whole split against the whole month. Mid-month the
+ * second question is the wrong one: weeks 1 and 2 spending ₹8,963 and ₹30,120
+ * of a planned ₹67,000 each leaves far more in the pot than the split's total
+ * suggests, and warning off a total of ₹3,21,000 when only ₹1,87,000 is
+ * actually planned ahead is crying wolf.
+ *
+ * At the top of a month the two are the same question — nothing has run, so the
+ * remaining plan IS the split and the remaining money IS the month — and there
+ * `decisions.test.js` asserts this agrees with `validateWeeklySplit`, which is
+ * the rule `setup.js` enforces at round 0. That is where the engine has an
+ * opinion; mid-month it has none, because 13.2's cap simply binds during the
+ * round instead.
+ *
+ * @param {object} draft
+ * @returns {string|null}
+ */
+export function splitProblem(draft) {
+  const { remainingPaise, plannedPaise } = splitOutlook(draft);
+  if (plannedPaise <= remainingPaise) return null;
+  return `This plans ${rupees(plannedPaise)} against ${rupees(remainingPaise)} left in the month`;
+}
+
+/**
+ * The month's money against the plan for what is left of it.
+ *
+ * 13.2's use-it-or-lose-it, made arithmetic: unspent money is gone at the month
+ * boundary, so a plan that leaves the pot unfinished is a plan to throw some of
+ * it away.
+ *
+ * @param {object} draft
+ * @returns {{remainingPaise: number, plannedPaise: number, weeksLeft: number}}
+ */
+export function splitOutlook(draft) {
+  const remainingPaise = Math.max(0, draft.monthlyBudgetPaise - draft.monthSpentPaise);
+  const ahead = draft.weeklySplitPaise.slice(draft.weekIndex);
+  return {
+    remainingPaise,
+    plannedPaise: ahead.reduce((a, b) => a + b, 0),
+    weeksLeft: ahead.length,
+  };
+}
+
+const sameSplit = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 
 // ---------------------------------------------------------------------------
 // Bidding (12)
@@ -772,6 +880,7 @@ export function renderDecisions(ctx) {
       // two and are gone the week after.
       windowCard(ctx, refresh),
       biddingCard(ctx, refresh),
+      splitCard(ctx, refresh),
       negativesCard(ctx, refresh),
       keywordsCard(ctx, refresh),
     ].filter(Boolean));
@@ -1126,6 +1235,119 @@ function ownRoasHint(ctx) {
   return Number.isFinite(net)
     ? `your net return last week was ${ratio(net)}, and it is still being revised`
     : 'you have no return to compare this against yet';
+}
+
+// --- the weekly split ------------------------------------------------------
+
+/**
+ * How this month's money is divided across its four weeks (13.4).
+ *
+ * THE TRAP IT EXISTS TO MAKE VISIBLE. `advanceCampaign` RESETS the split to an
+ * even one at every month boundary, because the month's total may have changed
+ * — month 3 is redistributed by rank. So a shape the player set in month 1 does
+ * not survive into month 2, and until this card said so it flattened in
+ * silence. The card re-asks at the top of each month rather than pretending the
+ * plan carried.
+ *
+ * Weeks that have already run are shown with what they actually SPENT beside
+ * what they were planned, which is the comparison 13.2's burn-down is for:
+ * unspent money is lost at the month boundary, so a plan that leaves the pot
+ * unfinished is a plan to throw some of it away.
+ */
+function splitCard(ctx, refresh) {
+  const draft = ctx.draft;
+  if (draft.weeklySplitPaise.length === 0) return null;
+
+  const node = card("This month's budget", "how the month is divided across its weeks");
+
+  if (draft.weekIndex === 0 && draft.round > 1) {
+    node.append(el('p', 'learning-now',
+      'A new month opens with an even split. Whatever shape you gave last month '
+      + "did not carry over — the month's total can change, so the plan is made "
+      + 'again from scratch. This is the moment to set it.'));
+  }
+
+  // Redrawn on every keystroke; the inputs above are not, or the caret would go
+  // with them. Same split the bidding card makes for the same reason.
+  const outlook = el('div', 'split-outlook');
+  const drawOutlook = () => outlook.replaceChildren(...outlookBody(ctx));
+
+  const row = el('div', 'split-row');
+  draft.weeklySplitPaise.forEach((paise, index) => {
+    const spent = ctx.spentByWeek?.[index];
+    const past = index < draft.weekIndex;
+    const now = index === draft.weekIndex;
+
+    if (past) {
+      // Read-only, with what it actually SPENT beside what it was planned.
+      // Editing it would change nothing — buildBudgets only ever reads the
+      // index of the round about to run — and a control that does nothing is
+      // worse than no control.
+      const box = el('div', 'week-done');
+      box.append(el('div', 'week-spent', spent == null ? '—' : rupees(spent)));
+      box.append(el('div', 'week-planned', `of ${rupees(paise)} planned`));
+      row.append(field(`Week ${index + 1}`, box, null));
+      return;
+    }
+
+    const box = input({
+      type: 'number',
+      value: String(Math.round(paise / 100)),
+      min: '0',
+      step: '100',
+      onInput: (value) => {
+        if (setWeekBudget(draft, index, Math.max(0, Math.round(Number(value) * 100))).ok) {
+          drawOutlook();
+          refresh({ summaryOnly: true });
+        }
+      },
+    });
+    row.append(field(`Week ${index + 1}`, box, now ? 'the week about to run' : null));
+  });
+  node.append(row);
+
+  drawOutlook();
+  node.append(outlook);
+
+  if (draft.capexOpen || (draft.repositionOpen && movedPosition(draft))) {
+    node.append(el('p', 'note',
+      'These amounts will be rescaled to whatever this month ends up being once '
+      + 'the capital above is settled, keeping the shape you set here. Set the '
+      + 'shape rather than the exact rupees.'));
+  }
+  return node;
+}
+
+/** The consequence of the plan as it currently stands. */
+function outlookBody(ctx) {
+  const draft = ctx.draft;
+  const out = [];
+  const outlook = splitOutlook(draft);
+  const problem = splitProblem(draft);
+
+  if (problem) {
+    out.push(el('p', 'problems',
+      `${problem}. The month is a hard cap, so this does not buy you more — it `
+      + 'burns the pot early and goes dark for the rest of the month.'));
+  }
+
+  const line = el('p', 'month-after');
+  line.append(document.createTextNode(
+    `${outlook.weeksLeft} week${outlook.weeksLeft === 1 ? '' : 's'} left in this month, `,
+  ));
+  line.append(el('strong', null, rupees(outlook.remainingPaise)));
+  line.append(document.createTextNode(
+    ` of the month still unspent, and ${rupees(outlook.plannedPaise)} planned across them.`,
+  ));
+  out.push(line);
+
+  if (!problem && outlook.plannedPaise < outlook.remainingPaise) {
+    out.push(el('p', 'note',
+      `That leaves ${rupees(outlook.remainingPaise - outlook.plannedPaise)} you have `
+      + 'not planned to spend. Unspent money is lost at the month boundary — there '
+      + 'is no carry-over — so it is worth nothing unless you allocate it.'));
+  }
+  return out;
 }
 
 // --- negatives -------------------------------------------------------------
