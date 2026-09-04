@@ -97,10 +97,7 @@ export function buildRoundReport({ round, raw, advertisers }) {
       quality: {},
       missedToBudget: missedToBudget(r, business),
       warnings: [...(r.warnings ?? [])],
-      breakdown: {
-        byKeyword: Object.fromEntries(r.byKeyword ?? []),
-        byQuery: Object.fromEntries(r.byQuery ?? []),
-      },
+      breakdown: attributeConversions(r, ownLanded),
     };
   }
 
@@ -191,6 +188,9 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
 
       byAdvertiser[advertiser.id] = {
         ...existing,
+        breakdown: reviseBreakdown(
+          existing.breakdown, r.keywordForQuery ?? new Map(), lateLanded,
+        ),
         conversions: {
           ...existing.conversions,
           final: conversions,
@@ -261,6 +261,59 @@ export function buildRoundOutput({ round, raw, advertisers }) {
 }
 
 // ---------------------------------------------------------------------------
+
+/**
+ * The search terms report, with the column that makes it actionable.
+ *
+ * Spec 15.2 specifies `conversions` on both breakdown rows and the engine
+ * recorded impressions, clicks and cost only — so `byQuery`, which 15.2 calls
+ * the search terms report and the ONLY tool for writing negatives (8.2), could
+ * tell you what a query cost and never what it earned. A policy reading it to
+ * find waste blocked its own best keywords, because every row looked like a row
+ * with no conversions.
+ *
+ * Attributed from LANDED conversions, on the same clock as every other figure
+ * in the report, and revised into earlier reports as the rest arrive (11.4). So
+ * a query reads as worthless for a round or two before its conversions turn up,
+ * which is exactly the trap the real search terms report sets.
+ *
+ * @param {object} r raw accumulator for one advertiser
+ * @param {Array<object>} landed this round's own landed conversions
+ * @returns {{byKeyword: object, byQuery: object}}
+ */
+function attributeConversions(r, landed) {
+  const byQuery = {};
+  for (const [id, row] of r.byQuery ?? []) byQuery[id] = { ...row, conversions: 0 };
+  const byKeyword = {};
+  for (const [id, row] of r.byKeyword ?? []) byKeyword[id] = { ...row, conversions: 0 };
+
+  const keywordFor = r.keywordForQuery ?? new Map();
+  for (const entry of landed) {
+    const queryRow = byQuery[entry.queryId];
+    if (queryRow) queryRow.conversions += entry.count;
+    const keywordRow = byKeyword[keywordFor.get(entry.queryId)];
+    if (keywordRow) keywordRow.conversions += entry.count;
+  }
+  return { byKeyword, byQuery };
+}
+
+/** Add later arrivals to the breakdown rows they belong to. */
+function reviseBreakdown(breakdown, keywordFor, late) {
+  const byQuery = { ...breakdown.byQuery };
+  const byKeyword = { ...breakdown.byKeyword };
+  for (const entry of late) {
+    const queryRow = byQuery[entry.queryId];
+    if (queryRow) {
+      byQuery[entry.queryId] = { ...queryRow, conversions: (queryRow.conversions ?? 0) + entry.count };
+    }
+    const keywordId = keywordFor.get(entry.queryId);
+    const keywordRow = byKeyword[keywordId];
+    if (keywordRow) {
+      byKeyword[keywordId] = { ...keywordRow, conversions: (keywordRow.conversions ?? 0) + entry.count };
+    }
+  }
+  return { byKeyword, byQuery };
+}
 
 function moneyBlock({ costPaise, conversions, grossRevenuePaise, returnedRevenuePaise, marginPct }) {
   const netRevenuePaise = grossRevenuePaise - returnedRevenuePaise;

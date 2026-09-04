@@ -369,6 +369,10 @@ function recordAuction({
 
     bump(a.byKeyword, e._plan.keyword.id, impressions, clicks, cost);
     bump(a.byQuery, query.id, impressions, clicks, cost);
+    // One advertiser matches one query through one ad group per round (8.6),
+    // so this mapping is total and lets a landed conversion reach the keyword
+    // that earned it as well as the query.
+    a.keywordForQuery.set(query.id, e._plan.keyword.id);
 
     // Conversions accumulate per advertiser-query and are queued once at the
     // end of the round: 1,350 queue calls instead of 226,800.
@@ -477,6 +481,7 @@ function settleRound({ advertisers, business, acc, convAccum, queries, round, pe
         round,
         rng: perAdvertiserRng[i],
         mode,
+        queryId,
       }));
     }
 
@@ -861,6 +866,7 @@ function freshAccumulator() {
     spentTodayPaise: 0,
     byKeyword: new Map(),
     byQuery: new Map(),
+    keywordForQuery: new Map(),
     qualityRows: new Map(),
     warnings: new Set(),
   };

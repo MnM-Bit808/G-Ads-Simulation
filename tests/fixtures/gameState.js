@@ -9,7 +9,7 @@ import { QUERY_SET } from '../../content/querySet.js';
 import { BRAND_IDENTITIES } from '../../content/brands.js';
 import { homeCell } from '../../engine/querySet.js';
 import {
-  allCells, parseCell, businessFor, realisedBreakEvenCpcPaise,
+  allCells, parseCell, businessFor, realisedBreakEvenCpcPaise, realisedConvRate,
 } from '../../engine/positions.js';
 import {
   SCHEMA_VERSION, MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH,
@@ -58,6 +58,18 @@ function positionFor(index) {
  * what it could actually afford, nobody ever met their reserve, and the market
  * read as placid. Median CPC 979 became 2000 when this was corrected.
  */
+/**
+ * Enough prior clicks for a bid strategy to be out of high-error territory,
+ * and few enough that a test can still move the number.
+ */
+const SEEDED_CLICKS = 4286;
+
+/** What this position really converts at on its own territory. */
+function seededRate(position) {
+  const business = businessFor(position, EMPTY_CAPEX, 1);
+  return Math.round(realisedConvRate(business, QUERY_SET, position) * 10000) / 10000;
+}
+
 function bidFor(position) {
   const business = businessFor(position, EMPTY_CAPEX, 1);
   return Math.round(realisedBreakEvenCpcPaise(business, QUERY_SET, position) * 0.70);
@@ -128,13 +140,21 @@ export function makeAdvertisers(over = {}) {
       }],
       bidding: {
         learningRoundsRemaining: 0,
-        // Seeded consistently: the engine now derives observedConvRate as
-        // observedConversions / observedClicks, so a history of 120
-        // conversions has to carry the clicks that produced them or the
-        // fixture hands every test a rate it invented.
-        observedConvRate: 0.028,
-        observedConversions: 120,
-        observedClicks: 4286,
+        // Prior history, seeded from what this position ACTUALLY converts at
+        // on its own territory rather than from the neutral-query figure.
+        //
+        // It used to be a flat 0.028 for all nine, which is the mid-market
+        // convRateBase and roughly a third of what any of them really sees. A
+        // policy reading it concluded it could afford a third of its real
+        // ceiling, bid accordingly, won nothing, and therefore gathered no
+        // data to correct itself with. The same neutral-versus-realised
+        // confusion that had the fixture's BIDS wrong, one field along.
+        //
+        // observedConvRate is derived by the engine as conversions / clicks,
+        // so the two have to be consistent or the fixture invents a rate.
+        observedConvRate: seededRate(position),
+        observedConversions: Math.round(SEEDED_CLICKS * seededRate(position)),
+        observedClicks: SEEDED_CLICKS,
         observedByHour: null,
       },
       pendingConversions: [],

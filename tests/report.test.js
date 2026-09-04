@@ -78,6 +78,71 @@ describe('gross and net diverge in the report', () => {
   });
 });
 
+describe('the search terms report says what a query EARNED (spec 15.2)', () => {
+  const row = R1.report.byAdvertiser[PLAYER_ID];
+
+  test('every breakdown row carries conversions, not just cost', () => {
+    // 15.2 specifies conversions on both rows and the engine recorded
+    // impressions, clicks and costPaise only. byQuery IS the search terms
+    // report and, since negatives are string-only (8.2), the ONLY tool for
+    // writing them - so it could tell you what a query cost and never what it
+    // earned. A policy reading it to find waste blocked its own best keywords,
+    // because every row looked like a row with no conversions.
+    for (const [id, r] of Object.entries(row.breakdown.byQuery)) {
+      expect(r, id).toHaveProperty('conversions');
+      expect(Number.isFinite(r.conversions), id).toBe(true);
+    }
+    for (const [id, r] of Object.entries(row.breakdown.byKeyword)) {
+      expect(r, id).toHaveProperty('conversions');
+      expect(Number.isFinite(r.conversions), id).toBe(true);
+    }
+  });
+
+  test('and at least one query actually shows some', () => {
+    // Guards the shape test above from passing on a column of zeroes.
+    const total = Object.values(row.breakdown.byQuery)
+      .reduce((a, r) => a + r.conversions, 0);
+    expect(total).toBeGreaterThan(0);
+  });
+
+  test('they reconcile with the round total', () => {
+    const byQuery = Object.values(row.breakdown.byQuery)
+      .reduce((a, r) => a + r.conversions, 0);
+    const byKeyword = Object.values(row.breakdown.byKeyword)
+      .reduce((a, r) => a + r.conversions, 0);
+    expect(byQuery).toBeCloseTo(row.conversions.final, 6);
+    expect(byKeyword).toBeCloseTo(row.conversions.final, 6);
+  });
+
+  test('the column carries information the cost column does not', () => {
+    // The whole point of adding it. If conversions were just a rescaling of
+    // clicks, the search terms report would rank queries the same way with or
+    // without it and negatives could be written from cost alone. They cannot:
+    // a query's worth depends on its intent and its affinity for this
+    // position, neither of which is visible in what it charged.
+    const rows = Object.entries(R1.report.byAdvertiser['kestrel'].breakdown.byQuery)
+      .filter(([, r]) => r.clicks > 0);
+    expect(rows.length).toBeGreaterThan(5);
+
+    const byCost = [...rows].sort((a, b) => b[1].costPaise - a[1].costPaise).map(([id]) => id);
+    const byValue = [...rows].sort((a, b) => b[1].conversions - a[1].conversions).map(([id]) => id);
+    expect(byValue).not.toEqual(byCost);
+
+    // And the per-click yield genuinely varies, which is what a policy reads.
+    const yields = rows.map(([, r]) => r.conversions / r.clicks);
+    expect(Math.max(...yields) / Math.min(...yields)).toBeGreaterThan(1.5);
+  });
+
+  test('and late conversions are revised into the query that earned them', () => {
+    const first = R1.report.byAdvertiser[PLAYER_ID].breakdown.byQuery;
+    const revised = R2.nextGameState.history.find((h) => h.round === 1)
+      .byAdvertiser[PLAYER_ID].breakdown.byQuery;
+    const before = Object.values(first).reduce((a, r) => a + r.conversions, 0);
+    const after = Object.values(revised).reduce((a, r) => a + r.conversions, 0);
+    expect(after).toBeGreaterThan(before);
+  });
+});
+
 describe('reports are revised, and remember what they first said (spec 11.4)', () => {
   test('round 1 is rewritten once round 2 lands its late conversions', () => {
     const first = R1.report.byAdvertiser[PLAYER_ID];

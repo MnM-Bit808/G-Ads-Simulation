@@ -134,18 +134,25 @@ export function sampleOrderValuePaise(business, query, rng, mode) {
  * click time, so a repositioning or a capex tranche going live cannot
  * retroactively rewrite an order that was already sold (spec 4.5).
  *
+ * Each entry also carries the query it came from, so `breakdown.byQuery` can
+ * report conversions on the same clock as everything else — landed only, and
+ * revised into earlier reports as they arrive (11.4). Without it the search
+ * terms report shows what a query COST and never what it EARNED, which makes
+ * the one tool for writing negatives (8.2) unusable for the purpose.
+ *
  * @param {object} args
  * @param {number} args.clicks
  * @param {number} args.convRate from effectiveConvRate
  * @param {number} args.orderValuePaise
  * @param {number} args.returnRate 0..1, the rate in force now
  * @param {number} args.round the click round
+ * @param {string} [args.queryId] the query these clicks came from
  * @param {(() => number)|null} args.rng
  * @param {'expected'|'sampled'} args.mode
  * @returns {Array<object>} pendingConversions entries
  */
 export function queueConversions({
-  clicks, convRate, orderValuePaise, returnRate, round, rng, mode,
+  clicks, convRate, orderValuePaise, returnRate, round, rng, mode, queryId = null,
 }) {
   let count = clicks * convRate;
   if (count <= 0) return [];
@@ -167,6 +174,7 @@ export function queueConversions({
     entries.push({
       clickedInRound: round,
       dueRound: round + lag,
+      queryId,
       count: slice,
       valuePaise: Math.round(slice * orderValuePaise),
       returnRate,
@@ -215,6 +223,7 @@ export function queueReturns(landed, round, returnWindowRounds) {
       // revised in place (spec 11.4), and a return that could not name its
       // click round would have nowhere to go.
       clickedInRound: entry.clickedInRound,
+      queryId: entry.queryId ?? null,
       landedInRound: round,
       resolvesInRound: round + returnWindowRounds,
       count: entry.count * rate,
