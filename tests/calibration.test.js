@@ -22,11 +22,13 @@
 
 import { describe, test, expect } from 'vitest';
 import { runRound } from '../engine/round.js';
-import { makeGameState } from './fixtures/gameState.js';
+import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 import { homeCell } from '../engine/querySet.js';
 import {
   allCells, parseCell, businessFor, breakEvenCpcPaise, realisedBreakEvenCpcPaise,
 } from '../engine/positions.js';
+import { playGame } from '../game.js';
+import { disciplined } from '../agents/policies.js';
 import { allocate } from '../engine/money.js';
 import { QUERY_SET } from '../content/querySet.js';
 import {
@@ -65,7 +67,7 @@ const argmax = (a) => a.indexOf(Math.max(...a));
  * Premium and a fatal one out of Value. Measured, a floor of 150 takes worst
  * deviation from 2.8% to over 50%, and 250 wipes the Value tier out entirely.
  */
-function balancedState() {
+function balancedState(weeklyVolume = WEEKLY_VOLUME) {
   const base = makeGameState();
   const advertisers = CELLS.map((cell, i) => {
     const position = { ...parseCell(cell), setAtRound: 0, repositionedAtRound: null };
@@ -100,12 +102,12 @@ function balancedState() {
       }],
     };
   });
-  return { ...base, advertisers };
+  return { ...base, querySet: { ...base.querySet, weeklyVolume }, advertisers };
 }
 
 /** Play a full game and return cumulative net profit per cell, settled rounds only. */
-function playBalanced() {
-  let s = balancedState();
+function playBalanced(weeklyVolume = WEEKLY_VOLUME) {
+  let s = balancedState(weeklyVolume);
   const rows = [];
   for (let r = 1; r <= TOTAL_ROUNDS; r++) {
     const out = runRound(s, { mode: 'expected' });
@@ -124,43 +126,117 @@ function playBalanced() {
   return { profit, finalState: s };
 }
 
-describe('I1 — budget must bind', () => {
-  test('an advertiser alone against passive rivals can exhaust its month', () => {
-    // Scoped to ONE advertiser deliberately. The original wording asked that
-    // all nine exhaust simultaneously, and the first live round showed the low
-    // spenders were being outranked rather than starved of market. An
-    // advertiser losing 39% of impressions to rank should spend less; testing
-    // all nine measures competition, not market size.
-    const state = makeGameState();
-    const solo = {
-      ...state,
-      advertisers: state.advertisers.map((a, i) => (i === 0 ? {
-        ...a,
-        adGroups: [{
-          ...a.adGroups[0],
-          keywords: a.adGroups[0].keywords.map((k) => ({
-            ...k, matchType: 'broad', bidPaise: k.bidPaise * 3,
-          })),
-        }],
-      } : { ...a, active: false })),
-    };
+/**
+ * One advertiser, alone, covering its own territory competently.
+ *
+ * "Playing the baseline policy" is now literal: `disciplined` decides the bids,
+ * rather than the harness deforming an advertiser until it spends enough. The
+ * old version tripled every bid and forced every keyword to broad, which is not
+ * a baseline — it is an advertiser built to pass the test, and it passed at a
+ * WEEKLY_VOLUME where a competent one could reach only 73% of its month.
+ *
+ * Coverage is one phrase keyword per query in its own cell. That is competence
+ * rather than deformation: an advertiser that has not built out its territory
+ * is not evidence about the size of the market.
+ */
+function soloState(weeklyVolume = WEEKLY_VOLUME) {
+  const base = makeGameState();
+  const advertiser = base.advertisers[0];
+  const cell = cellOf(advertiser);
+  const own = QUERY_SET.queries.filter((q) => homeCell(q) === cell);
 
-    let s = solo;
-    let spent = 0;
-    for (let r = 1; r <= ROUNDS_PER_MONTH; r++) {
-      const out = runRound(s, { mode: 'expected' });
-      spent += out.raw.byAdvertiser[state.advertisers[0].id].costPaise;
-      s = out.nextGameState;
-    }
-    // It must be ABLE to spend a serious fraction of the month. If the market
-    // cannot absorb the money, lostToBudget never fires, missedToBudget is
-    // always zero, and the whole of section 13 does nothing.
-    expect(spent / MONTHLY_BUDGET_PAISE).toBeGreaterThan(0.5);
+  return {
+    ...base,
+    querySet: { ...base.querySet, weeklyVolume },
+    advertisers: base.advertisers.map((a, i) => (i === 0 ? {
+      ...a,
+      adGroups: [{
+        ...a.adGroups[0],
+        keywords: own.map((q, k) => ({
+          id: `kw_${k + 1}`,
+          text: q.text,
+          matchType: 'phrase',
+          bidPaise: a.adGroups[0].keywords[0].bidPaise,
+          active: true,
+          tags: [...q.tags],
+          taggedContentHash: 'sha1:solo',
+        })),
+      }],
+    } : { ...a, active: false })),
+  };
+}
+
+const cellOf = (a) => `${a.position.price}|${a.position.purpose}`;
+
+/** Play one month solo and report what the budget did. */
+async function playSolo(weeklyVolume) {
+  const state = soloState(weeklyVolume);
+  const { reports } = await playGame(
+    state, { [PLAYER_ID]: disciplined }, { mode: 'expected', rounds: ROUNDS_PER_MONTH },
+  );
+  let costPaise = 0;
+  let clicks = 0;
+  let lostToBudget = 0;
+  let eligible = 0;
+  for (const report of reports) {
+    const row = report.byAdvertiser[PLAYER_ID];
+    costPaise += row.traffic.costPaise;
+    clicks += row.traffic.clicks;
+    lostToBudget += row.share.lostToBudget * row.traffic.eligibleAuctions;
+    eligible += row.traffic.eligibleAuctions;
+  }
+  const position = state.advertisers[0].position;
+  return {
+    spentFraction: costPaise / MONTHLY_BUDGET_PAISE,
+    cpcPaise: costPaise / clicks,
+    lostToBudget: lostToBudget / eligible,
+    breakEven: realisedBreakEvenCpcPaise(
+      businessFor(position, EMPTY, 1), state.querySet, position,
+    ),
+  };
+}
+
+describe('I1 \u2014 budget must bind', () => {
+  test('an advertiser alone against passive rivals exhausts its month', async () => {
+    // The clause the old assertion left out. 18.2 says a competent advertiser
+    // must be able to EXHAUST its budget, not spend half of it - and the old
+    // test asked only for 50%, which WEEKLY_VOLUME could be cut by 2.5x and
+    // still satisfy. It did not govern the constant it was said to govern.
+    const solo = await playSolo();
+    expect(solo.spentFraction).toBeGreaterThan(0.99);
+  });
+
+  test('and does it PROFITABLY, at a CPC below its own break-even', async () => {
+    // The other clause that was never checked. Exhausting a budget at a CPC
+    // above break-even is not evidence the market is big enough; it is
+    // evidence the advertiser is overpaying. Against the REALISED ceiling,
+    // since the neutral-query figure is not what anybody can pay.
+    const solo = await playSolo();
+    expect(solo.cpcPaise).toBeLessThan(solo.breakEven);
+  });
+
+  test('and the budget genuinely binds, rather than merely running low', async () => {
+    // The consequence 18.2 actually cares about. If lostToBudget never fires,
+    // missedToBudget is always zero, the monthly pot never binds and the whole
+    // of section 13 does nothing. Spending 99.9% of a month with lostToBudget
+    // at 0.0% would pass the first assertion and mean nothing.
+    const solo = await playSolo();
+    expect(solo.lostToBudget).toBeGreaterThan(0.02);
+  });
+
+  test('WEEKLY_VOLUME is pinned from BELOW: a smaller market cannot do it', async () => {
+    // This is what makes I1 govern the constant rather than merely tolerate
+    // it. At 225,000 - the value this project carried for eleven commits - a
+    // competently covered advertiser reached 73% of its month with
+    // lostToBudget at exactly 0.0%.
+    const small = await playSolo(225000);
+    expect(small.spentFraction).toBeLessThan(0.99);
+    expect(small.lostToBudget).toBeLessThan(0.001);
   });
 
   test('WEEKLY_VOLUME is still marked provisional', () => {
     expect(PROVENANCE.WEEKLY_VOLUME).toBe('CALIBRATE');
-    expect(WEEKLY_VOLUME).toBe(225000);
+    expect(WEEKLY_VOLUME).toBe(350000);
   });
 });
 
@@ -279,6 +355,30 @@ describe('I3 — positions must balance', () => {
     for (const tier of ['value', 'mid', 'premium']) {
       expect(spreadWithinTier(tier), tier).toBeLessThan(1.35);
     }
+  });
+
+  test('WEEKLY_VOLUME is pinned from ABOVE, and this is the invariant that does it', () => {
+    // I1 bounds the market from below - too small and the budget never binds.
+    // Nothing bounded it from above, so the constant could have been set to
+    // anything large and I1 would have stayed green. This is the other jaw.
+    //
+    // A bigger market puts more cells against their budget cap, and the cap is
+    // FLAT while break-evens differ 2.7x top to bottom, so it bites Value and
+    // Premium by very different amounts and the positions stop balancing.
+    //
+    //   volume    I1 spend   I3 worst deviation
+    //   225000      0.730           2.8%     I1 fails
+    //   350000      1.000           9.5%     both hold
+    //   400000      1.000          17.0%     I3 fails
+    //
+    // So WEEKLY_VOLUME is governed by two invariants that disagree, and sits
+    // in the window between them rather than above a single floor.
+    const inflated = playBalanced(400000).profit;
+    const values = CELLS.map((c) => inflated[c]);
+    const centre = values.reduce((a, b) => a + b, 0) / values.length;
+    const deviation = Math.max(...values.map((v) => Math.abs(v - centre))) / Math.abs(centre);
+    expect(deviation, `at 400000 the spread is ${(deviation * 100).toFixed(1)}%`)
+      .toBeGreaterThan(0.15);
   });
 
   test.todo('a separate, cheaper test: does one capex choice dominate all positions?');

@@ -33,7 +33,7 @@ both are now argued rather than merely untested:
 | | value | why it is where it is |
 |---|---|---|
 | `AD_RANK_FLOOR` | 60 | Raising it is regressive. A flat reserve takes the same absolute paise from every cell — a small bite out of Premium's ceiling, a fatal one out of Value's. Measured over a full game, floor 150 takes I3 from 2.8% to 50.8%; 250 wipes the Value tier out. |
-| `WEEKLY_VOLUME` | 225000 | I1 passes at 100% of a month. But note the weakness below. |
+| `WEEKLY_VOLUME` | 350000 | Pinned from both sides. Below ~315,000 I1 fails — a competently covered advertiser cannot exhaust its month, so section 13 does nothing. Above ~375,000 I3 fails — the flat budget cap bites unequally across break-evens that differ 2.7x. It was 225,000, where I1 reached 73%. |
 
 I3 now sits at **2.8% worst deviation, 1.05x spread**, against a 15% target.
 
@@ -125,10 +125,6 @@ constant-side, and they have not been discussed yet.
   that review. The corrected set has still not been read end to end.
 - **Rival placement (17.1) has no implementation.** `RIVAL_PLACEMENT_CONSTRAINTS`
   is read by nothing but a constants test.
-- **I1 does not actually pin `WEEKLY_VOLUME`.** It asserts >50% of a month over
-  four rounds; reality is 100%, and the constant can fall to ~90,000 before the
-  test notices. It also never checks the "at a CPC below break-even" clause it
-  is built around.
 - **`CAPEX_TARGETS` is read by nothing**, not even a test. The `QUALITY_WEIGHTS`
   pattern v0.3 deleted, recurring. The provenance tests check tag ⇄ constant in
   both directions but never that a constant is *read*.

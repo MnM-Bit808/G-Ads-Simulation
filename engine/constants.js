@@ -212,8 +212,32 @@ export const DAYPART_BLOCKS = [
   { label: 'Night', start: 21, end: 24 },
 ];
 
-/** Weekly searches across the whole market. Governed by invariant I1. */
-export const WEEKLY_VOLUME = 225000;
+/**
+ * Weekly searches across the whole market.
+ *
+ * Pinned from BOTH sides, which is what took it off 225000.
+ *
+ * Below about 315,000 invariant I1 fails: a competently covered advertiser
+ * running alone cannot exhaust its monthly budget, so `lostToBudget` never
+ * fires, `missedToBudget` is always zero, the monthly pot never binds, and the
+ * whole of section 13 does nothing. At 225,000 that advertiser reached 73% of
+ * its month with `lostToBudget` at 0.0%.
+ *
+ * Above about 375,000 invariant I3 fails: more cells become budget-limited,
+ * and the budget cap is FLAT while break-evens differ 2.7x top to bottom, so
+ * the cap bites unequally and positions stop balancing.
+ *
+ *   volume    I1 spend   I1 lostToBudget   I3 worst deviation
+ *   225000      0.730          0.0%              2.8%     I1 fails
+ *   315000      1.000          2.2%              3.7%
+ *   350000      1.000         12.0%              9.5%
+ *   400000      1.000         23.0%             17.0%     I3 fails
+ *
+ * 350,000 sits near the middle of that window with headroom on both sides.
+ * Still CALIBRATE: it is governed by two invariants that disagree, so a change
+ * to either the query set or MONTHLY_BUDGET_PAISE can move the window.
+ */
+export const WEEKLY_VOLUME = 350000;
 
 // ---------------------------------------------------------------------------
 // Auction (spec 10)

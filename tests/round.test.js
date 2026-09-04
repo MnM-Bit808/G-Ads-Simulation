@@ -223,7 +223,19 @@ describe('the counterfactual (spec 11.2, W4, L13)', () => {
   test('an advertiser that is not budget-limited misses nothing', () => {
     // Sometimes the correct action is to leave the budget alone, and the
     // counterfactual has to be able to say so.
-    const free = runRound(STATE, { mode: 'expected', counterfactualFor: [PLAYER_ID] });
+    //
+    // The advertiser is given a budget it cannot spend rather than assumed to
+    // have one. This used to lean on the player happening not to be
+    // budget-limited at the fixture's settings, which stopped being true the
+    // moment WEEKLY_VOLUME was calibrated upward - and a test whose premise
+    // depends on the size of the market is testing the market, not the
+    // counterfactual.
+    const unlimited = deformed(STATE, (x) => {
+      const huge = MONTHLY_BUDGET_PAISE * 50;
+      x.advertisers[0].campaign.monthlyBudgetPaise = huge;
+      x.advertisers[0].campaign.weeklySplitPaise = new Array(ROUNDS_PER_MONTH).fill(huge / ROUNDS_PER_MONTH);
+    });
+    const free = runRound(unlimited, { mode: 'expected', counterfactualFor: [PLAYER_ID] });
     const p = free.raw.byAdvertiser[PLAYER_ID];
     // Not exactly zero: pacing returns a fraction a hair under 1 in hours
     // where the advertiser sits exactly on plan, and those slivers accumulate

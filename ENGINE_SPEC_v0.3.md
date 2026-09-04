@@ -441,7 +441,7 @@ whole game and frozen as a test fixture.
 {
   schemaVersion: '0.3',
   generatedFrom: 'Athleisure D2C brand, India...',
-  weeklyVolume: 225000,                 // absolute searches per week
+  weeklyVolume: 350000,                 // absolute searches per week
   tagVocabulary: ['leggings','gym','seamless','price-sensitive', /* ~40-60 */ ],
   queries: [{
     id: 'q_017',
@@ -485,9 +485,9 @@ so Value carries about 2.7x the volume.
 
 | Tier | Share | Weekly searches |
 |---|---|---|
-| Value | 52% | 117000 |
-| Mid | 28% | 63000 |
-| Premium | 20% | 45000 |
+| Value | 52% | 182000 |
+| Mid | 28% | 98000 |
+| Premium | 20% | 70000 |
 
 This is what makes the balance invariant achievable, and it is what makes the round
 0 choice a genuine trade-off rather than a right answer: a high ceiling on thin
@@ -1380,8 +1380,8 @@ player able to reason. The precise figure is earned by running the keyword.
 
 The intended experience: break-even has four inputs, the player is handed two plus
 a fully worked example, and must estimate the other two. Then weigh a high ceiling
-on thin volume (Premium: 45,000 searches) against a low ceiling on thick volume
-(Value: 117,000). By design the answer is *about the same* — so the real
+on thin volume (Premium: 70,000 searches) against a low ceiling on thick volume
+(Value: 182,000). By design the answer is *about the same* — so the real
 differentiator is the risk they cannot see.
 
 ### 17.3 Replayable round 0
@@ -1442,7 +1442,7 @@ TAG_VOCABULARY
 
 // CALIBRATE — provisional, governed by 18.2
 AD_RANK_FLOOR
-WEEKLY_VOLUME = 225000
+WEEKLY_VOLUME = 350000
 ```
 
 Deleted from v0.2: `QUALITY_WEIGHTS` and `EXTENSIONS_IMPACT`, both orphans no
@@ -1458,6 +1458,22 @@ CPC below its own net break-even. If budgets cannot be spent profitably,
 `lostToBudget` never fires, `missedToBudget` returns zero, the monthly pot never
 binds, and the entire section 13 scheme does nothing. This is what governs
 `WEEKLY_VOLUME`.
+
+**And it is pinned from both sides.** I1 alone bounds the market only from
+below — too small and the budget never binds — so `WEEKLY_VOLUME` could have
+been set arbitrarily large and I1 would have stayed green. **I3 is the other
+jaw:** a bigger market puts more cells against their budget cap, and that cap is
+flat while break-evens differ 2.7x top to bottom, so it bites unequally and
+positions stop balancing.
+
+| weekly volume | I1 spend | I1 `lostToBudget` | I3 worst deviation | |
+|---|---|---|---|---|
+| 225,000 | 0.730 | 0.0% | 2.8% | I1 fails |
+| 315,000 | 1.000 | 2.2% | 3.7% | |
+| 350,000 | 1.000 | 12.0% | 9.5% | both hold |
+| 400,000 | 1.000 | 23.0% | 17.0% | I3 fails |
+
+`WEEKLY_VOLUME` sits in that window rather than above a single floor.
 
 **The "running alone" clause was added after `round.js` first ran.** The
 original wording asked that *every* advertiser exhaust its budget
