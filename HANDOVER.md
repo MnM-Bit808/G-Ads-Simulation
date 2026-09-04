@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 922 tests, all passing, 1 todo.
+**Every build-order step is done.** 946 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -21,7 +21,7 @@ still resting on a guess.
 ✅  4  matching                       ✅ 11  serialise
 ✅  5  quality                        ✅ 12  calibration
 ✅  6  positions                      🟨 13  agents  — llmPolicy + queryGen left
-✅  7  strategies                     🟨 14  ui      — slices 1 and 2 done
+✅  7  strategies                     🟨 14  ui      — slices 1–3, form items 1–2
 ```
 
 Plus three modules the spec's layout never had, all of them caller-layer:
@@ -32,9 +32,27 @@ Plus three modules the spec's layout never had, all of them caller-layer:
 | `setup.js` | round 0 (§17). Seeded rival placement, the briefing, the player's opening decisions, and the one redo (17.3). It is in NO build-order step — the order predates `game.js`. |
 | `dev-server.js` | 40 lines of `node:http` so `ui/` can import the real engine. `npm run dev`. |
 
-**It is playable.** `npm run dev`, then http://localhost:5173. Round 0 asks for
-brand, position, capital, keywords, ad copy and a weekly split; the dashboard
-plays a week at a time against six rule-based rivals.
+**It is playable end to end, and has been played end to end.** `npm run dev`,
+then http://localhost:5173. Round 0 asks for brand, position, capital,
+keywords, ad copy and a weekly split; the dashboard plays a week at a time
+against six rule-based rivals; and the decision form now lets the player write
+negatives, change bids and match types, pause keywords and add new ones between
+weeks. A full twelve rounds runs through the interface with no console errors
+and ends correctly on `Game over`.
+
+**The rescue works**, which is what slice three was for. The account this
+project keeps coming back to — `premium|lifestyle`, five keywords taken off the
+top of the keyword planner by volume, every one of them a Value-tier search:
+
+| | week 3 | week 4 |
+|---|---|---|
+| Net profit | **−₹26,998** | **+₹39,570** |
+| Net ROAS | 0.73 | 2.90 |
+| CPA | ₹6,756 | ₹1,737 |
+
+Between those two weeks, through the form and nothing else: three negatives
+written off the search terms report, three Value keywords paused, a broad bid
+cut, six premium and co-ord terms added from the planner.
 
 All five calibration invariants pass. Neither `CALIBRATE` constant moved without
 argument:
@@ -48,59 +66,146 @@ I3 sits at **2.8% worst deviation, 1.05x spread** against a 15% target.
 
 ---
 
-## What is next: slice three of the interface
+## The decision form, and what is left of it
 
-The dashboard shows a week. Round 0 opens the account. **Nothing lets the player
-change anything between weeks**, which is the whole game.
+`ui/decisions.js` is the form. It owns a **draft** and the cards that edit it.
 
-`ui/app.js` already passes `() => null` as the player's controller, so the seam
-exists: a controller returns `{ campaign, adGroups }` and `game.js` does the
-rest — it diffs against the previous state, writes the learning period when
-12.3 says to, and logs the decision. Slice three fills that return value from a
-form.
+**The seam, and the trap it is arranged around.** A decision is RETURNED from a
+controller, never written into state. The draft is built from `getSelfView` —
+which deep-copies on the way out, so the form *physically cannot* write through
+into `GameState` — and `toDecision(draft)` hands back a `{ campaign, adGroups }`
+object that `app.js` returns from the player's controller. `playRound` collects
+it and `submitRound` applies it, so the player enters a round by the same door a
+policy does (R6), and the learning period and the decision log both happen.
 
-What the form needs, in rough order of how much it teaches:
+`toDecision` returns **null when nothing changed**, so an untouched form is
+byte-identical to the `() => null` controller it replaced. There is a test for
+exactly that, and it is the one that would fail if someone "simplified"
+`createDraft` to take the advertiser record directly.
 
-1. **Negatives written straight from the search terms report.** 8.2 makes that
-   report the only tool for writing them, and 15.2 makes it a primary surface.
-   The table already marks rows that took clicks and returned nothing. A button
-   on the row is the whole interaction, and it is the most valuable thing in the
-   slice.
-2. **Bids and match types per keyword**, plus adding and removing keywords. The
-   tagger runs offline, so a new keyword can be tagged as it is typed.
-3. **Bid strategy and its parameter.** Changing either triggers a learning
-   period (12.3), and `game.js` already detects that — the form must SAY so
-   before the player commits, or the penalty arrives unexplained.
-4. **The weekly split**, against the burn-down the dashboard already draws.
-5. **Dayparting**, six blocks. The least urgent: nothing in the interface yet
+Done, and verified in a browser:
+
+1. ✅ **Negatives written from the search terms report.** A block button on the
+   row writes an exact negative for that one search. The composer writes broad
+   and phrase negatives with a live preview.
+2. ✅ **Bids, match types, pausing, and adding keywords** from a mid-game
+   keyword planner. New keywords are tagged offline as they are typed (8.4).
+
+Left to build, in the order agreed:
+
+3. **Bid strategy and its parameter.** The player is locked to `manual` for the
+   whole game, so four of the five strategies are unreachable and 12.2's lesson
+   — smart bidding is noisy on a thin account, and Premium suffers worst
+   because it is data-starved — cannot be experienced at all. Changing either
+   triggers a learning period (12.3), `game.js` already detects it, and the
+   form must SAY so before the player commits, or the penalty lands two rounds
+   later with nothing connecting it to the cause. That is the confusion this
+   simulator exists to teach deliberately, not to inflict by accident.
+4. **A round-5 screen: the capex top-up and the repositioning window.** Both are
+   dead spec today — see *Specified mechanics with no route in* below.
+5. **Month 3's allocation explained, and an end screen.** The game currently
+   stops on week 12's dashboard with no final standing.
+6. **The weekly split**, against the burn-down the dashboard already draws.
+7. **Dayparting**, six blocks. Still the least urgent: nothing in the interface
    shows the hourly pattern that would make it a reasoned choice rather than a
    guess.
 
-Two things to respect. **A decision must be previewable before it is
-committed** — the whole design is about acting on incomplete information, and a
-form that hides consequences it could show is being cruel rather than honest.
-Changing a bid strategy is the sharp case: it triggers a learning period (12.3),
-`game.js` already detects it, and if the interface does not say so BEFORE the
-player commits, the penalty lands two rounds later with nothing connecting it to
-the cause. That is the confusion this simulator exists to teach deliberately,
-not to inflict by accident.
+### Three rules the form obeys, and why
 
-And **the view may not compute economics**: `tests/ui.test.js` fails if a `ui/`
-file names a constant it should import, and that guard has already fired once
-and was right.
+**A decision must be previewable before it is committed.** The whole design is
+about acting on incomplete information, and a form that hides consequences it
+could show is being cruel rather than honest. The commit button says how many
+changes it is about to commit; a `Next week` card lists them with an undo on
+each; and staging a negative greys out the rows it kills *in the report it was
+written from*, rather than leaving the player to discover them next week.
 
-**What finished looks like.** A player who opens the account into a losing
-position can read the search terms report, see which searches are taking their
-money, block them, move their bids, and watch it change over the following
-weeks. That is currently impossible — the account this session played into
-premium|lifestyle bought Value-tier traffic because the keyword planner sorts by
-volume, lost money for three straight weeks, and had no way to do anything about
-it. Slice three is done when that account can be rescued.
+**The view may not compute economics.** `tests/ui.test.js` fails if a `ui/` file
+names a constant it should import, and that guard has already fired once and was
+right. Every string operation in the form is the engine's own — `blockedBy`,
+`normalise`, `tokenise`. A preview that reimplemented the matcher would agree
+with it right up until one of them changed, which is exactly how the two `.jsx`
+prototypes went wrong. A test asserts the preview agrees with `blockedBy` over
+the whole frozen query set, for all three negative types.
+
+**The form may only know what a controller could know.** It reads the query set
+through `getPublicView` — text, volume, intent — rather than
+`content/querySet.js`, so 16.1's withholding is enforced rather than intended.
+Two consequences worth keeping:
+
+- **There is no broad-match reach preview, and there must not be.** Reach needs
+  the QUERY's tags, which 16.1 withholds from everybody. 8.2 is explicit that
+  you discover what broad match dragged you into *after the fact*, from the
+  report. The keyword note states the mechanism — impressions rise, impression
+  share falls — with no number nobody could have.
+- **Intent stays off the search terms report.** It is public, and the planner
+  shows it. But a real search terms report has no such column, and adding one
+  would turn reading the report into sorting by a label. The negatives preview
+  lists the searches a negative would block and lets the player read them, which
+  is the actual skill.
+
+### The search terms report defaults to every week played
+
+Not to the week just run. One week is the wrong basis for a negative and the
+interface should not invite it: `byQuery.conversions` keeps being revised for
+three more rounds, so a row reading zero today may read two next week. In the
+account above, week 3 showed a ₹5,796 loss and was rewritten to a ₹16,454
+profit. Blocking an unsettled zero is precisely the mistake the report exists to
+expose. There is a `this week only` toggle, and the note under the table says
+which of the two you are reading.
+
+`accumulate()` sums `state.history` rather than the reports the screen was
+handed, because history is the copy that gets revised (11.4).
 
 ---
 
-## What the last session changed, and why it matters
+## Specified mechanics with no route in
 
+Found by playing twelve rounds through the interface. None of these is a defect
+in `engine/`; all three are things the spec asks for that nothing can currently
+reach.
+
+- **The round-5 capital allocation (13.3).** Two allocations of ₹1,00,000,
+  cumulative, the second at round 5. Round 0 spends the first. **Nothing spends
+  the second.** `round.js` (`applyBudgetAdjustments`) only rolls over
+  `remainingUnallocatedPaise`, and `game.js` only sets that when a
+  `decision.capex` arrives. No capex decision at round 5 means no investment
+  *and* no rollover. The policies decline it deliberately
+  (`policies.js`, `disciplined`), so the market stays symmetric under R6 — but
+  ₹1,00,000 per advertiser per game evaporates.
+- **The repositioning window at round 5 (4.5).** `game.js` implements it and
+  `canReposition` guards it. No interface offers it.
+- **Month 3's redistribution is invisible.** A twelve-round account's month-3
+  budget dropped from ₹1,68,000 to ₹1,17,600 — the 0.70 multiplier for ninth
+  place — and nothing on screen said the ranking had happened, where the player
+  placed, or that it was fixed at round 8. 13.3 warns about exactly this: a
+  budget that swings for reasons the player cannot attribute is worse than the
+  mechanic is worth. The rule *is* stated in the round 0 briefing; the result
+  is not stated anywhere.
+
+---
+
+## What building the form exposed
+
+Two bugs, both invisible to a 946-test suite, both found by using it:
+
+- **The planner composer lost its match type, its bid and its filter on every
+  add**, because adding a keyword rebuilds the card. Building an ad group from
+  the planner was eight fiddly steps instead of eight clicks. Fixed by holding
+  that state on `ctx` rather than in the render function.
+- **The over-block warning only fired on conversions already earned.** So the
+  stronger case — reach given up sight unseen, on searches you have never
+  bought — said nothing at all.
+
+And one thing that was not a bug: at exactly 1100px wide the dashboard grid is
+two columns, not four, because `@media (max-width: 1100px)` is inclusive. A
+`span-2` card measuring full width there is correct. Measure `matchMedia` before
+believing a layout report.
+
+---
+
+## What the audit pass changed, and why it still matters
+
+Two sessions back, and kept because the defects are the instructive kind.
 An audit pass found nineteen things. Four were already covered by the ledger and
 were withdrawn or narrowed — that is the system working. The rest produced eight
 commits, and three of them were engine defects producing wrong numbers:
@@ -194,12 +299,24 @@ constant-side, and they have not been discussed yet.
   real improvement in ad quality never moves the reported score, because the
   ratio was already past 1.10 and three levels cannot express anything between.
   Both are design conversations, not defects.
+- **Round 0 marks your own territory in the keyword planner, and 16.1 says it
+  should not.** `ui/round-zero.js` uses `homeCell(q)` to put a dot beside the
+  searches in the player's cell — and `homeCell` is computed from
+  `priceAffinity` and `purposeAffinity`, which 16.1 withholds "from every
+  viewer, including the advertiser the affinity favours". It is deliberate and
+  it does real teaching work in round 0, where the player has no report at all.
+  The mid-game planner added in the decision form does NOT carry the dot, on the
+  grounds that by then the player has evidence. **So the two screens now
+  disagree about whether you can see your own territory, which is worse than
+  either answer.** Undecided, and worth deciding.
 - **There is no linter.** `ui/dashboard.js` shipped a `ReferenceError` to the
   browser that a 917-test suite could not see, because no test reads function
   bodies. `tests/ui.test.js` has a module-load smoke test that is labelled weak
   on purpose. This is the one gap where a dependency would genuinely pay.
-- **Nobody has played it as a learner.** It has been driven end to end from a
-  script and read on screen, which is not the same thing.
+- **Nobody has played it as a learner.** It has now been played end to end,
+  twelve rounds, and an account has been rescued from a losing position through
+  the form. But it was driven from a script by someone who knows what the
+  engine does, which is not the same thing as somebody learning from it.
 
 ---
 
@@ -312,6 +429,13 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
 
 ### Verifying the interface
 
+- **`npm test` is the gate, and it did not catch the last four interface bugs.**
+  The suite reads SOURCE, not function bodies: it can tell you that `ui/` still
+  imports the engine and carries no physics of its own, and it cannot tell you
+  that a stale identifier reaches the browser, that a form field forgets what
+  you typed into it, or that a warning never fires. Two of the four were found
+  only by using the thing. **Open the browser before believing the interface
+  works.** A green suite is necessary and it is not evidence.
 - **Screenshots lie when the browser pane is hidden.** The viewport collapses,
   `window.innerWidth` reads 0, every card measures 32px and the page reports
   horizontal overflow. It is indistinguishable from a layout bug. When that
