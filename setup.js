@@ -276,9 +276,14 @@ export function buildRival(identity, cell, index, querySet, rng, variant = 0) {
     position,
     capex,
     campaign: {
-      monthlyBudgetPaise: MONTHLY_BUDGET_PAISE,
+      // Whatever the writer did not cost is advertising money instead. Unlike
+      // capital this needs no allocation round: the writer is chosen at round 0,
+      // so the money is in the budget from round 1.
+      monthlyBudgetPaise: MONTHLY_BUDGET_PAISE + creative.unspentPaise,
       monthSpentPaise: 0,
-      weeklySplitPaise: allocate(MONTHLY_BUDGET_PAISE, new Array(ROUNDS_PER_MONTH).fill(1)),
+      weeklySplitPaise: allocate(
+        MONTHLY_BUDGET_PAISE + creative.unspentPaise, new Array(ROUNDS_PER_MONTH).fill(1),
+      ),
       strategy: 'manual',
       strategyParams: { targetCpaPaise: Math.round(breakEvenCpcPaise(business) * 12), targetRoas: 4.0 },
       daypartAdjustments: [0, 0, 0, 0, 0, 0],
@@ -549,32 +554,17 @@ function buildPlayer(identity, choices) {
   const { position: raw, capex, keywords, ad, weeklySplitPaise } = choices;
   const position = { ...parseCell(cellKey(raw.price, raw.purpose)), setAtRound: 0, repositionedAtRound: null };
 
-  // The month the player will ACTUALLY have, which is not MONTHLY_BUDGET_PAISE
-  // whenever they decline some capital. 13.3 rolls whatever is uncommitted into
-  // the month's advertising budget, so a player who keeps 30,000 has 1,98,000
-  // to plan across four weeks and a split that says so is correct.
-  //
-  // Only the VALIDATION knows this. `monthlyBudgetPaise` stays at the base
-  // figure and round.js adds the rollover at the capex allocation round, which
-  // is also where it rescales the split — adding it here as well would pay the
-  // player twice.
-  const capexBlock = capex ?? { remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE };
-  const monthCeiling = MONTHLY_BUDGET_PAISE + (capexBlock.remainingUnallocatedPaise ?? 0);
-
-  const split = weeklySplitPaise
-    ?? allocate(MONTHLY_BUDGET_PAISE, new Array(ROUNDS_PER_MONTH).fill(1));
-  const check = validateWeeklySplit(split, monthCeiling);
-  if (!check.valid) throw new RangeError(`weekly split rejected: ${check.reason}`);
-
   if (!Array.isArray(keywords) || keywords.length === 0) {
     throw new RangeError('the player needs at least one keyword to enter an auction');
   }
 
   const playerAd = ad ?? { headlines: [], descriptions: [], landingPageDescription: '' };
 
-  // Who writes it (I11). The default is DIY because that is what the player has
-  // always done here - they write their own copy - and the delay is the new
-  // cost of doing so, not a new behaviour.
+  // Who writes it (I11), BEFORE the budget, because what the writer did not
+  // cost is advertising money and the split has to be planned across the month
+  // the player will actually have. The default is DIY because writing their own
+  // copy is what the player has always done here; the delay is the new cost of
+  // doing so, not a new behaviour.
   const gradingContext = {
     keywords,
     rivalNames: BRAND_IDENTITIES.filter((b) => b.id !== identity.id).map((b) => b.name),
@@ -592,6 +582,28 @@ function buildPlayer(identity, choices) {
     keywords,
   });
 
+  // The month the player will ACTUALLY have, which is not MONTHLY_BUDGET_PAISE
+  // whenever they decline some capital. 13.3 rolls whatever is uncommitted into
+  // the month's advertising budget, so a player who keeps 30,000 has 1,98,000
+  // to plan across four weeks and a split that says so is correct.
+  //
+  // Only the VALIDATION knows about the CAPITAL rollover. `monthlyBudgetPaise`
+  // leaves it out and round.js adds it at the capex allocation round, which is
+  // also where it rescales the split — adding it here as well would pay the
+  // player twice.
+  //
+  // THE CREATIVE ROLLOVER IS DIFFERENT and is added here for real. It has no
+  // allocation round to arrive at: the writer is chosen at round 0, so the
+  // money is in the budget from round 1 and nothing downstream adds it again.
+  const monthBase = MONTHLY_BUDGET_PAISE + creative.unspentPaise;
+  const capexBlock = capex ?? { remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE };
+  const monthCeiling = monthBase + (capexBlock.remainingUnallocatedPaise ?? 0);
+
+  const split = weeklySplitPaise
+    ?? allocate(monthBase, new Array(ROUNDS_PER_MONTH).fill(1));
+  const check = validateWeeklySplit(split, monthCeiling);
+  if (!check.valid) throw new RangeError(`weekly split rejected: ${check.reason}`);
+
   return {
     id: identity.id,
     name: identity.name,
@@ -602,7 +614,7 @@ function buildPlayer(identity, choices) {
     position,
     capex: capex ?? { committed: { sizeGuide: 0, photography: 0, landingPage: 0 }, pending: [], remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE },
     campaign: {
-      monthlyBudgetPaise: MONTHLY_BUDGET_PAISE,
+      monthlyBudgetPaise: monthBase,
       monthSpentPaise: 0,
       weeklySplitPaise: split,
       strategy: 'manual',

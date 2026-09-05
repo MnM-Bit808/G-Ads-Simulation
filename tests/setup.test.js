@@ -89,6 +89,38 @@ describe('every advertiser chose who writes its ad (DECISIONS I11)', () => {
     }
   });
 
+  test('what the writer did not cost is advertising money instead', () => {
+    // The rollover, and it is load-bearing rather than tidy. Writing it
+    // yourself is slower AND lower-ceilinged; the whole budget staying in the
+    // account is what pays for that, and without it the top tier simply
+    // dominates — measured at 20% ahead of a perfectly written self-made ad.
+    //
+    // Unlike capital, this needs no allocation round: the writer is chosen at
+    // round 0, so the money is in the budget from round 1.
+    for (const a of start().advertisers) {
+      expect(a.campaign.monthlyBudgetPaise, a.id)
+        .toBe(MONTHLY_BUDGET_PAISE + a.creative.unspentPaise);
+    }
+  });
+
+  test('and the weekly split still adds up to the month it belongs to', () => {
+    // allocate() spreads the real total, so a split that summed to the old
+    // budget would quietly under-spend every week of month one.
+    for (const a of start().advertisers) {
+      const split = a.campaign.weeklySplitPaise;
+      expect(split.reduce((x, y) => x + y, 0), a.id).toBe(a.campaign.monthlyBudgetPaise);
+    }
+  });
+
+  test('hiring the top tier leaves nothing over, writing your own leaves it all', () => {
+    const advertisers = start().advertisers;
+    const top = advertisers.find((a) => a.creative.tier === 'retainer');
+    const own = advertisers.find((a) => isDiy(a.creative.tier));
+    expect(top.campaign.monthlyBudgetPaise).toBe(MONTHLY_BUDGET_PAISE);
+    expect(own.campaign.monthlyBudgetPaise)
+      .toBe(MONTHLY_BUDGET_PAISE + CREATIVE_ALLOCATION_PAISE);
+  });
+
   test('the field does not all buy the same thing', () => {
     // The reason rivals choose at all. A market where every ad is the same
     // level gives reportedScore nothing to compare against (L4).
@@ -516,10 +548,16 @@ describe('startGame produces a game that runs (spec 17)', () => {
     expect(withRollover.advertisers[0].campaign.weeklySplitPaise
       .reduce((a, b) => a + b, 0)).toBeGreaterThan(MONTHLY_BUDGET_PAISE);
 
-    // And the first round really does hand it over.
+    // And the first round really does hand it over — along with the creative
+    // budget, since this player writes their own ad and so spent none of it.
+    // TWO rollovers arrive by different routes and must not be confused: the
+    // creative one is in `monthlyBudgetPaise` from construction, because the
+    // writer is chosen at round 0 and has no allocation round to wait for; the
+    // capital one is added by round.js at the capex allocation round, which is
+    // also where it rescales the split.
     const out = submitRound(withRollover, {}, { mode: 'expected' });
     expect(out.report.byAdvertiser[PLAYER_BRAND].budget.monthlyBudgetPaise)
-      .toBe(MONTHLY_BUDGET_PAISE + kept);
+      .toBe(MONTHLY_BUDGET_PAISE + CREATIVE_ALLOCATION_PAISE + kept);
   });
 
   test('but a split beyond even that is refused, not quietly corrected', () => {

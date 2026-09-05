@@ -35,6 +35,7 @@ import {
   MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH, TOTAL_ROUNDS, HOUR_PROFILES,
   HOURLY_INTENT_CURVE, MIN_PEAK_SEPARATION_HOURS, POSITION_ECONOMICS,
   PURPOSE_MODIFIERS, AD_RANK_FLOOR, WEEKLY_VOLUME, PROVENANCE,
+  CREATIVE_ALLOCATION_PAISE,
 } from '../engine/constants.js';
 
 const CELLS = allCells();
@@ -67,7 +68,7 @@ const argmax = (a) => a.indexOf(Math.max(...a));
  * Premium and a fatal one out of Value. Measured, a floor of 150 takes worst
  * deviation from 2.8% to over 50%, and 250 wipes the Value tier out entirely.
  */
-function balancedState(weeklyVolume = WEEKLY_VOLUME) {
+function balancedState(weeklyVolume = WEEKLY_VOLUME, monthBudget = MONTHLY_BUDGET_PAISE) {
   const base = makeGameState();
   const advertisers = CELLS.map((cell, i) => {
     const position = { ...parseCell(cell), setAtRound: 0, repositionedAtRound: null };
@@ -83,9 +84,9 @@ function balancedState(weeklyVolume = WEEKLY_VOLUME) {
       capex: EMPTY,
       campaign: {
         ...base.advertisers[i].campaign,
-        monthlyBudgetPaise: MONTHLY_BUDGET_PAISE,
+        monthlyBudgetPaise: monthBudget,
         monthSpentPaise: 0,
-        weeklySplitPaise: allocate(MONTHLY_BUDGET_PAISE, new Array(ROUNDS_PER_MONTH).fill(1)),
+        weeklySplitPaise: allocate(monthBudget, new Array(ROUNDS_PER_MONTH).fill(1)),
         strategy: 'manual',
       },
       adGroups: [{
@@ -117,15 +118,16 @@ function balancedState(weeklyVolume = WEEKLY_VOLUME) {
  */
 const balancedCache = new Map();
 
-function playBalanced(weeklyVolume = WEEKLY_VOLUME) {
-  if (balancedCache.has(weeklyVolume)) return balancedCache.get(weeklyVolume);
-  const result = computeBalanced(weeklyVolume);
-  balancedCache.set(weeklyVolume, result);
+function playBalanced(weeklyVolume = WEEKLY_VOLUME, monthBudget = MONTHLY_BUDGET_PAISE) {
+  const key = `${weeklyVolume}|${monthBudget}`;
+  if (balancedCache.has(key)) return balancedCache.get(key);
+  const result = computeBalanced(weeklyVolume, monthBudget);
+  balancedCache.set(key, result);
   return result;
 }
 
-function computeBalanced(weeklyVolume) {
-  let s = balancedState(weeklyVolume);
+function computeBalanced(weeklyVolume, monthBudget) {
+  let s = balancedState(weeklyVolume, monthBudget);
   const rows = [];
   for (let r = 1; r <= TOTAL_ROUNDS; r++) {
     const out = runRound(s, { mode: 'expected' });
@@ -343,6 +345,22 @@ describe('I3 — positions must balance', () => {
 
   test('and the best cell is within a third of the worst', () => {
     expect(spread, `spread ${spread.toFixed(2)}x`).toBeLessThan(1.35);
+  });
+
+  test('and it still holds when the creative rollover raises every budget', () => {
+    // DECISIONS I11 added a creative budget whose unspent remainder becomes
+    // advertising money, so an advertiser that writes its own copy runs a month
+    // of MONTHLY_BUDGET + CREATIVE_ALLOCATION. That is a ~30% change to the
+    // budget scale WEEKLY_VOLUME is pinned against, and this file was blind to
+    // it: the harness hardcoded the base figure, so the whole suite could pass
+    // while the invariant it exists for had never been tested at the budget a
+    // real game now produces.
+    const raised = playBalanced(WEEKLY_VOLUME, MONTHLY_BUDGET_PAISE + CREATIVE_ALLOCATION_PAISE);
+    const vals = CELLS.map((c) => raised.profit[c]);
+    const m = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const worst = Math.max(...vals.map((v) => Math.abs(v - m))) / Math.abs(m);
+    expect(worst, `worst deviation at the raised budget ${(worst * 100).toFixed(1)}%`)
+      .toBeLessThan(0.15);
   });
 
   test('no single position is systematically the place to be', () => {
