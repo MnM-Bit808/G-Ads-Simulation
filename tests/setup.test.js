@@ -6,6 +6,8 @@ import {
 import { playGame, submitRound } from '../game.js';
 import { disciplined, controllerFor, RIVAL_CAST } from '../agents/policies.js';
 import { writerTier, isDiy } from '../content/writers.js';
+import { qualitySignalBase } from '../engine/quality.js';
+import { minimumBidToShowPaise } from '../engine/auction.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES, assignIdentities } from '../content/brands.js';
 import { AD_COPY_BY_CELL } from '../content/adCopy.js';
@@ -141,6 +143,45 @@ describe('every advertiser chose who writes its ad (DECISIONS I11)', () => {
     expect(shared, 'no tier has two buyers, so this cannot be checked').toBeTruthy();
     const shapes = new Set(shared.map((g) => `${g.expectedCtr}|${g.adRelevance}`));
     expect(shapes.size).toBeGreaterThan(1);
+  });
+});
+
+describe('every rival can actually enter the market it is placed in', () => {
+  // THE GUARD THAT WAS MISSING, and its absence cost a whole rival. Nothing in
+  // this suite asserted that a rival TRADES, so when the writer mechanic dealt
+  // the two cautious rivals a self-written ad, they opened on the ungraded
+  // 3/3/3 default and one of them showed in nothing for twelve rounds. It
+  // surfaced only when the end screen put all nine advertisers in one table.
+  //
+  // DECISIONS A8 is the same finding on the player: "an ungraded ad grades
+  // 3/3/3, which sits below AD_RANK_FLOOR at any cautious bid, so the player
+  // would enter every auction and show in none". A8 is why the player's ad is
+  // graded before round 1; this is why a rival's is too.
+
+  test('its opening bid clears the reserve on its own best keyword', () => {
+    for (const seed of SEEDS) {
+      for (const rival of start({ rootSeed: seed }).advertisers.slice(1)) {
+        const graded = rival.adGroups[0].gradedQuality;
+        const keyword = rival.adGroups[0].keywords[0];
+        // The most favourable query it could meet. Failing HERE means it fails
+        // everywhere, at any hour, against any rival.
+        const { base } = qualitySignalBase(graded, {
+          text: keyword.text, intent: 'commercial', tags: [...(keyword.tags ?? [])],
+        }, keyword);
+        expect(keyword.bidPaise, `${seed} ${rival.name} (${rival.creative.tier})`)
+          .toBeGreaterThanOrEqual(minimumBidToShowPaise(base));
+      }
+    }
+  });
+
+  test('and none of them opens on an ungraded ad', () => {
+    // The narrower statement of the same thing, and the one that says WHY.
+    for (const seed of SEEDS) {
+      for (const rival of start({ rootSeed: seed }).advertisers.slice(1)) {
+        expect(rival.adGroups[0].gradedQuality.expectedCtr, `${seed} ${rival.name}`)
+          .toBeGreaterThan(DEFAULT_UNGRADED_QUALITY.expectedCtr);
+      }
+    }
   });
 });
 

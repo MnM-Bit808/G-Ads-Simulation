@@ -1592,12 +1592,30 @@ echoing your own searches is the part the advertiser knows best. Against: a
 copywriter handed your keyword list would use it too. Left as it is because the
 balance decides, and at 1.002 it is not too generous.
 
-**RIVALS CHOOSE TOO (R6).** Restricting self-written copy to the player was
-proposed and rejected — it would not have fixed anything, since a dominant
-option is dominant whoever else can take it, and the balance made it
-unnecessary. A rival's tier follows the policy it already runs rather than a
-second authored table: a `spender` buys the retainer, a `cautious` advertiser
-writes its own.
+**RIVALS HIRE; ONLY THE PLAYER MAY WRITE ITS OWN.** A rival's tier follows the
+policy it already runs rather than a second authored table: a `spender` buys the
+retainer, a `disciplined` advertiser the agency.
+
+`cautious` used to write its own, and it was a defect. A self-written ad opens
+on the ungraded 3/3/3 default, and A8 measured that as sitting below
+`AD_RANK_FLOOR` at any cautious bid — so the rival showed in nothing for twelve
+rounds. A8 exists to keep the PLAYER out of exactly that state; dealing rivals a
+DIY tier recreated it. Measured at round 0: Marlow needed 1551 paise to appear
+and bid 1078. Over a played game it went from ₹0 spend and ₹0 profit to
+₹1,93,623 and fourth place once it hired.
+
+**This is not a privileged player path (R6).** Round 0 is asymmetric by
+construction — the player DECIDES their position, keywords and copy while a
+rival is CONFIGURED from a seed. Both still go through `creativeBlock`, and
+nothing in `engine/` branches on who is who. What changed is a configuration
+choice of the same kind as which keywords a rival opens with. The player may
+still write their own because the player is TOLD what it costs and chooses
+anyway; a rival is never asked.
+
+**The guard that was missing** is now in `setup.test.js`: every rival's opening
+bid must clear the reserve on its own best keyword, across every seed. Nothing
+asserted that a rival TRADES, which is why a dead one survived until the end
+screen put all nine in one table (G3).
 
 **THE ABSTRACTION IS ON THE CARD.** You write what the ad says either way, and
 those are the words searchers see — this simulator cannot invent better ones.

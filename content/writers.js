@@ -106,9 +106,26 @@ export function tierForPolicy(policyId) {
 /**
  * Which character buys what.
  *
- * Spread deliberately across all four tiers so the field is not one level:
- * the grades a market ends up with have to differ, or `reportedScore` has
- * nothing to compare against.
+ * Spread across the hired tiers so the field is not one level: the grades a
+ * market ends up with have to differ, or `reportedScore` has nothing to compare
+ * against (L4).
+ *
+ * NO RIVAL WRITES ITS OWN, and that is a correction rather than an omission.
+ * `cautious` used to, and the result was a rival that showed in nothing for
+ * twelve rounds: a self-written ad opens on the ungraded 3/3/3 default, which
+ * DECISIONS A8 measured as sitting below `AD_RANK_FLOOR` at any cautious bid.
+ * A8 is the reason the PLAYER's ad is graded before round 1; dealing rivals a
+ * DIY tier recreated the exact condition A8 exists to prevent. It surfaced only
+ * when the end screen put all nine advertisers in one table (G3).
+ *
+ * This is not a privileged player path (R6). Round 0 is asymmetric by
+ * construction: the player DECIDES their position, keywords and copy while a
+ * rival is CONFIGURED from a seed. Both still go through `creativeBlock`, and
+ * nothing in `engine/` branches on who is who. What changed is a configuration
+ * choice, the same kind as which keywords a rival opens with.
+ *
+ * The player may still write their own, because the player is told what it
+ * costs and chooses anyway. A rival is not asked.
  */
 const POLICY_TIERS = Object.freeze({
   spender: 'retainer',
@@ -116,7 +133,7 @@ const POLICY_TIERS = Object.freeze({
   automator: 'agency',
   disciplined: 'agency',
   brandDefender: 'freelancer',
-  cautious: 'diy',
+  cautious: 'freelancer',
 });
 
 export { POLICY_TIERS };

@@ -136,8 +136,25 @@ describe('rivals choose too, and the market that results is not flat', () => {
     expect(chosen.size).toBeGreaterThan(2);
   });
 
-  test('and at least one rival writes its own, so DIY is visible in the market', () => {
-    expect(RIVAL_CAST.map(tierForPolicy).some(isDiy)).toBe(true);
+  test('and NO rival writes its own, which is a correction not an omission', () => {
+    // `cautious` used to, and it produced a rival that showed in nothing for
+    // twelve rounds. A self-written ad opens on the ungraded 3/3/3 default,
+    // and DECISIONS A8 measured that as below AD_RANK_FLOOR at any cautious
+    // bid — the very condition A8 exists to keep the player out of.
+    //
+    // A rival is CONFIGURED from a seed and never asked; the player is told
+    // what writing their own costs and chooses anyway. That asymmetry is round
+    // 0's, not the engine's: both still go through `creativeBlock` and nothing
+    // in engine/ branches on who is who (R6).
+    expect(RIVAL_CAST.map(tierForPolicy).some(isDiy)).toBe(false);
+  });
+
+  test('but the tier itself stays reachable, so the mechanic is not dead code', () => {
+    // The player's route. If this ever failed, `creativeBlock`'s whole
+    // self-written branch would be unreachable and should be deleted rather
+    // than left looking live.
+    expect(WRITER_TIERS.some((t) => t.grade === null)).toBe(true);
+    expect(isDiy('diy')).toBe(true);
   });
 });
 
