@@ -39,15 +39,25 @@ import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS, MONTHLY_BUDGET_PAISE,
   CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH, TOTAL_ROUNDS,
 } from '../engine/constants.js';
+import { PAGE_FEATURES, composeDescription, pageShape } from './landing-page.js';
 
 const CAPEX_TARGETS = [
+  ['landingPage', 'The page itself', 'Better quality, so a cheaper click. Worth most in the middle.'],
   ['sizeGuide', 'Size guide', 'Fewer returns. Worth most at the cheap end, and to anything sold on how it looks.'],
   ['photography', 'Photography', 'More of your visitors buy. Worth most where the decision is considered.'],
-  ['landingPage', 'Landing page', 'Better quality, so a cheaper click. Worth most in the middle.'],
 ];
 
-/** The amounts the S-curve actually distinguishes (13.3). */
-const CAPEX_STEPS = [0, 2500000, 5500000, 7000000, 10000000];
+/**
+ * The landing page description is DERIVED, never typed (DECISIONS I9).
+ *
+ * It used to be a text box whose own hint said "it exists to be graded", and
+ * the grader read it for two regexes — so writing the words "size guide" earned
+ * the grade that BUYING one costs capital for. Composing it from the capital
+ * instead means a claim without a purchase behind it cannot be made.
+ */
+function syncPage(draft) {
+  draft.ad.landingPageDescription = composeDescription(draft.capex);
+}
 
 /**
  * @param {object} args
@@ -64,6 +74,7 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
     cell: 'mid|performance',
     capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
     keywords: [],
+    // landingPageDescription is derived from `capex` by syncPage, below.
     ad: { headlines: ['', '', ''], descriptions: ['', ''], landingPageDescription: '' },
     split: null,
     // What is typed in the planner's search box. UI state, kept on the draft
@@ -72,6 +83,7 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
     // is doing the most work.
     keywordFilter: '',
   };
+  syncPage(draft);
 
   const root = el('div', 'setup');
 
@@ -282,8 +294,36 @@ function committed(draft) {
   return Object.values(draft.capex).reduce((a, b) => a + b, 0);
 }
 
+/**
+ * The page as it stands, drawn rather than described.
+ *
+ * The strips are whatever `pageShape` says the capital has funded, so the
+ * drawing cannot show something the description does not claim — both read the
+ * same ladder. What it deliberately does NOT do is state a grade: the grade for
+ * this component lives on the ad card with the other two, because reading them
+ * apart is what made the Quality Score unreadable in the first place.
+ */
+function sectionPagePreview(draft) {
+  const wrap = el('div', 'page-preview');
+  wrap.append(el('p', 'field-label', 'What they land on'));
+
+  const sheet = el('div', 'page-sheet');
+  sheet.append(el('div', 'page-strip head', 'your product'));
+  const { strips } = pageShape(draft.capex);
+  for (const strip of strips) {
+    sheet.append(el('div', `page-strip ${strip.target}`, strip.label));
+  }
+  if (strips.length === 0) {
+    sheet.append(el('div', 'page-strip empty', 'nothing else'));
+  }
+  wrap.append(sheet);
+
+  wrap.append(el('p', 'note muted', draft.ad.landingPageDescription));
+  return wrap;
+}
+
 function sectionCapex(draft, rerender) {
-  const node = card('Capital', `₹1,00,000 to invest in the business, or to keep`);
+  const node = card('Capital', `₹1,00,000 to build the site they land on, or to keep`);
   const spent = committed(draft);
   const left = CAPEX_ALLOCATION_PAISE - spent;
 
@@ -291,19 +331,29 @@ function sectionCapex(draft, rerender) {
     const row = el('div', 'capex-row');
     row.append(el('div', 'capex-label', label));
     const steps = el('div', 'chips');
-    for (const amount of CAPEX_STEPS) {
+    for (const tier of PAGE_FEATURES[key]) {
+      const amount = tier.paise;
       const affordable = amount <= draft.capex[key] + left;
       const chip = el('button', `chip small${draft.capex[key] === amount ? ' on' : ''}`);
       chip.type = 'button';
-      chip.textContent = amount === 0 ? 'none' : rupees(amount);
+      // The label says what it BUYS; the amount says what it costs. The old
+      // chip said only the amount, so three targets read as three identical
+      // sliders and the money was the only thing being chosen.
+      chip.textContent = amount === 0 ? tier.label : `${tier.label} · ${rupees(amount)}`;
       chip.disabled = !affordable;
-      chip.addEventListener('click', () => { draft.capex[key] = amount; rerender(); });
+      chip.addEventListener('click', () => {
+        draft.capex[key] = amount;
+        syncPage(draft);
+        rerender();
+      });
       steps.append(chip);
     }
     row.append(steps);
     row.append(el('div', 'capex-why muted', why));
     node.append(row);
   }
+
+  node.append(sectionPagePreview(draft));
 
   const summary = el('p', 'capex-summary');
   summary.append(el('strong', null, rupees(left)));
@@ -485,15 +535,18 @@ function sectionAd(draft, revalidate, live) {
     addField(`Description ${i + 1}`, box, DESCRIPTION_MAX_CHARS, () => draft.ad.descriptions[i]);
   });
 
-  const page = input({
-    value: draft.ad.landingPageDescription,
-    onInput: (value) => { draft.ad.landingPageDescription = value; revalidate(); },
-  });
-  addField('Landing page', page, null, null,
-    'Describe the page they arrive on — what is on it, how it is laid out, what '
-    + 'a visitor can find. Nobody else ever sees this line; it exists to be '
-    + 'graded, and it is the one component you can also improve later with '
-    + 'capital.');
+  // No landing page box. The third component is graded from the page the
+  // capital actually built (DECISIONS I9) — describing one was free, and
+  // claiming a size guide you had not bought earned the same grade as buying
+  // one. What is left here is the read-out, so the ad card still shows all
+  // three components in one place.
+  node.append(field(
+    'Landing page',
+    el('p', 'derived', draft.ad.landingPageDescription),
+    'Built on the Capital card above, not written here. Every line of this is '
+    + 'something you paid for — which is why it is the one component of the ad '
+    + 'that costs money rather than only effort.',
+  ));
 
   const problems = el('div');
   node.append(problems);

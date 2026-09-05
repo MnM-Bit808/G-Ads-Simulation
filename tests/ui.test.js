@@ -154,6 +154,7 @@ describe('every interface module at least loads', () => {
     'dashboard.js': () => import('../ui/dashboard.js'),
     'decisions.js': () => import('../ui/decisions.js'),
     'ending.js': () => import('../ui/ending.js'),
+    'landing-page.js': () => import('../ui/landing-page.js'),
     'round-zero.js': () => import('../ui/round-zero.js'),
   };
 

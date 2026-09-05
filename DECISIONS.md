@@ -1388,6 +1388,57 @@ Phrase counts as loose. "leggings" on phrase reaches 45 of this set's 151
 queries, five of them informational, so treating phrase as tight would tell a
 player they were safe when they were not.
 
+### I9. The landing page is built, not described — `FIXED`
+
+Round 0 used to hold a free-text box for the landing page, and its own hint said
+the quiet part out loud: *"Nobody else ever sees this line; it exists to be
+graded."*
+
+**The concept was modelled twice, and the free model was the text box.** The
+engine already prices a landing page as three capital investments
+(`engine/positions.js`): `photography` raises `convRateBase`, `sizeGuide` lowers
+`returnRate`, `landingPage` adds up to three graded points. Meanwhile
+`agents/grader.js` read the typed prose for `/size|fit|guide|chart/` and
+`/review|rating/`. **So typing the words "size guide" earned landing-page grade
+for nothing, while buying one cost ₹25,000.**
+
+It was also the wrong question to ask a player. Describing a page that does not
+exist is not a decision about advertising; it is a guess at a rubric. Once
+`explainGrade` put the checks on screen — which was right for other reasons —
+the optimal play became satisfying a checklist, and the prose became ceremony.
+
+**The page is now composed from what the capital funded.** `ui/landing-page.js`
+holds a tier ladder per capex target, each rung carrying the sentence it
+contributes; `composeDescription(capex)` builds the string the grader reads. A
+claim with no purchase behind it cannot be made. The card draws the page as the
+strips it has paid for.
+
+**WHAT THIS COSTS, stated rather than hidden.** A `sizeGuide` purchase now moves
+two numbers: the return rate, as before, and — through the page claim it
+unlocks — the graded `landingPage`. `engine/positions.js` warns against exactly
+this: *"Two things writing one number is how the L6 double-count happened."*
+The warning is about two mechanisms writing one FIELD, and that is still not
+happening — the grade comes from text, as it always did, and the capital bonus
+is still applied separately afterwards. What changed is that the UI will no
+longer let a player write text they have not paid for. It is bounded at one
+point out of ten and it is argued here so the next person to read that warning
+finds the exception.
+
+**The trade-off was measured, not designed.** Enumerating all 29 affordable
+allocations: the top landing grade costs ₹80,000, which leaves ₹20,000 — under
+photography's ₹25,000 first rung. **So the best page and better photography are
+mutually exclusive**, and a player is choosing between a cheaper click and more
+of their visitors buying. `tests/landingPage.test.js` pins that as an invariant
+rather than an observation. Verified in a browser: at that allocation every
+photography chip is disabled, and removing the size guide drops the grade 8 → 7
+with the sizing check flipping to a miss.
+
+**Two things this did NOT fix.** Headlines and descriptions are still free text
+graded by token presence — a digit anywhere, one of `free|save|off|buy|shop`
+— so `expectedCtr` remains word-bingo. And the ad can still only be written at
+round 0 and never revised, though spec 12.3 is explicit that editing copy costs
+no learning period.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
