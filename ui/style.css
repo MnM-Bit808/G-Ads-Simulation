@@ -636,3 +636,11 @@ tr.unsettled td:first-child::after { content: " ← still arriving"; font-size: 
   line-height: 1.5;
 }
 .own-brand strong { font-family: var(--mono); color: var(--good); }
+
+/* --- bulk add, and the second action on a keyword row -------------------- */
+
+.bulk-add { margin: 0.5rem 0 0.6rem; }
+.bulk-add:empty { display: none; }
+.row-actions { display: flex; gap: 0.35rem; justify-content: flex-end; }
+button.add.danger { color: var(--bad); }
+button.add.danger:disabled { color: var(--muted); }

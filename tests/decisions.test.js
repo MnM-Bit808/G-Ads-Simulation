@@ -19,6 +19,7 @@ import {
   setCapex, setPosition, monthBudgetAfter,
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
+  removeKeyword, addKeywords,
 } from '../ui/decisions.js';
 
 /**
@@ -270,6 +271,93 @@ describe('keywords (bids, match types, adding and pausing)', () => {
     const draft = createDraft(selfView());
     const text = draft.keywords[0].text;
     expect(addKeyword(draft, { text, matchType: 'broad', bidPaise: 4000 }).ok).toBe(false);
+  });
+});
+
+describe('removing a keyword, which is not the same as pausing it', () => {
+  test('a removed keyword leaves the ad group; a paused one stays in it', () => {
+    // Pause is "stop entering auctions, keep the row". Remove is "it is gone".
+    // Both are legitimate and Google Ads has both; only pause existed.
+    const draft = createDraft(selfView());
+    const [first, second] = draft.keywords;
+
+    updateKeyword(draft, first.id, { active: false });
+    removeKeyword(draft, second.id);
+
+    const keywords = toDecision(draft).adGroups[0].keywords;
+    expect(keywords.find((k) => k.id === first.id).active).toBe(false);
+    expect(keywords.find((k) => k.id === second.id)).toBeUndefined();
+  });
+
+  test('removing is undoable, and puts it back where it was', () => {
+    const draft = createDraft(selfView());
+    const order = draft.keywords.map((k) => k.id);
+    removeKeyword(draft, order[1]);
+
+    const row = changes(draft).find((r) => r.kind === 'keyword-removed');
+    expect(row.label).toMatch(/Remove/);
+    row.undo();
+    expect(draft.keywords.map((k) => k.id)).toEqual(order);
+    expect(toDecision(draft)).toBeNull();
+  });
+
+  test('removing and adding straight back is a true undo, id and all', () => {
+    // qualityHistory is keyed by keyword id, so an accidental removal that
+    // came back under a NEW id would silently reset that keyword's Quality
+    // Score. freshId reuses an id the account already holds for the text.
+    const draft = createDraft(selfView());
+    const gone = draft.keywords[0];
+    removeKeyword(draft, gone.id);
+    const back = addKeyword(draft,
+      { text: gone.text, matchType: gone.matchType, bidPaise: gone.bidPaise });
+    expect(back.ok).toBe(true);
+    expect(back.keyword.id).toBe(gone.id);
+  });
+
+  test('but a genuinely new keyword never inherits an id', () => {
+    const draft = createDraft(selfView());
+    const existing = new Set(draft.keywords.map((k) => k.id));
+    addKeyword(draft, { text: 'ribbed co ord set women', matchType: 'phrase', bidPaise: 4000 });
+    expect(existing.has(draft.keywords[draft.keywords.length - 1].id)).toBe(false);
+  });
+
+  test('an unknown id is refused rather than silently doing nothing', () => {
+    const draft = createDraft(selfView());
+    expect(removeKeyword(draft, 'kw_not_here').ok).toBe(false);
+  });
+
+  test('and removing every keyword is allowed, because going dark is a decision', () => {
+    const draft = createDraft(selfView());
+    for (const k of [...draft.keywords]) removeKeyword(draft, k.id);
+    expect(draft.keywords).toEqual([]);
+    expect(toDecision(draft).adGroups[0].keywords).toEqual([]);
+  });
+});
+
+describe('adding a whole list at once', () => {
+  test('it adds every one it can and reports what it skipped', () => {
+    const draft = createDraft(selfView());
+    const before = draft.keywords.length;
+    const existing = draft.keywords[0].text;
+
+    const result = addKeywords(draft, [
+      { text: 'ribbed co ord set women', matchType: 'phrase', bidPaise: 4000 },
+      { text: 'luxe lounge set women', matchType: 'phrase', bidPaise: 4000 },
+      { text: existing, matchType: 'phrase', bidPaise: 4000 },
+      { text: '   ', matchType: 'phrase', bidPaise: 4000 },
+    ]);
+
+    expect(result.added).toBe(2);
+    expect(result.skipped).toBe(2);
+    expect(draft.keywords).toHaveLength(before + 2);
+  });
+
+  test('each one it adds is tagged, exactly as a single add would be', () => {
+    const draft = createDraft(selfView());
+    addKeywords(draft, [{ text: 'high waisted gym leggings', matchType: 'broad', bidPaise: 4000 }]);
+    const added = draft.keywords[draft.keywords.length - 1];
+    expect(added.tags.length).toBeGreaterThan(0);
+    expect(added.taggedContentHash).toMatch(/^h53:/);
   });
 });
 

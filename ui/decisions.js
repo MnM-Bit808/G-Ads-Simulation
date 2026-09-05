@@ -364,6 +364,16 @@ export function changes(draft) {
     }
   });
 
+  draft.base.keywords.forEach((before, index) => {
+    if (draft.keywords.some((k) => k.id === before.id)) return;
+    rows.push({
+      kind: 'keyword-removed',
+      label: `Remove “${before.text}”`,
+      detail: 'it leaves the ad group; what it has already learned is kept',
+      undo: () => { draft.keywords.splice(index, 0, structuredClone(before)); },
+    });
+  });
+
   for (const keyword of draft.keywords) {
     const before = draft.base.keywords.find((k) => k.id === keyword.id);
     if (!before) {
@@ -975,7 +985,7 @@ export function addKeyword(draft, { text, matchType = 'phrase', bidPaise } = {})
 
   const { tags, taggedContentHash } = tagKeywordOffline({ text: clean });
   const keyword = {
-    id: freshId(clean, draft.keywords),
+    id: freshId(clean, draft.keywords, draft.base.keywords),
     text: clean,
     matchType,
     bidPaise,
@@ -985,6 +995,58 @@ export function addKeyword(draft, { text, matchType = 'phrase', bidPaise } = {})
   };
   draft.keywords.push(keyword);
   return { ok: true, keyword, inertOnBroad: tags.length === 0 };
+}
+
+/**
+ * Take a keyword out of the ad group entirely.
+ *
+ * NOT the same as pausing, and both are worth having. Pause is "stop entering
+ * auctions, keep the row and its numbers in front of me"; remove is "this was
+ * a mistake, get it off my screen". Google Ads has both, and until now this
+ * form had only pause — which meant a keyword added by accident could never be
+ * fully undone once a round had run.
+ *
+ * It destroys nothing the engine holds: `qualityHistory` is keyed by keyword id
+ * and lives on the ADVERTISER rather than in the ad group, so taking the row
+ * out of the ad group leaves the record alone.
+ *
+ * Remove it and add it straight back and it keeps its id, and therefore its
+ * history — `freshId` reuses an id this account already holds for that text.
+ * Across ROUNDS it does not: once a removal is committed the form no longer
+ * knows the old id, and the keyword comes back as a new one starting from
+ * nothing. That is a real edge and it is not worth engineering away; it is
+ * also roughly what happens if you delete something in a real account and
+ * rebuild it by hand months later.
+ *
+ * @param {object} draft
+ * @param {string} id
+ * @returns {{ok: boolean, reason?: string}}
+ */
+export function removeKeyword(draft, id) {
+  const at = draft.keywords.findIndex((k) => k.id === id);
+  if (at === -1) return { ok: false, reason: 'no such keyword' };
+  draft.keywords.splice(at, 1);
+  return { ok: true };
+}
+
+/**
+ * Add a list of keywords in one go, skipping the ones that cannot be added.
+ *
+ * Every one goes through `addKeyword`, so each is tagged and validated exactly
+ * as a single add would be — the button is a convenience, not a second path.
+ *
+ * @param {object} draft
+ * @param {Array<{text: string, matchType: string, bidPaise: number}>} specs
+ * @returns {{added: number, skipped: number}}
+ */
+export function addKeywords(draft, specs) {
+  let added = 0;
+  let skipped = 0;
+  for (const spec of specs ?? []) {
+    if (addKeyword(draft, spec).ok) added++;
+    else skipped++;
+  }
+  return { added, skipped };
 }
 
 /**
@@ -1042,7 +1104,12 @@ const sameKeywords = (a, b) => a.length === b.length
  * them. Deriving from the text also means re-adding a keyword you removed
  * picks its own history back up, which is what a real account does.
  */
-function freshId(text, keywords) {
+function freshId(text, keywords, previous = []) {
+  // An id this account already holds for exactly this text wins, so removing a
+  // keyword and putting it back is a true undo rather than a fresh start.
+  const known = previous.find((k) => normalise(k.text) === normalise(text));
+  if (known && !keywords.some((k) => k.id === known.id)) return known.id;
+
   const base = `kw_${tagContentHashOf({ text }).replace('h53:', '')}`;
   let id = base;
   for (let n = 2; keywords.some((k) => k.id === id); n++) id = `${base}_${n}`;
@@ -1791,10 +1858,23 @@ function keywordsCard(ctx, refresh) {
     const toggle = el('button', 'add');
     toggle.type = 'button';
     toggle.textContent = paused ? 'resume' : 'pause';
+    toggle.title = paused
+      ? 'Start entering auctions again.'
+      : 'Stop entering auctions, but keep the row and its numbers.';
     toggle.addEventListener('click', () => {
       updateKeyword(draft, keyword.id, { active: paused });
       refresh();
     });
+
+    const drop = el('button', 'add danger');
+    drop.type = 'button';
+    drop.textContent = 'remove';
+    drop.title = 'Take it out of the ad group altogether. What it has already '
+      + 'learned is kept, so adding it back later picks its history up again.';
+    drop.addEventListener('click', () => { removeKeyword(draft, keyword.id); refresh(); });
+
+    const actions = el('div', 'row-actions');
+    actions.append(toggle, drop);
 
     return {
       className: paused ? 'paused-row' : null,
@@ -1805,7 +1885,7 @@ function keywordsCard(ctx, refresh) {
         stats && stats.clicks > 0 ? rupees(stats.costPaise / stats.clicks) : '—',
         stats && stats.conversions > 0 ? stats.conversions.toFixed(1) : '0',
         qualityCell(score, ctx.grades),
-        toggle,
+        actions,
       ],
     };
   });
@@ -1950,14 +2030,37 @@ function planner(ctx, refresh) {
   add(controls, field('Search', search), field('Match', type), field('Bid ₹', bid));
   box.append(controls);
 
+  const bulk = el('div', 'bulk-add');
+  box.append(bulk);
+
   const listBox = el('div', 'scroll research');
   box.append(listBox);
 
   function draw() {
     const term = chosen.term.trim().toLowerCase();
-    const rows = all
-      .filter((q) => !term || q.text.includes(term))
-      .slice(0, 40)
+    const shown = all.filter((q) => !term || q.text.includes(term)).slice(0, 40);
+
+    // Says how many it will add, so it is a considered click rather than a
+    // blind one — this is the button most likely to bury an account in
+    // keywords it never chose.
+    const addable = shown.filter((q) => !held.has(normalise(q.text)));
+    bulk.replaceChildren();
+    if (addable.length > 1) {
+      const go = el('button', 'add');
+      go.type = 'button';
+      go.textContent = `Add all ${addable.length} shown`;
+      go.title = `${chosen.matchType} match at ${rupees(chosen.bidPaise)} each, `
+        + 'the same as adding them one at a time.';
+      go.addEventListener('click', () => {
+        addKeywords(ctx.draft, addable.map((q) => ({
+          text: q.text, matchType: chosen.matchType, bidPaise: chosen.bidPaise,
+        })));
+        refresh();
+      });
+      bulk.append(go);
+    }
+
+    const rows = shown
       .map((q) => {
         const already = held.has(normalise(q.text));
         const button = el('button', 'add');

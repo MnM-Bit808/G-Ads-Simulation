@@ -66,6 +66,11 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
     keywords: [],
     ad: { headlines: ['', '', ''], descriptions: ['', ''], landingPageDescription: '' },
     split: null,
+    // What is typed in the planner's search box. UI state, kept on the draft
+    // because adding a keyword rebuilds the whole form and would otherwise
+    // throw the filter away — which is most annoying exactly when the filter
+    // is doing the most work.
+    keywordFilter: '',
   };
 
   const root = el('div', 'setup');
@@ -339,23 +344,44 @@ function sectionKeywords(querySet, draft, rerender) {
   const chosen = new Set(draft.keywords.map((k) => k.text));
 
   const search = input({
+    value: draft.keywordFilter,
     placeholder: 'search the keyword planner…',
-    onInput: (value) => {
-      const term = value.trim().toLowerCase();
-      renderList(term);
-    },
+    onInput: (value) => { draft.keywordFilter = value; renderList(); },
   });
   node.append(field('Research', search,
     `${all.length} searches, sorted by weekly volume. Volume is public; what a `
     + 'search is worth to you is not.'));
 
+  const bulk = el('div', 'bulk-add');
+  node.append(bulk);
+
   const listBox = el('div', 'scroll research');
   node.append(listBox);
 
-  function renderList(term = '') {
-    const rows = all
-      .filter((q) => !term || q.text.includes(term))
-      .slice(0, 60)
+  function renderList() {
+    const term = draft.keywordFilter.trim().toLowerCase();
+    const shown = all.filter((q) => !term || q.text.includes(term)).slice(0, 60);
+
+    // The count is on the button on purpose. Adding sixty keywords because
+    // they were listed is exactly the mistake this screen is about.
+    const addable = shown.filter((q) => !chosen.has(q.text));
+    bulk.replaceChildren();
+    if (addable.length > 1) {
+      const go = el('button', 'add');
+      go.type = 'button';
+      go.textContent = `Add all ${addable.length} shown`;
+      go.title = 'Phrase match at ₹30 each, the same as adding them one at a time. '
+        + 'You can change both afterwards.';
+      go.addEventListener('click', () => {
+        for (const q of addable) {
+          draft.keywords.push({ text: q.text, matchType: 'phrase', bidPaise: 3000 });
+        }
+        rerender();
+      });
+      bulk.append(go);
+    }
+
+    const rows = shown
       .map((q) => {
         const button = el('button', 'add');
         button.type = 'button';
