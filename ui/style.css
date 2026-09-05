@@ -398,6 +398,19 @@ button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none
 tr.you td { background: rgba(122, 162, 247, 0.10); font-weight: 600; }
 tr.you td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 
+/* Starting over. Two steps, so twelve rounds cannot go to one stray click. */
+.restart-row {
+  display: grid;
+  grid-template-columns: 11rem auto;
+  gap: 0.4rem 0.9rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #21252e;
+}
+.restart-row:last-child { border-bottom: none; }
+.restart-pick { width: 100%; }
+.restart-why { font-size: 0.76rem; line-height: 1.45; }
+
 /* --- forms -------------------------------------------------------------- */
 
 .field { display: block; margin-bottom: 0.7rem; }

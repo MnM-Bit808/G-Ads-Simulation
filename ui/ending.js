@@ -322,7 +322,64 @@ export function renderEnding(ctx) {
   const totals = gameTotals(ctx.history, ctx.playerId);
   add(frag, headlineCard(ctx, totals), standingsCard(ctx),
     weeksCard(ctx, totals), accountCard(ctx), decisionsCard(ctx));
+  // Last, deliberately. It is the only control here that destroys something,
+  // and it should be read after the summary rather than met before it.
+  if (ctx.onRestart) frag.append(restartCard(ctx));
   return frag;
+}
+
+/**
+ * Start another game, once this one is finished.
+ *
+ * TWO STEPS ON PURPOSE. Twelve rounds is far too much to lose to a stray click,
+ * so the first button only ASKS, and the second says which market it is about
+ * to build. Nothing here is reachable before the twelfth week is played.
+ *
+ * The choice is the interesting part rather than a setting. Replaying the same
+ * market is this project's counterfactual made playable — the same eight
+ * rivals in the same cells, so a different plan can be compared against an
+ * identical field, which is the only way to know whether a decision or the
+ * market produced a result. A new market asks the harder question: whether what
+ * you learned transfers, or whether you learned this one board.
+ *
+ * NOT the round 0 redo (17.3). That rewinds THROUGH `redoRoundZero`, keeps the
+ * market and spends the one redo; this starts over with the redo unspent.
+ */
+function restartCard(ctx) {
+  const node = card('Play again', 'the twelve weeks are done');
+  const choices = el('div');
+
+  const ask = el('button', null, 'Start another game');
+  ask.type = 'button';
+  ask.addEventListener('click', () => {
+    ask.hidden = true;
+    choices.append(
+      option('Same market',
+        'The same eight rivals in the same cells. The only way to find out whether '
+        + 'a result came from your decisions or from the market you happened to get.',
+        () => ctx.onRestart('same')),
+      option('A new market',
+        'Different rivals in different cells, so the eight ads at round 0 say '
+        + 'something else. Whether what you learned here transfers is a harder '
+        + 'question than whether you can beat this board again.',
+        () => ctx.onRestart('new')),
+    );
+  });
+
+  node.append(ask, choices);
+  node.append(el('p', 'note',
+    'Either one throws this game away — there is no going back to it, and nothing '
+    + 'is saved. Read what is above first.'));
+  return node;
+}
+
+function option(label, why, onPick) {
+  const row = el('div', 'restart-row');
+  const button = el('button', 'restart-pick', label);
+  button.type = 'button';
+  button.addEventListener('click', onPick);
+  row.append(button, el('div', 'restart-why muted', why));
+  return row;
 }
 
 const card = (title, subtitle, span = 'span-4') => {

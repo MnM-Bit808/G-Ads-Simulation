@@ -261,6 +261,18 @@ describe('rival placement (spec 17.1)', () => {
     expect(shapes.size).toBeGreaterThan(1);
   });
 
+  test('and the NEXT seed is always a different market (I14)', () => {
+    // What "play again, a new market" rests on. The end screen starts the next
+    // game at rootSeed + 1 rather than a random number, so a game stays
+    // reproducible from the seed its state records (R1) — but that only offers
+    // a NEW market if consecutive seeds actually place rivals differently. If
+    // one pair collided, "a new market" would silently hand back the same one.
+    for (let seed = 20260900; seed < 20260930; seed++) {
+      expect(placeRivals(seed).join(','), `seed ${seed} vs ${seed + 1}`)
+        .not.toBe(placeRivals(seed + 1).join(','));
+    }
+  });
+
   test('at least two cells double up, and at most one is left open', () => {
     // Eight rivals over six cells with at most two per cell. The arithmetic is
     // forced, and 17.1 leans on it: an open cell has to be POSSIBLE for

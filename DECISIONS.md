@@ -1666,6 +1666,37 @@ in particular — *"whatever you changed, that is what it did to how often you
 appear"* — because the chart cannot know which of several changes caused it and
 should not pretend to.
 
+### I14. The game can be started again, and the market is a choice — `FIXED`
+
+Twelve weeks end and nothing followed. The end screen now offers another game,
+and the interesting part is not the button but **which market**.
+
+- **Same market.** The same eight rivals in the same cells. This is G1's
+  counterfactual made playable: the only way to learn whether a result came from
+  a decision or from the board you happened to be dealt.
+- **A new market.** Different rivals in different cells, so the eight ads at
+  round 0 say something else — which asks whether what was learned transfers,
+  or whether one board was memorised.
+
+**A NEW MARKET IS THE NEXT SEED, NOT A RANDOM ONE.** `rootSeed + 1`, so a game
+stays reproducible from the number its own state records (R1). A clock would
+have been easier and would have made every game unreplayable. `setup.test.js`
+now asserts consecutive seeds place rivals differently over thirty pairs —
+without it, "a new market" could silently hand back the same one.
+
+**Two steps, deliberately.** The first button only asks; the second says which
+market it is about to build. Twelve rounds is far too much to lose to one stray
+click, and the card sits LAST on the end screen so it is read after the summary
+rather than met before it.
+
+**It is not the round 0 redo (17.3), and must not be confused with it.** A redo
+goes back THROUGH `redoRoundZero`, which stamps `redoUsed` and keeps the
+identical market on purpose. This starts over completely, and the new game
+arrives with its redo unspent.
+
+Nothing is saved. `serialise.js` exists and no screen has ever called it, so
+"play again" ends the old game rather than setting it aside.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

@@ -29,7 +29,13 @@ import { renderDashboard } from './dashboard.js';
 import { createDraft, toDecision, changes } from './decisions.js';
 import { renderEnding } from './ending.js';
 
-const ROOT_SEED = 20260902;
+/**
+ * The market this game is played in. NOT a constant any more, because the end
+ * screen can start another one — but still a SEED rather than a clock, so a
+ * game remains reproducible from the number `state.rootSeed` records (R1).
+ * A new market is the next seed along, not a random one.
+ */
+let rootSeed = 20260902;
 
 const app = document.getElementById('app');
 const nextButton = document.getElementById('next');
@@ -51,7 +57,7 @@ let rewinding = null;
 function begin({ playerBrandId, player }) {
   const state = rewinding
     ? redoRoundZero(rewinding, { playerBrandId, player })
-    : startGame({ rootSeed: ROOT_SEED, playerBrandId, player, querySet: QUERY_SET });
+    : startGame({ rootSeed, playerBrandId, player, querySet: QUERY_SET });
   rewinding = null;
 
   game = {
@@ -152,12 +158,34 @@ function commitLabel() {
     : `Run the week · ${staged} change${staged === 1 ? '' : 's'}`;
 }
 
+/**
+ * Throw this game away and go back to round 0.
+ *
+ * Offered only once the twelfth week is played, so it cannot cost anybody a
+ * game in progress — and the end screen asks which market before it does
+ * anything, because twelve rounds is too much to lose to one stray click.
+ *
+ * NOT the same thing as the round 0 redo (17.3). A redo goes back THROUGH
+ * `redoRoundZero`, which stamps `redoUsed` and keeps the identical market on
+ * purpose; this starts over completely, and `rewinding` is cleared so the new
+ * game arrives with its redo unspent.
+ *
+ * @param {'same'|'new'} market whether to replay this market or move on
+ */
+function restart(market) {
+  if (market === 'new') rootSeed += 1;
+  game = null;
+  rewinding = null;
+  render();
+  window.scrollTo(0, 0);
+}
+
 function render() {
   chrome();
   if (!game) {
     app.replaceChildren(renderRoundZero({
       querySet: QUERY_SET,
-      rootSeed: ROOT_SEED,
+      rootSeed,
       onStart: begin,
     }));
     window.scrollTo(0, 0);
@@ -184,6 +212,7 @@ function render() {
       history: game.state.history,
       playerId: game.playerId,
       opening: game.opening,
+      onRestart: restart,
     }));
     app.replaceChildren(ending, dashboard);
     return;
