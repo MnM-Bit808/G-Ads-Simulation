@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1024 tests, all passing, 1 todo.
+**Every build-order step is done.** 1042 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -465,6 +465,41 @@ constant-side, and they have not been discussed yet.
 
 ---
 
+## What playing it found
+
+Six sessions of building found bugs by writing tests. **Playing it found a
+different class entirely**, and every one of these was invisible to 1000+ tests
+because it was about what the screen SAYS rather than what the engine does.
+
+- **Two rivals ran word for word the same ad.** `adCopy.js` authored one ad per
+  CELL and 17.1 puts eight rivals in six cells, so every doubled cell produced
+  identical copy — on seed 20260902, two pairs of them. 17.1 makes the eight ads
+  the ONLY evidence of where anyone sits, so that is not a cosmetic repeat: it is
+  two rivals the player cannot tell apart. Each cell now holds two ads and every
+  copy rule runs against both.
+- **Round 0 listed eight brands with no hint that the ninth was you.** Correct
+  behaviour, unexplained, so it reads as a missing rival.
+- **The Quality Score was one number that barely moved.** Measured: lifting
+  `expectedCtr` 6 → 9 moves the ratio 1.145 → 1.676 and the displayed score not
+  at all. Worse, a player who commits the whole ₹1,00,000 to their landing page
+  still read `landingPage: average`. The screen now shows all three component
+  ratings AND the grade the player earned — see `DECISIONS.md` I1.
+- **Brand bidding ran every round with no surface at all.** §3.1 names it one of
+  four reasons this vertical was chosen. `brandDefender` poaches every brand
+  query in the market from round 1 and holds 100% of eight of them by round 2,
+  and nothing told the player they owned a name. See `DECISIONS.md` I2.
+- **`Weekly` ran into `Intent`.** `td.num` sets `padding-right: 0` so figures
+  align on their last digit, and the next cell had no left padding.
+- **The round 0 planner threw away your search term** every time you added a
+  keyword, because adding rebuilds the form.
+- **Keywords could be paused but never removed** anywhere except round 0.
+
+**The pattern.** Every one is a sentence the interface does or does not say. The
+suite reads source, the linter reads syntax, and neither reads meaning — so this
+class is found by using the thing and in no other way.
+
+---
+
 ## Still open
 
 **None of it is interface.** Build step 14 is finished; what follows is content,
@@ -516,9 +551,24 @@ tooling and one untested claim.
     with. Left alone deliberately: the TAG is what broad match reads, so a
     lifestyle advertiser's broad keyword reaching into it is realistic spill
     rather than a mistake.
-- **`content/adCopy.js` is read and corrected.** One detail unverified: whether
-  Japanese and Korean yarn is what Indian premium activewear signals with, or
-  whether it is recycled technical fabric or a named mill.
+- **`content/adCopy.js` is read and corrected, and now holds TWO ads per cell.**
+  The second variants were written in one pass and have not been read by a human
+  end to end the way the first six were. They pass every rule in
+  `adCopy.test.js`, including the naive-classifier proxy for whether position is
+  inferable — but that test's own comment says passing it does not mean the copy
+  READS well, and that still needs a person.
+- **One detail unverified** in the premium cells: whether Japanese and Korean
+  yarn is what Indian premium activewear signals with, or whether it is recycled
+  technical fabric or a named mill.
+- **`landingFactor` cannot reach "above average", and spec 9.4 says it can.**
+  Its range is 0.85–1.05, so at grade 10 the field ratio is 1.0925 against a
+  1.10 threshold. 9.4 calls the rating "reachable but narrow"; it is unreachable
+  at any grade, and that sentence is now corrected in the spec. 9.4
+  pre-authorises widening the factor range, and widening it in EITHER direction
+  breaks spec 17.1's "an open cell is not a free ride" — 0.80–1.15 drops a solo
+  advertiser from ~100% of its eligible auctions to 98.9%, and widening upward
+  only is worse at 97.1%. It is a balance change, not a display fix, and it
+  needs its own decision. See `DECISIONS.md` I1.
 - **The W11 display findings are unactioned.** A round's reported profit peaks
   at 117% of truth one round after the click and decays for four more; a 50%
   real improvement in ad quality never moves the reported score, because the

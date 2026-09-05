@@ -1178,6 +1178,133 @@ Recorded because the list above is long and the payload matters:
 
 ---
 
+## I. What the interface shows, and what it refuses to
+
+Every entry above is about what the ENGINE does. These are about what the screen
+says, which is a different kind of decision and was going unrecorded — the whole
+of `ui/` was built without a line in this file. A departure from real Google Ads
+belongs here whether it lives in `engine/` or in a render function.
+
+### I1. The player is shown the grade their own ad earned — `FIXED`
+
+Real Google Ads shows no absolute grade. It shows a 1-10 Quality Score and three
+component ratings — below / average / above — and nothing else.
+
+This screen shows the three ratings AND the 1-10 the grader gave each component.
+That is a departure, and it exists because the relative rating is compression-
+locked at both ends.
+
+**Measured, on a played account.** Lifting `expectedCtr` from 6 to 9 — a 50%
+improvement — moves the own/field ratio from 1.145 to 1.676 and the displayed
+score not at all, because both sit past `RATING_UPPER_THRESHOLD` and three levels
+have nothing between them to say. And `landingFactor` spans 0.85–1.05, so at
+grade 10 the field ratio is 1.0925 against a 1.10 threshold: **"above" is
+unreachable at any grade**, including for a player who commits the entire
+₹1,00,000 capital allocation to their landing page. Spec 9.4 called that rating
+"reachable but narrow" and was wrong; the spec is corrected.
+
+Without the earned grade the screen tells a player who improved their ad that
+nothing happened, which is the one thing this project must not do. With it, they
+read `Landing page 10/10 · average` and can see both that the investment landed
+and that the rating is a comparison rather than a verdict.
+
+**The alternative was rejected on evidence, not taste.** 9.4 pre-authorises
+widening the factor range rather than moving the threshold, so it was tried.
+0.80–1.15 fixes the diagnostic and breaks spec 17.1's "an open cell is not a
+free ride" — an advertiser alone in its cell falls from ~100% of its eligible
+auctions to 98.9%, because the lower floor pushes weak ads under
+`AD_RANK_FLOOR`. Widening upward only is worse, 97.1%, because it lifts the
+RIVALS' factors too and manufactures rank competition where 17.1 says there is
+none. **Still open**, and it is a balance change needing a calibration re-run,
+not a display fix.
+
+### I2. The search terms report names brand owners — `FIXED`
+
+Real Google Ads does not label a search term as belonging to anyone. This one
+marks a term carrying an advertiser's name: green for yours, red with the name
+for a rival's.
+
+Spec 3.1 lists brand bidding as one of the four reasons this vertical was chosen
+over a subscription business, and it was running every round with no surface at
+all. `brandDefender` poaches every brand query in the market from round 1 and by
+round 2 holds 100% of the impressions on eight of the nine, at
+`BRAND_POACHER_MULTIPLIER` 0.25 against the owner's 2.5. Meanwhile a player
+adding the entirely ordinary keyword `co ord set` on phrase match poaches a rival
+and watches that row return 0.2 conversions for ₹681 with nothing to explain it.
+
+**Ownership is inferred, never read.** `query.brandOwner` is withheld from every
+viewer (16.1). `brandNamedIn` reads the words and looks for a name it already
+knows, because identity is public under R3 — which is what makes the inference
+fair, and it is the same reasoning `brandDefender` does.
+
+**The duplication with that policy is deliberate.** `policies.test.js` forbids
+`agents/policies.js` from importing `content/` at all, so a policy cannot reach
+the roster except through the view it was handed. A shared helper was written,
+the guard caught it, and it was put back. A hole in an absolute guard costs more
+than a duplicated eight-line function.
+
+### I3. Round 0 no longer marks the player's own territory — `FIXED`
+
+It used to put a dot beside the searches in the player's cell, computed by
+`homeCell()` — which reads `priceAffinity` and `purposeAffinity`, the two fields
+16.1 withholds "from every viewer, including the advertiser the affinity
+favours". A leak, and a worse one than it looks: working out which of 151
+searches are yours is the decision round 0 exists to make (4.1), and the dot
+made it for you.
+
+It was not even helping. The account this project keeps returning to bought the
+top five rows by volume — every one a Value-tier search for a premium brand —
+with the dot on screen the whole time.
+
+`tests/ui.test.js` now fails if any `ui/` file names the withheld query fields or
+the functions that DERIVE them, built from the engine's own
+`FORBIDDEN_IN_PUBLIC_VIEW` rather than a copy of it.
+
+### I4. The player is told where they finished at week 8 — `FIXED`
+
+13.1 announces the month-3 ranking RULE at round 1 and says nothing about
+publishing the result. The end screen and the budget card both state the
+player's own position, and nothing else about the field.
+
+It is two integers. `budgetSchedule.rankedAtSnapshot` orders every advertiser by
+gross profit; `rankOf` returns `{position, of}` and the array goes no further, so
+no screen can show a rival's standing even by accident.
+
+Withholding it would have been theatre rather than discipline: ₹1,17,600 against
+₹1,68,000 is the last-place multiplier and nothing else, so a player reads their
+rank straight off their own budget. And 13.3 is explicit that a budget swinging
+for reasons nobody can attribute is worse than the mechanic is worth.
+
+### I5. Two ads per cell, not one — `FIXED`
+
+17.1 authors rival copy per cell and puts eight rivals in six cells, capping a
+cell at two. With one ad per cell the doubled cells ran WORD FOR WORD identical
+copy, so two of the player's eight pieces of evidence said nothing.
+
+The second variant signals the same cell by a different route, which is what a
+real second competitor in a segment looks like: Value still names a price and
+makes an offer, Mid still names neither a price nor a material, Premium still
+names what it is made of. Every rule in `adCopy.test.js` runs against both.
+
+### I6. Display numbers stay in the view, not in `constants.js` — *by design*
+
+Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
+instead: `SETTLED_EPSILON` (0.01 of a conversion), `DAYPART_RANGE` (-100 to
++900%), and the planner's default bid.
+
+**Because `constants.test.js` would reject them.** Its orphan check reads
+`engine/`, `content/`, `agents/` and the root modules — not `ui/` — so a
+display-only constant there is a constant read by nothing, which is precisely
+the failure that test exists to catch. They are model-shaped numbers only in
+appearance: `SETTLED_EPSILON` exists because `stillPending` decays by
+subtracting fractional landings and lands on float residue (7.1e-15), not
+because anyone chose a threshold.
+
+Each is documented where it sits. This entry is the ledger's record that the
+omission is argued rather than forgotten.
+
+---
+
 ## Maintenance rule
 
 Every time you or Claude Code picks a number with no source, add it here before

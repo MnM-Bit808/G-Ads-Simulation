@@ -695,10 +695,30 @@ policy alike **(L15)**. It is never in `getPublicView`.
 ### 9.4 Component range warning
 
 `landingFactor` spans 0.85–1.05, a range of 1.235 end to end, while
-`RATING_UPPER_THRESHOLD` is 1.10. An "above average" landing page rating is
-therefore reachable but narrow. This is a known compression and is recorded in
-`DECISIONS.md` A6. If the ratings never move off `average` in play, widen the
-factor ranges rather than moving the thresholds.
+`RATING_UPPER_THRESHOLD` is 1.10.
+
+**This section used to say an "above average" landing page rating was "reachable
+but narrow". It is not reachable at all, and the correction is measured rather
+than argued.** The factor is linear in the graded 1–10, so grade 10 gives 1.0500
+against a field averaging 0.9633 — a ratio of **1.0925 against a 1.10
+threshold**. No grade reaches `above`, including a player who commits the entire
+`CAPEX_ALLOCATION_PAISE` to their landing page and takes the grade to 10 via
+13.3. The component is pinned to `average` for everybody, for the whole game.
+
+The remedy this section recommends — widen the factor ranges rather than move the
+thresholds, because the threshold is what makes the three components comparable
+— still stands as the right *direction*, and it has a cost that was not known
+when it was written. **Widening it in either direction breaks invariant-adjacent
+behaviour in 17.1.** At 0.80–1.15 an advertiser alone in its cell falls from
+~100% of its eligible auctions to 98.9%, because the lower bound pushes weak ads
+under `AD_RANK_FLOOR`; widening upward only, to 0.85–1.15, is worse at 97.1%,
+because it lifts every RIVAL's factor too and manufactures rank competition in a
+cell 17.1 says is uncontested.
+
+So it is a balance change requiring a calibration pass, not a one-line fix, and
+it is **open**. The compression is recorded in `DECISIONS.md` A6, and what the
+interface does about it in the meantime — showing the player the grade their copy
+earned alongside the field-relative rating — is `DECISIONS.md` I1.
 
 ### 9.5 Ungraded ads **(L9)**
 
