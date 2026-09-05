@@ -1,5 +1,7 @@
 import { describe, test, expect } from 'vitest';
-import { rankOf, gameTotals, summariseDecisions } from '../ui/ending.js';
+import { rankOf, gameTotals, summariseDecisions, finalStandings } from '../ui/ending.js';
+import { submitRound } from '../game.js';
+import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 
 /**
  * The end screen's arithmetic and its account of what the player did.
@@ -203,5 +205,66 @@ describe('summariseDecisions reads the log back (12.4)', () => {
   test('a week where nothing was submitted is not listed', () => {
     const log = [entry(6, { campaign: { negatives: [] } })];
     expect(summariseDecisions(log, PLAYER, opening)).toEqual([]);
+  });
+});
+
+describe('the books are opened after the last round (DECISIONS G3)', () => {
+  // R3 forbids reading another advertiser's performance, and it forbids it for
+  // the whole game — DECISIONS I7 is the record of a trend chart that could not
+  // be a leaderboard for exactly this reason. This is the one place it is
+  // lifted, and only once nothing can be done with it: after the final round
+  // there is no decision left for the information to unfairly inform.
+  //
+  // What it buys is the question round 0 asks and nothing has ever answered.
+  // 17.1 says a rival's position is inferred from its ad copy and never stated,
+  // so a player who read those eight ads has spent twelve weeks not knowing
+  // whether they read them right.
+  const played = () => {
+    const state = makeGameState({ round: 1 });
+    let s = state;
+    for (let r = 1; r <= 3; r++) s = submitRound({ ...s, round: r }, {}, { mode: 'expected' }).nextGameState;
+    return s;
+  };
+
+  test('every advertiser is in it, not just the player', () => {
+    const s = played();
+    const rows = finalStandings(s);
+    expect(rows).toHaveLength(s.advertisers.length);
+    expect(rows.filter((r) => r.isYou)).toHaveLength(1);
+  });
+
+  test('it ranks by cumulative gross profit, which is what 13.1 calls the lead', () => {
+    const rows = finalStandings(played());
+    for (let i = 1; i < rows.length; i++) {
+      expect(rows[i - 1].grossProfitPaise).toBeGreaterThanOrEqual(rows[i].grossProfitPaise);
+    }
+    expect(rows[0].rank).toBe(1);
+    expect(rows[rows.length - 1].rank).toBe(rows.length);
+  });
+
+  test('it names where each rival actually sat', () => {
+    // The payoff. Nothing before this ever states a rival's cell.
+    for (const row of finalStandings(played())) {
+      expect(row.cell, row.name).toMatch(/^(value|mid|premium)\|(performance|lifestyle)$/);
+    }
+  });
+
+  test('the player is marked, so a reader can find themselves', () => {
+    const s = played();
+    const me = finalStandings(s).find((r) => r.isYou);
+    expect(me.id).toBe(PLAYER_ID);
+  });
+
+  test('it totals from history, the copy that gets revised', () => {
+    // Same summation the player's own figures use. Reading the reports each
+    // round first returned would count lag-0 conversions at the wrong value and
+    // make the rivals look better than they were.
+    const s = played();
+    const me = finalStandings(s).find((r) => r.isYou);
+    expect(me.grossProfitPaise).toBe(gameTotals(s.history, PLAYER_ID).all.grossProfitPaise);
+  });
+
+  test('an unplayed game yields nothing rather than a table of zeroes', () => {
+    expect(finalStandings(makeGameState({ round: 1 }))).toEqual([]);
   });
 });

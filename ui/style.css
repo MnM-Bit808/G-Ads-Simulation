@@ -394,6 +394,10 @@ button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none
 .writer-what { font-size: 0.76rem; line-height: 1.45; }
 .grade-was { font-size: 0.72rem; font-family: var(--mono); margin-left: 0.5rem; }
 
+/* The final standings. The player's own row, so they can find themselves. */
+tr.you td { background: rgba(122, 162, 247, 0.10); font-weight: 600; }
+tr.you td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+
 /* --- forms -------------------------------------------------------------- */
 
 .field { display: block; margin-bottom: 0.7rem; }

@@ -64,6 +64,56 @@ export function rankOf(state, playerId) {
 }
 
 /**
+ * Every advertiser, how they finished, and where they actually sat.
+ *
+ * THE ONE PLACE R3 IS LIFTED, and only once nothing can be done with it. For
+ * twelve rounds an advertiser may not read another's performance: `getPublicView`
+ * withholds it, `insightsFor` computes only Google's six Search metrics, and
+ * DECISIONS I7 is the record of a trend chart that could not be a leaderboard
+ * for exactly that reason. After the final round there is no decision left for
+ * this to unfairly inform, and it answers the question round 0 asks and nothing
+ * has ever answered: 17.1 says a rival's position is INFERRED from its ad copy
+ * and never stated, so a player who read those eight ads has spent the whole
+ * game not knowing whether they read them right.
+ *
+ * It belongs with the counterfactual and true impression share in DECISIONS
+ * section G — things the simulation knows that reality cannot. A real account
+ * never shows you a competitor's ROAS, and the screen says so.
+ *
+ * Ranked by cumulative GROSS profit, because 13.1 defines the lead that way and
+ * the month-3 budget is already allocated on it.
+ *
+ * @param {object} state the final GameState
+ * @returns {object[]} one row per advertiser, best first; empty before any week
+ */
+export function finalStandings(state) {
+  const history = state?.history ?? [];
+  if (history.length === 0) return [];
+
+  const rows = (state.advertisers ?? []).map((a) => {
+    const { all } = gameTotals(history, a.id);
+    return {
+      id: a.id,
+      name: a.name,
+      // Never stated anywhere before this screen (17.1).
+      cell: `${a.position?.price}|${a.position?.purpose}`,
+      isYou: a.controller === 'player',
+      costPaise: all.costPaise,
+      clicks: all.clicks,
+      conversions: all.conversions,
+      grossProfitPaise: all.grossProfitPaise,
+      netProfitPaise: all.netProfitPaise,
+      netRoas: all.costPaise > 0 ? all.netRevenuePaise / all.costPaise : null,
+      cpaPaise: all.conversions > 0 ? Math.round(all.costPaise / all.conversions) : null,
+    };
+  });
+
+  rows.sort((x, y) => y.grossProfitPaise - x.grossProfitPaise);
+  for (const [i, row] of rows.entries()) row.rank = i + 1;
+  return rows;
+}
+
+/**
  * Every week of the game, and the totals over them.
  *
  * Reads `state.history`, which is the copy 11.4 revises, so each week carries
@@ -270,7 +320,8 @@ function diffKeywords(before, after) {
 export function renderEnding(ctx) {
   const frag = document.createDocumentFragment();
   const totals = gameTotals(ctx.history, ctx.playerId);
-  add(frag, headlineCard(ctx, totals), weeksCard(ctx, totals), accountCard(ctx), decisionsCard(ctx));
+  add(frag, headlineCard(ctx, totals), standingsCard(ctx),
+    weeksCard(ctx, totals), accountCard(ctx), decisionsCard(ctx));
   return frag;
 }
 
@@ -281,6 +332,61 @@ const card = (title, subtitle, span = 'span-4') => {
   node.append(heading);
   return node;
 };
+
+/**
+ * The books, opened. See `finalStandings` for why this is allowed to exist.
+ *
+ * The warning is not decoration and is not hedging. Everything else this
+ * project shows is something a real advertiser could see; this is not, and a
+ * player who took it for a normal report would leave believing they can find
+ * out what a competitor earns. They cannot, ever.
+ */
+function standingsCard(ctx) {
+  const rows = finalStandings(ctx.state);
+  const node = card('Everyone, with the books open',
+    'what the simulator knows and a real account never tells you');
+
+  if (rows.length === 0) return node;
+
+  node.append(el('p', 'note',
+    'For twelve weeks you could read six Auction Insights metrics about a rival '
+    + 'and nothing else, because that is all Google gives you. This is the '
+    + 'exception, and it exists because the game is over: nothing here can '
+    + 'change a decision now. YOU WILL NEVER SEE THIS IN A REAL ACCOUNT — not a '
+    + 'competitor’s spend, not their conversions, and certainly not their '
+    + 'profit. Read it as the answer sheet, not as a report.'));
+
+  // A wrapper, because `table()` calls replaceChildren on what it is given —
+  // handing it the card would delete the heading and the warning above.
+  const wrap = el('div');
+  table(wrap, [
+    '#', 'Brand', 'Where they sat',
+    { label: 'Spend', num: true }, { label: 'Conv', num: true },
+    { label: 'CPA', num: true }, { label: 'Net ROAS', num: true },
+    { label: 'Gross profit', num: true },
+  ], rows.map((r) => ({
+    className: r.isYou ? 'you' : null,
+    cells: [
+      String(r.rank),
+      r.isYou ? `${r.name} (you)` : r.name,
+      r.cell.replace('|', ' · '),
+      rupees(r.costPaise),
+      r.conversions.toFixed(1),
+      r.cpaPaise == null ? '—' : rupees(r.cpaPaise),
+      ratio(r.netRoas),
+      rupees(r.grossProfitPaise),
+    ],
+  })));
+  node.append(wrap);
+
+  node.append(el('p', 'note',
+    'Ranked by cumulative gross profit, which is what 13.1 calls the lead and '
+    + 'what month 3’s budgets were allocated on. The position column is the one '
+    + 'nothing has ever told you: every rival’s cell was inferable only from the '
+    + 'eight ads you read at round 0, so this is where you find out whether you '
+    + 'read them right.'));
+  return node;
+}
 
 function headlineCard(ctx, { all, settled }) {
   const node = card('Twelve weeks', 'what they came to');

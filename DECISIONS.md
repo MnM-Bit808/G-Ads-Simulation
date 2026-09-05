@@ -1173,6 +1173,39 @@ belongs on this list.
 
 ---
 
+### G3. The books are opened after the last round — `FIXED`
+
+R3 forbids an advertiser reading another's performance, and it forbids it for
+the whole game. I7 is the record of a trend chart that could not be a
+leaderboard for exactly that reason: the lead is cumulative gross profit (13.1)
+and Auction Insights is the only legal surface.
+
+**After the final round the end screen shows everything** — every advertiser's
+cell, spend, conversions, CPA, net ROAS and gross profit, ranked.
+
+It sits here rather than in section I because it is the same kind of thing as
+G1 and G2: something the simulation knows that reality cannot. A real account
+never tells you a competitor's spend, and never will.
+
+**Why it is allowed at all:** the game is over, so there is no decision left for
+it to unfairly inform. Withholding it after the last round would protect nothing
+and cost the player the only answer the end screen exists to give.
+
+**What it is actually for** is the position column. 17.1 says a rival's cell is
+INFERRED from its ad copy and never stated, so a player who read those eight ads
+at round 0 has spent twelve weeks not knowing whether they read them right. This
+is where they find out, and it is the only place in the project that grades the
+round 0 skill at all.
+
+**The warning is on the screen, not in this file.** A player who took the table
+for a normal report would leave believing competitor economics are obtainable.
+The card says outright that they are not.
+
+**It earned itself immediately.** The first game played to the end with it
+showed a rival on ₹0 spend and ₹0 profit for twelve rounds — a market with eight
+real competitors rather than nine, which nothing else surfaced and no test
+catches. See I11 and HANDOVER.
+
 ## H. What the simulation gets right
 
 Recorded because the list above is long and the payload matters:
