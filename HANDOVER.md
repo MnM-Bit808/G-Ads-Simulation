@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1127 tests, all passing, 1 todo.
+**Every build-order step is done.** 1147 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -39,6 +39,12 @@ Auction Insights), `ending.js` (the last screen, and the only reader
 
 `content/writers.js` is newer than the rest of `content/`: who writes an
 advertiser's ad, what that costs, and what it guarantees (DECISIONS I11).
+
+**Two screens answer questions nothing used to.** The bidding card says what
+the strategy will actually bid and whether that clears the reserve, BEFORE the
+week is spent finding out; and the end screen opens the books on all nine
+advertisers once the last round is played. Both came from playing it — see
+DECISIONS I12 and G3.
 
 **Round 0 now asks two things it never used to.** Who writes the ad — yourself,
 a freelancer, an agency or a retainer — and what is on your landing page, which
@@ -586,14 +592,39 @@ hardcoded and no `creative` block, so a ~30% change to the budget scale
 catch it. The suite passing proved nothing. The harness is parameterised by
 budget now and the raised case is a permanent test.
 
-### The shape of all three
+### A rival that never traded, found by a screen rather than a test
+
+The end screen's standings table, on its first game, showed one rival on ₹0
+spend and ₹0 profit across twelve rounds. **The market had eight real
+competitors, not nine**, and nothing had noticed.
+
+The cause was self-inflicted and an hour old: the writer mechanic dealt the two
+`cautious` rivals a self-written ad, which opens on the ungraded 3/3/3 default.
+DECISIONS A8 measured that state precisely — *"sits below `AD_RANK_FLOOR` at any
+cautious bid, so the player would enter every auction and show in none"* — and A8
+is the reason the PLAYER's ad is graded before round 1. The fix recreated the
+condition the fix existed to prevent. Marlow needed 1551 paise to appear and bid
+1078.
+
+**Nothing in 1147 tests asserted that a rival TRADES.** There are tests that
+rivals exist, carry a policy, sit in legal cells, hold distinct ad copy and get
+grades inside the scale — and none that any of it produces an impression.
+`setup.test.js` now checks every rival's opening bid against the reserve on its
+own best keyword, across all twelve seeds.
+
+### The shape of all four
 
 A test or a measurement that does not exercise the thing it names. `policyId`
 had a function built to read it and no reader; I3 had an invariant that could
 not see the budget; the landing-page claim had one seed standing in for
-seventy-two. **When a measurement agrees with what you expected, check what it
-actually ran** — all three of these produced numbers that looked entirely
-reasonable.
+seventy-two; and eight rivals had nothing checking they were alive. **When a
+measurement agrees with what you expected, check what it actually ran** — all
+four produced numbers that looked entirely reasonable.
+
+The fourth one is the warning about the other three. It was found by a SCREEN,
+not a test — by putting nine rows in one table where a human could see that one
+of them was zeros. Every guard in this project was written after something got
+past it.
 
 ## Still open
 
@@ -612,6 +643,19 @@ tooling and one untested claim.
   where a tier caps at 8, because relevance is measured against your own
   keywords. Argued both ways in DECISIONS I11 and left alone because the balance
   holds. First thing to revisit if it stops holding.
+- **Only the player writes its own ad now**, and the balance was measured before
+  that changed. `writerBalance.test.js` still passes, because it varies the
+  PLAYER's tier against a fixed field — but the field it measures against is a
+  slightly stronger one than the numbers were originally taken in, since two
+  rivals moved from a dead 3/3/3 opening to a hired grade 6. Re-run it if the
+  tier grades are ever touched.
+- **A DIY player still runs two near-dead weeks**, and that cost was measured in
+  money and never in INFORMATION. Weeks 1 and 2 produce almost no clicks, so
+  there is no search terms report worth reading and no Quality Score yet — two
+  of twelve weeks that are not merely unprofitable but unteachable, in a game
+  whose whole method is reading what happened. The same 3/3/3 opening was fatal
+  to a rival; the player survives it only because their opening bid is larger.
+  Worth measuring before deciding it is fine.
 - **`agents/` needs `llmPolicy.js` and `queryGen.js`.** §2 asks for two of eight
   rivals to be Claude-backed; the market already has six distinct characters
   without it, so this is optional in a way the others were not. `queryGen` is
@@ -721,6 +765,13 @@ tooling and one untested claim.
   defined` and an uncalled function into `dashboard.js` produces two eslint
   errors and leaves all twelve `ui` tests green. `tests/ui.test.js` asserts the
   wiring so it cannot be quietly removed.
+- **The search terms card does not explain its own emptiness.** Found by
+  reproducing a player's "week 2 told me nothing": four phrase keywords produce
+  four rows identical to the keywords, and the note under the table explains
+  only the date range. `negativesOutlook` already computes the right sentence
+  and says it in the Negatives card — a feature the player was not using. Moving
+  that live read under the table where the question is actually asked is small
+  and has not been done.
 - **Nobody has played it as a learner.** Round 0 and a first week have now been
   played BY HAND — real clicks, real typing, Tab between fields — and that
   immediately found two bugs a script structurally could not (see below). The
@@ -828,6 +879,22 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   under that much memory pressure is real CPU. A timing assertion that fires on
   machine weather is worse than none, because it teaches you to rerun until it
   passes.
+
+### Playing it to the end
+
+- **Rounds get slow.** Early weeks resolve in about seven seconds; by week 10 or
+  11 a single round takes thirty to sixty. The round blocks the main thread, so
+  the button sits on "running 168 hours…" and the page is unresponsive — it
+  looks hung and is not. Driving twelve rounds from a script needs waits far
+  longer than the early rounds suggest, and a loop that clicks on a fixed
+  interval will silently stop advancing once a click lands on a disabled button.
+- **The search terms report mirrors your keywords when they are all phrase or
+  exact.** Four phrase keywords give four rows, each identical to the keyword
+  that bought it, and the primary learning surface has nothing in it. That is
+  the model being honest — DECISIONS I8 measured one broad keyword taking the
+  same report to seventy rows — but a player reads it as "nothing happened".
+  The explanation currently lives in the NEGATIVES card, which is not where the
+  question gets asked. Unfixed; see below.
 
 ### Writing a measurement harness
 
