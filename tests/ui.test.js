@@ -150,6 +150,7 @@ describe('every interface module at least loads', () => {
   // makes sure this map never falls behind the directory.
   const LOADABLE = {
     'dom.js': () => import('../ui/dom.js'),
+    'chart.js': () => import('../ui/chart.js'),
     'dashboard.js': () => import('../ui/dashboard.js'),
     'decisions.js': () => import('../ui/decisions.js'),
     'ending.js': () => import('../ui/ending.js'),
@@ -171,7 +172,7 @@ describe('every interface module at least loads', () => {
   });
 
   test('and the ones that draw a screen export a render function', async () => {
-    for (const file of ['dashboard.js', 'decisions.js', 'ending.js', 'round-zero.js']) {
+    for (const file of ['chart.js', 'dashboard.js', 'decisions.js', 'ending.js', 'round-zero.js']) {
       const module = await LOADABLE[file]();
       const renders = Object.entries(module).filter(([name]) => name.startsWith('render'));
       expect(renders.length, file).toBe(1);

@@ -655,3 +655,55 @@ button.add.danger:disabled { color: var(--muted); }
 .grade-checks { margin: 0.25rem 0 0; padding-left: 1.1rem; font-size: 0.79rem; line-height: 1.5; }
 .grade-checks li.ok { color: var(--good); }
 .grade-checks li.miss { color: var(--warn); }
+
+/* --- the negatives verdict, and the trend chart -------------------------- */
+
+.neg-verdict {
+  margin: 0 0 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0 7px 7px 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+.neg-verdict.live { background: rgba(224, 175, 104, 0.09); border-left: 3px solid var(--warn); }
+.neg-verdict.live strong { color: var(--warn); }
+.neg-verdict.quiet { background: var(--panel-2); border-left: 3px solid var(--line); color: var(--muted); }
+.neg-verdict.quiet strong { color: var(--ink); }
+
+.metric-chips { margin-bottom: 0.8rem; }
+svg.trend { width: 100%; height: auto; display: block; }
+svg.trend .grid { stroke: var(--line); stroke-width: 1; }
+svg.trend .axis { fill: var(--muted); font-size: 9px; font-family: var(--mono); }
+svg.trend .line { fill: none; stroke: var(--muted); stroke-width: 1.5; opacity: 0.55; }
+svg.trend .line.self { stroke: var(--accent); stroke-width: 2.5; opacity: 1; }
+svg.trend .line.focused { stroke: var(--good); stroke-width: 2.5; opacity: 1; }
+svg.trend .dot { fill: var(--muted); }
+svg.trend .dot.self { fill: var(--accent); }
+
+.legend-lines { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.6rem; }
+.legend-line {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: auto;
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.72rem;
+}
+.legend-line.self { color: var(--ink); border-color: var(--accent); }
+.legend-line.on { border-color: var(--good); color: var(--ink); }
+.legend-swatch { width: 10px; height: 2px; background: currentColor; display: inline-block; }
+.legend-value { font-family: var(--mono); margin-left: 0.15rem; }
+
+.chart-warn {
+  margin: 0.7rem 0 0;
+  padding: 0.55rem 0.75rem;
+  background: rgba(240, 113, 120, 0.08);
+  border-left: 3px solid var(--bad);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}

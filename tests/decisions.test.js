@@ -19,7 +19,7 @@ import {
   setCapex, setPosition, monthBudgetAfter,
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
-  removeKeyword, addKeywords,
+  removeKeyword, addKeywords, negativesOutlook,
 } from '../ui/decisions.js';
 
 /**
@@ -133,6 +133,70 @@ describe('negatives (8.2)', () => {
       expect(addNegative(draft, { text: `t ${matchType}`, matchType }).added).toBe(true);
     }
     expect(addNegative(draft, { text: 'semantic', matchType: 'tag' }).added).toBe(false);
+  });
+});
+
+describe('whether negatives are worth your attention at all', () => {
+  // The question asked while playing was "do I even need to pay attention to
+  // this, or just let it be" — and it has a real answer that depends entirely
+  // on how loosely the account's keywords match. Prose cannot answer it; the
+  // player's own numbers can.
+  const terms = (n, wasteful = 0) => Object.fromEntries(
+    Array.from({ length: n }, (_, i) => [`q_${i}`, {
+      impressions: 100, clicks: i < wasteful ? 9 : 2,
+      costPaise: i < wasteful ? 90000 : 2000,
+      conversions: i < wasteful ? 0 : 1,
+    }]),
+  );
+
+  test('a tight account is told there is nothing here for it yet', () => {
+    // Exact, not phrase. Phrase IS loose — "leggings" on phrase reaches 45 of
+    // this query set's 151, five of them informational — so counting it as
+    // tight would tell a player they were safe when they were not.
+    const draft = createDraft(selfView());
+    for (const k of draft.keywords) updateKeyword(draft, k.id, { matchType: 'exact' });
+
+    const state = negativesOutlook(draft, terms(draft.keywords.length));
+    expect(state.loose).toBe(0);
+    expect(state.wasteful).toBe(0);
+    expect(state.worthIt).toBe(false);
+  });
+
+  test('a broad keyword pulling far more searches than it has keywords is flagged', () => {
+    const draft = createDraft(selfView());
+    for (const k of draft.keywords) updateKeyword(draft, k.id, { matchType: 'exact' });
+    updateKeyword(draft, draft.keywords[0].id, { matchType: 'broad' });
+
+    const state = negativesOutlook(draft, terms(70, 3));
+    expect(state.loose).toBe(1);
+    expect(state.searches).toBe(70);
+    expect(state.wasteful).toBe(3);
+    expect(state.wastedPaise).toBe(270000);
+    expect(state.worthIt).toBe(true);
+  });
+
+  test('money already wasted counts even when every keyword is exact', () => {
+    // Exact match takes close variants (8.1), so even a tight account can pick
+    // up a search it did not intend. Rare, and not a reason to say "nothing to
+    // do here" when the report is showing spend that returned nothing.
+    const draft = createDraft(selfView());
+    for (const k of draft.keywords) updateKeyword(draft, k.id, { matchType: 'exact' });
+
+    const state = negativesOutlook(draft, terms(6, 2));
+    expect(state.loose).toBe(0);
+    expect(state.worthIt).toBe(true);
+  });
+
+  test('an unplayed account is not told it is fine, only that it is unplayed', () => {
+    const state = negativesOutlook(createDraft(selfView()), {});
+    expect(state.searches).toBe(0);
+    expect(state.played).toBe(false);
+  });
+
+  test('a negative already written keeps the section relevant', () => {
+    const withOne = createDraft(selfView());
+    addNegative(withOne, { text: 'free', matchType: 'broad' });
+    expect(negativesOutlook(withOne, terms(4)).worthIt).toBe(true);
   });
 });
 

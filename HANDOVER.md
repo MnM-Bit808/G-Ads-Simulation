@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1047 tests, all passing, 1 todo.
+**Every build-order step is done.** 1061 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -32,9 +32,10 @@ Plus three modules the spec's layout never had, all of them caller-layer:
 | `setup.js` | round 0 (§17). Seeded rival placement, the briefing, the player's opening decisions, and the one redo (17.3). It is in NO build-order step — the order predates `game.js`. |
 | `dev-server.js` | 40 lines of `node:http` so `ui/` can import the real engine. `npm run dev`. |
 
-`ui/` is five modules: `app.js` (the loop), `round-zero.js`, `dashboard.js`,
-`decisions.js` (the between-weeks form) and `ending.js` (the last screen, and
-the only reader `decisionLog` has ever had).
+`ui/` is six modules: `app.js` (the loop), `round-zero.js`, `dashboard.js`,
+`decisions.js` (the between-weeks form), `chart.js` (the week-by-week trend of
+Auction Insights) and `ending.js` (the last screen, and the only reader
+`decisionLog` has ever had).
 
 **It is playable end to end, and has been played end to end.** `npm run dev`,
 then http://localhost:5173. Round 0 asks for brand, position, capital,

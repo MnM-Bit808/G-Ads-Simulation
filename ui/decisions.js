@@ -889,6 +889,57 @@ export function dropNegative(draft, index) {
 }
 
 /**
+ * Whether this account needs to think about negatives at all, from its own data.
+ *
+ * THE QUESTION THIS ANSWERS came from playing: "what does this section do, do I
+ * even need to pay attention to it or just let it be". It has a real answer and
+ * prose cannot give it, because the answer depends on the account.
+ *
+ * Negatives matter in proportion to how loosely your keywords match. Measured
+ * on this query set: five phrase keywords on long strings produced a search
+ * terms report with five rows and nothing whatever to block, while one broad
+ * keyword took it to seventy — three of them `gym near me`, `free gym diet
+ * chart` and `gym membership price`, which convert at exactly zero for
+ * everybody (12.1).
+ *
+ * So the card reads the player's own match types and their own report and says
+ * which of those two accounts they are running.
+ *
+ * @param {object} draft
+ * @param {object} terms search terms report rows, keyed by query id
+ * @returns {object}
+ */
+export function negativesOutlook(draft, terms) {
+  const rows = Object.values(terms ?? {}).filter((r) => r.impressions > 0);
+  const active = draft.keywords.filter((k) => k.active !== false);
+  const loose = active.filter((k) => k.matchType !== 'exact').length;
+  const broad = active.filter((k) => k.matchType === 'broad').length;
+
+  // The same marking the search terms table already makes: clicks paid for
+  // that came back with nothing. Not proof of waste on one week - conversions
+  // are still arriving - which is why the card points at the report rather
+  // than telling anyone to block.
+  const wasteful = rows.filter((r) => r.clicks >= 5 && r.conversions === 0);
+  const wastedPaise = wasteful.reduce((total, r) => total + r.costPaise, 0);
+
+  return {
+    played: rows.length > 0,
+    searches: rows.length,
+    keywords: active.length,
+    loose,
+    broad,
+    wasteful: wasteful.length,
+    wastedPaise,
+    // Worth attention when something is already being wasted, when a keyword
+    // is reaching well past the searches it names, or when there are already
+    // negatives whose over-blocking is worth checking.
+    worthIt: wasteful.length > 0
+      || draft.negatives.length > 0
+      || (broad > 0 && rows.length > active.length * 3),
+  };
+}
+
+/**
  * Which of the draft's negatives, if any, kills this search term.
  *
  * Used to grey the row out the moment a negative is staged, so the cost of a
@@ -1701,8 +1752,38 @@ function daypartCard(ctx, refresh) {
 // --- negatives -------------------------------------------------------------
 
 function negativesCard(ctx, refresh) {
-  const node = card('Negatives', 'written from the report above, and only from it');
+  const node = card('Negatives', 'searches you refuse to pay for');
   const draft = ctx.draft;
+
+  // Does this account need to care yet? Answered from its own numbers rather
+  // than left as a paragraph the player has to apply to themselves.
+  const outlook = negativesOutlook(draft, ctx.terms);
+  const verdict = el('p', outlook.worthIt ? 'neg-verdict live' : 'neg-verdict quiet');
+  if (!outlook.played) {
+    verdict.textContent = 'Nothing has run yet. Once a week has played, this is where '
+      + 'you find out which searches your keywords actually bought.';
+  } else if (outlook.worthIt) {
+    verdict.append(el('strong', null, 'Worth your attention this week. '));
+    verdict.append(document.createTextNode(
+      outlook.wasteful > 0
+        ? `${outlook.wasteful} of your ${outlook.searches} searches took five clicks or `
+          + `more and returned nothing, costing ${rupees(outlook.wastedPaise)}. `
+        : `${outlook.keywords} keywords pulled you into ${outlook.searches} different `
+          + 'searches, which is a lot further than you named. ',
+    ));
+    verdict.append(document.createTextNode(
+      'Read the search terms report above and block what is not yours.',
+    ));
+  } else {
+    verdict.append(el('strong', null, 'Not much for you here yet. '));
+    verdict.append(document.createTextNode(
+      `Your ${outlook.keywords} keywords matched ${outlook.searches} searches, and `
+      + 'none of them is taking clicks without returning anything. Negatives start '
+      + 'to earn their keep when a keyword reaches past the words it names — which '
+      + 'is what broad match is for, and what it costs.',
+    ));
+  }
+  node.append(verdict);
 
   if (draft.negatives.length > 0) {
     const list = el('table', 'mini');
@@ -1758,7 +1839,9 @@ function negativesCard(ctx, refresh) {
   node.append(el('p', 'note',
     'A negative matches the words themselves — no synonyms, no close variants, '
     + 'no plurals. That is why you can be dragged into a search by meaning and '
-    + 'can only get out of it by naming what it literally said.'));
+    + 'can only get out of it by naming what it literally said. A blocked search '
+    + 'stops being one you were eligible for at all, so your impression share '
+    + 'moves as well as your spend, and it stays blocked until you remove it.'));
   return node;
 }
 

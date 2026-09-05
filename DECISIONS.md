@@ -1286,6 +1286,59 @@ real second competitor in a segment looks like: Value still names a price and
 makes an offer, Mid still names neither a price nor a material, Premium still
 names what it is made of. Every rule in `adCopy.test.js` runs against both.
 
+### I7. The trend chart plots six metrics because there are only six — `FIXED`
+
+Asked for a graph putting all nine advertisers side by side "to evaluate who
+has the current lead". The chart exists; the framing could not.
+
+**The lead in this game is cumulative gross profit (13.1), and that is exactly
+what R3 forbids reading about anybody else.** Auction Insights is the entire
+legal surface and it carries precisely Google's six Search metrics, so those six
+are what the chart draws and there is nothing else it could draw. Three are
+per-advertiser and plot for all nine; three are pairwise and yield eight lines
+and never one for the player, because "you against you" is not a quantity
+`insightsFor` computes and a flat line for it would be invented data.
+
+**The temptation was to let impression share stand in for the lead.** F12 is the
+measurement of why not: an advertiser read 100% impression share for twelve
+rounds while rivals took 69% of its profit through price. It was winning every
+auction and losing the game, and a chart headed "who is leading" would have told
+it that it was first. So the card is headed *share of impressions*, and F12's
+finding is printed ON the chart rather than under it.
+
+The overlap view carries §16's own warning for a sharper reason than §16 had.
+§16 says overlap rate is the single most misread number in the report and the
+interface should say so — and a TIME SERIES makes that worse, because a rising
+line reads as a rival growing when it may only mean you both broadened into the
+same searches.
+
+Noise was the player's explicit choice: all six offered rather than the three
+most useful, on the argument that learning to skim is part of reading a real
+report. Clicking a name in the legend isolates it, which is what makes that
+skimmable rather than merely busy.
+
+### I8. The Negatives card answers "do I need to care" from the account — `FIXED`
+
+The card explained the mechanism — literal words, no synonyms, no plurals — and
+said nothing about whether any of it applied to the player, who asked outright
+whether to pay attention or let it be.
+
+That question has an answer and it is conditional: negatives matter in
+proportion to how loosely the keywords match. Measured on this query set, five
+phrase keywords on long strings produced a report with five rows and nothing to
+block, while one broad keyword took it to seventy.
+
+So `negativesOutlook` reads the player's own match types and their own report
+and says which of those two accounts they are running — "3 of your 68 searches
+took five clicks or more and returned nothing, costing ₹14,660" against "your 5
+keywords matched 5 searches, and none of them is taking clicks without returning
+anything". Same principle as I1: a live read of the situation beats a paragraph
+the reader has to apply to themselves.
+
+Phrase counts as loose. "leggings" on phrase reaches 45 of this set's 151
+queries, five of them informational, so treating phrase as tight would tell a
+player they were safe when they were not.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

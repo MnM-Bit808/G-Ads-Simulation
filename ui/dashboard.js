@@ -24,6 +24,7 @@ import { getPublicView } from '../engine/insights.js';
 import { briefing } from '../setup.js';
 import { renderDecisions, addNegative, blocksTerm, effectiveGrades } from './decisions.js';
 import { rankOf } from './ending.js';
+import { renderTrends } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
 import { MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH } from '../engine/constants.js';
 
@@ -427,6 +428,15 @@ export function renderDashboard(game, onDecisionChange) {
     },
   };
   ctx.sync();
+
+  // Beside Auction Insights, which is the static this-week version of the same
+  // six numbers. Everything it plots is already in `game.insights`.
+  root.querySelector('[data-slot="trends"]').replaceWith(renderTrends({
+    insights: game.insights,
+    playerId: game.playerId,
+    names: new Map(view.advertisers.map((a) => [a.id, a.name])),
+    view: game.view,
+  }));
 
   root.querySelector('[data-slot="decisions"]').replaceWith(renderDecisions(ctx));
   renderTerms(root, game, ctx);
