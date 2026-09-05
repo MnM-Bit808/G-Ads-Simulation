@@ -1491,6 +1491,87 @@ moves.
 those three: the rubric's own numbers live with the rubric, and no formula in
 `engine/` reads any of them.
 
+### I11. Ad copy is bought or written, and the choice is a real one — `FIXED`
+
+Real Google Ads has no notion of who wrote your ad. This one does: at round 0
+every advertiser hires a writer or writes its own.
+
+| tier | price | copy grades | live |
+|---|---|---|---|
+| Write it yourself | ₹0 | whatever you actually wrote, up to the grader's 8 | **week 3** |
+| Freelance copywriter | ₹10,000 | 6 | week 1 |
+| Creative agency | ₹25,000 | 7 | week 1 |
+| Premium retainer | ₹50,000 | 8 | week 1 |
+
+**PRICE CANNOT BE THE LEVER, and that is measured rather than assumed.** The
+obvious design — pay more, get a better ad — does not work in this economy. One
+point of ad copy quality is worth **₹1,33,986** of net profit over twelve
+rounds. Against honest search copywriting rates of ₹1,000–3,000 that is a **45–134×
+return**, so every tier is a forced buy and the decision is a toll booth. Even
+at a ₹50,000 agency fee one point still repays four times over. To make price
+balance the choice you would have to charge about ₹2,00,000 for three headlines,
+which is more than a month's media and a lie about what copy costs.
+
+So the currency is **time and certainty, not money**. Hiring is immediate and
+guaranteed and capped; writing your own is delayed, uncapped to the grader's
+ceiling, and only as good as what you wrote.
+
+**THE TIER GRADES WERE MEASURED, TWICE.** The first run put them at 5/6/7 — and
+was taken against a market where every rival ran a no-op controller (see
+HANDOVER). Re-measured against a field that bids back, one quality point fell
+from ₹2,20,254 to ₹1,33,986, CPC improvement collapsed from −28% to −8%, and
+marginal value began PEAKING at grade 8 and falling at 9. Hired grades of 5/6/7
+were beaten by a competent self-written ad at every rung, so the ladder is
+6/7/8.
+
+**A TIER SETS THE LEVEL; THE ADVERTISER SETS THE SHAPE.** Had a tier set both
+copy components, every buyer of one tier would have `expectedCtr ===
+adRelevance` and the eight rivals would collapse onto three identical shapes —
+exactly what `adCopy.js` exists to prevent, since "above average" needs a field
+to be above and equal ad ranks hand one advertiser every top slot. Each rival's
+authored character now supplies a lean (the SIGN of its old ctr-minus-relevance)
+around the tier's level.
+
+**A WRITER WRITES COPY**, so no tier touches `landingPage`. That is graded from
+the page the capital built (I9), and letting a copywriter move it would rebuild
+the double model I9 was written to remove.
+
+**THE DELIVERY IS DELAYED, NEVER THE EFFECT.** `CLAUDE.md` requires an ad copy
+change to move `qualitySignal` immediately and leave `reportedScore` unchanged;
+a grade that faded in over rounds would break the split the whole diagnostic
+rests on. The grade is computed at round 0, held whole, and applied whole by
+`game.js` on the round it was due.
+
+**THE ROLLOVER IS LOAD-BEARING, not tidiness.** Whatever the writer did not cost
+becomes advertising budget. Without it the retainer was 20% ahead of a perfectly
+self-written ad and strictly dominated. With it, `tests/writerBalance.test.js`
+measures self-written against retainer at **1.002** — within 0.2%.
+
+It arrives differently from the capital rollover and the two must not be
+confused: capital has allocation rounds and `round.js` adds it there, rescaling
+the split; the writer is chosen at round 0 and has no allocation round to wait
+for, so its remainder is in `monthlyBudgetPaise` from the start.
+
+**A CONSEQUENCE WORTH KNOWING.** A self-written ad can reach `adRelevance` 10
+and so beat every hired tier on that component, because relevance is measured
+against your OWN keywords while a tier is a flat grade capped at 8. For it:
+echoing your own searches is the part the advertiser knows best. Against: a
+copywriter handed your keyword list would use it too. Left as it is because the
+balance decides, and at 1.002 it is not too generous.
+
+**RIVALS CHOOSE TOO (R6).** Restricting self-written copy to the player was
+proposed and rejected — it would not have fixed anything, since a dominant
+option is dominant whoever else can take it, and the balance made it
+unnecessary. A rival's tier follows the policy it already runs rather than a
+second authored table: a `spender` buys the retainer, a `cautious` advertiser
+writes its own.
+
+**THE ABSTRACTION IS ON THE CARD.** You write what the ad says either way, and
+those are the words searchers see — this simulator cannot invent better ones.
+What hiring buys is the grade. That sentence is printed, because the difference
+between an abstraction and a screen that teaches something false is whether it
+says so.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

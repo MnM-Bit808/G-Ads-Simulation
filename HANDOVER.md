@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1063 tests, all passing, 1 todo.
+**Every build-order step is done.** 1127 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -32,14 +32,25 @@ Plus three modules the spec's layout never had, all of them caller-layer:
 | `setup.js` | round 0 (§17). Seeded rival placement, the briefing, the player's opening decisions, and the one redo (17.3). It is in NO build-order step — the order predates `game.js`. |
 | `dev-server.js` | 40 lines of `node:http` so `ui/` can import the real engine. `npm run dev`. |
 
-`ui/` is six modules: `app.js` (the loop), `round-zero.js`, `dashboard.js`,
+`ui/` is seven modules: `app.js` (the loop), `round-zero.js`, `dashboard.js`,
 `decisions.js` (the between-weeks form), `chart.js` (the week-by-week trend of
-Auction Insights) and `ending.js` (the last screen, and the only reader
-`decisionLog` has ever had).
+Auction Insights), `ending.js` (the last screen, and the only reader
+`decisionLog` has ever had) and `landing-page.js` (the page the capital builds).
+
+`content/writers.js` is newer than the rest of `content/`: who writes an
+advertiser's ad, what that costs, and what it guarantees (DECISIONS I11).
+
+**Round 0 now asks two things it never used to.** Who writes the ad — yourself,
+a freelancer, an agency or a retainer — and what is on your landing page, which
+is built from the capital rather than described in a text box. Both are
+DECISIONS I9 and I11, and both replaced a screen that was quietly teaching
+something false.
 
 **It is playable end to end, and has been played end to end.** `npm run dev`,
-then http://localhost:5173. Round 0 asks for brand, position, capital,
-keywords, ad copy and a weekly split; the dashboard plays a week at a time
+then http://localhost:5173 (`.claude/launch.json` sets `autoPort`, so a second
+session gets a different port rather than colliding). Round 0 asks for brand,
+position, capital, keywords, who writes the ad, the ad itself and a weekly
+split; the dashboard plays a week at a time
 against six rule-based rivals; and the decision form now lets the player write
 negatives, change bids and match types, pause keywords and add new ones between
 weeks, choose a bid strategy, take the round-5 capital allocation, use the one
@@ -509,11 +520,98 @@ class is found by using the thing and in no other way.
 
 ---
 
+## What measuring it found, and it is the sharpest lesson here
+
+A session spent measuring rather than building produced four findings, and three
+of them were **defects in the measurements themselves**. That is the pattern
+worth carrying: in this project a wrong number is far more likely than a wrong
+feature, and it never announces itself.
+
+### `advertiser.policyId` was dead, so every rival stood still
+
+`buildRival` set it to `null` with the comment "the caller assigns a policy",
+and the only caller that did was `ui/app.js` — which assigned by index from a
+private array and never wrote the id back. So in **every game that had ever
+run**, `policyId` was null and `controllerFor`, which exists precisely to turn
+that id into a controller, had no reader outside the tests.
+
+The cost was not theoretical. Every measurement taken that day wired rivals as
+
+```js
+controllers[a.id] = a.policyId ? controllerFor(a.policyId) : () => null;
+```
+
+which is the obvious way to write it and silently gives all eight rivals a
+**no-op controller**. They kept their round 0 keywords, bids and ads and never
+adjusted a bid, wrote a negative or responded to anything. A dead field still
+produces entirely plausible numbers, which is why nothing looked wrong.
+
+Fixed by dealing the policy at construction from `RIVAL_CAST` in
+`agents/policies.js`, so the field is live by default rather than by the caller
+remembering. **Any harness you write should assert the rivals are live before it
+measures anything** — `tests/writerBalance.test.js` does.
+
+What it cost in numbers: one point of ad copy quality was measured at
+₹2,20,254 against a dead field and ₹1,33,986 against a live one. CPC improvement
+went from −28% to −8%. Marginal value only starts falling at grade 9 once
+rivals bid back.
+
+### A claim measured on the canonical seed was a sample of one
+
+Spec 9.4 said an "above average" landing page rating was "not reachable at all",
+which overturned `DECISIONS` A6's correct "reachable but narrow". Measured over
+720 games it is reached in **33 of 72 (seed, cell) pairs**.
+
+The retracted figure came from seed `20260902` — this project's canonical seed,
+and the WORST row in the grid: one of its six cells reaches `above`. In five of
+six the false claim is locally true. **A number measured on the canonical seed
+is a sample of one**, and this one propagated into the spec, a DECISIONS entry
+and a `constants.js` comment before anyone re-measured.
+
+### A replica that disagrees with the recorded baseline is measuring something else
+
+Checking whether the creative rollover broke invariant I3, a scratch replica of
+the I3 harness reported **15.0% and a FAIL** — which would have sent a session
+rebalancing something that was never broken. It summed GROSS profit over all
+twelve rounds; the real invariant uses NET profit over settled rounds only,
+because a click in round R is not final until R+5.
+
+What gave it away was that it could not reproduce the documented 2.8% baseline.
+The real figure at the raised budget is **5.3%** against a 15% bound.
+
+**And `calibration.test.js` could not have caught it either**, which is the
+second half of the lesson: it builds its own fixture with `monthlyBudgetPaise`
+hardcoded and no `creative` block, so a ~30% change to the budget scale
+`WEEKLY_VOLUME` is pinned against could not reach the invariant that exists to
+catch it. The suite passing proved nothing. The harness is parameterised by
+budget now and the raised case is a permanent test.
+
+### The shape of all three
+
+A test or a measurement that does not exercise the thing it names. `policyId`
+had a function built to read it and no reader; I3 had an invariant that could
+not see the budget; the landing-page claim had one seed standing in for
+seventy-two. **When a measurement agrees with what you expected, check what it
+actually ran** — all three of these produced numbers that looked entirely
+reasonable.
+
 ## Still open
 
 **None of it is interface.** Build step 14 is finished; what follows is content,
 tooling and one untested claim.
 
+- **The writer mechanic rests on a balance measured once.**
+  `tests/writerBalance.test.js` plays the real configurations and holds
+  self-written against the retainer at **1.002**, but that is two seeds and one
+  cell, because whole games are slow. It is the tightest balance in the project
+  and the most likely to drift: it depends on the tier grades, the delivery
+  round, the creative budget, the grader's ceiling AND the rollover, and moving
+  any one of them moves it. Widen the seeds and cells if that test ever starts
+  looking marginal rather than loosening its bounds.
+- **A self-written ad can beat every hired tier on `adRelevance`**, reaching 10
+  where a tier caps at 8, because relevance is measured against your own
+  keywords. Argued both ways in DECISIONS I11 and left alone because the balance
+  holds. First thing to revisit if it stops holding.
 - **`agents/` needs `llmPolicy.js` and `queryGen.js`.** §2 asks for two of eight
   rivals to be Claude-backed; the market already has six distinct characters
   without it, so this is optional in a way the others were not. `queryGen` is
@@ -524,6 +622,15 @@ tooling and one untested claim.
   Both take their transport as an argument and `agents/claude.js` supplies a
   real one; nothing has yet passed it. The first live model call in this project
   has not been made.
+
+  This is now the only honest route to a copy grade above 8. The offline rubric
+  caps `expectedCtr` at 8 deliberately — base 5 plus three rules — and
+  `grader.test.js` pins that it "does not pretend to be the model". Extending
+  patterns until they award a 10 would claim a judgement regexes cannot make,
+  and would rebuild the word-bingo DECISIONS I10 removed. A model that reads the
+  copy can tell; a regex cannot. See I10 for the argument in full, and note that
+  the writer ladder was built to top out AT the offline ceiling so nothing
+  currently depends on passing it.
 - ~~The corrected query set has not been read end to end.~~ **It has now**, all
   151 rows, field by field. It is in better shape than "never re-read" implied,
   because it is built from a CONTROLLED VOCABULARY rather than tuned row by
@@ -721,6 +828,27 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   under that much memory pressure is real CPU. A timing assertion that fires on
   machine weather is worse than none, because it teaches you to rerun until it
   passes.
+
+### Writing a measurement harness
+
+- **Assert the rivals are live before you measure anything.** `policyId` was
+  null for everyone until it was fixed, and the obvious wiring silently produced
+  a market that never bid back. Even now, one line —
+  `expect(live).toBe(advertisers.length - 1)` — is the difference between a
+  measurement and a plausible fiction.
+- **Sum from `finalState.history`, through `gameTotals`.** History is the copy
+  that gets REVISED (11.4). Summing the reports each round first returned counts
+  lag-0 conversions at the wrong value and inflates everything.
+- **Settled rounds only, if you are comparing to a calibration figure.** A click
+  in round R is not final until R+5, so only rounds 1–7 of a twelve-round game
+  are settled. `calibration.test.js` filters on that and a replica that does not
+  will disagree with it by a factor.
+- **Play more than one seed and more than one cell.** Seeded rival PLACEMENT
+  means a seed is a whole different market, not a different roll.
+- **If your replica cannot reproduce a documented baseline, it is measuring
+  something else** — whatever it says about your change. Two separate wrong
+  conclusions this session were caught by exactly that check and by nothing
+  else.
 
 ### The one that will cost you an afternoon
 
