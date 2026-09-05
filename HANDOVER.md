@@ -480,8 +480,42 @@ tooling and one untested claim.
   Both take their transport as an argument and `agents/claude.js` supplies a
   real one; nothing has yet passed it. The first live model call in this project
   has not been made.
-- **The query set was reviewed once** and Value and Premium were rewritten after
-  that review. The corrected set has still not been read end to end.
+- ~~The corrected query set has not been read end to end.~~ **It has now**, all
+  151 rows, field by field. It is in better shape than "never re-read" implied,
+  because it is built from a CONTROLLED VOCABULARY rather than tuned row by
+  row: six `priceAffinity` triples, four `purposeAffinity` pairs, and nothing
+  outside them. That is what stops a hand-edit drifting one row away from its
+  neighbours, and it is why reading it was fast.
+
+  Checked and clean: text against price affinity (cheap/budget/under-X against
+  premium/luxury/designer/fabric names), text against purpose affinity, tags
+  against the cell they sit in (zero contradictions), intent against shape,
+  `valueMultiplier` against basket size, and the brand, informational and
+  irrelevant rows, which are uniformly neutral by deliberate convention.
+
+  One argument runs through the return multipliers and it is the right one:
+  seamless, compression, squat-proof, high-impact, flared and cropped are HARD
+  fits and return more; oversized, joggers, tshirts, modal and bamboo are
+  forgiving and return less. An earlier smell-check of mine assumed the
+  opposite for "technical" items and was wrong — the set is more careful than
+  the check was.
+
+  **Two things reading it found, neither a defect:**
+
+  - **`convMultiplier` variation is concentrated in the Value tier.** Spread
+    within a cell: value|performance 1.44x, value|lifestyle 1.39x, mid 1.30x
+    both, premium|performance 1.18x, and **premium|lifestyle 1.00x — every one
+    of its twenty queries converts identically.** The search terms report's
+    conversion column is the primary learning surface, and for that one
+    position it carries no signal *within* territory. Not false; flat. Fixing
+    it is a content edit to a frozen fixture, so it moves every number in the
+    simulation and needs calibration re-run.
+  - **`studio to street leggings`** sits in premium|performance on a 1.35/0.65
+    purpose affinity while being tagged `casual` and named after the
+    lifestyle-crossover pitch. It is the one row whose label I would argue
+    with. Left alone deliberately: the TAG is what broad match reads, so a
+    lifestyle advertiser's broad keyword reaching into it is realistic spill
+    rather than a mistake.
 - **`content/adCopy.js` is read and corrected.** One detail unverified: whether
   Japanese and Korean yarn is what Indian premium activewear signals with, or
   whether it is recycled technical fabric or a named mill.
