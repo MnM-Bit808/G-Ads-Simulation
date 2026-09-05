@@ -125,16 +125,18 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
       sectionCapex(draft, rerender),
       sectionKeywords(querySet, draft, rerender),
       sectionWriter(draft, rerender, live),
-      sectionAd(draft, revalidate, live),
+      // Before the ad, and that is a dependency rather than a layout choice:
+      // whatever the writer did not cost rolls into the month this divides.
       sectionBudget(draft, revalidate, live),
+      sectionAd(draft, revalidate, live),
       sectionStart(draft, onStart, live));
   };
   rerender();
   return root;
 }
 
-const card = (title, subtitle) => {
-  const node = el('section', 'card setup-card');
+const card = (title, subtitle, wide = false) => {
+  const node = el('section', `card setup-card${wide ? ' wide' : ''}`);
   const h = el('h2', null, title);
   if (subtitle) h.append(el('span', 'muted', subtitle));
   node.append(h);
@@ -229,8 +231,10 @@ function sectionBriefing(brief) {
 
 function sectionRivals(querySet, rootSeed, draft) {
   const me = BRAND_IDENTITIES.find((b) => b.id === draft.playerBrandId);
+  // Eight rival ads on an auto-fill grid. Given the width it lays them four
+  // across instead of two, which is the difference between one screen and two.
   const node = card('Who else is here',
-    `the other eight, in no particular order — the ninth is you`);
+    `the other eight, in no particular order — the ninth is you`, true);
 
   // Built from the same seed the game will use, so what is read here is what
   // will be played against. Position is never stated: it is in the words.
@@ -336,6 +340,7 @@ function sectionCapex(draft, rerender) {
   const spent = committed(draft);
   const left = CAPEX_ALLOCATION_PAISE - spent;
 
+
   for (const [key, label, why] of CAPEX_TARGETS) {
     const row = el('div', 'capex-row');
     row.append(el('div', 'capex-label', label));
@@ -362,7 +367,11 @@ function sectionCapex(draft, rerender) {
     node.append(row);
   }
 
+  // Stacked, not beside the chips. Measured: at half a row the two-column
+  // version took this card from 670px to 868px, because the chip rows wrap
+  // harder than the preview saves.
   node.append(sectionPagePreview(draft));
+
 
   const summary = el('p', 'capex-summary');
   summary.append(el('strong', null, rupees(left)));
@@ -398,7 +407,9 @@ function researchList(querySet) {
 }
 
 function sectionKeywords(querySet, draft, rerender) {
-  const node = card('Keywords', 'what you bid on, and how loosely it matches');
+  // The planner: a 151-row table behind a capped scroll region. Narrowing it
+  // means seeing fewer searches at once, which is the opposite of helpful.
+  const node = card('Keywords', 'what you bid on, and how loosely it matches', true);
   const all = researchList(querySet);
   const chosen = new Set(draft.keywords.map((k) => k.text));
 
@@ -575,7 +586,10 @@ function sectionWriter(draft, rerender, live) {
 // ---------------------------------------------------------------------------
 
 function sectionAd(draft, revalidate, live) {
-  const node = card('Your ad', 'the only thing your rivals can see about you');
+  // The tallest card in round 0 at 1024px, and the fields sit beside the live
+  // grade rather than above it — so the number moves where you can see it while
+  // you type, instead of two screens down.
+  const node = card('Your ad', 'the only thing your rivals can see about you', true);
   node.append(el('p', 'note',
     'These are graded, and the grade is not decoration. Your headlines and '
     + 'descriptions set two of the three components of Quality Score — whether '
@@ -584,6 +598,14 @@ function sectionAd(draft, revalidate, live) {
     + 'rank, so a better ad wins better positions AND pays less for the position '
     + 'it had. It is the only lever in this game that makes traffic cheaper '
     + 'rather than just buying more of it, and it costs nothing.'));
+
+  // Two columns: what you write on the left, what it scores on the right. They
+  // used to stack, which put the grade a screen below the words that earned it.
+  const split = el('div', 'ad-split');
+  const written = el('div');
+  const scored = el('div');
+  split.append(written, scored);
+  node.append(split);
 
   const counters = [];
   const counter = (max) => {
@@ -595,7 +617,7 @@ function sectionAd(draft, revalidate, live) {
   const addField = (label, box, max, read, hint) => {
     const mark = max == null ? hint : counter(max);
     if (max != null) counters[counters.length - 1].read = read;
-    node.append(field(label, box, mark));
+    written.append(field(label, box, mark));
   };
 
   draft.ad.headlines.forEach((text, i) => {
@@ -622,7 +644,7 @@ function sectionAd(draft, revalidate, live) {
   // claiming a size guide you had not bought earned the same grade as buying
   // one. What is left here is the read-out, so the ad card still shows all
   // three components in one place.
-  node.append(field(
+  written.append(field(
     'Landing page',
     el('p', 'derived', draft.ad.landingPageDescription),
     'Built on the Capital card above, not written here. Every line of this is '
@@ -631,7 +653,7 @@ function sectionAd(draft, revalidate, live) {
   ));
 
   const problems = el('div');
-  node.append(problems);
+  written.append(problems);
 
   // The live grade, and what is moving it. Without this the player writes an
   // ad, gets a number two screens later, and has no way to tell which of the
@@ -639,7 +661,7 @@ function sectionAd(draft, revalidate, live) {
   // is ordinary search-advertising practice, and it comes from the grader's own
   // single pass, so the advice cannot drift from the score beside it.
   const gradePanel = el('div', 'grade-panel');
-  node.append(gradePanel);
+  scored.append(gradePanel);
 
   // Rules, not judgements. The numeric grade is earned by running the ad.
   live.ad = () => {
