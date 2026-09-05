@@ -611,3 +611,28 @@ tr.unsettled td:first-child::after { content: " ← still arriving"; font-size: 
 .quality-part.average .quality-part-rating { color: var(--muted); }
 .quality-part.below .quality-part-rating { color: var(--bad); }
 .quality-part-grade { font-family: var(--mono); color: var(--ink); margin-left: auto; margin-right: 0.4rem; }
+
+/* --- brand terms in the search terms report (spec 3.1, 8.7) -------------- */
+
+.brand-tag {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0 0.32rem;
+  border-radius: 4px;
+  font-size: 0.66rem;
+  font-family: var(--mono);
+  border: 1px solid;
+}
+.brand-tag.own { color: var(--good); border-color: var(--good); }
+.brand-tag.rival { color: var(--bad); border-color: var(--bad); }
+
+.own-brand {
+  margin: 0.9rem 0 0;
+  padding: 0.6rem 0.8rem;
+  background: rgba(126, 198, 153, 0.08);
+  border-left: 3px solid var(--good);
+  border-radius: 0 7px 7px 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+.own-brand strong { font-family: var(--mono); color: var(--good); }

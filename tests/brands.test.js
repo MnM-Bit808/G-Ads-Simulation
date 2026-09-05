@@ -1,9 +1,10 @@
 import { describe, test, expect } from 'vitest';
 import {
   BRAND_IDENTITIES, BRAND_IDS, POSITION_SIGNALLING_WORDS,
-  brandById, assignIdentities,
+  brandById, assignIdentities, brandNamedIn, brandToken,
 } from '../content/brands.js';
 import { ADVERTISER_COUNT } from '../engine/constants.js';
+import { QUERY_SET } from '../content/querySet.js';
 
 describe('the roster', () => {
   test('holds exactly one identity per advertiser', () => {
@@ -107,5 +108,41 @@ describe('assignIdentities', () => {
 
   test('throws when the player picks an identity that does not exist', () => {
     expect(() => assignIdentities('nobody')).toThrow();
+  });
+});
+
+describe('reading a brand out of a search (spec 3.1, 8.7)', () => {
+  // Ownership is INFERRED, never read: `query.brandOwner` is withheld from
+  // every viewer (16.1). Identity is public (R3), so the interface works it
+  // out the way a player would — read the words, look for a name you know.
+  test('it finds the owner of every brand query in the frozen set', () => {
+    const brandQueries = QUERY_SET.queries.filter((q) => q.intent === 'brand');
+    expect(brandQueries).toHaveLength(BRAND_IDENTITIES.length);
+    for (const query of brandQueries) {
+      const found = brandNamedIn(query.text, BRAND_IDENTITIES);
+      expect(found?.id, query.text).toBe(query.brandOwner);
+    }
+  });
+
+  test('it matches the word people type, not the registered name', () => {
+    // "Vella & Co." owns "vella leggings". Matching the full string finds
+    // eight of the nine and silently misses the one whose name runs to more
+    // than a word.
+    expect(brandNamedIn('vella leggings', BRAND_IDENTITIES)?.id).toBe('vella');
+    expect(brandToken('Vella & Co.')).toBe('vella');
+  });
+
+  test('a name never matches inside a longer word', () => {
+    // `\b`, not ``: inside a template literal a single backslash-b is the
+    // BACKSPACE character. The first version of this matched nothing at all,
+    // and every brand term on screen rendered unlabelled.
+    expect(brandNamedIn('niralamba yoga mats', BRAND_IDENTITIES)).toBeNull();
+    expect(brandNamedIn('nira joggers', BRAND_IDENTITIES)?.id).toBe('nira');
+  });
+
+  test('an ordinary search names nobody', () => {
+    for (const query of QUERY_SET.queries.filter((q) => q.intent !== 'brand')) {
+      expect(brandNamedIn(query.text, BRAND_IDENTITIES), query.text).toBeNull();
+    }
   });
 });

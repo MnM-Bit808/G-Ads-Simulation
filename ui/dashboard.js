@@ -24,6 +24,7 @@ import { getPublicView } from '../engine/insights.js';
 import { briefing } from '../setup.js';
 import { renderDecisions, addNegative, blocksTerm, effectiveGrades } from './decisions.js';
 import { rankOf } from './ending.js';
+import { brandNamedIn } from '../content/brands.js';
 import { MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH } from '../engine/constants.js';
 
 // ---------------------------------------------------------------------------
@@ -196,6 +197,8 @@ function renderTerms(root, game, ctx) {
     .map(([id, r]) => {
       const text = ctx.texts.get(id) ?? id;
       const blocked = blocksTerm(game.draft, text);
+      const named = brandNamedIn(text, ctx.advertisers ?? []);
+      const brand = named && (named.id === game.playerId ? 'own' : 'rival');
 
       const button = el('button', 'add');
       button.type = 'button';
@@ -209,10 +212,27 @@ function renderTerms(root, game, ctx) {
         ctx.refresh();
       });
 
+      // 3.1 makes brand bidding one of the four reasons this vertical exists,
+      // and until now it ran every round with nothing on screen about it. A
+      // rival's name in a search you are paying for is the single most likely
+      // explanation for a row that takes clicks and returns nothing.
+      const label = el('div');
+      label.append(el('span', null, text));
+      if (brand === 'own') {
+        label.append(el('span', 'brand-tag own', 'your name'));
+        label.title = 'Searches for your own brand. They convert far better than '
+          + 'anything else you can buy, and a rival can bid on them too.';
+      } else if (brand === 'rival') {
+        label.append(el('span', 'brand-tag rival', `${named.name}'s name`));
+        label.title = `A search for ${named.name}, not for you. Bidding on a rival's `
+          + 'name is allowed and converts terribly — about a tenth of what the owner '
+          + 'gets. If you did not choose this, a keyword of yours matched into it.';
+      }
+
       return {
         className: blocked ? 'blocked-row' : (r.clicks >= 5 && r.conversions === 0 ? 'wasted' : null),
         cells: [
-          text,
+          label,
           whole(r.impressions),
           whole(r.clicks),
           rupees(r.costPaise),
@@ -379,6 +399,10 @@ export function renderDashboard(game, onDecisionChange) {
     queries: view.querySet,
     weeklyVolume: view.weeklyVolume,
     texts: new Map(view.querySet.map((q) => [q.id, q.text])),
+    // Rival identity is public (R3), so a search carrying somebody's name can
+    // be named as such. `brandOwner` itself is withheld (16.1) and is never
+    // read — this is the same inference a player makes from the words.
+    advertisers: view.advertisers,
     quality: row.quality,
     // The grader's own 1-10 for this ad, with the landing-page capital folded
     // in. The player's own data, and until now never on screen.
