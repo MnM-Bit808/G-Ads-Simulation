@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1042 tests, all passing, 1 todo.
+**Every build-order step is done.** 1047 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -493,6 +493,12 @@ because it was about what the screen SAYS rather than what the engine does.
 - **The round 0 planner threw away your search term** every time you added a
   keyword, because adding rebuilds the form.
 - **Keywords could be paused but never removed** anywhere except round 0.
+- **The ad copy card was a guess.** It took five boxes, said nothing about what
+  they were worth, and the grade appeared two screens later with no way to tell
+  which words moved it. `explainGrade` now scores and EXPLAINS from one pass, so
+  the advice on screen cannot drift from the number beside it, and round 0 shows
+  the grade live. Writing to the advice took a deliberately weak ad from 3/6/3
+  to 8/10/8.
 
 **The pattern.** Every one is a sentence the interface does or does not say. The
 suite reads source, the linter reads syntax, and neither reads meaning — so this

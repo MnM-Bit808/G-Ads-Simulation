@@ -188,45 +188,150 @@ function clampGrade(value) {
  * @param {{keywords?: object[], queryTexts?: string[]}} context
  * @returns {object} the three components
  */
-export function heuristicGrade(ad, context = {}) {
-  const headlines = ad?.headlines ?? [];
-  const text = adText(ad);
+/**
+ * The rules `heuristicGrade` scores, written down once so they can be both
+ * SCORED and EXPLAINED from the same pass.
+ *
+ * They were inline arithmetic, which made the grade unexplainable: a player
+ * wrote an ad, got a number, and had no way to tell what moved it. Every one of
+ * these is ordinary search-advertising practice rather than a quirk of this
+ * implementation, which is why showing them teaches something instead of
+ * teaching the rubric.
+ */
+const CTR_RULES = Object.freeze([
+  {
+    points: 1,
+    hit: ({ headlines }) => headlines.length >= 3,
+    whenHit: 'three headlines, so there is something to rotate',
+    whenMissed: 'fewer than three headlines — unused space that costs nothing to fill',
+  },
+  {
+    points: 1,
+    hit: ({ text }) => /\d/.test(text),
+    whenHit: 'a number in the copy, which gives a reason to click',
+    whenMissed: 'no number anywhere — a price, a size range or a count earns clicks',
+  },
+  {
+    points: 1,
+    hit: ({ text }) => /free|save|off|from ₹|buy|shop|order/.test(text),
+    whenHit: 'it asks for the click',
+    whenMissed: 'nothing asks them to act — no offer, no "shop", no "buy"',
+  },
+  {
+    points: -2,
+    hit: ({ headlines }) => new Set(headlines.map((h) => h.toLowerCase())).size < headlines.length,
+    whenHit: 'two headlines are the same, which wastes one of them',
+    whenMissed: null,
+  },
+  {
+    points: -1,
+    hit: ({ headlines }) => headlines.some((h) => h.length < 8),
+    whenHit: 'a headline under eight characters is space you paid for and did not use',
+    whenMissed: null,
+  },
+]);
 
-  // Expected CTR: does it give a reason to click? Numbers, offers and
-  // specifics do; three near-identical generic headlines do not.
-  let ctr = HEURISTIC_BASE;
-  if (headlines.length >= 3) ctr += 1;
-  if (/\d/.test(text)) ctr += 1;                                   // a price, a size, a number
-  if (/free|save|off|from ₹|buy|shop|order/.test(text)) ctr += 1;  // a reason to act
-  if (new Set(headlines.map((h) => h.toLowerCase())).size < headlines.length) ctr -= 2;
-  if (headlines.some((h) => h.length < 8)) ctr -= 1;               // wasting the space
+const LANDING_RULES = Object.freeze([
+  {
+    points: 1,
+    hit: ({ page }) => page.length > 40,
+    whenHit: 'you have actually described the page',
+    whenMissed: 'the description is too short to tell anyone what is on the page',
+  },
+  {
+    points: 1,
+    hit: ({ page }) => /size|fit|guide|chart/.test(page),
+    whenHit: 'it mentions sizing, which is what apparel buyers leave over',
+    whenMissed: 'no mention of size or fit — the main reason apparel visitors bounce',
+  },
+  {
+    points: 1,
+    hit: ({ page }) => /review|rating/.test(page),
+    whenHit: 'it mentions reviews',
+    whenMissed: 'no reviews or ratings on the page',
+  },
+  {
+    points: -2,
+    hit: ({ page }) => page.length < 15,
+    whenHit: 'there is barely a description at all',
+    whenMissed: null,
+  },
+]);
 
-  // Ad relevance: does the copy say what the keywords say? This is the one
-  // component with an objective referent, so it leans on it.
+/** The words a grader compares an ad against: its own keywords. */
+function relevanceCoverage(ad, context) {
   const target = new Set(
     [...(context.keywords ?? []).map((k) => k.text), ...(context.queryTexts ?? [])]
       .join(' ').toLowerCase().split(/[^a-z0-9]+/)
       .filter((w) => w.length > 3),
   );
-  const words = new Set(text.split(/[^a-z0-9]+/).filter((w) => w.length > 3));
-  const shared = [...target].filter((w) => words.has(w)).length;
-  const coverage = target.size > 0 ? shared / target.size : 0;
-  const relevance = HEURISTIC_BASE + Math.round(coverage * 8) - 2;
+  const words = new Set(adText(ad).split(/[^a-z0-9]+/).filter((w) => w.length > 3));
+  const shared = [...target].filter((w) => words.has(w));
+  return { target, shared, coverage: target.size > 0 ? shared.length / target.size : 0 };
+}
 
-  // Landing page: graded from the advertiser's own description of it, which is
-  // all anybody has until there is a page to look at (DECISIONS C2).
-  const page = ad?.landingPageDescription ?? '';
-  let landing = HEURISTIC_BASE;
-  if (page.length > 40) landing += 1;
-  if (/size|fit|guide|chart/.test(page.toLowerCase())) landing += 1;
-  if (/review|rating/.test(page.toLowerCase())) landing += 1;
-  if (page.length < 15) landing -= 2;
-
+function gradeInputs(ad, context) {
   return {
-    expectedCtr: clampGrade(ctr),
-    adRelevance: clampGrade(relevance),
-    landingPage: clampGrade(landing),
+    headlines: ad?.headlines ?? [],
+    text: adText(ad),
+    page: (ad?.landingPageDescription ?? '').toLowerCase(),
+    relevance: relevanceCoverage(ad, context),
   };
+}
+
+const scoreRules = (rules, inputs) => rules
+  .reduce((total, rule) => total + (rule.hit(inputs) ? rule.points : 0), HEURISTIC_BASE);
+
+export function heuristicGrade(ad, context = {}) {
+  const inputs = gradeInputs(ad, context);
+  return {
+    expectedCtr: clampGrade(scoreRules(CTR_RULES, inputs)),
+    // The one component with an objective referent, so it leans on it: does the
+    // copy say what the keywords say?
+    adRelevance: clampGrade(HEURISTIC_BASE + Math.round(inputs.relevance.coverage * 8) - 2),
+    // Graded from the advertiser's own description, which is all anybody has
+    // until there is a page to look at (DECISIONS C2).
+    landingPage: clampGrade(scoreRules(LANDING_RULES, inputs)),
+  };
+}
+
+/**
+ * The grade, and why it is what it is.
+ *
+ * Same pass as `heuristicGrade` — the checks are scored and explained from one
+ * list, so the advice on screen cannot drift from the number beside it. That
+ * drift is the whole reason this exists rather than a second rubric in `ui/`.
+ *
+ * @param {object} ad
+ * @param {object} [context] `keywords` is what adRelevance is measured against
+ * @returns {{grade: object, notes: string[], checks: object[]}}
+ */
+export function explainGrade(ad, context = {}) {
+  const inputs = gradeInputs(ad, context);
+  const { grade, notes } = applyGradingRules(heuristicGrade(ad, context), ad, context);
+  const checks = [];
+
+  const walk = (component, rules) => {
+    for (const rule of rules) {
+      const hit = rule.hit(inputs);
+      const text = hit ? rule.whenHit : rule.whenMissed;
+      if (text) checks.push({ component, ok: rule.points > 0 ? hit : !hit, text });
+    }
+  };
+  walk('expectedCtr', CTR_RULES);
+
+  const { target, shared } = inputs.relevance;
+  checks.push({
+    component: 'adRelevance',
+    ok: inputs.relevance.coverage >= 0.5,
+    text: target.size === 0
+      ? 'no keywords yet, so there is nothing to be relevant TO — pick them first'
+      : `your ad uses ${shared.length} of the ${target.size} distinctive words in your `
+        + 'keywords. An ad that echoes the search wins the click and the rating',
+  });
+
+  walk('landingPage', LANDING_RULES);
+  return { grade, notes, checks };
 }
 
 // ---------------------------------------------------------------------------

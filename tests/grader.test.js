@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import {
   gradeAd, heuristicGrade, applyGradingRules, validateAdCopy, namesARival,
   contentHashOf, buildGradingRequest, parseGradingResponse, GRADE_TOOL,
+  gradeAdOffline, explainGrade,
 } from '../agents/grader.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { AD_COPY_BY_CELL } from '../content/adCopy.js';
@@ -276,5 +277,65 @@ describe('the suite stays offline (R2)', () => {
     for (const file of ['grader.js', 'policies.js']) {
       expect(src(file), file).not.toMatch(/claude\.js/);
     }
+  });
+});
+
+describe('the grade explains itself (explainGrade)', () => {
+  // A player wrote an ad, got a number, and had no way to tell what moved it.
+  // The checks and the score come from ONE pass over one list of rules, so the
+  // advice on screen cannot drift from the number beside it — which is the
+  // whole reason this lives in the grader rather than as a second rubric in ui/.
+  const ctx = { keywords: KEYWORDS };
+
+  test('the grade it reports is exactly the grade the engine will use', () => {
+    for (const [label, ad] of EVERY_AD) {
+      const explained = explainGrade(ad, ctx);
+      const graded = gradeAdOffline(ad, ctx, 0);
+      for (const component of ['expectedCtr', 'adRelevance', 'landingPage']) {
+        expect(explained.grade[component], `${label} ${component}`).toBe(graded[component]);
+      }
+    }
+  });
+
+  test('every component gets at least one thing said about it', () => {
+    const checks = explainGrade(GOOD, ctx).checks;
+    for (const component of ['expectedCtr', 'adRelevance', 'landingPage']) {
+      expect(checks.filter((c) => c.component === component).length, component)
+        .toBeGreaterThan(0);
+    }
+  });
+
+  test('a failing check says what is missing, and passes once it is fixed', () => {
+    const bare = {
+      headlines: ['Leggings'],
+      descriptions: ['Buy leggings.'],
+      landingPageDescription: 'A page.',
+    };
+    const said = (ad) => explainGrade(ad, ctx).checks.filter((c) => !c.ok).map((c) => c.text);
+
+    expect(said(bare).join(' ')).toMatch(/fewer than three headlines/);
+    expect(said(bare).join(' ')).toMatch(/no number anywhere/);
+    expect(said(bare).join(' ')).toMatch(/too short/);
+
+    const fixed = {
+      headlines: ['Gym Leggings From 799', 'Squat Proof Every Rep', 'Free Size Exchange'],
+      descriptions: ['Workout leggings that hold through the session.', 'Sizes XS to XXL.'],
+      landingPageDescription: 'A long page with a size chart, fit guide and customer reviews.',
+    };
+    expect(said(fixed)).toEqual([]);
+    expect(explainGrade(fixed, ctx).grade.expectedCtr)
+      .toBeGreaterThan(explainGrade(bare, ctx).grade.expectedCtr);
+  });
+
+  test('with no keywords it says so rather than scoring relevance silently', () => {
+    const check = explainGrade(GOOD, {}).checks.find((c) => c.component === 'adRelevance');
+    expect(check.text).toMatch(/no keywords yet/);
+    expect(check.ok).toBe(false);
+  });
+
+  test('and it still carries the penalties applyGradingRules adds', () => {
+    const named = { ...GOOD, headlines: [`Better Than ${RIVALS[1]}`, ...GOOD.headlines.slice(1)] };
+    expect(explainGrade(named, { ...ctx, rivalNames: RIVALS }).notes.join(' '))
+      .toMatch(/names a rival/);
   });
 });

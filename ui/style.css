@@ -644,3 +644,14 @@ tr.unsettled td:first-child::after { content: " ← still arriving"; font-size: 
 .row-actions { display: flex; gap: 0.35rem; justify-content: flex-end; }
 button.add.danger { color: var(--bad); }
 button.add.danger:disabled { color: var(--muted); }
+
+/* --- the live ad grade in round 0 ---------------------------------------- */
+
+.grade-panel { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: 0.8rem; }
+.grade-row { margin-bottom: 0.7rem; }
+.grade-head { display: flex; justify-content: space-between; align-items: baseline; }
+.grade-name { font-size: 0.85rem; font-weight: 600; }
+.grade-value { font-family: var(--mono); font-size: 0.95rem; }
+.grade-checks { margin: 0.25rem 0 0; padding-left: 1.1rem; font-size: 0.79rem; line-height: 1.5; }
+.grade-checks li.ok { color: var(--good); }
+.grade-checks li.miss { color: var(--warn); }

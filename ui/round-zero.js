@@ -33,7 +33,7 @@ import {
 import { briefing, placeRivals, buildRivals } from '../setup.js';
 import { BRAND_IDENTITIES, assignIdentities, brandNamedIn } from '../content/brands.js';
 import { allCells, parseCell } from '../engine/positions.js';
-import { validateAdCopy, namesARival } from '../agents/grader.js';
+import { validateAdCopy, namesARival, explainGrade } from '../agents/grader.js';
 import { heuristicTags } from '../agents/keywordTagger.js';
 import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS, MONTHLY_BUDGET_PAISE,
@@ -498,6 +498,14 @@ function sectionAd(draft, revalidate, live) {
   const problems = el('div');
   node.append(problems);
 
+  // The live grade, and what is moving it. Without this the player writes an
+  // ad, gets a number two screens later, and has no way to tell which of the
+  // words did it — which makes the whole card a guess. Every rule shown here
+  // is ordinary search-advertising practice, and it comes from the grader's own
+  // single pass, so the advice cannot drift from the score beside it.
+  const gradePanel = el('div', 'grade-panel');
+  node.append(gradePanel);
+
   // Rules, not judgements. The numeric grade is earned by running the ad.
   live.ad = () => {
     for (const c of counters) {
@@ -520,7 +528,43 @@ function sectionAd(draft, revalidate, live) {
       for (const problem of found) list.append(el('li', null, problem));
       problems.append(list);
     }
+
+    drawGrade();
   };
+
+  const COMPONENT_LABEL = {
+    expectedCtr: 'Expected CTR',
+    adRelevance: 'Ad relevance',
+    landingPage: 'Landing page',
+  };
+
+  function drawGrade() {
+    const { grade, checks } = explainGrade(draft.ad, { keywords: draft.keywords });
+    gradePanel.replaceChildren();
+    gradePanel.append(el('p', 'field-label', 'How this ad grades, as it stands'));
+
+    for (const component of ['expectedCtr', 'adRelevance', 'landingPage']) {
+      const box = el('div', 'grade-row');
+      const head = el('div', 'grade-head');
+      head.append(el('span', 'grade-name', COMPONENT_LABEL[component]));
+      head.append(el('span', 'grade-value', `${grade[component]}/10`));
+      box.append(head);
+
+      const list = el('ul', 'grade-checks');
+      for (const check of checks.filter((c) => c.component === component)) {
+        list.append(el('li', check.ok ? 'ok' : 'miss', check.text));
+      }
+      box.append(list);
+      gradePanel.append(box);
+    }
+
+    gradePanel.append(el('p', 'note',
+      'This is the same grader the game runs, so the numbers above are the ones '
+      + 'you will start with. They set your Quality Score, which multiplies your '
+      + 'bid into ad rank — a better ad wins better positions AND pays less for '
+      + 'the position it already had.'));
+  }
+
   live.ad();
   return node;
 }
@@ -587,6 +631,14 @@ function sectionStart(draft, onStart, live) {
   const node = el('div', 'start');
   const problems = el('div');
   node.append(problems);
+
+  // The live grade, and what is moving it. Without this the player writes an
+  // ad, gets a number two screens later, and has no way to tell which of the
+  // words did it — which makes the whole card a guess. Every rule shown here
+  // is ordinary search-advertising practice, and it comes from the grader's own
+  // single pass, so the advice cannot drift from the score beside it.
+  const gradePanel = el('div', 'grade-panel');
+  node.append(gradePanel);
 
   const go = el('button', 'go');
   go.type = 'button';
