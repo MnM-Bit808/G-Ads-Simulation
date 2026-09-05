@@ -179,6 +179,96 @@ describe('the offline heuristic keeps the game playable', () => {
       .toBeLessThan(heuristicGrade(GOOD, { keywords: KEYWORDS }).expectedCtr);
   });
 
+  // The two tests below hold the digit and the offer word CONSTANT across both
+  // ads they compare. The first draft of each did not, and both passed against
+  // the OLD rubric — dropping a description also dropped a digit, and rewording
+  // the headlines also dropped one. They were measuring the rules they were
+  // meant to be proving absent.
+  const SHARED_DESCRIPTIONS = [
+    'Squat-proof gym leggings that survive 4 sessions a week, free delivery.',
+    'Sizes XS to XXL, with easy returns.',
+  ];
+
+  test('it scores the second description, which nothing used to read', () => {
+    // CTR_RULES had no clause about descriptions at all. Google's own Ad
+    // Strength rubric asks for more of them, and an ad with one description is
+    // half-written — but the old rubric could not see the difference.
+    // Description 1 alone already carries the digit and the offer word, so the
+    // ONLY thing that changes here is how many descriptions there are.
+    const both = { ...GOOD, descriptions: SHARED_DESCRIPTIONS };
+    const one = { ...GOOD, descriptions: [SHARED_DESCRIPTIONS[0]] };
+    expect(heuristicGrade(one, { keywords: KEYWORDS }).expectedCtr)
+      .toBeLessThan(heuristicGrade(both, { keywords: KEYWORDS }).expectedCtr);
+  });
+
+  test('it can tell three headlines that SAY the same thing from three that do not', () => {
+    // The gap the old rubric had. It caught byte-identical headlines and
+    // nothing else, so a writer could reword one headline three times and score
+    // exactly as well as one who wrote three different messages. That is
+    // precisely what "make your headlines more unique" means, and it is the
+    // difference between rewarding craft and rewarding tokens.
+    //
+    // Neither headline set carries a digit or an offer word: both live in the
+    // shared descriptions, so the two ads differ in vocabulary spread alone.
+    const reworded = {
+      descriptions: SHARED_DESCRIPTIONS,
+      landingPageDescription: 'A plain product page.',
+      headlines: [
+        'Squat Proof Gym Leggings',
+        'Gym Leggings, Squat Proof',
+        'Leggings For The Gym Squat Proof',
+      ],
+    };
+    const varied = {
+      descriptions: SHARED_DESCRIPTIONS,
+      landingPageDescription: 'A plain product page.',
+      headlines: ['Squat Proof Gym Leggings', 'Delivery Across India', 'Sizes XS To XXL'],
+    };
+    // No two of the rewordings are identical, so the old duplicate rule is silent.
+    expect(new Set(reworded.headlines).size).toBe(3);
+    expect(heuristicGrade(reworded, { keywords: KEYWORDS }).expectedCtr)
+      .toBeLessThan(heuristicGrade(varied, { keywords: KEYWORDS }).expectedCtr);
+  });
+
+  test('stuffing the tokens no longer reaches the ceiling', () => {
+    // The old rubric handed out its whole positive range for three headlines, a
+    // digit somewhere and one offer word — so "Shop 3 Now" scored as well as a
+    // finished ad. Two of those three points now depend on the ad being
+    // written rather than on characters appearing in it.
+    const stuffed = {
+      headlines: ['Shop 3 Now Buy Save', 'Shop Now Save 3 Buy', 'Buy 3 Shop Save Now'],
+      descriptions: ['Save 20% off, shop now, buy 3.'],
+      landingPageDescription: 'A plain product page.',
+    };
+    const written = {
+      headlines: ['Squat Proof Gym Leggings', 'Free Delivery Over 799', 'Sizes XS To XXL'],
+      descriptions: [
+        'Squat-proof gym leggings that survive four sessions a week.',
+        'Sizes XS to XXL, free delivery, easy 15-day returns.',
+      ],
+      landingPageDescription: 'A plain product page.',
+    };
+    const stuffedGrade = heuristicGrade(stuffed, { keywords: KEYWORDS }).expectedCtr;
+    expect(stuffedGrade).toBeLessThan(heuristicGrade(written, { keywords: KEYWORDS }).expectedCtr);
+    expect(stuffedGrade).toBeLessThan(8);
+  });
+
+  test('the ceiling is still 8, deliberately', () => {
+    // The honesty boundary this module is built on: a handful of regexes
+    // cannot recognise excellent writing, so it must not award a grade that
+    // claims it did. Extending the rules to reach 9 was considered and
+    // rejected — the route to a 9 is the model path, not more patterns.
+    const best = {
+      headlines: ['Squat Proof Gym Leggings', 'Free Delivery Over 799', 'Sizes XS To XXL'],
+      descriptions: [
+        'Squat-proof gym leggings that survive four sessions a week.',
+        'Sizes XS to XXL, free delivery, easy 15-day returns.',
+      ],
+      landingPageDescription: 'Category page with a size guide, fit reviews and filters.',
+    };
+    expect(heuristicGrade(best, { keywords: KEYWORDS }).expectedCtr).toBe(8);
+  });
+
   test('and it does not pretend to be the model: it awards no 9s or 10s', () => {
     // Narrow-banded on purpose. It is a floor, not an opinion about writing.
     const best = { headlines: ['Gym Leggings From ₹799', 'Free Delivery Over ₹799', 'Buy 2 Save 20%'],
@@ -308,14 +398,20 @@ describe('the grade explains itself (explainGrade)', () => {
   test('a failing check says what is missing, and passes once it is fixed', () => {
     const bare = {
       headlines: ['Leggings'],
-      descriptions: ['Buy leggings.'],
+      // Neither a digit nor an offer word. It used to say "Buy leggings.",
+      // which failed the old digit rule while passing the old offer rule —
+      // now that those are one rule, "buy" alone satisfies it.
+      descriptions: ['Leggings for training.'],
       landingPageDescription: 'A page.',
     };
     const said = (ad) => explainGrade(ad, ctx).checks.filter((c) => !c.ok).map((c) => c.text);
 
-    expect(said(bare).join(' ')).toMatch(/fewer than three headlines/);
-    expect(said(bare).join(' ')).toMatch(/no number anywhere/);
+    expect(said(bare).join(' ')).toMatch(/not filled out/);
+    expect(said(bare).join(' ')).toMatch(/no reason to act/);
     expect(said(bare).join(' ')).toMatch(/too short/);
+    // One headline cannot be three different things, so the new uniqueness
+    // rule has to fire here too rather than passing by default on a thin ad.
+    expect(said(bare).join(' ')).toMatch(/one message reworded/);
 
     const fixed = {
       headlines: ['Gym Leggings From 799', 'Squat Proof Every Rep', 'Free Size Exchange'],

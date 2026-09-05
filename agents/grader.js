@@ -198,24 +198,67 @@ function clampGrade(value) {
  * implementation, which is why showing them teaches something instead of
  * teaching the rubric.
  */
+/**
+ * How much vocabulary two headlines may share before they are the same message.
+ *
+ * `content/adCopy.js` holds two rival ads per cell to the same standard, for the
+ * same reason: writing to a constraint list makes you reach for the vocabulary
+ * that satisfied it last time, so a "different" headline comes out as a
+ * reordering. A set comparison catches that where a string comparison cannot.
+ */
+const HEADLINE_OVERLAP_LIMIT = 0.5;
+
+/** Words long enough to carry meaning, which is where relevance draws its line too. */
+const contentWords = (text) => new Set(
+  String(text).toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 3),
+);
+
+/**
+ * Do the headlines say three different things?
+ *
+ * Compares every pair. Two headlines sharing more than half their content words
+ * are one message written twice, however differently they are spelled.
+ */
+function headlinesAreDistinct(headlines) {
+  const sets = headlines.filter(Boolean).map(contentWords);
+  if (sets.length < 2) return false;
+  for (let i = 0; i < sets.length; i++) {
+    for (let j = i + 1; j < sets.length; j++) {
+      const smaller = Math.min(sets[i].size, sets[j].size);
+      if (smaller === 0) continue;
+      const shared = [...sets[i]].filter((w) => sets[j].has(w)).length;
+      if (shared / smaller > HEADLINE_OVERLAP_LIMIT) return false;
+    }
+  }
+  return true;
+}
+
 const CTR_RULES = Object.freeze([
   {
     points: 1,
-    hit: ({ headlines }) => headlines.length >= 3,
-    whenHit: 'three headlines, so there is something to rotate',
-    whenMissed: 'fewer than three headlines — unused space that costs nothing to fill',
+    // Descriptions were never scored at all. Google's own Ad Strength rubric
+    // asks for more headlines AND more descriptions, and an ad with one
+    // description is half-written — a gap the old rubric could not see.
+    hit: ({ headlines, descriptions }) => headlines.length >= 3 && descriptions.length >= 2,
+    whenHit: 'the ad is filled out — three headlines and both descriptions',
+    whenMissed: 'the ad is not filled out — every empty headline or description '
+      + 'is space you have already paid for',
   },
   {
     points: 1,
-    hit: ({ text }) => /\d/.test(text),
-    whenHit: 'a number in the copy, which gives a reason to click',
-    whenMissed: 'no number anywhere — a price, a size range or a count earns clicks',
+    hit: ({ headlines }) => headlinesAreDistinct(headlines),
+    whenHit: 'the three headlines say three different things',
+    whenMissed: 'your headlines are one message reworded — say three different '
+      + 'things, because only one of them shows at a time',
   },
   {
     points: 1,
-    hit: ({ text }) => /free|save|off|from ₹|buy|shop|order/.test(text),
-    whenHit: 'it asks for the click',
-    whenMissed: 'nothing asks them to act — no offer, no "shop", no "buy"',
+    // The digit rule and the offer rule used to be worth a point EACH, so
+    // two thirds of the positive range went to two tokens appearing anywhere in
+    // the ad. They are one idea and they are now worth one point between them.
+    hit: ({ text }) => /\d/.test(text) || /free|save|off|from ₹|buy|shop|order/.test(text),
+    whenHit: 'it gives them a reason to click — a number or an offer',
+    whenMissed: 'no reason to act — no price, no size range, no offer, no "shop"',
   },
   {
     points: -2,
@@ -272,7 +315,11 @@ function relevanceCoverage(ad, context) {
 
 function gradeInputs(ad, context) {
   return {
-    headlines: ad?.headlines ?? [],
+    // Empty boxes do not count as written. Round 0 seeds the draft with '' in
+    // every slot and only strips them at submit, so the LIVE grade on that
+    // screen used to credit an untouched form with three headlines.
+    headlines: (ad?.headlines ?? []).filter((h) => String(h).trim() !== ''),
+    descriptions: (ad?.descriptions ?? []).filter((d) => String(d).trim() !== ''),
     text: adText(ad),
     page: (ad?.landingPageDescription ?? '').toLowerCase(),
     relevance: relevanceCoverage(ad, context),

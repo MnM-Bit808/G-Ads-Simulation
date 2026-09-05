@@ -1439,6 +1439,58 @@ graded by token presence — a digit anywhere, one of `free|save|off|buy|shop`
 round 0 and never revised, though spec 12.3 is explicit that editing copy costs
 no learning period.
 
+### I10. The offline grader rewards craft, and still refuses to award a 9 — `FIXED`
+
+`CTR_RULES` gave a point each for **three headlines**, **a digit anywhere**, and
+**one of `free|save|off|buy|shop|order`**. Two of the three positive points were
+therefore single tokens, and an ad reading *"Shop 3 Now"* three times over
+scored the same 8 as a finished one. Descriptions were **not scored at all**.
+
+Now three rules, still worth one point each, still capping at 8:
+
+| | rule |
+|---|---|
+| +1 | the ad is filled out — three headlines AND both descriptions |
+| +1 | the headlines say three different things (pairwise content-word overlap ≤ `HEADLINE_OVERLAP_LIMIT`) |
+| +1 | a reason to click — a number **or** an offer word, one point between them |
+
+All three are Google's own Ad Strength criteria: *add more headlines, add more
+descriptions, make your headlines more unique*. Two of the three now depend on
+the ad being written rather than on characters appearing somewhere in it.
+
+**WHY THE CEILING STAYED AT 8, having been asked to raise it.** A balance
+measurement wanted a DIY writing path to reach 9 so it could beat a hired
+writer. But `grader.test.js` pins *"it does not pretend to be the model: it
+awards no 9s or 10s"*, and the module header says why: it is *"a floor that
+keeps the game playable without an API key, not an opinion about writing."*
+The 8-cap is a claim about what regexes can know. Extending patterns until they
+award a 10 would assert that pattern-matching recognises excellent copy, which
+is false, and would rebuild the token-guessing the change exists to remove.
+
+The balance problem was solved on the other side instead: hired tiers cap at
+5/6/7, so DIY at 6/7/8 beats each of them, and 8 — the honest ceiling — becomes
+the natural top of the ladder. **The only honest route to a 9 is the model
+path**, which `grader.js` already takes as an injected transport and which
+nothing has yet supplied.
+
+**A live bug found on the way.** `gradeInputs` counted empty strings. Round 0
+seeds the draft `headlines: ['', '', '']` and only strips them at submit, so the
+LIVE grade on that screen credited an untouched form with three headlines.
+Empty boxes are now filtered before any rule sees them, and an empty round 0
+reads 5/10 with all three checks missing.
+
+**Two of the four tests written for this passed against the OLD rubric**, which
+is worth recording because it nearly shipped. Removing a description also
+removed a digit; rewording the headlines also removed one. Both measured the
+rules they were meant to prove absent. The fixtures now hold the digit and the
+offer word constant in the shared descriptions, so only the variable under test
+moves.
+
+`HEADLINE_OVERLAP_LIMIT` sits in `agents/grader.js` beside `TRADEMARK_PENALTY`,
+`OVERLONG_CEILING` and `HEURISTIC_BASE` rather than in `constants.js`, following
+those three: the rubric's own numbers live with the rubric, and no formula in
+`engine/` reads any of them.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
