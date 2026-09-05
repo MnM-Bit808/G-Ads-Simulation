@@ -323,3 +323,65 @@ describe('a game plays', () => {
     expect(Object.keys(reports[0].byAdvertiser)).toHaveLength(STATE.advertisers.length);
   });
 });
+
+describe('self-written copy ships on its delivery date (DECISIONS I11)', () => {
+  // The DELIVERY is delayed, never the effect. CLAUDE.md is explicit that an ad
+  // copy change must move qualitySignal IMMEDIATELY and leave reportedScore
+  // unchanged in the same round — so a grade that faded in over several rounds
+  // would break the split the whole diagnostic rests on. What is late is the
+  // copy arriving, and the moment it does, it counts in full.
+  const withPending = (round, liveAtRound) => {
+    const state = makeGameState({ round });
+    const me = state.advertisers.find((a) => a.id === PLAYER_ID);
+    me.creative = {
+      tier: 'diy',
+      liveAtRound,
+      spentPaise: 0,
+      unspentPaise: 0,
+      pendingGrade: { expectedCtr: 8, adRelevance: 8, landingPage: 5 },
+    };
+    me.adGroups[0].gradedQuality = {
+      ...me.adGroups[0].gradedQuality, expectedCtr: 3, adRelevance: 3, landingPage: 5,
+    };
+    return state;
+  };
+  const playerGrade = (state) => state.advertisers
+    .find((a) => a.id === PLAYER_ID).adGroups[0].gradedQuality;
+
+  test('it does not arrive early', () => {
+    const out = submitRound(withPending(2, 3), {}, { mode: 'expected' });
+    expect(playerGrade(out.nextGameState).expectedCtr).toBe(3);
+    expect(out.nextGameState.advertisers
+      .find((a) => a.id === PLAYER_ID).creative.pendingGrade).toBeTruthy();
+  });
+
+  test('it arrives whole on the round it was due, not gradually', () => {
+    const out = submitRound(withPending(3, 3), {}, { mode: 'expected' });
+    const graded = playerGrade(out.nextGameState);
+    expect(graded.expectedCtr).toBe(8);
+    expect(graded.adRelevance).toBe(8);
+  });
+
+  test('and it is spent once, so a later round cannot apply it again', () => {
+    const first = submitRound(withPending(3, 3), {}, { mode: 'expected' });
+    const me = first.nextGameState.advertisers.find((a) => a.id === PLAYER_ID);
+    expect(me.creative.pendingGrade).toBeNull();
+  });
+
+  test('landing keeps the grade metadata 5.2 caches on', () => {
+    // A grade that lost its contentHash would look unregraded, and 5.2's "an
+    // unchanged ad is never regraded" guarantee would quietly stop holding.
+    const before = withPending(3, 3);
+    const hash = before.advertisers.find((a) => a.id === PLAYER_ID)
+      .adGroups[0].gradedQuality.contentHash;
+    const after = submitRound(before, {}, { mode: 'expected' });
+    expect(playerGrade(after.nextGameState).contentHash).toBe(hash);
+  });
+
+  test('an advertiser with nothing pending is untouched', () => {
+    const state = makeGameState({ round: 3 });
+    const was = state.advertisers.find((a) => a.id === PLAYER_ID).adGroups[0].gradedQuality;
+    const out = submitRound(state, {}, { mode: 'expected' });
+    expect(playerGrade(out.nextGameState)).toEqual(was);
+  });
+});

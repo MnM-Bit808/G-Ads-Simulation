@@ -553,6 +553,57 @@ export const DAILY_BUDGET_OVERSPEND_CAP = 2.0;
 export const CAPEX_ALLOCATION_PAISE = 10000000; // ₹1,00,000, at rounds 1 and 5
 export const CAPEX_DELAY_ROUNDS = 3;
 
+// ---------------------------------------------------------------------------
+// Who writes the ad (DECISIONS I11)
+// ---------------------------------------------------------------------------
+
+/**
+ * A creative budget, separate from the capital allocation.
+ *
+ * Whatever is not spent on a writer rolls into the advertising budget, the same
+ * way uncommitted capital does (13.3). That rollover is not free to the
+ * balance: it hands a do-it-yourself advertiser real money on top of a higher
+ * ceiling, which is why the tier grades below sit where they do.
+ */
+export const CREATIVE_ALLOCATION_PAISE = 5000000; // ₹50,000
+
+/**
+ * The round a player's own copy goes live.
+ *
+ * The DELIVERY is delayed, never the effect: when the copy ships, its quality
+ * applies from that auction onward. An ad copy change must move `qualitySignal`
+ * immediately or the split against `reportedScore` is broken, so a "quality
+ * that fades in" would be a different and wrong mechanic.
+ */
+export const CREATIVE_DIY_LIVE_ROUND = 3;
+
+/**
+ * Who writes the ad, what it costs, and what it reliably delivers.
+ *
+ * `grade` is what the tier GUARANTEES for the two components copy sets,
+ * `expectedCtr` and `adRelevance`. `null` means nobody is hired: the advertiser
+ * writes its own, is graded on what it actually wrote, and can reach the
+ * offline grader's ceiling of 8 — but not until CREATIVE_DIY_LIVE_ROUND.
+ *
+ * MEASURED, NOT CHOSEN. Over 12-round games against a live market, hired grades
+ * of 5/6/7 were beaten by a competent DIY writer at every rung, so the ladder
+ * moved up. At 6/7/8 the outcomes stratify: a DIY ad graded 8 lands between the
+ * agency and the retainer, a 7 loses to the agency, a 6 loses to the
+ * freelancer. Write well and you beat what you would have paid for; write
+ * badly and you should have hired. `tests/writers.test.js` plays the real
+ * configurations and holds that ordering.
+ *
+ * The prices are the honest ones for SEARCH copy, which is three headlines and
+ * two descriptions — no footage, no artwork. A retainer costs more than
+ * copywriting because it buys ongoing iteration rather than one ad.
+ */
+export const WRITER_TIERS = Object.freeze([
+  { id: 'diy', label: 'Write it yourself', pricePaise: 0, grade: null },
+  { id: 'freelancer', label: 'Freelance copywriter', pricePaise: 1000000, grade: 6 },
+  { id: 'agency', label: 'Creative agency', pricePaise: 2500000, grade: 7 },
+  { id: 'retainer', label: 'Premium retainer', pricePaise: 5000000, grade: 8 },
+]);
+
 /**
  * Points added to the graded landing page score at full commitment.
  *
@@ -666,4 +717,12 @@ export const PROVENANCE = {
   CAPEX_DELAY_ROUNDS: 'INVENTED',
   CAPEX_TIER_CURVE: 'INVENTED',
   CAPEX_LANDING_PAGE_MAX_POINTS: 'INVENTED',
+  CREATIVE_ALLOCATION_PAISE: 'INVENTED',
+  // ESTIMATED, not CALIBRATE, and the distinction is not pedantry: CALIBRATE
+  // means "provisional until calibration.test.js passes", and that file governs
+  // exactly the two constants spec 18.2 names. These two were set from
+  // measurement over whole games and are held by tests/writers.test.js instead.
+  // Tagging them CALIBRATE would claim a reader they do not have.
+  CREATIVE_DIY_LIVE_ROUND: 'ESTIMATED',
+  WRITER_TIERS: 'ESTIMATED',
 };

@@ -44,6 +44,7 @@ import {
   RIVAL_PLACEMENT_CONSTRAINTS, POSITION_ECONOMICS,
   CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, RANK_BUDGET_MULTIPLIERS,
   PRICE_TIERS, PURPOSES, TOTAL_ROUNDS, QUERY_SET_RULES,
+  CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND, DEFAULT_UNGRADED_QUALITY,
 } from './engine/constants.js';
 import { mulberry32, deriveSeed } from './engine/rng.js';
 import { allCells, cellKey, parseCell, businessFor, breakEvenCpcPaise } from './engine/positions.js';
@@ -54,6 +55,7 @@ import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
 import { gradeAdOffline } from './agents/grader.js';
 import { RIVAL_CAST } from './agents/policies.js';
+import { isDiy, hiredCopyGrades, creativeSpend, tierForPolicy } from './content/writers.js';
 import { tagKeywordsOffline } from './agents/keywordTagger.js';
 
 const REDO_DEADLINE_ROUND = 3;
@@ -156,6 +158,67 @@ export function placementIsLegal(placement) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Who writes this advertiser's ad, and what that leaves it holding.
+ *
+ * ONE PATH FOR EVERYBODY (R6). The player and all eight rivals come through
+ * here, so a rival cannot get a grade by a route the player has no access to —
+ * which matters more than usual, because 17.1 makes the eight ads the only
+ * thing the player can observe about a rival at all.
+ *
+ * Hiring is immediate: the grade is what the tier guarantees, shaped by the
+ * advertiser's own lean so two buyers of one tier are still different ads.
+ * Writing it yourself is DELAYED, never faded: the copy is graded now, held in
+ * `pendingGrade`, and applied whole at `liveAtRound`. Until then the advertiser
+ * runs the ungraded default (9.5), which is what makes the delay cost anything.
+ *
+ * A WRITER WRITES COPY, so a tier only ever sets `expectedCtr` and
+ * `adRelevance`. `landingPage` is passed in and never touched here: for a rival
+ * it is their authored character, and for the player it is graded from the page
+ * their CAPITAL built (I9). Letting a copywriter move it would be the same
+ * double-model the landing page builder was written to remove.
+ *
+ * @param {object} args
+ * @param {string} args.tierId
+ * @param {number} args.bias -1, 0 or +1; this advertiser's lean
+ * @param {number} args.landingPage graded elsewhere, carried through untouched
+ * @param {object} args.ad the copy, graded only if nobody was hired
+ * @param {object[]} args.keywords what adRelevance is measured against
+ * @param {object} [args.writtenGrade] a grade already computed for this ad, so
+ *   a caller that needed it anyway does not pay to grade the same copy twice
+ * @returns {object} the advertiser's `creative` block plus its opening grade.
+ *   The grades carry COMPONENTS ONLY: `gradedAtRound`, `contentHash` and
+ *   `source` are 5.2's caching metadata and belong to whoever owns the ad, so
+ *   callers merge them. Dropping them would make every ad look unregraded.
+ */
+function creativeBlock({ tierId, bias = 0, landingPage, ad, keywords, writtenGrade }) {
+  const { pricePaise, unspentPaise } = creativeSpend(tierId, CREATIVE_ALLOCATION_PAISE);
+  const base = { tier: tierId, spentPaise: pricePaise, unspentPaise };
+
+  if (!isDiy(tierId)) {
+    return {
+      ...base,
+      liveAtRound: 1,
+      pendingGrade: null,
+      openingGrade: { ...hiredCopyGrades(tierId, bias), landingPage },
+    };
+  }
+
+  const written = writtenGrade ?? gradeAdOffline(ad, { keywords }, 0);
+  return {
+    ...base,
+    liveAtRound: CREATIVE_DIY_LIVE_ROUND,
+    // Graded now, applied later. The grade cannot depend on when it lands, or
+    // an advertiser could improve by doing nothing but waiting.
+    pendingGrade: {
+      expectedCtr: written.expectedCtr, adRelevance: written.adRelevance, landingPage,
+    },
+    // The ungraded default until it ships (9.5). This is the cost of writing it
+    // yourself, and the entire reason hiring anyone is worth paying for.
+    openingGrade: { ...DEFAULT_UNGRADED_QUALITY, landingPage },
+  };
+}
+
+/**
  * Build one rival: keywords, ad, grade, capex, weekly split.
  *
  * COLD START, like the player. `observedConvRate` is null and
@@ -182,6 +245,20 @@ export function buildRival(identity, cell, index, querySet, rng, variant = 0) {
   const position = { ...parseCell(cell), setAtRound: 0, repositionedAtRound: null };
   const capex = rivalCapex(position, rng);
   const business = businessFor(position, capex, 1);
+  const policyId = RIVAL_CAST[(index - 1 + RIVAL_CAST.length) % RIVAL_CAST.length];
+  const rivalAd = adCopyFor(cell, variant);
+  const keywords = rivalKeywords(cell, querySet, business, rng);
+  const character = RIVAL_GRADE_VARIATION[index % RIVAL_GRADE_VARIATION.length];
+  const creative = creativeBlock({
+    tierId: tierForPolicy(policyId),
+    // Sign only: whether this rival has always been better at earning the click
+    // than at answering the search. The magnitude would re-import the absolute
+    // grades the tier is there to replace.
+    bias: Math.sign(character.expectedCtr - character.adRelevance),
+    landingPage: character.landingPage,
+    ad: rivalAd,
+    keywords,
+  });
 
   return {
     id: identity.id,
@@ -194,7 +271,7 @@ export function buildRival(identity, cell, index, querySet, rng, variant = 0) {
     // policyId null, and any harness keying off it got a market that never
     // bid back. A field that is live only when the caller remembers is a field
     // that is sometimes silently dead.
-    policyId: RIVAL_CAST[(index - 1 + RIVAL_CAST.length) % RIVAL_CAST.length],
+    policyId,
     active: true,
     position,
     capex,
@@ -209,16 +286,17 @@ export function buildRival(identity, cell, index, querySet, rng, variant = 0) {
     },
     adGroups: [{
       id: 'ag_main',
-      keywords: rivalKeywords(cell, querySet, business, rng),
+      keywords,
       // Its ad says what its cell says. Position is inferable from copy and
       // from nothing else (17.1), so this mapping is the entire mechanic.
-      ad: adCopyFor(cell, variant),
+      ad: rivalAd,
       gradedQuality: {
-        ...RIVAL_GRADE_VARIATION[index % RIVAL_GRADE_VARIATION.length],
+        ...creative.openingGrade,
         gradedAtRound: 0,
         contentHash: `sha1:rival-${identity.id}`,
       },
     }],
+    creative,
     bidding: {
       learningRoundsRemaining: 0,
       observedConvRate: null,
@@ -494,6 +572,26 @@ function buildPlayer(identity, choices) {
 
   const playerAd = ad ?? { headlines: [], descriptions: [], landingPageDescription: '' };
 
+  // Who writes it (I11). The default is DIY because that is what the player has
+  // always done here - they write their own copy - and the delay is the new
+  // cost of doing so, not a new behaviour.
+  const gradingContext = {
+    keywords,
+    rivalNames: BRAND_IDENTITIES.filter((b) => b.id !== identity.id).map((b) => b.name),
+  };
+  const ownGrade = choices.gradedQuality ?? gradeAdOffline(playerAd, gradingContext, 0);
+  const creative = creativeBlock({
+    tierId: choices.writerTier ?? 'diy',
+    writtenGrade: ownGrade,
+    // The player has no history to lean either way, so no bias. A rival's lean
+    // is its character; the player's first ad is its first ad.
+    bias: 0,
+    // Graded from the page their CAPITAL built, never from the writer (I9).
+    landingPage: ownGrade.landingPage,
+    ad: playerAd,
+    keywords,
+  });
+
   return {
     id: identity.id,
     name: identity.name,
@@ -534,11 +632,14 @@ function buildPlayer(identity, choices) {
       // DECISIONS A8: an ungraded ad grades 3/3/3, which sits below
       // AD_RANK_FLOOR at any cautious bid, so the player would enter every
       // auction and show in none.
-      gradedQuality: choices.gradedQuality ?? gradeAdOffline(playerAd, {
-        keywords,
-        rivalNames: BRAND_IDENTITIES.filter((b) => b.id !== identity.id).map((b) => b.name),
-      }, 0),
+      // A supplied grade still wins, so a caller that hands one over is not
+      // silently overridden by a tier it never chose.
+      // The components the tier decided, over the metadata the grader produced.
+      // 5.2 caches on contentHash, so a grade that lost it would be regraded
+      // every round and the "unchanged ad is never regraded" guarantee would go.
+      gradedQuality: choices.gradedQuality ?? { ...ownGrade, ...creative.openingGrade },
     }],
+    creative,
     bidding: {
       learningRoundsRemaining: 0,
       observedConvRate: null,

@@ -96,9 +96,9 @@ export function submitRound(gameState, decisions, options = {}) {
   // only, which is all it declares.
   const prepared = {
     ...gameState,
-    advertisers: gameState.advertisers.map((a) => applyStructural(
+    advertisers: gameState.advertisers.map((a) => landCreative(applyStructural(
       a, decisions[a.id], gameState.round, gameState.budgetSchedule,
-    )),
+    ), gameState.round)),
   };
 
   const result = runRound(prepared, {
@@ -138,6 +138,43 @@ export function submitRound(gameState, decisions, options = {}) {
  * this one, and qualityHistory is appended to rather than revised, so a round's
  * score is stable once written. What the player saw stays what they saw.
  */
+/**
+ * Ship an advertiser's own copy on the round it was commissioned to arrive.
+ *
+ * WHAT IS LATE IS THE COPY, NOT ITS EFFECT. `CLAUDE.md` requires an ad copy
+ * change to move `qualitySignal` immediately and leave `reportedScore`
+ * unchanged in the same round; a grade that faded in over several rounds would
+ * break exactly that split. So the grade is computed at round 0, held whole,
+ * and applied whole here — from this auction onward it counts in full.
+ *
+ * It runs in the caller layer for the same reason the Quality Score does: the
+ * engine resolves auctions and has no business knowing that someone was hired.
+ *
+ * @param {object} advertiser
+ * @param {number} round the round about to run
+ * @returns {object} the advertiser, unchanged unless something was due
+ */
+function landCreative(advertiser, round) {
+  const creative = advertiser.creative;
+  if (!creative?.pendingGrade || round < creative.liveAtRound) return advertiser;
+
+  const [first, ...rest] = advertiser.adGroups ?? [];
+  if (!first) return advertiser;
+
+  return {
+    ...advertiser,
+    // Spread the components OVER the existing grade, so `contentHash`,
+    // `gradedAtRound` and `source` survive. 5.2 caches on that hash, and a
+    // grade that lost it would be treated as never graded.
+    adGroups: [
+      { ...first, gradedQuality: { ...first.gradedQuality, ...creative.pendingGrade } },
+      ...rest,
+    ],
+    // Cleared, so a later round cannot apply the same copy twice.
+    creative: { ...creative, pendingGrade: null },
+  };
+}
+
 function withQualityScores(report, state, currentRound) {
   const byAdvertiser = {};
   for (const advertiser of state.advertisers) {

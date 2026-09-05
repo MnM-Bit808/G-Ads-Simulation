@@ -5,6 +5,7 @@ import {
 } from '../setup.js';
 import { playGame, submitRound } from '../game.js';
 import { disciplined, controllerFor, RIVAL_CAST } from '../agents/policies.js';
+import { writerTier, isDiy } from '../content/writers.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES, assignIdentities } from '../content/brands.js';
 import { AD_COPY_BY_CELL } from '../content/adCopy.js';
@@ -13,6 +14,7 @@ import { homeCell } from '../engine/querySet.js';
 import {
   ADVERTISER_COUNT, MONTHLY_BUDGET_PAISE,
   ROUNDS_PER_MONTH, PRICE_TIERS, CAPEX_ALLOCATION_PAISE, TAG_VOCABULARY,
+  CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND, DEFAULT_UNGRADED_QUALITY,
 } from '../engine/constants.js';
 
 const PLAYER_BRAND = BRAND_IDENTITIES[0].id;
@@ -37,6 +39,77 @@ const choices = (over = {}) => {
 
 const start = (over = {}) => startGame({
   rootSeed: 20260902, playerBrandId: PLAYER_BRAND, player: choices(), querySet: QUERY_SET, ...over,
+});
+
+describe('every advertiser chose who writes its ad (DECISIONS I11)', () => {
+  // Hard rule 6: one advertiser type. The player picks a writer tier at round 0
+  // and so does every rival, by the same table and through the same functions.
+  // A rival that skipped the choice would be a privileged path in the one place
+  // 17.1 says the player can actually SEE a rival.
+
+  test('every advertiser has a creative block naming a real tier', () => {
+    for (const a of start().advertisers) {
+      expect(a.creative, a.id).toBeTruthy();
+      expect(() => writerTier(a.creative.tier), a.id).not.toThrow();
+    }
+  });
+
+  test('a hired ad is live from round 1 and graded at its tier', () => {
+    for (const a of start().advertisers.filter((x) => !isDiy(x.creative.tier))) {
+      const tier = writerTier(a.creative.tier);
+      const graded = a.adGroups[0].gradedQuality;
+      expect(a.creative.pendingGrade, a.id).toBeNull();
+      // The bias moves the two apart; their mean is what the tier bought.
+      expect((graded.expectedCtr + graded.adRelevance) / 2, a.id).toBe(tier.grade);
+    }
+  });
+
+  test('a self-written ad runs weak until it lands, then becomes what was written', () => {
+    const diy = start().advertisers.filter((a) => isDiy(a.creative.tier));
+    expect(diy.length, 'nobody writes their own, so the mechanic is unreachable')
+      .toBeGreaterThan(0);
+    for (const a of diy) {
+      expect(a.creative.liveAtRound, a.id).toBe(CREATIVE_DIY_LIVE_ROUND);
+      expect(a.creative.pendingGrade, a.id).toBeTruthy();
+      // Until it lands they run the ungraded default (9.5, DECISIONS A8) —
+      // which is the cost of writing it yourself, and the whole reason hiring
+      // is worth anything.
+      expect(a.adGroups[0].gradedQuality.expectedCtr, a.id)
+        .toBe(DEFAULT_UNGRADED_QUALITY.expectedCtr);
+      expect(a.creative.pendingGrade.expectedCtr, a.id)
+        .toBeGreaterThan(DEFAULT_UNGRADED_QUALITY.expectedCtr);
+    }
+  });
+
+  test('what a tier cost comes out of the creative budget, and the rest is not lost', () => {
+    for (const a of start().advertisers) {
+      const { pricePaise } = writerTier(a.creative.tier);
+      expect(a.creative.spentPaise, a.id).toBe(pricePaise);
+      expect(a.creative.unspentPaise, a.id).toBe(CREATIVE_ALLOCATION_PAISE - pricePaise);
+    }
+  });
+
+  test('the field does not all buy the same thing', () => {
+    // The reason rivals choose at all. A market where every ad is the same
+    // level gives reportedScore nothing to compare against (L4).
+    const tiers = new Set(start().advertisers.slice(1).map((a) => a.creative.tier));
+    expect(tiers.size).toBeGreaterThan(2);
+  });
+
+  test('and buying the same tier does not produce the same ad', () => {
+    // The level/shape split. Two rivals on one tier must still differ, or the
+    // field flattens exactly where adCopy.js says it must not.
+    const byTier = new Map();
+    for (const a of start().advertisers.slice(1).filter((x) => !isDiy(x.creative.tier))) {
+      const list = byTier.get(a.creative.tier) ?? [];
+      list.push(a.adGroups[0].gradedQuality);
+      byTier.set(a.creative.tier, list);
+    }
+    const shared = [...byTier.values()].find((list) => list.length > 1);
+    expect(shared, 'no tier has two buyers, so this cannot be checked').toBeTruthy();
+    const shapes = new Set(shared.map((g) => `${g.expectedCtr}|${g.adRelevance}`));
+    expect(shapes.size).toBeGreaterThan(1);
+  });
 });
 
 describe('every rival carries the policy it will actually run', () => {
