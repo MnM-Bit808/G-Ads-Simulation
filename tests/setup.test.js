@@ -4,7 +4,7 @@ import {
   startGame, redoRoundZero, canRedoRoundZero, REDO_DEADLINE_ROUND,
 } from '../setup.js';
 import { playGame, submitRound } from '../game.js';
-import { disciplined } from '../agents/policies.js';
+import { disciplined, controllerFor, RIVAL_CAST } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES, assignIdentities } from '../content/brands.js';
 import { AD_COPY_BY_CELL } from '../content/adCopy.js';
@@ -37,6 +37,53 @@ const choices = (over = {}) => {
 
 const start = (over = {}) => startGame({
   rootSeed: 20260902, playerBrandId: PLAYER_BRAND, player: choices(), querySet: QUERY_SET, ...over,
+});
+
+describe('every rival carries the policy it will actually run', () => {
+  // `buildRival` set `policyId: null` with the comment "the caller assigns a
+  // policy", and the ONLY caller that did was ui/app.js — which assigned by
+  // index and never wrote the id back to state. So `advertiser.policyId` was
+  // null in every real game, and `controllerFor`, which exists precisely to
+  // turn that id into a controller, had no reader outside the tests.
+  //
+  // That is not cosmetic. A harness written the obvious way —
+  //   controllers[a.id] = a.policyId ? controllerFor(a.policyId) : () => null
+  // — silently gives every rival a no-op controller and measures a market that
+  // never bids back. Several measurements in this project were taken that way
+  // before anyone noticed, because a dead field still produces plausible
+  // numbers. Assigning the id at construction makes the field live by default
+  // rather than by the caller remembering.
+
+  test('no advertiser but the player is left without one', () => {
+    for (const seed of SEEDS) {
+      const state = start({ rootSeed: seed });
+      const [player, ...rivals] = state.advertisers;
+      expect(player.policyId).toBeNull();
+      for (const rival of rivals) {
+        expect(rival.policyId, `${seed} ${rival.id}`).toBeTruthy();
+      }
+    }
+  });
+
+  test('and every id names a policy that exists', () => {
+    for (const rival of start().advertisers.slice(1)) {
+      expect(() => controllerFor(rival.policyId)).not.toThrow();
+      expect(typeof controllerFor(rival.policyId)).toBe('function');
+    }
+  });
+
+  test('every character is in the market, so the field is not one policy', () => {
+    // The cast exists because five of the six are each wrong about one thing in
+    // a legible way. A market of eight identical policies teaches nothing.
+    const used = new Set(start().advertisers.slice(1).map((a) => a.policyId));
+    expect(used.size).toBe(RIVAL_CAST.length);
+  });
+
+  test('the assignment is the seeded market, not an accident of ordering', () => {
+    const first = start({ rootSeed: 7 }).advertisers.map((a) => a.policyId);
+    const again = start({ rootSeed: 7 }).advertisers.map((a) => a.policyId);
+    expect(first).toEqual(again);
+  });
 });
 
 describe('rival placement (spec 17.1)', () => {

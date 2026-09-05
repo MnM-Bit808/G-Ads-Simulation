@@ -19,7 +19,7 @@
 
 import { startGame, redoRoundZero, canRedoRoundZero } from '../setup.js';
 import { playRound } from '../game.js';
-import { POLICIES } from '../agents/policies.js';
+import { controllerFor } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { getSelfView } from '../engine/insights.js';
 import { TOTAL_ROUNDS } from '../engine/constants.js';
@@ -30,14 +30,6 @@ import { createDraft, toDecision, changes } from './decisions.js';
 import { renderEnding } from './ending.js';
 
 const ROOT_SEED = 20260902;
-
-/**
- * One policy per rival, cycling the six so every character is in the market.
- *
- * `disciplined` is the competent baseline; the other five are each wrong about
- * one thing in a legible way, which is what makes the market worth reading.
- */
-const CAST = ['spender', 'cautious', 'automator', 'grossOptimiser', 'brandDefender', 'disciplined'];
 
 const app = document.getElementById('app');
 const nextButton = document.getElementById('next');
@@ -76,15 +68,18 @@ function begin({ playerBrandId, player }) {
     // before slice three existed. `playRound` collects it and `submitRound`
     // applies it, so the player enters a round by the same door a policy does
     // (R6), and the learning period and the decision log both happen.
+    // Read off the advertiser, not re-derived from an index. This view used to
+    // own the cast privately and assign by position, which is why
+    // `advertiser.policyId` was null in every game that ever ran.
     controllers: Object.fromEntries(state.advertisers.map((a, i) => [
       a.id,
-      i === 0 ? () => toDecision(game.draft) : POLICIES[CAST[(i - 1) % CAST.length]],
+      i === 0 ? () => toDecision(game.draft) : controllerFor(a.policyId),
     ])),
     // 12.4: every logged decision carries where it came from, or a replay
     // cannot tell a player's week from a policy's.
     sources: Object.fromEntries(state.advertisers.map((a, i) => [
       a.id,
-      i === 0 ? 'player' : `policy:${CAST[(i - 1) % CAST.length]}`,
+      i === 0 ? 'player' : `policy:${a.policyId}`,
     ])),
   };
   refreshDraft();

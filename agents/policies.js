@@ -598,6 +598,23 @@ function withBids(adGroups, bidFor) {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * The order rivals are dealt policies in, so every character is in the market.
+ *
+ * `disciplined` is the competent baseline; the other five are each wrong about
+ * one thing in a legible way, which is what makes the market worth reading.
+ *
+ * This lived in `ui/app.js` as a private array, which is why
+ * `advertiser.policyId` stayed null in every real game: the view assigned a
+ * policy by index and never wrote the id back. `setup.js` deals from this list
+ * now, so a rival's policy is part of its state rather than a fact only one
+ * caller knows. Order preserved exactly, so the market a seed produces is
+ * unchanged.
+ */
+export const RIVAL_CAST = Object.freeze([
+  'spender', 'cautious', 'automator', 'grossOptimiser', 'brandDefender', 'disciplined',
+]);
+
 /** Every rule-based policy, by the id `advertiser.policyId` carries. */
 export const POLICIES = Object.freeze({
   disciplined,

@@ -53,6 +53,7 @@ import { allocate, mulRate } from './engine/money.js';
 import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
 import { gradeAdOffline } from './agents/grader.js';
+import { RIVAL_CAST } from './agents/policies.js';
 import { tagKeywordsOffline } from './agents/keywordTagger.js';
 
 const REDO_DEADLINE_ROUND = 3;
@@ -187,7 +188,13 @@ export function buildRival(identity, cell, index, querySet, rng, variant = 0) {
     name: identity.name,
     domain: identity.domain,
     controller: 'policy',
-    policyId: null,                        // the caller assigns a policy
+    // Dealt from RIVAL_CAST by `buildRivals`, not left for a caller to
+    // remember. It used to be null here, and the one caller that filled it in
+    // did so by index without writing it back — so every real game ran with
+    // policyId null, and any harness keying off it got a market that never
+    // bid back. A field that is live only when the caller remembers is a field
+    // that is sometimes silently dead.
+    policyId: RIVAL_CAST[(index - 1 + RIVAL_CAST.length) % RIVAL_CAST.length],
     active: true,
     position,
     capex,
