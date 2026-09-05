@@ -139,6 +139,138 @@ const BOX = { w: 560, h: 220, left: 34, right: 8, top: 10, bottom: 22 };
  * @param {object} ctx.view held by the caller, so a redraw keeps the selection
  * @returns {HTMLElement}
  */
+/**
+ * How saturated counts as saturated, and how lopsided counts as lopsided.
+ *
+ * Display judgement, not economics — they decide which SENTENCE is shown and
+ * nothing about what any number is. They live here rather than in
+ * `constants.js` for the reason DECISIONS I6 gives: the orphan check does not
+ * read `ui/`, so a display-only constant there is a constant nothing reads.
+ */
+const SATURATED_SHARE = 0.9;
+const LOPSIDED = 2;
+
+/**
+ * What the market is doing to you, read back in words.
+ *
+ * ASKED FOR AFTER PLAYING: "I still don't get the rationale behind the graph."
+ * The card explained what each metric IS and warned what it is NOT, and never
+ * said what to DO with it — so the reading was left to the player, which is the
+ * skill the chart exists to teach rather than to assume.
+ *
+ * EVERY FACT HERE IS ONE A REAL ADVERTISER COULD SEE. It comes from
+ * `insightsFor(...).self` and the six legal rival metrics: no profit, no spend,
+ * no conversions, nothing R3 withholds. That constraint is not a limitation
+ * here — the most useful reading in the game is available inside it, because
+ * "am I losing to rank or to budget" is answerable from your own report alone
+ * and points at completely different fixes.
+ *
+ * @param {object[]} insights one entry per round, keyed by advertiser id
+ * @param {string} playerId
+ * @param {Map<string, string>} names
+ * @returns {null | object} null before a week has been played
+ */
+export function marketOutlook(insights, playerId, names) {
+  const latest = insights?.[insights.length - 1]?.[playerId];
+  if (!latest?.self) return null;
+
+  const { impressionShare, lostToRank, lostToBudget } = latest.self;
+
+  // Which constraint is actually binding. A player who is never outranked and
+  // keeps running out of money has a budget problem wearing a rank problem's
+  // clothes, and the two want opposite responses.
+  let constraint = 'both';
+  if (impressionShare >= SATURATED_SHARE) constraint = 'saturated';
+  else if (lostToBudget > lostToRank * LOPSIDED) constraint = 'budget';
+  else if (lostToRank > lostToBudget * LOPSIDED) constraint = 'rank';
+
+  const previous = insights?.[insights.length - 2]?.[playerId];
+  const change = previous?.self
+    ? impressionShare - previous.self.impressionShare
+    : null;
+
+  // Two different rivals answering two different questions: who you are
+  // actually competing with, and who is winning the auctions you share.
+  const rivals = Object.entries(latest.rivals ?? {});
+  const best = (key) => rivals.reduce(
+    (top, [id, r]) => (top === null || r[key] > top.rate
+      ? { id, name: names?.get(id) ?? id, rate: r[key] }
+      : top),
+    null,
+  );
+
+  return {
+    constraint,
+    impressionShare,
+    lostToRank,
+    lostToBudget,
+    change,
+    meetMost: best('overlapRate'),
+    beatsYouMost: best('positionAboveRate'),
+  };
+}
+
+/**
+ * The market, read back in sentences, from what the player is allowed to know.
+ *
+ * Deliberately says WHERE TO LOOK rather than what to do. "Your split and your
+ * bids" is a place; "lower your bids" would be advice this card cannot justify,
+ * because it cannot see whether the clicks were worth buying.
+ */
+function readingOf(ctx) {
+  const out = marketOutlook(ctx.insights, ctx.playerId, ctx.names);
+  if (!out) return null;
+
+  const node = el('p', 'note market-read');
+  const shown = pct(out.impressionShare);
+  const rank = pct(out.lostToRank);
+  const budget = pct(out.lostToBudget);
+
+  const said = {
+    budget: `You appeared in ${shown} of the auctions you were eligible for, and lost `
+      + `${budget} to BUDGET against ${rank} to rank. Nobody is keeping you out — you `
+      + 'stop turning up when the money runs out. The lines above you are advertisers '
+      + 'with budget left, not better ads. Look at the weekly split and whether your '
+      + 'bids are higher than they need to be.',
+    rank: `You appeared in ${shown} of the auctions you were eligible for, and lost `
+      + `${rank} to RANK against ${budget} to budget. You are being outranked, and rank `
+      + 'is your bid multiplied by your quality — so a higher bid buys position, and a '
+      + 'better ad buys position AND makes every click cheaper.',
+    both: `You appeared in ${shown} of the auctions you were eligible for, losing `
+      + `${rank} to rank and ${budget} to budget. Both are biting, which usually means `
+      + 'you are bidding for more traffic than the budget can pay for. Fixing one alone '
+      + 'will move the other.',
+    saturated: `You appeared in ${shown} of the auctions you were eligible for, so there `
+      + 'is almost nothing left to win on the keywords you have. More impressions now '
+      + 'means more keywords, not more money on these ones — and 100% share is not '
+      + 'winning, because a rival who never outranks you still sets what you pay.',
+  };
+  node.append(document.createTextNode(said[out.constraint]));
+
+  if (out.meetMost && out.meetMost.rate > 0) {
+    node.append(document.createTextNode(
+      ` You meet ${out.meetMost.name} most — ${pct(out.meetMost.rate)} of the auctions `
+      + 'you appear in',
+    ));
+    node.append(document.createTextNode(
+      out.beatsYouMost && out.beatsYouMost.id !== out.meetMost.id
+        ? `, but it is ${out.beatsYouMost.name} that is above you most often when you `
+          + `meet, ${pct(out.beatsYouMost.rate)} of the time.`
+        // Same advertiser on both counts: it is who you meet AND who beats you.
+        : `, and it is above you ${pct(out.beatsYouMost?.rate ?? 0)} of the times you `
+          + 'both appear.',
+    ));
+  }
+
+  if (out.change !== null && Math.abs(out.change) >= 0.01) {
+    node.append(document.createTextNode(
+      ` Your share ${out.change > 0 ? 'rose' : 'fell'} ${pct(Math.abs(out.change))} since `
+      + 'last week — whatever you changed, that is what it did to how often you appear.',
+    ));
+  }
+  return node;
+}
+
 export function renderTrends(ctx) {
   const node = el('article', 'card span-2');
   const heading = el('h2', null, 'Week by week');
@@ -176,6 +308,12 @@ export function renderTrends(ctx) {
     body.append(plot(series, ctx.view));
     body.append(legend(series, ctx.view, draw));
     body.append(el('p', 'note', spec.help));
+
+    // What the lines mean FOR THIS ACCOUNT. The card used to say what each
+    // metric is and warn what it is not, and never what to do with it, so the
+    // reading was left to the player — which is the skill it exists to teach.
+    const read = readingOf(ctx);
+    if (read) body.append(read);
 
     if (spec.scope === 'each') {
       body.append(el('p', 'chart-warn',

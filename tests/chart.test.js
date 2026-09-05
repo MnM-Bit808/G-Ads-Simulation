@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { seriesFor, CHART_METRICS } from '../ui/chart.js';
+import { seriesFor, CHART_METRICS, marketOutlook } from '../ui/chart.js';
 import { FORBIDDEN_IN_PUBLIC_VIEW } from '../engine/insights.js';
 
 /**
@@ -108,5 +108,103 @@ describe('seriesFor', () => {
 
   test('an unknown metric is refused rather than plotting a blank chart', () => {
     expect(() => seriesFor([round()], PLAYER, 'costPaise', NAMES)).toThrow(/costPaise/);
+  });
+});
+
+describe('the chart reads the market back to you (I13)', () => {
+  // Asked for after playing: "I still don't get the rationale behind the graph".
+  // The card explained what each metric IS and warned what it is NOT, and never
+  // said what to DO with it — so a player had to supply the reading themselves,
+  // which is the skill the chart exists to teach rather than to assume.
+  //
+  // Everything here comes from `insightsFor(...).self` and the six legal rival
+  // metrics. No profit, no spend, no conversions: R3 holds, and the diagnosis
+  // is made ENTIRELY from what a real advertiser could see.
+  const week = (self, rivals = {}) => ({ me: { self, rivals } });
+  const full = { impressionShare: 0.41, lostToRank: 0, lostToBudget: 0.59 };
+  const names = new Map([['kestrel', 'Kestrel'], ['lumen', 'Lumen']]);
+
+  test('losing to budget and not to rank is named as a budget problem', () => {
+    // The reading that matters, and the one a player gets backwards. Nobody is
+    // outranking you; you stop turning up because the money runs out.
+    const out = marketOutlook([week(full)], 'me', names);
+    expect(out.constraint).toBe('budget');
+  });
+
+  test('losing to rank and not to budget is named as a rank problem', () => {
+    const out = marketOutlook([week({
+      impressionShare: 0.3, lostToRank: 0.68, lostToBudget: 0.02,
+    })], 'me', names);
+    expect(out.constraint).toBe('rank');
+  });
+
+  test('appearing in nearly everything is neither', () => {
+    // F12's trap: 100% impression share is not winning, and the advice must not
+    // be "buy more of what you already have all of".
+    const out = marketOutlook([week({
+      impressionShare: 0.97, lostToRank: 0.02, lostToBudget: 0.01,
+    })], 'me', names);
+    expect(out.constraint).toBe('saturated');
+  });
+
+  test('losing to both says so rather than picking one', () => {
+    const out = marketOutlook([week({
+      impressionShare: 0.4, lostToRank: 0.3, lostToBudget: 0.3,
+    })], 'me', names);
+    expect(out.constraint).toBe('both');
+  });
+
+  test('it says which way you moved since last week', () => {
+    // "Analyse the steps taken" — the chart plots the trend, and this reads it.
+    const out = marketOutlook([
+      week({ impressionShare: 0.30, lostToRank: 0, lostToBudget: 0.7 }),
+      week({ impressionShare: 0.41, lostToRank: 0, lostToBudget: 0.59 }),
+    ], 'me', names);
+    expect(out.change).toBeCloseTo(0.11, 5);
+  });
+
+  test('and says nothing about movement after a single week', () => {
+    expect(marketOutlook([week(full)], 'me', names).change).toBeNull();
+  });
+
+  test('it names who you actually meet, and who actually beats you', () => {
+    // Two different rivals and two different problems. The one you overlap with
+    // most is who you are competing against; the one above you most often is
+    // who is winning the auctions you share.
+    const out = marketOutlook([week(full, {
+      kestrel: { overlapRate: 0.9, positionAboveRate: 0.1 },
+      lumen: { overlapRate: 0.2, positionAboveRate: 0.8 },
+    })], 'me', names);
+    expect(out.meetMost.name).toBe('Kestrel');
+    expect(out.beatsYouMost.name).toBe('Lumen');
+  });
+
+  test('with no rivals in the report it reports none rather than inventing one', () => {
+    const out = marketOutlook([week(full)], 'me', names);
+    expect(out.meetMost).toBeNull();
+    expect(out.beatsYouMost).toBeNull();
+  });
+
+  test('an unplayed game yields nothing', () => {
+    expect(marketOutlook([], 'me', names)).toBeNull();
+  });
+
+  test('a withheld field handed to it never reaches the output', () => {
+    // Behavioural rather than a source scan: `positionAboveRate` legally
+    // contains the substring "position", so grepping the file would fail on a
+    // metric Auction Insights actually publishes. Poison the input instead and
+    // check nothing leaks.
+    const poison = Object.fromEntries(FORBIDDEN_IN_PUBLIC_VIEW.map((f) => [f, 999999]));
+    const out = marketOutlook([week(
+      { ...full, ...poison },
+      { kestrel: { overlapRate: 0.5, positionAboveRate: 0.5, ...poison } },
+    )], 'me', names);
+
+    const seen = JSON.stringify(out);
+    expect(seen).not.toContain('999999');
+    for (const field of FORBIDDEN_IN_PUBLIC_VIEW) {
+      expect(Object.keys(out), field).not.toContain(field);
+      expect(Object.keys(out.meetMost), field).not.toContain(field);
+    }
   });
 });

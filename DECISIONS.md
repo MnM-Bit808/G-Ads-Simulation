@@ -1623,6 +1623,49 @@ What hiring buys is the grade. That sentence is printed, because the difference
 between an abstraction and a screen that teaches something false is whether it
 says so.
 
+### I13. The trend chart reads itself back to you — `FIXED`
+
+The card explained what each of the six metrics IS, and warned what impression
+share is NOT, and never said what to DO with any of it. Asked outright after
+playing: *"I still don't get the rationale behind the graph."*
+
+That is a fair question and the card was not answering it. I7 records why the
+chart cannot be a leaderboard — the lead is cumulative gross profit and R3
+forbids reading it about anyone else — but a player should never have to read a
+design ledger to know what a card is for.
+
+`marketOutlook` now reads the situation back. **Every fact in it is one a real
+advertiser could see**: it comes from `insightsFor(...).self` and the six legal
+rival metrics, and a test poisons the input with every withheld field to prove
+none reaches the output.
+
+**The reading that matters is "rank or budget", and it is answerable inside
+R3.** Measured on a played account: 41% impression share, 0.0% lost to rank,
+58.8% lost to budget. Nobody was outranking that player at all — they simply
+stopped appearing when the money ran out, and the rivals plotted above them had
+budget left rather than better ads. Those two situations want opposite responses
+and the chart previously let a player conclude the wrong one.
+
+Four states, and the thresholds that pick between them are display judgement
+kept in `ui/` for the reason I6 gives:
+
+| state | what it says to look at |
+|---|---|
+| budget | the weekly split, and whether bids are higher than they need to be |
+| rank | bid × quality — a higher bid buys position, a better ad buys position AND cheaper clicks |
+| both | bidding for more traffic than the budget can pay for |
+| saturated | more keywords, not more money on these — and F12's warning that 100% share is not winning |
+
+**It says where to look, never what to do.** "Your split and your bids" is a
+place; "lower your bids" would be advice this card cannot justify, because it
+cannot see whether those clicks were worth buying.
+
+**And it reads the steps already taken**, which was the other half of the
+request: the change in impression share since last week, attributed to nothing
+in particular — *"whatever you changed, that is what it did to how often you
+appear"* — because the chart cannot know which of several changes caused it and
+should not pretend to.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
