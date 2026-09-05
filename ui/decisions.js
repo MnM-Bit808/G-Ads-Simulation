@@ -947,6 +947,50 @@ export function negativesOutlook(draft, terms) {
 }
 
 /**
+ * Why the search terms report is the size it is.
+ *
+ * FOUND BY PLAYING. A player reported having "no information" at week 2, and
+ * the reproduction was four phrase keywords producing four rows — each one
+ * identical to the keyword that bought it. The report that exists to show what
+ * your keywords ACTUALLY matched was a mirror of the keyword list, and the note
+ * under it explained only the date range.
+ *
+ * The explanation already existed, in `negativesOutlook`, printed on the
+ * NEGATIVES card — a feature the player was not using and had no reason to
+ * open. This is the same live read moved to where the question gets asked,
+ * which is I8's own principle: a read of the player's own situation beats a
+ * paragraph they have to apply to themselves.
+ *
+ * WHAT DECIDES IT IS REACH, NOT MATCH TYPE. A long phrase keyword reaches
+ * almost nothing beyond itself while a short one reaches dozens, so counting
+ * match types would mislabel both. Searches per running keyword is the fact.
+ *
+ * @param {object} draft
+ * @param {object} terms `byQuery`, accumulated over whatever range is on screen
+ * @returns {{played: boolean, searches: number, keywords: number, broad: number,
+ *   perKeyword: number, mirrored: boolean}}
+ */
+export function termsOutlook(draft, terms) {
+  const searches = Object.values(terms ?? {}).filter((r) => r.impressions > 0).length;
+  // Only what is running. A paused keyword matches nothing, so counting it
+  // would understate reach and call a healthy report a mirror.
+  const active = (draft.keywords ?? []).filter((k) => k.active !== false);
+  const keywords = active.length;
+  const perKeyword = keywords > 0 ? searches / keywords : 0;
+
+  return {
+    played: searches > 0,
+    searches,
+    keywords,
+    broad: active.filter((k) => k.matchType === 'broad').length,
+    perKeyword,
+    // One search per keyword means nothing was discovered: every row is a
+    // search you already chose to buy.
+    mirrored: searches > 0 && keywords > 0 && searches <= keywords,
+  };
+}
+
+/**
  * Which of the draft's negatives, if any, kills this search term.
  *
  * Used to grey the row out the moment a negative is staged, so the cost of a

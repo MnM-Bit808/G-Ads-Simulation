@@ -22,7 +22,9 @@
 import { el, table, figure, rupees, whole, pct, ratio } from './dom.js';
 import { getPublicView } from '../engine/insights.js';
 import { briefing } from '../setup.js';
-import { renderDecisions, addNegative, blocksTerm, effectiveGrades } from './decisions.js';
+import {
+  renderDecisions, addNegative, blocksTerm, effectiveGrades, termsOutlook,
+} from './decisions.js';
 import { rankOf } from './ending.js';
 import { renderTrends } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
@@ -264,13 +266,36 @@ function renderTerms(root, game, ctx) {
     chips.append(chip);
   }
 
-  root.querySelector('[data-slot="terms-note"]').textContent = range === 'week'
+  const basis = range === 'week'
     ? 'One week, and none of it settled. A click takes three rounds to arrive and '
       + 'two more to survive its return window, so a zero in this column is not '
       + 'yet evidence of anything.'
     : 'Every week you have played, with conversions as they stand after revision. '
       + 'Block writes an exact negative for that one search; to catch a whole '
       + 'family of them at once, name the words below.';
+
+  // Why the table is the size it is. A player who buys tight keywords gets a
+  // report that mirrors their keyword list, reads it as "nothing happened", and
+  // has no way to know that is the account rather than the game. The
+  // explanation used to live only on the Negatives card, which is not where the
+  // question gets asked.
+  const shape = termsOutlook(game.draft, ctx.terms);
+  let why = '';
+  if (shape.mirrored) {
+    why = ` Your ${shape.keywords} keyword${shape.keywords === 1 ? '' : 's'} matched `
+      + `${shape.searches} search${shape.searches === 1 ? '' : 'es'} — one each, which `
+      + 'means every row here is a search you already chose to buy. This report only '
+      + 'shows you something new when a keyword reaches PAST the words it names'
+      + (shape.broad === 0
+        ? ', which is what broad match is for and what it costs.'
+        : '; your broad keywords are not reaching far yet.');
+  } else if (shape.played) {
+    why = ` Your ${shape.keywords} keyword${shape.keywords === 1 ? '' : 's'} matched `
+      + `${shape.searches} searches, about ${shape.perKeyword.toFixed(1)} each — so `
+      + 'there is reach here you did not name, and that is what this table is for.';
+  }
+
+  root.querySelector('[data-slot="terms-note"]').textContent = basis + why;
 }
 
 function renderInsights(root, game) {

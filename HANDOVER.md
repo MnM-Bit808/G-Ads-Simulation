@@ -765,13 +765,13 @@ tooling and one untested claim.
   defined` and an uncalled function into `dashboard.js` produces two eslint
   errors and leaves all twelve `ui` tests green. `tests/ui.test.js` asserts the
   wiring so it cannot be quietly removed.
-- **The search terms card does not explain its own emptiness.** Found by
-  reproducing a player's "week 2 told me nothing": four phrase keywords produce
-  four rows identical to the keywords, and the note under the table explains
-  only the date range. `negativesOutlook` already computes the right sentence
-  and says it in the Negatives card — a feature the player was not using. Moving
-  that live read under the table where the question is actually asked is small
-  and has not been done.
+- ~~The search terms card does not explain its own emptiness.~~ **It does now.**
+  `termsOutlook` reads searches against RUNNING keywords — reach, not match type,
+  because a long phrase keyword reaches almost nothing while a short one reaches
+  dozens — and the note says which account you are running. Measured live: four
+  phrase keywords give 4 rows and "one each, which means every row here is a
+  search you already chose to buy"; the same four on broad give 57 and "about
+  14.3 each — so there is reach here you did not name".
 - **Nobody has played it as a learner.** Round 0 and a first week have now been
   played BY HAND — real clicks, real typing, Tab between fields — and that
   immediately found two bugs a script structurally could not (see below). The
@@ -892,9 +892,8 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   exact.** Four phrase keywords give four rows, each identical to the keyword
   that bought it, and the primary learning surface has nothing in it. That is
   the model being honest — DECISIONS I8 measured one broad keyword taking the
-  same report to seventy rows — but a player reads it as "nothing happened".
-  The explanation currently lives in the NEGATIVES card, which is not where the
-  question gets asked. Unfixed; see below.
+  same report to seventy rows. The note under the table now says so, but the
+  underlying fact is worth knowing before you read a quiet week as a bug.
 
 ### Writing a measurement harness
 

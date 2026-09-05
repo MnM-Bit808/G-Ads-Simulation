@@ -20,7 +20,7 @@ import {
   setCapex, setPosition, monthBudgetAfter,
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
-  removeKeyword, addKeywords, negativesOutlook, bidOutlook,
+  removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
 } from '../ui/decisions.js';
 
 /**
@@ -1143,5 +1143,72 @@ describe('what the strategy will actually bid, before a week is spent (I12)', ()
     for (const k of d.keywords) k.active = false;
     expect(() => bidOutlook(d)).not.toThrow();
     expect(bidOutlook(d)).toBeNull();
+  });
+});
+
+describe('the search terms report says why it is the size it is (I8)', () => {
+  // Reported from playing: "I seemed to have no information during week 2".
+  // Reproduced — four phrase keywords produced four rows, each one identical to
+  // the keyword that bought it. The report that exists to show what your
+  // keywords ACTUALLY matched was a mirror of the keyword list.
+  //
+  // The engine was being honest. What was wrong is that the note under the
+  // table explained only the date range, while the explanation lived in the
+  // NEGATIVES card — a feature the player was not using and had no reason to
+  // open. I8's own principle, applied where the question is actually asked.
+  const draftWith = (matchTypes) => {
+    const d = createDraft(getSelfView(makeGameState({ round: 3 }), PLAYER_ID));
+    d.keywords = matchTypes.map((matchType, i) => ({
+      id: `kw_${i + 1}`, text: `keyword ${i + 1}`, matchType, bidPaise: 2000, active: true,
+    }));
+    return d;
+  };
+  const terms = (n) => Object.fromEntries(Array.from({ length: n }, (_, i) => [
+    `q_${i}`, { impressions: 1000, clicks: 50, costPaise: 10000, conversions: 1 },
+  ]));
+
+  test('a report that mirrors the keywords is named as such', () => {
+    // Four keywords, four searches. Nothing was discovered.
+    const out = termsOutlook(draftWith(['phrase', 'phrase', 'phrase', 'phrase']), terms(4));
+    expect(out.mirrored).toBe(true);
+    expect(out.searches).toBe(4);
+    expect(out.keywords).toBe(4);
+  });
+
+  test('and a report that found things you did not buy is not', () => {
+    const out = termsOutlook(draftWith(['broad', 'broad']), terms(70));
+    expect(out.mirrored).toBe(false);
+    expect(out.perKeyword).toBeGreaterThan(1);
+  });
+
+  test('it counts only keywords that are actually running', () => {
+    // A paused keyword matches nothing, so counting it would understate reach
+    // and call a healthy report a mirror.
+    const d = draftWith(['broad', 'phrase', 'phrase']);
+    d.keywords[1].active = false;
+    d.keywords[2].active = false;
+    expect(termsOutlook(d, terms(30)).keywords).toBe(1);
+  });
+
+  test('it knows whether broadening is even available as advice', () => {
+    // The advice is "a keyword that reaches past the words it names fills this
+    // report". Telling that to someone already running broad would be wrong.
+    expect(termsOutlook(draftWith(['exact', 'exact']), terms(2)).broad).toBe(0);
+    expect(termsOutlook(draftWith(['broad', 'exact']), terms(9)).broad).toBe(1);
+  });
+
+  test('an unplayed week reports nothing rather than a mirror', () => {
+    const out = termsOutlook(draftWith(['phrase']), {});
+    expect(out.played).toBe(false);
+    expect(out.mirrored).toBe(false);
+  });
+
+  test('it agrees with negativesOutlook about the same account', () => {
+    // Both read the same two facts, and two cards disagreeing about how many
+    // searches you matched would be worse than either saying nothing.
+    const d = draftWith(['broad', 'phrase']);
+    const t = terms(40);
+    expect(termsOutlook(d, t).searches).toBe(negativesOutlook(d, t).searches);
+    expect(termsOutlook(d, t).keywords).toBe(negativesOutlook(d, t).keywords);
   });
 });
