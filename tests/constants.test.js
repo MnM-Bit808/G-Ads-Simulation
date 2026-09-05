@@ -3,6 +3,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as C from '../engine/constants.js';
+import { landingFactor } from '../engine/quality.js';
+import { RIVAL_GRADE_VARIATION } from '../content/adCopy.js';
 
 const sum = (a) => a.reduce((x, y) => x + y, 0);
 const argmax = (a) => a.indexOf(Math.max(...a));
@@ -307,12 +309,36 @@ describe('quality signal factor ranges (spec 9.1)', () => {
     }
   });
 
-  test('landing page compression is real and recorded (DECISIONS A6)', () => {
-    // The widest achievable own-vs-field ratio on landing page barely clears
-    // RATING_UPPER_THRESHOLD. If ratings never leave 'average' in play, widen
-    // this range rather than moving the threshold.
+  test('landing page compression is measured against a FIELD, not against min', () => {
+    // This test used to assert `max / min > RATING_UPPER_THRESHOLD` and pass
+    // while the thing it is named for was being described wrongly in three
+    // documents. max/min compares the best possible advertiser to the WORST
+    // possible one; `rate()` compares an advertiser to an impression-weighted
+    // FIELD AVERAGE, which is never the minimum. It guarded a quantity no
+    // auction computes - the same shape as the F11 defect, where I4 read
+    // constants.js and measured something no auction experiences.
+    //
+    // Measured over 720 games (12 seeds x 6 cells x 10 grades, mode
+    // 'expected'): 'above' occurs on 20.2% of contested keywords at grade 10
+    // and 3.4% at grade 9, never at grade 8 or below; 'below' occurs on 88.6%
+    // at grade 1 and never above grade 4. See DECISIONS A6.
     const { min, max } = C.QUALITY_FACTOR_RANGES.landingFactor;
-    expect(max / min).toBeGreaterThan(C.RATING_UPPER_THRESHOLD);
+    const field = (grade) => landingFactor(grade);
+    const rosterMean = RIVAL_GRADE_VARIATION.slice(1)
+      .reduce((t, g) => t + g.landingPage, 0) / (RIVAL_GRADE_VARIATION.length - 1);
+
+    // 1. Against a field at the rival roster's MEAN landing grade, no player
+    //    grade reaches 'above'. This is why grades 5-8 are indistinguishable.
+    expect(max / field(rosterMean)).toBeLessThan(C.RATING_UPPER_THRESHOLD);
+
+    // 2. Against a field at the roster's WEAKEST landing grade it is reachable,
+    //    which is what makes 'reachable but narrow' true rather than decorative.
+    const weakest = Math.min(...RIVAL_GRADE_VARIATION.slice(1).map((g) => g.landingPage));
+    expect(max / field(weakest)).toBeGreaterThan(C.RATING_UPPER_THRESHOLD);
+
+    // 3. The low end is reachable against the roster mean, so the scale is not
+    //    one-sided: a bad landing page does read as bad.
+    expect(min / field(rosterMean)).toBeLessThan(C.RATING_LOWER_THRESHOLD);
   });
 });
 

@@ -454,7 +454,9 @@ enough for the three lessons the design cares most about.**
   improvement — moves the own/field ratio from 1.137 to 1.488 over eight rounds
   and the displayed score not at all, because the ratio was already past
   `RATING_UPPER_THRESHOLD` and three levels cannot express anything between.
-  A6 records this as landing-page compression; it is every component.
+  A6 records this as landing-page compression; it is every component. **On
+  landing page it is now measured**: grades 5 to 8 are indistinguishable, so a
+  player improving from 5 to 8 gets no feedback at all.
 - **The noise floor is flat.** `QUALITY_NOISE_SIGMA` is a volume-independent 8%
   that swamps the Poisson term, so every advertiser sits at 9-10% CV regardless
   of size. **F7's Premium claim does not hold on reported outcomes** — 10.5%
@@ -573,19 +575,36 @@ tooling and one untested claim.
 - **One detail unverified** in the premium cells: whether Japanese and Korean
   yarn is what Indian premium activewear signals with, or whether it is recycled
   technical fabric or a named mill.
-- **`landingFactor` cannot reach "above average", and spec 9.4 says it can.**
-  Its range is 0.85–1.05, so at grade 10 the field ratio is 1.0925 against a
-  1.10 threshold. 9.4 calls the rating "reachable but narrow"; it is unreachable
-  at any grade, and that sentence is now corrected in the spec. 9.4
-  pre-authorises widening the factor range, and widening it in EITHER direction
-  breaks spec 17.1's "an open cell is not a free ride" — 0.80–1.15 drops a solo
-  advertiser from ~100% of its eligible auctions to 98.9%, and widening upward
-  only is worse at 97.1%. It is a balance change, not a display fix, and it
-  needs its own decision. See `DECISIONS.md` I1.
+- ~~`landingFactor` cannot reach "above average".~~ **It can, and the claim that
+  it could not was this project's own error — now measured and retracted.** Over
+  720 games (12 seeds × 6 cells × 10 grades, `mode: 'expected'`), `above` occurs
+  on 20.2% of contested keywords at grade 10 and 3.4% at grade 9, in 33 of 72
+  (seed, cell) pairs.
+
+  **The real shape is a flat MIDDLE, not a pinned scale.** Grades 5 to 8 give
+  411 of 411 `average` — four consecutive grades with identical output — because
+  the factor range is ±10% around its midpoint while the `average` band is also
+  ±10%. `below` is common at the bottom: 88.6% at grade 1.
+
+  **How it went wrong, because the shape will recur.** The retracted 1.0925 is
+  `1.05 / landingFactor(6)` — one rival, one query — measured on seed
+  `20260902`. That is the canonical seed, and it is the WORST row in the grid:
+  one of its six cells reaches `above` at all. In five of six cells the false
+  claim is locally true. **A number measured on the canonical seed is a sample
+  of one**, and it was propagated into spec 9.4, `DECISIONS` I1 and a
+  `constants.js` comment, overturning A6's correct conclusion on the way.
+
+  `tests/constants.test.js` had a test named for this and could not see it: it
+  asserted `max / min > RATING_UPPER_THRESHOLD`, and `max/min` compares the best
+  possible advertiser to the WORST possible one, while `rate()` compares against
+  a field AVERAGE. Replaced with a guard that mutation-fires. Widening the range
+  is still open and still costs 17.1 what 9.4 measures — but it is no longer
+  needed for reachability, so it is a smaller prize than it looked.
 - **The W11 display findings are unactioned.** A round's reported profit peaks
   at 117% of truth one round after the click and decays for four more; a 50%
   real improvement in ad quality never moves the reported score, because the
   ratio was already past 1.10 and three levels cannot express anything between.
+  The landing-page half of this is now quantified in `DECISIONS.md` A6.
   Both are design conversations, not defects.
 - ~~There is no linter.~~ **There is one now**, and it runs inside `npm test`
   (`eslint . && vitest run`), so a lint error stops you before a test runs.

@@ -278,9 +278,19 @@ export const AUCTIONS_PER_QUERY_HOUR = { expected: 1, sampled: 6 };
  * The factor ranges multiplied together in qualitySignal.
  *
  * landingFactor is deliberately narrow, which compresses the landing page
- * rating in reportedScore — see DECISIONS A6. If ratings never leave 'average'
- * in play, widen this range rather than moving RATING_UPPER_THRESHOLD, because
- * the threshold is what makes the three components comparable to each other.
+ * rating in reportedScore — see DECISIONS A6. Its span is ±10% around its
+ * midpoint and the 'average' band is also ±10%, so THE BAND IS AS WIDE AS THE
+ * WHOLE RANGE. Measured over 720 games, that makes grades 5 to 8 produce
+ * identical output: 411 of 411 contested keywords read 'average' at every one
+ * of those four grades.
+ *
+ * The ratings do still move at both ends — 'below' on 88.6% of keywords at
+ * grade 1, 'above' on 20.2% at grade 10 — so the earlier claim that the
+ * component is pinned to 'average' for everybody is false and is corrected in
+ * spec 9.4 and DECISIONS A6/I1. If this range is ever widened, the threshold is
+ * still the wrong thing to move: it is what makes the three components
+ * comparable to each other. But widening it in either direction breaks 17.1's
+ * open cell, which is measured in 9.4 and is why it has not been done.
  */
 export const QUALITY_FACTOR_RANGES = {
   baseCtr: { min: 0.02, max: 0.14 },

@@ -96,13 +96,42 @@ Including the current round would let the two move together, and the split
 would quietly stop teaching anything.
 
 ### A6. Landing page ratings are compressed — `OPEN`
-`landingFactor` spans 0.85–1.05, so an own-vs-field ratio can reach at most about
-1.235, against a `RATING_UPPER_THRESHOLD` of 1.10. "Above average" on landing page
-is reachable but narrow, and "below average" likewise.
+`landingFactor` spans 0.85–1.05. **"Above average" on landing page is reachable
+but narrow, and "below average" likewise** — this entry's original conclusion,
+which was correct, and which a later pass wrongly overturned. See I1 for that
+history.
 
-If in play the landing page rating never leaves `average`, the fix is to widen the
-factor range, not to move the threshold — the threshold is what makes the three
-components comparable to each other.
+**The basis has been corrected.** This entry used to reason from `max / min`
+≈ 1.235 against a threshold of 1.10. That is the wrong quantity: `rate()`
+compares an advertiser to an impression-weighted **field average**, never to the
+worst possible advertiser. `tests/constants.test.js` made the same mistake and
+passed for it.
+
+**The right quantity, measured over 720 games** (12 seeds × 6 cells × 10 grades,
+`mode: 'expected'`, 8 rounds, 411 contested keywords per grade):
+
+| grade | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `below` % | 88.6 | 60.8 | 21.2 | 5.6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `above` % | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 3.4 | 20.2 |
+
+The realised field landing factor over those keywords: min 0.9167, p25 0.9611,
+median 0.9760, p75 0.9909, max 1.0333.
+
+**The compression is a flat MIDDLE, not a pinned scale.** Grades 5 to 8 produce
+identical output — 411 of 411 `average` at every one of the four — because the
+factor range is ±10% around its midpoint and the `average` band is also ±10%, so
+the band is as wide as the whole range. At the median field the reachable ratio
+runs 0.871 to 1.076: `above` therefore requires a **below-median field**, and
+`below` requires a grade of 4 or less. The modal account walks
+`bb--------` — below at grades 1–2, average from 3 to 10, never above — in 33 of
+72 (seed, cell) pairs.
+
+The remedy stands as direction: if the range is widened it is the range that
+moves, not the threshold, because the threshold is what makes the three
+components comparable to each other. **But 9.4 measures what widening costs** —
+it breaks 17.1's open cell in both directions tried — so this stays `OPEN` and
+the interface compensates instead (I1).
 
 ### A7. The broad-match quality penalty is half the size the range implies — `OPEN`
 `queryKeywordFit` is specified as spanning 0.50–1.15, scaled by how much of a
@@ -1197,26 +1226,46 @@ locked at both ends.
 **Measured, on a played account.** Lifting `expectedCtr` from 6 to 9 — a 50%
 improvement — moves the own/field ratio from 1.145 to 1.676 and the displayed
 score not at all, because both sit past `RATING_UPPER_THRESHOLD` and three levels
-have nothing between them to say. And `landingFactor` spans 0.85–1.05, so at
-grade 10 the field ratio is 1.0925 against a 1.10 threshold: **"above" is
-unreachable at any grade**, including for a player who commits the entire
-₹1,00,000 capital allocation to their landing page. Spec 9.4 called that rating
-"reachable but narrow" and was wrong; the spec is corrected.
+have nothing between them to say.
 
-Without the earned grade the screen tells a player who improved their ad that
-nothing happened, which is the one thing this project must not do. With it, they
-read `Landing page 10/10 · average` and can see both that the investment landed
-and that the rating is a comparison rather than a verdict.
+**The landing-page half of this entry was wrong, and the correction matters more
+than the original claim.** It read: "`landingFactor` spans 0.85–1.05, so at grade
+10 the field ratio is 1.0925 against a 1.10 threshold — **'above' is unreachable
+at any grade**", and on that basis spec 9.4 was rewritten and A6's correct
+conclusion overturned.
+
+It is reachable. Over 720 games `above` occurs on **20.2% of contested keywords
+at grade 10 and 3.4% at grade 9**, in 33 of 72 (seed, cell) pairs. A6 carries the
+full table.
+
+**How the error was made, because the shape will recur.** The measurement was
+taken on seed `20260902` — this project's canonical seed, the one in
+`tests/setup.test.js` and in every played account in `HANDOVER.md`. It is the
+worst row in the grid: one of its six cells reaches `above`, and only at grade
+10. In five of six cells "unreachable at any grade" is **locally true**. The
+figure 1.0925 is `1.05 / landingFactor(6)` exactly — one rival graded 6, on one
+query, generalised to every field in the game. **A number measured on the
+canonical seed is a sample of one.**
+
+**The display decision survives, on better grounds.** The original argument was
+that the rating is pinned, so the screen must show the grade. The true argument
+is stronger: grades **5 to 8 are indistinguishable** — 411 of 411 keywords read
+`average` at every one — so a player who takes their landing page from 5 to 8, a
+serious improvement, gets **zero feedback from the rating**. Without the earned
+grade the screen tells them nothing happened, which is the one thing this project
+must not do. With it they read `Landing page 8/10 · average` and can see both that
+the work landed and that the rating is a comparison rather than a verdict.
 
 **The alternative was rejected on evidence, not taste.** 9.4 pre-authorises
 widening the factor range rather than moving the threshold, so it was tried.
-0.80–1.15 fixes the diagnostic and breaks spec 17.1's "an open cell is not a
-free ride" — an advertiser alone in its cell falls from ~100% of its eligible
-auctions to 98.9%, because the lower floor pushes weak ads under
-`AD_RANK_FLOOR`. Widening upward only is worse, 97.1%, because it lifts the
-RIVALS' factors too and manufactures rank competition where 17.1 says there is
-none. **Still open**, and it is a balance change needing a calibration re-run,
-not a display fix.
+0.80–1.15 breaks spec 17.1's "an open cell is not a free ride" — an advertiser
+alone in its cell falls from ~100% of its eligible auctions to 98.9%, because the
+lower floor pushes weak ads under `AD_RANK_FLOOR`. Widening upward only is worse,
+97.1%, because it lifts the RIVALS' factors too and manufactures rank competition
+where 17.1 says there is none. Those measurements stand and are the reason the
+range has not moved. What has changed is that **widening is no longer needed to
+make the rating reachable** — it already is. It would only flatten the middle,
+which is a smaller prize than the entry originally claimed.
 
 ### I2. The search terms report names brand owners — `FIXED`
 

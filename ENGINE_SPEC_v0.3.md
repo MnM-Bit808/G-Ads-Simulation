@@ -694,16 +694,42 @@ policy alike **(L15)**. It is never in `getPublicView`.
 
 ### 9.4 Component range warning
 
-`landingFactor` spans 0.85–1.05, a range of 1.235 end to end, while
-`RATING_UPPER_THRESHOLD` is 1.10.
+`landingFactor` spans 0.85–1.05, while `RATING_UPPER_THRESHOLD` is 1.10.
 
-**This section used to say an "above average" landing page rating was "reachable
-but narrow". It is not reachable at all, and the correction is measured rather
-than argued.** The factor is linear in the graded 1–10, so grade 10 gives 1.0500
-against a field averaging 0.9633 — a ratio of **1.0925 against a 1.10
-threshold**. No grade reaches `above`, including a player who commits the entire
-`CAPEX_ALLOCATION_PAISE` to their landing page and takes the grade to 10 via
-13.3. The component is pinned to `average` for everybody, for the whole game.
+**Do not reason about this from `max / min` (1.235).** `rate()` compares an
+advertiser to an impression-weighted **field average**, never to the worst
+possible advertiser, so the end-to-end range is not a quantity any auction
+computes. Reasoning from it is what produced both of this section's errors, and
+`tests/constants.test.js` asserted it and passed while the section was wrong.
+
+**This section twice said the wrong thing, and the second time was worse than the
+first.** It originally said an "above average" rating was "reachable but narrow".
+A later pass replaced that with "it is not reachable at all", measured on one
+seed. **The original wording was right** and is restored, now with evidence.
+
+Over 720 games — 12 seeds × 6 cells × 10 grades, `mode: 'expected'` (which is what
+`ui/app.js` actually runs), 8 rounds, 411 contested keywords at each grade:
+
+| grade | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `below` % | 88.6 | 60.8 | 21.2 | 5.6 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `above` % | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 3.4 | 20.2 |
+
+`above` is reached in **33 of 72 (seed, cell) pairs**, at grades 9 and 10 only.
+
+**What is true is narrower and more useful than "unreachable".** The compression
+is a flat MIDDLE: grades 5 to 8 give 411 of 411 `average`, because the factor
+range is ±10% around its midpoint while the `average` band is also ±10% — the
+band is as wide as the whole range. At the median realised field (0.9760) the
+reachable ratio runs 0.871 to 1.076, so `above` needs a below-median field and
+`below` needs a grade of 4 or less.
+
+**The retracted claim, and how it was reached**, because the shape will recur:
+the 1.0925 figure is `1.05 / landingFactor(6)` — one rival graded 6 — measured on
+seed `20260902`. That is this project's canonical seed and it is the worst row in
+the grid: one of its six cells reaches `above` at all. In five of six, "no grade
+reaches `above`" is locally true, and it was generalised to the whole game. A
+number measured on the canonical seed is a sample of one.
 
 The remedy this section recommends — widen the factor ranges rather than move the
 thresholds, because the threshold is what makes the three components comparable
@@ -716,9 +742,14 @@ because it lifts every RIVAL's factor too and manufactures rank competition in a
 cell 17.1 says is uncontested.
 
 So it is a balance change requiring a calibration pass, not a one-line fix, and
-it is **open**. The compression is recorded in `DECISIONS.md` A6, and what the
-interface does about it in the meantime — showing the player the grade their copy
-earned alongside the field-relative rating — is `DECISIONS.md` I1.
+it is **open** — but it is now a *smaller* prize than when it was written.
+Widening is no longer needed to make the rating reachable, because it already is.
+It would only flatten the middle, and that has to be weighed against a measured
+cost to 17.1.
+
+The compression is recorded in `DECISIONS.md` A6, and what the interface does
+about it in the meantime — showing the player the grade their copy earned
+alongside the field-relative rating — is `DECISIONS.md` I1.
 
 ### 9.5 Ungraded ads **(L9)**
 
