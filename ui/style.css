@@ -362,6 +362,38 @@ button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none
 .page-strip.empty { color: #6b7280; font-style: italic; }
 .derived { margin: 0; font-size: 0.82rem; line-height: 1.5; color: #9aa4b2; }
 
+/* Who writes the ad. One row per tier, the chosen one lit. */
+.writer-row {
+  display: grid;
+  grid-template-columns: 13rem auto;
+  gap: 0.4rem 0.9rem;
+  align-items: center;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #21252e;
+}
+.writer-row:last-of-type { border-bottom: none; }
+.writer-pick {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: #14171d;
+  border: 1px solid #2a2f3a;
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.writer-row.on .writer-pick {
+  border-color: var(--accent);
+  background: rgba(122, 162, 247, 0.12);
+}
+.writer-name { font-weight: 600; font-size: 0.85rem; }
+.writer-price { font-family: var(--mono); font-size: 0.78rem; color: var(--accent); }
+.writer-what { font-size: 0.76rem; line-height: 1.45; }
+.grade-was { font-size: 0.72rem; font-family: var(--mono); margin-left: 0.5rem; }
+
 /* --- forms -------------------------------------------------------------- */
 
 .field { display: block; margin-bottom: 0.7rem; }

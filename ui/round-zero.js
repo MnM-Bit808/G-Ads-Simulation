@@ -38,7 +38,9 @@ import { heuristicTags } from '../agents/keywordTagger.js';
 import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS, MONTHLY_BUDGET_PAISE,
   CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH, TOTAL_ROUNDS,
+  WRITER_TIERS, CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
 } from '../engine/constants.js';
+import { writerTier, isDiy, hiredCopyGrades } from '../content/writers.js';
 import { PAGE_FEATURES, composeDescription, pageShape } from './landing-page.js';
 
 const CAPEX_TARGETS = [
@@ -76,6 +78,9 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
     keywords: [],
     // landingPageDescription is derived from `capex` by syncPage, below.
     ad: { headlines: ['', '', ''], descriptions: ['', ''], landingPageDescription: '' },
+    // Who writes it (I11). DIY by default because writing their own copy is
+    // what the player has always done here; hiring is the new option.
+    writerTier: 'diy',
     split: null,
     // What is typed in the planner's search box. UI state, kept on the draft
     // because adding a keyword rebuilds the whole form and would otherwise
@@ -100,9 +105,12 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
    * DERIVED from it — the character counters, the copy warnings, the budget
    * total, and whether the Go button is allowed to be pressed.
    */
-  const live = { ad: null, budget: null, start: null };
+  const live = { ad: null, writer: null, budget: null, start: null };
   const revalidate = () => {
     live.ad?.();
+    // The writer card quotes the self-written grade, so it is derived from the
+    // ad and has to move with it.
+    live.writer?.();
     live.budget?.();
     live.start?.();
   };
@@ -116,6 +124,7 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
       sectionPosition(brief, draft, rerender),
       sectionCapex(draft, rerender),
       sectionKeywords(querySet, draft, rerender),
+      sectionWriter(draft, rerender, live),
       sectionAd(draft, revalidate, live),
       sectionBudget(draft, revalidate, live),
       sectionStart(draft, onStart, live));
@@ -489,6 +498,79 @@ function sectionKeywords(querySet, draft, rerender) {
 }
 
 // ---------------------------------------------------------------------------
+// 9b. Who writes the ad (DECISIONS I11)
+// ---------------------------------------------------------------------------
+
+/**
+ * The writer choice, with a live read of what writing it yourself would score.
+ *
+ * The point of showing that number is I8's principle: a live read of the
+ * player's own situation beats a paragraph they have to apply to themselves.
+ * A player looking at "you would score 5 · the agency guarantees 7" is making
+ * an informed trade; one reading a description of three tiers is guessing.
+ *
+ * It updates as they write, so the card is worth coming back to — which is why
+ * it sits directly above the ad rather than beside the capital.
+ */
+function sectionWriter(draft, rerender, live) {
+  const node = card('Who writes it', 'a separate budget, and whatever is left buys traffic instead');
+  const rows = el('div');
+  const summary = el('p', 'capex-summary');
+  node.append(rows, summary);
+
+  /**
+   * Redrawn on every keystroke, not only on a click.
+   *
+   * The first version computed the self-written grade once at render time, so
+   * typing a better ad updated the ad card and left THIS card saying 5/10 while
+   * the one below it said 8/10. Two screens disagreeing about the same number
+   * is the worst thing either of them can do, and it is only visible by opening
+   * the page — no test in this project reads both cards at once.
+   */
+  const draw = () => {
+    const written = explainGrade(draft.ad, { keywords: draft.keywords }).grade;
+    const left = CREATIVE_ALLOCATION_PAISE - writerTier(draft.writerTier).pricePaise;
+
+    rows.replaceChildren();
+    for (const tier of WRITER_TIERS) {
+      const row = el('div', `writer-row${draft.writerTier === tier.id ? ' on' : ''}`);
+      const pick = el('button', 'writer-pick');
+      pick.type = 'button';
+      pick.append(el('span', 'writer-name', tier.label));
+      pick.append(el('span', 'writer-price', tier.pricePaise === 0 ? 'free' : rupees(tier.pricePaise)));
+      pick.addEventListener('click', () => { draft.writerTier = tier.id; rerender(); });
+      row.append(pick);
+
+      row.append(el('div', 'writer-what muted', tier.grade === null
+        ? `Graded on what you actually write — ${written.expectedCtr}/10 and `
+          + `${written.adRelevance}/10 as it stands. It does not go live until week `
+          + `${CREATIVE_DIY_LIVE_ROUND}; until then you run an unwritten ad that wins almost nothing.`
+        : `Both copy scores guaranteed at ${tier.grade}/10, running from week 1.`));
+      rows.append(row);
+    }
+
+    summary.textContent = left > 0
+      ? `${rupees(left)} not spent on a writer, which becomes advertising budget instead.`
+      : 'Every rupee of the creative budget is committed.';
+  };
+  live.writer = draw;
+  draw();
+
+  node.append(el('p', 'note',
+    'Two of your three Quality Score components come from the copy. The third, '
+    + 'your landing page, is bought with capital and nothing here touches it.'));
+
+  // The abstraction, stated rather than left for a player to notice. It is the
+  // one place this card could quietly teach something false.
+  node.append(el('p', 'note',
+    'You write what the ad says either way, and those are the words searchers '
+    + 'see — this simulator has no way to invent better ones. What hiring buys '
+    + 'is the grade: a hired ad is scored at the writer’s level whatever your '
+    + 'draft says, and writing it yourself is scored on the draft.'));
+  return node;
+}
+
+// ---------------------------------------------------------------------------
 // 10. The ad
 // ---------------------------------------------------------------------------
 
@@ -593,14 +675,29 @@ function sectionAd(draft, revalidate, live) {
 
   function drawGrade() {
     const { grade, checks } = explainGrade(draft.ad, { keywords: draft.keywords });
+    const hired = !isDiy(draft.writerTier);
+    // What will ACTUALLY apply. If the panel showed the written grade while the
+    // player had bought a tier, the two cards would contradict each other — and
+    // a screen explaining a mechanic wrongly is the worst class of bug here.
+    const applied = hired
+      ? { ...grade, ...hiredCopyGrades(draft.writerTier) }
+      : grade;
+
     gradePanel.replaceChildren();
-    gradePanel.append(el('p', 'field-label', 'How this ad grades, as it stands'));
+    gradePanel.append(el('p', 'field-label', hired
+      ? `How this ad grades, with ${writerTier(draft.writerTier).label.toLowerCase()} writing it`
+      : `How this ad grades, as it stands — live from week ${CREATIVE_DIY_LIVE_ROUND}`));
 
     for (const component of ['expectedCtr', 'adRelevance', 'landingPage']) {
       const box = el('div', 'grade-row');
       const head = el('div', 'grade-head');
       head.append(el('span', 'grade-name', COMPONENT_LABEL[component]));
-      head.append(el('span', 'grade-value', `${grade[component]}/10`));
+      head.append(el('span', 'grade-value', `${applied[component]}/10`));
+      // Both numbers, when they differ, because "you would have scored 5" is
+      // what tells a player whether the money was worth spending.
+      if (applied[component] !== grade[component]) {
+        head.append(el('span', 'grade-was muted', `you would have scored ${grade[component]}`));
+      }
       box.append(head);
 
       const list = el('ul', 'grade-checks');
@@ -612,10 +709,14 @@ function sectionAd(draft, revalidate, live) {
     }
 
     gradePanel.append(el('p', 'note',
-      'This is the same grader the game runs, so the numbers above are the ones '
-      + 'you will start with. They set your Quality Score, which multiplies your '
-      + 'bid into ad rank — a better ad wins better positions AND pays less for '
-      + 'the position it already had.'));
+      hired
+        ? 'The checks above are what YOUR draft scores. You have hired someone, '
+          + 'so the grade beside each component is what will actually apply from '
+          + 'week 1 — the checks are there to show you what you are paying for.'
+        : 'This is the same grader the game runs, so the numbers above are the '
+          + 'ones you will start with. They set your Quality Score, which '
+          + 'multiplies your bid into ad rank — a better ad wins better positions '
+          + 'AND pays less for the position it already had.'));
   }
 
   live.ad();
@@ -735,6 +836,7 @@ function sectionStart(draft, onStart, live) {
           landingPageDescription: draft.ad.landingPageDescription,
         },
         weeklySplitPaise: [...draft.split],
+        writerTier: draft.writerTier,
       },
     });
   });
