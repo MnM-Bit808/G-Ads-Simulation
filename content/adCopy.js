@@ -1,5 +1,18 @@
 /**
- * Rival ad copy, authored per cell (spec 17.1).
+ * Rival ad copy, authored per cell (spec 17.1) — TWO ADS PER CELL.
+ *
+ * WHY TWO. Eight rivals over six cells means at least two cells double up
+ * (17.1 says so outright and caps a cell at two). With one ad per cell those
+ * two rivals ran WORD FOR WORD the same ad. Playing it, that is what a player
+ * sees first: on seed 20260902, Lumen and Auren both said "Seamless
+ * Compression Kit" and Nira and Torvi both said "Gym Leggings From ₹799".
+ *
+ * It reads as a bug, and it is worse than a bug. 17.1 makes the eight ads the
+ * ONLY evidence of where anyone sits, so two identical ads are two rivals the
+ * player cannot tell apart at all — the mechanic does not just weaken, it
+ * loses two of its eight data points. The second variant signals the same cell
+ * by a different route, which is what a real second competitor in a segment
+ * looks like.
  *
  * READ AND CORRECTED. This is content, and content is the one thing in this
  * project a test cannot validate, so it went past a human end to end and came
@@ -90,89 +103,179 @@
  * now no code in this project read.
  */
 export const AD_COPY_BY_CELL = Object.freeze({
-  'value|performance': {
-    headlines: [
-      'Gym Leggings From ₹799',
-      'Squat Proof, Not Pricey',
-      '2 Sports Bras For ₹999',
-    ],
-    descriptions: [
-      'Train hard, spend little. Squat-proof leggings and high-impact bras that hold.',
-      'Free delivery over ₹799. Easy 15-day returns, because gym fit is hard to guess.',
-    ],
-    landingPageDescription:
-      'Category page sorted by price, low to high. Size chart, bulk combo offers.',
-  },
+  'value|performance': [
+    {
+      headlines: [
+        'Gym Leggings From ₹799',
+        'Squat Proof, Not Pricey',
+        '2 Sports Bras For ₹999',
+      ],
+      descriptions: [
+        'Train hard, spend little. Squat-proof leggings and high-impact bras that hold.',
+        'Free delivery over ₹799. Easy 15-day returns, because gym fit is hard to guess.',
+      ],
+      landingPageDescription:
+        'Category page sorted by price, low to high. Size chart, bulk combo offers.',
+    },
+    {
+      headlines: [
+        'Train More, Spend Less',
+        'Sports Bras From ₹499',
+        'Combo Packs, Gym Ready',
+      ],
+      descriptions: [
+        'Squat-proof leggings and high-impact bras that hold, at prices that do not.',
+        'Buy 3 and the third is half price. 15-day exchange if the fit is wrong.',
+      ],
+      landingPageDescription:
+        'Price-sorted grid, combo bundles pinned to the top. Size chart and fit notes.',
+    },
+  ],
 
-  'value|lifestyle': {
-    headlines: [
-      'Co-ord Sets From ₹1199',
-      'Comfy Everyday, Low Price',
-      'Buy 2 Sets, Save 20%',
-    ],
-    descriptions: [
-      'Soft co-ord sets and joggers that look put together, for a lot less.',
-      'New drops monthly, sizes XS to XXL. Easy 15-day returns, no questions asked.',
-    ],
-    landingPageDescription:
-      'Grid of co-ord sets with combo pricing. Reviews above the fold, size chart below.',
-  },
+  'value|lifestyle': [
+    {
+      headlines: [
+        'Co-ord Sets From ₹1199',
+        'Comfy Everyday, Low Price',
+        'Buy 2 Sets, Save 20%',
+      ],
+      descriptions: [
+        'Soft co-ord sets and joggers that look put together, for a lot less.',
+        'New drops monthly, sizes XS to XXL. Easy 15-day returns, no questions asked.',
+      ],
+      landingPageDescription:
+        'Grid of co-ord sets with combo pricing. Reviews above the fold, size chart below.',
+    },
+    {
+      headlines: [
+        'Loungewear From ₹899',
+        'Soft Sets, Small Prices',
+        'Second Set, Half Price',
+      ],
+      descriptions: [
+        'Co-ord sets and joggers you can live in, without the designer markup.',
+        'Buy 2 sets and the second is half price. One free exchange within 15 days.',
+      ],
+      landingPageDescription:
+        'Combo pricing grid, reviews above the fold, fit notes beside every size chart.',
+    },
+  ],
 
-  'mid|performance': {
-    headlines: [
-      'Leggings Built To Train In',
-      'Holds Up, Wash After Wash',
-      'Squat-Proof, Sweat-Wicking',
-    ],
-    descriptions: [
-      'Gym wear that survives four sessions a week and a hot Indian summer.',
-      'Sizes XS to XXL, with a fit guide that admits when to size up. 30-day returns.',
-    ],
-    landingPageDescription:
-      'Product page with a fit guide, wash-test notes, and reviews filtered by activity.',
-  },
+  'mid|performance': [
+    {
+      headlines: [
+        'Leggings Built To Train In',
+        'Holds Up, Wash After Wash',
+        'Squat-Proof, Sweat-Wicking',
+      ],
+      descriptions: [
+        'Gym wear that survives four sessions a week and a hot Indian summer.',
+        'Sizes XS to XXL, with a fit guide that admits when to size up. 30-day returns.',
+      ],
+      landingPageDescription:
+        'Product page with a fit guide, wash-test notes, and reviews filtered by activity.',
+    },
+    {
+      headlines: [
+        'Gym Wear That Lasts',
+        'Built For Heavy Lifts',
+        'Sweat-Wicking, Squat-Proof',
+      ],
+      descriptions: [
+        'Kit that survives the wash and the week, for people who actually train.',
+        'Sizes XS to XXL, plus a fit line you can message before you order. 30-day returns.',
+      ],
+      landingPageDescription:
+        'Training category page. Fabric specs, fit guide, and reviews sorted by size.',
+    },
+  ],
 
-  'mid|lifestyle': {
-    headlines: [
-      'Athleisure For All Day',
-      'Studio To Street Co-ords',
-      'The Set You Reach For',
-    ],
-    descriptions: [
-      'Everyday athleisure for the school run, the studio, and whatever comes after.',
-      'Sizes XS to XXL, with a fit guide for between-sizes. 30-day returns.',
-    ],
-    landingPageDescription:
-      'Lookbook-led page, sets shown as outfits. Fit guide and reviews below.',
-  },
+  'mid|lifestyle': [
+    {
+      headlines: [
+        'Athleisure For All Day',
+        'Studio To Street Co-ords',
+        'The Set You Reach For',
+      ],
+      descriptions: [
+        'Everyday athleisure for the school run, the studio, and whatever comes after.',
+        'Sizes XS to XXL, with a fit guide for between-sizes. 30-day returns.',
+      ],
+      landingPageDescription:
+        'Lookbook-led page, sets shown as outfits. Fit guide and reviews below.',
+    },
+    {
+      headlines: [
+        'Co-ord Sets For All Day',
+        'From The Desk To The Door',
+        'Everyday Soft, Every Day',
+      ],
+      descriptions: [
+        'Joggers and co-ord sets that look considered without looking like effort.',
+        'Sizes XS to XXL. Thirty-day returns and a fit guide written by real wearers.',
+      ],
+      landingPageDescription:
+        'Lookbook-led grid, outfit pairings, size chart and fit notes under each item.',
+    },
+  ],
 
-  'premium|performance': {
-    headlines: [
-      'Seamless Compression Kit',
-      'Japanese Technical Knit',
-      'Made For Heavy Lifts',
-    ],
-    descriptions: [
-      'Seamless, sculpting, second-skin. Japanese yarn, knitted to hold under load.',
-      'Fit consultation before you buy. 30-day returns, free delivery both ways.',
-    ],
-    landingPageDescription:
-      'Long-form product page: yarn composition, knit structure, athlete testing notes.',
-  },
+  'premium|performance': [
+    {
+      headlines: [
+        'Seamless Compression Kit',
+        'Japanese Technical Knit',
+        'Made For Heavy Lifts',
+      ],
+      descriptions: [
+        'Seamless, sculpting, second-skin. Japanese yarn, knitted to hold under load.',
+        'Fit consultation before you buy. 30-day returns, free delivery both ways.',
+      ],
+      landingPageDescription:
+        'Long-form product page: yarn composition, knit structure, athlete testing notes.',
+    },
+    {
+      headlines: [
+        'Japanese Knit, Built To Train',
+        'Seamless, Second Skin Fit',
+        'Compression That Outlasts',
+      ],
+      descriptions: [
+        'Japanese technical knit and bonded seams, made for heavy lifts and heat.',
+        'Fit consultation before you buy, and a thirty-day return if it is not right.',
+      ],
+      landingPageDescription:
+        'Fabric provenance, knit specs, seam construction, and a fit consultation link.',
+    },
+  ],
 
-  'premium|lifestyle': {
-    headlines: [
-      'Modal And Cashmere Blend',
-      'Considered Athleisure',
-      'Made To Outlast Trends',
-    ],
-    descriptions: [
-      'Loungewear in modal and cashmere blend, cut to hold its shape for years.',
-      'Fit consultation, and a care card in every box. 30-day returns.',
-    ],
-    landingPageDescription:
-      'Editorial page: fabric provenance, care instructions, considered-purchase framing.',
-  },
+  'premium|lifestyle': [
+    {
+      headlines: [
+        'Modal And Cashmere Blend',
+        'Considered Athleisure',
+        'Made To Outlast Trends',
+      ],
+      descriptions: [
+        'Loungewear in modal and cashmere blend, cut to hold its shape for years.',
+        'Fit consultation, and a care card in every box. 30-day returns.',
+      ],
+      landingPageDescription:
+        'Editorial page: fabric provenance, care instructions, considered-purchase framing.',
+    },
+    {
+      headlines: [
+        'Modal That Falls Right',
+        'Cashmere Blend Loungewear',
+        'Made To Live In, For Years',
+      ],
+      descriptions: [
+        'Silk-finish modal and cashmere blends, cut for everyday and made to last.',
+        'Fit consultation on request. Thirty-day returns, and repairs after that.',
+      ],
+      landingPageDescription:
+        'Fabric-led product pages: mill, weave, drape, and a care guide for each piece.',
+    },
+  ],
 });
 
 /**
@@ -208,8 +311,15 @@ export const RIVAL_GRADE_VARIATION = Object.freeze([
  * @param {string} cell e.g. "premium|lifestyle"
  * @returns {object} a fresh copy, so a caller cannot edit the frozen source
  */
-export function adCopyFor(cell) {
-  const ad = AD_COPY_BY_CELL[cell];
-  if (!ad) throw new RangeError(`no ad copy authored for cell "${cell}"`);
-  return structuredClone(ad);
+export function adCopyFor(cell, variant = 0) {
+  const variants = AD_COPY_BY_CELL[cell];
+  if (!variants) throw new RangeError(`no ad copy authored for cell "${cell}"`);
+  // Wraps rather than throws: 17.1 caps a cell at two rivals, but a caller
+  // that ever placed three should get a repeat rather than a crash.
+  return structuredClone(variants[variant % variants.length]);
 }
+
+/** How many differently-worded ads exist for a cell. */
+export const AD_COPY_VARIANTS = Object.freeze(
+  Object.fromEntries(Object.entries(AD_COPY_BY_CELL).map(([cell, v]) => [cell, v.length])),
+);

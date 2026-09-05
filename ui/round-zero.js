@@ -30,7 +30,7 @@
 import {
   el, add, table, field, input, select, rupees, whole,
 } from './dom.js';
-import { briefing, placeRivals, buildRival } from '../setup.js';
+import { briefing, placeRivals, buildRivals } from '../setup.js';
 import { BRAND_IDENTITIES, assignIdentities } from '../content/brands.js';
 import { allCells, parseCell } from '../engine/positions.js';
 import { validateAdCopy, namesARival } from '../agents/grader.js';
@@ -181,14 +181,17 @@ function sectionBriefing(brief) {
 // ---------------------------------------------------------------------------
 
 function sectionRivals(querySet, rootSeed, draft) {
-  const node = card('Who else is here', 'their ads, in no particular order');
+  const me = BRAND_IDENTITIES.find((b) => b.id === draft.playerBrandId);
+  const node = card('Who else is here',
+    `the other eight, in no particular order — the ninth is you`);
 
   // Built from the same seed the game will use, so what is read here is what
   // will be played against. Position is never stated: it is in the words.
   const { rivals: identities } = assignIdentities(draft.playerBrandId);
   const placement = placeRivals(rootSeed, identities.length);
-  const ads = identities
-    .map((identity, i) => buildRival(identity, placement[i], i + 1, querySet, () => 0.5))
+  // The SAME builder startGame uses, so what is shown here is what will be
+  // played against — including which of a cell's two ads each rival wears.
+  const ads = buildRivals(identities, placement, querySet, () => 0.5)
     .map((rival) => ({ name: rival.name, ad: rival.adGroups[0].ad }))
     .sort((a, b) => (a.name < b.name ? -1 : 1));
 
@@ -202,9 +205,11 @@ function sectionRivals(querySet, rootSeed, draft) {
   }
   node.append(grid);
   node.append(el('p', 'note',
-    'Nobody will tell you where these brands sit on the grid. The copy is the '
-    + 'only evidence you get before the first auction, and after that, how often '
-    + 'you meet them.'));
+    `There are nine brands and ${me.name} is yours, so eight are listed. Nobody `
+    + 'will tell you where any of them sits on the grid: the copy is the only '
+    + 'evidence you get before the first auction, and after that, how often you '
+    + 'meet them in Auction Insights. Two rivals can share a cell, and when they '
+    + 'do they are competing for exactly the same searches you would be.'));
   return node;
 }
 
@@ -392,6 +397,14 @@ function sectionKeywords(querySet, draft, rerender) {
 
 function sectionAd(draft, revalidate, live) {
   const node = card('Your ad', 'the only thing your rivals can see about you');
+  node.append(el('p', 'note',
+    'These are graded, and the grade is not decoration. Your headlines and '
+    + 'descriptions set two of the three components of Quality Score — whether '
+    + 'people click, and whether the ad answers what they searched for. The '
+    + 'landing page line sets the third. Quality multiplies your bid into ad '
+    + 'rank, so a better ad wins better positions AND pays less for the position '
+    + 'it had. It is the only lever in this game that makes traffic cheaper '
+    + 'rather than just buying more of it, and it costs nothing.'));
 
   const counters = [];
   const counter = (max) => {
@@ -430,7 +443,10 @@ function sectionAd(draft, revalidate, live) {
     onInput: (value) => { draft.ad.landingPageDescription = value; revalidate(); },
   });
   addField('Landing page', page, null, null,
-    'Describe the page they arrive on. Nobody else sees this; it is graded.');
+    'Describe the page they arrive on — what is on it, how it is laid out, what '
+    + 'a visitor can find. Nobody else ever sees this line; it exists to be '
+    + 'graded, and it is the one component you can also improve later with '
+    + 'capital.');
 
   const problems = el('div');
   node.append(problems);

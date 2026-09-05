@@ -1,13 +1,21 @@
 import { describe, test, expect } from 'vitest';
 import { AD_COPY_BY_CELL, RIVAL_GRADE_VARIATION, adCopyFor } from '../content/adCopy.js';
-import { BRAND_IDENTITIES } from '../content/brands.js';
+import { BRAND_IDENTITIES, assignIdentities } from '../content/brands.js';
+import { placeRivals } from '../setup.js';
 import { allCells } from '../engine/positions.js';
 import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS, ADVERTISER_COUNT,
+  RIVAL_PLACEMENT_CONSTRAINTS,
 } from '../engine/constants.js';
 
 const CELLS = allCells();
-const all = (pick) => CELLS.flatMap((c) => pick(AD_COPY_BY_CELL[c]));
+// Every cell now holds TWO ads, and every rule below applies to both — the
+// second variant exists so that the two rivals 17.1 puts in one cell do not
+// run identical copy, and copy that broke a rule would be worse than the
+// duplication it replaced.
+const adsOf = (cell) => AD_COPY_BY_CELL[cell];
+const EVERY_AD = CELLS.flatMap((c) => adsOf(c).map((ad) => ({ cell: c, ad })));
+const all = (pick) => EVERY_AD.flatMap(({ ad }) => pick(ad));
 
 describe('the shape Google actually allows', () => {
   test('every cell has copy', () => {
@@ -19,7 +27,7 @@ describe('the shape Google actually allows', () => {
     // The first code in this project to read either limit. Both have been
     // DOCUMENTED constants with no reader since step 1.
     for (const cell of CELLS) {
-      for (const headline of AD_COPY_BY_CELL[cell].headlines) {
+      for (const headline of adsOf(cell).flatMap((a) => a.headlines)) {
         expect(headline.length, `${cell}: "${headline}"`)
           .toBeLessThanOrEqual(HEADLINE_MAX_CHARS);
       }
@@ -28,7 +36,7 @@ describe('the shape Google actually allows', () => {
 
   test('descriptions fit DESCRIPTION_MAX_CHARS', () => {
     for (const cell of CELLS) {
-      for (const description of AD_COPY_BY_CELL[cell].descriptions) {
+      for (const description of adsOf(cell).flatMap((a) => a.descriptions)) {
         expect(description.length, `${cell}: "${description}"`)
           .toBeLessThanOrEqual(DESCRIPTION_MAX_CHARS);
       }
@@ -37,9 +45,12 @@ describe('the shape Google actually allows', () => {
 
   test('three headlines and two descriptions, matching the schema in 5.2', () => {
     for (const cell of CELLS) {
-      expect(AD_COPY_BY_CELL[cell].headlines, cell).toHaveLength(3);
-      expect(AD_COPY_BY_CELL[cell].descriptions, cell).toHaveLength(2);
-      expect(typeof AD_COPY_BY_CELL[cell].landingPageDescription).toBe('string');
+      expect(adsOf(cell).length, cell).toBeGreaterThanOrEqual(2);
+      for (const ad of adsOf(cell)) {
+        expect(ad.headlines, cell).toHaveLength(3);
+        expect(ad.descriptions, cell).toHaveLength(2);
+        expect(typeof ad.landingPageDescription).toBe('string');
+      }
     }
   });
 });
@@ -65,11 +76,11 @@ describe('no cell borrows another cell voice', () => {
     // A mid-market or premium ad that led with a number would be signalling
     // the wrong cell.
     for (const cell of CELLS) {
-      const text = [...AD_COPY_BY_CELL[cell].headlines, ...AD_COPY_BY_CELL[cell].descriptions]
-        .join(' ');
-      const namesPrice = /₹\s?\d|%\s?off|save\s?\d/i.test(text);
-      expect(namesPrice, `${cell}: ${namesPrice ? 'names' : 'does not name'} a price`)
-        .toBe(cell.startsWith('value'));
+      for (const ad of adsOf(cell)) {
+        const text = [...ad.headlines, ...ad.descriptions].join(' ');
+        const namesPrice = /₹\s?\d|%\s?off|save\s?\d/i.test(text);
+        expect(namesPrice, `${cell}: "${ad.headlines[0]}"`).toBe(cell.startsWith('value'));
+      }
     }
   });
 
@@ -80,10 +91,11 @@ describe('no cell borrows another cell voice', () => {
     // IS a price-tier signal. A premium brand running "buy 2, save 20%" would
     // contradict every other word in its ad.
     for (const cell of CELLS) {
-      const text = [...AD_COPY_BY_CELL[cell].headlines, ...AD_COPY_BY_CELL[cell].descriptions]
-        .join(' ');
-      const offers = /save \d|buy \d|for ₹\d|combo/i.test(text);
-      expect(offers, cell).toBe(cell.startsWith('value'));
+      for (const ad of adsOf(cell)) {
+        const text = [...ad.headlines, ...ad.descriptions].join(' ');
+        const offers = /save \d|buy \d|for ₹\d|combo/i.test(text);
+        expect(offers, `${cell}: "${ad.headlines[0]}"`).toBe(cell.startsWith('value'));
+      }
     }
   });
 
@@ -91,8 +103,8 @@ describe('no cell borrows another cell voice', () => {
     // It used to be. Both mid cells and both premium cells shared their second
     // line verbatim, which halved the signal available per ad in exactly the
     // two tiers that are hardest to tell apart.
-    const seconds = CELLS.map((c) => AD_COPY_BY_CELL[c].descriptions[1]);
-    expect(new Set(seconds).size).toBe(CELLS.length);
+    const seconds = EVERY_AD.map(({ ad }) => ad.descriptions[1]);
+    expect(new Set(seconds).size).toBe(seconds.length);
   });
 
   test('only Premium names a material', () => {
@@ -100,8 +112,10 @@ describe('no cell borrows another cell voice', () => {
     // saying it is expensive.
     const materials = /modal|cashmere|japanese|seamless|yarn|silk|bamboo|recycled/i;
     for (const cell of CELLS) {
-      const text = JSON.stringify(AD_COPY_BY_CELL[cell]);
-      expect(materials.test(text), cell).toBe(cell.startsWith('premium'));
+      for (const ad of adsOf(cell)) {
+        expect(materials.test(JSON.stringify(ad)), `${cell}: "${ad.headlines[0]}"`)
+          .toBe(cell.startsWith('premium'));
+      }
     }
   });
 });
@@ -120,25 +134,25 @@ describe('position is inferable from the words alone (spec 17.1)', () => {
     lifestyle: /lounge|co-ord|everyday|all day|studio to street|live in|outfit/i,
   };
 
-  const textOf = (cell) => JSON.stringify(AD_COPY_BY_CELL[cell]);
+  const textOf = (ad) => JSON.stringify(ad);
 
   test('a naive classifier recovers the price tier of all six', () => {
-    for (const cell of CELLS) {
-      const text = textOf(cell);
+    for (const { cell, ad } of EVERY_AD) {
+      const text = textOf(ad);
       const guess = PRICE_TELLS.value.test(text) ? 'value'
         : PRICE_TELLS.premium.test(text) ? 'premium' : 'mid';
-      expect(guess, `${cell} read as ${guess}`).toBe(cell.split('|')[0]);
+      expect(guess, `"${ad.headlines[0]}" read as ${guess}`).toBe(cell.split('|')[0]);
     }
   });
 
   test('and the purpose of all six', () => {
-    for (const cell of CELLS) {
-      const text = textOf(cell);
+    for (const { cell, ad } of EVERY_AD) {
+      const text = textOf(ad);
       const performance = PURPOSE_TELLS.performance.test(text);
       const lifestyle = PURPOSE_TELLS.lifestyle.test(text);
       const guess = performance && !lifestyle ? 'performance'
         : lifestyle && !performance ? 'lifestyle' : 'ambiguous';
-      expect(guess, `${cell} read as ${guess}`).toBe(cell.split('|')[1]);
+      expect(guess, `"${ad.headlines[0]}" read as ${guess}`).toBe(cell.split('|')[1]);
     }
   });
 });
@@ -151,7 +165,7 @@ describe('grades belong to the rival, not to the cell', () => {
     // cell so that outcome differences trace back to a decision.
     expect(RIVAL_GRADE_VARIATION).toHaveLength(ADVERTISER_COUNT);
     for (const cell of CELLS) {
-      expect(AD_COPY_BY_CELL[cell]).not.toHaveProperty('gradedQuality');
+      for (const ad of adsOf(cell)) expect(ad).not.toHaveProperty('gradedQuality');
     }
   });
 
@@ -178,11 +192,51 @@ describe('grades belong to the rival, not to the cell', () => {
   });
 });
 
+describe('no two rivals can run the same ad (spec 17.1)', () => {
+  // The guard that was missing. Eight rivals over six cells means two cells
+  // double up, and with one ad per cell those pairs ran word for word the same
+  // copy: on seed 20260902, Lumen and Auren both said "Seamless Compression
+  // Kit". 17.1 makes the ads the ONLY evidence of where anyone sits, so that
+  // is not a cosmetic repeat — it is two rivals the player cannot tell apart.
+  test('a cell holds at least as many ads as rivals it can hold', () => {
+    for (const cell of CELLS) {
+      expect(adsOf(cell).length, cell)
+        .toBeGreaterThanOrEqual(RIVAL_PLACEMENT_CONSTRAINTS.maxPerCell);
+    }
+  });
+
+  test('and a whole placed roster runs eight different ads, for any seed', () => {
+    for (const seed of [1, 7, 20260902, 424242, 999999]) {
+      const identities = assignIdentities(BRAND_IDENTITIES[0].id).rivals;
+      const placement = placeRivals(seed, identities.length);
+      const seen = {};
+      const ads = placement.map((cell) => {
+        const variant = seen[cell] ?? 0;
+        seen[cell] = variant + 1;
+        return JSON.stringify(adCopyFor(cell, variant));
+      });
+      expect(new Set(ads).size, `seed ${seed}`).toBe(ads.length);
+    }
+  });
+});
+
 describe('adCopyFor', () => {
+  test('the variant is what makes two rivals in one cell distinguishable', () => {
+    const a = adCopyFor('premium|performance', 0);
+    const b = adCopyFor('premium|performance', 1);
+    expect(a.headlines).not.toEqual(b.headlines);
+    expect(a.descriptions).not.toEqual(b.descriptions);
+    expect(a.landingPageDescription).not.toBe(b.landingPageDescription);
+  });
+
+  test('and it wraps rather than throwing, if a cell ever held three', () => {
+    expect(adCopyFor('mid|lifestyle', 2)).toEqual(adCopyFor('mid|lifestyle', 0));
+  });
+
   test('returns a copy a caller cannot write back through', () => {
     const ad = adCopyFor('mid|lifestyle');
     ad.headlines[0] = 'MUTATED';
-    expect(AD_COPY_BY_CELL['mid|lifestyle'].headlines[0]).not.toBe('MUTATED');
+    expect(AD_COPY_BY_CELL['mid|lifestyle'][0].headlines[0]).not.toBe('MUTATED');
   });
 
   test('an unknown cell throws rather than returning a generic ad', () => {

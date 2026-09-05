@@ -177,7 +177,7 @@ export function placementIsLegal(placement) {
  * @param {() => number} rng seeded
  * @returns {object} an Advertiser
  */
-export function buildRival(identity, cell, index, querySet, rng) {
+export function buildRival(identity, cell, index, querySet, rng, variant = 0) {
   const position = { ...parseCell(cell), setAtRound: 0, repositionedAtRound: null };
   const capex = rivalCapex(position, rng);
   const business = businessFor(position, capex, 1);
@@ -205,7 +205,7 @@ export function buildRival(identity, cell, index, querySet, rng) {
       keywords: rivalKeywords(cell, querySet, business, rng),
       // Its ad says what its cell says. Position is inferable from copy and
       // from nothing else (17.1), so this mapping is the entire mechanic.
-      ad: adCopyFor(cell),
+      ad: adCopyFor(cell, variant),
       gradedQuality: {
         ...RIVAL_GRADE_VARIATION[index % RIVAL_GRADE_VARIATION.length],
         gradedAtRound: 0,
@@ -369,6 +369,32 @@ export function briefing(querySet) {
  * @param {number} rootSeed
  * @returns {Array<{name: string, domain: string, headlines: string[], descriptions: string[]}>}
  */
+/**
+ * Build the whole rival roster, assigning each one an ad its cell-mate is not
+ * already wearing.
+ *
+ * ONE FUNCTION BECAUSE THERE MUST BE ONE. `startGame` builds the roster the
+ * game is played against, and round 0's screen builds the roster it SHOWS —
+ * and for a while they were two loops. The moment the ad variant was added to
+ * one, the briefing showed a different ad from the one the player would meet,
+ * which is worse than the duplicate copy it was fixing.
+ *
+ * @param {object[]} rivalIdentities the eight who are not the player
+ * @param {string[]} placement cell per rival, from `placeRivals`
+ * @param {object} querySet
+ * @param {() => number} rng seeded
+ * @returns {object[]} Advertisers
+ */
+export function buildRivals(rivalIdentities, placement, querySet, rng) {
+  const seenInCell = {};
+  return rivalIdentities.map((brand, i) => {
+    const cell = placement[i];
+    const variant = seenInCell[cell] ?? 0;
+    seenInCell[cell] = variant + 1;
+    return buildRival(brand, cell, i + 1, querySet, rng, variant);
+  });
+}
+
 export function rivalAdsForBriefing(rivals, rootSeed) {
   const rng = mulberry32(deriveSeed(rootSeed, 'briefing-order'));
   return shuffled(rivals, rng).map((r) => ({
@@ -402,8 +428,7 @@ export function startGame({ rootSeed, playerBrandId, player, querySet }) {
   const placement = placeRivals(rootSeed, rivalIdentities.length);
 
   const rng = mulberry32(deriveSeed(rootSeed, 'rival-accounts'));
-  const rivals = rivalIdentities.map((brand, i) =>
-    buildRival(brand, placement[i], i + 1, querySet, rng));
+  const rivals = buildRivals(rivalIdentities, placement, querySet, rng);
 
   const playerAdvertiser = buildPlayer(identity, player);
 

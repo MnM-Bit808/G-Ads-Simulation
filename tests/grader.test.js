@@ -9,7 +9,10 @@ import { BRAND_IDENTITIES } from '../content/brands.js';
 import { AD_COPY_BY_CELL } from '../content/adCopy.js';
 import { HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS } from '../engine/constants.js';
 
-const GOOD = AD_COPY_BY_CELL['mid|performance'];
+const GOOD = AD_COPY_BY_CELL['mid|performance'][0];
+/** Every authored ad, both variants of all six cells. */
+const EVERY_AD = Object.entries(AD_COPY_BY_CELL)
+  .flatMap(([cell, ads]) => ads.map((ad, v) => [`${cell} #${v + 1}`, ad]));
 const KEYWORDS = [{ text: 'gym leggings' }, { text: 'workout leggings' }];
 const RIVALS = BRAND_IDENTITIES.map((b) => b.name);
 
@@ -49,8 +52,8 @@ describe('the grade is cached on the copy, not the round (spec 5.2)', () => {
 
 describe('the character limits finally have a reader (spec 18.1)', () => {
   test('the authored rival copy passes', () => {
-    for (const [cell, ad] of Object.entries(AD_COPY_BY_CELL)) {
-      expect(validateAdCopy(ad).valid, cell).toBe(true);
+    for (const [label, ad] of EVERY_AD) {
+      expect(validateAdCopy(ad).valid, label).toBe(true);
     }
   });
 
@@ -92,8 +95,8 @@ describe('naming a rival is penalised, never blocked (spec 8.7)', () => {
   });
 
   test('ordinary copy names nobody', () => {
-    for (const ad of Object.values(AD_COPY_BY_CELL)) {
-      expect(namesARival(ad, RIVALS)).toBeNull();
+    for (const [label, ad] of EVERY_AD) {
+      expect(namesARival(ad, RIVALS), label).toBeNull();
     }
   });
 
@@ -140,7 +143,7 @@ describe('naming a rival is penalised, never blocked (spec 8.7)', () => {
 
 describe('the offline heuristic keeps the game playable', () => {
   test('it grades every authored rival ad inside the scale', () => {
-    for (const [cell, ad] of Object.entries(AD_COPY_BY_CELL)) {
+    for (const [cell, ad] of EVERY_AD) {
       const grade = heuristicGrade(ad, { keywords: KEYWORDS });
       for (const [k, v] of Object.entries(grade)) {
         expect(Number.isInteger(v), `${cell} ${k}`).toBe(true);

@@ -1,12 +1,12 @@
 import { describe, test, expect } from 'vitest';
 import {
-  placeRivals, placementIsLegal, briefing, rivalAdsForBriefing,
+  placeRivals, placementIsLegal, briefing, rivalAdsForBriefing, buildRivals,
   startGame, redoRoundZero, canRedoRoundZero, REDO_DEADLINE_ROUND,
 } from '../setup.js';
 import { playGame, submitRound } from '../game.js';
 import { disciplined } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
-import { BRAND_IDENTITIES } from '../content/brands.js';
+import { BRAND_IDENTITIES, assignIdentities } from '../content/brands.js';
 import { AD_COPY_BY_CELL } from '../content/adCopy.js';
 import { allCells } from '../engine/positions.js';
 import { homeCell } from '../engine/querySet.js';
@@ -111,9 +111,30 @@ describe('rivals are built from their cell (spec 17.1)', () => {
     // and this is the only thing it is inferable FROM.
     for (const rival of rivals) {
       const cell = `${rival.position.price}|${rival.position.purpose}`;
-      expect(rival.adGroups[0].ad.headlines, rival.id)
-        .toEqual(AD_COPY_BY_CELL[cell].headlines);
+      const authored = AD_COPY_BY_CELL[cell].map((ad) => ad.headlines);
+      expect(authored, rival.id).toContainEqual(rival.adGroups[0].ad.headlines);
     }
+  });
+
+  test('the briefing shows the ads the game will actually use', () => {
+    // round 0's screen and startGame used to build the roster with two
+    // separate loops. Adding the ad variant to one made the briefing show an
+    // ad the player would never meet - a worse bug than the duplication it
+    // was fixing. buildRivals is now the only way to build a roster.
+    const { rivals: identities } = assignIdentities(PLAYER_BRAND);
+    const placement = placeRivals(20260902, identities.length);
+    const shown = buildRivals(identities, placement, QUERY_SET, () => 0.5);
+    for (const [i, rival] of shown.entries()) {
+      expect(rival.adGroups[0].ad, rival.id).toEqual(rivals[i].adGroups[0].ad);
+    }
+  });
+
+  test('and no two of them wear the SAME ad', () => {
+    // Two rivals share a cell whenever eight are placed over six, and with one
+    // ad per cell they ran word for word the same copy - two of the player's
+    // eight pieces of evidence saying nothing.
+    const ads = rivals.map((r) => JSON.stringify(r.adGroups[0].ad));
+    expect(new Set(ads).size).toBe(ads.length);
   });
 
   test('each holds keywords in its own territory', () => {
