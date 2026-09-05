@@ -724,6 +724,11 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   preview, the month arithmetic, the reading-back of `decisionLog` — is an
   exported function with tests, and only the drawing needs a browser. That is
   what made 47 of this session's tests possible at all.
+- **Resizing the browser pane reloads the page, and the game is in memory.**
+  Four played rounds vanish and you are back at round 0 with no error and no
+  clue. Set the viewport BEFORE opening the game, not after — and if a
+  screenshot suddenly shows round 0, that is what happened rather than a bug in
+  `app.js`.
 - **Screenshots lie when the browser pane is hidden.** The viewport collapses,
   `window.innerWidth` reads 0, every card measures 32px and the page reports
   horizontal overflow. It is indistinguishable from a layout bug. When that
