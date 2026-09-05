@@ -52,6 +52,31 @@ export function adRank(bidPaise, qualitySignal) {
 }
 
 /**
+ * The smallest bid that clears the reserve at this quality (spec 10.2).
+ *
+ * `AD_RANK_FLOOR` is a reserve, not just an eligibility gate: an advertiser
+ * under it enters every auction and shows in none. That state is invisible from
+ * the outside — it reports as "lost to rank", which reads as being OUTBID and
+ * sends a player to raise keyword bids, when the bid was never the binding
+ * thing. DECISIONS A8 measured the same shape on an ungraded ad.
+ *
+ * Exported so a caller can WARN before a week is spent in it. Nothing in the
+ * auction reads this; it exists for the interface, which is not allowed to
+ * derive the floor itself.
+ *
+ * @param {number} qualitySignal roughly a click probability, > 0
+ * @returns {number} integer paise, rounded up — one paise less does not clear
+ */
+export function minimumBidToShowPaise(qualitySignal) {
+  if (!Number.isFinite(qualitySignal) || qualitySignal <= 0) {
+    throw new RangeError(
+      `qualitySignal must be finite and positive, got ${String(qualitySignal)}`,
+    );
+  }
+  return Math.ceil(AD_RANK_FLOOR / qualitySignal);
+}
+
+/**
  * @typedef {object} Entrant
  * @property {string} id
  * @property {number} bidPaise integer paise

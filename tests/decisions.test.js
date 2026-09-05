@@ -2,11 +2,12 @@ import { describe, test, expect } from 'vitest';
 import { getSelfView, getPublicView } from '../engine/insights.js';
 import { blockedBy, matchesKeyword } from '../engine/matching.js';
 import { STRATEGIES, effectiveBidPaise, daypartMultiplier } from '../engine/strategies.js';
+import { adRank } from '../engine/auction.js';
 import { allCells, parseCell, cellKey, isOneStep } from '../engine/positions.js';
 import { validateWeeklySplit } from '../engine/pacing.js';
 import {
   LEARNING_ROUNDS, REPOSITION_ROUND, CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE,
-  DAYPART_BLOCKS, QUALITY_MIN_IMPRESSIONS,
+  DAYPART_BLOCKS, QUALITY_MIN_IMPRESSIONS, AD_RANK_FLOOR,
 } from '../engine/constants.js';
 import { submitRound, triggersLearning } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -19,7 +20,7 @@ import {
   setCapex, setPosition, monthBudgetAfter,
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
-  removeKeyword, addKeywords, negativesOutlook,
+  removeKeyword, addKeywords, negativesOutlook, bidOutlook,
 } from '../ui/decisions.js';
 
 /**
@@ -1070,3 +1071,77 @@ function withCampaign(patch) {
 }
 
 const withNegatives = (negatives) => withCampaign({ negatives });
+
+describe('what the strategy will actually bid, before a week is spent (I12)', () => {
+  // Found by playing. Target ROAS bids DOWN — bid = order value x conversion
+  // rate / target — so raising the target is an instruction to pay less. At 25
+  // the bid fell under the reserve and the week came back completely blank:
+  // spend zero, impressions zero, "lost to rank 100%".
+  //
+  // That phrase is the trap. It reads as being OUTBID, so the natural response
+  // is to raise keyword bids — which does nothing, because the strategy
+  // computes its own bid and the keyword bid is only a ceiling. Nothing on the
+  // screen said what the target implied until the week was gone.
+  const draftFor = (strategy, params) => {
+    const state = makeGameState({ round: 3 });
+    const d = createDraft(getSelfView(state, PLAYER_ID));
+    setStrategy(d, strategy);
+    for (const [k, v] of Object.entries(params ?? {})) d.strategyParams[k] = v;
+    return d;
+  };
+
+  test('manual bids what you set, so the preview agrees with the keyword', () => {
+    const d = draftFor('manual');
+    const out = bidOutlook(d);
+    expect(out.bidPaise).toBe(d.keywords.find((k) => k.active !== false).bidPaise);
+  });
+
+  test('a sane Target ROAS clears the reserve', () => {
+    expect(bidOutlook(draftFor('targetRoas', { targetRoas: 4 })).willShow).toBe(true);
+  });
+
+  test('and an ambitious one does not, which is the whole point', () => {
+    const out = bidOutlook(draftFor('targetRoas', { targetRoas: 25 }));
+    expect(out.willShow).toBe(false);
+    expect(out.bidPaise).toBeLessThan(out.needPaise);
+  });
+
+  test('raising the target always lowers the bid', () => {
+    // The thing a player gets backwards, and the reason the number has to be
+    // on screen rather than described.
+    const at = (t) => bidOutlook(draftFor('targetRoas', { targetRoas: t })).bidPaise;
+    expect(at(8)).toBeLessThan(at(4));
+    expect(at(16)).toBeLessThan(at(8));
+  });
+
+  test('the bid it reports is the engine\'s, not a second opinion', () => {
+    // Same rule as the negatives preview calling blockedBy. A reimplementation
+    // would agree until one of them changed.
+    const d = draftFor('targetRoas', { targetRoas: 6 });
+    const kw = d.keywords.find((k) => k.active !== false);
+    const best = Math.max(...Array.from({ length: 24 }, (_, hour) => effectiveBidPaise({
+      strategy: d.strategy,
+      strategyParams: d.strategyParams,
+      keyword: kw,
+      business: { aovMeanPaise: d.catalogue.aovMeanPaise },
+      bidding: d.bidding,
+      daypartAdjustments: d.daypartAdjustments,
+      hour,
+      rng: null,
+    })));
+    expect(bidOutlook(d).bidPaise).toBe(best);
+  });
+
+  test('the reserve it compares against is the auction\'s own', () => {
+    const d = draftFor('targetRoas', { targetRoas: 25 });
+    const out = bidOutlook(d);
+    expect(adRank(out.needPaise, out.qualitySignal)).toBeGreaterThanOrEqual(AD_RANK_FLOOR);
+  });
+
+  test('an account with no active keyword says so rather than throwing', () => {
+    const d = draftFor('manual');
+    for (const k of d.keywords) k.active = false;
+    expect(() => bidOutlook(d)).not.toThrow();
+    expect(bidOutlook(d)).toBeNull();
+  });
+});

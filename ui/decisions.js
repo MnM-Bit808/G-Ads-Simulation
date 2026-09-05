@@ -31,7 +31,11 @@
 
 import { el, add, table, field, input, select, rupees, whole, ratio } from './dom.js';
 import { blockedBy, normalise, tokenise } from '../engine/matching.js';
-import { STRATEGIES, daypartMultiplier } from '../engine/strategies.js';
+import { STRATEGIES, daypartMultiplier, effectiveBidPaise } from '../engine/strategies.js';
+import { minimumBidToShowPaise } from '../engine/auction.js';
+import { qualitySignalBase } from '../engine/quality.js';
+// Derived from the hour curves rather than declared, so it lives with them.
+import { HOURS_PER_DAY } from '../engine/querySet.js';
 import {
   canReposition, isOneStep, allCells, parseCell, cellKey, landingPageBonus,
 } from '../engine/positions.js';
@@ -149,6 +153,9 @@ export function createDraft(selfView, options = {}) {
     // has never been on screen, so a player rewriting a headline had no way to
     // see whether it helped.
     gradedQuality: structuredClone(adGroups[0]?.gradedQuality ?? null),
+    // What Target ROAS divides into. Own catalogue only — getSelfView carries
+    // order value and margin, never the conversion rate behind them (16.2).
+    catalogue: structuredClone(selfView.catalogue ?? {}),
     position: structuredClone(selfView.position ?? null),
 
     // 13.3 and 4.5, both of which are open for one round only.
@@ -1500,11 +1507,91 @@ function biddingCard(ctx, refresh) {
 }
 
 /** The consequence, before the button rather than after it. */
+/**
+ * What the strategy will actually bid, and whether that is enough to appear.
+ *
+ * FOUND BY PLAYING. Target ROAS bids DOWN — `bid = order value × conversion
+ * rate ÷ target` — so raising the target is an instruction to pay less. At a
+ * target of 25 the bid fell under the reserve and the week came back completely
+ * blank, reporting "lost to rank 100%". That phrase reads as being OUTBID, so
+ * the natural response is to raise keyword bids — which does nothing, because
+ * the strategy computes its own bid and the keyword bid is only a ceiling.
+ *
+ * Every number here is the engine's own. `effectiveBidPaise` is the function
+ * the round will actually call, and `minimumBidToShowPaise` is the auction's
+ * own reserve; a view that recomputed either would agree with it right up until
+ * one of them changed.
+ *
+ * THE BID REPORTED IS THE BEST HOUR'S, so `willShow: false` means the account
+ * appears NOWHERE, at any hour — not merely that it is quiet at 3am.
+ *
+ * @param {object} draft
+ * @returns {null | {bidPaise: number, needPaise: number, willShow: boolean,
+ *   qualitySignal: number, keywordText: string}} null when nothing is running
+ */
+export function bidOutlook(draft) {
+  const keyword = (draft.keywords ?? []).find((k) => k.active !== false);
+  if (!keyword) return null;
+
+  const business = { aovMeanPaise: draft.catalogue?.aovMeanPaise ?? 0 };
+  let bidPaise = 0;
+  for (let hour = 0; hour < HOURS_PER_DAY; hour++) {
+    // rng omitted: the noise-free centre of the estimate. A preview that drew
+    // from the error distribution would show a different number each keystroke.
+    const bid = effectiveBidPaise({
+      strategy: draft.strategy,
+      strategyParams: draft.strategyParams,
+      keyword,
+      business,
+      bidding: draft.bidding,
+      daypartAdjustments: draft.daypartAdjustments,
+      hour,
+      rng: null,
+    });
+    if (bid > bidPaise) bidPaise = bid;
+  }
+
+  // The most favourable query this keyword could meet: its own words, someone
+  // buying. If the bid cannot clear the reserve HERE it clears it nowhere.
+  const { base } = qualitySignalBase(draft.gradedQuality, {
+    text: keyword.text, intent: 'commercial', tags: [...(keyword.tags ?? [])],
+  }, keyword);
+  const needPaise = minimumBidToShowPaise(base);
+
+  return {
+    bidPaise,
+    needPaise,
+    willShow: bidPaise >= needPaise,
+    qualitySignal: base,
+    keywordText: keyword.text,
+  };
+}
+
 function warningBody(ctx) {
   const draft = ctx.draft;
   const out = [];
 
   const predicts = STRATEGIES[draft.strategy]?.predictsConversions;
+
+  // What it will actually bid, before the week is spent finding out. The
+  // failure this exists for reported itself as "lost to rank 100%", which
+  // reads as being outbid and sends a player to raise keyword bids — the one
+  // lever that cannot help, because the strategy sets its own bid.
+  const outlook = bidOutlook(draft);
+  if (outlook) {
+    const line = el('p', outlook.willShow ? 'note' : 'problems');
+    line.append(document.createTextNode(
+      `${strategyName(draft.strategy)} bids about ${rupees(outlook.bidPaise)} at best, `
+      + `on ${outlook.keywordText}. `,
+    ));
+    line.append(document.createTextNode(outlook.willShow
+      ? `Your quality needs ${rupees(outlook.needPaise)} to appear at all, so this shows.`
+      : `Your quality needs ${rupees(outlook.needPaise)} to appear at all, so THIS SHOWS `
+        + 'NOWHERE — you would enter every auction and win none, and the week would '
+        + 'come back blank. Raising your keyword bid will not fix it: the keyword bid '
+        + 'is only a ceiling, and this strategy is bidding well under it.'));
+    out.push(line);
+  }
 
   if (willTriggerLearning(draft)) {
     out.push(predicts

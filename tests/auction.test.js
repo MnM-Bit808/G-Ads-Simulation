@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { resolveAuction, adRank } from '../engine/auction.js';
+import { resolveAuction, adRank, minimumBidToShowPaise } from '../engine/auction.js';
 import { mulberry32 } from '../engine/rng.js';
 import { AD_RANK_FLOOR, MAX_SLOTS, TOP_SLOTS, MIN_INCREMENT_PAISE } from '../engine/constants.js';
 
@@ -352,5 +352,41 @@ describe('purity (R1)', () => {
 
   test('duplicate ids are rejected rather than silently double-counted', () => {
     expect(() => resolveAuction([e('a', 9000, 0.10), e('a', 5000, 0.07)])).toThrow(/a/);
+  });
+});
+
+describe('the reserve is visible before a week is spent under it (I12)', () => {
+  // AD_RANK_FLOOR is a reserve, not an eligibility gate. An advertiser beneath
+  // it enters every auction and shows in none — and reports "lost to rank
+  // 100%", which reads as being outbid and sends a player to raise keyword
+  // bids. Measured in a played game: target ROAS 25 produced a bid of a couple
+  // of rupees and a completely blank week.
+  test('a bid at the minimum clears, and one paise under it does not', () => {
+    const signal = 0.08;
+    const need = minimumBidToShowPaise(signal);
+    expect(adRank(need, signal)).toBeGreaterThanOrEqual(AD_RANK_FLOOR);
+    expect(adRank(need - 1, signal)).toBeLessThan(AD_RANK_FLOOR);
+  });
+
+  test('better quality needs a smaller bid, which is the whole mechanic', () => {
+    expect(minimumBidToShowPaise(0.12)).toBeLessThan(minimumBidToShowPaise(0.04));
+  });
+
+  test('it agrees with the auction it is describing', () => {
+    // The guard that stops this drifting into a second opinion about the floor.
+    // Whatever it returns must actually win a slot in resolveAuction, and one
+    // paise less must not.
+    const signal = 0.05;
+    const need = minimumBidToShowPaise(signal);
+    const shown = (bidPaise) => resolveAuction([
+      { id: 'me', bidPaise, qualitySignal: signal },
+    ]).ladder.filter((r) => r.shown);
+    expect(shown(need)).toHaveLength(1);
+    expect(shown(need - 1)).toHaveLength(0);
+  });
+
+  test('it refuses a quality signal that cannot happen', () => {
+    expect(() => minimumBidToShowPaise(0)).toThrow(RangeError);
+    expect(() => minimumBidToShowPaise(-1)).toThrow(RangeError);
   });
 });
