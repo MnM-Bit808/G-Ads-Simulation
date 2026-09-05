@@ -558,12 +558,18 @@ tooling and one untested claim.
     with. Left alone deliberately: the TAG is what broad match reads, so a
     lifestyle advertiser's broad keyword reaching into it is realistic spill
     rather than a mistake.
-- **`content/adCopy.js` is read and corrected, and now holds TWO ads per cell.**
-  The second variants were written in one pass and have not been read by a human
-  end to end the way the first six were. They pass every rule in
-  `adCopy.test.js`, including the naive-classifier proxy for whether position is
-  inferable — but that test's own comment says passing it does not mean the copy
-  READS well, and that still needs a person.
+- **`content/adCopy.js` holds two ads per cell, and the second six have been
+  read back and rewritten once.** Four of the six first drafts were paraphrases
+  of the ad they sat beside rather than a second company — `value|performance`
+  shared 53% of its vocabulary with variant 1, and `mid|performance`'s third
+  headline was variant 1's third headline with the two words swapped. That is
+  the standard failure of writing to a constraint list: the vocabulary that
+  satisfies the constraints is the vocabulary the first ad already used.
+  Rewritten as genuinely different shops and the overlap is now 0–25%, with two
+  tests holding it there. **Still not an independent read** — the same person
+  wrote them and reviewed them, which is exactly the gap `adCopy.test.js`'s own
+  comment describes when it says passing the classifier proxy does not mean the
+  copy reads well.
 - **One detail unverified** in the premium cells: whether Japanese and Korean
   yarn is what Indian premium activewear signals with, or whether it is recycled
   technical fabric or a named mill.

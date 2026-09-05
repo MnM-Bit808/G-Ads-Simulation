@@ -17,6 +17,13 @@ const adsOf = (cell) => AD_COPY_BY_CELL[cell];
 const EVERY_AD = CELLS.flatMap((c) => adsOf(c).map((ad) => ({ cell: c, ad })));
 const all = (pick) => EVERY_AD.flatMap(({ ad }) => pick(ad));
 
+/** Content words: what an ad is actually made of, minus the joinery. */
+const STOP = new Set(['that', 'with', 'from', 'your', 'this', 'they', 'them', 'when',
+  'what', 'have', 'more', 'less', 'both', 'into', 'over', 'each', 'been', 'were',
+  'their', 'there', 'which', 'about', 'after', 'every', 'other', 'sizes', 'size']);
+const words = (text) => String(text).toLowerCase().split(/[^a-z0-9]+/)
+  .filter((w) => w.length > 3 && !STOP.has(w));
+
 describe('the shape Google actually allows', () => {
   test('every cell has copy', () => {
     for (const cell of CELLS) expect(AD_COPY_BY_CELL, cell).toHaveProperty(cell);
@@ -59,6 +66,37 @@ describe('no cell borrows another cell voice', () => {
   test('every headline is unique across the six', () => {
     const headlines = all((ad) => ad.headlines);
     expect(new Set(headlines).size).toBe(headlines.length);
+  });
+
+  test('no two ads are the same words in a different order', () => {
+    // The uniqueness test above compares STRINGS, and a reorder is a different
+    // string: "Squat-Proof, Sweat-Wicking" and "Sweat-Wicking, Squat-Proof"
+    // both passed it while reading as one ad printed twice. Two rivals in a
+    // cell are two of the eight data points 17.1 gives the player, and a
+    // paraphrase is one and a half.
+    const seen = new Map();
+    for (const { cell, ad } of EVERY_AD) {
+      for (const headline of ad.headlines) {
+        const key = [...new Set(words(headline))].sort().join(' ');
+        expect(seen.has(key), `"${headline}" repeats "${seen.get(key)}"`).toBe(false);
+        seen.set(key, headline);
+      }
+      void cell;
+    }
+  });
+
+  test('the two ads in a cell do not share most of their vocabulary', () => {
+    // They must signal the SAME cell by a DIFFERENT route, which is what a real
+    // second competitor in a segment looks like. Reaching for the first ad's
+    // nouns is the easy failure when writing to a constraint list.
+    for (const cell of CELLS) {
+      const [a, b] = adsOf(cell).map((ad) => new Set(
+        [...ad.headlines, ...ad.descriptions].flatMap(words),
+      ));
+      const shared = [...a].filter((w) => b.has(w));
+      const overlap = shared.length / Math.min(a.size, b.size);
+      expect(overlap, `${cell} shares: ${shared.join(', ')}`).toBeLessThan(0.3);
+    }
   });
 
   test('no rival trademark appears in any ad text (spec 8.7)', () => {

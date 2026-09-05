@@ -119,16 +119,16 @@ export const AD_COPY_BY_CELL = Object.freeze({
     },
     {
       headlines: [
-        'Train More, Spend Less',
-        'Sports Bras From ₹499',
-        'Combo Packs, Gym Ready',
+        'Gym Tees From ₹299',
+        'Kit Out The Whole Week',
+        'Buy 3 Tees, Save ₹200',
       ],
       descriptions: [
-        'Squat-proof leggings and high-impact bras that hold, at prices that do not.',
-        'Buy 3 and the third is half price. 15-day exchange if the fit is wrong.',
+        'Quick-dry tees and running shorts for people who turn up four times a week.',
+        'One swap within 15 days, no charge, because the first guess is rarely right.',
       ],
       landingPageDescription:
-        'Price-sorted grid, combo bundles pinned to the top. Size chart and fit notes.',
+        'Cheapest first, multipack bundles, and a measurement table on every listing.',
     },
   ],
 
@@ -177,16 +177,16 @@ export const AD_COPY_BY_CELL = Object.freeze({
     },
     {
       headlines: [
-        'Gym Wear That Lasts',
-        'Built For Heavy Lifts',
-        'Sweat-Wicking, Squat-Proof',
+        'Pockets That Hold A Phone',
+        'Made For The Long Run',
+        'Running, Cycling, Gym',
       ],
       descriptions: [
-        'Kit that survives the wash and the week, for people who actually train.',
-        'Sizes XS to XXL, plus a fit line you can message before you order. 30-day returns.',
+        'Deep pockets, flat seams and a waistband that stays put, at the gym or on the road.',
+        'Sizes XS to XXL. Thirty days to change your mind and we pay the postage.',
       ],
       landingPageDescription:
-        'Training category page. Fabric specs, fit guide, and reviews sorted by size.',
+        'Pocket dimensions, seam detail, and fit photographs on bodies of different builds.',
     },
   ],
 
@@ -235,16 +235,16 @@ export const AD_COPY_BY_CELL = Object.freeze({
     },
     {
       headlines: [
-        'Japanese Knit, Built To Train',
-        'Seamless, Second Skin Fit',
-        'Compression That Outlasts',
+        'Recycled Nylon, Built To Last',
+        'Tested Over A Training Block',
+        'No Chafe, No Ride, No Fuss',
       ],
       descriptions: [
-        'Japanese technical knit and bonded seams, made for heavy lifts and heat.',
-        'Fit consultation before you buy, and a thirty-day return if it is not right.',
+        'Recycled technical nylon with bonded panels, tested through a full training block.',
+        'Talk to a fitter before you order. Thirty days to change your mind, either way.',
       ],
       landingPageDescription:
-        'Fabric provenance, knit specs, seam construction, and a fit consultation link.',
+        'Mill provenance, abrasion and wash testing, and a fitter you can book a call with.',
     },
   ],
 
@@ -264,16 +264,16 @@ export const AD_COPY_BY_CELL = Object.freeze({
     },
     {
       headlines: [
-        'Modal That Falls Right',
-        'Cashmere Blend Loungewear',
-        'Made To Live In, For Years',
+        'Bamboo Silk, Cut To Drape',
+        'Loungewear You Keep',
+        'Mended Free, For Life',
       ],
       descriptions: [
-        'Silk-finish modal and cashmere blends, cut for everyday and made to last.',
-        'Fit consultation on request. Thirty-day returns, and repairs after that.',
+        'Bamboo silk and heavy cotton, cut to fall properly and to be worn for years.',
+        'Fit consultation on request. We repair anything we make, free, for as long as you own it.',
       ],
       landingPageDescription:
-        'Fabric-led product pages: mill, weave, drape, and a care guide for each piece.',
+        'Mill, weave and drape notes on every piece, plus how to book a repair.',
     },
   ],
 });
