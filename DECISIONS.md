@@ -2102,6 +2102,46 @@ screenshot: the summary line under the bar set `className = 'problems'` when the
 plan went over, which **stripped the base class** and took its spacing with it.
 Both classes are now kept.
 
+### I23. A rival's ad and your own are read in the same block — `FIXED`
+
+Second half of the round 0 visual pass (I22).
+
+**The eight rival ads now draw in `.serp`, the same block the player's own ad is
+previewed in.** They are the same kind of object, and 17.1 makes that copy the
+**only** evidence of where anyone sits before the first auction — so reading a
+rival and writing your own should look alike. Until now the player wrote into five
+boxes and read rivals as plain stacked text: two mental models of one thing.
+
+`serpBlock` is one function used by both cards. The domain is shown, which is legal
+because identity is public under R3 and C6 — the ADS are the evidence; the names
+were never the secret. A rival block carries its brand name, the player's own does
+not: you know whose ad you are writing.
+
+**FOUR ACROSS, NOT `auto-fill`.** There are exactly eight rivals, so four columns
+is two full rows with nothing sitting alone in a ragged one. `auto-fill` with a
+215px minimum fitted **five** once the ads became `.serp` blocks, leaving a row of
+three — and the card's own comment had always said the intent was four. Measured
+rather than assumed, which is how the raggedness was noticed at all.
+
+**The planner shows volume as a bar as well as a figure.** The card's note says
+this list is *"in the order Keyword Planner gives it: biggest first. That is not the
+order to buy in"* — and 151 rows of digits cannot show how steeply it falls away.
+The head term runs 8,225 a week at 100% of the bar; the tail of the visible sixty
+sits at 28%. Scaled against the whole list's largest rather than the filtered
+view's, so searching cannot silently rescale the bars and make a tail row look like
+a head term.
+
+**WHAT IT COST IN PAGE HEIGHT: less than nothing.** 4,028px before the visual pass,
+**4,014px after both slices** — "Who else is here" went 521 → 508, because a `.serp`
+block in two tidy rows is shorter than nine stacked text blocks in a ragged grid.
+Every rival block was checked for clipping (`scrollHeight` against `clientHeight`):
+none.
+
+`.rival`, `.rival-name`, `.rival-headline` and `.rival-desc` were deleted with the
+change rather than left as orphaned CSS. `.rival-grid` stays — it is the grid the
+blocks sit on. `.brand-tag.rival` in the search terms report is a different thing
+and untouched.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

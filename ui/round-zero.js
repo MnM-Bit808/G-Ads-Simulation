@@ -252,16 +252,16 @@ function sectionRivals(querySet, rootSeed, draft) {
   // The SAME builder startGame uses, so what is shown here is what will be
   // played against — including which of a cell's two ads each rival wears.
   const ads = buildRivals(identities, placement, querySet, () => 0.5)
-    .map((rival) => ({ name: rival.name, ad: rival.adGroups[0].ad }))
+    .map((rival) => ({ name: rival.name, domain: rival.domain, ad: rival.adGroups[0].ad }))
     .sort((a, b) => (a.name < b.name ? -1 : 1));
 
+  // The same block the player's own ad is previewed in, because these are the
+  // same kind of object and 17.1 makes this copy the only evidence of position.
   const grid = el('div', 'rival-grid');
-  for (const { name, ad } of ads) {
-    const box = el('article', 'rival');
-    box.append(el('div', 'rival-name', name));
-    for (const headline of ad.headlines) box.append(el('div', 'rival-headline', headline));
-    for (const description of ad.descriptions) box.append(el('div', 'rival-desc', description));
-    grid.append(box);
+  for (const { name, domain, ad } of ads) {
+    grid.append(serpBlock({
+      name, domain, headlines: ad.headlines, descriptions: ad.descriptions,
+    }));
   }
   node.append(grid);
   node.append(el('p', 'note',
@@ -432,6 +432,73 @@ function researchList(querySet) {
     intent: query.intent,
     weekly: Math.round((querySet.weeklyVolume * query.volumeShareBp) / 10000),
   })).sort((a, b) => b.weekly - a.weekly);
+}
+
+/**
+ * One ad as a searcher meets it: who is running it, the headlines assembled, the
+ * descriptions run together.
+ *
+ * ONE COMPONENT, TWO CARDS. The player's own ad and the eight rival ads are the
+ * same kind of object, and 17.1 makes the rival copy the only evidence of where
+ * anyone sits - so reading a rival and writing your own should look alike. Before
+ * this the player wrote into five boxes and read rivals as plain stacked text,
+ * which are two mental models of one thing.
+ *
+ * Restrained on purpose: no favicon, no star row, nothing implying more fidelity
+ * than the model has. Identity is public under R3, so the domain may be shown.
+ *
+ * @param {object} args `headlines` and `descriptions` already filtered; `domain`
+ *   and optional `name`; `placeholder` to draw empty slots as prompts
+ * @returns {HTMLElement}
+ */
+function serpBlock({ domain, headlines = [], descriptions = [], name = null, placeholder = false }) {
+  const node = el('article', 'serp');
+
+  const tag = el('div', 'serp-tag');
+  tag.append(el('span', null, 'Sponsored'));
+  tag.append(el('span', 'serp-sep', '·'));
+  tag.append(el('span', 'serp-domain', domain ?? ''));
+  if (name) tag.append(el('span', 'serp-name', name));
+  node.append(tag);
+
+  const head = el('p', 'serp-head');
+  if (headlines.length === 0) {
+    if (placeholder) head.append(el('span', 'muted', 'Your headlines appear here'));
+  } else {
+    headlines.forEach((headline, i) => {
+      if (i > 0) head.append(el('span', 'serp-sep', ' · '));
+      head.append(el('span', null, headline));
+    });
+  }
+  node.append(head);
+
+  const body = descriptions.join(' ');
+  node.append(el('p', 'serp-desc',
+    body || (placeholder ? 'Your descriptions appear here.' : '')));
+  return node;
+}
+
+/**
+ * A search's weekly volume, as a figure and a bar.
+ *
+ * The card's own note says this list is *"in the order Keyword Planner gives it:
+ * biggest first. That is not the order to buy in"* - and with 151 rows of digits
+ * a reader cannot see how steeply it falls away. The bar makes the shape of the
+ * head and the tail visible, which is what that warning is about.
+ *
+ * @param {number} weekly searches a week
+ * @param {number} max the largest in the list, so the bar has a scale
+ * @returns {HTMLElement}
+ */
+function volumeCell(weekly, max) {
+  const node = el('div', 'vol');
+  node.append(el('span', 'vol-figure', whole(weekly)));
+  const track = el('span', 'vol-track');
+  const fill = el('span', 'vol-fill');
+  fill.style.width = `${max > 0 ? Math.max(1, Math.round((100 * weekly) / max)) : 0}%`;
+  track.append(fill);
+  node.append(track);
+  return node;
 }
 
 /**
@@ -656,6 +723,10 @@ function sectionKeywords(querySet, draft, rerender, live) {
       bulk.append(go);
     }
 
+    // Scaled against the whole list's biggest rather than the filtered view's, so
+    // searching cannot silently rescale the bars and make a tail row look like a
+    // head term.
+    const max = all.length > 0 ? all[0].weekly : 0;
     const rows = shown
       .map((q) => {
         const button = el('button', 'add');
@@ -666,7 +737,7 @@ function sectionKeywords(querySet, draft, rerender, live) {
           draft.keywords.push({ text: q.text, matchType: 'phrase', bidPaise: 3000 });
           rerender();
         });
-        return { cells: [q.text, whole(q.weekly), q.intent, button] };
+        return { cells: [q.text, volumeCell(q.weekly, max), q.intent, button] };
       });
     const node2 = el('table', 'mini');
     table(node2, ['Search term', { label: 'Weekly', num: true }, 'Intent', ''], rows);
@@ -904,7 +975,7 @@ function sectionAd(draft, revalidate, live) {
   // card's own subtitle is "the only thing your rivals can see about you", and
   // until now that thing existed only as five separate boxes. Real Google Ads
   // previews the assembled ad; the grade below it is what the auction sees.
-  const preview = el('div', 'serp');
+  const preview = el('div', 'serp-slot');
   scored.append(preview);
 
   const gradePanel = el('div', 'grade-panel');
@@ -950,28 +1021,12 @@ function sectionAd(draft, revalidate, live) {
   function drawPreview() {
     const ad = submittedAd(draft);
     const identity = BRAND_IDENTITIES.find((b) => b.id === draft.playerBrandId);
-    preview.replaceChildren();
-
-    const tag = el('div', 'serp-tag');
-    tag.append(el('span', null, 'Sponsored'));
-    tag.append(el('span', 'serp-sep', '·'));
-    tag.append(el('span', 'serp-domain', identity?.domain ?? ''));
-    preview.append(tag);
-
-    const head = el('p', 'serp-head');
-    if (ad.headlines.length === 0) {
-      head.append(el('span', 'muted', 'Your headlines appear here'));
-    } else {
-      ad.headlines.forEach((headline, i) => {
-        if (i > 0) head.append(el('span', 'serp-sep', ' · '));
-        head.append(el('span', null, headline));
-      });
-    }
-    preview.append(head);
-
-    preview.append(el('p', 'serp-desc', ad.descriptions.length > 0
-      ? ad.descriptions.join(' ')
-      : 'Your descriptions appear here.'));
+    preview.replaceChildren(serpBlock({
+      domain: identity?.domain,
+      headlines: ad.headlines,
+      descriptions: ad.descriptions,
+      placeholder: true,
+    }));
   }
 
   function drawGrade() {
