@@ -126,7 +126,10 @@ export function runRound(gameState, options = {}) {
   // the market keeps the return rate and basket size F8 documents - see
   // locations.js for what applying the raw tables would have cost.
   const shares = queries.map((query) => locationSharesFor(query));
-  const effects = locationEffects(querySet);
+  // Per advertiser, because each position is centred on its own country: a value
+  // brand's territory is mostly towns and a premium brand's is mostly metros, and
+  // measuring both against the market's average moved profit between them.
+  const effectsByAdvertiser = advertisers.map((a) => locationEffects(querySet, a.position?.price));
   const tiers = LOCATION_TIERS.length;
 
   // WHO IS BIDDING DIFFERENTLY BY PLACE, and therefore which path the loop takes.
@@ -212,7 +215,7 @@ export function runRound(gameState, options = {}) {
             recordAuction({
               ladder, entrants, acc, pairwise, convAccum,
               advertisers, business, query, hour,
-              shares: shares[q], effects, tiers,
+              shares: shares[q], effectsByAdvertiser, tiers,
               budgets, perAdvertiserRng, mode,
             });
             continue;
@@ -243,7 +246,7 @@ export function runRound(gameState, options = {}) {
               advertisers, business, query, hour,
               // One tier at a time now, so the apportionment inside is the
               // identity on this tier and zero elsewhere.
-              shares: onlyTier(tiers, tier), effects, tiers,
+              shares: onlyTier(tiers, tier), effectsByAdvertiser, tiers,
               budgets, perAdvertiserRng, mode,
             });
           }
@@ -426,7 +429,7 @@ function buildBudgets(advertisers, round) {
 
 function recordAuction({
   ladder, entrants, acc, pairwise, convAccum,
-  advertisers, business, query, hour, shares, effects, tiers,
+  advertisers, business, query, hour, shares, effectsByAdvertiser, tiers,
   budgets, perAdvertiserRng, mode,
 }) {
   const byId = new Map(entrants.map((e) => [e.id, e]));
@@ -488,6 +491,7 @@ function recordAuction({
         // clicks and cost and nothing about what the money did, which is the
         // whole lesson. Conversion RATE is location-independent by design, so
         // the counts still divide in proportion to the clicks.
+        const effects = effectsByAdvertiser[i];
         for (let t = 0; t < tiers; t++) {
           const share = shares[t];
           if (share <= 0) continue;

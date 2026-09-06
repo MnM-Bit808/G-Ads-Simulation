@@ -102,7 +102,12 @@ export function locationSharesFor(query) {
  * @param {object} querySet
  * @returns {number[]} one weight per LOCATION_TIERS, summing to 1
  */
-export function locationWeights(querySet) {
+export function locationWeights(querySet, price = null) {
+  // A position's own country, when one is named: the row for its price tier is
+  // where its territory's searches are, and that is what its economics have to be
+  // measured against.
+  if (price && LOCATION_VOLUME_BY_PRICE[price]) return [...LOCATION_VOLUME_BY_PRICE[price]];
+
   const totals = LOCATION_TIERS.map(() => 0);
   let all = 0;
   for (const query of querySet?.queries ?? []) {
@@ -140,11 +145,25 @@ export function locationWeights(querySet) {
  * holds the realised category rate to within a point rather than exactly, and
  * that is the right trade for a number that must not depend on who is winning.
  *
+ * AND NORMALISED AGAINST THE POSITION'S OWN COUNTRY, not the market's, which is
+ * a correction calibration forced. Against the market average the geography
+ * quietly transferred profit between positions: value's territory is 53% in the
+ * towns where returns are worst, and value has the thinnest margin to absorb
+ * them, so it finished 13.5% below the mean while premium finished 8.6% above -
+ * against invariant I3's 15% bound, from a baseline of 2.8%.
+ *
+ * That is F9's engineered balance being undone by a mechanic that was never meant
+ * to touch it. Each price tier is now centred on its own distribution, so running
+ * your whole territory everywhere returns exactly the rate F8 documents for your
+ * position - while the gradient between places, which IS the lesson, is untouched:
+ * the ratio metros-to-towns stays 1.5 for everybody.
+ *
  * @param {object} querySet the set the round is running on
+ * @param {string|null} price the advertiser's own price tier, when it has one
  * @returns {{aovMultiplier: number[], returnMultiplier: number[]}} by tier index
  */
-export function locationEffects(querySet) {
-  const weights = locationWeights(querySet);
+export function locationEffects(querySet, price = null) {
+  const weights = locationWeights(querySet, price);
   const normalise = (table) => {
     const mean = table.reduce((a, v, i) => a + v * weights[i], 0);
     return mean > 0 ? table.map((v) => v / mean) : table.map(() => 1);
