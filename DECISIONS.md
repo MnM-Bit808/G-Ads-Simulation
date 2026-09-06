@@ -1153,6 +1153,111 @@ Pinned by `round.test.js`, "an open cell is not a free ride".
 
 ---
 
+### F13. Broad match crosses the purpose axis in one direction only — `OPEN`
+
+**The finding, in one line: `lifestyle` wins 28 of 30 played markets, and it is
+not because a lifestyle sale is worth more. It is because a lifestyle click is
+15% cheaper.**
+
+Realised gross profit splits **1.55x by purpose against 1.27x by price**, over 30
+markets and 240 rival accounts. Spec 4.4 and invariant I4 have those the other way
+round: I4 asserts price moves break-even **more than 2x** and purpose **under
+15%**, and I4 passes. The two axes have swapped in play.
+
+**F9's balance is sound and the auction undoes it.** Territory x break-even —
+which `content/querySet.js` engineers so no position is structurally richer —
+comes out 0.78 / 0.77 / 0.75 / 0.74 / 0.72 / 0.71, a spread of **1.10x**. The
+played market turns that into 1.86x.
+
+**THREE CONSTANT-SIDE FIXES WERE MEASURED AND ALL THREE FAILED.** Neutralising
+`PURPOSE_MODIFIERS` leaves 1.386x. Flattening the query set's baskets, returns and
+conversion multipliers within each price row leaves 1.411x. Doing **both** — which
+takes the realised break-even gap to 0.1 / −2.2 / −1.9%, i.e. gone, and slightly
+favouring performance — still leaves **1.287x**, and lifestyle still takes top
+rival in 9 of 12 markets. 62% of the gap survives the removal of the entire
+designed purpose advantage.
+
+They failed for one reason: **they all move what a click is WORTH, and the
+asymmetry is in what a click COSTS.** With both sources flattened:
+
+| | lifestyle | performance | ratio |
+|---|---|---|---|
+| revenue per click | 52.87 | 52.58 | **1.006** |
+| cost per click | 13.86 | 16.41 | **0.845** |
+| clicks | 33,989 | 29,609 | 1.148 |
+| capture (rev/click ÷ own break-even) | 0.870 | 0.843 | 1.032 |
+| gross profit | ₹13.38L | ₹10.40L | **1.287** |
+
+Revenue per click is equal to within half a percent. Capture is equal, so this is
+not an advertiser winning better queries than its territory average — the
+selection hypothesis was tested and is false.
+
+**THE CAUSE IS AUCTION DENSITY, AND IT IS THE F12 MECHANISM ON A DIFFERENT AXIS.**
+Instrumented at both `resolveAuction` call sites, volume-weighted:
+
+| query purpose | entrants | price set by reserve | runner-up ad rank | cpc |
+|---|---|---|---|---|
+| lifestyle | **3.13** | **31.6%** | 297 | 16.90 |
+| performance | **4.59** | **15.1%** | 402 | 24.55 |
+
+Winner quality is 0.12 against 0.11, so quality plays no part — and it could not,
+because a hired tier's grade ignores the copy (`setup.js` `creativeBlock`) and
+every rival is hired. F12 already records that a rival who never outranks you
+still raises every click you buy. Here that is happening to half the grid at once.
+
+**AND THE DENSITY IS BROAD MATCH, CROSSING ONE WAY.** Asking the engine's own
+`matchesKeyword` how many cells' keywords reach each query, on the 8-keyword shape
+`rivalKeywords` actually builds:
+
+| | performance | lifestyle |
+|---|---|---|
+| cells reaching it (volume-weighted) | **2.95** | **2.34** |
+| of those, from the OTHER purpose | **1.05** | **0.40** |
+| via exact | 0.05 | 0.05 |
+| via phrase | 0.25 | 0.32 |
+| **via broad** | **2.65** | **2.02** |
+
+Exact and phrase are level; phrase slightly favours lifestyle. **Every bit of the
+crossing is broad match**, which reads tags and nothing else (E3).
+
+**The tag vocabulary is what does it.** `leggings`, `women`, `tshirt` and `india`
+appear in all six cells; `co-ord-set` in five and `casual` in four, both
+lifestyle-weighted. But `gym`, `sports-bra`, `training` and `running` appear in
+exactly three cells each — **all performance, none lifestyle**. Lifestyle
+territory is tagged with general apparel words that also describe performance
+products; performance territory is tagged with activity words that describe
+nothing in lifestyle. So a lifestyle advertiser's broad keyword reaches into
+performance territory and a performance advertiser's broad keyword does not
+reach back.
+
+**Performance territory is where the whole market's broad match lands.** That is
+the entire finding. It crowds performance auctions, raises the second price 45%,
+and hands every lifestyle advertiser cheaper clicks and more of them.
+
+**Two measures that looked like the cause and were not**, recorded because both
+are the obvious things to try. Tag COUNT predicts density only weakly (r = 0.099
+within lifestyle, and at four tags lifestyle draws 2.59 entrants against
+performance's 5.05). Tag SPREAD — the mean number of cells sharing a query's tags
+— comes out performance 3.71 against lifestyle 3.80, marginally the wrong way,
+and every cell is 100% reachable by somebody. Neither is the right measure,
+because what matters is whether a *keyword's* tag set overlaps a *query's* enough
+for `tagOverlap` to accept it, not how popular the individual tags are.
+
+**WHY THIS IS OPEN RATHER THAN FIXED.** The spill is arguably true to life —
+generic apparel vocabulary really does reach activity searches, and E8 already
+holds "how far broad reaches" open as a design question. What was never argued is
+the CONSEQUENCE: a one-directional spill that subsidises half the positioning grid
+and decides 28 games in 30. I8 frames broad match as something an advertiser does
+to itself; nothing in this ledger chose it as a structural transfer between
+positions.
+
+Nothing should move before that is settled, and in particular not another
+constant. Three have now been measured on this axis and all three were the wrong
+lever, which is the same lesson G4 records when two `CALIBRATE` tweaks failed to
+shrink the location payoff.
+
+---
+
 ## G. Things the simulation knows that reality cannot
 
 ### G1. Exact counterfactuals — *by design*

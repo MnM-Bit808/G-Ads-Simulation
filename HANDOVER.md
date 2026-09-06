@@ -912,61 +912,46 @@ records twice already.
 **The one at the top is where I would start, and it is bigger than the two it
 replaced.**
 
-- **The two positioning axes have swapped, and purpose now decides the game.**
-  Spec 4.4 and invariant I4 make price the dominant axis and purpose the minor one
-  — I4 asserts price moves break-even **more than 2x** and purpose **under 15%**.
-  Measured over 30 played markets, 240 rival accounts:
+- **The two positioning axes have swapped, and the mechanism is now known.**
+  Realised gross profit splits **1.55x by purpose against 1.27x by price**, over 30
+  markets and 240 rival accounts, and `lifestyle` takes top rival in **28 of 30**.
+  Spec 4.4 and I4 have that the other way round — I4 asserts price moves break-even
+  more than 2x and purpose under 15%, and **I4 passes**, because it measures
+  break-even and this is not a break-even effect.
 
-  | axis | realised spread in gross profit |
-  |---|---|
-  | purpose | **1.55x** |
-  | price | 1.27x |
+  **A lifestyle click is not worth more. It is 15% cheaper.** With both purpose
+  sources flattened — realised break-even gap gone, 0.1 / −2.2 / −1.9% — revenue
+  per click comes out **1.006** and cost per click **0.845**, and 1.287x of profit
+  gap survives anyway.
 
-  **The top rival is a `lifestyle` advertiser in 28 of 30 markets**, and the cells
-  stratify perfectly by purpose — the worst lifestyle cell (`value|lifestyle`,
-  ₹11.17L) beats the best performance cell (`mid|performance`, ₹9.07L).
+  **Broad match crosses the purpose axis in one direction only.** `gym`,
+  `sports-bra`, `training` and `running` sit in three cells each, all performance.
+  `leggings`, `women`, `tshirt` and `india` sit in all six. So a lifestyle
+  advertiser's broad keyword reaches performance territory and a performance
+  advertiser's does not reach back: performance queries are reached by 2.95 cells
+  against lifestyle's 2.34, and **all of the crossing is broad** (exact 0.05/0.05,
+  phrase 0.25/0.32, broad 2.65/2.02). Performance auctions therefore run **4.59
+  entrants against 3.13**, the runner-up is **402 against 297**, the price falls to
+  the reserve **15.1% of the time against 31.6%**, and second price does the rest:
+  cpc **24.55 against 16.90**.
 
-  **F9's balance is sound on paper and does not survive the auction.** Territory x
-  break-even, which `content/querySet.js` engineers to be equal, comes out
-  0.78 / 0.77 / 0.75 / 0.74 / 0.72 / 0.71 — a spread of **1.10x**, and by purpose
-  ₹2.25L against ₹2.22L. The design is doing exactly what it claims. The auction
-  turns it into 1.86x.
+  **Performance territory is where the whole market's broad match lands.**
+  `DECISIONS.md` F13 carries the full chain, the two measures that looked like the
+  cause and were not, and why it is open rather than fixed.
 
-  **The mechanism is a flat price against an unequal value:**
+  **THREE CONSTANT-SIDE FIXES ARE MEASURED AND DEAD**, so do not retry them:
+  neutralising `PURPOSE_MODIFIERS` leaves 1.386x, flattening the query set's
+  purpose content leaves 1.411x, both together leave 1.287x. All three move what a
+  click is WORTH; the asymmetry is in what it COSTS. Same shape as G4's two failed
+  `CALIBRATE` tweaks on the location payoff.
 
-  | lifestyle / performance | ratio |
-  |---|---|
-  | cost per click | **1.002** |
-  | gross profit per click | **1.279** |
-  | clicks | 1.138 |
-  | gross profit | **1.553** |
-
-  A lifestyle advertiser pays the *same price* for a click worth 28% more, so the
-  break-even gap I4 bounds at 15% arrives as a margin gap of 16-34% per price row
-  (value +3.5% becomes +34%, mid +7.9% becomes +16%, premium +11.2% becomes +32%).
-  That is the `AD_RANK_FLOOR` reserve mechanism B5 already describes — *a flat
-  reserve takes the same absolute paise from every cell* — operating on the
-  **purpose** axis, where it has only ever been looked for on the price axis. The
-  higher affordable bid then buys 14% more clicks on top, despite lifestyle holding
-  7% LESS territory.
-
-  **NEITHER INVARIANT CAN SEE IT, AND BOTH ARE HONEST ABOUT THEIR SCOPE.** I4
-  measures break-even, which is a ceiling on what a click is worth and not a
-  margin. I3's fixture is six advertisers, one per cell, all `disciplined`, equal
-  budgets — and `calibration.test.js` says so in its own words: *"I3 measures the
-  TERRITORY economics in isolation and says nothing about the auction."* **This is
-  the fourth instance of the shape this file already records three times:** an
-  invariant measuring a quantity no auction experiences. F10, F11 and I4 were the
-  first three.
-
-  **Undecided, deliberately, and it needs a conversation rather than a constant.**
-  Roughly three ways out: shrink `PURPOSE_MODIFIERS` again — F11 warns that pushes
-  against argued content and it has already been done once; rebalance territory
-  volume against realised MARGIN rather than against break-even; or accept it and
-  rewrite 4.4, since *go where the margin is* is a real lesson but the spec
-  currently claims the opposite axis dominates. **No constant should move before
-  that is settled.** There is no `DECISIONS.md` entry yet because nothing has been
-  decided — this file is where an open question lives until it is.
+  **What is still undecided is a design question, not a measurement.** The spill is
+  arguably true to life and E8 already holds broad's reach open — what was never
+  argued is a one-directional spill that subsidises half the grid and decides 28
+  games in 30. Options, none taken: retag so performance vocabulary reaches back;
+  rebalance territory volume against realised MARGIN rather than break-even, which
+  compensates without addressing the cause and needs calibration re-run; or accept
+  it and rewrite 4.4, which currently claims the opposite axis dominates.
 
 - **Is 1.76x break-even the aggression `spender` should have?** A design question
   about what the cautionary rival teaches, not a defect, which is why the value was
