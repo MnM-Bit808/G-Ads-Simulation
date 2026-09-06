@@ -406,6 +406,30 @@ every cell on the grid — Value-Lifestyle really returns 36%, Premium-Performan
 17%. A number that is deliberately wrong has no business in the file that defines
 what is true.
 
+**AND THE COUNTEREXAMPLE THAT SHOWS WHERE THE LINE COSTS SOMETHING.** The
+justification above rests on each policy number being *"named, commented with
+what it means and why that value"*. `SPENDER_AGGRESSION` was not.
+
+It reads 1.10 and its comment said *"bids ABOVE what it can afford. Pacing is its
+only brake."* But `spender` runs Maximise Clicks, and `rawBid` multiplies the
+keyword bid by `MAX_CLICKS_AGGRESSION` (1.6) — which lives in `constants.js`,
+because it IS physics. The effective bid is **1.76x break-even**, 64% above the
+number written in the policy file, and the brake is the strategy rather than
+pacing. Measured: cpc 24.94 against `disciplined`'s 9.69, a 2.57x ratio landing
+almost exactly on 1.76 / 0.70.
+
+**This is the cost of the split, not an argument against it.** A policy number and
+an engine number multiplying the same quantity is invisible precisely because the
+two files are meant not to share a blast radius — and the separation that makes
+tuning safe is the same separation that hid the compounding. It is the fifth time
+this project has found two mechanisms multiplying one quantity with a comment
+describing only one of them (F10, F11, G4 step 3, the purpose axis in
+`HANDOVER.md`, and this).
+
+**The comment is corrected and the VALUE is deliberately untouched**, because
+whether 1.76x is the intended aggression is a design question about what the
+cautionary rival teaches rather than a defect. It is open in `HANDOVER.md`.
+
 ## D. Budget, bidding and capital
 
 ### D1. Budget model was outdated — `FIXED v0.3`

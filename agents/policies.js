@@ -91,7 +91,23 @@ const MAX_BID_PAISE = 20000;
 
 // --- what the other five believe --------------------------------------------
 
-/** `spender` bids ABOVE what it can afford. Pacing is its only brake. */
+/**
+ * `spender` bids ABOVE what it can afford.
+ *
+ * **THIS IS NOT THE MULTIPLE THE ACCOUNT BIDS.** `spender` runs Maximise
+ * Clicks, and `rawBid` multiplies the keyword bid by `MAX_CLICKS_AGGRESSION`
+ * (1.6) again, so the effective bid is 1.10 x 1.6 = **1.76x break-even** —
+ * against `disciplined`'s 0.70x, a ratio of 2.5x that shows up almost exactly
+ * in the realised price (cpc 24.94 against 9.69 over 12 markets).
+ *
+ * So the brake is the STRATEGY, not pacing as this comment used to claim.
+ * Ablated, dropping the bid to 0.70x and switching off Maximise Clicks are
+ * worth +131% and +138% — nearly the same number, because they are the same
+ * lever reached through two files.
+ *
+ * Whether 1.76x is the intended aggression is an open question in
+ * `HANDOVER.md`; the value is left alone here and only the claim is corrected.
+ */
 const SPENDER_AGGRESSION = 1.10;
 
 /** `cautious` bids about a third of its ceiling, and creeps only under duress. */
@@ -378,6 +394,22 @@ function wastefulQueries(report, view, existing) {
  *     single most counter-intuitive number in the report
  *   - **pacing throttles it** rather than cutting it off (13.4), so it runs
  *     out of money gradually and in the wrong hours
+ *
+ * **WHERE ITS LOSSES ACTUALLY COME FROM, measured by ablation over 12 markets
+ * rather than assumed from this list.** Two levers carry all of it and they act
+ * through different channels:
+ *
+ *   - **the price it pays.** 1.76x break-even once Maximise Clicks has
+ *     multiplied again (see `SPENDER_AGGRESSION`). Worth +131% to fix.
+ *   - **the clicks it buys.** Broad with no negatives halves what a click is
+ *     worth — conversion rate 2.95% against 4.00%, gross per click 15.70
+ *     against 33.83. Worth +147%.
+ *
+ * The two are sub-additive: together +256%, against the +471% they would give
+ * if independent, because both change which auctions it wins and at what price.
+ * **The location lean is innocent** at -2%, inside noise, despite being the
+ * hardest in the cast — so a session looking for why this rival loses should
+ * not start there.
  *
  * Its keywords only broaden if they carry tags. An untagged keyword matches
  * nothing on broad (8.4), so broadening one would silently remove it from the

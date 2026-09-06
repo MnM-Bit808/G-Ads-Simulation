@@ -851,6 +851,62 @@ separate them was to hold the account fixed and vary one thing. **Both anomalies
 were one seed.** This file says twice that a number measured on the canonical seed
 is a sample of one, and both of these were.
 
+### Why `spender` finishes 5.7x behind, and which half of it is the character
+
+Noticed while closing the two anomalies above: over 30 markets `spender` means
+**₹2.80L** against ₹15.98L for the best policy, and it appears **twice in every
+market**, so a quarter of the field is an advertiser that barely trades.
+
+It does four things at once — bids 1.10x affordable, puts every taggable keyword
+on broad, writes no negatives, and leans hardest of anyone on location — so the
+standings cannot say which one costs the money. Ablated one at a time over 12
+markets, 24 accounts per variant:
+
+| variant | gross | vs control | cpc | gross/click | convRate |
+|---|---|---|---|---|---|
+| untouched | ₹3.30L | — | 24.94 | 15.70 | 2.95% |
+| bid 0.70x, as `disciplined` | ₹7.64L | **+131%** | 18.41 | 25.58 | 3.18% |
+| no broad match | ₹8.15L | **+147%** | 23.44 | 33.83 | 4.00% |
+| manual, not maxClicks | ₹7.87L | **+138%** | 18.19 | 26.04 | 3.20% |
+| no location lean | ₹3.25L | **−2%** | 24.76 | 14.46 | 2.94% |
+| bid 0.70x AND no broad | ₹11.75L | +256% | 19.31 | 39.88 | 4.15% |
+| seats driven by `disciplined` | ₹29.80L | +802% | 9.69 | 51.68 | 4.32% |
+
+**TWO LEVERS, NOT FOUR, AND THEY ACT THROUGH DIFFERENT CHANNELS.** The price it
+pays, and the clicks it buys. Broad-with-no-negatives halves what a click is
+worth (conversion rate 2.95% against 4.00%); the bid raises what it pays for one.
+Together +256% against the +471% they would give if independent — sub-additive,
+because both change which auctions it wins and at what price.
+
+**The location lean is innocent**, at −2% inside noise, despite being the hardest
+in the cast at 320 against a default 200. Worth knowing before somebody starts
+there.
+
+**`SPENDER_AGGRESSION` IS 1.10 AND THE ACCOUNT BIDS 1.76x.** `spender` runs
+Maximise Clicks and `rawBid` multiplies the keyword bid by
+`MAX_CLICKS_AGGRESSION` (1.6) again. That is why "bid 0.70x" and "manual not
+maxClicks" return nearly the same number — **they are the same lever reached
+through two files**. Against `disciplined`'s 0.70x that is a 2.5x ratio, and the
+realised price agrees: cpc 24.94 against 9.69, a ratio of 2.57.
+
+The comment beside the constant claimed 1.10 and said *"pacing is its only
+brake"*. Both halves were wrong: the brake is the strategy. Corrected in place,
+with `DECISIONS.md` C7 carrying why the split between policy numbers and physics
+numbers is what hid it. **The VALUE was deliberately not touched** — see *Still
+open*.
+
+**What this does NOT show.** Even with bid and broad both fixed, `spender` reaches
+₹11.75L against `disciplined`'s ₹29.80L on the same seats. The residual is
+presumably the negatives it never writes, but the `disciplined` run changes
+everything at once — bid logic, match types, blocking — so that 2.5x is not
+attributable to any one thing and is not claimed here.
+
+**The harness checked itself**, and that is why the rest is readable: every
+ablation post-processes the REAL policy's output rather than reimplementing it,
+and the no-op variant is asserted to reproduce `spender` to the paise. A replica
+of `spender` would have drifted from `spender`, which is the failure this file
+records twice already.
+
 ## Still open
 
 **The one at the top is where I would start, and it is bigger than the two it
@@ -911,6 +967,22 @@ replaced.**
   currently claims the opposite axis dominates. **No constant should move before
   that is settled.** There is no `DECISIONS.md` entry yet because nothing has been
   decided — this file is where an open question lives until it is.
+
+- **Is 1.76x break-even the aggression `spender` should have?** A design question
+  about what the cautionary rival teaches, not a defect, which is why the value was
+  left alone when the comment was corrected. At 1.10x it would still finish last and
+  still demonstrate all four of the mechanisms its docstring lists — but a player
+  watching it would see an advertiser overpaying by 10% rather than 76%, which is
+  closer to the mistake a real advertiser makes and easier to recognise as one. It
+  is a policy number under C7, so changing it moves one competitor's opinion and no
+  market physics: no calibration re-run, no `CALIBRATE` constant, no invariant at
+  risk. The measurement is in *Why `spender` finishes 5.7x behind* above.
+
+  **The narrower question underneath it:** the effective bid is a policy number
+  times an engine number, and nothing asserts what the product is. Whatever is
+  decided about the value, a test pinning the effective multiple would stop the two
+  drifting apart again — `MAX_CLICKS_AGGRESSION` can move for reasons that have
+  nothing to do with this rival.
 
 - **Nobody has played it as a learner.** Still the largest untested claim in the
   project, and now larger: the location card has never been read by anybody who did
