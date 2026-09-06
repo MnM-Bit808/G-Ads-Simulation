@@ -1435,6 +1435,19 @@ slowly, so pacing lets the advertiser participate a little more where it stayed.
 That is the budget following, not the volume — the searches stayed where they
 were, and total impressions more than halve.
 
+**ALL NINE STEPS ARE DONE**, and two attempts to shrink the payoff both failed in
+a way worth recording. Narrowing the return spread 1.5 to 1.35 moved value gain
+from +58.6% to +57.2%; narrowing the basket spread 1.196x to 1.07x moved it to
++57.4%. Both were reverted. The cause is structural rather than a constant: for a
+value advertiser the metros are BOTH the most valuable and the cheapest, because
+its rivals crowd the towns where its own queries mostly are. Geography lands on top
+of the affinity separation and produces *go where your competitors are not*. No
+CALIBRATE value fixes that.
+
+The decomposition also overturned this entry own framing: the BASKET is the larger
+lever, 1.196x against returns 1.125x, and constants.js still calls it a texture
+rather than a second lever. That comment is wrong.
+
 **Steps 1 to 4 and 6 of nine are done**: the tables and names, and `engine/locations.js`
 — the demand-side arithmetic, validated and mutation-tested — and the auction now
 reads it. `HANDOVER.md` carries the remaining order and the two points where it

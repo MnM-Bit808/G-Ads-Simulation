@@ -697,118 +697,143 @@ game must install it in the browser pane and the player must play THERE — twic
 this session a game was played in a separate browser window and nothing was
 captured, which is not recoverable afterwards.
 
-## The location mechanic, mid-build
+## The location mechanic
 
-**This is the only unfinished thing in the project, and it is an ENGINE change** —
-the first since the build order was completed. Everything else added recently was
-display-layer. `DECISIONS.md` G4 carries the design and the arguments; this is the
-build order and where it stops.
+**Built, measured and on screen — all nine steps.** It was the first engine change
+since the build order was completed; everything else added this session was
+display-layer. `DECISIONS.md` G4 carries the design and every argument behind it.
+This section carries what a next session needs and would otherwise have to
+reconstruct.
 
 Searches happen somewhere. India divides into metros, large cities, and smaller
-cities and towns; volume distributes by price × location, returns rise outside the
-metros, baskets shrink a little, and conversion is deliberately untouched. The
-player gets a weekly bid adjustment per tier, shaped like dayparting.
+cities and towns. Volume distributes by price × location, returns rise outside the
+metros, baskets shrink a little, and **conversion rate is deliberately untouched**
+— it already carries query affinity, `PURPOSE_MODIFIERS` and the hourly curve, and
+F10 and F11 are both records of what two mechanisms pushing one number costs. The
+player gets a weekly bid adjustment per tier, shaped exactly like dayparting.
 
-```
-✅ 1  constants + content/locations.js   the tables, the names, their tests
-✅ 2  engine/locations.js                demand-side arithmetic, validated and
-                                        mutation-tested
-✅ 3  engine/round.js                    the auction gains its third dimension
-   ✅ STOP: npm run test:perf — fired, and the fix is load-bearing
-✅ 4  engine/report.js                   byLocation, revised, and share per tier
-✅ 6  the control                        campaign.locationAdjustments, weekly
-                                        (BROUGHT FORWARD: a rival cannot target
-                                        with a control that does not exist)
-⏸ 5  agents/policies.js                 rivals target by their own affinity
-   ── STOP AND MEASURE ──
-✅ 7  setup.js                           the briefing knows where the searches
-                                        are, and that they come back more often
-                                        outside the metros
-✅ 8  ui/                                the briefing table, and the location card
-                                        with its bid control on the row
-✅ 9  calibration.test.js                run AHEAD of the interface, and it moved
-                                        the tables - see I3 below
-```
+**The country is 20 / 36 / 44**, metros smallest, with the price correlation inside
+every row (premium 38/36/26, mid 22/38/40, value 12/35/53).
 
-**THE TWO STOPS ARE THE POINT OF THE ORDER.**
+### The four things most worth not relearning
 
-*After step 3*, the performance suite, because the round gains a third dimension
-against a 400ms expected and 1,500ms sampled budget. Better to find that with three
-modules built than nine.
+**The tables are RATIOS, normalised before use, and twice.** Applied raw their
+volume-weighted mean is 1.243, so every advertiser's return rate would have risen a
+quarter and value's documented 30% would have become 37%. Then calibration found a
+second normalisation was needed: against the MARKET average the geography quietly
+moved profit between positions — value 13.5% below the mean, premium 8.6% above,
+against I3's 15% bound from a 2.8% baseline — because value's territory is 53% in
+the towns where returns are worst and its margin is thinnest. Each position is now
+centred on its own country. **I3 sits at 9.5%**, so the mechanic has spent about
+half of that invariant's headroom.
 
-*After step 5*, whole games — because the balance cannot be argued into place from
-here. The pre-auction model says the metros are better for **every** position, which
-is a right answer rather than a trade-off. The counterweight is capacity: D8
-measured this market as demand-limited, so nine advertisers cannot all spend in the
-metros and the money must overflow. **Whether that actually happens is emergent and
-unproven.** If it does not, the `CALIBRATE` tables move — and moving them before any
-screen is built against them is the whole reason the UI is step 8.
+**One ladder while the market is flat, three when anyone tilts.** Three locations
+are three separate auctions and resolving three costs 531ms against a 400ms budget.
+When nobody adjusts by location the ladders are identical, so one resolution
+apportioned is exact — and `round.test.js` runs the same round both ways and holds
+them to the same numbers, because the danger of two paths is that they quietly stop
+agreeing.
 
-**What step 1 settled, with numbers:**
+**A rival learns where to bid; it is not told.** `policies.js` imports nothing from
+`engine/`, which is what makes its guard absolute, so a policy cannot read the
+volume table. `locationTilt` reads the rival's own `byLocation` report — net of
+returns, which arrive late, so a rival leans metro-ward first and corrects later, on
+the same terms the player does. `grossOptimiser` reads GROSS deliberately: section
+14's missing multiplication, applied to geography.
 
-- The country comes out **34.0 / 35.2 / 30.8**, spread 1.14×, with the correlation
-  preserved inside each row (premium 50/32/18, mid 38/36/26, value 26/36/38).
-- A click is worth **1.35× to 1.65×** more in the metros than the towns.
-- Targeting well is worth **+20% to +27% to a value position and +7% to +8.5% to a
-  premium one** — the inverse of the intuition, because premium is already
-  concentrated and value is not.
+**The leans are 200/320/100 and provisional.** At 40/70/20 rivals adjusted by 1-17%
+and nothing they did was visible in the market. They are policy numbers rather than
+engine physics (C7), so tuning them is cheap.
 
-**What step 2 settled:**
+### What the measurements actually say, including the part that failed
 
-- **Neutral traffic splits evenly, and it is 16% of the set.** Brand,
-  informational and irrelevant queries have no home cell, so they carry no price
-  signal; giving them one price tier's geography would assert something the query
-  does not say. With them included the country is **33.9 / 34.9 / 31.2**.
-- **Volume is conserved over the real query set**, asserted rather than argued.
-  That single test is the whole claim of the mechanic.
-- `locationSharesFor` hands back **shared frozen arrays** rather than copies,
-  because it is on the hot path — and there is a test that they cannot be written
-  through.
+**Targeting is a right answer, not a trade-off.** Concentrating on the metros is
+worth **+58.6% to a value advertiser and +38.7% to a mid one**, and **−9% to
+premium**. Premium is demand-limited — it spends 37% of its month — so every extra
+search is worth having; value is budget-limited at 100%, so allocation decides
+everything. Which regime an account is in is readable from its own report, and that
+asymmetry is the genuine lesson in here.
 
-**AND A REMINDER THE HARD WAY: run the performance suite ALONE.** Step 4's timing
-came back at 2,210ms against a 2,200ms bound and looked like a real regression
-from the extra conversion buckets. It was contention — `npm test` was still
-running in the background. Measured alone the same build is 190ms and 1,467ms.
-This file already said so and it still caught me.
+**Two attempts to shrink that payoff both failed, and the failure is the finding.**
+Narrowing the return spread 1.5 → 1.35 moved value's gain from +58.6% to +57.2%.
+Narrowing the basket spread 1.196× → 1.07× moved it to +57.4%. Both were reverted.
 
-**WHAT THE PERFORMANCE STOP FOUND, and it is the reason the order has stops in
-it.** Resolving three auctions per query-hour — the honest implementation — came in
-at **531ms against a 400ms budget** and **4,155ms against 1,500ms** sampled. Three
-quarters of that is redundant today, because nothing yet makes a bid depend on
-location, so the ladder is identical in all three and everything that differs is
-linear in volume. One ladder, apportioned, brings it to **169ms** and **1,282ms**.
+The cause is structural, not a constant. For a value advertiser the metros are
+**both the most valuable and the cheapest**: ₹26 profit per click at ₹13.40, against
+₹16 at ₹16.30 in the towns. Every tier is profitable — this is not "stop losing
+money" — but value's rivals crowd the towns where value's queries mostly are,
+leaving its thin metro territory uncontested. Geography lands on top of the existing
+affinity separation and produces *go where your competitors are not*. **No
+`CALIBRATE` value fixes that.** It would need something structural, such as making
+the metros contested across price tiers.
 
-**Step 6 invalidates that, and there is a tripwire rather than a comment.**
-`round.test.js` fails the moment any advertiser carries `locationAdjustments` or
-`round.js` names the field — because at that point the ladders genuinely differ and
-the apportionment is not approximate but wrong. Whoever adds the control has to
-restore per-tier resolution, keeping a fast path for the common case where every
-adjustment is neutral.
+Also worth knowing: **the basket is a bigger lever than returns** (1.196× against
+1.125×), and `constants.js` still describes it as "small on purpose... a texture on
+top of the returns difference rather than a second lever". That comment is wrong and
+has not been rewritten.
 
-**And the defect step 3 found in step 2, before it could reach the auction:** the
-multiplier tables were about to be applied raw, and their volume-weighted mean is
-1.243 — every advertiser would have seen returns rise a quarter, turning value's
-documented 30% into 37%. `POSITION_ECONOMICS.returnRate` is already the
-category-wide rate. They are ratios now, normalised by `locationEffects(querySet)`,
-and the realised rates come back to 30.0 / 24.0 / 20.0 exactly. **That is the third
-time in this project a modifier has been stacked on a number that already carried
-the effect** (F10, F11) — worth checking for on any new multiplier.
+**Crowding is real but needs everyone to move.** Market CPC now runs ₹14-17 in the
+metros against ₹12-13 in the towns (1.13-1.43×) where the earlier level country was
+flat at 0.95-1.11×. Forcing all nine into the metros raises the price there 35%. But
+D8 already established this market is demand-limited, so budget scarcity has no
+price to bid up on its own — which is why the capacity argument the design was
+originally built on did not hold.
 
-**Three things not to relearn:**
+### Two anomalies in the last played game, unexplained
 
-- **The budget does not move.** Splitting a market into three does not create
-  searchers, `WEEKLY_VOLUME` is pinned from both sides anyway, and the player
-  already underspends at 18–20% of the month. Scarcity is what makes the choice
-  bite.
-- **The query set is untouched**, and must stay so. The split derives from each
-  query's home cell through one 3×3 table rather than being authored per row.
-- **Conversion rate is not a location lever.** It already carries query affinity,
-  `PURPOSE_MODIFIERS` and the hourly curve. F10 and F11 are both records of what
-  two mechanisms pushing one number costs.
+A full twelve-round game on seed 20260902, player at mid|performance doing nothing
+after round 0:
 
----
+- **`automator` (Satva) won by 62%** over second place — ₹27.4L against ₹16.9L. Its
+  entire character is to reach for a new bid strategy whenever results dip and eat a
+  learning penalty each time; it is meant to be a cautionary example, not the
+  winner. **Nobody has checked whether this predates the location work.** That is
+  the first thing to measure next.
+- **A completely passive account finished third of nine.** Good opening — agency
+  writer, ₹80,000 of capital, own-territory keywords — but beating six active rivals
+  while changing nothing is worth a second look.
+
+Neither is a failure. Both are things noticed and not explained.
 
 ## Still open
+
+**The three at the top are where I would start.**
+
+- **Why `automator` wins by 62%.** Measured in the last played game: Satva took
+  ₹27.4L against second place's ₹16.9L. That character exists to make the mistake a
+  real advertiser makes most often — switching bid strategy whenever results dip and
+  paying `LEARNING_ROUNDS` of doubled prediction error each time. It should not be
+  winning comfortably. **Nobody has checked whether this predates the location
+  work**, and that check is one measurement: play the same seed with location
+  neutral for everyone and compare the standings.
+- **Why a passive account finished third of nine**, having made no decision after
+  round 0. Good opening, but six active rivals behind it.
+- **Nobody has played it as a learner.** Still the largest untested claim in the
+  project, and now larger: the location card has never been read by anybody who did
+  not build it. Measurement says concentrating is worth ~57% to a value brand; what
+  is unknown is whether the screen makes that discoverable.
+
+**Parked deliberately, with the reasoning already written down:**
+
+- **The bid warning in "The week".** Requested after a player set Target ROAS 25,
+  got a blank week, and read "lost to rank 100%" as being outbid. `bidOutlook`
+  exists on the Bidding card and did not reach them. The sentence belongs where the
+  numbers are.
+- **`getSelfView` does not carry `creative`.** So no controller can know its own ad
+  is not live yet — a real blind spot for an `llmPolicy`, which would see a weak
+  week 1 and raise bids for the wrong reason. Recorded in I16.
+- **`maxClicks` and `maxConv` agree to the rupee** in every measurement taken.
+  Hourly conversion data exists and its leans vary 0.51-0.91, so they should differ.
+  Plausible explanation — second price means reshaping a bid changes neither your
+  position nor what you pay once you are clearing the field — but unverified. Either
+  a correct and interesting property, or one of five strategies is a duplicate.
+- **The location basket comment in `constants.js` is wrong.** It calls the AOV
+  multiplier "a texture on top of the returns difference rather than a second lever";
+  measurement says it is the *larger* lever, 1.196× against 1.125×.
+
+**The older list, unchanged:**
+
+
 
 **None of it is interface.** Build step 14 is finished; what follows is content,
 tooling and one untested claim.
