@@ -1990,6 +1990,65 @@ it said *"does not fit Google's limits, capped at 4: no descriptions"* — the e
 explanation the player needed. **No screen has ever read `notes`.** Left alone
 deliberately for now; it is additive rather than a fix.
 
+### I20. The month round 0 divides is the month the account gets — `FIXED`
+
+`monthlyBudget` was `MONTHLY_BUDGET_PAISE + (CAPEX_ALLOCATION_PAISE - committed)`.
+It counted the uncommitted CAPITAL and omitted the CREATIVE rollover — so the
+writer card said *"₹50,000 not committed, which is added to this month's
+advertising budget instead"* and the very next card divided a month without it.
+
+**`rerender` puts those two cards in that order deliberately**, and its comment
+says why: *"whatever the writer did not cost rolls into the month this divides"*.
+The ordering existed for a dependency the code did not honour. It was correct only
+for a retainer, where the rollover is zero, which is why it read as a plausible
+number for a whole session before anyone asked.
+
+Measured, for a DIY player committing no capital: the card said **₹2,68,000**, the
+account held **₹2,18,000**, and after week 1 it was **₹3,18,000**. Three different
+numbers for one month.
+
+**It shows the month AFTER the rollovers**, not the ₹1,68,000 the account holds at
+that instant. These four boxes are spent in rounds 1 to 4 and the capital lands at
+round 1, so the post-rollover figure is the one the player is actually dividing.
+`tests/roundZero.test.js` pins it against the month the account reports once the
+week has run, across every writer tier and three capex levels — so the two cannot
+drift apart again.
+
+Verified live: DIY with nothing committed reads ₹3,18,000 (₹79,500 weeks); hiring
+the retainer drops it to ₹2,68,000; committing ₹55,000 to the page drops it to
+₹2,13,000. Each step moves the month by exactly what was spent, and the weekly
+boxes re-even with it.
+
+**A second consequence, now gone.** The split the form submitted could exceed the
+month it was submitted against — a retainer player planned ₹2,68,000 against a
+₹1,68,000 month. Nothing crashed, because round 1 rolls the capital in and
+rescales, but between those two points the plan was bigger than the account.
+
+### I21. The grader says why it marked an ad down, and the screen finally reads it — `FIXED`
+
+`gradeAdOffline` and `explainGrade` have always returned `notes` — the grader's own
+sentence about what it penalised. **No screen had ever read them.** A search for
+`.notes` across `ui/` returned nothing.
+
+The cost of that was concrete. A player asked why their landing page read 4/10 on
+a page they had spent ₹80,000 on, and the answer had already been generated and
+thrown away: *"does not fit Google's limits, capped at 4: no descriptions"* (I19).
+Working it out took a code read, three wrong hypotheses and an enumeration of
+every affordable capital allocation. The sentence was sitting in the return value.
+
+Round 0's grade panel now prints them. Two exist:
+
+- `does not fit Google's limits, capped at 4: <the first violation>`
+- `names a rival ("Kestrel"): adRelevance penalised by 4`
+
+The second is worth more than it looks. The card already warned in words that
+naming a rival is not allowed, and the number beside it did not move — so the
+warning read as cosmetic. Now the note states the size of the penalty and, for a
+self-written ad, the grade moves with it. A hired ad shows `you would have scored
+1` beside the tier's 8, which is the honest statement of what a tier absorbs.
+
+A clean ad produces no notes, so this is silent unless something is wrong.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

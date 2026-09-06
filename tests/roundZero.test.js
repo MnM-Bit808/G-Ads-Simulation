@@ -25,9 +25,12 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { openingReserve, submittedAd, gradeAsSubmitted } from '../ui/round-zero.js';
+import {
+  openingReserve, submittedAd, gradeAsSubmitted, monthlyBudget,
+} from '../ui/round-zero.js';
 import { openingCopyGrades } from '../content/writers.js';
 import { startGame } from '../setup.js';
+import { submitRound } from '../game.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
 import { validateAdCopy } from '../agents/grader.js';
@@ -36,7 +39,10 @@ import { qualitySignalBase } from '../engine/quality.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { composeDescription } from '../ui/landing-page.js';
 import { gradeAdOffline } from '../agents/grader.js';
-import { WRITER_TIERS, DEFAULT_UNGRADED_QUALITY } from '../engine/constants.js';
+import {
+  WRITER_TIERS, DEFAULT_UNGRADED_QUALITY, CAPEX_ALLOCATION_PAISE,
+  CREATIVE_ALLOCATION_PAISE,
+} from '../engine/constants.js';
 
 const CAPEX = { sizeGuide: 0, photography: 0, landingPage: 0 };
 const AD = {
@@ -281,5 +287,91 @@ describe('round 0 grades the ad it is about to submit', () => {
       .toBe(clean('retainer').applied.adRelevance);
     expect(named('diy').applied.adRelevance, 'what a self-written ad runs on')
       .toBeLessThan(clean('diy').applied.adRelevance);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The month round 0 divides is the month the account gets
+// ---------------------------------------------------------------------------
+
+describe('the month on the budget card', () => {
+  /**
+   * `monthlyBudget` was `MONTHLY_BUDGET_PAISE + (CAPEX_ALLOCATION_PAISE -
+   * committed)`. It counted the uncommitted CAPITAL and omitted the CREATIVE
+   * rollover — so the writer card said "₹50,000 not committed, which is added to
+   * this month's advertising budget instead" and the very next card divided a
+   * month that did not include it.
+   *
+   * `rerender` puts those two cards in that order deliberately: *"whatever the
+   * writer did not cost rolls into the month this divides"*. **The ordering
+   * existed for a dependency the code then did not honour.** It was correct only
+   * for a retainer, where the rollover is zero, which is why it read as a
+   * plausible number for a whole session.
+   *
+   * Measured before the fix, for a DIY player committing no capital: the card
+   * said ₹2,68,000, the account held ₹2,18,000, and after week 1 it was
+   * ₹3,18,000.
+   *
+   * So the invariant is exact and this is what pins it: the total the card
+   * divides equals the month the account reports once the capital has rolled in.
+   */
+  const OWN2 = QUERY_SET.queries.filter((q) => homeCell(q) === 'premium|lifestyle').slice(0, 6);
+
+  const monthAfterWeekOne = (writerTier, capexCommitted) => {
+    const capex = { sizeGuide: capexCommitted, photography: 0, landingPage: 0 };
+    const state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: { price: 'premium', purpose: 'lifestyle' },
+        capex: {
+          committed: { ...capex },
+          pending: capexCommitted > 0
+            ? [{ target: 'sizeGuide', paise: capexCommitted, liveAtRound: 4 }]
+            : [],
+          remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE - capexCommitted,
+        },
+        keywords: OWN2.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: 3000 })),
+        ad: {
+          headlines: ['Premium Athleisure', 'Designer Leggings', 'Luxury Loungewear'],
+          descriptions: [
+            'Built to hold through 4 sessions a week, wash after wash.',
+            'Sizes XS to XXL with free delivery and easy returns.',
+          ],
+          landingPageDescription: composeDescription(capex),
+        },
+        writerTier,
+      },
+    });
+    const out = submitRound(state, {}, { mode: 'expected' });
+    return out.report.byAdvertiser[BRAND_IDENTITIES[0].id].budget.monthlyBudgetPaise;
+  };
+
+  const draftFor = (writerTier, capexCommitted) => ({
+    writerTier,
+    capex: { sizeGuide: capexCommitted, photography: 0, landingPage: 0 },
+  });
+
+  const CASES = [
+    ['diy', 0], ['diy', 2500000], ['diy', 10000000],
+    ['freelancer', 0], ['agency', 2500000], ['retainer', 0], ['retainer', 10000000],
+  ];
+
+  test.each(CASES)('%s with %i paise committed: the card matches the account', (tier, committed) => {
+    expect(monthlyBudget(draftFor(tier, committed))).toBe(monthAfterWeekOne(tier, committed));
+  });
+
+  test('the creative rollover is in it, which is the half that was missing', () => {
+    // A retainer spends the whole creative budget, a DIY player spends none of
+    // it, so the gap between them IS the rollover. It used to be zero.
+    const diy = monthlyBudget(draftFor('diy', 0));
+    const retainer = monthlyBudget(draftFor('retainer', 0));
+    expect(diy - retainer).toBe(CREATIVE_ALLOCATION_PAISE);
+  });
+
+  test('and committing capital lowers it, rupee for rupee', () => {
+    expect(monthlyBudget(draftFor('diy', 0)) - monthlyBudget(draftFor('diy', 2500000)))
+      .toBe(2500000);
   });
 });

@@ -226,6 +226,18 @@ td + td, th + th { padding-left: 0.9rem; }
 .burn .legend { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.78rem; margin-top: 0.35rem; }
 
 /*
+ * The grader's own note about why it marked an ad down. Warning-coloured because
+ * every note it writes is a penalty, and it sits inside the grade panel rather
+ * than under it so it reads as part of the number it explains.
+ */
+.grade-note {
+  color: var(--warn);
+  border-top: 0;
+  margin: 0.3rem 0 0;
+  padding-top: 0;
+}
+
+/*
  * Round 0's reserve warning. It is a note rather than a pill because it is a
  * paragraph, and it takes the warning colour because an account that cannot
  * appear is not a style preference.

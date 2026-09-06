@@ -879,13 +879,20 @@ function sectionAd(draft, revalidate, live) {
     // graded in. Both halves of that mattered: grading the unstripped draft
     // showed a landing page of 8 where the account got 4, and grading without
     // rivalNames hid a four-point trademark penalty.
-    const { written: grade, applied, checks } = gradeAsSubmitted(draft);
+    const { written: grade, applied, checks, notes } = gradeAsSubmitted(draft);
     const hired = !isDiy(draft.writerTier);
 
     gradePanel.replaceChildren();
     gradePanel.append(el('p', 'field-label', hired
       ? `How this ad grades, with ${writerTier(draft.writerTier).label.toLowerCase()} writing it`
       : `How this ad grades, as it stands — live from week ${CREATIVE_DIY_LIVE_ROUND}`));
+
+    // THE GRADER'S OWN SENTENCE, which nothing had ever read. It writes exactly
+    // why it marked an ad down — "does not fit Google's limits, capped at 4: no
+    // descriptions", or how many points naming a rival cost — and every screen
+    // threw it away. A player had to ask why their landing page read 4/10 when
+    // the answer had already been generated and discarded (I19).
+    for (const note of notes) gradePanel.append(el('p', 'note grade-note', note));
 
     for (const component of ['expectedCtr', 'adRelevance', 'landingPage']) {
       const box = el('div', 'grade-row');
@@ -926,8 +933,31 @@ function sectionAd(draft, revalidate, live) {
 // 11. The weekly split
 // ---------------------------------------------------------------------------
 
-function monthlyBudget(draft) {
-  return MONTHLY_BUDGET_PAISE + (CAPEX_ALLOCATION_PAISE - committed(draft));
+/**
+ * The month this form is dividing into four weeks.
+ *
+ * THREE TERMS, AND THE MIDDLE ONE WAS MISSING. The base month, plus whatever the
+ * writer did not cost, plus whatever capital is left uncommitted — 13.3 rolls both
+ * remainders into advertising money.
+ *
+ * `rerender` puts the writer card before this one deliberately, and its comment
+ * says why: *"whatever the writer did not cost rolls into the month this
+ * divides"*. The ordering existed for a dependency this function did not honour,
+ * so the writer card promised a ₹50,000 rollover and the card below it divided a
+ * month without it. Correct only for a retainer, where the rollover is zero,
+ * which is why it read as a plausible number.
+ *
+ * It is the month AFTER the rollovers arrive, not the ₹1,68,000 the account holds
+ * at this instant, because these four boxes are spent in rounds 1 to 4 and the
+ * capital lands at round 1. `tests/roundZero.test.js` pins it against the month
+ * the account reports once the week has run.
+ *
+ * @param {object} draft
+ * @returns {number} integer paise
+ */
+export function monthlyBudget(draft) {
+  const writerLeft = CREATIVE_ALLOCATION_PAISE - writerTier(draft.writerTier).pricePaise;
+  return MONTHLY_BUDGET_PAISE + writerLeft + (CAPEX_ALLOCATION_PAISE - committed(draft));
 }
 
 function evenSplit(total) {
