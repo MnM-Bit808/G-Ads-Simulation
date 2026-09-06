@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and one new mechanic is mid-build.** 1276 tests, all passing, 1 todo.
+**Every build-order step is done, and the location mechanic with them.** 1276 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -721,9 +721,13 @@ player gets a weekly bid adjustment per tier, shaped like dayparting.
                                         with a control that does not exist)
 ⏸ 5  agents/policies.js                 rivals target by their own affinity
    ── STOP AND MEASURE ──
-⏸ 7  setup.js                           rival adjustments, briefing gains returns
-⏸ 8  ui/                                targeting card, location report
-⏸ 9  calibration.test.js                re-run I1-I5, set the CALIBRATE tables
+✅ 7  setup.js                           the briefing knows where the searches
+                                        are, and that they come back more often
+                                        outside the metros
+✅ 8  ui/                                the briefing table, and the location card
+                                        with its bid control on the row
+✅ 9  calibration.test.js                run AHEAD of the interface, and it moved
+                                        the tables - see I3 below
 ```
 
 **THE TWO STOPS ARE THE POINT OF THE ORDER.**

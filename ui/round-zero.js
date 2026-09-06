@@ -223,6 +223,35 @@ function sectionBriefing(brief) {
   anchor.append(el('p', 'anchor-caveat', brief.workedAnchor.caveat));
   node.append(anchor);
 
+  // WHERE THE SEARCHES ARE (G4). Desk research, and the half that matters most is
+  // that the metros are the SMALLEST of the three - which is what makes "just
+  // advertise in the metros" a plan that runs out rather than a plan that wins.
+  //
+  // The share is given per price tier because that is the shape of the fact: a
+  // premium brand's customers and a value brand's are not in the same places. What
+  // is NOT given is what a click is worth in each, or which tier suits which
+  // position. That is the decision, and it is read from the location report.
+  const places = el('table', 'mini');
+  table(places,
+    ['Where', { label: 'Value', num: true }, { label: 'Mid', num: true },
+      { label: 'Premium', num: true }],
+    brief.locations.map((place) => {
+      const name = el('div');
+      name.append(el('div', null, place.label));
+      name.append(el('div', 'muted small', place.examples.slice(0, 3).join(', ')));
+      return {
+        cells: [
+          name,
+          `${Math.round(100 * place.shareOfSearches.value)}%`,
+          `${Math.round(100 * place.shareOfSearches.mid)}%`,
+          `${Math.round(100 * place.shareOfSearches.premium)}%`,
+        ],
+      };
+    }));
+  node.append(el('p', 'field-label', 'Where the searching happens'));
+  node.append(places);
+  node.append(el('p', 'note', brief.returnsVaryByLocation));
+
   const hints = el('ul', 'hints');
   for (const hint of Object.values(brief.hints)) hints.append(el('li', null, hint));
   node.append(el('p', 'field-label', 'What you are not being told'));

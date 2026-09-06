@@ -45,6 +45,7 @@ import {
   CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, RANK_BUDGET_MULTIPLIERS,
   PRICE_TIERS, PURPOSES, TOTAL_ROUNDS, QUERY_SET_RULES,
   CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
+  LOCATION_TIERS, LOCATION_VOLUME_BY_PRICE,
 } from './engine/constants.js';
 import { mulberry32, deriveSeed } from './engine/rng.js';
 import { allCells, cellKey, parseCell, businessFor, breakEvenCpcPaise } from './engine/positions.js';
@@ -52,6 +53,7 @@ import { assertValidQuerySet, homeCell } from './engine/querySet.js';
 import { validateWeeklySplit } from './engine/pacing.js';
 import { allocate, mulRate } from './engine/money.js';
 import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
+import { LOCATIONS } from './content/locations.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
 import { gradeAdOffline } from './agents/grader.js';
 import { RIVAL_CAST } from './agents/policies.js';
@@ -436,6 +438,34 @@ export function briefing(querySet) {
         + 'The searches you choose to compete for are worth appreciably more — '
         + 'roughly double — which is the entire reason choosing a position matters.',
     },
+
+    // WHERE THE SEARCHES ARE (G4). What a founder in this market would already
+    // know, and no more.
+    //
+    // The volume split is ordinary desk research and it is the half that matters
+    // most: the metros are the smallest of the three, which is what makes "just
+    // advertise in the metros" a plan that runs out rather than a plan that wins.
+    //
+    // THE RETURNS LINE IS STATED RATHER THAN WITHHELD, and that was a deliberate
+    // call. Cash on delivery outside the metros is not a trade secret - anybody
+    // selling apparel in India knows those parcels come back more often - so
+    // making the player discover it would be withholding something the character
+    // they are playing would have. What is NOT given is the size of the effect
+    // per tier, or which position should go where: that is the decision, and it
+    // is read from the location report the same way everything else here is.
+    locations: LOCATIONS.map((tier) => ({
+      id: tier.id,
+      label: tier.label,
+      examples: [...tier.examples],
+      note: tier.note,
+      shareOfSearches: Object.fromEntries(PRICE_TIERS.map((price) => [
+        price, LOCATION_VOLUME_BY_PRICE[price][LOCATION_TIERS.indexOf(tier.id)],
+      ])),
+    })),
+    returnsVaryByLocation: 'Cash on delivery is ordinary outside the metros, and '
+      + 'COD orders come back more often. The same click is worth less the '
+      + 'further out it is - not because fewer people buy, but because more of '
+      + 'what they buy comes back. How much is in your own location report.',
 
     rankingRule: {
       metric: 'cumulative gross profit across rounds 1-8, as reported at round 8',

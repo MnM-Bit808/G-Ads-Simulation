@@ -24,6 +24,7 @@ import { getPublicView } from '../engine/insights.js';
 import { briefing } from '../setup.js';
 import {
   renderDecisions, addNegative, blocksTerm, effectiveGrades, termsOutlook,
+  locationRows, locationOutlook, setLocation,
 } from './decisions.js';
 import { rankOf } from './ending.js';
 import { renderTrends } from './chart.js';
@@ -379,6 +380,69 @@ function renderTerms(root, game, ctx) {
   root.querySelector('[data-slot="terms-note"]').textContent = basis + why;
 }
 
+/**
+ * Where this account has advertised, and what each place actually paid.
+ *
+ * ORDERED BY WHAT A CLICK IS WORTH THERE, not by size, because the decision the
+ * card exists for is where the next rupee should go rather than where the last
+ * one went. Cost per click sits beside it so the comparison is a trade rather
+ * than a ranking: the metros are usually both the best and the dearest.
+ *
+ * The bid adjustment is on the row it belongs to. Google's own location
+ * targeting is a bid adjustment rather than a separate campaign, and putting the
+ * control next to the evidence is the whole reason this is one card instead of
+ * two.
+ */
+function renderPlaces(root, game, ctx) {
+  const rows = locationRows(game.draft, game.state.history, game.playerId);
+  const outlook = locationOutlook(rows);
+
+  table(
+    root.querySelector('[data-slot="places-table"]'),
+    ['Where', { label: 'Clicks', num: true }, { label: 'Avg CPC', num: true },
+      { label: 'Returned', num: true }, { label: 'Net per click', num: true },
+      { label: 'Your bid', num: true }, ''],
+    rows.map((row) => {
+      const name = el('div');
+      name.append(el('div', null, row.label));
+      name.append(el('div', 'muted small', row.examples.slice(0, 3).join(', ')));
+
+      const control = el('div', 'place-control');
+      for (const percent of [-100, -30, 0, 30, 100]) {
+        const chip = el('button', `chip small${row.adjustment === percent ? ' on' : ''}`);
+        chip.type = 'button';
+        chip.textContent = percent === 0 ? 'even' : `${percent > 0 ? '+' : ''}${percent}%`;
+        chip.title = percent <= -100
+          ? 'bid the minimum here, which is ₹1 and wins almost nothing'
+          : `bid ${percent === 0 ? 'the same as everywhere' : `${percent}% ${percent > 0 ? 'more' : 'less'}`} here`;
+        chip.addEventListener('click', () => {
+          setLocation(game.draft, rows.indexOf(row), percent);
+          // `refresh`, not `onChange`: staging a change has to redraw the
+          // "Next week" card as well as this one, or a location adjustment is
+          // the one decision in the form with no preview and no undo.
+          ctx.refresh();
+        });
+        control.append(chip);
+      }
+
+      return {
+        cells: [
+          name,
+          whole(row.clicks),
+          row.cpcPaise == null ? '—' : rupees(row.cpcPaise),
+          row.returnRate == null ? '—' : pct(row.returnRate, 1),
+          row.netPerClickPaise == null ? '—' : rupees(row.netPerClickPaise),
+          row.adjustment === 0 ? 'even' : `${row.adjustment > 0 ? '+' : ''}${row.adjustment}%`,
+          control,
+        ],
+        className: outlook.best && row.id === outlook.best.id ? 'best-place' : null,
+      };
+    }),
+  );
+
+  root.querySelector('[data-slot="places-note"]').textContent = outlook.note;
+}
+
 function renderInsights(root, game) {
   const own = game.insights[game.insights.length - 1]?.[game.playerId];
   const names = new Map(game.state.advertisers.map((a) => [a.id, a.name]));
@@ -530,6 +594,7 @@ export function renderDashboard(game, onDecisionChange) {
     },
     onChange: () => {
       renderTerms(root, game, ctx);
+      renderPlaces(root, game, ctx);
       onDecisionChange?.();
     },
   };
@@ -546,5 +611,6 @@ export function renderDashboard(game, onDecisionChange) {
 
   root.querySelector('[data-slot="decisions"]').replaceWith(renderDecisions(ctx));
   renderTerms(root, game, ctx);
+  renderPlaces(root, game, ctx);
   return root;
 }

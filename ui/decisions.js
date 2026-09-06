@@ -37,12 +37,13 @@ import { qualitySignalBase } from '../engine/quality.js';
 // Derived from the hour curves rather than declared, so it lives with them.
 import { HOURS_PER_DAY } from '../engine/querySet.js';
 import { featureAt, pageShape, capexChoices } from './landing-page.js';
+import { LOCATIONS } from '../content/locations.js';
 import {
   canReposition, isOneStep, allCells, parseCell, cellKey, landingPageBonus,
 } from '../engine/positions.js';
 import {
   LEARNING_ROUNDS, MAX_BID_MULTIPLE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
-  REPOSITION_COST_PAISE, ROUNDS_PER_MONTH,
+  REPOSITION_COST_PAISE, ROUNDS_PER_MONTH, LOCATION_TIERS,
   DAYPART_BLOCKS, MIN_HOUR_OBSERVATIONS, QUALITY_MIN_IMPRESSIONS, QUALITY_WINDOW_ROUNDS,
 } from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
@@ -180,6 +181,10 @@ export function createDraft(selfView, options = {}) {
     daypartAdjustments: [...(selfView.campaign?.daypartAdjustments
       ?? DAYPART_BLOCKS.map(() => 0))],
 
+    // G4's place level. The same kind of control, one per location tier.
+    locationAdjustments: [...(selfView.campaign?.locationAdjustments
+      ?? LOCATION_TIERS.map(() => 0))],
+
     base: {
       negatives: structuredClone(negatives),
       keywords: structuredClone(keywords),
@@ -189,6 +194,8 @@ export function createDraft(selfView, options = {}) {
       weeklySplitPaise: [...(selfView.campaign?.weeklySplitPaise ?? [])],
       daypartAdjustments: [...(selfView.campaign?.daypartAdjustments
         ?? DAYPART_BLOCKS.map(() => 0))],
+      locationAdjustments: [...(selfView.campaign?.locationAdjustments
+        ?? LOCATION_TIERS.map(() => 0))],
     },
   };
 }
@@ -226,6 +233,9 @@ export function toDecision(draft) {
   }
   if (!sameSplit(draft.weeklySplitPaise, draft.base.weeklySplitPaise)) {
     campaign.weeklySplitPaise = [...draft.weeklySplitPaise];
+  }
+  if (!sameSplit(draft.locationAdjustments, draft.base.locationAdjustments)) {
+    campaign.locationAdjustments = [...draft.locationAdjustments];
   }
   if (!sameSplit(draft.daypartAdjustments, draft.base.daypartAdjustments)) {
     campaign.daypartAdjustments = [...draft.daypartAdjustments];
@@ -308,6 +318,20 @@ export function changes(draft) {
         ? 'the week about to run'
         : `week ${index + 1} of this month, and the month resets the plan after that`,
       undo: () => setWeekBudget(draft, index, before),
+    });
+  });
+
+  draft.locationAdjustments.forEach((percent, index) => {
+    const before = draft.base.locationAdjustments[index];
+    if (percent === before) return;
+    const place = LOCATIONS[index];
+    rows.push({
+      kind: 'location',
+      label: `${place.label} bid ${signed(before)} → ${signed(percent)}`,
+      detail: percent <= -100
+        ? `you will bid the minimum in ${place.label.toLowerCase()}, which is a bid of ₹1`
+        : `${place.examples.slice(0, 3).join(', ')} and everywhere like them`,
+      undo: () => setLocation(draft, index, before),
     });
   });
 
@@ -697,6 +721,141 @@ const DAYPART_RANGE = [-100, 900];
  * @param {number} percent -100..900
  * @returns {{ok: boolean, reason?: string}}
  */
+/**
+ * Adjust the bid for one part of the country.
+ *
+ * The same shape as `setDaypart`, and the same range, because it is the same kind
+ * of control: Google's own location targeting is a bid adjustment rather than a
+ * separate campaign.
+ *
+ * @param {object} draft
+ * @param {number} index into LOCATION_TIERS
+ * @param {number} percent -100..900
+ * @returns {{ok: boolean, reason?: string}}
+ */
+export function setLocation(draft, index, percent) {
+  if (!Number.isInteger(index) || index < 0 || index >= LOCATION_TIERS.length) {
+    return { ok: false, reason: `no location tier ${String(index)}` };
+  }
+  const [lo, hi] = DAYPART_RANGE;
+  if (!Number.isInteger(percent) || percent < lo || percent > hi) {
+    return { ok: false, reason: `an adjustment is a whole percentage from ${lo} to ${hi}` };
+  }
+  const next = [...draft.locationAdjustments];
+  next[index] = percent;
+  draft.locationAdjustments = next;
+  return { ok: true };
+}
+
+/**
+ * Each part of the country, with what this account has actually done there.
+ *
+ * THE DATA IS THE PLAYER'S OWN REPORT, accumulated over every week played, the
+ * same way the search terms table is. Nothing here reads the model: the volume
+ * table, the return multipliers and the basket multipliers are all engine
+ * constants and `tests/ui.test.js` fails if this file names any of them.
+ *
+ * WHAT IT SHOWS IS NET OF RETURNS, and that is the whole reason the card exists.
+ * Clicks and cost alone would rank the places by how much traffic each has;
+ * revenue alone would rank them by basket size and put the metros on top. Only
+ * net of returns says which place is actually paying for itself - and returns
+ * arrive late, so this table rewrites itself for several weeks after a decision
+ * is made on it.
+ *
+ * @param {object} draft
+ * @param {object[]} history every report this account has, revised
+ * @param {string} playerId
+ * @returns {Array<object>} one row per location, in engine order
+ */
+export function locationRows(draft, history, playerId) {
+  const totals = LOCATION_TIERS.map(() => ({
+    impressions: 0, clicks: 0, costPaise: 0, conversions: 0,
+    grossRevenuePaise: 0, returned: 0, returnedRevenuePaise: 0, eligibleAuctions: 0,
+  }));
+
+  for (const report of history ?? []) {
+    const rows = report.byAdvertiser?.[playerId]?.breakdown?.byLocation;
+    if (!rows) continue;
+    for (const [tier, row] of Object.entries(rows)) {
+      const at = totals[tier];
+      if (!at) continue;
+      at.impressions += row.impressions ?? 0;
+      at.clicks += row.clicks ?? 0;
+      at.costPaise += row.costPaise ?? 0;
+      at.conversions += row.conversions ?? 0;
+      at.grossRevenuePaise += row.grossRevenuePaise ?? 0;
+      at.returned += row.returned ?? 0;
+      at.returnedRevenuePaise += row.returnedRevenuePaise ?? 0;
+      at.eligibleAuctions += row.eligibleAuctions ?? 0;
+    }
+  }
+
+  return LOCATION_TIERS.map((id, index) => {
+    const at = totals[index];
+    const place = LOCATIONS[index];
+    const netRevenuePaise = at.grossRevenuePaise - at.returnedRevenuePaise;
+    return {
+      id,
+      label: place.label,
+      examples: [...place.examples],
+      adjustment: draft.locationAdjustments[index] ?? 0,
+      ...at,
+      netRevenuePaise,
+      // Per click, because that is the only form in which three places of very
+      // different sizes can be compared at all.
+      netPerClickPaise: at.clicks > 0 ? netRevenuePaise / at.clicks : null,
+      cpcPaise: at.clicks > 0 ? at.costPaise / at.clicks : null,
+      returnRate: at.conversions > 0 ? at.returned / at.conversions : null,
+      impressionShare: at.eligibleAuctions > 0 ? at.impressions / at.eligibleAuctions : null,
+    };
+  });
+}
+
+/**
+ * Which places are paying for themselves, said in one sentence.
+ *
+ * Same principle as `negativesOutlook` and `termsOutlook`: a live read of this
+ * account beats a paragraph the player has to apply to themselves. It says where
+ * to look and never what to do - whether to leave a place depends on what else
+ * the money could buy, and this card cannot see that.
+ *
+ * @param {Array<object>} rows from locationRows
+ * @returns {{played: boolean, best: object|null, worst: object|null, note: string}}
+ */
+export function locationOutlook(rows) {
+  const traded = rows.filter((r) => r.clicks >= 1 && r.netPerClickPaise !== null);
+  if (traded.length < 2) {
+    return {
+      played: traded.length > 0,
+      best: null,
+      worst: null,
+      note: 'Not enough has run yet to compare places. This table needs a week or '
+        + 'two of clicks, and the returns behind it take longer still.',
+    };
+  }
+
+  const sorted = [...traded].sort((a, b) => b.netPerClickPaise - a.netPerClickPaise);
+  const best = sorted[0];
+  const worst = sorted[sorted.length - 1];
+  const settling = rows.some((r) => r.conversions > 0 && r.returned === 0);
+
+  const gap = worst.netPerClickPaise > 0
+    ? best.netPerClickPaise / worst.netPerClickPaise
+    : null;
+
+  let note = `A click is worth ${gap ? `${gap.toFixed(1)} times` : 'more'} as much in `
+    + `${best.label.toLowerCase()} as in ${worst.label.toLowerCase()}, after returns. `
+    + `You are paying ${rupees(best.cpcPaise)} for one there against `
+    + `${rupees(worst.cpcPaise)} here.`;
+
+  if (settling) {
+    note += ' Some of these weeks have conversions that have not been returned yet, '
+      + 'so the worse places will look better than they are for a while longer.';
+  }
+
+  return { played: true, best, worst, note };
+}
+
 export function setDaypart(draft, index, percent) {
   if (!Number.isInteger(index) || index < 0 || index >= DAYPART_BLOCKS.length) {
     return { ok: false, reason: `no daypart block ${String(index)}` };

@@ -226,6 +226,14 @@ td + td, th + th { padding-left: 0.9rem; }
 .burn .legend { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.78rem; margin-top: 0.35rem; }
 
 /*
+ * The location card. The bid adjustment sits on the row it belongs to, because
+ * the control and the evidence for using it are the same object.
+ */
+.place-control { display: flex; gap: 0.25rem; justify-content: flex-end; }
+.small { font-size: 0.7rem; }
+tr.best-place td { background: rgba(126, 198, 153, 0.06); }
+
+/*
  * A search's weekly volume as a figure and a bar. 151 rows of digits cannot show
  * how steeply the list falls away, which is exactly what the card's own warning
  * about planner order is about.
