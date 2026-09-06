@@ -1342,9 +1342,37 @@ Running everywhere, value's realised return rate comes back to **30.0%**, mid's 
 an approximation — conversions follow quality and bids too — but it holds the
 category rate to within a point and does not depend on who is winning.
 
-**Steps 1 and 2 of nine are done**: the tables and names, and `engine/locations.js`
-— the demand-side arithmetic, validated and mutation-tested. The auction does not
-read it yet. `HANDOVER.md` carries the remaining order and the two points where it
+**ONE LADDER, APPORTIONED, AND THE PERFORMANCE STOP IS WHY.** Three locations are
+three genuinely separate auctions and the honest implementation resolves three.
+That was written first and measured:
+
+| | naive three | apportioned | budget |
+|---|---|---|---|
+| expected | 531ms | **169ms** | 400ms |
+| sampled + counterfactual | 4,155ms | **1,282ms** | 1,500ms spec, 2,200ms test |
+
+Three quarters of that work is redundant **today**, because nothing yet makes a bid
+depend on where the search is: the entrants, their bids and their quality are
+identical in all three, so the ladder is too. Everything that differs — impressions,
+clicks, cost, baskets, returns — is linear in volume, so splitting the RESULT is
+exact rather than approximate.
+
+**Step 6 breaks that, and there is a tripwire rather than a comment.** The moment a
+per-location bid adjustment exists the ladders genuinely differ, and the
+apportionment stops being merely approximate and becomes wrong — every advertiser
+ranked as though it bid the same everywhere. `round.test.js` fails if any advertiser
+carries `locationAdjustments` or if `round.js` so much as names the field, with a
+message telling whoever added it to restore the per-tier resolution (keeping a fast
+path for the common case where every adjustment is neutral).
+
+**The settlement does not triple either.** The basket and the return rate are per
+location, so both accumulate as weighted totals in one bucket per query and are
+averaged at queue time. One bucket per query-and-tier would have tripled the
+settlement to save nothing.
+
+**Steps 1, 2 and 3 of nine are done**: the tables and names, and `engine/locations.js`
+— the demand-side arithmetic, validated and mutation-tested — and the auction now
+reads it. `HANDOVER.md` carries the remaining order and the two points where it
 stops to measure.
 
 ---

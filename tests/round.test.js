@@ -1,5 +1,9 @@
 import { describe, test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { runRound } from '../engine/round.js';
+import { LOCATION_TIERS } from '../engine/constants.js';
+import { locationSharesFor } from '../engine/locations.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
 import {
   ATTRIBUTION_LAG_DISTRIBUTION, MAX_SLOTS, ROUNDS_PER_MONTH,
@@ -712,5 +716,130 @@ describe('the market context', () => {
     expect(m.totalMarketSpendPaise).toBe(summed);
     expect(m.activeAdvertisers).toBe(STATE.advertisers.length);
     expect(m.medianCpcPaise).toBeGreaterThan(0);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// Where the searches happened (G4, step 3)
+// ---------------------------------------------------------------------------
+
+describe('a round knows where its traffic was', () => {
+  const rows = () => Object.entries(EXPECTED.raw.byAdvertiser);
+
+  test('every advertiser gets a location breakdown', () => {
+    for (const [id, row] of rows()) {
+      expect(row.byLocation, id).toBeInstanceOf(Map);
+    }
+  });
+
+  test('the split loses nothing: it sums back to the totals', () => {
+    // The apportionment is exact rather than approximate, because everything it
+    // divides is linear in volume. If this drifts, traffic is being created or
+    // destroyed somewhere between the ladder and the report.
+    for (const [id, row] of rows()) {
+      if (row.impressions <= 0) continue;
+      let impressions = 0;
+      let clicks = 0;
+      let cost = 0;
+      for (const bucket of row.byLocation.values()) {
+        impressions += bucket.impressions;
+        clicks += bucket.clicks;
+        cost += bucket.costPaise;
+      }
+      expect(impressions, `${id} impressions`).toBeCloseTo(row.impressions, 6);
+      expect(clicks, `${id} clicks`).toBeCloseTo(row.clicks, 6);
+      expect(cost, `${id} cost`).toBeCloseTo(row.costPaise, 6);
+    }
+  });
+
+  test('and it is keyed by tier index, with nothing outside the vocabulary', () => {
+    for (const [id, row] of rows()) {
+      for (const key of row.byLocation.keys()) {
+        expect(Number.isInteger(key), `${id} key ${key}`).toBe(true);
+        expect(key, `${id} key ${key}`).toBeGreaterThanOrEqual(0);
+        expect(key, `${id} key ${key}`).toBeLessThan(LOCATION_TIERS.length);
+      }
+    }
+  });
+
+  test('a premium advertiser sees more of its traffic in the metros than a value one', () => {
+    // The correlation the whole mechanic rests on, read off a played round
+    // rather than off the table it came from.
+    const metroShare = (id) => {
+      const row = EXPECTED.raw.byAdvertiser[id];
+      const total = [...row.byLocation.values()].reduce((a, b) => a + b.impressions, 0);
+      return total > 0 ? (row.byLocation.get(0)?.impressions ?? 0) / total : null;
+    };
+    const byPosition = {};
+    for (const advertiser of STATE.advertisers) {
+      const share = metroShare(advertiser.id);
+      if (share === null) continue;
+      (byPosition[advertiser.position.price] ??= []).push(share);
+    }
+    const mean = (xs) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    expect(byPosition.premium?.length, 'no premium advertiser traded').toBeGreaterThan(0);
+    expect(byPosition.value?.length, 'no value advertiser traded').toBeGreaterThan(0);
+    expect(mean(byPosition.premium)).toBeGreaterThan(mean(byPosition.value));
+  });
+
+  test('the mix matches the query set the advertiser actually bought', () => {
+    // Not just "premium is more metro", but that each advertiser's own mix is
+    // the volume-weighted mix of the queries it won impressions on.
+    const row = EXPECTED.raw.byAdvertiser[PLAYER_ID];
+    const total = [...row.byLocation.values()].reduce((a, b) => a + b.impressions, 0);
+    if (total <= 0) return;
+    const byId = new Map(STATE.querySet.queries.map((q) => [q.id, q]));
+    const expectedMix = new Array(LOCATION_TIERS.length).fill(0);
+    let weight = 0;
+    for (const [queryId, bucket] of row.byQuery) {
+      const query = byId.get(queryId);
+      if (!query) continue;
+      const shares = locationSharesFor(query);
+      weight += bucket.impressions;
+      for (let t = 0; t < shares.length; t++) expectedMix[t] += bucket.impressions * shares[t];
+    }
+    for (let t = 0; t < expectedMix.length; t++) {
+      const got = (row.byLocation.get(t)?.impressions ?? 0) / total;
+      expect(got, `tier ${t}`).toBeCloseTo(expectedMix[t] / weight, 6);
+    }
+  });
+});
+
+describe('the assumption one ladder rests on', () => {
+  /**
+   * THIS IS A TRIPWIRE FOR STEP 6, and it is the reason the round is still
+   * inside its performance budget.
+   *
+   * Three locations are three genuinely separate auctions and the honest
+   * implementation resolves three. That was written first and measured at 531ms
+   * against a 400ms budget, and 4,155ms against 1,500ms sampled. Three quarters
+   * of that work is redundant TODAY because nothing makes a bid depend on where
+   * the search is - so the ladder is identical in all three and everything that
+   * differs is linear in volume, which makes splitting the RESULT exact.
+   *
+   * The moment a per-location bid adjustment exists that stops being true, and
+   * the apportionment silently becomes wrong rather than merely approximate:
+   * every advertiser would be ranked as though it had bid the same everywhere.
+   * So this fails the moment the field appears, and whoever adds it has to come
+   * back here and restore the per-tier resolution - with a fast path for the
+   * common case where every advertiser's adjustments are neutral.
+   */
+  test('no advertiser can yet bid differently by location', () => {
+    for (const advertiser of STATE.advertisers) {
+      expect(advertiser.campaign.locationAdjustments, advertiser.id).toBeUndefined();
+    }
+  });
+
+  test('and the round does not read such a field', () => {
+    const source = readFileSync(
+      fileURLToPath(new URL('../engine/round.js', import.meta.url)), 'utf8',
+    );
+    expect(
+      source.includes('locationAdjustments'),
+      'round.js reads a per-location bid adjustment while still resolving one '
+      + 'ladder for all three - the apportionment is no longer exact, and the '
+      + 'auction has to be resolved per tier again',
+    ).toBe(false);
   });
 });

@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and one new mechanic is mid-build.** 1255 tests, all passing, 1 todo.
+**Every build-order step is done, and one new mechanic is mid-build.** 1262 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -713,8 +713,8 @@ player gets a weekly bid adjustment per tier, shaped like dayparting.
 ✅ 1  constants + content/locations.js   the tables, the names, their tests
 ✅ 2  engine/locations.js                demand-side arithmetic, validated and
                                         mutation-tested
-⏸ 3  engine/round.js                    the auction gains its third dimension
-   ── STOP: npm run test:perf ──
+✅ 3  engine/round.js                    the auction gains its third dimension
+   ✅ STOP: npm run test:perf — fired, and the fix is load-bearing
 ⏸ 4  engine/report.js                   byLocation, and share per targeted tier
 ⏸ 5  agents/policies.js                 rivals target by their own affinity
    ── STOP AND MEASURE ──
@@ -758,6 +758,20 @@ screen is built against them is the whole reason the UI is step 8.
 - `locationSharesFor` hands back **shared frozen arrays** rather than copies,
   because it is on the hot path — and there is a test that they cannot be written
   through.
+
+**WHAT THE PERFORMANCE STOP FOUND, and it is the reason the order has stops in
+it.** Resolving three auctions per query-hour — the honest implementation — came in
+at **531ms against a 400ms budget** and **4,155ms against 1,500ms** sampled. Three
+quarters of that is redundant today, because nothing yet makes a bid depend on
+location, so the ladder is identical in all three and everything that differs is
+linear in volume. One ladder, apportioned, brings it to **169ms** and **1,282ms**.
+
+**Step 6 invalidates that, and there is a tripwire rather than a comment.**
+`round.test.js` fails the moment any advertiser carries `locationAdjustments` or
+`round.js` names the field — because at that point the ladders genuinely differ and
+the apportionment is not approximate but wrong. Whoever adds the control has to
+restore per-tier resolution, keeping a fast path for the common case where every
+adjustment is neutral.
 
 **And the defect step 3 found in step 2, before it could reach the auction:** the
 multiplier tables were about to be applied raw, and their volume-weighted mean is

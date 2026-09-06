@@ -34,6 +34,7 @@
 import {
   ADVERTISER_COUNT, ROUNDS_PER_MONTH, POSITION_CTR_MULTIPLIERS, TOP_SLOTS,
   AUCTIONS_PER_QUERY_HOUR, MAX_SLOTS, ATTRIBUTION_LAG_DISTRIBUTION,
+  LOCATION_TIERS, RETURN_RATE_CLAMP_MAX,
   REPOSITION_COST_PAISE,
 } from './constants.js';
 import { assertPaise, mulRate, allocate } from './money.js';
@@ -42,6 +43,7 @@ import { searches, DAYS_PER_WEEK, HOURS_PER_DAY } from './querySet.js';
 import { isBlocked, findMatches, selectAdGroup, normalise } from './matching.js';
 import { qualitySignalBase, applyHourAndNoise } from './quality.js';
 import { businessFor, landingPageBonus } from './positions.js';
+import { locationSharesFor, locationEffects } from './locations.js';
 import { resolveAuction } from './auction.js';
 import { estimatedConvRate, effectiveBidPaise } from './strategies.js';
 import {
@@ -118,6 +120,15 @@ export function runRound(gameState, options = {}) {
   const auctionsPerHour = AUCTIONS_PER_QUERY_HOUR[mode];
   const entrants = [];
 
+  // WHERE THE SEARCHES ARE (G4). Precomputed per query rather than per auction:
+  // the shares depend only on the query's home cell, so this is 151 lookups
+  // instead of one per resolution. `effects` is normalised against this set, so
+  // the market keeps the return rate and basket size F8 documents - see
+  // locations.js for what applying the raw tables would have cost.
+  const shares = queries.map((query) => locationSharesFor(query));
+  const effects = locationEffects(querySet);
+  const tiers = LOCATION_TIERS.length;
+
   // --- the loop -------------------------------------------------------------
   for (let day = 0; day < DAYS_PER_WEEK; day++) {
     const dayTarget = advertisers.map((a, i) => dailyTargetPaise(
@@ -168,10 +179,29 @@ export function runRound(gameState, options = {}) {
           }
 
           if (entrants.length === 0) continue;
+          // ONE LADDER, APPORTIONED ACROSS THE COUNTRY, and the reason is worth
+          // reading before anyone changes it.
+          //
+          // Three locations are three genuinely separate auctions, and the
+          // honest implementation resolves three. That was written first and
+          // measured: 531ms against a 400ms budget in expected mode and 4,155ms
+          // against 1,500ms sampled. Three quarters of that work is provably
+          // redundant TODAY, because nothing yet makes a bid depend on where the
+          // search is - the entrants, their bids and their quality are identical
+          // in all three, so the ladder is too. Everything that differs is
+          // linear in volume, so splitting the RESULT is exact rather than an
+          // approximation.
+          //
+          // STEP 6 BREAKS THIS. The moment a per-location bid adjustment exists,
+          // the ladders genuinely differ and this has to go back to resolving
+          // per tier - with a fast path for the common case where every
+          // advertiser's adjustments are neutral. The assumption is asserted in
+          // round.test.js rather than left in a comment, so it fails loudly.
           const { ladder } = resolveAuction(entrants);
           recordAuction({
             ladder, entrants, acc, pairwise, convAccum,
             advertisers, business, query, hour,
+            shares: shares[q], effects, tiers,
             budgets, perAdvertiserRng, mode,
           });
         }
@@ -185,7 +215,7 @@ export function runRound(gameState, options = {}) {
 
   // --- settle ---------------------------------------------------------------
   const settled = settleRound({
-    advertisers, business, acc, convAccum, queries, round, perAdvertiserRng, mode,
+    advertisers, business, acc, convAccum, round, perAdvertiserRng, mode,
   });
 
   const raw = {
@@ -353,7 +383,8 @@ function buildBudgets(advertisers, round) {
 
 function recordAuction({
   ladder, entrants, acc, pairwise, convAccum,
-  advertisers, business, query, hour, budgets, perAdvertiserRng, mode,
+  advertisers, business, query, hour, shares, effects, tiers,
+  budgets, perAdvertiserRng, mode,
 }) {
   const byId = new Map(entrants.map((e) => [e.id, e]));
   const shown = [];
@@ -386,24 +417,49 @@ function recordAuction({
 
     bump(a.byKeyword, e._plan.keyword.id, impressions, clicks, cost);
     bump(a.byQuery, query.id, impressions, clicks, cost);
+    // Where this query's traffic actually was. Everything above is linear in
+    // volume, so the split is exact.
+    for (let t = 0; t < tiers; t++) {
+      const share = shares[t];
+      if (share > 0) bump(a.byLocation, t, impressions * share, clicks * share, cost * share);
+    }
 
     // Conversions accumulate per advertiser-query and are queued once at the
     // end of the round: 1,350 queue calls instead of 226,800.
     if (clicks > 0) {
+      // NOT touched by location, deliberately. Conversion already carries query
+      // affinity, PURPOSE_MODIFIERS and the hourly curve, and F10 and F11 are
+      // both records of what two mechanisms pushing one number costs. Where you
+      // are changes the basket and the odds it comes back, not the odds of a sale.
       const convRate = effectiveConvRate({
         business: business[i], query, position: advertisers[i].position,
         advertiserId: advertisers[i].id, hour,
       });
       if (convRate > 0) {
-        const value = sampleOrderValuePaise(business[i], query, perAdvertiserRng[i], mode);
-        const bucket = convAccum[i].get(query.id) ?? { count: 0, valuePaise: 0 };
-        bucket.count += clicks * convRate;
-        bucket.valuePaise += clicks * convRate * value;
+        const base = sampleOrderValuePaise(business[i], query, perAdvertiserRng[i], mode);
+        const queryReturn = 1 - retentionRate(business[i], query);
+        const converted = clicks * convRate;
+        const bucket = convAccum[i].get(query.id)
+          ?? { count: 0, valuePaise: 0, returnWeighted: 0 };
+        bucket.count += converted;
+        // The basket and the return rate are per LOCATION as well as per
+        // position and query, so both are accumulated as weighted totals and
+        // averaged at queue time. One bucket per query rather than one per
+        // query-and-tier is what stops the settlement tripling too.
+        for (let t = 0; t < tiers; t++) {
+          const share = shares[t];
+          if (share <= 0) continue;
+          const here = converted * share;
+          bucket.valuePaise += here * base * effects.aovMultiplier[t];
+          bucket.returnWeighted += here * Math.min(
+            RETURN_RATE_CLAMP_MAX, queryReturn * effects.returnMultiplier[t],
+          );
+        }
         convAccum[i].set(query.id, bucket);
         // Kept separately from the money buckets, which are per query because
         // order value and return rate are. This one is per hour and counts
         // only, which is all the hour-of-day history needs.
-        a.hourlyConv[hour] += clicks * convRate;
+        a.hourlyConv[hour] += converted;
       }
     }
 
@@ -499,20 +555,20 @@ function recordQualityRows(acc, shown) {
 // Settlement
 // ---------------------------------------------------------------------------
 
-function settleRound({ advertisers, business, acc, convAccum, queries, round, perAdvertiserRng, mode }) {
-  const queryById = new Map(queries.map((q) => [q.id, q]));
-
+function settleRound({ advertisers, business, acc, convAccum, round, perAdvertiserRng, mode }) {
   return advertisers.map((advertiser, i) => {
     // Queue this round's conversions behind the attribution lag.
     const queued = [];
     for (const [queryId, bucket] of convAccum[i]) {
       if (bucket.count <= 0) continue;
-      const query = queryById.get(queryId);
       queued.push(...queueConversions({
         clicks: bucket.count,
         convRate: 1,
         orderValuePaise: Math.round(bucket.valuePaise / bucket.count),
-        returnRate: 1 - retentionRate(business[i], query),
+        // The cohort's own mean, weighted by where its conversions happened. A
+        // single position-and-query figure would have thrown the location away
+        // at exactly the point it starts costing money.
+        returnRate: bucket.returnWeighted / bucket.count,
         round,
         rng: perAdvertiserRng[i],
         mode,
@@ -917,6 +973,9 @@ function freshAccumulator() {
     spentTodayPaise: 0,
     byKeyword: new Map(),
     byQuery: new Map(),
+    // Keyed by tier index. `report.js` turns it into something a person reads;
+    // accumulating it here is free, and there is nowhere else it could happen.
+    byLocation: new Map(),
     qualityRows: new Map(),
     warnings: new Set(),
   };
