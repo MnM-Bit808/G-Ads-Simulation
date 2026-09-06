@@ -139,6 +139,92 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
  * @param {object} view from getPublicView
  * @returns {object|null} a decision, or null to change nothing
  */
+// ---------------------------------------------------------------------------
+// Where to bid (DECISIONS G4)
+// ---------------------------------------------------------------------------
+
+/**
+ * How hard a rival leans on what its location report says.
+ *
+ * A percentage per step of relative value: a tier worth twice the account's
+ * average earns +LOCATION_LEAN, one worth nothing earns -LOCATION_LEAN. Modest,
+ * because a rival that swung to -100% on a thin week would take itself out of a
+ * third of the market on noise.
+ */
+const LOCATION_LEAN = 200;
+
+/** `spender` leans hardest, on the same evidence. Impatience, not insight. */
+const SPENDER_LOCATION_LEAN = 320;
+
+/** `cautious` leans least, and is never well placed as a result. */
+const CAUTIOUS_LOCATION_LEAN = 100;
+
+/** Ignore a tier until it has enough clicks to be saying anything. */
+const LOCATION_MIN_CLICKS = 40;
+
+/**
+ * Where this advertiser should bid more, and where less.
+ *
+ * IT LEARNS THIS, IT IS NOT TOLD IT. `policies.js` imports nothing from
+ * `engine/` - that is what makes its guard absolute - so a policy cannot read
+ * the table that says where its buyers are. It has only its own report, which
+ * is exactly what the player has. Anything a policy knows, it was handed.
+ *
+ * WHAT IT READS IS NET OF RETURNS, and that is the whole reason this is worth
+ * doing. Gross revenue per click is highest wherever baskets are biggest, so a
+ * policy reading gross would pile into the metros and stay there. Returns
+ * resolve late - a return window on top of an attribution lag - so a rival
+ * leans toward the metros first and then discovers, several rounds in, what the
+ * towns actually cost it. That lag IS the lesson, and a rival experiences it on
+ * the same terms the player does.
+ *
+ * Tiers with too little traffic to mean anything are left alone rather than
+ * guessed at, which keeps a rival from abandoning a location on one thin week.
+ *
+ * @param {object} self own view
+ * @param {object|null} report own report, or null in round 1
+ * @param {number} lean how hard this character leans, as a percentage
+ * @returns {number[]|null} adjustments, or null to leave them alone
+ */
+export function locationTilt(self, report, lean = LOCATION_LEAN, { net = true } = {}) {
+  const current = self.campaign?.locationAdjustments;
+  if (!Array.isArray(current)) return null;
+
+  const rows = report?.breakdown?.byLocation;
+  if (!rows) return null;
+
+  // Net of returns, per click. The two things location changes are the basket
+  // and the return rate, so this is the only figure that sees both.
+  const value = current.map((_, tier) => {
+    const row = rows[tier];
+    if (!row || row.clicks < LOCATION_MIN_CLICKS) return null;
+    // `net: false` is not a bug, it is a character. `grossOptimiser` manages to
+    // gross profit and therefore reads gross revenue here too - so it sees the
+    // metros' bigger baskets, leans into them, and never learns what the towns
+    // cost it, because the returns it is ignoring are the entire difference.
+    // That is section 14's missing multiplication, applied to geography.
+    const returned = net ? (row.returnedRevenuePaise ?? 0) : 0;
+    return (row.grossRevenuePaise - returned) / row.clicks;
+  });
+
+  const known = value.filter((v) => v !== null && Number.isFinite(v));
+  if (known.length < 2) return null;
+  const mean = known.reduce((a, b) => a + b, 0) / known.length;
+  if (!(mean > 0)) return null;
+
+  return value.map((v, tier) => {
+    if (v === null || !Number.isFinite(v)) return current[tier] ?? 0;
+    // Relative to this account's own average, so a premium advertiser and a
+    // value one are each judging against their own economics rather than
+    // against a number neither of them can see.
+    const relative = v / mean - 1;
+    const move = Math.round(relative * lean);
+    // Bounded by this character's own lean, so a timid rival cannot be swung
+    // hard by one violent week.
+    return clamp(move, -lean, lean);
+  });
+}
+
 export function disciplined(self, report, view) {
   const affordable = affordableCpcPaise(self, report);
 
@@ -156,8 +242,18 @@ export function disciplined(self, report, view) {
     ...wastefulQueries(report, view, self.campaign.negatives ?? []),
   ];
 
+  // Where, as well as how much. A disciplined advertiser reads its own location
+  // report the way it reads its search terms report - and it is reading net of
+  // returns, so it leans toward the metros first and corrects once the towns
+  // start sending things back.
+  const locationAdjustments = locationTilt(self, report);
+
   return {
-    campaign: { strategy: 'manual', negatives },
+    campaign: {
+      strategy: 'manual',
+      negatives,
+      ...(locationAdjustments ? { locationAdjustments } : {}),
+    },
     adGroups: withBids(self.adGroups, (keyword) => {
       const target = Math.round(affordable * TARGET_MARGIN_OF_SAFETY);
       const moved = Math.round(keyword.bidPaise * move);
@@ -289,9 +385,17 @@ function wastefulQueries(report, view, existing) {
  */
 export function spender(self, report) {
   const affordable = affordableCpcPaise(self, report);
+  // Leans harder than anyone on the same reading everybody else gets. It is not
+  // better informed, it is less patient.
+  const locationAdjustments = locationTilt(self, report, SPENDER_LOCATION_LEAN);
+
   return {
     // Negatives stay empty, every round. That is the whole character.
-    campaign: { strategy: 'maxClicks', negatives: [] },
+    campaign: {
+      strategy: 'maxClicks',
+      negatives: [],
+      ...(locationAdjustments ? { locationAdjustments } : {}),
+    },
     adGroups: self.adGroups.map((group) => ({
       ...group,
       keywords: group.keywords.map((keyword) => ({
@@ -336,12 +440,20 @@ export function cautious(self, report) {
     };
   }
 
+  // Half the lean of anybody else. Being frightened of a wrong move is this
+  // account's whole character, and it costs it here the same way it costs it on
+  // price: it is never badly placed and never well placed either.
+  const locationAdjustments = locationTilt(self, report, CAUTIOUS_LOCATION_LEAN);
+
   // It will creep upward, but only on overwhelming evidence, and never past
   // half of what it can afford.
   const desperate = report.share.lostToRank > CAUTIOUS_RANK_PANIC;
   const ceiling = Math.round(affordable * CAUTIOUS_CEILING);
   return {
-    campaign: { strategy: 'manual' },
+    campaign: {
+      strategy: 'manual',
+      ...(locationAdjustments ? { locationAdjustments } : {}),
+    },
     adGroups: withBids(self.adGroups, (keyword) => (desperate
       ? Math.min(Math.round(keyword.bidPaise * (1 + CAUTIOUS_CREEP)), ceiling)
       : target)),
@@ -451,8 +563,18 @@ export function grossOptimiser(self, report, view) {
     ]
     : (self.campaign.negatives ?? []);
 
+  // Reads GROSS revenue per click, like everything else it manages to. So it
+  // sees the metros' bigger baskets, leans into them, and never discovers what
+  // the towns cost it - because the returns it is ignoring are the whole
+  // difference. Section 14's missing multiplication, applied to geography.
+  const locationAdjustments = locationTilt(self, report, LOCATION_LEAN, { net: false });
+
   return {
-    campaign: { strategy: 'manual', negatives },
+    campaign: {
+      strategy: 'manual',
+      negatives,
+      ...(locationAdjustments ? { locationAdjustments } : {}),
+    },
     adGroups: withBids(self.adGroups, () => target),
   };
 }
