@@ -1714,7 +1714,9 @@ function splitCard(ctx, refresh) {
   const draft = ctx.draft;
   if (draft.weeklySplitPaise.length === 0) return null;
 
-  const node = card("This month's budget", "how the month is divided across its weeks");
+  // Half a row: measured 247px wide against 287px at half, and it pairs with
+  // the hours card, which is the other half of pacing the same month.
+  const node = card("This month's budget", "how the month is divided across its weeks", 'span-2');
 
   if (draft.weekIndex === 0 && draft.round > 1) {
     node.append(el('p', 'learning-now',
@@ -1819,7 +1821,9 @@ function outlookBody(ctx) {
  */
 function daypartCard(ctx, refresh) {
   const draft = ctx.draft;
-  const node = card('Hours of the day', 'when you bid more, and when you bid less');
+  // 426px wide against 463px at half. The six blocks stack rather than reflow,
+  // so the width was never doing much for it.
+  const node = card('Hours of the day', 'when you bid more, and when you bid less', 'span-2');
   const rows = daypartRows(draft);
   const overall = observedRateOverall(draft);
   const best = Math.max(...rows.map((r) => r.rate ?? 0));
