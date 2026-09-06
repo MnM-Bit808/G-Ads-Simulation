@@ -1206,7 +1206,7 @@ showed a rival on ₹0 spend and ₹0 profit for twelve rounds — a market with
 real competitors rather than nine, which nothing else surfaced and no test
 catches. See I11 and HANDOVER.
 
-### G4. Where the searches happen — `IN PROGRESS`, step 1 of 9
+### G4. Where the searches happen — `FIXED`, all nine steps
 
 A third dimension of demand, after the query and the hour: every search happens
 somewhere, and India divides into metros, large cities, and smaller cities and
@@ -1448,10 +1448,29 @@ The decomposition also overturned this entry own framing: the BASKET is the larg
 lever, 1.196x against returns 1.125x, and constants.js still calls it a texture
 rather than a second lever. That comment is wrong.
 
-**Steps 1 to 4 and 6 of nine are done**: the tables and names, and `engine/locations.js`
-— the demand-side arithmetic, validated and mutation-tested — and the auction now
-reads it. `HANDOVER.md` carries the remaining order and the two points where it
-stops to measure.
+**AND THE MECHANIC WAS SUSPECTED OF SOMETHING IT DID NOT DO.** The game played
+after step 8 had `automator` winning by 62%, and `HANDOVER.md` recorded that
+nobody had checked whether that predated this work. It does, and this work made it
+smaller:
+
+| | `automator`'s lead over second |
+|---|---|
+| as shipped, rivals targeting by location | 63.4% |
+| tilts stripped, geography still in the engine | 67.7% |
+| `5374fd8`, before a line of location code existed | **69.7%** |
+
+Six points of the gap belong to geography, in the direction of closing it. The
+cause was that `automator` held the only `mid|lifestyle` seat on that seed, and
+five of the six policies win that seat — `cautious` takes ₹45.4L from it against
+`automator`'s ₹27.5L. `HANDOVER.md` carries the full decomposition.
+
+**The middle row of that table is worth more than the exoneration.** With the
+geography present and nobody targeting, the standings come out ₹28.18L against a
+pre-location ₹28.40L with identical ordering — a 0.8% difference across nine
+accounts and twelve rounds. That is an independent confirmation that centring each
+position on its own country works: an advertiser who ignores the control pays
+almost exactly nothing for the mechanic existing, which is what the normalisation
+was for and was previously only argued.
 
 ---
 

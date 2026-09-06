@@ -779,35 +779,139 @@ D8 already established this market is demand-limited, so budget scarcity has no
 price to bid up on its own — which is why the capacity argument the design was
 originally built on did not hold.
 
-### Two anomalies in the last played game, unexplained
+### Two anomalies in the last played game, both now resolved
 
 A full twelve-round game on seed 20260902, player at mid|performance doing nothing
-after round 0:
+after round 0. **`automator` (Satva) won by 62%** — ₹27.4L against ₹16.9L — and a
+completely passive account finished high. Measured over 30 markets, neither is
+about the thing it looked like being about.
 
-- **`automator` (Satva) won by 62%** over second place — ₹27.4L against ₹16.9L. Its
-  entire character is to reach for a new bid strategy whenever results dip and eat a
-  learning penalty each time; it is meant to be a cautionary example, not the
-  winner. **Nobody has checked whether this predates the location work.** That is
-  the first thing to measure next.
-- **A completely passive account finished third of nine.** Good opening — agency
-  writer, ₹80,000 of capital, own-territory keywords — but beating six active rivals
-  while changing nothing is worth a second look.
+**The replica reproduced first, and that is the only reason the rest is worth
+reading.** Seed 20260902, agency writer, ₹55,000 landing page plus ₹25,000 size
+guide (the only pair of round 0 chips summing to ₹80,000), six own-territory
+keywords, `() => null` for the player: **₹27.51L against ₹16.84L, a 63.4% lead.**
 
-Neither is a failure. Both are things noticed and not explained.
+**IT PREDATES THE LOCATION WORK, and the location work made it SMALLER.**
+
+| | `automator`'s lead over second |
+|---|---|
+| as shipped, rivals targeting by location | 63.4% |
+| tilts stripped, geography still in the engine | 67.7% |
+| `5374fd8`, before a line of location code existed | **69.7%** |
+
+Two things fall out of that. The mechanic is exonerated — it narrowed the gap by
+six points rather than causing it. And the middle row against the bottom row
+(₹28.18L against ₹28.40L, identical ordering) is an **independent confirmation
+that `40a550c` did what it was built to do**: with nobody targeting, the geography
+is very nearly neutral, which is exactly what centring each position on its own
+country was for.
+
+**IT IS THE SEAT, NOT THE DRIVER.** `automator` is also the only `mid|lifestyle`
+advertiser on that seed, so policy and cell were entangled in the standings.
+Swapping ONLY the controller — same cell, same agency ad, same keywords, same
+budget, so the sole difference is behaviour:
+
+| driver of Satva's seat | gross | rank |
+|---|---|---|
+| `cautious` | **₹45.37L** | 1 |
+| `disciplined` | **₹43.03L** | 1 |
+| `automator` | ₹27.51L | 1 |
+| `brandDefender` | ₹26.56L | 1 |
+| `grossOptimiser` | ₹22.18L | 1 |
+| `spender` | ₹3.79L | 6 |
+
+**`automator` is the third-worst driver of that seat and wins anyway.** `cautious`
+— which finishes 6th and 8th everywhere else in that market — takes ₹45L from the
+same account. So the cautionary character IS being punished, by roughly ₹18L
+against sitting still; the seat is simply strong enough to win regardless. The
+reciprocal holds: `automator` installed in Kestrel's seat finishes 1st on ₹29.6L
+and in Auren's seat 9th on ₹0.88L. Same driver, first or last, decided by the cell.
+
+**Over 30 markets it does not win at all.** Mean rank **3.17 of 9**; top rival 6
+times against `brandDefender`'s 8, `disciplined`'s 7 and `cautious`'s 7; mean gross
+₹15.62L inside the noise of the other three (₹15.98 / ₹15.20 / ₹15.15L). Its rank
+tracks its cell's purpose — **2.50 in a lifestyle cell, 3.61 in a performance one**.
+
+**And the passive account is the same finding seen from the player's chair.** The
+specific "third" did not reproduce — the replica finishes 5th — and the rival
+standings match to 0.4%, so the difference is entirely the player's own opening and
+that rank is sensitive to it in a way `automator`'s was not. What IS structural:
+**every market contains two `spender`s and two `cautious`**, because `RIVAL_CAST`
+has six entries and there are eight rivals, so indices 7 and 8 wrap. Measured over
+30 markets, `spender` means **₹2.80L** and `cautious` **₹11.42L** against ₹15.15 to
+₹15.98L for the other four. Half the field is drawn from the two weakest
+characters and a quarter of it from one that is 5.7x worse than the best, so a
+passive account in a decent cell places mid-table without doing anything. That is
+worth knowing before anyone reads a passive third place as the market being soft.
+
+**What this cost to find, and it is the lesson rather than the numbers:** the
+question as written was *why does this policy win*, and the answer is that it
+does not. Policy and cell were confounded in a nine-row table, and the only way to
+separate them was to hold the account fixed and vary one thing. **Both anomalies
+were one seed.** This file says twice that a number measured on the canonical seed
+is a sample of one, and both of these were.
 
 ## Still open
 
-**The three at the top are where I would start.**
+**The one at the top is where I would start, and it is bigger than the two it
+replaced.**
 
-- **Why `automator` wins by 62%.** Measured in the last played game: Satva took
-  ₹27.4L against second place's ₹16.9L. That character exists to make the mistake a
-  real advertiser makes most often — switching bid strategy whenever results dip and
-  paying `LEARNING_ROUNDS` of doubled prediction error each time. It should not be
-  winning comfortably. **Nobody has checked whether this predates the location
-  work**, and that check is one measurement: play the same seed with location
-  neutral for everyone and compare the standings.
-- **Why a passive account finished third of nine**, having made no decision after
-  round 0. Good opening, but six active rivals behind it.
+- **The two positioning axes have swapped, and purpose now decides the game.**
+  Spec 4.4 and invariant I4 make price the dominant axis and purpose the minor one
+  — I4 asserts price moves break-even **more than 2x** and purpose **under 15%**.
+  Measured over 30 played markets, 240 rival accounts:
+
+  | axis | realised spread in gross profit |
+  |---|---|
+  | purpose | **1.55x** |
+  | price | 1.27x |
+
+  **The top rival is a `lifestyle` advertiser in 28 of 30 markets**, and the cells
+  stratify perfectly by purpose — the worst lifestyle cell (`value|lifestyle`,
+  ₹11.17L) beats the best performance cell (`mid|performance`, ₹9.07L).
+
+  **F9's balance is sound on paper and does not survive the auction.** Territory x
+  break-even, which `content/querySet.js` engineers to be equal, comes out
+  0.78 / 0.77 / 0.75 / 0.74 / 0.72 / 0.71 — a spread of **1.10x**, and by purpose
+  ₹2.25L against ₹2.22L. The design is doing exactly what it claims. The auction
+  turns it into 1.86x.
+
+  **The mechanism is a flat price against an unequal value:**
+
+  | lifestyle / performance | ratio |
+  |---|---|
+  | cost per click | **1.002** |
+  | gross profit per click | **1.279** |
+  | clicks | 1.138 |
+  | gross profit | **1.553** |
+
+  A lifestyle advertiser pays the *same price* for a click worth 28% more, so the
+  break-even gap I4 bounds at 15% arrives as a margin gap of 16-34% per price row
+  (value +3.5% becomes +34%, mid +7.9% becomes +16%, premium +11.2% becomes +32%).
+  That is the `AD_RANK_FLOOR` reserve mechanism B5 already describes — *a flat
+  reserve takes the same absolute paise from every cell* — operating on the
+  **purpose** axis, where it has only ever been looked for on the price axis. The
+  higher affordable bid then buys 14% more clicks on top, despite lifestyle holding
+  7% LESS territory.
+
+  **NEITHER INVARIANT CAN SEE IT, AND BOTH ARE HONEST ABOUT THEIR SCOPE.** I4
+  measures break-even, which is a ceiling on what a click is worth and not a
+  margin. I3's fixture is six advertisers, one per cell, all `disciplined`, equal
+  budgets — and `calibration.test.js` says so in its own words: *"I3 measures the
+  TERRITORY economics in isolation and says nothing about the auction."* **This is
+  the fourth instance of the shape this file already records three times:** an
+  invariant measuring a quantity no auction experiences. F10, F11 and I4 were the
+  first three.
+
+  **Undecided, deliberately, and it needs a conversation rather than a constant.**
+  Roughly three ways out: shrink `PURPOSE_MODIFIERS` again — F11 warns that pushes
+  against argued content and it has already been done once; rebalance territory
+  volume against realised MARGIN rather than against break-even; or accept it and
+  rewrite 4.4, since *go where the margin is* is a real lesson but the spec
+  currently claims the opposite axis dominates. **No constant should move before
+  that is settled.** There is no `DECISIONS.md` entry yet because nothing has been
+  decided — this file is where an open question lives until it is.
+
 - **Nobody has played it as a learner.** Still the largest untested claim in the
   project, and now larger: the location card has never been read by anybody who did
   not build it. Measurement says concentrating is worth ~57% to a value brand; what
