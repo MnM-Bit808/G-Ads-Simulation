@@ -62,7 +62,7 @@ function renderHeadline(root, row, game, playerId, report) {
   // Before the provisional sentence, because it is the larger caveat on these
   // six figures in the weeks it appears: an ad that has not been written yet is
   // a bigger reason they are not what the account will do than the settling lag.
-  const copy = creativeOutlook(creativeOf(game, playerId), row ? report.round : null);
+  const copy = creativeOutlook(creativeOf(game, playerId), report.round);
   if (copy) note.append(el('strong', 'copy-note', copySentence(copy)));
 
   note.append(document.createTextNode(
