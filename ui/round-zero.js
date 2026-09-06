@@ -32,13 +32,14 @@ import {
 } from './dom.js';
 import { briefing, placeRivals, buildRivals } from '../setup.js';
 import { BRAND_IDENTITIES, assignIdentities, brandNamedIn } from '../content/brands.js';
-import { allCells, parseCell } from '../engine/positions.js';
+import { cellKey, parseCell } from '../engine/positions.js';
 import { validateAdCopy, namesARival, explainGrade } from '../agents/grader.js';
 import { heuristicTags } from '../agents/keywordTagger.js';
 import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS, MONTHLY_BUDGET_PAISE,
   CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH, TOTAL_ROUNDS,
   WRITER_TIERS, CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
+  PRICE_TIERS, PURPOSES,
 } from '../engine/constants.js';
 import {
   writerTier, isDiy, hiredCopyGrades, openingCopyGrades,
@@ -278,27 +279,46 @@ function sectionRivals(querySet, rootSeed, draft) {
 
 function sectionPosition(brief, draft, rerender) {
   const node = card('Where you sit', 'chosen once, and fixed until round 5');
-  const grid = el('div', 'cell-grid');
+  const matrix = positionMatrix();
 
-  for (const cell of allCells()) {
-    const { price, purpose } = parseCell(cell);
-    const box = el('button', `cell${cell === draft.cell ? ' on' : ''}`);
-    box.type = 'button';
-    box.append(el('div', 'cell-name', `${price} · ${purpose}`));
-    // From the BRIEFING, not from POSITION_ECONOMICS. 17.2 decides what a
-    // founder could have researched; this only draws it. Reaching past the
-    // briefing into the constants would be how a screen starts showing numbers
-    // the player was never meant to have.
-    const economics = brief.economicsByTier[price];
-    box.append(el('div', 'cell-econ',
-      `${rupees(economics.aovMeanPaise)} order · `
-      + `${Math.round(100 * economics.marginPct)}% margin`));
-    box.append(el('div', 'cell-vol',
-      `${whole(brief.weeklySearchesByTier[price])} searches a week in this tier`));
-    box.addEventListener('click', () => { draft.cell = cell; rerender(); });
-    grid.append(box);
+  // A MATRIX, WITH ITS AXES LABELLED. Six buttons in a three-column flow read as
+  // a grid whose position means nothing; price on the columns and purpose on the
+  // rows is the model 4.1 describes, and this is the only place it is drawn.
+  //
+  // NO CELL IS MARKED AS THE PLAYER'S. I3 removed exactly that, because it was
+  // computed from the two affinity fields 16.1 withholds from every viewer — and
+  // because working out which searches are yours is the decision this card exists
+  // to make.
+  const grid = el('div', 'cell-grid');
+  grid.append(el('div', 'cell-corner'));
+  for (const price of matrix.prices) grid.append(el('div', 'cell-colhead', price));
+
+  for (const row of matrix.rows) {
+    grid.append(el('div', 'cell-rowhead', row.purpose));
+    for (const { key, price } of row.cells) {
+      const box = el('button', `cell${key === draft.cell ? ' on' : ''}`);
+      box.type = 'button';
+      // The purpose is on the row and the price on the column, so the name here
+      // would repeat both. The axes carry it.
+      box.append(el('div', 'cell-name', `${price} · ${row.purpose}`));
+      // From the BRIEFING, not from POSITION_ECONOMICS. 17.2 decides what a
+      // founder could have researched; this only draws it. Reaching past the
+      // briefing into the constants would be how a screen starts showing numbers
+      // the player was never meant to have.
+      const economics = brief.economicsByTier[price];
+      box.append(el('div', 'cell-econ',
+        `${rupees(economics.aovMeanPaise)} order · `
+        + `${Math.round(100 * economics.marginPct)}% margin`));
+      box.append(el('div', 'cell-vol',
+        `${whole(brief.weeklySearchesByTier[price])} a week in this tier`));
+      box.addEventListener('click', () => { draft.cell = key; rerender(); });
+      grid.append(box);
+    }
   }
   node.append(grid);
+  node.append(add(el('p', 'cell-axis muted'),
+    el('span', null, '← cheaper click, thicker volume'),
+    el('span', null, 'higher ceiling, thinner volume →')));
   node.append(el('p', 'note',
     'Price sets what a click can be worth to you. Purpose sets which searches '
     + 'are yours. A high ceiling on thin volume against a low ceiling on thick '
@@ -412,6 +432,47 @@ function researchList(querySet) {
     intent: query.intent,
     weekly: Math.round((querySet.weeklyVolume * query.volumeShareBp) / 10000),
   })).sort((a, b) => b.weekly - a.weekly);
+}
+
+/**
+ * The price x purpose grid, as rows and columns rather than a flat list.
+ *
+ * `.cell-grid` was already a three-column CSS grid, and `allCells()` returns the
+ * six cells price-major — so flowing them 3-across put **mid|lifestyle directly
+ * under value|performance**. It rendered as a 3x2 matrix whose position carried
+ * no meaning, on the one screen whose job is to teach the model the whole game
+ * rests on (4.1). Nothing caught it because nothing described the layout as data.
+ *
+ * Built from the engine's own `PRICE_TIERS` and `PURPOSES` rather than a list
+ * typed here, so a change to either vocabulary moves the grid with it.
+ *
+ * @returns {{prices: string[], rows: Array<{purpose: string,
+ *   cells: Array<{key: string, price: string, purpose: string}>}>}}
+ */
+export function positionMatrix() {
+  return {
+    prices: [...PRICE_TIERS],
+    rows: PURPOSES.map((purpose) => ({
+      purpose,
+      cells: PRICE_TIERS.map((price) => ({ key: cellKey(price, purpose), price, purpose })),
+    })),
+  };
+}
+
+/**
+ * Each week's share of what is PLANNED, for the shape of the split.
+ *
+ * Of the plan rather than of the month, so the bar draws the shape the player
+ * made even while it does not add up to the month yet — the summary line beside
+ * it is what says whether anything is unallocated.
+ *
+ * @param {number[]} split paise per week
+ * @returns {number[]} fractions summing to 1, or zeros when nothing is planned
+ */
+export function splitShares(split = []) {
+  const planned = split.reduce((a, b) => a + b, 0);
+  if (planned <= 0) return split.map(() => 0);
+  return split.map((amount) => amount / planned);
 }
 
 /**
@@ -839,6 +900,13 @@ function sectionAd(draft, revalidate, live) {
   // words did it — which makes the whole card a guess. Every rule shown here
   // is ordinary search-advertising practice, and it comes from the grader's own
   // single pass, so the advice cannot drift from the score beside it.
+  // WHAT A SEARCHER SEES, which the player was writing and never shown. The
+  // card's own subtitle is "the only thing your rivals can see about you", and
+  // until now that thing existed only as five separate boxes. Real Google Ads
+  // previews the assembled ad; the grade below it is what the auction sees.
+  const preview = el('div', 'serp');
+  scored.append(preview);
+
   const gradePanel = el('div', 'grade-panel');
   scored.append(gradePanel);
 
@@ -865,6 +933,7 @@ function sectionAd(draft, revalidate, live) {
       problems.append(list);
     }
 
+    drawPreview();
     drawGrade();
   };
 
@@ -873,6 +942,37 @@ function sectionAd(draft, revalidate, live) {
     adRelevance: 'Ad relevance',
     landingPage: 'Landing page',
   };
+
+  /**
+   * The assembled ad, from `submittedAd` so the preview cannot show words the
+   * account will not run — a blank box contributes nothing here either.
+   */
+  function drawPreview() {
+    const ad = submittedAd(draft);
+    const identity = BRAND_IDENTITIES.find((b) => b.id === draft.playerBrandId);
+    preview.replaceChildren();
+
+    const tag = el('div', 'serp-tag');
+    tag.append(el('span', null, 'Sponsored'));
+    tag.append(el('span', 'serp-sep', '·'));
+    tag.append(el('span', 'serp-domain', identity?.domain ?? ''));
+    preview.append(tag);
+
+    const head = el('p', 'serp-head');
+    if (ad.headlines.length === 0) {
+      head.append(el('span', 'muted', 'Your headlines appear here'));
+    } else {
+      ad.headlines.forEach((headline, i) => {
+        if (i > 0) head.append(el('span', 'serp-sep', ' · '));
+        head.append(el('span', null, headline));
+      });
+    }
+    preview.append(head);
+
+    preview.append(el('p', 'serp-desc', ad.descriptions.length > 0
+      ? ad.descriptions.join(' ')
+      : 'Your descriptions appear here.'));
+  }
 
   function drawGrade() {
     // The ad as it will be SUBMITTED, graded in the context the account will be
@@ -987,12 +1087,33 @@ function sectionBudget(draft, revalidate, live) {
   });
   node.append(row);
 
-  const summary = el('p');
+  // THE SHAPE, not just the four amounts. The boxes state the money and hide the
+  // decision: a front-loaded month and a flat one read identically as digits, and
+  // the shape is what 13.2's burn-down compares against later.
+  const bar = el('div', 'split-bar');
+  node.append(bar);
+  const summary = el('p', 'split-summary');
   node.append(summary);
+
   live.budget = () => {
     const planned = draft.split.reduce((a, b) => a + b, 0);
     const over = planned > total;
-    summary.className = over ? 'problems' : 'muted';
+
+    bar.replaceChildren();
+    splitShares(draft.split).forEach((share, i) => {
+      const week = el('div', 'split-week');
+      week.style.flexGrow = String(Math.max(0, share));
+      // Weeks already spent are not a case here — round 0 has none — so every
+      // segment is a plan rather than a report.
+      week.title = `Week ${i + 1}: ${rupees(draft.split[i])}`;
+      if (share > 0.08) week.append(el('span', null, `${Math.round(100 * share)}%`));
+      bar.append(week);
+    });
+    bar.classList.toggle('over', over);
+
+    // Keep the base class: assigning `problems` alone stripped `split-summary`,
+    // so an over-allocated month lost the spacing the readable one had.
+    summary.className = `split-summary ${over ? 'problems' : 'muted'}`;
     summary.textContent = over
       ? `${rupees(planned)} planned against ${rupees(total)} available. The month is a hard cap.`
       : `${rupees(planned)} planned, ${rupees(total - planned)} unallocated.`;

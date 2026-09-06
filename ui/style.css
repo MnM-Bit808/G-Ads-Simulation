@@ -226,6 +226,71 @@ td + td, th + th { padding-left: 0.9rem; }
 .burn .legend { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.78rem; margin-top: 0.35rem; }
 
 /*
+ * The month's shape. Four numbers state the money and hide the decision - a
+ * front-loaded month and a flat one read identically as digits.
+ */
+.split-bar {
+  display: flex;
+  height: 32px;
+  margin-top: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.split-bar.over { border-color: var(--bad); }
+
+.split-week {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--bg);
+  background: var(--accent);
+  border-right: 1px solid var(--panel);
+}
+.split-week:last-child { border-right: 0; }
+/* Stepped down the row so four segments of one hue stay countable. */
+.split-week:nth-child(2) { background: #6b92e4; }
+.split-week:nth-child(3) { background: #5d82d1; }
+.split-week:nth-child(4) { background: #4f72be; }
+
+.split-summary { margin: 0.5rem 0 0; font-size: 0.8rem; }
+
+/*
+ * The ad as a searcher meets it. Restrained on purpose: no favicon, no ratings,
+ * no star row - the abstraction is stated on the card and the preview should not
+ * imply more fidelity than the model has.
+ */
+.serp {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  margin-bottom: 0.9rem;
+}
+.serp-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+.serp-domain { color: var(--ink); }
+.serp-head {
+  color: var(--accent);
+  font-size: 1rem;
+  line-height: 1.3;
+  margin: 0.35rem 0 0.3rem;
+}
+.serp-sep { color: var(--muted); }
+.serp-desc { margin: 0; font-size: 0.82rem; line-height: 1.45; color: var(--ink); opacity: 0.86; }
+
+/*
  * The grader's own note about why it marked an ad down. Warning-coloured because
  * every note it writes is a penalty, and it sits inside the grade panel rather
  * than under it so it reads as part of the number it explains.
@@ -370,8 +435,48 @@ button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none
 
 /* --- the grid of cells -------------------------------------------------- */
 
-.cell-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
-@media (max-width: 700px) { .cell-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/*
+ * A MATRIX, not six buttons in a flow. Price on the columns, purpose on the rows,
+ * with a spare first column for the row labels - so a cell's position states what
+ * it is. Six cells flowed 3-across used to put mid|lifestyle under
+ * value|performance, which read as a grid and meant nothing (I22).
+ */
+.cell-grid {
+  display: grid;
+  grid-template-columns: auto repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.cell-colhead, .cell-rowhead {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+}
+.cell-colhead { justify-content: center; }
+/* Rotated so the row label costs a label's width rather than a word's. */
+.cell-rowhead { writing-mode: vertical-rl; transform: rotate(180deg); justify-content: center; }
+
+.cell-axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  margin: 0.7rem 0 0;
+}
+
+@media (max-width: 700px) {
+  /* Below this the matrix cannot hold three columns, so the axes are dropped
+     rather than squeezed: one column of six named cells reads better than a grid
+     too narrow to show its own labels. */
+  .cell-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cell-colhead, .cell-rowhead, .cell-corner { display: none; }
+  .cell-axis { display: none; }
+}
 
 .cell {
   text-align: left;

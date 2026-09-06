@@ -2049,6 +2049,59 @@ self-written ad, the grade moves with it. A hired ad shows `you would have score
 
 A clean ad produces no notes, so this is silent unless something is wrong.
 
+### I22. Round 0 draws three things it used to only state — `FIXED`
+
+Asked for round 0 to be more visual and to fill the empty space in its sections.
+Measured first, at 1440×900: the page is 4,028px and **714px of it is dead column
+beside a shorter card** — the slack is not inside the cards, every one of which has
+the same 21px of padding. Three rows waste it: 148px, 300px and 266px.
+
+So the answer was not "add visuals" but "which cards can grow for free". Two of
+these three cost nothing.
+
+**1. The positioning grid was scrambled, and that is the real finding.**
+`.cell-grid` was already `repeat(3, minmax(0, 1fr))` and `allCells()` returns the
+six cells price-major, so flowing them 3-across put **`mid|lifestyle` directly
+under `value|performance`**. It rendered as a 3×2 matrix in which position carried
+no meaning — on the one screen whose job is to teach the price × purpose model the
+whole game rests on (4.1). It is now a real matrix: price on the columns, purpose
+on the rows, both labelled, built from the engine's own `PRICE_TIERS` and
+`PURPOSES` rather than a list typed into the view.
+
+`positionMatrix()` describes the layout as data, which is why it is now assertable
+— nothing caught the scramble because nothing described it. Tests pin one row per
+purpose, one column per price, and every legal cell covered exactly once.
+
+**No cell is marked as the player's**, and that is I3 being obeyed rather than
+forgotten: the old dot was computed from the two affinity fields 16.1 withholds
+from every viewer, and it made the round 0 decision for the player.
+
+**2. The month has a shape.** Four number boxes state the money and hide the
+decision — a front-loaded month and a flat one read identically as digits, and the
+shape is what 13.2's burn-down compares against later. A stacked bar now draws it,
+with each week's share of what is PLANNED rather than of the month, so it draws the
+shape the player made even while something is still unallocated.
+
+**3. The ad is previewed as a searcher meets it.** The card's own subtitle is *"the
+only thing your rivals can see about you"*, and the player wrote into five boxes
+and was never shown the thing they were making. It is assembled from
+`submittedAd`, so it cannot show words the account will not run — a blank box
+contributes nothing here either — and it is deliberately restrained: no favicon, no
+star row, nothing implying more fidelity than the model has.
+
+**WHAT IT COST IN PAGE HEIGHT: nothing.** 4,028px before, 4,028px after. Where you
+sit 370 → 422, This month 234 → 271, Your ad 721 → 721 — the preview fits inside the
+column beside the fields, which was already the taller one. All three land in space
+that was already being wasted.
+
+**Below 700px the axes are dropped rather than squeezed**, back to two columns of
+named cells: a matrix too narrow to show its own labels is worse than a list.
+
+**One bug the measurement caught**, and it is the reason to measure rather than
+screenshot: the summary line under the bar set `className = 'problems'` when the
+plan went over, which **stripped the base class** and took its spacing with it.
+Both classes are now kept.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

@@ -27,12 +27,14 @@
 import { describe, test, expect } from 'vitest';
 import {
   openingReserve, submittedAd, gradeAsSubmitted, monthlyBudget,
+  positionMatrix, splitShares,
 } from '../ui/round-zero.js';
 import { openingCopyGrades } from '../content/writers.js';
 import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
+import { allCells } from '../engine/positions.js';
 import { validateAdCopy } from '../agents/grader.js';
 import { minimumBidToShowPaise } from '../engine/auction.js';
 import { qualitySignalBase } from '../engine/quality.js';
@@ -41,7 +43,7 @@ import { composeDescription } from '../ui/landing-page.js';
 import { gradeAdOffline } from '../agents/grader.js';
 import {
   WRITER_TIERS, DEFAULT_UNGRADED_QUALITY, CAPEX_ALLOCATION_PAISE,
-  CREATIVE_ALLOCATION_PAISE,
+  CREATIVE_ALLOCATION_PAISE, PRICE_TIERS, PURPOSES,
 } from '../engine/constants.js';
 
 const CAPEX = { sizeGuide: 0, photography: 0, landingPage: 0 };
@@ -373,5 +375,73 @@ describe('the month on the budget card', () => {
   test('and committing capital lowers it, rupee for rupee', () => {
     expect(monthlyBudget(draftFor('diy', 0)) - monthlyBudget(draftFor('diy', 2500000)))
       .toBe(2500000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The positioning grid, and the shape of the month
+// ---------------------------------------------------------------------------
+
+describe('the positioning grid means what its position says', () => {
+  /**
+   * `.cell-grid` was already `repeat(3, minmax(0, 1fr))`, and `allCells()` returns
+   * the six cells price-major — so six cells flowed into three columns put
+   * **mid|lifestyle directly under value|performance**. It rendered as a 3x2
+   * matrix in which position carried no meaning at all, on the one screen whose
+   * job is to teach the price x purpose model the whole game rests on (4.1).
+   *
+   * Nothing caught it because nothing described the layout as data. `positionMatrix`
+   * does, so the axes are assertable.
+   */
+  test('one row per purpose, one column per price', () => {
+    const matrix = positionMatrix();
+    expect(matrix.prices).toEqual(PRICE_TIERS);
+    expect(matrix.rows).toHaveLength(PURPOSES.length);
+    matrix.rows.forEach((row, i) => {
+      expect(row.purpose).toBe(PURPOSES[i]);
+      expect(row.cells).toHaveLength(PRICE_TIERS.length);
+      row.cells.forEach((cell, j) => {
+        expect(cell.price, `row ${i} column ${j}`).toBe(PRICE_TIERS[j]);
+        expect(cell.purpose, `row ${i} column ${j}`).toBe(PURPOSES[i]);
+      });
+    });
+  });
+
+  test('it covers every legal cell exactly once', () => {
+    // The guard against a matrix that looks right and quietly drops a cell.
+    const keys = positionMatrix().rows.flatMap((row) => row.cells.map((c) => c.key));
+    expect([...keys].sort()).toEqual([...allCells()].sort());
+    expect(new Set(keys).size).toBe(allCells().length);
+  });
+
+  test('and a cell knows its own key, so selection cannot drift from the draft', () => {
+    for (const row of positionMatrix().rows) {
+      for (const cell of row.cells) {
+        expect(cell.key).toBe(`${cell.price}|${cell.purpose}`);
+      }
+    }
+  });
+});
+
+describe('the month split has a shape, not just four amounts', () => {
+  test('shares are the amounts as fractions of what is planned', () => {
+    const shares = splitShares([100, 100, 100, 100]);
+    expect(shares).toEqual([0.25, 0.25, 0.25, 0.25]);
+  });
+
+  test('an uneven plan reads uneven', () => {
+    const shares = splitShares([400, 300, 200, 100]);
+    expect(shares[0]).toBeGreaterThan(shares[3]);
+    expect(shares.reduce((a, b) => a + b, 0)).toBeCloseTo(1);
+  });
+
+  test('a week set to zero takes no width rather than breaking the bar', () => {
+    expect(splitShares([300, 0, 0, 100])).toEqual([0.75, 0, 0, 0.25]);
+  });
+
+  test('a plan of nothing gives no shape and does not divide by zero', () => {
+    // Reachable: every box can be cleared, and the card still has to draw.
+    expect(splitShares([0, 0, 0, 0])).toEqual([0, 0, 0, 0]);
+    expect(splitShares([])).toEqual([]);
   });
 });
