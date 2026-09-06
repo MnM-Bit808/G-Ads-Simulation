@@ -40,7 +40,11 @@ import {
   CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH, TOTAL_ROUNDS,
   WRITER_TIERS, CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
 } from '../engine/constants.js';
-import { writerTier, isDiy, hiredCopyGrades } from '../content/writers.js';
+import {
+  writerTier, isDiy, hiredCopyGrades, openingCopyGrades,
+} from '../content/writers.js';
+import { qualitySignalBase } from '../engine/quality.js';
+import { minimumBidToShowPaise } from '../engine/auction.js';
 import { PAGE_FEATURES, composeDescription, pageShape } from './landing-page.js';
 
 const CAPEX_TARGETS = [
@@ -105,9 +109,13 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
    * DERIVED from it — the character counters, the copy warnings, the budget
    * total, and whether the Go button is allowed to be pressed.
    */
-  const live = { ad: null, writer: null, budget: null, start: null };
+  const live = { ad: null, writer: null, budget: null, start: null, keywords: null };
   const revalidate = () => {
     live.ad?.();
+    // The reserve note is derived from a bid the player is typing INTO the
+    // keyword table, so it refreshes the same way the counters do rather than
+    // rebuilding the table and taking the cursor with it.
+    live.keywords?.();
     // The writer card quotes the self-written grade, so it is derived from the
     // ad and has to move with it.
     live.writer?.();
@@ -123,7 +131,7 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
       sectionRivals(querySet, rootSeed, draft),
       sectionPosition(brief, draft, rerender),
       sectionCapex(draft, rerender),
-      sectionKeywords(querySet, draft, rerender),
+      sectionKeywords(querySet, draft, rerender, live),
       sectionWriter(draft, rerender, live),
       // Before the ad, and that is a dependency rather than a layout choice:
       // whatever the writer did not cost rolls into the month this divides.
@@ -406,7 +414,77 @@ function researchList(querySet) {
   })).sort((a, b) => b.weekly - a.weekly);
 }
 
-function sectionKeywords(querySet, draft, rerender) {
+/**
+ * Can each keyword's bid actually clear the reserve, at the grade the FIRST
+ * auction will run at?
+ *
+ * `AD_RANK_FLOOR` is a reserve rather than an eligibility gate (B5). An
+ * advertiser under it enters every auction and shows in none, and the report
+ * calls that "lost to rank 100%" — which reads as being OUTBID and sends a
+ * player to raise keyword bids, when the bid was never the binding thing.
+ * `minimumBidToShowPaise` exists for exactly this warning and says so; round 0
+ * was not calling it.
+ *
+ * MEASURED, which is why the card says anything at all. A self-written ad opens
+ * on the ungraded 3/3 default (I11) and needs ₹16.24 on this query set, where a
+ * hired 6/6 needs ₹6.87. Round 0 offers ₹30 — 1.85x headroom against a hired
+ * account's 4.37x — and accepts anything from ₹1. Played: ₹17 takes 396 clicks
+ * in week 1, ₹16 takes 244, ₹14 takes ZERO, for two full weeks.
+ *
+ * THE GRADE IS THE OPENING ONE, NOT THE WRITTEN ONE, and that distinction is the
+ * whole warning. A player writing their own ad watches it grade 8/10 on the card
+ * below and opens the account at 3/10; pricing the floor against the 8 would
+ * reassure exactly the player who is about to disappear. It comes from
+ * `openingCopyGrades` so this screen and `creativeBlock` cannot disagree.
+ *
+ * No landing-page bonus is added, and that is not an omission: round 0's capital
+ * goes live at round 4 (`liveAtRound`), so `landingPageBonus` is zero for the
+ * first three rounds and the copy lands before the capital does. Capital cannot
+ * lower this floor.
+ *
+ * @param {object} draft round 0's own draft
+ * @param {object} querySet
+ * @returns {{grade: object, rows: Array<{text: string, bidPaise: number,
+ *   needPaise: number, clears: boolean}>, under: Array<object>,
+ *   worstShortfall: {text: string, needPaise: number, bidPaise: number}|null}}
+ */
+export function openingReserve(draft, querySet) {
+  const written = explainGrade(draft.ad, { keywords: draft.keywords }).grade;
+  const grade = {
+    ...openingCopyGrades(draft.writerTier),
+    // The player's own page, graded from what the capital built (I9). A writer
+    // never touches it, so it is not part of what the delay withholds.
+    landingPage: written.landingPage,
+  };
+
+  const rows = (draft.keywords ?? []).map((keyword) => {
+    // The keyword's own literal search, which is the most favourable query it
+    // could meet. Failing there means failing everywhere, at any hour, against
+    // anyone — the same test `setup.test.js` runs over every rival.
+    const query = querySet.queries.find((q) => q.text === keyword.text)
+      ?? { text: keyword.text, intent: 'commercial', tags: heuristicTags(keyword.text) };
+    const needPaise = minimumBidToShowPaise(qualitySignalBase(grade, query, keyword).base);
+    return {
+      text: keyword.text,
+      bidPaise: keyword.bidPaise,
+      needPaise,
+      clears: keyword.bidPaise >= needPaise,
+    };
+  });
+
+  const under = rows.filter((r) => !r.clears);
+  return {
+    grade,
+    rows,
+    under,
+    // The largest gap, because that is the number that makes the point.
+    worstShortfall: under.length === 0
+      ? null
+      : under.reduce((a, b) => (b.needPaise - b.bidPaise > a.needPaise - a.bidPaise ? b : a)),
+  };
+}
+
+function sectionKeywords(querySet, draft, rerender, live) {
   // The planner: a 151-row table behind a capped scroll region. Narrowing it
   // means seeing fewer searches at once, which is the opposite of helpful.
   const node = card('Keywords', 'what you bid on, and how loosely it matches', true);
@@ -482,7 +560,11 @@ function sectionKeywords(querySet, draft, rerender) {
         const bid = input({
           type: 'number', value: String(Math.round(keyword.bidPaise / 100)),
           min: '1', step: '1', class: 'bid',
-          onInput: (value) => { keyword.bidPaise = Math.max(100, Math.round(Number(value) * 100)); },
+          onInput: (value) => {
+            keyword.bidPaise = Math.max(100, Math.round(Number(value) * 100));
+            // Not `rerender`: that would destroy the field being typed into.
+            live?.keywords?.();
+          },
         });
         const tags = el('div', 'tag-row');
         for (const tag of heuristicTags(keyword.text)) tags.append(el('span', 'tag', tag));
@@ -495,6 +577,37 @@ function sectionKeywords(querySet, draft, rerender) {
     node.append(el('p', 'field-label', `Your keywords (${draft.keywords.length})`));
     node.append(picked);
   }
+
+  // The reserve, live. It sits directly under the keyword table because that is
+  // where the bid is typed, and it is the one thing on this screen that can make
+  // an account invisible without anything looking wrong.
+  const reserve = el('p', 'note reserve-note');
+  node.append(reserve);
+  live.keywords = () => {
+    const out = openingReserve(draft, querySet);
+    if (out.under.length === 0) {
+      reserve.textContent = '';
+      reserve.hidden = true;
+      return;
+    }
+    reserve.hidden = false;
+    const worst = out.worstShortfall;
+    const names = out.under.map((r) => `“${r.text}”`).join(', ');
+    reserve.textContent
+      = `${out.under.length === 1 ? 'One keyword bids' : `${out.under.length} keywords bid`} `
+      + 'under the reserve, so it cannot appear at all: '
+      + `${names}. At the grade this account OPENS on — `
+      + `${out.grade.expectedCtr}/10 for both copy components`
+      + `${isDiy(draft.writerTier) ? ', because you are writing the ad yourself' : ''} — `
+      + `${worst.text} needs ${rupees(worst.needPaise)} and bids `
+      + `${rupees(worst.bidPaise)}. A bid under the reserve enters every auction and `
+      + 'shows in none, and the report calls that “lost to rank”, which looks '
+      + 'exactly like being outbid.'
+      + (isDiy(draft.writerTier)
+        ? ` That floor is set by the unwritten ad you open on, not by the one you wrote — hiring a writer lowers it, and so does raising the bid.`
+        : '');
+  };
+  live.keywords();
 
   node.append(el('p', 'note',
     'Exact and phrase match on the words. Broad matches on meaning, using those '

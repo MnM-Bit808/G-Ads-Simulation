@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1178 tests, all passing, 1 todo.
+**Every build-order step is done.** 1188 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -751,9 +751,16 @@ tooling and one untested claim.
 
   So HANDOVER's own "the player survives only because their opening bid happens
   to be larger" is **confirmed and quantified**: 1.85x, against the 0.70x that
-  killed a rival. **A round 0 warning when a keyword bid falls under the reserve
-  is the open half of this** — `minimumBidToShowPaise` is exported "so a caller
-  can WARN before a week is spent in it" and round 0 is not yet a caller.
+  killed a rival. ~~A round 0 warning is the open half of this.~~ **Built** —
+  round 0 now calls `minimumBidToShowPaise` per keyword, priced at the grade the
+  account OPENS on rather than the one the player wrote, and
+  `content/writers.js` gained `openingCopyGrades` so that screen and
+  `creativeBlock` cannot disagree about what that grade is (I17).
+
+  **Capital cannot lower that floor, which is worth knowing before anyone tries
+  to design around it:** round 0's capex goes live at round 4, so
+  `landingPageBonus` is zero for the first three rounds and the copy lands
+  before the capital does.
 - **`agents/` needs `llmPolicy.js` and `queryGen.js`.** §2 asks for two of eight
   rivals to be Claude-backed; the market already has six distinct characters
   without it, so this is optional in a way the others were not. `queryGen` is

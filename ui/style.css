@@ -226,6 +226,16 @@ td + td, th + th { padding-left: 0.9rem; }
 .burn .legend { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.78rem; margin-top: 0.35rem; }
 
 /*
+ * Round 0's reserve warning. It is a note rather than a pill because it is a
+ * paragraph, and it takes the warning colour because an account that cannot
+ * appear is not a style preference.
+ */
+.reserve-note {
+  color: var(--warn);
+  border-top-color: var(--warn);
+}
+
+/*
  * The one sentence on the dashboard that explains a number the player cannot
  * otherwise account for: a self-written ad that is not live yet, or that landed
  * this week. It sits inside the provisional note but must not read as part of

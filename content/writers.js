@@ -20,7 +20,7 @@
  * paid for.
  */
 
-import { WRITER_TIERS } from '../engine/constants.js';
+import { WRITER_TIERS, DEFAULT_UNGRADED_QUALITY } from '../engine/constants.js';
 
 /** The lowest and highest grade any component may take. */
 const GRADE_MIN = 1;
@@ -70,6 +70,39 @@ export function hiredCopyGrades(tierId, bias = 0) {
     expectedCtr: clampGrade(tier.grade + bias),
     adRelevance: clampGrade(tier.grade - bias),
   };
+}
+
+/**
+ * The two copy grades an advertiser actually OPENS on, at round 1.
+ *
+ * For a hired tier this is what the tier bought. For an advertiser writing its
+ * own, it is the ungraded default (9.5) — because the copy has not shipped yet,
+ * and that delay is the entire cost of writing it yourself (I11).
+ *
+ * WHY IT IS A FUNCTION AND NOT TWO BRANCHES IN THE CALLER. Two places need it:
+ * `creativeBlock` in `setup.js`, which builds the account, and round 0's own
+ * reserve warning, which has to know what grade the first auction will run at in
+ * order to say whether a bid can clear the floor. The second restating the first
+ * is the shape `willTriggerLearning` and `STRATEGY_PARAM` were both bent around
+ * — a screen that computes its own version of a rule the engine also computes
+ * disagrees with it eventually, and the disagreement is invisible.
+ *
+ * It is deliberately NOT the grade a self-written ad will eventually reach. That
+ * is what the writer card shows, and the difference between the two is what the
+ * warning exists to make visible.
+ *
+ * @param {string} tierId
+ * @param {number} [bias] -1, 0 or +1, as `hiredCopyGrades` takes it
+ * @returns {{expectedCtr: number, adRelevance: number}}
+ */
+export function openingCopyGrades(tierId, bias = 0) {
+  if (isDiy(tierId)) {
+    return {
+      expectedCtr: DEFAULT_UNGRADED_QUALITY.expectedCtr,
+      adRelevance: DEFAULT_UNGRADED_QUALITY.adRelevance,
+    };
+  }
+  return hiredCopyGrades(tierId, bias);
 }
 
 /**

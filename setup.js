@@ -44,7 +44,7 @@ import {
   RIVAL_PLACEMENT_CONSTRAINTS, POSITION_ECONOMICS,
   CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, RANK_BUDGET_MULTIPLIERS,
   PRICE_TIERS, PURPOSES, TOTAL_ROUNDS, QUERY_SET_RULES,
-  CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND, DEFAULT_UNGRADED_QUALITY,
+  CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
 } from './engine/constants.js';
 import { mulberry32, deriveSeed } from './engine/rng.js';
 import { allCells, cellKey, parseCell, businessFor, breakEvenCpcPaise } from './engine/positions.js';
@@ -55,7 +55,9 @@ import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
 import { gradeAdOffline } from './agents/grader.js';
 import { RIVAL_CAST } from './agents/policies.js';
-import { isDiy, hiredCopyGrades, creativeSpend, tierForPolicy } from './content/writers.js';
+import {
+  isDiy, openingCopyGrades, creativeSpend, tierForPolicy,
+} from './content/writers.js';
 import { tagKeywordsOffline } from './agents/keywordTagger.js';
 
 const REDO_DEADLINE_ROUND = 3;
@@ -194,12 +196,16 @@ function creativeBlock({ tierId, bias = 0, landingPage, ad, keywords, writtenGra
   const { pricePaise, unspentPaise } = creativeSpend(tierId, CREATIVE_ALLOCATION_PAISE);
   const base = { tier: tierId, spentPaise: pricePaise, unspentPaise };
 
+  // One source for "what grade does this advertiser open on", because round 0's
+  // reserve warning needs the same answer and a second copy of it would drift.
+  const opening = { ...openingCopyGrades(tierId, bias), landingPage };
+
   if (!isDiy(tierId)) {
     return {
       ...base,
       liveAtRound: 1,
       pendingGrade: null,
-      openingGrade: { ...hiredCopyGrades(tierId, bias), landingPage },
+      openingGrade: opening,
     };
   }
 
@@ -214,7 +220,7 @@ function creativeBlock({ tierId, bias = 0, landingPage, ad, keywords, writtenGra
     },
     // The ungraded default until it ships (9.5). This is the cost of writing it
     // yourself, and the entire reason hiring anyone is worth paying for.
-    openingGrade: { ...DEFAULT_UNGRADED_QUALITY, landingPage },
+    openingGrade: opening,
   };
 }
 

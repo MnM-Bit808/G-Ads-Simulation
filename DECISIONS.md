@@ -1801,6 +1801,68 @@ one round exactly at the boundary being tested. `tests/dashboard.test.js` now
 compares against the grade in `nextGameState`, which is the one the round actually
 used.
 
+### I17. Round 0 says when a bid cannot clear the reserve — `FIXED`
+
+Real Google Ads shows a first-page bid estimate and warns that a keyword is
+"below first page bid". This screen says something stronger, because the
+consequence here is absolute rather than a worse position: under `AD_RANK_FLOOR`
+an advertiser enters every auction and **shows in none**.
+
+`minimumBidToShowPaise` has said since B5 that it is *"exported so a caller can
+WARN before a week is spent in it"*. **Round 0 was not a caller**, and it is the
+screen where the bid is first typed.
+
+**MEASURED, and this is why it is a warning rather than a raised default.** A
+self-written ad opens on the ungraded 3/3 default (I11), which needs **₹16.24** on
+this query set where a hired 6/6 needs **₹6.87** — a floor 2.4x higher. Round 0
+offers ₹30, so a DIY account clears its floor by **1.85x** against a hired
+account's 4.37x, and the form accepts anything from ₹1. Played, at week 1:
+
+| bid | impressions | clicks | lost to rank |
+|---|---|---|---|
+| ₹17 | 25,937 | 396 | 29.2% |
+| ₹16 | 16,612 | 244 | 54.6% |
+| **₹14** | **0** | **0** | **100.0%** |
+
+A ₹2 change takes the account from trading to invisible, for two full weeks, and
+the only thing on screen is "lost to rank 100%" — which reads as being OUTBID.
+HANDOVER's "the player survives only because their opening bid happens to be
+larger" is that 1.85x, against the 0.70x that killed a rival (I11).
+
+**Capital cannot lower this floor**, and finding that out settled the design.
+Round 0's capex goes live at round 4, so `landingPageBonus` is zero for the first
+three rounds — **the copy lands before the capital does**. There is no allocation
+a player can make that rescues a bid under the reserve.
+
+**THE GRADE IT PRICES AGAINST IS THE OPENING ONE, NOT THE WRITTEN ONE, and that
+is the whole warning.** A player writing their own ad watches it grade 8/10 on the
+card below and opens the account at 3/10. Pricing the floor against the 8 would
+reassure exactly the player about to disappear. So `content/writers.js` gained
+`openingCopyGrades`, and `creativeBlock` in `setup.js` now uses it too — one
+source, because a screen that recomputes a rule the caller also computes drifts
+from it eventually and the drift is invisible. Same reasoning as
+`willTriggerLearning` asking `triggersLearning`, and `STRATEGY_PARAM` being
+checked against `rawBid`.
+
+**It is priced per keyword, on the keyword's own literal search**, which is the
+most favourable query it could meet — so failing there fails everywhere, at any
+hour, against anyone. That is the test `setup.test.js` already runs over every
+rival, now run for the player before the fact. Verified live: two keywords at ₹14
+warned that neither could appear, and the week they bought returned ₹0, zero
+impressions and lost-to-rank 100%.
+
+**It names two levers and recommends neither** (I13). The floor is set by the
+unwritten ad, so hiring lowers it and so does raising the bid; which of those is
+right depends on what the player is trying to learn, and this card cannot know.
+
+**It does not fire at the bid round 0 itself offers**, because a warning that
+fires on the default trains the player to ignore it — the lesson of the split
+card that cried wolf.
+
+**And it updates as the bid is typed**, through the same `live` refresher the
+character counters use rather than `rerender`, which would destroy the field
+being typed into and swallow every character after the first.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
