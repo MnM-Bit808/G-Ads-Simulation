@@ -99,6 +99,15 @@ Between those two weeks, through the form and nothing else: three negatives
 written off the search terms report, three Value keywords paused, a broad bid
 cut, six premium and co-ord terms added from the planner.
 
+**This table is NOT a baseline for an unchanged account, and a session that
+treats it as one will chase a number it cannot reach.** By week 3 that account
+had been played for two weeks — the broad keyword the bid cut refers to was added
+along the way — so its week 3 is a different account from the week 3 of the same
+opening left alone. Rebuilt and run with no changes, the same opening reports
+−₹5,871 / 1.44 / ₹3,600, which is the figure quoted further down under *the
+search terms report defaults to every week played* (−₹5,796, reproduced to 1.3%).
+Two different week 3s, both real, and only the second one is replayable.
+
 All five calibration invariants pass. Neither `CALIBRATE` constant moved without
 argument:
 
@@ -695,8 +704,12 @@ tooling and one untested claim.
 
 - **The writer mechanic rests on a balance measured once.**
   `tests/writerBalance.test.js` plays the real configurations and holds
-  self-written against the retainer at **1.002**, but that is two seeds and one
-  cell, because whole games are slow. It is the tightest balance in the project
+  self-written against the retainer at **1.014** — re-measured this session
+  through a replica of the test's own fixtures; the **1.002** recorded here and
+  in I11 is the older figure and drifted when rivals stopped writing their own
+  ads, which is the drift the bullet below already warns about. Still far inside
+  the test's 0.85-1.15 bounds. But that is two seeds and one cell,
+  because whole games are slow. It is the tightest balance in the project
   and the most likely to drift: it depends on the tier grades, the delivery
   round, the creative budget, the grader's ceiling AND the rollover, and moving
   any one of them moves it. Widen the seeds and cells if that test ever starts
@@ -711,13 +724,36 @@ tooling and one untested claim.
   slightly stronger one than the numbers were originally taken in, since two
   rivals moved from a dead 3/3/3 opening to a hired grade 6. Re-run it if the
   tier grades are ever touched.
-- **A DIY player still runs two near-dead weeks**, and that cost was measured in
-  money and never in INFORMATION. Weeks 1 and 2 produce almost no clicks, so
-  there is no search terms report worth reading and no Quality Score yet — two
-  of twelve weeks that are not merely unprofitable but unteachable, in a game
-  whose whole method is reading what happened. The same 3/3/3 opening was fatal
-  to a rival; the player survives it only because their opening bid is larger.
-  Worth measuring before deciding it is fine.
+- ~~A DIY player runs two near-dead weeks whose cost was never measured in
+  information.~~ **Measured, and the claim was wrong in an instructive way.** At
+  the bid round 0 offers, weeks 1 and 2 are neither dead nor unteachable: 452 and
+  586 clicks, **profitable** at +₹3,258 and +₹1,192, and the Quality Score
+  arrives in **week 2** — the same week a hired player gets it. The search terms
+  report is a five-row mirror, and it is a five-row mirror for the hired control
+  too, and still is at week 6, so that is I8's match-type finding rather than a
+  cost of the writer.
+
+  **What IS a real information cost is narrower and exact:** a well-written and a
+  badly-written self-written ad produce *byte-identical* weeks 1 and 2, because
+  both run the ungraded default. Two of twelve weeks carry zero information about
+  the only decision the DIY path exists to test.
+
+  **And the fragility is in the BID, not the weeks.** A DIY opening needs
+  **₹16.24** to clear the reserve on its own best keyword; a hired one needs
+  ₹6.87. Round 0 offers ₹30 — 1.85x headroom against a hired account's 4.37x —
+  and accepts anything from ₹1. Below ₹16 the account is not thin but *invisible*:
+  at ₹17 it takes 396 clicks, at ₹16 it takes 244, and at **₹14 it takes zero**,
+  for two full weeks, reporting "lost to rank 100%". *That* is where
+  "unteachable" is true, and it is caused by the writer choice and the bid
+  together. Committing the whole ₹1,00,000 to the landing page moves the floor
+  only to ₹15.60, because `landingFactor` is compressed (A6) — capital cannot
+  rescue it.
+
+  So HANDOVER's own "the player survives only because their opening bid happens
+  to be larger" is **confirmed and quantified**: 1.85x, against the 0.70x that
+  killed a rival. **A round 0 warning when a keyword bid falls under the reserve
+  is the open half of this** — `minimumBidToShowPaise` is exported "so a caller
+  can WARN before a week is spent in it" and round 0 is not yet a caller.
 - **`agents/` needs `llmPolicy.js` and `queryGen.js`.** §2 asks for two of eight
   rivals to be Claude-backed; the market already has six distinct characters
   without it, so this is optional in a way the others were not. `queryGen` is
@@ -834,11 +870,12 @@ tooling and one untested claim.
   phrase keywords give 4 rows and "one each, which means every row here is a
   search you already chose to buy"; the same four on broad give 57 and "about
   14.3 each — so there is reach here you did not name".
-- **A DIY player still runs two near-dead weeks, and nobody has priced that in
-  INFORMATION.** Already listed above in money terms; the point stands and is
-  now sharper, because the same 3/3/3 opening was fatal to a rival and the
-  player survives it only because their opening bid happens to be larger. That
-  is a coincidence rather than a design.
+- ~~A DIY player runs two near-dead weeks, and nobody has priced that in
+  INFORMATION.~~ **Measured — see the entry above.** The weeks are profitable and
+  the Quality Score arrives on time; what is real is that the round the copy
+  lands is the largest single movement in the game (575 clicks to 2,800, live in
+  the interface) and the reserve a 3/3 ad faces is 2.4x a hired one's. The first
+  half is now explained on the dashboard (I16); the bid warning is not built.
 - **Nobody has played it as a learner.** Round 0 and a first week have now been
   played BY HAND — real clicks, real typing, Tab between fields — and that
   immediately found two bugs a script structurally could not (see below). The

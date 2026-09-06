@@ -28,13 +28,15 @@ import {
 import { rankOf } from './ending.js';
 import { renderTrends } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
-import { MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH } from '../engine/constants.js';
+import {
+  MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH, DEFAULT_UNGRADED_QUALITY,
+} from '../engine/constants.js';
 
 // ---------------------------------------------------------------------------
 // Panels
 // ---------------------------------------------------------------------------
 
-function renderHeadline(root, row) {
+function renderHeadline(root, row, game, playerId, report) {
   const t = row.traffic;
   const cpc = t.clicks > 0 ? t.costPaise / t.clicks : 0;
   const figures = root.querySelector('[data-slot="figures"]');
@@ -56,11 +58,90 @@ function renderHeadline(root, row) {
     return pill;
   });
   note.replaceChildren(...warnings);
+
+  // Before the provisional sentence, because it is the larger caveat on these
+  // six figures in the weeks it appears: an ad that has not been written yet is
+  // a bigger reason they are not what the account will do than the settling lag.
+  const copy = creativeOutlook(creativeOf(game, playerId), row ? report.round : null);
+  if (copy) note.append(el('strong', 'copy-note', copySentence(copy)));
+
   note.append(document.createTextNode(
     'These figures are provisional. A click settles about five rounds after it '
     + 'happens — three for the order to arrive, two more for the return window — '
     + 'so everything here will still move.',
   ));
+}
+
+/**
+ * The advertiser's own creative block, or undefined.
+ *
+ * Read from state rather than a view because `getSelfView` does not carry
+ * `creative` — the block is a caller-layer field (I11) added after that view was
+ * written, so no controller can see it either. Worth fixing there; the dashboard
+ * already holds `game.state` and is not under R5's controller boundary.
+ */
+function creativeOf(game, playerId) {
+  return game.state?.advertisers?.find((a) => a.id === playerId)?.creative;
+}
+
+/**
+ * Is there anything to say about the player's own copy this week?
+ *
+ * MEASURED, AND THE REASON THIS FUNCTION EXISTS. A self-written ad runs on the
+ * ungraded default until `creative.liveAtRound` (9.5, DECISIONS A8/I11), and the
+ * round it lands is the largest single movement in a twelve-week game: at the
+ * bid round 0 offers, a DIY account went 586 clicks to 2,351, while a hired
+ * control over the same two weeks went DOWN. Below the reserve it goes from
+ * nothing at all to 1,951. Nothing on this screen said so — the delay was
+ * explained once at round 0, five cards deep, before the player had seen a
+ * single auction — so a player who changed anything that week would credit their
+ * own change with a 4x jump.
+ *
+ * It reports the STATE and the card writes the sentence, following
+ * `termsOutlook` and `negativesOutlook`.
+ *
+ * @param {{liveAtRound?: number}|null|undefined} creative the player's own block
+ * @param {number|null} round the round being reported
+ * @returns {null | {state: 'pending'|'landed', liveAtRound: number,
+ *   weeksAway: number, ungradedScore: number}} null when there is nothing to say
+ */
+export function creativeOutlook(creative, round) {
+  const liveAtRound = creative?.liveAtRound;
+  // A hired ad was live before the first auction (liveAtRound 1), so there is
+  // nothing to explain and a "went live this week" on week 1 would be noise on
+  // every hired account. A missing block is an older state, not a story.
+  if (!Number.isFinite(liveAtRound) || liveAtRound <= 1 || !Number.isFinite(round)) return null;
+  if (round > liveAtRound) return null;
+
+  return {
+    state: round < liveAtRound ? 'pending' : 'landed',
+    liveAtRound,
+    weeksAway: liveAtRound - round,
+    // From the engine's own default, not a literal: this is the grade the
+    // auction actually ran on, and a number typed into a view would drift.
+    ungradedScore: DEFAULT_UNGRADED_QUALITY.expectedCtr,
+  };
+}
+
+/**
+ * What the card says about it.
+ *
+ * The landed sentence says where to look and stops there (I13). It does not
+ * claim the copy is the ONLY reason anything moved — the player may have changed
+ * bids the same week — but it names the cause they cannot see, because the one
+ * they can see is the only one they would otherwise credit.
+ */
+function copySentence(copy) {
+  if (copy.state === 'pending') {
+    return 'Your own copy is not live yet. Until week '
+      + `${copy.liveAtRound} you are running an unwritten ad, graded `
+      + `${copy.ungradedScore} out of 10 for both click-through and relevance, `
+      + 'so these figures are what an ungraded ad does rather than what yours '
+      + 'will do. ';
+  }
+  return 'Your own copy went live this week, at the grade you wrote it to. '
+    + 'If impressions and clicks jumped, that is the first thing to attribute '
+    + 'it to — not the changes you made last week. ';
 }
 
 /** F12: share never appears without position mix beside it. */
@@ -409,7 +490,7 @@ export function renderDashboard(game, onDecisionChange) {
   const root = document.getElementById('tpl-dashboard').content
     .cloneNode(true).firstElementChild;
 
-  renderHeadline(root, row);
+  renderHeadline(root, row, game, game.playerId, report);
   renderShare(root, row);
   renderRevised(root, game);
   renderInsights(root, game);

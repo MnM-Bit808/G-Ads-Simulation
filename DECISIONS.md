@@ -1578,7 +1578,10 @@ rests on. The grade is computed at round 0, held whole, and applied whole by
 **THE ROLLOVER IS LOAD-BEARING, not tidiness.** Whatever the writer did not cost
 becomes advertising budget. Without it the retainer was 20% ahead of a perfectly
 self-written ad and strictly dominated. With it, `tests/writerBalance.test.js`
-measures self-written against retainer at **1.002** — within 0.2%.
+measures self-written against retainer at **1.002** — within 0.2%. **Re-measured
+at 1.014** through a replica of that test's own fixtures once rivals stopped
+writing their own ads, which raised the field it is measured against. Still far
+inside the test's 0.85-1.15 bounds.
 
 It arrives differently from the capital rollover and the two must not be
 confused: capital has allocation rounds and `round.js` adds it there, rescaling
@@ -1732,6 +1735,71 @@ That teaches nothing false, because the description is never shown again after
 round 0. Recomposing it mid-game would change the ad's `contentHash` and trigger
 a regrade under 5.2, which would overwrite the grade the player's WRITER TIER
 bought (I11). The inconsistency is cheaper than the fix.
+
+### I16. The dashboard says when your own copy is not live, and when it lands — `FIXED`
+
+Real Google Ads has no notion of a writer, so it has nothing to announce. This
+one delays a self-written ad to `CREATIVE_DIY_LIVE_ROUND` (I11), and until this
+entry **no screen on the dashboard mentioned that at all**.
+`CREATIVE_DIY_LIVE_ROUND` was named in `ui/round-zero.js` and nowhere else, and
+`ui/dashboard.js` mentioned the creative zero times.
+
+**WHY IT MATTERS IS A MEASUREMENT, not a tidiness argument.** The round a
+self-written ad lands is the largest single movement in a twelve-week game. At
+the bid round 0 offers, on the account this project keeps returning to:
+
+| | week 2 | week 3 |
+|---|---|---|
+| clicks | 575 | **2,800** |
+| spend | ₹13,558 | ₹69,643 |
+
+A hired control over the same two weeks goes **down** (2,029 to 1,819), so the
+jump is the creative and nothing else. Below the reserve it is worse: 0 to 1,951,
+out of nothing at all.
+
+**So a player who changed anything that week would credit their own change with a
+4.9x traffic jump, and be wrong.** Nothing on the screen could correct them.
+Round 0 does say it — *"It does not go live until week 3; until then you run an
+unwritten ad that wins almost nothing"* — once, five cards deep in a form, before
+the player has seen a single auction. By week 3 that sentence is three weeks and
+a whole interface behind them.
+
+Two sentences, in the note under "The week", where the six figures they qualify
+are:
+
+- **weeks 1 to 2:** the ad is not live, and these figures are what an *ungraded*
+  ad does rather than what yours will do. It quotes the grade the auction actually
+  ran on, from `DEFAULT_UNGRADED_QUALITY` rather than a literal in a view.
+- **the round it lands:** the copy went live this week, and a jump in impressions
+  and clicks is the first thing to attribute it to rather than last week's changes.
+
+**It names a cause without claiming to be the only one.** The player may have
+changed bids the same week and both moved. The sentence says where to look and
+stops there, which is I13's rule.
+
+**A hired account is never told anything**, at any round, because its ad was live
+before the first auction and "your copy went live this week" on week 1 would be
+noise on every hired game. `creativeOutlook` returns null on `liveAtRound <= 1`,
+which gets that from the data rather than from a tier name.
+
+**And it goes quiet afterwards.** A card that keeps announcing something that
+happened four weeks ago trains the player to stop reading the card.
+
+**WHAT THIS COST TO GET RIGHT, worth recording.** `getSelfView` does **not carry
+`creative`** — the block is a caller-layer field added after that view was
+written — so no controller can see it either. **An `llmPolicy` therefore cannot
+know its own ad is not live yet**, which is a real blind spot for a policy that
+would otherwise raise bids in weeks 1-2 for the wrong reason. The dashboard reads
+it from `game.state`, which it already holds and which is outside R5's controller
+boundary, so nothing here is blocked on it. Adding it to the view is open.
+
+**One test written for this was wrong while the code was right.** It read the
+stored `gradedQuality` at the START of the round the copy lands and expected the
+default, because `game.js` applies the pending grade *inside* `submitRound`, on
+the advertiser it prepares for that round. So the stored grade lags the auction by
+one round exactly at the boundary being tested. `tests/dashboard.test.js` now
+compares against the grade in `nextGameState`, which is the one the round actually
+used.
 
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
