@@ -6,6 +6,7 @@ import {
   FORBIDDEN_IN_PUBLIC_VIEW, FORBIDDEN_IN_SELF_VIEW,
 } from '../engine/insights.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
+import { LOCATION_TIERS } from '../engine/constants.js';
 
 const STATE = makeGameState();
 const R1 = runRound(STATE, { mode: 'expected', counterfactualFor: ['halcyon'] });
@@ -471,5 +472,120 @@ describe('quality scores reach only their owner (L15)', () => {
     // Nothing in engine/ may read reportedScore, so report.js cannot compute
     // it. The caller attaches each advertiser's own scores to its own row.
     expect(mine(R1).quality).toEqual({});
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// Where the money came from, and where it went back (G4, step 4)
+// ---------------------------------------------------------------------------
+
+describe('the location breakdown', () => {
+  /**
+   * A location report showing only clicks and cost would show three columns
+   * differing by volume and nothing else, because location does not touch
+   * conversion RATE by design. What it touches is the basket and the return
+   * rate - and both arrive late, a return window on top of an attribution lag.
+   * So the shape is asserted here and the revision below, because the revision
+   * is where the lesson actually lands.
+   */
+  const rowsOf = (row) => Object.values(row.breakdown.byLocation);
+
+  test('every advertiser that traded gets one row per location', () => {
+    for (const advertiser of STATE.advertisers) {
+      const row = R1.report.byAdvertiser[advertiser.id];
+      if (!row || row.traffic.impressions <= 0) continue;
+      const keys = Object.keys(row.breakdown.byLocation);
+      expect(keys.length, advertiser.id).toBeGreaterThan(0);
+      for (const key of keys) {
+        expect(Number(key), `${advertiser.id} tier ${key}`).toBeLessThan(LOCATION_TIERS.length);
+      }
+    }
+  });
+
+  test('the traffic in it sums back to the advertiser own totals', () => {
+    for (const advertiser of STATE.advertisers) {
+      const row = R1.report.byAdvertiser[advertiser.id];
+      if (!row || row.traffic.impressions <= 0) continue;
+      const sumOf = (key) => rowsOf(row).reduce((a, r) => a + r[key], 0);
+      expect(sumOf('impressions'), advertiser.id).toBeCloseTo(row.traffic.impressions, 6);
+      expect(sumOf('clicks'), advertiser.id).toBeCloseTo(row.traffic.clicks, 6);
+      expect(sumOf('costPaise'), advertiser.id).toBeCloseTo(row.traffic.costPaise, 6);
+    }
+  });
+
+  test('impression share is measured against the auctions available THERE', () => {
+    // Against the whole market it becomes meaningless the moment anybody can
+    // choose where to run, which is what step 6 adds. F12 already records share
+    // as the most misread number in this report.
+    const row = R1.report.byAdvertiser[PLAYER_ID];
+    for (const [tier, r] of Object.entries(row.breakdown.byLocation)) {
+      expect(r.eligibleAuctions, `tier ${tier}`).toBeGreaterThan(0);
+      expect(r.impressionShare, `tier ${tier}`)
+        .toBeCloseTo(r.impressions / r.eligibleAuctions, 9);
+      expect(r.impressionShare).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test('a basket is bigger in the metros than in the towns', () => {
+    // Conversions divide in proportion to clicks, because conversion rate is
+    // location-independent by design - so any difference in revenue per
+    // conversion is the basket and nothing else.
+    const rows = rowsOf(R1.report.byAdvertiser[PLAYER_ID]).filter((r) => r.conversions > 0);
+    expect(rows.length, 'nothing converted anywhere').toBeGreaterThan(1);
+    const perConversion = rows.map((r) => r.grossRevenuePaise / r.conversions);
+    expect(perConversion[0]).toBeGreaterThan(perConversion[perConversion.length - 1]);
+  });
+
+  test('and nothing has come back yet, because returns resolve later', () => {
+    for (const r of rowsOf(R1.report.byAdvertiser[PLAYER_ID])) {
+      expect(r.returned).toBe(0);
+      expect(r.returnedRevenuePaise).toBe(0);
+    }
+  });
+});
+
+describe('the returns arrive late, and that is the lesson', () => {
+  /**
+   * Round 1 read after enough rounds have passed for its returns to resolve: an
+   * attribution lag of up to three rounds, then a return window on top. A
+   * location reads well for several weeks and is then revised downward, which is
+   * exactly the shape of the mistake this mechanic exists to teach.
+   */
+  let state = STATE;
+  let rounds = [];
+  for (let i = 0; i < 8; i++) {
+    const out = runRound(state, { mode: 'expected' });
+    state = out.nextGameState;
+    rounds.push(out);
+  }
+  const settled = state.history.find((h) => h.round === 1).byAdvertiser[PLAYER_ID];
+  const rows = Object.values(settled.breakdown.byLocation);
+
+  test('returns are attributed to the location the click was in', () => {
+    const returned = rows.reduce((a, r) => a + r.returned, 0);
+    expect(returned, 'nothing came back at all').toBeGreaterThan(0);
+    expect(returned).toBeCloseTo(settled.conversions.returned, 6);
+  });
+
+  test('the return RATE rises as the cities get smaller', () => {
+    // The gradient the design rests on, and the thing a player can only learn
+    // by reading this table after it has been revised.
+    const rates = rows.map((r) => r.returned / r.conversions);
+    for (let i = 1; i < rates.length; i++) {
+      expect(rates[i], `tier ${i} against ${i - 1}`).toBeGreaterThan(rates[i - 1]);
+    }
+  });
+
+  test('so a click is worth less in the towns at exactly the same price', () => {
+    // The sentence the whole mechanic exists to make true: same CPC, less money.
+    const cpc = rows.map((r) => r.costPaise / r.clicks);
+    const netPerClick = rows.map(
+      (r) => (r.grossRevenuePaise - r.returnedRevenuePaise) / r.clicks,
+    );
+    for (let i = 1; i < cpc.length; i++) {
+      expect(cpc[i] / cpc[0], `cpc tier ${i} against the metros`).toBeCloseTo(1, 2);
+    }
+    expect(netPerClick[netPerClick.length - 1]).toBeLessThan(netPerClick[0]);
   });
 });

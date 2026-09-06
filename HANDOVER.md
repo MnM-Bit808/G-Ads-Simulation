@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and one new mechanic is mid-build.** 1262 tests, all passing, 1 todo.
+**Every build-order step is done, and one new mechanic is mid-build.** 1270 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -715,7 +715,7 @@ player gets a weekly bid adjustment per tier, shaped like dayparting.
                                         mutation-tested
 ✅ 3  engine/round.js                    the auction gains its third dimension
    ✅ STOP: npm run test:perf — fired, and the fix is load-bearing
-⏸ 4  engine/report.js                   byLocation, and share per targeted tier
+✅ 4  engine/report.js                   byLocation, revised, and share per tier
 ⏸ 5  agents/policies.js                 rivals target by their own affinity
    ── STOP AND MEASURE ──
 ⏸ 6  the control                        campaign.locationAdjustments, weekly
@@ -758,6 +758,12 @@ screen is built against them is the whole reason the UI is step 8.
 - `locationSharesFor` hands back **shared frozen arrays** rather than copies,
   because it is on the hot path — and there is a test that they cannot be written
   through.
+
+**AND A REMINDER THE HARD WAY: run the performance suite ALONE.** Step 4's timing
+came back at 2,210ms against a 2,200ms bound and looked like a real regression
+from the extra conversion buckets. It was contention — `npm test` was still
+running in the background. Measured alone the same build is 190ms and 1,467ms.
+This file already said so and it still caught me.
 
 **WHAT THE PERFORMANCE STOP FOUND, and it is the reason the order has stops in
 it.** Resolving three auctions per query-hour — the honest implementation — came in

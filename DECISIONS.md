@@ -1370,7 +1370,41 @@ location, so both accumulate as weighted totals in one bucket per query and are
 averaged at queue time. One bucket per query-and-tier would have tripled the
 settlement to save nothing.
 
-**Steps 1, 2 and 3 of nine are done**: the tables and names, and `engine/locations.js`
+**THE REPORT HAD TO CARRY THE MONEY, NOT JUST THE TRAFFIC.** Location does not
+touch conversion RATE by design, so a breakdown of clicks and cost alone would
+have shown three columns differing by volume and nothing else — and hidden the
+entire lesson. What location touches is the basket and the return rate, so the
+conversion queue carries the tier its click was in, and returns carry it too.
+
+That cost a design decision made in step 3: one conversion bucket per query
+became one per query AND location. It is the difference between a location report
+that can show what the money did and one that cannot.
+
+**Measured over a played game, round 1 read at round 9 with its returns
+resolved** — a value advertiser, identical bids everywhere:
+
+| | metros | large cities | towns |
+|---|---|---|---|
+| cost per click | ₹18.17 | ₹18.17 | ₹18.18 |
+| return rate | 21.4% | 26.8% | **32.2%** |
+| **net revenue per click** | **₹100** | ₹85 | **₹72** |
+
+The same price everywhere and 28% less money in the towns. The return-rate ratios
+come out at 1.250 and 1.501 against the design's 1.25 and 1.5, so the gradient
+survives the whole chain from table to played round.
+
+**AND IT IS REVISED, ON THE SAME CLOCK AS EVERYTHING ELSE (11.4).** Returns
+resolve after a return window on top of an attribution lag, so a location reads
+well for several weeks and is then rewritten downward — which is precisely the
+shape of the mistake the mechanic exists to teach. A location report that was not
+revised would keep saying the towns never send anything back.
+
+**Impression share is per location**, measured against the auctions available
+there. Against the whole market it becomes meaningless the moment anybody can
+choose where to run, and F12 already records share as the most misread number in
+this report.
+
+**Steps 1 to 4 of nine are done**: the tables and names, and `engine/locations.js`
 — the demand-side arithmetic, validated and mutation-tested — and the auction now
 reads it. `HANDOVER.md` carries the remaining order and the two points where it
 stops to measure.

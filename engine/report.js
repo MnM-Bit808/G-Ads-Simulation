@@ -207,7 +207,7 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
       byAdvertiser[advertiser.id] = {
         ...existing,
         breakdown: reviseBreakdown(
-          existing.breakdown, r.keywordForQuery ?? new Map(), lateLanded,
+          existing.breakdown, r.keywordForQuery ?? new Map(), lateLanded, lateReturns,
         ),
         conversions: {
           ...existing.conversions,
@@ -304,6 +304,22 @@ function attributeConversions(r, landed) {
   for (const [id, row] of r.byQuery ?? []) byQuery[id] = { ...row, conversions: 0 };
   const byKeyword = {};
   for (const [id, row] of r.byKeyword ?? []) byKeyword[id] = { ...row, conversions: 0 };
+  // WHERE IT HAPPENED (G4). Carries revenue as well as conversions, because
+  // location changes the basket and the return rate and nothing else - a
+  // breakdown of clicks alone would show three columns differing only by volume
+  // and would hide the entire lesson.
+  const byLocation = {};
+  for (const [tier, row] of r.byLocation ?? []) {
+    byLocation[tier] = {
+      ...row,
+      conversions: 0,
+      grossRevenuePaise: 0,
+      returned: 0,
+      returnedRevenuePaise: 0,
+      eligibleAuctions: r.eligibleByLocation?.[tier] ?? 0,
+      impressionShare: ratio(row.impressions, r.eligibleByLocation?.[tier] ?? 0),
+    };
+  }
 
   const keywordFor = r.keywordForQuery ?? new Map();
   for (const entry of landed) {
@@ -311,14 +327,20 @@ function attributeConversions(r, landed) {
     if (queryRow) queryRow.conversions += entry.count;
     const keywordRow = byKeyword[keywordFor.get(entry.queryId)];
     if (keywordRow) keywordRow.conversions += entry.count;
+    const locationRow = byLocation[entry.locationTier];
+    if (locationRow) {
+      locationRow.conversions += entry.count;
+      locationRow.grossRevenuePaise += entry.valuePaise;
+    }
   }
-  return { byKeyword, byQuery };
+  return { byKeyword, byQuery, byLocation };
 }
 
 /** Add later arrivals to the breakdown rows they belong to. */
-function reviseBreakdown(breakdown, keywordFor, late) {
+function reviseBreakdown(breakdown, keywordFor, late, lateReturns = []) {
   const byQuery = { ...breakdown.byQuery };
   const byKeyword = { ...breakdown.byKeyword };
+  const byLocation = { ...(breakdown.byLocation ?? {}) };
   for (const entry of late) {
     const queryRow = byQuery[entry.queryId];
     if (queryRow) {
@@ -329,8 +351,33 @@ function reviseBreakdown(breakdown, keywordFor, late) {
     if (keywordRow) {
       byKeyword[keywordId] = { ...keywordRow, conversions: (keywordRow.conversions ?? 0) + entry.count };
     }
+    // Revised on the same clock as the other two (11.4). A location report that
+    // was not revised would keep saying the towns never convert, which is the
+    // exact trap the search terms report already sets and already corrects.
+    const locationRow = byLocation[entry.locationTier];
+    if (locationRow) {
+      byLocation[entry.locationTier] = {
+        ...locationRow,
+        conversions: (locationRow.conversions ?? 0) + entry.count,
+        grossRevenuePaise: (locationRow.grossRevenuePaise ?? 0) + entry.valuePaise,
+      };
+    }
   }
-  return { byKeyword, byQuery };
+
+  // RETURNS ARE THE POINT OF THIS BREAKDOWN, and they arrive later than the
+  // conversions they undo - a return window on top of an attribution lag. So a
+  // location reads well for several rounds and is then revised downward, which
+  // is exactly the shape of the mistake the mechanic exists to teach.
+  for (const entry of lateReturns) {
+    const row = byLocation[entry.locationTier];
+    if (!row) continue;
+    byLocation[entry.locationTier] = {
+      ...row,
+      returned: (row.returned ?? 0) + entry.count,
+      returnedRevenuePaise: (row.returnedRevenuePaise ?? 0) + entry.valuePaise,
+    };
+  }
+  return { byKeyword, byQuery, byLocation };
 }
 
 function moneyBlock({ costPaise, conversions, grossRevenuePaise, returnedRevenuePaise, marginPct }) {

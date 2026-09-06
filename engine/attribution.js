@@ -152,7 +152,8 @@ export function sampleOrderValuePaise(business, query, rng, mode) {
  * @returns {Array<object>} pendingConversions entries
  */
 export function queueConversions({
-  clicks, convRate, orderValuePaise, returnRate, round, rng, mode, queryId = null,
+  clicks, convRate, orderValuePaise, returnRate, round, rng, mode,
+  queryId = null, locationTier = null,
 }) {
   let count = clicks * convRate;
   if (count <= 0) return [];
@@ -175,6 +176,11 @@ export function queueConversions({
       clickedInRound: round,
       dueRound: round + lag,
       queryId,
+      // Where the click was. Carried because the location report is only worth
+      // having if it can show what the money DID, and revenue and returns are
+      // the two things location changes - a breakdown of clicks alone would
+      // show three columns that differ by volume and nothing else.
+      locationTier,
       count: slice,
       valuePaise: Math.round(slice * orderValuePaise),
       returnRate,
@@ -224,6 +230,11 @@ export function queueReturns(landed, round, returnWindowRounds) {
       // click round would have nowhere to go.
       clickedInRound: entry.clickedInRound,
       queryId: entry.queryId ?? null,
+      // And where it was bought. Returns are the whole trade the location
+      // mechanic rests on - the towns convert perfectly well and then send it
+      // back - so a return that could not name its location would leave the
+      // report showing the basket difference and hiding the expensive half.
+      locationTier: entry.locationTier ?? null,
       landedInRound: round,
       resolvesInRound: round + returnWindowRounds,
       count: entry.count * rate,

@@ -154,6 +154,13 @@ export function runRound(gameState, options = {}) {
             const plan = entryPlan[i][q];
             if (!plan) continue;
             acc[i].eligibleAuctions += hourVolume;
+            // Per location too, because impression share needs a denominator
+            // from the same place as its numerator. Without it the report could
+            // say how much traffic came from each tier but not how much was
+            // going begging there.
+            for (let t = 0; t < tiers; t++) {
+              acc[i].eligibleByLocation[t] += hourVolume * shares[q][t];
+            }
 
             const monthRemaining = Math.max(
               0, budgets[i].monthlyBudgetPaise - budgets[i].monthSpentPaise,
@@ -439,23 +446,26 @@ function recordAuction({
         const base = sampleOrderValuePaise(business[i], query, perAdvertiserRng[i], mode);
         const queryReturn = 1 - retentionRate(business[i], query);
         const converted = clicks * convRate;
-        const bucket = convAccum[i].get(query.id)
-          ?? { count: 0, valuePaise: 0, returnWeighted: 0 };
-        bucket.count += converted;
-        // The basket and the return rate are per LOCATION as well as per
-        // position and query, so both are accumulated as weighted totals and
-        // averaged at queue time. One bucket per query rather than one per
-        // query-and-tier is what stops the settlement tripling too.
+        // ONE BUCKET PER QUERY AND LOCATION. The basket and the return rate are
+        // both per location, and they are the only two things location changes -
+        // so merging the tiers here would leave the location report able to show
+        // clicks and cost and nothing about what the money did, which is the
+        // whole lesson. Conversion RATE is location-independent by design, so
+        // the counts still divide in proportion to the clicks.
         for (let t = 0; t < tiers; t++) {
           const share = shares[t];
           if (share <= 0) continue;
           const here = converted * share;
+          const key = `${query.id}\u0000${t}`;
+          const bucket = convAccum[i].get(key)
+            ?? { queryId: query.id, tier: t, count: 0, valuePaise: 0, returnWeighted: 0 };
+          bucket.count += here;
           bucket.valuePaise += here * base * effects.aovMultiplier[t];
           bucket.returnWeighted += here * Math.min(
             RETURN_RATE_CLAMP_MAX, queryReturn * effects.returnMultiplier[t],
           );
+          convAccum[i].set(key, bucket);
         }
-        convAccum[i].set(query.id, bucket);
         // Kept separately from the money buckets, which are per query because
         // order value and return rate are. This one is per hour and counts
         // only, which is all the hour-of-day history needs.
@@ -559,20 +569,20 @@ function settleRound({ advertisers, business, acc, convAccum, round, perAdvertis
   return advertisers.map((advertiser, i) => {
     // Queue this round's conversions behind the attribution lag.
     const queued = [];
-    for (const [queryId, bucket] of convAccum[i]) {
+    for (const bucket of convAccum[i].values()) {
       if (bucket.count <= 0) continue;
       queued.push(...queueConversions({
         clicks: bucket.count,
         convRate: 1,
         orderValuePaise: Math.round(bucket.valuePaise / bucket.count),
-        // The cohort's own mean, weighted by where its conversions happened. A
-        // single position-and-query figure would have thrown the location away
-        // at exactly the point it starts costing money.
+        // Already the cohort's own rate for this query in this location, so no
+        // averaging is left to do here.
         returnRate: bucket.returnWeighted / bucket.count,
         round,
         rng: perAdvertiserRng[i],
         mode,
-        queryId,
+        queryId: bucket.queryId,
+        locationTier: bucket.tier,
       }));
     }
 
@@ -976,6 +986,7 @@ function freshAccumulator() {
     // Keyed by tier index. `report.js` turns it into something a person reads;
     // accumulating it here is free, and there is nowhere else it could happen.
     byLocation: new Map(),
+    eligibleByLocation: new Array(LOCATION_TIERS.length).fill(0),
     qualityRows: new Map(),
     warnings: new Set(),
   };
