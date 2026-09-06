@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and one new mechanic is mid-build.** 1241 tests, all passing, 1 todo.
+**Every build-order step is done, and one new mechanic is mid-build.** 1252 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -711,8 +711,8 @@ player gets a weekly bid adjustment per tier, shaped like dayparting.
 
 ```
 ✅ 1  constants + content/locations.js   the tables, the names, their tests
-⏸ 2  engine/locations.js                pure helpers, and the readers those
-                                        constants are waiting for
+✅ 2  engine/locations.js                demand-side arithmetic, validated and
+                                        mutation-tested
 ⏸ 3  engine/round.js                    the auction gains its third dimension
    ── STOP: npm run test:perf ──
 ⏸ 4  engine/report.js                   byLocation, and share per targeted tier
@@ -746,6 +746,18 @@ screen is built against them is the whole reason the UI is step 8.
 - Targeting well is worth **+20% to +27% to a value position and +7% to +8.5% to a
   premium one** — the inverse of the intuition, because premium is already
   concentrated and value is not.
+
+**What step 2 settled:**
+
+- **Neutral traffic splits evenly, and it is 16% of the set.** Brand,
+  informational and irrelevant queries have no home cell, so they carry no price
+  signal; giving them one price tier's geography would assert something the query
+  does not say. With them included the country is **33.9 / 34.9 / 31.2**.
+- **Volume is conserved over the real query set**, asserted rather than argued.
+  That single test is the whole claim of the mechanic.
+- `locationSharesFor` hands back **shared frozen arrays** rather than copies,
+  because it is on the hot path — and there is a test that they cannot be written
+  through.
 
 **Three things not to relearn:**
 

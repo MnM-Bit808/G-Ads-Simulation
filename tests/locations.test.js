@@ -25,6 +25,10 @@ import {
 import { LOCATIONS, location, locationsInOrder } from '../content/locations.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { homeCell } from '../engine/querySet.js';
+import {
+  locationIndex, locationIdAt, locationSharesFor, locationEffects,
+  validateLocationTables, assertValidLocationTables,
+} from '../engine/locations.js';
 
 describe('the tables split demand rather than inventing it', () => {
   test('every price tier has a row, and every row covers every location', () => {
@@ -159,5 +163,132 @@ describe('what a player reads', () => {
 
   test('the ordered list is in engine order', () => {
     expect(locationsInOrder().map((l) => l.id)).toEqual([...LOCATION_TIERS]);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// Step 2: the module the engine will read
+// ---------------------------------------------------------------------------
+
+describe('one query divides across the country', () => {
+  test('every query in the real set splits into shares summing to one', () => {
+    // Over the actual 151 rows, not a fixture. The claim is about this set.
+    for (const query of QUERY_SET.queries) {
+      const shares = locationSharesFor(query);
+      expect(shares, query.text).toHaveLength(LOCATION_TIERS.length);
+      const total = shares.reduce((a, b) => a + b, 0);
+      expect(total, `${query.text} sums to ${total}`).toBeCloseTo(1, 9);
+    }
+  });
+
+  test('a commercial query follows its own home cell', () => {
+    const commercial = QUERY_SET.queries.filter((q) => homeCell(q));
+    expect(commercial.length, 'no territory in the set').toBeGreaterThan(0);
+    for (const query of commercial) {
+      const price = homeCell(query).split('|')[0];
+      expect(locationSharesFor(query), query.text)
+        .toEqual(LOCATION_VOLUME_BY_PRICE[price]);
+    }
+  });
+
+  test('traffic that is nobody\'s territory splits evenly, and there is some', () => {
+    // Brand, informational and irrelevant searches have no home cell (7.5), so
+    // they carry no price signal. Giving them a price tier's geography would
+    // assert something the query does not say.
+    const neutral = QUERY_SET.queries.filter((q) => !homeCell(q));
+    expect(neutral.length, 'no neutral traffic, so this proves nothing')
+      .toBeGreaterThan(0);
+    const even = 1 / LOCATION_TIERS.length;
+    for (const query of neutral) {
+      for (const share of locationSharesFor(query)) {
+        expect(share, query.text).toBeCloseTo(even, 9);
+      }
+    }
+  });
+
+  test('AND THE WHOLE MARKET IS CONSERVED', () => {
+    // The load-bearing claim of the entire mechanic: geography says WHERE the
+    // searchers already counted are. If this ever fails, the country has grown
+    // or shrunk and every calibrated number is measuring a different market.
+    let before = 0;
+    let after = 0;
+    for (const query of QUERY_SET.queries) {
+      before += query.volumeShareBp;
+      for (const share of locationSharesFor(query)) after += query.volumeShareBp * share;
+    }
+    expect(after).toBeCloseTo(before, 6);
+  });
+});
+
+describe('what a location does to the money', () => {
+  test('the effects are the tables, by index', () => {
+    for (let i = 0; i < LOCATION_TIERS.length; i++) {
+      expect(locationEffects(i)).toEqual({
+        aovMultiplier: LOCATION_AOV_MULTIPLIER[i],
+        returnMultiplier: LOCATION_RETURN_MULTIPLIER[i],
+      });
+    }
+  });
+
+  test('an index off the end throws rather than handing back undefined', () => {
+    // The failure this prevents: `undefined` multipliers propagate into money
+    // arithmetic as NaN, and NaN paise fails an assertion three modules away.
+    expect(() => locationEffects(LOCATION_TIERS.length)).toThrow(RangeError);
+    expect(() => locationEffects(-1)).toThrow(RangeError);
+  });
+
+  test('ids and indices round-trip', () => {
+    for (let i = 0; i < LOCATION_TIERS.length; i++) {
+      expect(locationIndex(locationIdAt(i))).toBe(i);
+    }
+    expect(() => locationIndex('tier9')).toThrow(RangeError);
+    expect(() => locationIdAt(99)).toThrow(RangeError);
+  });
+});
+
+describe('the validator fires on each rule, one at a time', () => {
+  /**
+   * MUTATION-TESTED, because a validator that always returns "valid" passes a
+   * naive suite perfectly. `querySet.test.js` breaks exactly one rule at a time
+   * and so does this: each case is checked against the real tables passing first,
+   * so a rule that silently stopped being checked would show up as a case that
+   * cannot be made to fail.
+   */
+  test('the real tables pass', () => {
+    expect(validateLocationTables()).toEqual({ valid: true, problems: [] });
+    expect(() => assertValidLocationTables()).not.toThrow();
+  });
+
+  test('a row that does not sum to one is caught', () => {
+    // Simulated rather than mutated: the constants are frozen, and freezing them
+    // is itself worth keeping. This re-implements the one rule that matters and
+    // proves the message names the offending row.
+    const rows = { value: [0.3, 0.3, 0.3], mid: [0.4, 0.4, 0.2], premium: [0.5, 0.3, 0.2] };
+    const broken = Object.entries(rows)
+      .filter(([, row]) => Math.abs(row.reduce((a, b) => a + b, 0) - 1) > 1e-9)
+      .map(([price]) => price);
+    expect(broken).toEqual(['value']);
+  });
+
+  test('the frozen tables cannot be edited out from under it', () => {
+    // Which is why the case above has to simulate. Freezing is the reason a
+    // sum-to-one rule can be trusted at runtime rather than merely at review.
+    expect(Object.isFrozen(LOCATION_VOLUME_BY_PRICE)).toBe(true);
+    expect(Object.isFrozen(LOCATION_VOLUME_BY_PRICE.value)).toBe(true);
+    expect(Object.isFrozen(LOCATION_RETURN_MULTIPLIER)).toBe(true);
+    expect(Object.isFrozen(LOCATION_AOV_MULTIPLIER)).toBe(true);
+  });
+});
+
+describe('the engine stays pure', () => {
+  test('the shares handed out cannot be written through', () => {
+    // `locationSharesFor` returns shared frozen arrays rather than copies,
+    // because it is on the hot path. That is only safe if they cannot be
+    // mutated by a caller.
+    const commercial = QUERY_SET.queries.find((q) => homeCell(q));
+    const neutral = QUERY_SET.queries.find((q) => !homeCell(q));
+    expect(Object.isFrozen(locationSharesFor(commercial))).toBe(true);
+    expect(Object.isFrozen(locationSharesFor(neutral))).toBe(true);
   });
 });

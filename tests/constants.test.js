@@ -484,14 +484,6 @@ describe('every constant is read by something (R4, hard rule 7)', () => {
    * third test below stops the promise being quietly forgotten.
    */
   const NOT_YET_CONSUMED = {
-    LOCATION_VOLUME_BY_PRICE:
-      'step 1 of the location mechanic: the numbers and their argument land '
-      + 'before engine/locations.js reads them, so that the tables can be '
-      + 'reviewed on their own. Remove when that module exists.',
-    LOCATION_RETURN_MULTIPLIER:
-      'as LOCATION_VOLUME_BY_PRICE.',
-    LOCATION_AOV_MULTIPLIER:
-      'as LOCATION_VOLUME_BY_PRICE.',
     MIN_PEAK_SEPARATION_HOURS:
       'invariant I5 IS a test (18.2), so its threshold belongs to one. Not debt.',
     SMART_BIDDING_MIN_CONVERSIONS:

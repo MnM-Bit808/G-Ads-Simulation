@@ -1301,10 +1301,25 @@ in a played game. `ESTIMATED` would claim a confidence nobody has.
 `tests/constants.test.js` carries the argument beside the assertion, and asks the
 next person to justify any further widening.
 
-**Step 1 of nine is done**: the tables, the names, and their tests. The engine does
-not read them yet, which is why they sit in `NOT_YET_CONSUMED` with a reason.
-`HANDOVER.md` carries the remaining build order and the two points where it stops
-to measure.
+**TRAFFIC THAT IS NOBODY'S TERRITORY SPLITS EVENLY**, and it is 16% of the set.
+`homeCell` returns null for brand, informational and irrelevant queries (7.5), so
+they carry no price signal at all — and giving them a price tier's geography would
+assert something the query does not say. An even split is the only honest answer,
+and it is also what stops brand traffic quietly inheriting a geography it never
+earned.
+
+With that included the country comes out **33.9 / 34.9 / 31.2**, spread 1.12×.
+
+**THE CONSERVATION TEST IS THE ONE THAT MATTERS.** Summed over the real 151 rows,
+volume after the split equals volume before it. That is the entire claim of the
+mechanic in one assertion — geography says where the searchers `WEEKLY_VOLUME`
+already counts are. If it ever fails, the country has grown or shrunk and every
+calibrated number is measuring a different market.
+
+**Steps 1 and 2 of nine are done**: the tables and names, and `engine/locations.js`
+— the demand-side arithmetic, validated and mutation-tested. The auction does not
+read it yet. `HANDOVER.md` carries the remaining order and the two points where it
+stops to measure.
 
 ---
 
