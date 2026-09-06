@@ -90,7 +90,7 @@ describe('the correlation the mechanic rests on', () => {
   });
 });
 
-describe('the tail is fat enough to hold the overflow', () => {
+describe('the metros are scarce, which is the trade', () => {
   /**
    * Weighted by how much of the market each price tier actually carries.
    *
@@ -112,19 +112,26 @@ describe('the tail is fat enough to hold the overflow', () => {
         + (weight[price] / total) * LOCATION_VOLUME_BY_PRICE[price][tier], 0));
   };
 
-  test('the country is not a metro market with two afterthoughts', () => {
-    // The failure this guards: a thin tail makes the metros a right answer,
-    // because they are better per click by construction. Two thirds of the
-    // market outside them is what forces the overflow that makes them contested.
+  test('the metros are the smallest market, not the biggest', () => {
+    // THE FAILURE THIS GUARDS, and it was measured rather than imagined. An
+    // earlier version split the country 34/35/31, near enough to level - and
+    // that made the metros a RIGHT ANSWER, because they are the best place to be
+    // by construction: targeting them was worth +70% to a value advertiser and
+    // +52% to a mid one, while premium did best ignoring the control entirely.
+    //
+    // Scarcity is what turns that into a decision. A fifth of the country will
+    // not absorb a month's budget, so an advertiser has to choose how much to
+    // spend somewhere worse.
     const [metros, , towns] = overallShares();
-    expect(metros, `metros hold ${(100 * metros).toFixed(0)}%`).toBeLessThan(0.4);
-    expect(towns, `towns hold ${(100 * towns).toFixed(0)}%`).toBeGreaterThan(0.25);
+    expect(metros, `metros hold ${(100 * metros).toFixed(0)}%`).toBeLessThan(0.25);
+    expect(towns, `towns hold ${(100 * towns).toFixed(0)}%`).toBeGreaterThan(metros * 1.8);
   });
 
-  test('and it is near enough to level that no tier is a rounding error', () => {
-    const shares = overallShares();
-    const spread = Math.max(...shares) / Math.min(...shares);
-    expect(spread, `spread ${spread.toFixed(2)}x`).toBeLessThan(1.3);
+  test('but not so scarce that they are a rounding error', () => {
+    // A market nobody can meaningfully compete in teaches nothing either. The
+    // metros have to be worth fighting over.
+    const [metros] = overallShares();
+    expect(metros, `metros hold ${(100 * metros).toFixed(0)}%`).toBeGreaterThan(0.12);
   });
 
   test('the overall shares still sum to one', () => {

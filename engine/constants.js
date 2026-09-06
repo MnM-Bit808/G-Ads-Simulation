@@ -54,26 +54,34 @@ export const LOCATION_TIERS = ['tier1', 'tier2', 'tier3'];
  * searchers, it says where the ones already counted are.
  *
  * PREMIUM SKEWS TO THE METROS AND VALUE AWAY FROM THEM, which is the correlation
- * the whole mechanic rests on. But the tail is deliberately fat: the overall
- * split lands near 34/35/31, so tier 2 and tier 3 together hold about two thirds
- * of the market.
+ * the whole mechanic rests on.
  *
- * THE FAT TAIL IS THE POINT, and it is not realism — it is capacity. DECISIONS D8
- * measured this market as DEMAND-limited rather than budget-limited: raising every
- * advertiser's money by 60% raised actual spend by 14% and moved median CPC not at
- * all. Confine nine advertisers to the metros and they cannot all spend there, so
- * the money has to overflow — and tier 2 and 3 are worth having because they are
- * where it can go, not because a click there is better. A thin tail would have
- * made the metros a right answer and 30% of the market dead ground.
+ * THE METROS ARE SCARCE, AND THAT IS THE WHOLE TRADE. They hold about a fifth of
+ * the country's searching and they are the best place to be — better baskets,
+ * fewer returns — so an advertiser who could have all of it would simply take it.
+ * They cannot: a fifth of the market will not absorb a month's budget, so the real
+ * question is how much to spend somewhere worse. That is the decision the mechanic
+ * exists to create, and it is also the truthful shape, since the metros are a
+ * minority of India and a majority of its e-commerce.
+ *
+ * THIS REPLACED A NEARLY-LEVEL 34/35/31, AND THE REASON IS MEASURED. Level made
+ * the metros a right answer: targeting them was worth +70% to a value advertiser
+ * and +52% to a mid one, while premium was better off ignoring the control
+ * entirely. The counterweight the level version relied on — crowding making the
+ * metros expensive — does not appear at realistic behaviour: market CPC came out
+ * within 11% across all three tiers. It CAN (forcing all nine into the metros
+ * raises the price there 35%) but nobody does that, and D8 already said why the
+ * pressure cannot build: this market is demand-limited, so budget scarcity has no
+ * price to bid up.
  *
  * Derived from each query's HOME CELL rather than authored per query, so the
  * frozen 151-row query set is untouched. It is the one artefact where a subtle
  * flaw poisons every number without throwing.
  */
 export const LOCATION_VOLUME_BY_PRICE = Object.freeze({
-  value: Object.freeze([0.26, 0.36, 0.38]),
-  mid: Object.freeze([0.38, 0.36, 0.26]),
-  premium: Object.freeze([0.50, 0.32, 0.18]),
+  value: Object.freeze([0.12, 0.35, 0.53]),
+  mid: Object.freeze([0.22, 0.38, 0.40]),
+  premium: Object.freeze([0.38, 0.36, 0.26]),
 });
 
 /**
