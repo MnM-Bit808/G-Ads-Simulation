@@ -1724,8 +1724,34 @@ read as buying a chart you already own.
 So a top-up that reaches no new rung says `no change · ₹25,000` and is marked.
 That is the S-curve note — *"spreading it thin genuinely underperforms
 committing"* — made concrete on the one chip where it bites, rather than left as
-a sentence under the card. Two chips reaching the same rung at different prices
-are also now visible as such.
+a sentence under the card.
+
+**NARROWED, because this card had a rung nobody could climb.** Reported by the
+player who hit it: with ₹25,000 already on photography, the chips offered
+₹25,000 (no change), ₹55,000, ₹70,000 and ₹1,00,000 — the rung PRICES, reused as
+top-up amounts. Nobody was double-charged, because investment is cumulative:
+₹55,000 on top of ₹25,000 reaches ₹80,000 and lands on the ₹70,000 rung. But the
+increment to the ₹55,000 rung is **₹30,000, and no chip offered it** — so that
+rung was unreachable for the rest of the game, and round 5 is the last capital
+window there is. It priced the player out as well: lifting two half-funded
+targets one rung each cost ₹55,000 twice against a ₹1,00,000 allocation, where
+the true increments are ₹30,000 twice.
+
+**It was the menu, not the price**, and establishing that changed the fix — the
+first reading was that the card charged full price for an upgrade, which would
+have been an engine problem rather than a display one. `capexChoices` now offers
+the cheapest amount that reaches each rung. Verified in a browser at the round-5
+window with ₹25,000 on two targets: `no change · ₹25,000` (marked),
+`on real bodies · ₹30,000`, `fabric detail · ₹45,000`, `video · ₹75,000` — and
+both targets lifted a rung for ₹60,000 of the ₹1,00,000, which the old menu made
+impossible.
+
+**The marked chip stays**, and it is the half of this entry worth keeping: beside
+`on real bodies · ₹30,000`, a `no change · ₹25,000` teaches the threshold better
+than either chip alone, and it is always one of `CAPEX_STEPS` rather than an
+invented number — an amount a player might really have reached for. What is gone
+is the pair of chips reaching one rung at different prices: the dearer of the two
+was strictly worse, and a dominated option is not a lesson.
 
 **What was deliberately NOT changed.** `composeDescription` runs only in round 0,
 so the page DESCRIPTION is frozen after it. Investing later still works —

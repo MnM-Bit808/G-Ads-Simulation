@@ -36,13 +36,13 @@ import { minimumBidToShowPaise } from '../engine/auction.js';
 import { qualitySignalBase } from '../engine/quality.js';
 // Derived from the hour curves rather than declared, so it lives with them.
 import { HOURS_PER_DAY } from '../engine/querySet.js';
-import { featureAt, pageShape } from './landing-page.js';
+import { featureAt, pageShape, capexChoices } from './landing-page.js';
 import {
   canReposition, isOneStep, allCells, parseCell, cellKey, landingPageBonus,
 } from '../engine/positions.js';
 import {
   LEARNING_ROUNDS, MAX_BID_MULTIPLE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
-  CAPEX_TIER_CURVE, REPOSITION_COST_PAISE, ROUNDS_PER_MONTH,
+  REPOSITION_COST_PAISE, ROUNDS_PER_MONTH,
   DAYPART_BLOCKS, MIN_HOUR_OBSERVATIONS, QUALITY_MIN_IMPRESSIONS, QUALITY_WINDOW_ROUNDS,
 } from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
@@ -107,16 +107,6 @@ const NEGATIVE_HELP = {
  * @param {object} selfView output of `getSelfView` — never an advertiser record
  * @returns {object} draft
  */
-/**
- * The amounts the S-curve actually distinguishes, taken from the curve itself.
- *
- * Not a hand-copied list. `CAPEX_TIER_CURVE` is what `businessFor` interpolates
- * between, so offering exactly its knots means every choice on screen is a
- * point the model has an opinion about, and a change to the curve moves the
- * form with it.
- */
-export const CAPEX_STEPS = CAPEX_TIER_CURVE.map((point) => point.paise);
-
 /**
  * The three targets of 13.3, in round 0's order and round 0's words.
  *
@@ -1392,27 +1382,33 @@ function capitalSection(ctx, refresh) {
     row.append(name);
 
     const chips = el('div', 'chips');
-    for (const amount of CAPEX_STEPS) {
-      const chip = el('button', `chip small${draft.capex[key] === amount ? ' on' : ''}`);
+    // Declining is always available and always free.
+    const none = el('button', `chip small${!draft.capex[key] ? ' on' : ''}`);
+    none.type = 'button';
+    none.textContent = 'nothing more';
+    none.addEventListener('click', () => { setCapex(draft, key, 0); refresh(); });
+    chips.append(none);
+
+    // What this top-up would take the target TO, since 13.3 makes investment
+    // cumulative: ₹25,000 on top of ₹25,000 is a different rung from ₹25,000 on
+    // nothing, and the amount alone cannot say which.
+    //
+    // The AMOUNTS come from `capexChoices` rather than from CAPEX_STEPS, and that
+    // is a correction the user found by playing: offering the rung PRICES as
+    // top-ups left the next rung unreachable from a half-funded target, because
+    // the increment to it was never on the menu. See I15.
+    //
+    // AND WHEN A CHIP BUYS NOTHING, IT SAYS SO. On top of an existing ₹25,000 a
+    // further ₹25,000 reaches ₹50,000 while the next rung is ₹55,000 — the money
+    // is spent and the page does not change. Kept beside the ₹30,000 that DOES
+    // buy the rung, because the pair is the S-curve lesson.
+    for (const { amountPaise, reaches, wasteful } of capexChoices(key, already)) {
+      const chip = el('button', `chip small${draft.capex[key] === amountPaise ? ' on' : ''}`);
       chip.type = 'button';
-      // What this top-up would take the target TO, since 13.3 makes investment
-      // cumulative: ₹25,000 on top of ₹25,000 is a different rung from
-      // ₹25,000 on nothing, and the amount alone cannot say which.
-      //
-      // AND WHEN IT BUYS NOTHING, IT SAYS SO. On top of an existing ₹25,000 a
-      // further ₹25,000 reaches ₹50,000, and the next rung is ₹55,000 — so the
-      // money is spent and the page does not change. The old card showed the
-      // amount alone and could not tell anyone that; showing the destination
-      // alone would read as buying a chart you already own. This is the S-curve
-      // note made concrete on the one chip where it bites.
-      const reached = featureAt(key, already + amount);
-      const nothingNew = reached.paise === featureAt(key, already).paise;
-      chip.textContent = amount === 0
-        ? 'nothing more'
-        : `${nothingNew ? 'no change' : reached.label} · ${rupees(amount)}`;
-      if (nothingNew && amount > 0) chip.classList.add('wasteful');
-      chip.disabled = amount > draft.capex[key] + left;
-      chip.addEventListener('click', () => { setCapex(draft, key, amount); refresh(); });
+      chip.textContent = `${wasteful ? 'no change' : reaches.label} · ${rupees(amountPaise)}`;
+      if (wasteful) chip.classList.add('wasteful');
+      chip.disabled = amountPaise > draft.capex[key] + left;
+      chip.addEventListener('click', () => { setCapex(draft, key, amountPaise); refresh(); });
       chips.append(chip);
     }
     row.append(chips);

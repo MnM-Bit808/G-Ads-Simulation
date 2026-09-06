@@ -16,7 +16,7 @@ import { describe, test, expect } from 'vitest';
 import { explainGrade } from '../agents/grader.js';
 import { CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE } from '../engine/constants.js';
 import {
-  PAGE_FEATURES, CAPEX_STEPS, composeDescription, featureAt,
+  PAGE_FEATURES, CAPEX_STEPS, composeDescription, featureAt, capexChoices,
 } from '../ui/landing-page.js';
 
 const NOTHING = { sizeGuide: 0, photography: 0, landingPage: 0 };
@@ -225,5 +225,117 @@ describe('the same words describe capital wherever it is spent (I15)', () => {
 
   test('an unknown target throws rather than describing nothing', () => {
     expect(() => featureAt('billboards', 0)).toThrow(RangeError);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// What the round-5 card is allowed to offer (DECISIONS I15, and its correction)
+// ---------------------------------------------------------------------------
+
+describe('a partly funded target can still climb its own ladder', () => {
+  /**
+   * FOUND BY PLAYING IT. After committing ₹25,000 to photography at round 0, the
+   * round-5 card offered ₹25,000 (no change), ₹55,000, ₹70,000 and ₹1,00,000 as
+   * TOP-UPS — the rung prices, reused as amounts. Since investment is cumulative
+   * (13.3), ₹55,000 on top of ₹25,000 reaches ₹80,000 and lands on the ₹70,000
+   * rung, so nobody was double-charged. But the increment to the ₹55,000 rung is
+   * ₹30,000, and no chip offered it: **that rung was unreachable for the rest of
+   * the game**, and round 5 is the last capital window there is.
+   *
+   * It also priced a player out. Upgrading two half-funded targets one rung each
+   * cost ₹55,000 twice against a ₹1,00,000 window, where the true increments are
+   * ₹30,000 twice.
+   *
+   * So the menu was wrong, not the price. `capexChoices` offers the cheapest
+   * amount that reaches each rung, and keeps I15's marked "buys nothing" chip
+   * because the contrast between "₹25,000 changes nothing" and "₹30,000 buys the
+   * next rung" is a better lesson in the S-curve than either chip alone.
+   */
+  const TARGETS = Object.keys(PAGE_FEATURES);
+
+  test('every rung above where you stand is reachable, from every rung', () => {
+    // The invariant the defect broke, over every target and every position.
+    for (const target of TARGETS) {
+      const ladder = PAGE_FEATURES[target];
+      for (const standing of ladder) {
+        const choices = capexChoices(target, standing.paise);
+        for (const rung of ladder.filter((t) => t.paise > standing.paise)) {
+          const match = choices.find((c) => c.reaches.paise === rung.paise);
+          expect(match, `${target}: ${standing.label} -> ${rung.label}`).toBeTruthy();
+          // And at the honest price: the difference, never the rung's own price.
+          expect(match.amountPaise, `${target}: ${standing.label} -> ${rung.label}`)
+            .toBe(rung.paise - standing.paise);
+        }
+      }
+    }
+  });
+
+  test('it never offers two ways to reach the same rung', () => {
+    // Paying more for the same rung is strictly worse and does not belong on a
+    // menu. I15 deliberately showed both; that is narrowed here, because a
+    // dominated option is not a lesson.
+    for (const target of TARGETS) {
+      for (const standing of PAGE_FEATURES[target]) {
+        const reached = capexChoices(target, standing.paise)
+          .filter((c) => !c.wasteful)
+          .map((c) => c.reaches.paise);
+        expect(new Set(reached).size, `${target} at ${standing.label}`).toBe(reached.length);
+      }
+    }
+  });
+
+  test('round 0 is unchanged: from nothing, the amounts ARE the rung prices', () => {
+    // The bug was invisible at round 0 and must stay so — there is nothing
+    // committed, so every increment equals the rung's own price.
+    for (const target of TARGETS) {
+      const choices = capexChoices(target, 0);
+      expect(choices.map((c) => c.amountPaise))
+        .toEqual(CAPEX_STEPS.filter((p) => p > 0));
+      expect(choices.some((c) => c.wasteful), `${target} has nothing to waste yet`).toBe(false);
+    }
+  });
+
+  test('topping up ₹25,000 of photography offers exactly what it should', () => {
+    // The reported case, pinned as a whole so the shape cannot drift.
+    const choices = capexChoices('photography', 2500000);
+    expect(choices.map((c) => [c.amountPaise, c.reaches.label, c.wasteful])).toEqual([
+      [2500000, 'product shots', true],   // I15's chip: spends and changes nothing
+      [3000000, 'on real bodies', false], // the rung that used to be unreachable
+      [4500000, 'fabric detail', false],
+      [7500000, 'video', false],
+    ]);
+  });
+
+  test('the wasteful chip is kept, marked, and is a real step the player might pick', () => {
+    // Not invented: it is one of CAPEX_STEPS, so it is an amount the card would
+    // have offered anyway. A warning about a chip nobody could click is theatre.
+    const wasteful = capexChoices('sizeGuide', 2500000).filter((c) => c.wasteful);
+    expect(wasteful).toHaveLength(1);
+    expect(CAPEX_STEPS).toContain(wasteful[0].amountPaise);
+    expect(wasteful[0].reaches.paise).toBe(featureAt('sizeGuide', 2500000).paise);
+  });
+
+  test('at the top of a ladder there is nothing left to sell', () => {
+    for (const target of TARGETS) {
+      const top = PAGE_FEATURES[target][PAGE_FEATURES[target].length - 1];
+      expect(capexChoices(target, top.paise).filter((c) => !c.wasteful)).toHaveLength(0);
+    }
+  });
+
+  test('every amount is integer paise', () => {
+    // Hard rule 3. A difference of two curve points cannot be fractional, and if
+    // it ever became one the form would submit a non-integer to applyCapex,
+    // which throws.
+    for (const target of TARGETS) {
+      for (const standing of PAGE_FEATURES[target]) {
+        for (const choice of capexChoices(target, standing.paise)) {
+          expect(Number.isSafeInteger(choice.amountPaise), `${target} ${choice.amountPaise}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  test('an unknown target throws rather than offering nothing', () => {
+    expect(() => capexChoices('billboards', 0)).toThrow(RangeError);
   });
 });
