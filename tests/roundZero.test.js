@@ -25,8 +25,12 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { openingReserve } from '../ui/round-zero.js';
+import { openingReserve, submittedAd, gradeAsSubmitted } from '../ui/round-zero.js';
 import { openingCopyGrades } from '../content/writers.js';
+import { startGame } from '../setup.js';
+import { BRAND_IDENTITIES } from '../content/brands.js';
+import { homeCell } from '../engine/querySet.js';
+import { validateAdCopy } from '../agents/grader.js';
 import { minimumBidToShowPaise } from '../engine/auction.js';
 import { qualitySignalBase } from '../engine/quality.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -152,5 +156,130 @@ describe('when it fires', () => {
     expect(out.rows).toHaveLength(1);
     expect(out.rows[0].needPaise).toBeGreaterThan(0);
     expect(out.under).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The grade round 0 shows is the grade the account gets
+// ---------------------------------------------------------------------------
+
+describe('round 0 grades the ad it is about to submit', () => {
+  /**
+   * THE BUG THIS EXISTS FOR, reported by a player: "why is my landing page still
+   * rated 4/10 when the capital bought me an 8?"
+   *
+   * They had left the descriptions blank — reasonable, having just paid a
+   * retainer to write the ad. Round 0 graded `draft.ad`, which holds
+   * `descriptions: ['', '']`, and showed 8 · 8 · 8. It then SUBMITTED
+   * `descriptions.filter(Boolean)` — an ad with no descriptions at all — which
+   * fails `validateAdCopy`, so `OVERLONG_CEILING` capped every component at 4.
+   * The retainer overwrote the two copy components with its guaranteed 8s, and
+   * the landing page was left as the only place the damage showed: 8 · 8 · 4.
+   *
+   * Three faults stacked, and the structural one is that round 0 graded a
+   * DIFFERENT OBJECT from the one it submitted. So this asserts the only thing
+   * that matters to a player: the number on the screen is the number the account
+   * will run on.
+   */
+  const CAPEX = { sizeGuide: 2500000, photography: 0, landingPage: 5500000 };
+  const OWN = QUERY_SET.queries.filter((q) => homeCell(q) === 'premium|lifestyle').slice(0, 6);
+
+  /** The draft `renderRoundZero` holds, in the shape it holds it. */
+  const draftOf = (over = {}) => ({
+    playerBrandId: BRAND_IDENTITIES[0].id,
+    cell: 'premium|lifestyle',
+    capex: { ...CAPEX },
+    writerTier: 'retainer',
+    keywords: OWN.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: 3000 })),
+    ad: {
+      headlines: ['Premium Athleisure', 'Designer Leggings', 'Luxury Loungewear'],
+      descriptions: [
+        'Built to hold through 4 sessions a week, wash after wash.',
+        'Sizes XS to XXL with free delivery and easy returns.',
+      ],
+      landingPageDescription: composeDescription(CAPEX),
+    },
+    ...over,
+  });
+
+  /** What the account actually ends up running, through the real round 0 path. */
+  const accountGrade = (draft) => {
+    const state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: draft.playerBrandId,
+      querySet: QUERY_SET,
+      player: {
+        position: { price: 'premium', purpose: 'lifestyle' },
+        capex: { committed: { ...draft.capex }, pending: [], remainingUnallocatedPaise: 0 },
+        keywords: draft.keywords.map((k) => ({ ...k })),
+        // Exactly what the Go button sends.
+        ad: submittedAd(draft),
+        writerTier: draft.writerTier,
+      },
+    });
+    return state.advertisers[0].adGroups[0].gradedQuality;
+  };
+
+  const CASES = [
+    ['a finished ad', {}],
+    ['descriptions left blank', { ad: { ...draftOf().ad, descriptions: ['', ''] } }],
+    ['one description written', { ad: { ...draftOf().ad, descriptions: ['Sizes XS to XXL.', ''] } }],
+    ['headlines left blank', { ad: { ...draftOf().ad, headlines: ['', '', ''] } }],
+    ['an overlong headline', { ad: { ...draftOf().ad, headlines: ['x'.repeat(80), 'Designer Leggings', 'Luxury Loungewear'] } }],
+    ['naming a rival', { ad: { ...draftOf().ad, headlines: ['Better Than Kestrel', 'Designer Leggings', 'Luxury Loungewear'] } }],
+  ];
+
+  test.each(CASES)('%s: the panel and the account agree', (_label, over) => {
+    const draft = draftOf(over);
+    const shown = gradeAsSubmitted(draft).applied;
+    const got = accountGrade(draft);
+    expect(shown.expectedCtr, 'expectedCtr').toBe(got.expectedCtr);
+    expect(shown.adRelevance, 'adRelevance').toBe(got.adRelevance);
+    expect(shown.landingPage, 'landingPage').toBe(got.landingPage);
+  });
+
+  test('the reported case: blank descriptions no longer read 8 on screen', () => {
+    // The specific number the player saw. With the gate fixed this draft cannot
+    // be submitted at all, but the panel must stop claiming an 8 either way.
+    const draft = draftOf({ ad: { ...draftOf().ad, descriptions: ['', ''] } });
+    expect(gradeAsSubmitted(draft).applied.landingPage).toBeLessThan(8);
+  });
+
+  test('and the Go button refuses it', () => {
+    const draft = draftOf({ ad: { ...draftOf().ad, descriptions: ['', ''] } });
+    expect(validateAdCopy(submittedAd(draft)).valid).toBe(false);
+  });
+
+  test('the ad it submits is the ad it graded, blanks and all', () => {
+    // The structural statement: one object, not two.
+    const draft = draftOf({ ad: { ...draftOf().ad, descriptions: ['Sizes XS to XXL.', ''] } });
+    const ad = submittedAd(draft);
+    expect(ad.descriptions).toEqual(['Sizes XS to XXL.']);
+    expect(ad.headlines).toHaveLength(3);
+    expect(ad.landingPageDescription).toBe(composeDescription(CAPEX));
+  });
+
+  test('naming a rival now costs points on screen, as it costs the account', () => {
+    // Round 0 used to grade without `rivalNames`, so the trademark penalty (8.7)
+    // was invisible on the one screen that shows a grade — it warned in words and
+    // left the number alone, which reads as cosmetic when it is worth 4 points.
+    //
+    // IT SHOWS ON WHAT YOU EARNED, and the first version of this test asserted it
+    // on what APPLIES — which is wrong for a hired tier and is worth pinning
+    // rather than fixing. A tier sets the two copy components outright (I11), so
+    // a retainer absorbs the whole penalty: the account really does run at the
+    // tier's grade. The penalty bites a player who writes their own.
+    const named = (tier) => gradeAsSubmitted(draftOf({
+      writerTier: tier,
+      ad: { ...draftOf().ad, headlines: ['Better Than Kestrel', 'Designer Leggings', 'Luxury Loungewear'] },
+    }));
+    const clean = (tier) => gradeAsSubmitted(draftOf({ writerTier: tier }));
+
+    expect(named('retainer').written.adRelevance, 'what you earned')
+      .toBeLessThan(clean('retainer').written.adRelevance);
+    expect(named('retainer').applied.adRelevance, 'what a retainer runs on')
+      .toBe(clean('retainer').applied.adRelevance);
+    expect(named('diy').applied.adRelevance, 'what a self-written ad runs on')
+      .toBeLessThan(clean('diy').applied.adRelevance);
   });
 });

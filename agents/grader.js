@@ -93,10 +93,24 @@ export function validateAdCopy(ad) {
       violations.push(`description over ${DESCRIPTION_MAX_CHARS} chars: "${description}"`);
     }
   }
-  if ((ad?.headlines ?? []).length === 0) violations.push('no headlines');
-  if ((ad?.descriptions ?? []).length === 0) violations.push('no descriptions');
+  // COUNTED ON WRITTEN LINES, not on boxes. This used to count entries, and
+  // round 0 holds `descriptions: ['', '']` until it strips the blanks at submit —
+  // so two empty boxes read as two descriptions, this said the ad was valid, and
+  // the Go button (which asks exactly this) enabled. `setup.js` then graded the
+  // stripped ad, found no descriptions, and OVERLONG_CEILING capped all three
+  // components at 4. A hired tier overwrote the two copy components, leaving a
+  // landing page reading 4/10 as the only symptom of a copy fault.
+  //
+  // `gradeInputs` fixed the identical flaw under I10 and this function was not
+  // touched, so the same predicate is used here rather than a second version of
+  // it.
+  if (writtenLines(ad?.headlines).length === 0) violations.push('no headlines');
+  if (writtenLines(ad?.descriptions).length === 0) violations.push('no descriptions');
   return { valid: violations.length === 0, violations };
 }
+
+/** The lines someone actually wrote. An empty box is not copy. */
+const writtenLines = (lines) => (lines ?? []).filter((line) => String(line).trim() !== '');
 
 /** Every word in the ad, lowercased, for the checks below. */
 function adText(ad) {
@@ -318,8 +332,8 @@ function gradeInputs(ad, context) {
     // Empty boxes do not count as written. Round 0 seeds the draft with '' in
     // every slot and only strips them at submit, so the LIVE grade on that
     // screen used to credit an untouched form with three headlines.
-    headlines: (ad?.headlines ?? []).filter((h) => String(h).trim() !== ''),
-    descriptions: (ad?.descriptions ?? []).filter((d) => String(d).trim() !== ''),
+    headlines: writtenLines(ad?.headlines),
+    descriptions: writtenLines(ad?.descriptions),
     text: adText(ad),
     page: (ad?.landingPageDescription ?? '').toLowerCase(),
     relevance: relevanceCoverage(ad, context),

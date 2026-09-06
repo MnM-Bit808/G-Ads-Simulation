@@ -68,6 +68,36 @@ describe('the character limits finally have a reader (spec 18.1)', () => {
     expect(validateAdCopy(bad).valid).toBe(false);
   });
 
+  // AN EMPTY BOX IS NOT COPY, and this counted them. Round 0 seeds its draft
+  // `descriptions: ['', '']` and only strips the blanks at submit, so this
+  // function read two empty strings as two descriptions and called the ad valid.
+  // The Go button asks exactly this question, so it enabled; `setup.js` then
+  // graded the FILTERED ad, which has no descriptions at all, and
+  // `OVERLONG_CEILING` capped every component at 4 — including `landingPage`,
+  // which has nothing to do with ad copy. A retainer then overwrote the two copy
+  // components with its guaranteed 8s, so the only visible symptom was a landing
+  // page reading 4/10 on a page the player had spent ₹80,000 on.
+  //
+  // Found by a player asking why. DECISIONS I10 fixed the identical flaw in
+  // `gradeInputs` and did not touch this function; same predicate now.
+  test('blank boxes are not copy', () => {
+    expect(validateAdCopy({ ...GOOD, descriptions: ['', ''] }).valid, 'blank descriptions').toBe(false);
+    expect(validateAdCopy({ ...GOOD, headlines: ['', '', ''] }).valid, 'blank headlines').toBe(false);
+    expect(validateAdCopy({ ...GOOD, descriptions: ['   ', '	'] }).valid, 'whitespace only').toBe(false);
+  });
+
+  test('and it says which, rather than just refusing', () => {
+    // The Go button prints this, so the reason has to be the real one.
+    expect(validateAdCopy({ ...GOOD, descriptions: ['', ''] }).violations)
+      .toContain('no descriptions');
+  });
+
+  test('one real line among blanks is still copy', () => {
+    // The filter must not be stricter than the ad it grades: submit keeps the
+    // non-empty entries, so one written description is one description.
+    expect(validateAdCopy({ ...GOOD, descriptions: ['Sizes XS to XXL.', ''] }).valid).toBe(true);
+  });
+
   test('and an ad that does not fit cannot grade well, whatever the model said', async () => {
     // The model is told the ad is superb. It does not matter: copy that does
     // not fit the slot cannot be a good ad, and that is not a judgement call.

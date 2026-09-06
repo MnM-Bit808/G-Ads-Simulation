@@ -1930,6 +1930,66 @@ Verified by playing it: round 0 with 3 keywords and with 60, straight to the wee
 afterwards, and the redo path refilled and run in one press with the redo then
 withdrawn. No console errors.
 
+### I19. Round 0 grades the ad it is about to submit — `FIXED`
+
+Reported by a player: *"why is my landing page still rated 4/10? According to the
+capital invested I had an 8/10 website."* They were right, and the landing page
+was not the thing that was wrong — it was the only place the damage still showed.
+
+**What happened.** They left the two description boxes blank, which is reasonable
+having just paid a retainer to write the ad. Then:
+
+1. Round 0's Go button asks `validateAdCopy(draft.ad)`, and the draft holds
+   `descriptions: ['', '']`. That function counted ARRAY ENTRIES, so two empty
+   boxes read as two descriptions. The ad was "valid" and the button enabled.
+2. Submit sent `descriptions.filter(Boolean)` — an ad with **no** descriptions.
+3. `setup.js` graded that one. It fails validation, so `OVERLONG_CEILING` capped
+   **all three** components at 4, `landingPage` included.
+4. The retainer then overwrote the two copy components with its guaranteed 8s
+   (I11). Nothing overwrites the landing page.
+5. And round 0's panel had graded the UNFILTERED draft, so it showed 8.
+
+Panel: **8 · 8 · 8.** Account: **8 · 8 · 4.** Reproduced exactly before anything
+was changed.
+
+**The structural fault is that round 0 graded a different object from the one it
+submitted**, across four call sites and three ad shapes. `submittedAd(draft)` now
+builds the ad once — blanks filtered, page composed — and the grade panel, the
+writer card, the keyword reserve warning, the Go button and the submit itself all
+read it. There is one ad.
+
+**`validateAdCopy` now counts written lines, not boxes.** This is the second time
+empty-string counting has bitten: I10 fixed the identical flaw in `gradeInputs`
+and did not touch this function, so the same root cause sat one function away for
+a whole session. Both now use one predicate.
+
+**AND ROUND 0 NOW GRADES WITH `rivalNames`, which it never did.** `setup.js`
+passes them; the screen did not, so the trademark penalty (8.7, −4 on
+`adRelevance`) was invisible on the one card that shows a grade — it warned in
+words and left the number alone, which reads as cosmetic when it is worth four
+points. Measured before the fix: an ad naming a rival showed `adRelevance` 5 and
+ran on 1.
+
+**A hired tier absorbs that penalty entirely, and that is correct.** A tier sets
+the two copy components outright, so a retainer naming a rival really does run at
+8 — the penalty bites a player who writes their own. A test asserted otherwise
+first and was wrong; it now pins the real behaviour, because this is exactly the
+kind of asymmetry someone would later "fix".
+
+**`OVERLONG_CEILING` still caps the landing page, and that is argued rather than
+overlooked.** Capping only the copy components would be more logical — page
+quality is not a function of headline length — but a hired tier overwrites both of
+them, so the cap would then cost a retainer buyer *nothing at all*. The bluntness
+is what makes it bite. With the gate fixed the state is unreachable through the
+interface, so the diagnostic asymmetry is no longer something a player can meet.
+The spec documents the character limits and says nothing about what breaking them
+should do, so this is the grader's own judgement and it stays with the rubric.
+
+**What is still not surfaced:** `gradeAdOffline` returns `notes`, and for this ad
+it said *"does not fit Google's limits, capped at 4: no descriptions"* — the exact
+explanation the player needed. **No screen has ever read `notes`.** Left alone
+deliberately for now; it is additive rather than a fix.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

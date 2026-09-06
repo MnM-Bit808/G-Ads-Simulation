@@ -415,6 +415,72 @@ function researchList(querySet) {
 }
 
 /**
+ * The ad exactly as the Go button will submit it.
+ *
+ * ONE OBJECT, because grading a different one is what produced this bug. Round 0
+ * used to grade `draft.ad` — which holds `['', '']` in the description slots
+ * until submit strips them — and submit sent the stripped version. A player who
+ * left the descriptions blank was shown 8 · 8 · 8 and given 8 · 8 · 4: the
+ * stripped ad has no descriptions, so `validateAdCopy` fails it and
+ * `OVERLONG_CEILING` caps every component at 4, and a hired tier then overwrote
+ * the two copy components and hid it. The landing page was the only place the
+ * damage showed, on a page the player had spent ₹80,000 on.
+ *
+ * @param {object} draft
+ * @returns {{headlines: string[], descriptions: string[], landingPageDescription: string}}
+ */
+export function submittedAd(draft) {
+  return {
+    headlines: (draft.ad?.headlines ?? []).filter(Boolean),
+    descriptions: (draft.ad?.descriptions ?? []).filter(Boolean),
+    // Composed from the capital by `syncPage`, never typed (I9).
+    landingPageDescription: draft.ad?.landingPageDescription ?? '',
+  };
+}
+
+/**
+ * The grading context the ACCOUNT will be graded in.
+ *
+ * `rivalNames` is the half round 0 used to leave out, so the trademark penalty
+ * (8.7, −4 on `adRelevance`) was invisible on the one screen that shows a grade:
+ * the card warned in words and left the number alone, which reads as cosmetic
+ * when it is worth four points. `setup.js` passes exactly this.
+ */
+function gradingContext(draft) {
+  return {
+    keywords: draft.keywords,
+    rivalNames: BRAND_IDENTITIES
+      .filter((b) => b.id !== draft.playerBrandId)
+      .map((b) => b.name),
+  };
+}
+
+/**
+ * How the ad round 0 is about to submit will actually grade.
+ *
+ * `written` is what the player earned; `applied` is what will run, which differs
+ * when a writer was hired. Every screen in round 0 that shows a grade reads this
+ * one function, so they cannot disagree with each other or with the account.
+ *
+ * @param {object} draft
+ * @returns {{ad: object, written: object, applied: object, checks: object[], notes: string[]}}
+ */
+export function gradeAsSubmitted(draft) {
+  const ad = submittedAd(draft);
+  const { grade, checks, notes } = explainGrade(ad, gradingContext(draft));
+  const hired = !isDiy(draft.writerTier);
+  return {
+    ad,
+    written: grade,
+    // What will ACTUALLY apply. A hired tier sets the two copy components and
+    // nothing else — the landing page is graded from the page the capital built.
+    applied: hired ? { ...grade, ...hiredCopyGrades(draft.writerTier) } : grade,
+    checks,
+    notes,
+  };
+}
+
+/**
  * Can each keyword's bid actually clear the reserve, at the grade the FIRST
  * auction will run at?
  *
@@ -449,7 +515,7 @@ function researchList(querySet) {
  *   worstShortfall: {text: string, needPaise: number, bidPaise: number}|null}}
  */
 export function openingReserve(draft, querySet) {
-  const written = explainGrade(draft.ad, { keywords: draft.keywords }).grade;
+  const written = gradeAsSubmitted(draft).written;
   const grade = {
     ...openingCopyGrades(draft.writerTier),
     // The player's own page, graded from what the capital built (I9). A writer
@@ -652,7 +718,7 @@ function sectionWriter(draft, rerender, live) {
    * the page — no test in this project reads both cards at once.
    */
   const draw = () => {
-    const written = explainGrade(draft.ad, { keywords: draft.keywords }).grade;
+    const written = gradeAsSubmitted(draft).written;
     const left = CREATIVE_ALLOCATION_PAISE - writerTier(draft.writerTier).pricePaise;
 
     rows.replaceChildren();
@@ -784,7 +850,7 @@ function sectionAd(draft, revalidate, live) {
       c.node.className = value.length > c.max ? 'count over' : 'count';
     }
 
-    const found = validateAdCopy(draft.ad).violations;
+    const found = validateAdCopy(submittedAd(draft)).violations;
     const rival = namesARival(draft.ad, BRAND_IDENTITIES.map((b) => b.name));
     if (rival) {
       found.push(
@@ -809,14 +875,12 @@ function sectionAd(draft, revalidate, live) {
   };
 
   function drawGrade() {
-    const { grade, checks } = explainGrade(draft.ad, { keywords: draft.keywords });
+    // The ad as it will be SUBMITTED, graded in the context the account will be
+    // graded in. Both halves of that mattered: grading the unstripped draft
+    // showed a landing page of 8 where the account got 4, and grading without
+    // rivalNames hid a four-point trademark penalty.
+    const { written: grade, applied, checks } = gradeAsSubmitted(draft);
     const hired = !isDiy(draft.writerTier);
-    // What will ACTUALLY apply. If the panel showed the written grade while the
-    // player had bought a tier, the two cards would contradict each other — and
-    // a screen explaining a mechanic wrongly is the worst class of bug here.
-    const applied = hired
-      ? { ...grade, ...hiredCopyGrades(draft.writerTier) }
-      : grade;
 
     gradePanel.replaceChildren();
     gradePanel.append(el('p', 'field-label', hired
@@ -943,7 +1007,7 @@ function sectionStart(draft, onStart, live) {
   live.start = () => {
     const found = [];
     if (draft.keywords.length === 0) found.push('You need at least one keyword.');
-    if (!validateAdCopy(draft.ad).valid) found.push('Your ad is not finished.');
+    if (!validateAdCopy(submittedAd(draft)).valid) found.push('Your ad is not finished.');
     if (draft.split.reduce((a, b) => a + b, 0) > monthlyBudget(draft)) {
       found.push('Your weekly split asks for more than the month holds.');
     }
@@ -975,11 +1039,8 @@ function sectionStart(draft, onStart, live) {
         position: parseCell(draft.cell),
         capex: { committed: { ...draft.capex }, pending, remainingUnallocatedPaise: remaining },
         keywords: draft.keywords.map((k) => ({ ...k })),
-        ad: {
-          headlines: draft.ad.headlines.filter(Boolean),
-          descriptions: draft.ad.descriptions.filter(Boolean),
-          landingPageDescription: draft.ad.landingPageDescription,
-        },
+        // The same object every card in this form was grading.
+        ad: submittedAd(draft),
         weeklySplitPaise: [...draft.split],
         writerTier: draft.writerTier,
       },
