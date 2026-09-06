@@ -119,6 +119,32 @@ export function tiersFunded(target, paise) {
 }
 
 /**
+ * What a given spend on a target has actually bought.
+ *
+ * The S-curve is a step function of what is COMMITTED, so money between two
+ * knots buys the lower one — `capexEffect` interpolates the EFFECT but the
+ * feature ladder does not, and describing a part-paid tier as the one above it
+ * would promise something the page does not have.
+ *
+ * Shared so the two cards that spend capital cannot describe it differently.
+ * Round 0 became a page builder while the round-5 allocation window kept the
+ * older framing — its own target list, one-line whys, and chips showing only an
+ * amount — which left one decision described in two languages, the terser one
+ * being where the player has more context and less time (DECISIONS I15).
+ *
+ * @param {string} target one of the capex target keys
+ * @param {number} paise committed to that target
+ * @returns {object} the tier that spend reaches
+ * @throws {RangeError} on an unknown target, rather than describing nothing
+ */
+export function featureAt(target, paise) {
+  const tiers = PAGE_FEATURES[target];
+  if (!tiers) throw new RangeError(`no page features for target "${target}"`);
+  const funded = tiersFunded(target, paise);
+  return funded[funded.length - 1] ?? tiers[0];
+}
+
+/**
  * The landing page description, built from what the capital funded.
  *
  * Pure: the same allocation always gives the same page, and the argument is

@@ -1697,6 +1697,42 @@ arrives with its redo unspent.
 Nothing is saved. `serialise.js` exists and no screen has ever called it, so
 "play again" ends the old game rather than setting it aside.
 
+### I15. Capital is described the same way wherever it is spent — `FIXED`
+
+Round 0's capital card became a page builder (I9) — chips saying what each rung
+buys, beside a drawing of the page. **The round-5 allocation window kept the
+older framing** and nobody noticed: its own target list in a different order,
+one-line whys (*"Fewer returns."*), chips showing only `₹25,000`, and no page at
+all. One decision described in two languages, and the terser telling was on the
+screen where the player has MORE context and less time to use it.
+
+Reported by a player who wanted to invest at the month-2 refresh and found the
+screen explained it worse than round 0 had.
+
+Both cards now read `featureAt`, so they cannot drift apart again.
+
+**AND THE ROUND-5 CARD HAS TO SAY SOMETHING ROUND 0 NEVER DOES**, because 13.3
+makes investment cumulative. ₹25,000 on top of nothing is a different purchase
+from ₹25,000 on top of ₹25,000 — the second reaches ₹50,000, the next rung is
+₹55,000, and it therefore **buys nothing at all**. The old card showed the amount
+alone and could not tell anyone that. Showing only the destination would have
+read as buying a chart you already own.
+
+So a top-up that reaches no new rung says `no change · ₹25,000` and is marked.
+That is the S-curve note — *"spreading it thin genuinely underperforms
+committing"* — made concrete on the one chip where it bites, rather than left as
+a sentence under the card. Two chips reaching the same rung at different prices
+are also now visible as such.
+
+**What was deliberately NOT changed.** `composeDescription` runs only in round 0,
+so the page DESCRIPTION is frozen after it. Investing later still works —
+`landingPageBonus` raises the graded landing page by up to three points and the
+player sees that move — but the description string never gains the new line.
+That teaches nothing false, because the description is never shown again after
+round 0. Recomposing it mid-game would change the ad's `contentHash` and trigger
+a regrade under 5.2, which would overwrite the grade the player's WRITER TIER
+bought (I11). The inconsistency is cheaper than the fix.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

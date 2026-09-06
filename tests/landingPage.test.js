@@ -15,7 +15,9 @@
 import { describe, test, expect } from 'vitest';
 import { explainGrade } from '../agents/grader.js';
 import { CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE } from '../engine/constants.js';
-import { PAGE_FEATURES, CAPEX_STEPS, composeDescription } from '../ui/landing-page.js';
+import {
+  PAGE_FEATURES, CAPEX_STEPS, composeDescription, featureAt,
+} from '../ui/landing-page.js';
 
 const NOTHING = { sizeGuide: 0, photography: 0, landingPage: 0 };
 const adWith = (capex) => ({
@@ -188,5 +190,40 @@ describe('the page competes with the rest of the business for the same money', (
       ...affordable().filter((c) => gradeOf(c) === bestGrade()).map(cost),
     );
     expect(cheapest).toBeGreaterThanOrEqual(0.75 * CAPEX_ALLOCATION_PAISE);
+  });
+});
+
+describe('the same words describe capital wherever it is spent (I15)', () => {
+  // Round 0 became a page builder — chips saying "a chart · ₹25,000" beside a
+  // drawing of the page. The round-5 allocation window kept the older framing:
+  // its own target list, one-line whys, and chips showing only an amount. Two
+  // screens describing one decision in two languages, and the terser one is
+  // where the player has more context and less time.
+  //
+  // `featureAt` is what both now read, so they cannot drift again.
+  test('it names the tier an amount actually buys', () => {
+    expect(featureAt('sizeGuide', CAPEX_STEPS[1]).label).toBe('a chart');
+    expect(featureAt('landingPage', CAPEX_STEPS[2]).label).toBe('reviews');
+  });
+
+  test('money between two rungs buys the lower one, never the higher', () => {
+    // The S-curve is a step function of what is COMMITTED, so a top-up that
+    // lands between knots must not be described as the tier above it.
+    const between = CAPEX_STEPS[1] + 1;
+    expect(featureAt('sizeGuide', between).paise).toBe(CAPEX_STEPS[1]);
+  });
+
+  test('nothing spent is the bottom rung, not an error', () => {
+    expect(featureAt('photography', 0).label).toBe('none');
+    expect(featureAt('landingPage', 0).label).toBe('plain');
+  });
+
+  test('more than the top rung is still the top rung', () => {
+    const top = CAPEX_STEPS[CAPEX_STEPS.length - 1];
+    expect(featureAt('sizeGuide', top * 2).paise).toBe(top);
+  });
+
+  test('an unknown target throws rather than describing nothing', () => {
+    expect(() => featureAt('billboards', 0)).toThrow(RangeError);
   });
 });

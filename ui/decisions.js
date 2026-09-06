@@ -36,6 +36,7 @@ import { minimumBidToShowPaise } from '../engine/auction.js';
 import { qualitySignalBase } from '../engine/quality.js';
 // Derived from the hour curves rather than declared, so it lives with them.
 import { HOURS_PER_DAY } from '../engine/querySet.js';
+import { featureAt, pageShape } from './landing-page.js';
 import {
   canReposition, isOneStep, allCells, parseCell, cellKey, landingPageBonus,
 } from '../engine/positions.js';
@@ -116,11 +117,19 @@ const NEGATIVE_HELP = {
  */
 export const CAPEX_STEPS = CAPEX_TIER_CURVE.map((point) => point.paise);
 
-/** The three targets of 13.3, and what each one moves. */
+/**
+ * The three targets of 13.3, in round 0's order and round 0's words.
+ *
+ * They used to be listed differently here and described in four words each,
+ * while round 0 had become a page builder that says what every rung buys and
+ * draws the result. One decision in two languages, and the terser telling was
+ * on the screen where the player has MORE context and less time to use it.
+ * DECISIONS I15.
+ */
 const CAPEX_TARGETS = [
-  ['sizeGuide', 'Size guide', 'Fewer returns.'],
-  ['photography', 'Photography', 'More of your visitors buy.'],
-  ['landingPage', 'Landing page', 'Better quality, so a cheaper click.'],
+  ['landingPage', 'The page itself', 'Better quality, so a cheaper click. Worth most in the middle.'],
+  ['sizeGuide', 'Size guide', 'Fewer returns. Worth most at the cheap end, and to anything sold on how it looks.'],
+  ['photography', 'Photography', 'More of your visitors buy. Worth most where the decision is considered.'],
 ];
 
 /**
@@ -1373,10 +1382,12 @@ function capitalSection(ctx, refresh) {
     // depends entirely on what is already there. Without this figure the choice
     // cannot be reasoned about at all.
     if (already > 0) {
+      // Named, not just priced. "a chart → measured" says what the top-up
+      // actually changes; "₹25,000 → ₹55,000" says only that it costs more.
       name.append(el('div', 'capex-already',
         draft.capex[key] > 0
-          ? `${rupees(already)} → ${rupees(already + draft.capex[key])}`
-          : `${rupees(already)} already`));
+          ? `${featureAt(key, already).label} → ${featureAt(key, already + draft.capex[key]).label}`
+          : `${featureAt(key, already).label} already`));
     }
     row.append(name);
 
@@ -1384,7 +1395,22 @@ function capitalSection(ctx, refresh) {
     for (const amount of CAPEX_STEPS) {
       const chip = el('button', `chip small${draft.capex[key] === amount ? ' on' : ''}`);
       chip.type = 'button';
-      chip.textContent = amount === 0 ? 'none' : rupees(amount);
+      // What this top-up would take the target TO, since 13.3 makes investment
+      // cumulative: ₹25,000 on top of ₹25,000 is a different rung from
+      // ₹25,000 on nothing, and the amount alone cannot say which.
+      //
+      // AND WHEN IT BUYS NOTHING, IT SAYS SO. On top of an existing ₹25,000 a
+      // further ₹25,000 reaches ₹50,000, and the next rung is ₹55,000 — so the
+      // money is spent and the page does not change. The old card showed the
+      // amount alone and could not tell anyone that; showing the destination
+      // alone would read as buying a chart you already own. This is the S-curve
+      // note made concrete on the one chip where it bites.
+      const reached = featureAt(key, already + amount);
+      const nothingNew = reached.paise === featureAt(key, already).paise;
+      chip.textContent = amount === 0
+        ? 'nothing more'
+        : `${nothingNew ? 'no change' : reached.label} · ${rupees(amount)}`;
+      if (nothingNew && amount > 0) chip.classList.add('wasteful');
       chip.disabled = amount > draft.capex[key] + left;
       chip.addEventListener('click', () => { setCapex(draft, key, amount); refresh(); });
       chips.append(chip);
@@ -1394,12 +1420,29 @@ function capitalSection(ctx, refresh) {
     box.append(row);
   }
 
+  // The page as this top-up would leave it. Round 0 draws one and this did not,
+  // which is most of why the same decision read as two different decisions.
+  // Committed PLUS staged, because 13.3 is cumulative.
+  const after = {};
+  for (const [key] of CAPEX_TARGETS) after[key] = (draft.committed[key] ?? 0) + (draft.capex[key] ?? 0);
+  const preview = el('div', 'page-preview');
+  preview.append(el('p', 'field-label', 'What they would land on'));
+  const sheet = el('div', 'page-sheet');
+  sheet.append(el('div', 'page-strip head', 'your product'));
+  for (const strip of pageShape(after).strips) {
+    sheet.append(el('div', `page-strip ${strip.target}`, strip.label));
+  }
+  preview.append(sheet);
+  box.append(preview);
+
   box.append(el('p', 'note',
     `Anything you do not commit joins this month's advertising budget instead. `
     + `What you do commit goes live in week ${draft.round + CAPEX_DELAY_ROUNDS}, which leaves `
     + 'the rest of the game to pay it back — and spreading it thin genuinely '
     + 'underperforms committing, because the first small tranche on a target '
-    + 'buys a half-built thing that helps nobody.'));
+    + 'buys a half-built thing that helps nobody. Investment is CUMULATIVE: what '
+    + 'you add here lands on top of what is already built, which is why the '
+    + 'chips name the rung they would take you to rather than the money.'));
   return box;
 }
 

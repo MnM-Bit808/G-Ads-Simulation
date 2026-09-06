@@ -301,6 +301,8 @@ button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none
 .chip.on strong { color: var(--accent); }
 .chip.small { flex-direction: row; font-family: var(--mono); font-size: 0.78rem; padding: 0.3rem 0.55rem; }
 .chip:disabled { opacity: 0.3; cursor: default; }
+/* Money that reaches no new rung of the S-curve. Selectable, but marked. */
+.chip.wasteful { color: var(--warn); border-style: dashed; }
 
 /* --- the briefing ------------------------------------------------------- */
 
