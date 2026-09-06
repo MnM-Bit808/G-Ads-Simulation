@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and one new mechanic is mid-build.** 1270 tests, all passing, 1 todo.
+**Every build-order step is done, and one new mechanic is mid-build.** 1276 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -716,9 +716,11 @@ player gets a weekly bid adjustment per tier, shaped like dayparting.
 ✅ 3  engine/round.js                    the auction gains its third dimension
    ✅ STOP: npm run test:perf — fired, and the fix is load-bearing
 ✅ 4  engine/report.js                   byLocation, revised, and share per tier
+✅ 6  the control                        campaign.locationAdjustments, weekly
+                                        (BROUGHT FORWARD: a rival cannot target
+                                        with a control that does not exist)
 ⏸ 5  agents/policies.js                 rivals target by their own affinity
    ── STOP AND MEASURE ──
-⏸ 6  the control                        campaign.locationAdjustments, weekly
 ⏸ 7  setup.js                           rival adjustments, briefing gains returns
 ⏸ 8  ui/                                targeting card, location report
 ⏸ 9  calibration.test.js                re-run I1-I5, set the CALIBRATE tables

@@ -293,6 +293,10 @@ export function buildRival(identity, cell, index, querySet, rng, variant = 0) {
       strategy: 'manual',
       strategyParams: { targetCpaPaise: Math.round(breakEvenCpcPaise(business) * 12), targetRoas: 4.0 },
       daypartAdjustments: [0, 0, 0, 0, 0, 0],
+      // Running everywhere, at the same bid everywhere. Neutral rather than
+      // absent so the shape is always the one the engine expects, and so the
+      // round's flat-market fast path is the default rather than a special case.
+      locationAdjustments: [0, 0, 0],
       negatives: [],
     },
     adGroups: [{
@@ -626,6 +630,10 @@ function buildPlayer(identity, choices) {
       strategy: 'manual',
       strategyParams: { targetCpaPaise: 40000, targetRoas: 4.0 },
       daypartAdjustments: [0, 0, 0, 0, 0, 0],
+      // Running everywhere, at the same bid everywhere. Neutral rather than
+      // absent so the shape is always the one the engine expects, and so the
+      // round's flat-market fast path is the default rather than a special case.
+      locationAdjustments: [0, 0, 0],
       negatives: [],
     },
     adGroups: [{

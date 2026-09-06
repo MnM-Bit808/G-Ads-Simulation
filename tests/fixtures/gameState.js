@@ -123,6 +123,7 @@ export function makeAdvertisers(over = {}) {
         strategy: 'manual',
         strategyParams: { targetCpaPaise: 40000, targetRoas: 5.0 },
         daypartAdjustments: [0, 0, 0, 0, 0, 0],
+      locationAdjustments: [0, 0, 0],
         negatives: [],
       },
       adGroups: [{

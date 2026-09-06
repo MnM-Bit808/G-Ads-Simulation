@@ -1404,7 +1404,38 @@ there. Against the whole market it becomes meaningless the moment anybody can
 choose where to run, and F12 already records share as the most misread number in
 this report.
 
-**Steps 1 to 4 of nine are done**: the tables and names, and `engine/locations.js`
+**THE CONTROL IS A BID ADJUSTMENT, and it had to come before rivals could use
+it** — the build order had those two the wrong way round.
+`campaign.locationAdjustments` is three percentages, exactly like dayparting,
+because it is exactly the same kind of control and Google's own is a location bid
+adjustment rather than a separate campaign. It triggers **no learning period**:
+12.3 reserves those for strategy changes, and this changes no estimate.
+
+**−100% IS A BID OF ONE RUPEE, NOT AN OFF SWITCH**, the same as dayparting.
+`locationMultiplier` returns zero and `effectiveBidPaise` clamps to
+`MIN_BID_PAISE`, so an advertiser who turns a location off is priced out rather
+than absent — it stays in the eligible count and reports as lost to rank. Being
+outbid because you bid a rupee is still being outbid, and a report that hid that
+would teach the wrong lesson about where the traffic went.
+
+**Both adjustments share one clamp.** −50% on the hour and −50% on the place
+compound the way two bid adjustments do, rather than each being floored separately
+at `MIN_BID_PAISE`.
+
+**TWO PATHS THROUGH THE AUCTION, and a test that they agree.** When nobody adjusts
+by location the ladders are identical, so one resolution apportioned is exact and
+the round takes it — a player who never touches the control pays nothing. The
+moment anyone tilts, all three are resolved properly. The risk of two paths is
+that they quietly stop agreeing, so the same round runs both ways and is held to
+the same numbers, breakdown included.
+
+**One finding from turning a location off**, and it is not a defect: the metros
+gain **0.02%**. Giving up two locations means spending the day's budget more
+slowly, so pacing lets the advertiser participate a little more where it stayed.
+That is the budget following, not the volume — the searches stayed where they
+were, and total impressions more than halve.
+
+**Steps 1 to 4 and 6 of nine are done**: the tables and names, and `engine/locations.js`
 — the demand-side arithmetic, validated and mutation-tested — and the auction now
 reads it. `HANDOVER.md` carries the remaining order and the two points where it
 stops to measure.

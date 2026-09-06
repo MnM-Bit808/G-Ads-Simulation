@@ -1,6 +1,4 @@
 import { describe, test, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { runRound } from '../engine/round.js';
 import { LOCATION_TIERS } from '../engine/constants.js';
 import { locationSharesFor } from '../engine/locations.js';
@@ -806,40 +804,113 @@ describe('a round knows where its traffic was', () => {
   });
 });
 
-describe('the assumption one ladder rests on', () => {
+describe('the two paths through the auction agree when they should', () => {
   /**
-   * THIS IS A TRIPWIRE FOR STEP 6, and it is the reason the round is still
-   * inside its performance budget.
+   * THE GUARD THE STEP 3 TRIPWIRE WAS STANDING IN FOR, now that the control it
+   * was waiting for exists.
    *
-   * Three locations are three genuinely separate auctions and the honest
-   * implementation resolves three. That was written first and measured at 531ms
-   * against a 400ms budget, and 4,155ms against 1,500ms sampled. Three quarters
-   * of that work is redundant TODAY because nothing makes a bid depend on where
-   * the search is - so the ladder is identical in all three and everything that
-   * differs is linear in volume, which makes splitting the RESULT exact.
+   * Three locations are three separate auctions and the honest implementation
+   * resolves three - measured at 531ms against a 400ms budget. When nobody
+   * adjusts their bid by location the ladders are identical, so one resolution
+   * apportioned across the tiers is exact rather than approximate, and the round
+   * takes that path. A player who never touches the control pays nothing for it.
    *
-   * The moment a per-location bid adjustment exists that stops being true, and
-   * the apportionment silently becomes wrong rather than merely approximate:
-   * every advertiser would be ranked as though it had bid the same everywhere.
-   * So this fails the moment the field appears, and whoever adds it has to come
-   * back here and restore the per-tier resolution - with a fast path for the
-   * common case where every advertiser's adjustments are neutral.
+   * The risk in having two paths is that they quietly stop agreeing. So this
+   * runs the same round both ways and holds them to the same numbers: the fast
+   * path is only legitimate while it is indistinguishable.
    */
-  test('no advertiser can yet bid differently by location', () => {
-    for (const advertiser of STATE.advertisers) {
-      expect(advertiser.campaign.locationAdjustments, advertiser.id).toBeUndefined();
+  const flat = makeGameState();
+  const tilted = makeGameState();
+  // Neutral in every tier: a different SHAPE of the same instruction, which
+  // forces the per-tier path while asking for exactly what the flat path does.
+  for (const advertiser of tilted.advertisers) {
+    advertiser.campaign.locationAdjustments = [0, 0, 0];
+  }
+  // ...and one advertiser tilted, for the tests below.
+  const targeted = makeGameState();
+  targeted.advertisers[0].campaign.locationAdjustments = [0, -100, -100];
+
+  test('a neutral tilt gives the same round as no tilt at all', () => {
+    // Both states are neutral, so both paths must produce the same market. If
+    // this ever fails, the apportionment has stopped being exact and the fast
+    // path is quietly wrong for every player who never touched the control.
+    const a = runRound(flat, { mode: 'expected' });
+    const b = runRound(tilted, { mode: 'expected' });
+    for (const advertiser of flat.advertisers) {
+      const x = a.raw.byAdvertiser[advertiser.id];
+      const y = b.raw.byAdvertiser[advertiser.id];
+      expect(y.impressions, `${advertiser.id} impressions`).toBeCloseTo(x.impressions, 6);
+      expect(y.clicks, `${advertiser.id} clicks`).toBeCloseTo(x.clicks, 6);
+      expect(y.costPaise, `${advertiser.id} cost`).toBeCloseTo(x.costPaise, 6);
     }
   });
 
-  test('and the round does not read such a field', () => {
-    const source = readFileSync(
-      fileURLToPath(new URL('../engine/round.js', import.meta.url)), 'utf8',
-    );
-    expect(
-      source.includes('locationAdjustments'),
-      'round.js reads a per-location bid adjustment while still resolving one '
-      + 'ladder for all three - the apportionment is no longer exact, and the '
-      + 'auction has to be resolved per tier again',
-    ).toBe(false);
+  test('and the location breakdown matches too, not just the totals', () => {
+    const a = runRound(flat, { mode: 'expected' });
+    const b = runRound(tilted, { mode: 'expected' });
+    const x = a.raw.byAdvertiser[PLAYER_ID].byLocation;
+    const y = b.raw.byAdvertiser[PLAYER_ID].byLocation;
+    expect([...y.keys()].sort()).toEqual([...x.keys()].sort());
+    for (const [tier, row] of x) {
+      expect(y.get(tier).impressions, `tier ${tier}`).toBeCloseTo(row.impressions, 6);
+      expect(y.get(tier).costPaise, `tier ${tier}`).toBeCloseTo(row.costPaise, 6);
+    }
+  });
+});
+
+describe('turning a location down', () => {
+  const before = runRound(makeGameState(), { mode: 'expected' });
+  const state = makeGameState();
+  state.advertisers[0].campaign.locationAdjustments = [0, -100, -100];
+  const after = runRound(state, { mode: 'expected' });
+
+  test('it stops winning there', () => {
+    // -100% is a bid of MIN_BID_PAISE rather than no bid, so this is an
+    // advertiser priced out rather than absent - which is why it still shows as
+    // lost to rank rather than vanishing from the eligible count.
+    const rows = after.raw.byAdvertiser[PLAYER_ID].byLocation;
+    const metros = rows.get(0)?.impressions ?? 0;
+    expect(metros, 'nothing won in the metros either').toBeGreaterThan(0);
+    for (const tier of [1, 2]) {
+      expect(rows.get(tier)?.impressions ?? 0, `tier ${tier}`).toBeLessThan(metros * 0.02);
+    }
+  });
+
+  test('it is still eligible there, because being outbid is not being absent', () => {
+    const row = after.raw.byAdvertiser[PLAYER_ID];
+    for (const tier of [1, 2]) {
+      expect(row.eligibleByLocation[tier], `tier ${tier}`).toBeGreaterThan(0);
+    }
+  });
+
+  test('and the traffic it gives up does not follow it to the metros', () => {
+    // The volume in a location belongs to that location: an advertiser that
+    // stops bidding in two of three does not get those searches somewhere else,
+    // which is what makes narrowing a real cost rather than a filter.
+    //
+    // NOT EXACTLY UNCHANGED, and the reason is worth knowing. Giving up two
+    // locations means spending the day's budget more slowly, so pacing lets the
+    // advertiser participate a little more in the one it kept: the metros gain
+    // 0.02%. That is the budget following, not the volume - the searches stayed
+    // where they were.
+    const wasMetros = before.raw.byAdvertiser[PLAYER_ID].byLocation.get(0).impressions;
+    const nowMetros = after.raw.byAdvertiser[PLAYER_ID].byLocation.get(0).impressions;
+    expect(Math.abs(nowMetros / wasMetros - 1), 'metros moved by more than a budget effect')
+      .toBeLessThan(0.01);
+    expect(after.raw.byAdvertiser[PLAYER_ID].impressions)
+      .toBeLessThan(before.raw.byAdvertiser[PLAYER_ID].impressions * 0.5);
+  });
+
+  test('somebody else picks up what it stopped bidding for', () => {
+    // Crowding, in one round: the searches do not disappear, they go to whoever
+    // is left. This is the mechanism the whole mechanic rests on and it is worth
+    // seeing at this scale before step 5 asks rivals to exploit it.
+    const others = makeGameState().advertisers.slice(1).map((a) => a.id);
+    const gained = others.filter((id) => {
+      const was = before.raw.byAdvertiser[id].byLocation.get(1)?.impressions ?? 0;
+      const now = after.raw.byAdvertiser[id].byLocation.get(1)?.impressions ?? 0;
+      return now > was;
+    });
+    expect(gained.length, 'nobody took the traffic that was given up').toBeGreaterThan(0);
   });
 });

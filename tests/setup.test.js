@@ -674,3 +674,29 @@ describe('round 0 may be redone once, up to round 3 (spec 17.3)', () => {
     expect(reports[0].byAdvertiser[PLAYER_BRAND].traffic.eligibleAuctions).toBeGreaterThan(0);
   });
 });
+
+
+describe('every advertiser opens running everywhere (G4)', () => {
+  // Neutral rather than absent, so the shape is always the one the engine
+  // expects and the round's flat-market fast path is the default rather than a
+  // special case. A missing field would still behave, because
+  // `locationMultiplier` reads it defensively - which is exactly why it needs
+  // asserting rather than trusting.
+  test('the player and all eight rivals carry a neutral location adjustment', () => {
+    for (const advertiser of start().advertisers) {
+      expect(advertiser.campaign.locationAdjustments, advertiser.id).toEqual([0, 0, 0]);
+    }
+  });
+
+  test('and nobody is dealt a targeting preference at round 0', () => {
+    // Round 0 is where a rival is CONFIGURED, so this is the place a hidden
+    // advantage would be dealt. Rivals choose where to bid by playing, not by
+    // being born somewhere.
+    for (const seed of SEEDS) {
+      for (const advertiser of start({ rootSeed: seed }).advertisers) {
+        expect(advertiser.campaign.locationAdjustments, `${seed} ${advertiser.id}`)
+          .toEqual([0, 0, 0]);
+      }
+    }
+  });
+});

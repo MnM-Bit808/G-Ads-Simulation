@@ -33,7 +33,7 @@ import {
   COLD_START_CONV_RATE, PREDICTION_ERROR_BASE, PREDICTION_ERROR_CLAMP,
   LEARNING_ERROR_MULTIPLIER, MIN_HOUR_OBSERVATIONS, DAYPART_BLOCKS,
   MAX_CLICKS_AGGRESSION, MAX_CONV_AGGRESSION,
-  MIN_BID_PAISE, MAX_BID_MULTIPLE, CONV_RATE_CLAMP,
+  MIN_BID_PAISE, MAX_BID_MULTIPLE, CONV_RATE_CLAMP, LOCATION_TIERS,
 } from './constants.js';
 import { clamp } from './num.js';
 import { normal } from './rng.js';
@@ -116,6 +116,28 @@ export function daypartMultiplier(adjustments, hour) {
 }
 
 /**
+ * The bid multiplier from the campaign's location targeting.
+ *
+ * Percentages, one per `LOCATION_TIERS`, exactly like dayparting - because it is
+ * exactly the same kind of control, and Google's own is a location bid
+ * adjustment rather than a separate campaign. -100% is not an off switch: it
+ * returns zero and `effectiveBidPaise` then clamps to `MIN_BID_PAISE`, so it is a
+ * bid of one rupee, which behaves like an off switch only because a rupee sits
+ * under `AD_RANK_FLOOR`. The same is true of dayparting and it is worth knowing
+ * before reading a report that says "lost to rank".
+ *
+ * @param {number[]} adjustments one percentage per location tier
+ * @param {number} tier index
+ * @returns {number}
+ */
+export function locationMultiplier(adjustments, tier) {
+  if (!Number.isInteger(tier) || tier < 0 || tier >= LOCATION_TIERS.length) {
+    throw new RangeError(`tier must be 0..${LOCATION_TIERS.length - 1}, got ${String(tier)}`);
+  }
+  return Math.max(0, 1 + (adjustments?.[tier] ?? 0) / 100);
+}
+
+/**
  * What this advertiser actually bids for one auction.
  *
  * The budget-spending strategies do not solve for a bid that exhausts the
@@ -135,6 +157,7 @@ export function daypartMultiplier(adjustments, hour) {
  */
 export function effectiveBidPaise({
   strategy, strategyParams, keyword, business, bidding, daypartAdjustments, hour, rng,
+  locationAdjustments = null, locationTier = null,
 }) {
   if (!STRATEGIES[strategy]) {
     throw new RangeError(`unknown strategy "${strategy}"`);
@@ -142,10 +165,16 @@ export function effectiveBidPaise({
   assertPaise(keyword.bidPaise, 'keyword.bidPaise');
 
   const daypart = daypartMultiplier(daypartAdjustments, hour);
+  // Location is optional so every existing caller keeps its meaning: a bid with
+  // no location is the bid anywhere, which is what the market was before G4.
+  const place = locationTier === null ? 1 : locationMultiplier(locationAdjustments, locationTier);
   const raw = rawBid(strategy, strategyParams, keyword, business, bidding, hour, rng);
 
+  // ONE CLAMP over both adjustments rather than one each, so -50% on the hour
+  // and -50% on the place compound the way two bid adjustments do, instead of
+  // each being floored separately at MIN_BID_PAISE.
   const ceiling = Math.round(keyword.bidPaise * MAX_BID_MULTIPLE);
-  return clamp(Math.round(raw * daypart), MIN_BID_PAISE, ceiling);
+  return clamp(Math.round(raw * daypart * place), MIN_BID_PAISE, ceiling);
 }
 
 function rawBid(strategy, params, keyword, business, bidding, hour, rng) {

@@ -34,7 +34,7 @@
 import {
   ADVERTISER_COUNT, ROUNDS_PER_MONTH, POSITION_CTR_MULTIPLIERS, TOP_SLOTS,
   AUCTIONS_PER_QUERY_HOUR, MAX_SLOTS, ATTRIBUTION_LAG_DISTRIBUTION,
-  LOCATION_TIERS, RETURN_RATE_CLAMP_MAX,
+  LOCATION_TIERS, RETURN_RATE_CLAMP_MAX, MIN_BID_PAISE,
   REPOSITION_COST_PAISE,
 } from './constants.js';
 import { assertPaise, mulRate, allocate } from './money.js';
@@ -45,7 +45,7 @@ import { qualitySignalBase, applyHourAndNoise } from './quality.js';
 import { businessFor, landingPageBonus } from './positions.js';
 import { locationSharesFor, locationEffects } from './locations.js';
 import { resolveAuction } from './auction.js';
-import { estimatedConvRate, effectiveBidPaise } from './strategies.js';
+import { estimatedConvRate, effectiveBidPaise, locationMultiplier } from './strategies.js';
 import {
   dailyTargetPaise, pacingContext, participationFrom,
   opensNewMonth, rankAllocations, allocationForRound,
@@ -129,6 +129,23 @@ export function runRound(gameState, options = {}) {
   const effects = locationEffects(querySet);
   const tiers = LOCATION_TIERS.length;
 
+  // WHO IS BIDDING DIFFERENTLY BY PLACE, and therefore which path the loop takes.
+  //
+  // Three locations are three genuinely separate auctions and the honest
+  // implementation resolves three. Measured, that is 531ms against a 400ms
+  // budget. But when nobody adjusts their bid by location, the entrants, their
+  // bids and their quality are identical in all three - so the ladder is too,
+  // everything that differs is linear in volume, and splitting the RESULT of one
+  // resolution is exact rather than approximate.
+  //
+  // So: one ladder while the market is flat, three the moment anyone tilts. A
+  // player who never touches the control pays nothing for it, and
+  // `round.test.js` asserts the two paths agree when they should.
+  const locationMultipliers = advertisers.map(
+    (a) => LOCATION_TIERS.map((_, tier) => locationMultiplier(a.campaign.locationAdjustments, tier)),
+  );
+  const anyoneTargets = locationMultipliers.some((row) => row.some((m) => m !== 1));
+
   // --- the loop -------------------------------------------------------------
   for (let day = 0; day < DAYS_PER_WEEK; day++) {
     const dayTarget = advertisers.map((a, i) => dailyTargetPaise(
@@ -155,9 +172,10 @@ export function runRound(gameState, options = {}) {
             if (!plan) continue;
             acc[i].eligibleAuctions += hourVolume;
             // Per location too, because impression share needs a denominator
-            // from the same place as its numerator. Without it the report could
-            // say how much traffic came from each tier but not how much was
-            // going begging there.
+            // from the same place as its numerator. Counted once here on both
+            // paths: an advertiser is eligible everywhere its keyword matches,
+            // whatever it chose to bid there. Being outbid because you bid a
+            // rupee is still being outbid.
             for (let t = 0; t < tiers; t++) {
               acc[i].eligibleByLocation[t] += hourVolume * shares[q][t];
             }
@@ -186,31 +204,49 @@ export function runRound(gameState, options = {}) {
           }
 
           if (entrants.length === 0) continue;
-          // ONE LADDER, APPORTIONED ACROSS THE COUNTRY, and the reason is worth
-          // reading before anyone changes it.
-          //
-          // Three locations are three genuinely separate auctions, and the
-          // honest implementation resolves three. That was written first and
-          // measured: 531ms against a 400ms budget in expected mode and 4,155ms
-          // against 1,500ms sampled. Three quarters of that work is provably
-          // redundant TODAY, because nothing yet makes a bid depend on where the
-          // search is - the entrants, their bids and their quality are identical
-          // in all three, so the ladder is too. Everything that differs is
-          // linear in volume, so splitting the RESULT is exact rather than an
-          // approximation.
-          //
-          // STEP 6 BREAKS THIS. The moment a per-location bid adjustment exists,
-          // the ladders genuinely differ and this has to go back to resolving
-          // per tier - with a fast path for the common case where every
-          // advertiser's adjustments are neutral. The assumption is asserted in
-          // round.test.js rather than left in a comment, so it fails loudly.
-          const { ladder } = resolveAuction(entrants);
-          recordAuction({
-            ladder, entrants, acc, pairwise, convAccum,
-            advertisers, business, query, hour,
-            shares: shares[q], effects, tiers,
-            budgets, perAdvertiserRng, mode,
-          });
+
+          if (!anyoneTargets) {
+            // FLAT MARKET: one ladder, apportioned. Exact, because nothing here
+            // depends on the location.
+            const { ladder } = resolveAuction(entrants);
+            recordAuction({
+              ladder, entrants, acc, pairwise, convAccum,
+              advertisers, business, query, hour,
+              shares: shares[q], effects, tiers,
+              budgets, perAdvertiserRng, mode,
+            });
+            continue;
+          }
+
+          // SOMEBODY TILTS: three auctions, because the ladder genuinely differs
+          // and apportioning would rank everyone as though they had bid the same
+          // everywhere.
+          for (let tier = 0; tier < tiers; tier++) {
+            const share = shares[q][tier];
+            if (share <= 0) continue;
+            const here = [];
+            for (const e of entrants) {
+              const multiplier = locationMultipliers[e._i][tier];
+              here.push({
+                ...e,
+                // Re-clamped, not just scaled: MIN_BID_PAISE is a floor on what
+                // anybody can bid, so -100% is a bid of one rupee rather than no
+                // bid at all - which behaves like an off switch only because a
+                // rupee sits under AD_RANK_FLOOR.
+                bidPaise: Math.max(MIN_BID_PAISE, Math.round(e.bidPaise * multiplier)),
+                _volume: e._volume * share,
+              });
+            }
+            const { ladder } = resolveAuction(here);
+            recordAuction({
+              ladder, entrants: here, acc, pairwise, convAccum,
+              advertisers, business, query, hour,
+              // One tier at a time now, so the apportionment inside is the
+              // identity on this tier and zero elsewhere.
+              shares: onlyTier(tiers, tier), effects, tiers,
+              budgets, perAdvertiserRng, mode,
+            });
+          }
         }
       }
     }
@@ -500,6 +536,29 @@ function keywordForQuery(plans, queries) {
     if (plans[q]) map.set(queries[q].id, plans[q].keyword.id);
   }
   return map;
+}
+
+/**
+ * A share vector that is all of one tier and none of the others.
+ *
+ * Lets `recordAuction` keep one shape whichever path the loop took: on the flat
+ * path it is handed the query's real split, and on the targeted path a resolution
+ * that already belongs entirely to one place.
+ *
+ * Cached because the loop asks for it up to 75,600 times a round and there are
+ * only ever three answers.
+ */
+const ONLY_TIER = new Map();
+function onlyTier(tiers, tier) {
+  const key = `${tiers}:${tier}`;
+  let vector = ONLY_TIER.get(key);
+  if (!vector) {
+    vector = new Array(tiers).fill(0);
+    vector[tier] = 1;
+    Object.freeze(vector);
+    ONLY_TIER.set(key, vector);
+  }
+  return vector;
 }
 
 function bump(map, key, impressions, clicks, cost) {
