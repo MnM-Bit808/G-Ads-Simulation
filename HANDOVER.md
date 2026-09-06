@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and one new mechanic is mid-build.** 1252 tests, all passing, 1 todo.
+**Every build-order step is done, and one new mechanic is mid-build.** 1255 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -758,6 +758,15 @@ screen is built against them is the whole reason the UI is step 8.
 - `locationSharesFor` hands back **shared frozen arrays** rather than copies,
   because it is on the hot path — and there is a test that they cannot be written
   through.
+
+**And the defect step 3 found in step 2, before it could reach the auction:** the
+multiplier tables were about to be applied raw, and their volume-weighted mean is
+1.243 — every advertiser would have seen returns rise a quarter, turning value's
+documented 30% into 37%. `POSITION_ECONOMICS.returnRate` is already the
+category-wide rate. They are ratios now, normalised by `locationEffects(querySet)`,
+and the realised rates come back to 30.0 / 24.0 / 20.0 exactly. **That is the third
+time in this project a modifier has been stacked on a number that already carried
+the effect** (F10, F11) — worth checking for on any new multiplier.
 
 **Three things not to relearn:**
 

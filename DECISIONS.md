@@ -1316,6 +1316,32 @@ mechanic in one assertion — geography says where the searchers `WEEKLY_VOLUME`
 already counts are. If it ever fails, the country has grown or shrunk and every
 calibrated number is measuring a different market.
 
+**THE TABLES ARE RATIOS, AND FINDING THAT OUT WAS THE DEFECT OF STEP 3.** They
+were about to be applied raw. `LOCATION_RETURN_MULTIPLIER` reads 1.0 / 1.25 / 1.5,
+and weighted by where the searches actually are that has a mean of **1.243** — so
+every advertiser running everywhere would have seen returns rise by a quarter, and
+value's documented **30% would have become 37%**. `POSITION_ECONOMICS.returnRate`
+IS the category-wide rate (F8), and the briefing tells the player *"about a
+quarter of orders category-wide"*.
+
+That is the F10 and F11 shape once more: a modifier stacked on a number that
+already contains the effect. Third time in this project, and the first two were
+each found only when an invariant was finally measured properly rather than read.
+
+`locationEffects(querySet)` now divides both tables by their volume-weighted mean.
+The spread the design agreed survives exactly — the towns still return half again
+as often as the metros — while the market keeps the average F8 gave it:
+
+| | raw | normalised |
+|---|---|---|
+| returns | 1.0 / 1.25 / 1.5 | 0.804 / 1.005 / 1.207 |
+| baskets | 1.10 / 1.00 / 0.92 | 1.090 / 0.991 / 0.912 |
+
+Running everywhere, value's realised return rate comes back to **30.0%**, mid's to
+24.0%, premium's to 20.0%. Normalised on VOLUME rather than conversions, which is
+an approximation — conversions follow quality and bids too — but it holds the
+category rate to within a point and does not depend on who is winning.
+
 **Steps 1 and 2 of nine are done**: the tables and names, and `engine/locations.js`
 — the demand-side arithmetic, validated and mutation-tested. The auction does not
 read it yet. `HANDOVER.md` carries the remaining order and the two points where it

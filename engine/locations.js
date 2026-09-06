@@ -93,21 +93,65 @@ export function locationSharesFor(query) {
 }
 
 /**
- * What a location does to the money, once a click has converted.
+ * How much of the country's searching happens in each tier.
  *
- * Both multipliers apply where the order is valued and where it is resolved, not
- * where it is bid — a metro basket is bigger and a town parcel comes back more
- * often, and neither changes how likely the click was.
+ * Measured off the query set rather than stated as a constant, because it is a
+ * property of how the rows were authored: it falls out of each query's home cell
+ * and its volume. Pass the set the round is actually running on.
  *
- * @param {number} index location tier index
- * @returns {{aovMultiplier: number, returnMultiplier: number}}
- * @throws {RangeError} out of range
+ * @param {object} querySet
+ * @returns {number[]} one weight per LOCATION_TIERS, summing to 1
  */
-export function locationEffects(index) {
-  locationIdAt(index);
+export function locationWeights(querySet) {
+  const totals = LOCATION_TIERS.map(() => 0);
+  let all = 0;
+  for (const query of querySet?.queries ?? []) {
+    const shares = locationSharesFor(query);
+    all += query.volumeShareBp;
+    for (let i = 0; i < totals.length; i++) totals[i] += query.volumeShareBp * shares[i];
+  }
+  if (all <= 0) return LOCATION_TIERS.map(() => 1 / LOCATION_TIERS.length);
+  return totals.map((t) => t / all);
+}
+
+/**
+ * What a location does to the money, NORMALISED so the country still has the
+ * economics it is documented to have.
+ *
+ * THIS NORMALISATION IS THE WHOLE POINT OF THIS FUNCTION, and leaving it out was
+ * a real defect caught on the way into `round.js`. `LOCATION_RETURN_MULTIPLIER`
+ * reads 1.0 / 1.25 / 1.5, which weighted by where the searches actually are has a
+ * mean of **1.243** — so applying it raw would have raised every advertiser's
+ * return rate by a quarter. `POSITION_ECONOMICS.returnRate` IS the category-wide
+ * rate (F8), and the briefing tells the player "about a quarter of orders
+ * category-wide": value's documented 30% would silently have become 37%.
+ *
+ * That is the F10 and F11 shape exactly — a modifier stacked on a number that
+ * already contains the effect. Both entries in this ledger are records of the
+ * purpose axis being applied twice and nobody noticing until an invariant was
+ * measured properly.
+ *
+ * So the tables are read as RATIOS. Dividing by the volume-weighted mean keeps
+ * the spread the design agreed — the towns still return half again as often as
+ * the metros — while leaving the market's average exactly where F8 put it.
+ *
+ * Normalised on VOLUME rather than on conversions, which is an approximation:
+ * conversions follow clicks, which follow quality and bids as well as volume. It
+ * holds the realised category rate to within a point rather than exactly, and
+ * that is the right trade for a number that must not depend on who is winning.
+ *
+ * @param {object} querySet the set the round is running on
+ * @returns {{aovMultiplier: number[], returnMultiplier: number[]}} by tier index
+ */
+export function locationEffects(querySet) {
+  const weights = locationWeights(querySet);
+  const normalise = (table) => {
+    const mean = table.reduce((a, v, i) => a + v * weights[i], 0);
+    return mean > 0 ? table.map((v) => v / mean) : table.map(() => 1);
+  };
   return {
-    aovMultiplier: LOCATION_AOV_MULTIPLIER[index],
-    returnMultiplier: LOCATION_RETURN_MULTIPLIER[index],
+    aovMultiplier: normalise(LOCATION_AOV_MULTIPLIER),
+    returnMultiplier: normalise(LOCATION_RETURN_MULTIPLIER),
   };
 }
 

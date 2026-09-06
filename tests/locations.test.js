@@ -26,7 +26,7 @@ import { LOCATIONS, location, locationsInOrder } from '../content/locations.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { homeCell } from '../engine/querySet.js';
 import {
-  locationIndex, locationIdAt, locationSharesFor, locationEffects,
+  locationIndex, locationIdAt, locationSharesFor, locationEffects, locationWeights,
   validateLocationTables, assertValidLocationTables,
 } from '../engine/locations.js';
 
@@ -222,20 +222,63 @@ describe('one query divides across the country', () => {
 });
 
 describe('what a location does to the money', () => {
-  test('the effects are the tables, by index', () => {
-    for (let i = 0; i < LOCATION_TIERS.length; i++) {
-      expect(locationEffects(i)).toEqual({
-        aovMultiplier: LOCATION_AOV_MULTIPLIER[i],
-        returnMultiplier: LOCATION_RETURN_MULTIPLIER[i],
-      });
-    }
+  /**
+   * THE DEFECT THIS DESCRIBE BLOCK EXISTS FOR, caught on the way into round.js.
+   *
+   * The tables were going to be applied raw. `LOCATION_RETURN_MULTIPLIER` reads
+   * 1.0 / 1.25 / 1.5, and weighted by where the searches actually are that has a
+   * mean of 1.243 — so every advertiser's return rate would have risen by a
+   * quarter, and value's documented 30% would have become 37%.
+   * `POSITION_ECONOMICS.returnRate` IS the category-wide rate (F8) and the
+   * briefing tells the player "about a quarter of orders category-wide".
+   *
+   * That is the F10/F11 shape: a modifier stacked on a number that already
+   * contains the effect. So the tables are ratios, normalised before use.
+   */
+  test('the market keeps the average it is documented to have', () => {
+    const weights = locationWeights(QUERY_SET);
+    const { aovMultiplier, returnMultiplier } = locationEffects(QUERY_SET);
+    const weightedMean = (table) => table.reduce((a, v, i) => a + v * weights[i], 0);
+    expect(weightedMean(returnMultiplier), 'returns').toBeCloseTo(1, 9);
+    expect(weightedMean(aovMultiplier), 'baskets').toBeCloseTo(1, 9);
   });
 
-  test('an index off the end throws rather than handing back undefined', () => {
-    // The failure this prevents: `undefined` multipliers propagate into money
-    // arithmetic as NaN, and NaN paise fails an assertion three modules away.
-    expect(() => locationEffects(LOCATION_TIERS.length)).toThrow(RangeError);
-    expect(() => locationEffects(-1)).toThrow(RangeError);
+  test('and the spread the design agreed survives normalising', () => {
+    // The towns still return half again as often as the metros. Normalisation
+    // moves the baseline, never the ratios - if it ever did, it would be
+    // silently rewriting the design rather than protecting the category rate.
+    const { returnMultiplier, aovMultiplier } = locationEffects(QUERY_SET);
+    const ratio = (table, raw) => {
+      for (let i = 1; i < table.length; i++) {
+        expect(table[i] / table[0], `tier ${i}`).toBeCloseTo(raw[i] / raw[0], 9);
+      }
+    };
+    ratio(returnMultiplier, LOCATION_RETURN_MULTIPLIER);
+    ratio(aovMultiplier, LOCATION_AOV_MULTIPLIER);
+  });
+
+  test('the metros end up better than the market average, and the towns worse', () => {
+    // Which is the readable consequence: 1.0 in the raw table is the metros
+    // being the BASELINE, and after normalising it becomes a discount, because
+    // two thirds of the country returns more often than they do.
+    const { returnMultiplier } = locationEffects(QUERY_SET);
+    expect(returnMultiplier[0]).toBeLessThan(1);
+    expect(returnMultiplier[returnMultiplier.length - 1]).toBeGreaterThan(1);
+  });
+
+  test('the weights are where the searching actually is, and sum to one', () => {
+    const weights = locationWeights(QUERY_SET);
+    expect(weights).toHaveLength(LOCATION_TIERS.length);
+    expect(weights.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 9);
+    for (const w of weights) expect(w).toBeGreaterThan(0);
+  });
+
+  test('an empty set gives even weights rather than dividing by zero', () => {
+    // Reachable from a test fixture long before it is reachable from a game.
+    expect(locationWeights({ queries: [] })).toEqual(
+      LOCATION_TIERS.map(() => 1 / LOCATION_TIERS.length),
+    );
+    expect(locationWeights(undefined).reduce((a, b) => a + b, 0)).toBeCloseTo(1, 9);
   });
 
   test('ids and indices round-trip', () => {

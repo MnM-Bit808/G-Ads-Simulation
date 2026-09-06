@@ -94,6 +94,13 @@ export const LOCATION_VOLUME_BY_PRICE = Object.freeze({
  * NOT A CONVERSION MULTIPLIER, deliberately. Conversion already carries query
  * affinity, PURPOSE_MODIFIERS and the hourly intent curve, and F10 and F11 are
  * both records of what happens when two mechanisms push the same number.
+ *
+ * READ AS RATIOS, NOT AS ABSOLUTE FACTORS. `locationEffects` divides these by
+ * their volume-weighted mean before anything applies them, because that mean is
+ * 1.243 and applying it raw would raise every advertiser's return rate by a
+ * quarter - `POSITION_ECONOMICS.returnRate` is already the category-wide figure
+ * (F8), so value's documented 30% would silently have become 37%. What survives
+ * normalisation is the spread, which is the part the design is about.
  */
 export const LOCATION_RETURN_MULTIPLIER = Object.freeze([1.0, 1.25, 1.5]);
 
@@ -103,6 +110,9 @@ export const LOCATION_RETURN_MULTIPLIER = Object.freeze([1.0, 1.25, 1.5]);
  * Small on purpose: it is a texture on top of the returns difference rather than
  * a second lever, and making it large would say something about Indian retail
  * that nobody has measured here.
+ *
+ * Ratios, like the return table above, and normalised the same way - otherwise
+ * the market's average basket would drift from the one POSITION_ECONOMICS sets.
  */
 export const LOCATION_AOV_MULTIPLIER = Object.freeze([1.10, 1.00, 0.92]);
 
