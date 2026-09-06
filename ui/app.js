@@ -54,7 +54,7 @@ let game = null;
  */
 let rewinding = null;
 
-function begin({ playerBrandId, player }) {
+async function begin({ playerBrandId, player }) {
   const state = rewinding
     ? redoRoundZero(rewinding, { playerBrandId, player })
     : startGame({ rootSeed, playerBrandId, player, querySet: QUERY_SET });
@@ -97,7 +97,23 @@ function begin({ playerBrandId, player }) {
     negatives: game.draft.base.negatives,
     keywords: game.draft.base.keywords,
   };
-  render();
+
+  // AND RUN THE FIRST WEEK, rather than rendering an account with no rounds in
+  // it. There used to be a screen between here and the dashboard carrying one
+  // sentence — "The account is open and nothing has run yet. Run the week to buy
+  // some traffic." — which told the player to press a button in the opposite
+  // corner of the page from the form they had just spent five screens filling
+  // in, and showed them nothing at all in the meantime.
+  //
+  // Leaving round 0 on screen instead would have been worse: `game` exists by
+  // this line, so the form's draft is no longer read by anything and every field
+  // on it would accept edits that did nothing. A control that does nothing is
+  // worse than no control.
+  //
+  // So the account is created and the week is bought by one press of one button,
+  // at the bottom of the form it belongs to. `render` is not called until a
+  // report exists, because the dashboard reads the last one.
+  await runWeek();
 }
 
 /**
@@ -135,7 +151,7 @@ function chrome() {
   position.textContent = `${me.position.price} · ${me.position.purpose}`;
 
   const played = game.reports.length;
-  label.textContent = played === 0 ? 'no weeks played' : `week ${played} of ${TOTAL_ROUNDS}`;
+  label.textContent = `week ${played} of ${TOTAL_ROUNDS}`;
   nextButton.hidden = false;
   nextButton.disabled = played >= TOTAL_ROUNDS;
   nextButton.textContent = played >= TOTAL_ROUNDS ? 'Game over' : commitLabel();
@@ -191,11 +207,6 @@ function render() {
     window.scrollTo(0, 0);
     return;
   }
-  if (game.reports.length === 0) {
-    app.replaceChildren(el('p', 'loading',
-      'The account is open and nothing has run yet. Run the week to buy some traffic.'));
-    return;
-  }
   const dashboard = renderDashboard(game, () => {
     // Only the button, so staging a change does not rebuild the screen under
     // the cursor. The dashboard redraws its own cards.
@@ -220,12 +231,14 @@ function render() {
   app.replaceChildren(dashboard);
 }
 
-nextButton.addEventListener('click', async () => {
-  nextButton.disabled = true;
-  nextButton.textContent = 'running 168 hours…';
-  // Yield once so the button repaints before the round blocks the thread.
-  await new Promise((resolve) => setTimeout(resolve, 0));
-
+/**
+ * Buy one week, then redraw.
+ *
+ * Shared by the header button and by round 0's own, so opening the account runs
+ * the first week down exactly the same path as every week after it — including
+ * the decision log and the learning period, which `submitRound` owns.
+ */
+async function runWeek() {
   // The player's controller reads `game.draft`, so nothing is passed here.
   const out = await playRound(game.state, game.controllers, {
     mode: 'expected',
@@ -241,6 +254,14 @@ nextButton.addEventListener('click', async () => {
   // round would make every week's diff empty.
   refreshDraft();
   render();
+}
+
+nextButton.addEventListener('click', async () => {
+  nextButton.disabled = true;
+  nextButton.textContent = 'running 168 hours…';
+  // Yield once so the button repaints before the round blocks the thread.
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await runWeek();
 });
 
 redoButton.addEventListener('click', () => {

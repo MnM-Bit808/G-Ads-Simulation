@@ -1889,6 +1889,47 @@ card that cried wolf.
 character counters use rather than `rerender`, which would destroy the field
 being typed into and swallow every character after the first.
 
+### I18. Opening the account buys the first week — `FIXED`
+
+There used to be a screen between round 0 and the dashboard, carrying one
+sentence and nothing else: *"The account is open and nothing has run yet. Run the
+week to buy some traffic."*
+
+Reported by the player who met it. It is a dead end. It tells you to run the week
+while the only button that does so is in the **header, top right** — the opposite
+corner of the page from the bottom of the five-screen form you have just spent
+your attention on. The one screen in the game with nothing on it is also the one
+that does not say where to click.
+
+**Leaving round 0 on screen instead would have been worse**, and that is worth
+recording because it was the first instinct. By the time that screen is drawn
+`begin()` has already built the account, so the form's draft is no longer read by
+anything: every field on it — position, keywords, bids, writer, ad — would accept
+edits that did nothing. *A control that does nothing is worse than no control*,
+which this file already says about spent weeks in the split card.
+
+So the question was never what to draw in between. It was **when the account gets
+created**, and the answer is: when the week is bought. Round 0's own button says
+`Open the account and run week 1`, and the header button stays hidden until a game
+exists. One button, at the end of the form it belongs to.
+
+**A review screen was the alternative and was rejected on this project's own
+history.** A read-only summary of the round 0 choices would be a second surface
+describing one decision, which is exactly the drift that produced I15's two
+capital cards and the writer card disagreeing with the budget card. Removing a
+screen removes the drift; adding one creates it.
+
+**What this costs:** `chrome()`'s "no weeks played" label is gone, because
+`render` is never reached with an empty report list any more — the account and its
+first report are created together. The redo (17.3) now also runs its week on the
+same press, which is the same flow rather than a special case, and
+`canRedoRoundZero` correctly withdraws the button afterwards.
+
+Verified by playing it: round 0 with 3 keywords and with 60, straight to the week
+1 dashboard both times with no intermediate screen, header button appearing
+afterwards, and the redo path refilled and run in one press with the redo then
+withdrawn. No console errors.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

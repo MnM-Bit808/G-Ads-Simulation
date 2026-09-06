@@ -931,7 +931,11 @@ function sectionStart(draft, onStart, live) {
 
   const go = el('button', 'go');
   go.type = 'button';
-  go.textContent = 'Open the account';
+  // It opens the account AND buys the first week, because there is nothing
+  // useful to show between those two things. The old flow put a screen carrying
+  // one sentence in between and pointed at a button in the header — the opposite
+  // corner of the page from the form the player had just filled in.
+  go.textContent = 'Open the account and run week 1';
 
   // Recomputed on every keystroke rather than only when the form is rebuilt,
   // or the Go button would stay disabled until something else was clicked —
@@ -953,13 +957,19 @@ function sectionStart(draft, onStart, live) {
     go.disabled = found.length > 0;
   };
   live.start();
-  go.addEventListener('click', () => {
+  go.addEventListener('click', async () => {
+    // The round blocks the main thread for seconds, so the button has to say so
+    // and stop accepting presses. Yield once first or the new label never paints.
+    go.disabled = true;
+    go.textContent = 'running 168 hours…';
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
+
     const remaining = CAPEX_ALLOCATION_PAISE - committed(draft);
     const pending = Object.entries(draft.capex)
       .filter(([, paise]) => paise > 0)
       .map(([target, paise]) => ({ target, paise, liveAtRound: 4 }));
 
-    onStart({
+    await onStart({
       playerBrandId: draft.playerBrandId,
       player: {
         position: parseCell(draft.cell),
