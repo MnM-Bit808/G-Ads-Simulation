@@ -1206,6 +1206,108 @@ showed a rival on ₹0 spend and ₹0 profit for twelve rounds — a market with
 real competitors rather than nine, which nothing else surfaced and no test
 catches. See I11 and HANDOVER.
 
+### G4. Where the searches happen — `IN PROGRESS`, step 1 of 9
+
+A third dimension of demand, after the query and the hour: every search happens
+somewhere, and India divides into metros, large cities, and smaller cities and
+towns. Advertisers choose where to bid, weekly, and the same ad and bid earn
+differently in each.
+
+It sits in this section because the mechanic rests on something no advertiser can
+observe directly — the simulation knows exactly where a searcher is and what that
+does to the odds they keep the parcel. Google reports location performance; it
+does not hand you the causal model.
+
+**THE SHAPE, and every part of it was argued before a line was written.**
+
+| | what location changes |
+|---|---|
+| volume | distributes by price × location — premium concentrates in the metros, value spreads to the towns |
+| return rate | rises outside the metros, 1.0 / 1.25 / 1.5 |
+| order value | modestly higher in the metros, 1.10 / 1.00 / 0.92 |
+| **conversion rate** | **untouched** |
+
+**Conversion is deliberately left alone.** It already carries query affinity,
+`PURPOSE_MODIFIERS` and the hourly intent curve, and F10 and F11 are both records
+of what happens when two mechanisms push one number. The purpose axis was applied
+twice and nobody noticed until an invariant was measured properly.
+
+**RETURNS ARE THE TRADE, and without them there is no decision.** Volume alone
+changes how MANY clicks are available, not what one is worth — so a player would
+simply target everywhere and the control would be decoration. Cash on delivery is
+ordinary outside the metros and COD orders come back materially more often, so
+tier 3 traffic converts perfectly well and then leaves again. That is a fact about
+this vertical rather than an invented penalty, and it is a *different mechanism*
+from query affinity, so nothing double-counts.
+
+**MEASURED BEFORE BUILDING.** A pre-auction model, guarded by reproducing
+`realisedBreakEvenCpcPaise` to the paise for all six cells, put the value of a
+click at:
+
+| position | metros | large cities | towns | spread |
+|---|---|---|---|---|
+| value·lifestyle | ₹39.34 | ₹30.82 | ₹23.81 | **1.65×** |
+| premium·performance | ₹91.60 | ₹78.55 | ₹67.92 | 1.35× |
+
+Targeting your best tier instead of everywhere is worth **+20% to +27% for value
+positions and +7% to +8.5% for premium** — the opposite of the intuition. Premium's
+searches are already concentrated in the metros, so narrowing adds little; value is
+spread, so running everywhere drags it through its worst ground. And returns bite
+value hardest, because a return eats more of a 40% margin than of a 62% one.
+
+**THE PROBLEM THAT MEASUREMENT EXPOSED: the metros are better for everyone.** On
+economics alone that is a right answer, and F9's whole philosophy is that this game
+should not have one. The counterweight is **capacity, not quality**. D8 measured
+this market as demand-limited — raising every advertiser's money 60% raised spend
+14% and moved median CPC not at all — so nine advertisers confined to the metros
+cannot all spend there. The money has to overflow, and tier 2 and 3 are worth
+having because they are where it can go.
+
+That is why the tail is deliberately fat. The country comes out **34.0 / 35.2 /
+30.8**, a spread of 1.14×, with the price correlation preserved inside each row
+(premium 50/32/18, value 26/36/38). A thin tail would have made the metros a right
+answer and a third of the market dead ground.
+
+**THE BUDGET DOES NOT MOVE.** Splitting a market into three does not create
+searchers, and `WEEKLY_VOLUME` is pinned in a narrow band anyway — below ~315,000
+I1 fails, above ~375,000 I3 fails. The measured risk runs the other way: the player
+already spends 18–20% of their month, and a targeting decision that narrows
+eligibility makes that worse. Budget pressure is also what makes the choice bite;
+if everyone could afford to be everywhere there would be no trade.
+
+**FOUR SMALLER CALLS, all settled:**
+
+- **Impression share becomes per targeted tier.** Otherwise an advertiser running
+  the metros only reads share against a market it chose not to enter, and F12
+  already records share as the most misread number here.
+- **Quality Score stays account-level.** It needs 500 impressions on a keyword's
+  literal search and already takes until week 2; per tier it would not appear
+  until week 6, and Google's is not per location either.
+- **The control is a weekly bid adjustment**, shaped exactly like dayparting, and
+  it triggers **no learning period** — 12.3 reserves those for strategy changes.
+- **Rivals target by their own affinity**, so crowding emerges where affinities
+  overlap rather than from a rule. Without that there is no counterweight to
+  calibrate.
+
+**THE QUERY SET IS NOT TOUCHED.** The split is derived from each query's home cell
+through one 3×3 table, so all 151 rows stay exactly as they are. It is the one
+artefact where a subtle flaw poisons every number without throwing.
+
+**WHY THE TABLES ARE `CALIBRATE`, which widens a set the spec pinned at two.**
+Nothing about these numbers can be settled by argument. The metros are better per
+click by construction, and whether tier 2 and 3 are worth having depends on whether
+crowding makes the metros expensive — which is emergent (H10) and only observable
+in a played game. `ESTIMATED` would claim a confidence nobody has.
+`tests/constants.test.js` carries the argument beside the assertion, and asks the
+next person to justify any further widening.
+
+**Step 1 of nine is done**: the tables, the names, and their tests. The engine does
+not read them yet, which is why they sit in `NOT_YET_CONSUMED` with a reason.
+`HANDOVER.md` carries the remaining build order and the two points where it stops
+to measure.
+
+---
+
 ## H. What the simulation gets right
 
 Recorded because the list above is long and the payload matters:

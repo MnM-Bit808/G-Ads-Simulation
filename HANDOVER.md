@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1225 tests, all passing, 1 todo.
+**Every build-order step is done, and one new mechanic is mid-build.** 1241 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -696,6 +696,70 @@ hold, and all four were reported in the form "this told me nothing".
 game must install it in the browser pane and the player must play THERE — twice
 this session a game was played in a separate browser window and nothing was
 captured, which is not recoverable afterwards.
+
+## The location mechanic, mid-build
+
+**This is the only unfinished thing in the project, and it is an ENGINE change** —
+the first since the build order was completed. Everything else added recently was
+display-layer. `DECISIONS.md` G4 carries the design and the arguments; this is the
+build order and where it stops.
+
+Searches happen somewhere. India divides into metros, large cities, and smaller
+cities and towns; volume distributes by price × location, returns rise outside the
+metros, baskets shrink a little, and conversion is deliberately untouched. The
+player gets a weekly bid adjustment per tier, shaped like dayparting.
+
+```
+✅ 1  constants + content/locations.js   the tables, the names, their tests
+⏸ 2  engine/locations.js                pure helpers, and the readers those
+                                        constants are waiting for
+⏸ 3  engine/round.js                    the auction gains its third dimension
+   ── STOP: npm run test:perf ──
+⏸ 4  engine/report.js                   byLocation, and share per targeted tier
+⏸ 5  agents/policies.js                 rivals target by their own affinity
+   ── STOP AND MEASURE ──
+⏸ 6  the control                        campaign.locationAdjustments, weekly
+⏸ 7  setup.js                           rival adjustments, briefing gains returns
+⏸ 8  ui/                                targeting card, location report
+⏸ 9  calibration.test.js                re-run I1-I5, set the CALIBRATE tables
+```
+
+**THE TWO STOPS ARE THE POINT OF THE ORDER.**
+
+*After step 3*, the performance suite, because the round gains a third dimension
+against a 400ms expected and 1,500ms sampled budget. Better to find that with three
+modules built than nine.
+
+*After step 5*, whole games — because the balance cannot be argued into place from
+here. The pre-auction model says the metros are better for **every** position, which
+is a right answer rather than a trade-off. The counterweight is capacity: D8
+measured this market as demand-limited, so nine advertisers cannot all spend in the
+metros and the money must overflow. **Whether that actually happens is emergent and
+unproven.** If it does not, the `CALIBRATE` tables move — and moving them before any
+screen is built against them is the whole reason the UI is step 8.
+
+**What step 1 settled, with numbers:**
+
+- The country comes out **34.0 / 35.2 / 30.8**, spread 1.14×, with the correlation
+  preserved inside each row (premium 50/32/18, mid 38/36/26, value 26/36/38).
+- A click is worth **1.35× to 1.65×** more in the metros than the towns.
+- Targeting well is worth **+20% to +27% to a value position and +7% to +8.5% to a
+  premium one** — the inverse of the intuition, because premium is already
+  concentrated and value is not.
+
+**Three things not to relearn:**
+
+- **The budget does not move.** Splitting a market into three does not create
+  searchers, `WEEKLY_VOLUME` is pinned from both sides anyway, and the player
+  already underspends at 18–20% of the month. Scarcity is what makes the choice
+  bite.
+- **The query set is untouched**, and must stay so. The split derives from each
+  query's home cell through one 3×3 table rather than being authored per row.
+- **Conversion rate is not a location lever.** It already carries query affinity,
+  `PURPOSE_MODIFIERS` and the hourly curve. F10 and F11 are both records of what
+  two mechanisms pushing one number costs.
+
+---
 
 ## Still open
 

@@ -32,6 +32,80 @@ export const ROUNDS_PER_MONTH = 4;
 export const PRICE_TIERS = ['value', 'mid', 'premium'];
 export const PURPOSES = ['performance', 'lifestyle'];
 
+// ---------------------------------------------------------------------------
+// Where the searches happen (DECISIONS G4)
+// ---------------------------------------------------------------------------
+
+/**
+ * The third dimension of demand, after the query and the hour.
+ *
+ * Three, and three is a decision rather than a default: two collapses into a
+ * binary, and above three each keyword's traffic in each tier gets thin enough
+ * that noise dominates the report a player is meant to read. `content/locations.js`
+ * is what these mean to a person.
+ */
+export const LOCATION_TIERS = ['tier1', 'tier2', 'tier3'];
+
+/**
+ * Where a search happens, given the price tier it belongs to.
+ *
+ * Rows are `PRICE_TIERS`, columns are `LOCATION_TIERS`, and every row sums to 1:
+ * this SPLITS existing demand rather than adding any. Geography does not invent
+ * searchers, it says where the ones already counted are.
+ *
+ * PREMIUM SKEWS TO THE METROS AND VALUE AWAY FROM THEM, which is the correlation
+ * the whole mechanic rests on. But the tail is deliberately fat: the overall
+ * split lands near 34/35/31, so tier 2 and tier 3 together hold about two thirds
+ * of the market.
+ *
+ * THE FAT TAIL IS THE POINT, and it is not realism — it is capacity. DECISIONS D8
+ * measured this market as DEMAND-limited rather than budget-limited: raising every
+ * advertiser's money by 60% raised actual spend by 14% and moved median CPC not at
+ * all. Confine nine advertisers to the metros and they cannot all spend there, so
+ * the money has to overflow — and tier 2 and 3 are worth having because they are
+ * where it can go, not because a click there is better. A thin tail would have
+ * made the metros a right answer and 30% of the market dead ground.
+ *
+ * Derived from each query's HOME CELL rather than authored per query, so the
+ * frozen 151-row query set is untouched. It is the one artefact where a subtle
+ * flaw poisons every number without throwing.
+ */
+export const LOCATION_VOLUME_BY_PRICE = Object.freeze({
+  value: Object.freeze([0.26, 0.36, 0.38]),
+  mid: Object.freeze([0.38, 0.36, 0.26]),
+  premium: Object.freeze([0.50, 0.32, 0.18]),
+});
+
+/**
+ * How much more of what sells comes back, by location.
+ *
+ * THIS IS THE TRADE. Without it the metros would simply be better and there would
+ * be no decision to make: volume alone changes how MANY clicks are available, not
+ * what one is worth. Cash on delivery is ordinary outside the metros and COD
+ * orders come back materially more often, so tier 3 traffic converts perfectly
+ * well and then leaves again.
+ *
+ * It multiplies `business.returnRate`, which is already per position and per
+ * query — so it compounds with the fact that a value brand's thinner margin loses
+ * more to each return. That is why the measured spread between best and worst
+ * location is widest for value|lifestyle at 1.65x and narrowest for
+ * premium|performance at 1.35x.
+ *
+ * NOT A CONVERSION MULTIPLIER, deliberately. Conversion already carries query
+ * affinity, PURPOSE_MODIFIERS and the hourly intent curve, and F10 and F11 are
+ * both records of what happens when two mechanisms push the same number.
+ */
+export const LOCATION_RETURN_MULTIPLIER = Object.freeze([1.0, 1.25, 1.5]);
+
+/**
+ * Basket size by location. Metro baskets run a little larger.
+ *
+ * Small on purpose: it is a texture on top of the returns difference rather than
+ * a second lever, and making it large would say something about Indian retail
+ * that nobody has measured here.
+ */
+export const LOCATION_AOV_MULTIPLIER = Object.freeze([1.10, 1.00, 0.92]);
+
 /**
  * Price tier sets the economics: what a click can be worth.
  *
@@ -684,6 +758,16 @@ export const PROVENANCE = {
   AUCTIONS_PER_QUERY_HOUR: 'INVENTED',
   QUALITY_FACTOR_RANGES: 'INVENTED',
   QUALITY_MIN_IMPRESSIONS: 'INVENTED',
+
+  // Where the searches happen. CALIBRATE rather than ESTIMATED, and that widens
+  // a set the spec had pinned at two - argued in DECISIONS G4. Nothing about
+  // these numbers can be settled before a played game: the metros are better per
+  // click by construction, and whether tier 2 and 3 are worth having depends on
+  // whether crowding makes the metros expensive, which is emergent (H10).
+  LOCATION_TIERS: 'INVENTED',
+  LOCATION_VOLUME_BY_PRICE: 'CALIBRATE',
+  LOCATION_RETURN_MULTIPLIER: 'CALIBRATE',
+  LOCATION_AOV_MULTIPLIER: 'CALIBRATE',
   RELEVANCE_INTENT_MULTIPLIERS: 'INVENTED',
   CONTEXT_FACTOR_CURVE: 'INVENTED',
   QUALITY_NOISE_SIGMA: 'INVENTED',

@@ -484,6 +484,14 @@ describe('every constant is read by something (R4, hard rule 7)', () => {
    * third test below stops the promise being quietly forgotten.
    */
   const NOT_YET_CONSUMED = {
+    LOCATION_VOLUME_BY_PRICE:
+      'step 1 of the location mechanic: the numbers and their argument land '
+      + 'before engine/locations.js reads them, so that the tables can be '
+      + 'reviewed on their own. Remove when that module exists.',
+    LOCATION_RETURN_MULTIPLIER:
+      'as LOCATION_VOLUME_BY_PRICE.',
+    LOCATION_AOV_MULTIPLIER:
+      'as LOCATION_VOLUME_BY_PRICE.',
     MIN_PEAK_SEPARATION_HOURS:
       'invariant I5 IS a test (18.2), so its threshold belongs to one. Not debt.',
     SMART_BIDDING_MIN_CONVERSIONS:
@@ -533,11 +541,32 @@ describe('provenance (R4, hard rule 7)', () => {
     expect(orphans, `orphan ledger entries: ${orphans.join(', ')}`).toEqual([]);
   });
 
-  test('the CALIBRATE constants are exactly the two the spec names', () => {
+  test('the CALIBRATE set is the two the spec names, plus the location tables', () => {
+    // WIDENING THIS WAS A DELIBERATE CALL, not a leak. Spec 18.1 names two
+    // CALIBRATE constants and this test pinned the set at exactly those, which is
+    // the right instinct: CALIBRATE means "provisional until a played game says
+    // otherwise", and a growing list of provisional numbers is a project losing
+    // its grip on its own model.
+    //
+    // The three location tables earn it on the same grounds AD_RANK_FLOOR does.
+    // Nothing about them can be settled by argument: the metros are better per
+    // click by construction, and whether tier 2 and 3 are worth having at all
+    // depends on whether crowding makes the metros expensive - which is emergent
+    // (H10) and therefore only observable in a played game. Tagging them
+    // ESTIMATED would claim a confidence nobody has.
+    //
+    // If this list grows again, ask whether the thing being added is genuinely
+    // unsettleable or merely unmeasured. See DECISIONS G4.
     const calibrate = Object.entries(C.PROVENANCE)
       .filter(([, tag]) => tag === 'CALIBRATE')
       .map(([name]) => name)
       .sort();
-    expect(calibrate).toEqual(['AD_RANK_FLOOR', 'WEEKLY_VOLUME']);
+    expect(calibrate).toEqual([
+      'AD_RANK_FLOOR',
+      'LOCATION_AOV_MULTIPLIER',
+      'LOCATION_RETURN_MULTIPLIER',
+      'LOCATION_VOLUME_BY_PRICE',
+      'WEEKLY_VOLUME',
+    ]);
   });
 });
