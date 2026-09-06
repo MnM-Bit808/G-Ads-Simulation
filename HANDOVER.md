@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done.** 1147 tests, all passing, 1 todo.
+**Every build-order step is done.** 1169 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -39,6 +39,26 @@ Auction Insights), `ending.js` (the last screen, and the only reader
 
 `content/writers.js` is newer than the rest of `content/`: who writes an
 advertiser's ad, what that costs, and what it guarantees (DECISIONS I11).
+
+**The interface was laid out across the page rather than down it.** Round 0 was
+a single 980px column in a 1425px main — 5.6 screens of scrolling with ~445px
+empty down the right; the dashboard rendered a four-column grid as one column
+because eight of thirteen cards were full width. Both were measured before
+being touched, and the measurement changed the plan twice:
+
+- **Naive pairing is worth almost nothing.** Round 0 two-up came to 4767px
+  against 5059px, and merely removing the width cap to 4803px. Halving a card's
+  width INFLATES its height — "who else is here" goes 591px to 1590px — so
+  pairing takes `max()` of two inflated cards and gives the gain back.
+- **The wide TABLES were the cheap ones to halve.** Search terms, a seven-column
+  table, grew 11%; the six-figure headline row grew 118%. Tables sit in capped
+  scroll regions and only their notes rewrap, while `auto-fit` figure grids
+  collapse from six across to three and double.
+
+So the tall cards were fixed internally first — the ad card's fields now sit
+BESIDE its live grade, 1024px to 660px — and the grid spends what that freed.
+Round 0 is 3948px (4.4 screens), the dashboard 3725px (4.1). Two attempts that
+made things worse are kept as comments so nobody repeats them.
 
 **Two screens answer questions nothing used to.** The bidding card says what
 the strategy will actually bid and whether that clears the reserve, BEFORE the
@@ -626,6 +646,48 @@ not a test — by putting nine rows in one table where a human could see that on
 of them was zeros. Every guard in this project was written after something got
 past it.
 
+## What a second player session found
+
+Every one of these came from somebody using it and saying what happened, and
+none was findable any other way.
+
+- **"Setting a target ROAS gives me a blank week."** It did, and the model was
+  right: Target ROAS bids DOWN (`order value × conversion rate ÷ target`), so at
+  25 the bid fell under `AD_RANK_FLOOR` — a RESERVE, not an eligibility gate —
+  and the account entered every auction and showed in none. The screen said
+  "lost to rank 100%", which reads as being OUTBID and sends a player to raise
+  keyword bids, the one lever that cannot help. `bidOutlook` now says what the
+  strategy will bid and whether it clears, live, before the week is spent
+  (DECISIONS I12).
+- **"Week 2 told me nothing."** Four phrase keywords produced four search-term
+  rows, each identical to the keyword that bought it. The explanation existed
+  and was good and lived on the NEGATIVES card — a feature the player was not
+  using. `termsOutlook` moved that live read under the table where the question
+  is actually asked, and it turns on REACH rather than match type, because a
+  long phrase keyword reaches nothing while a short one reaches dozens.
+- **"I don't get the rationale behind the graph."** The chart explained what
+  each metric IS and warned what impression share is NOT, and never said what to
+  DO with it. `marketOutlook` reads the account back — rank-bound, budget-bound,
+  both, or saturated — entirely from `insightsFor(...).self` and the six legal
+  rival metrics (I13).
+- **"The month-2 capital screen explains it worse than round 0."** True, and a
+  drift introduced the same day: round 0 became a page builder while the
+  allocation window kept the older framing. Both read `featureAt` now. Finding
+  it turned up something round 0 never has to say: investment is CUMULATIVE, so
+  ₹25,000 on top of ₹25,000 reaches ₹50,000 against a ₹55,000 rung and buys
+  NOTHING. That chip now says `no change` and is marked (I15).
+
+**The pattern.** Three of the four were a screen that was correct and unhelpful
+— the number was right and the sentence explaining it was missing, in the wrong
+card, or pointed at the wrong lever. None of them is a defect any test could
+hold, and all four were reported in the form "this told me nothing".
+
+**And one thing to say plainly to whoever picks this up:** the recorder in
+`ui/` is a scratch injection, not a feature. A session that wants to watch a
+game must install it in the browser pane and the player must play THERE — twice
+this session a game was played in a separate browser window and nothing was
+captured, which is not recoverable afterwards.
+
 ## Still open
 
 **None of it is interface.** Build step 14 is finished; what follows is content,
@@ -772,6 +834,11 @@ tooling and one untested claim.
   phrase keywords give 4 rows and "one each, which means every row here is a
   search you already chose to buy"; the same four on broad give 57 and "about
   14.3 each — so there is reach here you did not name".
+- **A DIY player still runs two near-dead weeks, and nobody has priced that in
+  INFORMATION.** Already listed above in money terms; the point stands and is
+  now sharper, because the same 3/3/3 opening was fatal to a rival and the
+  player survives it only because their opening bid happens to be larger. That
+  is a coincidence rather than a design.
 - **Nobody has played it as a learner.** Round 0 and a first week have now been
   played BY HAND — real clicks, real typing, Tab between fields — and that
   immediately found two bugs a script structurally could not (see below). The
