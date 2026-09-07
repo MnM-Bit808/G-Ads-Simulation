@@ -135,18 +135,43 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
       sectionWhereSearch(brief),
       sectionRivals(querySet, rootSeed, draft),
       sectionPosition(brief, draft, rerender),
-      sectionCapex(draft, rerender),
-      sectionKeywords(querySet, draft, rerender, live),
+      // WRITER BEFORE KEYWORDS, AND CAPITAL AFTER THEM, which is a layout
+      // constraint rather than a reading preference and is worth saying so.
+      // Three cards here are full width, so the half-width ones pair in the gaps
+      // between them; the stack below has to land beside CAPITAL (670px) because
+      // that is the only card tall enough to hold "This month" and the example
+      // without adding a row. Any other order orphans a card. The writer card
+      // already handles being read before the planner - with no keywords chosen
+      // it says "pick them first" rather than scoring relevance against nothing.
       sectionWriter(draft, rerender, live),
+      sectionKeywords(querySet, draft, rerender, live),
+      sectionCapex(draft, rerender),
       // Before the ad, and that is a dependency rather than a layout choice:
       // whatever the writer did not cost rolls into the month this divides.
-      sectionBudget(draft, revalidate, live),
+      //
+      // STACKED IN ONE CELL so the example fills the slack under the budget card
+      // rather than starting a row of its own. `.setup` is a two-column grid with
+      // `align-items: start`, so a shorter card leaves its column empty for the
+      // rest of the row - "Who writes it" is 500px and "This month" 271px, and
+      // that 229px gap is where the example goes. Adding it as a seventh
+      // half-width card would instead orphan one card in a row of its own.
+      stack(
+        sectionBudget(draft, revalidate, live),
+        sectionExample(),
+      ),
       sectionAd(draft, revalidate, live),
       sectionStart(draft, onStart, live));
   };
   rerender();
   return root;
 }
+
+/** Two cards in one grid cell, so the second fills the slack under the first. */
+const stack = (...cards) => {
+  const node = el('div', 'setup-stack');
+  add(node, ...cards);
+  return node;
+};
 
 const card = (title, subtitle, wide = false) => {
   const node = el('section', `card setup-card${wide ? ' wide' : ''}`);
@@ -287,6 +312,54 @@ function sectionWhereSearch(brief) {
   right.append(el('p', 'note', brief.returnsVaryByLocation));
   split.append(left, right);
   node.append(split);
+  return node;
+}
+
+/**
+ * One worked ad, rendered the way a searcher meets it, with what each part is
+ * doing (asked for, to learn from).
+ *
+ * IT IS AN EXAMPLE, NOT AN ANSWER, and the model makes that true rather than the
+ * wording. `adRelevance` is scored against YOUR OWN keywords, so an ad copied
+ * from here scores WORSE than the same effort in the player's own words - the
+ * one component a self-written ad can take to 10 is the one copying forfeits.
+ * That is why a worked example is safe here where I3's territory dot was not:
+ * the dot did the decision, this cannot.
+ *
+ * IT IS NOT THE BEST POSSIBLE AD, deliberately. I10 caps `expectedCtr` at 8 on
+ * rules alone and refuses to pretend regexes can award a 9 - so showing a "10"
+ * would claim a judgement the offline grader cannot make. This one satisfies the
+ * three rules that carry most of the score, and says so.
+ */
+const EXAMPLE_AD = Object.freeze({
+  domain: 'example.in',
+  headlines: Object.freeze([
+    'Gym Leggings That Hold',
+    'Squat Proof, Sweat Tested',
+    'Sizes XS To XXL In Stock',
+  ]),
+  descriptions: Object.freeze([
+    'Leggings that hold through 4 sessions a week, wash after wash.',
+    'Free delivery over ₹999, and 30 day returns if the fit is wrong.',
+  ]),
+});
+
+/** What each rule is doing, in the order the grader weighs it. */
+const EXAMPLE_REASONS = Object.freeze([
+  'Three headlines doing three different jobs — what it is, why it lasts, whether it fits. Only one shows at a time, so saying one thing three ways wastes two of them.',
+  'Numbers instead of adjectives: 4 sessions, ₹999, 30 days. "Premium quality" is a claim; a number is evidence.',
+  'It uses the words people type. Relevance is scored against your own keywords, so echoing the search is worth more than reading well.',
+]);
+
+function sectionExample() {
+  const node = card('A worked example', 'one ad, and what each part is doing');
+  node.append(serpBlock({ domain: EXAMPLE_AD.domain, headlines: [...EXAMPLE_AD.headlines], descriptions: [...EXAMPLE_AD.descriptions] }));
+  const list = el('ul', 'hints');
+  for (const reason of EXAMPLE_REASONS) list.append(el('li', null, reason));
+  node.append(list);
+  node.append(el('p', 'note',
+    'Copying it will score worse than your own words: relevance is measured '
+    + 'against the keywords you chose.'));
   return node;
 }
 

@@ -26,6 +26,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+
 import {
   openingReserve, submittedAd, gradeAsSubmitted, monthlyBudget,
   positionMatrix, splitShares,
@@ -46,6 +47,18 @@ import {
   WRITER_TIERS, DEFAULT_UNGRADED_QUALITY, CAPEX_ALLOCATION_PAISE,
   CREATIVE_ALLOCATION_PAISE, PRICE_TIERS, PURPOSES,
 } from '../engine/constants.js';
+
+/**
+ * The example ad's own words, read out of the module rather than retyped, so the
+ * test grades the ad that actually renders. A second copy would drift.
+ */
+const exampleSource = readFileSync(new URL('../ui/round-zero.js', import.meta.url), 'utf8');
+const pluck = (label) => {
+  const block = exampleSource.slice(exampleSource.indexOf(`${label}: Object.freeze([`));
+  return [...block.slice(0, block.indexOf('])')).matchAll(/'([^']+)'/g)].map((m) => m[1]);
+};
+const EXAMPLE_AD_HEADLINES = pluck('headlines');
+const EXAMPLE_AD_DESCRIPTIONS = pluck('descriptions');
 
 const CAPEX = { sizeGuide: 0, photography: 0, landingPage: 0 };
 const AD = {
@@ -522,5 +535,63 @@ describe('the briefing is split, and the geography card is wide', () => {
     );
     expect(briefing).not.toMatch(/brief\.locations/);
     expect(source.match(/brief\.locations/g), 'exactly one section reads it').toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The worked example (asked for by a player, to learn the ad rules from)
+// ---------------------------------------------------------------------------
+
+/**
+ * A SOURCE READ, for the same reason the geography card's is: nothing
+ * behavioural can see which grid cell a card lands in, and this one's whole
+ * point is WHERE it sits. It fills the slack under "This month" by sharing a
+ * cell with it, so the page height is unchanged (4274px before and after,
+ * measured at 1440x900). Added as a seventh half-width card it would instead
+ * orphan one card in a row of its own and cost 169px.
+ *
+ * The stack has to pair with CAPITAL, because at 670px it is the only card tall
+ * enough to hold the budget card and the example together. That is why the
+ * writer card moved ahead of the planner - a layout constraint, not a reading
+ * preference, and the writer card already copes with being read first.
+ */
+describe('round 0 shows a worked example, in the space under the budget', () => {
+  const source = readFileSync(new URL('../ui/round-zero.js', import.meta.url), 'utf8');
+
+  test('the example is stacked with the budget card, not added as a new card', () => {
+    expect(source).toMatch(/stack\(\s*[\s\S]*?sectionBudget\([\s\S]*?sectionExample\(\)/);
+  });
+
+  test('and the stack lands beside Capital, which is what makes it free', () => {
+    const order = ['sectionKeywords(', 'sectionCapex(', 'stack(']
+      .map((n) => source.indexOf(n, source.indexOf('const rerender')));
+    expect(order.every((i) => i > 0)).toBe(true);
+    expect(order[0], 'keywords before capital').toBeLessThan(order[1]);
+    expect(order[1], 'capital immediately before the stack').toBeLessThan(order[2]);
+  });
+
+  test('the example ad passes the rules it is teaching', () => {
+    // An example that would not grade well is worse than none. It is held to the
+    // grader rather than to a copy of the grader's opinion.
+    const ad = {
+      headlines: [...EXAMPLE_AD_HEADLINES],
+      descriptions: [...EXAMPLE_AD_DESCRIPTIONS],
+      landingPageDescription: 'A plain product page.',
+    };
+    expect(validateAdCopy(ad).valid, 'it fits Google limits').toBe(true);
+    const graded = gradeAdOffline(ad, { keywords: draft().keywords }, 0);
+    expect(graded.expectedCtr, 'it reaches the offline ceiling on craft').toBe(8);
+  });
+
+  test('it says copying it will not help, which is what makes it safe to show', () => {
+    // `adRelevance` is scored against the player's OWN keywords, so a copied ad
+    // scores worse than the same effort in their own words. That is why a worked
+    // example is legitimate here where I3's territory dot was not: the dot made
+    // the decision, this cannot.
+    const fn = source.slice(source.indexOf('function sectionExample('));
+    // Rejoin the string concatenation before matching, or the assertion depends
+    // on where the source happens to wrap.
+    const flat = fn.slice(0, fn.indexOf('\n}')).replace(/'\s*\+\s*'/g, '');
+    expect(flat).toMatch(/relevance is measured against the keywords you chose/i);
   });
 });

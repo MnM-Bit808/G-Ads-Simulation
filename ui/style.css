@@ -397,6 +397,11 @@ tr.best-place td { background: rgba(126, 198, 153, 0.06); }
 .ad-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem 1.5rem; }
 @media (max-width: 1100px) { .ad-split { grid-template-columns: minmax(0, 1fr); } }
 
+/* Two cards sharing one grid cell, so the lower one fills the slack the upper
+   one leaves. `.setup` aligns to start, so a short card otherwise strands its
+   column for the rest of the row. */
+.setup-stack { display: grid; gap: 1rem; align-content: start; }
+
 /* Where the search happens: the table beside its note, not above it. Four
    columns stretched over the full width leave a hole in the middle; measured,
    this is 59px shorter and reads as one thing. */
