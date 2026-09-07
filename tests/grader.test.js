@@ -108,8 +108,44 @@ describe('the character limits finally have a reader (spec 18.1)', () => {
     });
     expect(graded.expectedCtr).toBeLessThanOrEqual(4);
     expect(graded.adRelevance).toBeLessThanOrEqual(4);
-    expect(graded.landingPage).toBeLessThanOrEqual(4);
     expect(graded.notes.join(' ')).toMatch(/limits/i);
+  });
+
+  // THE CAP DOES NOT TOUCH THE LANDING PAGE, and this is the reversal of what
+  // this file used to pin. I19 kept the cap on all three because a hired tier
+  // overwrites the copy components, so capping only those would cost a retainer
+  // buyer nothing — "the bluntness is what makes it bite". Round 0's Go button
+  // now refuses an invalid ad, so the state cannot reach a played game and the
+  // cap has nothing to bite; all it did was freeze the landing page at 4 for a
+  // player who had hired a writer and spent ₹80,000 on the page.
+  //
+  // Reported by a player, twice, which is once more than it should have taken.
+  test('an unfinished ad does not cap the landing page, which is not made of copy', () => {
+    const richPage = 'Category page with a size guide, fit reviews and filters.';
+    const written = gradeAdOffline({ ...GOOD, landingPageDescription: richPage }, { keywords: KEYWORDS }, 0);
+    const blank = gradeAdOffline(
+      { headlines: ['', '', ''], descriptions: ['', ''], landingPageDescription: richPage },
+      { keywords: KEYWORDS }, 0,
+    );
+
+    // The copy components are still punished, and by the same ceiling.
+    expect(blank.expectedCtr, 'expectedCtr is capped').toBeLessThanOrEqual(4);
+    expect(blank.adRelevance, 'adRelevance is capped').toBeLessThanOrEqual(4);
+
+    // The page is graded on the page, whether or not the ad is finished.
+    expect(blank.landingPage, 'the page is graded on its own merits')
+      .toBe(written.landingPage);
+    expect(blank.landingPage, 'and a page worth paying for scores above the ceiling')
+      .toBeGreaterThan(4);
+  });
+
+  test('and the note says the page is not affected, because that is the confusion', () => {
+    const notes = gradeAdOffline(
+      { headlines: ['', '', ''], descriptions: ['', ''], landingPageDescription: 'A plain product page.' },
+      { keywords: KEYWORDS }, 0,
+    ).notes.join(' ');
+    expect(notes).toMatch(/copy scores are capped/i);
+    expect(notes).toMatch(/landing page is graded on the page itself/i);
   });
 });
 

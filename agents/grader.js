@@ -48,6 +48,32 @@ const HEURISTIC_BASE = 5;
 
 const GRADE_COMPONENTS = ['expectedCtr', 'adRelevance', 'landingPage'];
 
+/**
+ * What an unfinished ad is allowed to cap. NOT the landing page.
+ *
+ * `OVERLONG_CEILING` used to take all three, and DECISIONS I19 kept it that way
+ * on one argument: a hired tier overwrites both copy components, so capping only
+ * those would cost a retainer buyer nothing, and "the bluntness is what makes it
+ * bite". **That argument is dead.** Round 0's Go button now asks
+ * `validateAdCopy(submittedAd(draft))` before it will open the account, so an
+ * invalid ad cannot reach a played game at all. The cap has nothing left to bite.
+ *
+ * What it still did was mislead. A player who hires a retainer - and therefore
+ * reasonably leaves the copy boxes alone - saw 8 / 8 / 4 and a landing page
+ * frozen at 4 through every capital rung, explained by three notes about a page
+ * that by then had reviews and a size chart on it. Measured: with the ad written,
+ * the same 55,000 of reviews and 25,000 of size chart grade the page at 8.
+ *
+ * I19 says this state is "no longer something a player can meet". It is: the gate
+ * stops it being SUBMITTED, not being read on the screen where the decision is
+ * made. Found the same way I19 was - by a player asking why their money did
+ * nothing.
+ *
+ * Page quality is not a function of headline length, which I19 conceded while
+ * keeping the cap. It is now only a function of the page.
+ */
+const COPY_COMPONENTS = ['expectedCtr', 'adRelevance'];
+
 // ---------------------------------------------------------------------------
 // Identity and validation
 // ---------------------------------------------------------------------------
@@ -171,10 +197,12 @@ export function applyGradingRules(grade, ad, context = {}) {
 
   const { valid, violations } = validateAdCopy(ad);
   if (!valid) {
-    for (const component of GRADE_COMPONENTS) {
+    for (const component of COPY_COMPONENTS) {
       out[component] = Math.min(out[component], OVERLONG_CEILING);
     }
-    notes.push(`does not fit Google's limits, capped at ${OVERLONG_CEILING}: ${violations[0]}`);
+    notes.push(`the ad does not fit Google's limits, so the two copy scores are `
+      + `capped at ${OVERLONG_CEILING}: ${violations[0]}. The landing page is graded `
+      + `on the page itself and is not affected.`);
   }
 
   return { grade: out, notes };

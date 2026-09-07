@@ -247,11 +247,35 @@ describe('round 0 grades the ad it is about to submit', () => {
     expect(shown.landingPage, 'landingPage').toBe(got.landingPage);
   });
 
-  test('the reported case: blank descriptions no longer read 8 on screen', () => {
-    // The specific number the player saw. With the gate fixed this draft cannot
-    // be submitted at all, but the panel must stop claiming an 8 either way.
-    const draft = draftOf({ ad: { ...draftOf().ad, descriptions: ['', ''] } });
-    expect(gradeAsSubmitted(draft).applied.landingPage).toBeLessThan(8);
+  test('blank descriptions cap the copy on screen, and leave the page alone', () => {
+    // THIS TEST USED TO ASSERT THE OPPOSITE, and the reversal is the point.
+    // I19 pinned `landingPage < 8` here, because the cap took all three
+    // components and the panel had to stop claiming an 8 it would not deliver.
+    // Both halves have since changed: the panel and the account agree (the
+    // test.each above is what guarantees that now), and the cap no longer
+    // touches the page.
+    //
+    // The player who reported it had hired a retainer, left the copy boxes
+    // alone as one reasonably does, spent ₹80,000 on the page, and watched the
+    // landing page sit at 4 through every rung. The page they bought really was
+    // an 8; nothing on screen could say so.
+    // This fixture hires a retainer, which is the reported case exactly.
+    const finished = gradeAsSubmitted(draftOf());
+    const blank = gradeAsSubmitted(draftOf({ ad: { ...draftOf().ad, descriptions: ['', ''] } }));
+
+    // The cap still bites the copy the player actually wrote.
+    expect(blank.written.expectedCtr, 'written copy is still capped').toBeLessThanOrEqual(4);
+    expect(blank.written.adRelevance, 'written copy is still capped').toBeLessThanOrEqual(4);
+
+    // And a hired tier still overwrites it, which is I11 and is not changed here.
+    expect(blank.applied.expectedCtr, 'the tier still buys its grade').toBe(8);
+    expect(blank.applied.adRelevance, 'the tier still buys its grade').toBe(8);
+
+    // The whole point: the page is graded on the page.
+    expect(blank.applied.landingPage, 'the page is graded on the page')
+      .toBe(finished.applied.landingPage);
+    expect(blank.applied.landingPage, 'and a bought page beats the old frozen 4')
+      .toBeGreaterThan(4);
   });
 
   test('and the Go button refuses it', () => {

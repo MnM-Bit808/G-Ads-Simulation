@@ -2373,14 +2373,43 @@ the two copy components outright, so a retainer naming a rival really does run a
 first and was wrong; it now pins the real behaviour, because this is exactly the
 kind of asymmetry someone would later "fix".
 
-**`OVERLONG_CEILING` still caps the landing page, and that is argued rather than
-overlooked.** Capping only the copy components would be more logical — page
+**~~`OVERLONG_CEILING` still caps the landing page, and that is argued rather than
+overlooked.~~ REVERSED, and the argument that kept it is the thing that was
+wrong.** It read: capping only the copy components would be more logical — page
 quality is not a function of headline length — but a hired tier overwrites both of
-them, so the cap would then cost a retainer buyer *nothing at all*. The bluntness
-is what makes it bite. With the gate fixed the state is unreachable through the
-interface, so the diagnostic asymmetry is no longer something a player can meet.
+them, so the cap would cost a retainer buyer *nothing at all*, and the bluntness is
+what makes it bite. It then claimed: *"With the gate fixed the state is unreachable
+through the interface, so the diagnostic asymmetry is no longer something a player
+can meet."*
+
+**A player met it.** The gate stops an invalid ad being SUBMITTED; it does nothing
+about the panel being READ, and round 0 is where the decision is made. They hired
+the retainer, left the copy boxes alone — which is what buying a copywriter is for
+— committed ₹55,000 to reviews and ₹25,000 to a size chart, and watched the landing
+page sit at 4 through every rung, explained by three notes about a page that by
+then had reviews and a size chart on it.
+
+So the cap now takes `expectedCtr` and `adRelevance` only. Two things settle it.
+The bite the bluntness was preserving **cannot exist**: `ui/round-zero.js` gates the
+Go button on `validateAdCopy(submittedAd(draft))`, so no invalid ad reaches a played
+account and the cap has nothing to punish — its only remaining effect was to
+mislead. And the more logical reading was right all along: page quality is not a
+function of headline length, which this entry conceded in the same sentence as
+overruling it.
+
+Measured, blank boxes and a retainer, landing page grade before → after:
+nothing committed 4 → 5, reviews ₹55,000 4 → 7, **reviews + chart 4 → 8**,
+₹1,00,000 on the page 4 → 7. `writerBalance.test.js` is unmoved, which is what the
+gate predicts: no submittable account was ever affected.
+
+**The lesson is about the claim, not the cap.** "Unreachable through the interface"
+was asserted from reading the code path and never checked against a person using
+the screen, and it survived two sessions because it sounded like a proof. The
+project's own rule — *when a measurement agrees with what you expected, check what
+it actually ran* — applies to arguments as much as to harnesses.
+
 The spec documents the character limits and says nothing about what breaking them
-should do, so this is the grader's own judgement and it stays with the rubric.
+should do, so this remains the grader's own judgement and stays with the rubric.
 
 **What is still not surfaced:** `gradeAdOffline` returns `notes`, and for this ad
 it said *"does not fit Google's limits, capped at 4: no descriptions"* — the exact
