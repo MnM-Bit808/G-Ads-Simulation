@@ -397,6 +397,17 @@ tr.best-place td { background: rgba(126, 198, 153, 0.06); }
 .ad-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem 1.5rem; }
 @media (max-width: 1100px) { .ad-split { grid-template-columns: minmax(0, 1fr); } }
 
+/* Where the search happens: the table beside its note, not above it. Four
+   columns stretched over the full width leave a hole in the middle; measured,
+   this is 59px shorter and reads as one thing. */
+.where-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 1rem 2rem;
+  align-items: start;
+}
+@media (max-width: 1100px) { .where-split { grid-template-columns: minmax(0, 1fr); } }
+
 @media (max-width: 1100px) {
   .setup { grid-template-columns: minmax(0, 1fr); }
 }

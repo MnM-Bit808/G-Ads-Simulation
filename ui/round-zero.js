@@ -129,6 +129,10 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
     add(root,
       sectionBrand(draft, querySet, rerender),
       sectionBriefing(brief),
+      // Split out of the briefing (G4). Full width because the table needs the
+      // room beside its explanation rather than under it, and because seven
+      // half-width cards leave one orphaned in a row of its own.
+      sectionWhereSearch(brief),
       sectionRivals(querySet, rootSeed, draft),
       sectionPosition(brief, draft, rerender),
       sectionCapex(draft, rerender),
@@ -223,14 +227,41 @@ function sectionBriefing(brief) {
   anchor.append(el('p', 'anchor-caveat', brief.workedAnchor.caveat));
   node.append(anchor);
 
-  // WHERE THE SEARCHES ARE (G4). Desk research, and the half that matters most is
-  // that the metros are the SMALLEST of the three - which is what makes "just
-  // advertise in the metros" a plan that runs out rather than a plan that wins.
-  //
-  // The share is given per price tier because that is the shape of the fact: a
-  // premium brand's customers and a value brand's are not in the same places. What
-  // is NOT given is what a click is worth in each, or which tier suits which
-  // position. That is the decision, and it is read from the location report.
+  const hints = el('ul', 'hints');
+  for (const hint of Object.values(brief.hints)) hints.append(el('li', null, hint));
+  node.append(el('p', 'field-label', 'What you are not being told'));
+  node.append(hints);
+  node.append(el('p', 'note',
+    `Break-even has four inputs. You have been given two and a worked example. `
+    + `You have to estimate the other two — and the month-3 budget is redistributed `
+    + `by ${brief.rankingRule.metric}, announced now so you can plan for it.`));
+  return node;
+}
+
+/**
+ * Where the searching happens (G4), its own section rather than the tail of the
+ * briefing.
+ *
+ * THE HALF THAT MATTERS MOST IS THAT THE METROS ARE THE SMALLEST OF THE THREE,
+ * which is what makes "just advertise in the metros" a plan that runs out rather
+ * than a plan that wins. So it is in the subtitle, where the card is read.
+ *
+ * The share is given per price tier because that is the shape of the fact: a
+ * premium brand's customers and a value brand's are not in the same places. What
+ * is NOT given is what a click is worth in each, or which tier suits which
+ * position. That is the decision, and it is read from the location report.
+ *
+ * WIDE, AND THE TABLE SITS BESIDE ITS NOTE RATHER THAN ABOVE IT. Measured: as a
+ * half-width card it orphans one of seven cards into a row of its own (+118px);
+ * stretched full width with the note underneath, four columns spread over
+ * 1385px and leave a 350px hole in the middle (+36px). Beside it, the card is
+ * 244px and the page comes out 24px SHORTER than before the split. Same move
+ * I22 made on the ad card, for the same reason.
+ */
+function sectionWhereSearch(brief) {
+  const node = card('Where the search happens',
+    'the metros are the smallest of the three', true);
+
   const places = el('table', 'mini');
   table(places,
     ['Where', { label: 'Value', num: true }, { label: 'Mid', num: true },
@@ -248,18 +279,14 @@ function sectionBriefing(brief) {
         ],
       };
     }));
-  node.append(el('p', 'field-label', 'Where the searching happens'));
-  node.append(places);
-  node.append(el('p', 'note', brief.returnsVaryByLocation));
 
-  const hints = el('ul', 'hints');
-  for (const hint of Object.values(brief.hints)) hints.append(el('li', null, hint));
-  node.append(el('p', 'field-label', 'What you are not being told'));
-  node.append(hints);
-  node.append(el('p', 'note',
-    `Break-even has four inputs. You have been given two and a worked example. `
-    + `You have to estimate the other two — and the month-3 budget is redistributed `
-    + `by ${brief.rankingRule.metric}, announced now so you can plan for it.`));
+  const split = el('div', 'where-split');
+  const left = el('div');
+  const right = el('div');
+  left.append(places);
+  right.append(el('p', 'note', brief.returnsVaryByLocation));
+  split.append(left, right);
+  node.append(split);
   return node;
 }
 

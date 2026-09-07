@@ -25,6 +25,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   openingReserve, submittedAd, gradeAsSubmitted, monthlyBudget,
   positionMatrix, splitShares,
@@ -443,5 +444,59 @@ describe('the month split has a shape, not just four amounts', () => {
     // Reachable: every box can be cleared, and the card still has to draw.
     expect(splitShares([0, 0, 0, 0])).toEqual([0, 0, 0, 0]);
     expect(splitShares([])).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Where the search happens is its own card (G4 content, I22's layout lesson)
+// ---------------------------------------------------------------------------
+
+/**
+ * A LAYOUT DECISION, SO IT IS READ FROM THE SOURCE. Nothing behavioural can see
+ * which card a table sits in or how wide it is, which is exactly how the round 0
+ * positioning grid rendered scrambled for a whole session (I22) — nothing
+ * described the layout, so nothing could assert it.
+ *
+ * WHY WIDE IS THE PART WORTH PINNING. `.setup` is a two-column grid, and the
+ * screen has six half-width cards, which packs into exactly three rows. Splitting
+ * the briefing makes seven — an odd number — so a half-width card is orphaned in
+ * a row of its own and wastes a whole column. Measured at 1440x900: half width
+ * costs +118px against the unsplit page, full width with the note stretched
+ * underneath costs +36px, and full width with the note BESIDE the table comes out
+ * 24px SHORTER than before the split. Someone tidying `true` away here would
+ * silently take the first of those.
+ */
+describe('the briefing is split, and the geography card is wide', () => {
+  const source = readFileSync(new URL('../ui/round-zero.js', import.meta.url), 'utf8');
+
+  test('there is a card for where the search happens', () => {
+    expect(source).toMatch(/function sectionWhereSearch\(/);
+    expect(source).toMatch(/card\(\s*'Where the search happens'/);
+  });
+
+  test('and it is wide, which is what stops a card being orphaned in its own row', () => {
+    const fn = source.slice(source.indexOf('function sectionWhereSearch('));
+    const head = fn.slice(0, fn.indexOf('const places'));
+    // card(title, subtitle, wide) — the third argument has to be true.
+    expect(head).toMatch(/card\(\s*'Where the search happens',[\s\S]*?,\s*true\s*\)/);
+  });
+
+  test('it is rendered between the briefing and the rivals', () => {
+    const order = ['sectionBriefing(', 'sectionWhereSearch(', 'sectionRivals(']
+      .map((name) => source.indexOf(name));
+    expect(order.every((i) => i > 0), 'all three sections are rendered').toBe(true);
+    expect(order[0]).toBeLessThan(order[1]);
+    expect(order[1]).toBeLessThan(order[2]);
+  });
+
+  test('and the briefing no longer draws the location table itself', () => {
+    // Otherwise the split would leave two cards claiming the same fact, which is
+    // the drift I15 records from two capital cards describing one decision.
+    const briefing = source.slice(
+      source.indexOf('function sectionBriefing('),
+      source.indexOf('function sectionWhereSearch('),
+    );
+    expect(briefing).not.toMatch(/brief\.locations/);
+    expect(source.match(/brief\.locations/g), 'exactly one section reads it').toHaveLength(1);
   });
 });
