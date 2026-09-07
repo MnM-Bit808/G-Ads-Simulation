@@ -697,6 +697,125 @@ game must install it in the browser pane and the player must play THERE — twic
 this session a game was played in a separate browser window and nothing was
 captured, which is not recoverable afterwards.
 
+## What playing it as a learner found
+
+**The largest untested claim in this project is now tested once.** A full twelve
+rounds, played by hand in the browser pane by somebody who had not driven it
+before, with a passive DOM recorder installed so the session could be read back
+rather than remembered. 881 events over 28 minutes, round 0 to the end screen.
+
+**They won.** First of nine, `premium|lifestyle`: ₹5,70,502 spent for 68,576
+clicks, 958.5 conversions, **₹17,22,620 net** on ₹22,97,660 gross, net ROAS
+**6.48**, CPA ₹595. Second place took ₹16.62L, so a 38% lead. And **Vella & Co.
+sat in the same cell and finished 6th on ₹5.99L** — worth holding on to, because
+F13 says lifestyle cells are structurally cheap and this is the counterweight: the
+seat did not win this game, the opening did.
+
+### The finding: engagement ended at week 4 and winning did not require more
+
+| phase | time | clicks | keystrokes |
+|---|---|---|---|
+| round 0 | **1,076s** | 42 | 630 |
+| week 1 | 168s | 28 | 2 |
+| week 2 | 102s | 14 | 4 |
+| week 3 | 50s | 5 | 3 |
+| week 4 | 148s | 26 | 20 |
+| **weeks 5-11** | **72s total** | **8** | **0** |
+
+Seven weeks in 72 seconds, one click each, nothing typed. The game's own decision
+log agrees: *"4 of the 12 weeks carried a decision. The rest ran on what you had
+already set."* **Round 0 took 67% of the entire session** — eighteen minutes and
+630 keystrokes before a single auction ran.
+
+Asked what happened, the player said: *"the screens stopped asking me anything
+after week 4. Once I had put in the major inputs at about round 4 I felt like
+there weren't that many things to look out for."*
+
+### The screens did NOT go quiet. They spoke, and correctly said nothing was wrong
+
+This was measured rather than assumed, and the first attempt to measure it was
+wrong — see the correction at the end. Replaying a close replica and reading every
+prompting surface for weeks 4 to 10, **seven consecutive weeks are identical**:
+
+| card | every week |
+|---|---|
+| the market | `constraint: "saturated"`, impression share **99.999%**, lost to rank **0**, lost to budget **0.001%** |
+| negatives | `worthIt: false`, wasteful rows 0, wasted spend ₹0 |
+| search terms | `mirrored: true`, 20 searches / 20 keywords, 1.0 per keyword |
+| bidding | bid ₹30 against ₹4.60 needed, `willShow: true`, unchanged |
+| where you advertise | **byte-identical sentence, seven weeks running** |
+| your copy | `null`, correctly — a hired ad was live from week 1 |
+| this month | the only thing that moved |
+
+So this is neither an interface defect nor exactly a round-loop one. **The account
+reached a state by week 4 where every diagnostic correctly reported nothing wrong,
+and nothing in the remaining eight weeks disturbs it.** The player's read was not a
+failure to notice; every card agreed with them.
+
+### And the calendar says the same thing structurally
+
+| round | what arrives |
+|---|---|
+| 0 | position, keywords, ad, writer, capital, budget |
+| 1 | first capital allocation |
+| 3 | a DIY ad goes live |
+| **5** | **capital top-up + the one repositioning window** |
+| 8 | rank snapshot — invisible, and unactionable |
+| 9 | month 3's redistributed budget |
+
+**The last new decision the game offers arrives at round 5, and seven rounds
+follow it.** Everything still available after that was already available in week 2.
+
+Put that beside this file's own W11 measurement — *"first fully-settled feedback
+arrives at round 7"* — and the shape is stark: **decisions are front-loaded and
+finish at round 5; settled feedback is back-loaded and starts at round 7. They
+never meet.** That is the best explanation this project has for both the passive
+account that finished third and this one that stopped at week 4 and finished
+first.
+
+### Four smaller things the session found
+
+- **The search terms report was inert for twelve weeks.** `mirrored: true` every
+  round: twenty phrase keywords producing twenty rows, each identical to the
+  keyword that bought it. This file already knows all-phrase accounts do this;
+  what is new is that it persisted for a whole game, so the surface 15.2 calls the
+  only route to negatives never switched on. I8 measured **one broad keyword
+  taking the report to seventy rows** — the player never had a reason to add one.
+- **Six of eight negatives blocked a search the player had already removed as a
+  keyword the week before** (`gym near me`, `free workout plan`, `how to lose
+  belly fat`, `gym tights for women`, `cheap gym leggings`, `marlow co ord set`).
+  The two controls are genuinely different mechanisms, so this is not wasted
+  motion in principle — but **neither card says the other has already handled it**,
+  so the job was done twice and could not have been known to be redundant.
+- **The location card was on screen from week 1 and never clicked.** Zero location
+  decisions in twelve rounds. See DECISIONS I24.
+- **Two things worked exactly as designed.** The player's dayparting peaked on
+  **afternoon at +100%** — the best-converting block, not the busiest — which is
+  H4 landing without being told, and the whole reason I5 forces the two peaks
+  apart. And Target ROAS was set to **10** and traded fine, where the previous
+  player session set 25, got a blank week, and read "lost to rank 100%" as being
+  outbid. That is `bidOutlook` doing its job.
+
+### The correction, because the shape will recur
+
+**The first harness written to answer "did the screens go quiet" produced a clean
+table showing exactly that, and it was wrong.** It read `.note` off all seven
+outlook functions and printed `(silent)` where there was none. Only
+`locationOutlook` composes a note; the other six return DATA and the sentence is
+assembled inside the render function.
+
+It would have confirmed the player's own words with a fabricated measurement, and
+it looked right *because* it agreed with them. This file's rule — *when a
+measurement agrees with what you expected, check what it actually ran* — caught it.
+
+**And the reason it was possible is worth recording as a defect in its own right.**
+This file claims the pure part of every screen sits outside the render so only the
+drawing needs a browser. For six of seven prompting cards the **wording lives
+inside the drawing**, so it is neither unit-tested nor readable without a browser
+— and the wording is exactly where this project's whole "correct and unhelpful"
+defect class lives.
+
+
 ## The location mechanic
 
 **Built, measured and on screen — all nine steps.** It was the first engine change
@@ -969,10 +1088,34 @@ replaced.**
   drifting apart again — `MAX_CLICKS_AGGRESSION` can move for reasons that have
   nothing to do with this rival.
 
-- **Nobody has played it as a learner.** Still the largest untested claim in the
-  project, and now larger: the location card has never been read by anybody who did
-  not build it. Measurement says concentrating is worth ~57% to a value brand; what
-  is unknown is whether the screen makes that discoverable.
+- ~~Nobody has played it as a learner.~~ **Somebody has now, once, and the game
+  stopped asking them anything at week 4.** They won anyway, first of nine, having
+  made a decision in 4 of 12 weeks and clicked through the last seven in 72
+  seconds. The screens were not silent - measured, they correctly reported nothing
+  wrong for seven straight weeks. See *What playing it as a learner found*.
+
+  **What that leaves open is a design question and it is the biggest one here:
+  the back half of the game asks nothing and costs nothing.** The last new
+  decision arrives at round 5 and settled feedback starts at round 7 (W11), so
+  decisions finish before feedback begins. Three directions, none taken and none
+  costed: give the market something that changes after round 5 so there is
+  something to respond to; move the capital or repositioning windows later so a
+  decision lands after settled feedback exists; or shorten the game and accept
+  that it is a five-round exercise with a seven-round tail. **The first is the
+  only one that adds a lesson rather than removing a problem.**
+
+- **One playthrough is one playthrough.** Everything above rests on a single
+  player, in one cell, on one seed, who had watched this thing being built. It is
+  vastly better than the zero it replaces and it is not a sample. The next one
+  should be somebody who has never seen it, and it should be recorded the same way
+  - a passive DOM recorder installed in the browser pane BEFORE round 0, because
+  what the record caught that memory did not was the timing, and the timing was
+  the finding.
+
+- **The end screen has now been read once**, by the player whose game it
+  summarised, and it is the surface that performed best: they read their standing,
+  the open books and the week-8 rank trap without asking a question about any of
+  it. Not proof it works, but no longer zero evidence.
 
 **Parked deliberately, with the reasoning already written down:**
 
@@ -1180,15 +1323,10 @@ tooling and one untested claim.
   lands is the largest single movement in the game (575 clicks to 2,800, live in
   the interface) and the reserve a 3/3 ad faces is 2.4x a hired one's. The first
   half is now explained on the dashboard (I16); the bid warning is not built.
-- **Nobody has played it as a learner.** Round 0 and a first week have now been
-  played BY HAND — real clicks, real typing, Tab between fields — and that
-  immediately found two bugs a script structurally could not (see below). The
-  rest has been driven from a script by someone who knows what the engine does,
-  which is not the same thing as somebody learning from it. **This is still the
-  largest untested claim in the project.**
-- **The end screen has never been read by someone who did not build it.** It is
-  the one surface whose whole job is reflection rather than mechanism, and the
-  only evidence it works is that its numbers are right.
+- ~~Nobody has played it as a learner. The end screen has never been read by
+  someone who did not build it.~~ **Both done, once.** A full twelve rounds played
+  by hand with a DOM recorder running; see *What playing it as a learner found*
+  and the two entries at the top of this list.
 
 ---
 

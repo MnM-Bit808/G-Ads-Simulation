@@ -2539,6 +2539,65 @@ change rather than left as orphaned CSS. `.rival-grid` stays — it is the grid 
 blocks sit on. `.brand-tag.rival` in the search terms report is a different thing
 and untouched.
 
+### I24. The location card states a fact, names no lever, and repeats itself — `FOUND, not fixed`
+
+G4 built the location mechanic, put the control on the row, and this file recorded
+the outlook sentence as *"the operative sentence"*. **It has now been read by
+somebody who did not build it, for twelve rounds, and produced zero decisions.**
+The card was on screen from week 1 and was never clicked once.
+
+**WHAT IT SAYS, every week, byte for byte:**
+
+> A click is worth 1.3 times as much in metros as in smaller cities and towns,
+> after returns. You are paying ₹9 for one there against ₹11 here.
+
+Three things are wrong with that, and none of them is the number.
+
+**1. IT NAMES NO LEVER.** I13's rule for these sentences is that they read the
+ACCOUNT back and point at what to do — `marketOutlook` says whether you are
+rank-bound or budget-bound, `termsOutlook` says whether there is reach you did not
+name. This one reads the MARKET back. It states a price difference and never says
+that a bid adjustment exists, that the row it sits on is the control, or what
+acting would be worth. I13 permits naming levers without recommending one; this
+card names none.
+
+**2. IT REPEATS ITSELF VERBATIM.** Seven consecutive weeks, identical to the
+character. `creativeOutlook` has the rule this needs, in its own docstring: *"it
+goes quiet afterwards. A card that keeps announcing something that happened four
+weeks ago trains the player to stop reading the card."* `locationOutlook` has no
+such rule and violated it for most of a game. That is the most plausible reason it
+never registered as actionable.
+
+**3. THE ANSWER'S SIGN DEPENDS ON A REGIME THE CARD NEVER MENTIONS.** G4 measured
+concentrating as **+58.6% to a value advertiser, +38.7% to a mid one, and −9% to a
+premium one** — and G4 is explicit that what decides it is whether the account is
+budget-limited or demand-limited, because a demand-limited account cannot spend
+what it has and every extra search is worth having whatever it costs. The card
+composes its note purely from per-click economics, so it gives the same
+encouragement to both regimes while the right answer flips.
+
+**AND THE MISSING HALF IS ALREADY ON THE SAME SCREEN.** `marketOutlook` computes
+`constraint` every round — it read `"saturated"` for seven straight weeks in the
+replay — and `splitOutlook` knows what is left unspent. Everything needed to say
+*which regime this account is in* is already computed one card away. Nothing new
+has to be modelled.
+
+**WHY THIS IS FOUND RATHER THAN FIXED.** The fix is a wording and gating change,
+which is cheap; but what the sentence should SAY depends on the F13 question, which
+is open. If the purpose asymmetry is left as it is, the honest sentence names the
+lever and the regime. If F13 is closed by retagging or by rebalancing volume, the
+economics this card reports move, and a screen rewritten first would be rewritten
+twice. G4's own step 9 made exactly this argument in reverse — *"a table that moves
+after a screen is built against it is a screen built twice"* — and it was right
+then.
+
+**One thing NOT to conclude:** that the mechanic is unteachable. The same player,
+in the same game, read the dayparting table correctly and peaked their bids on the
+**afternoon** block — the best-converting one, not the busiest. That card shows two
+columns and says nothing, and the lesson landed. The difference is that dayparting
+puts the evidence and the control in one place and lets the player draw the
+conclusion, while the location card draws the conclusion and withholds the control.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
