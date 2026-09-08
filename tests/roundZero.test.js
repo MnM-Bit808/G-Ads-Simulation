@@ -534,7 +534,19 @@ describe('the briefing is split, and the geography card is wide', () => {
       source.indexOf('function sectionWhereSearch('),
     );
     expect(briefing).not.toMatch(/brief\.locations/);
-    expect(source.match(/brief\.locations/g), 'exactly one section reads it').toHaveLength(1);
+
+    // COUNTED BY SECTION, NOT BY OCCURRENCE. This used to assert exactly one
+    // mention, which was a proxy that broke the moment the card grew a map —
+    // `sectionWhereSearch` now reads the locations three times quite legitimately.
+    // What matters is that no OTHER section reads them.
+    const whereStart = source.indexOf('function sectionWhereSearch(');
+    const whereEnd = source.indexOf('\nfunction ', whereStart + 1);
+    for (const m of source.matchAll(/brief\.locations/g)) {
+      expect(m.index, 'only sectionWhereSearch reads the locations')
+        .toBeGreaterThan(whereStart);
+      expect(m.index, 'only sectionWhereSearch reads the locations')
+        .toBeLessThan(whereEnd);
+    }
   });
 });
 

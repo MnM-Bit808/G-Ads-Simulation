@@ -397,6 +397,91 @@ tr.best-place td { background: rgba(126, 198, 153, 0.06); }
 .ad-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem 1.5rem; }
 @media (max-width: 1100px) { .ad-split { grid-template-columns: minmax(0, 1fr); } }
 
+/* --- round 0's own skin -------------------------------------------------- */
+
+/* SCOPED TO `.setup`, DELIBERATELY. Round 0 is a briefing and seven decisions
+   read once; the dashboard is a panel for reading numbers against each other,
+   and the comment at the top of this file is right about it. Widening these
+   tokens to :root would restyle twelve weeks of play to suit one screen. */
+.setup {
+  --r0-ink: #dfe7f0;
+  --r0-dim: #7d8b9c;
+  --r0-faint: #4d5c6e;
+  --r0-line: #16202e;
+  --r0-panel: #0b1017;
+  --r0-panel-2: #0f1c26;
+  --r0-accent: #64d2c7;
+  color: var(--r0-ink);
+}
+.setup .setup-card {
+  background: var(--r0-panel);
+  border: 1px solid var(--r0-line);
+  border-radius: 12px;
+}
+.setup .setup-card h2 { color: var(--r0-ink); letter-spacing: -0.015em; }
+.setup .setup-card h2 .muted { color: #6d7d90; }
+.setup .field-label,
+.setup .mini th { color: var(--r0-faint); letter-spacing: 0.16em; }
+.setup .note, .setup .muted { color: var(--r0-dim); }
+.setup .mini td { border-top-color: #121c27; }
+.setup .chip { border-radius: 9px; }
+.setup .chip.on {
+  border-color: var(--r0-accent);
+  background: var(--r0-panel-2);
+  color: var(--r0-accent);
+}
+.setup .anchor { border-left: 2px solid var(--r0-accent); }
+
+/* --- the country (india-map.js) ------------------------------------------ */
+
+.setup .india-wrap {
+  background: radial-gradient(120% 92% at 40% 30%, #0e1a28 0%, #060910 66%);
+  border: 1px solid var(--r0-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+/* A FIXED HEIGHT, NOT `auto`. The country is taller than it is wide, so at full
+   column width `height: auto` gave it 785px and took the page from 4,274 to
+   5,049. The viewBox scales to fit instead, which costs nothing legible. */
+.setup .india { display: block; width: 100%; height: 430px; }
+.setup .india-halo { fill: none; stroke: var(--r0-accent); stroke-width: 3.4; opacity: 0.2; }
+.setup .india-land { fill: #1b2c3d; stroke: #5d93ad; stroke-width: 1.4; stroke-linejoin: round; }
+.setup .india-backdrop circle { fill: #83bad6; opacity: 0.75; }
+.setup .india-tier { transition: opacity 380ms ease; }
+.setup .india-tier.dim { opacity: 0.22; }
+.setup .india-city { fill: var(--r0-accent); }
+.setup .india-city-core { fill: #060a11; }
+.setup .india-label {
+  fill: #cfe0ee;
+  font: 9px var(--mono);
+  opacity: 0;
+  transition: opacity 380ms ease;
+  pointer-events: none;
+}
+.setup .india-label.show { opacity: 1; }
+
+/* The table drives the map, so its rows have to look like controls. */
+.setup .places tr.pick { cursor: pointer; }
+.setup .places tr.pick:hover td { background: #0d1620; }
+.setup .places tr.dim { opacity: 0.4; }
+.setup .places tr.on td { background: var(--r0-panel-2); }
+
+/* --- what the capital actually buys -------------------------------------- */
+
+.setup .capex-buys {
+  font: 11px/1.4 var(--mono);
+  color: var(--r0-accent);
+  letter-spacing: 0.02em;
+}
+.setup .capex-curve { display: flex; align-items: flex-end; gap: 6px; height: 54px; }
+.setup .capex-curve div { flex: 1; border-radius: 2px 2px 0 0; background: #22303f; }
+.setup .capex-curve div.steep { background: var(--r0-accent); }
+.setup .capex-ticks {
+  display: flex; gap: 6px; margin-top: 5px;
+  font: 9px var(--mono); color: var(--r0-faint);
+}
+.setup .capex-ticks span { flex: 1; text-align: center; }
+
 /* Two cards sharing one grid cell, so the lower one fills the slack the upper
    one leaves. `.setup` aligns to start, so a short card otherwise strands its
    column for the rest of the row. */
@@ -407,8 +492,10 @@ tr.best-place td { background: rgba(126, 198, 153, 0.06); }
    this is 59px shorter and reads as one thing. */
 .where-split {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  gap: 1rem 2rem;
+  /* The country is very nearly square, so a square-ish column fits it without
+     letterboxing. A wider one just paints background either side of it. */
+  grid-template-columns: 430px minmax(0, 1fr);
+  gap: 1rem 1.75rem;
   align-items: start;
 }
 @media (max-width: 1100px) { .where-split { grid-template-columns: minmax(0, 1fr); } }

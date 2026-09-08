@@ -62,6 +62,9 @@ export function table(node, headers, rows) {
       else td.textContent = cell;
       tr.append(td);
     }
+    // A row that wants to be clickable or remembered gets a handle on itself.
+    // Optional, so every existing caller is unaffected.
+    row.onRow?.(tr);
     body.append(tr);
   }
   node.append(head, body);

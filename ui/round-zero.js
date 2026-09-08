@@ -39,7 +39,7 @@ import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS, MONTHLY_BUDGET_PAISE,
   CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH, TOTAL_ROUNDS,
   WRITER_TIERS, CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
-  PRICE_TIERS, PURPOSES,
+  PRICE_TIERS, PURPOSES, CAPEX_TIER_CURVE,
 } from '../engine/constants.js';
 import {
   writerTier, isDiy, hiredCopyGrades, openingCopyGrades,
@@ -47,6 +47,7 @@ import {
 import { qualitySignalBase } from '../engine/quality.js';
 import { minimumBidToShowPaise } from '../engine/auction.js';
 import { PAGE_FEATURES, composeDescription, pageShape } from './landing-page.js';
+import { MAP_VIEWBOX, INDIA_PATH, CITY_POINTS, BACKDROP } from './india-map.js';
 
 const CAPEX_TARGETS = [
   ['landingPage', 'The page itself', 'Better quality, so a cheaper click. Worth most in the middle.'],
@@ -62,6 +63,24 @@ const CAPEX_TARGETS = [
  * the grade that BUYING one costs capital for. Composing it from the capital
  * instead means a claim without a purchase behind it cannot be made.
  */
+/**
+ * Is this rung on the steep part of the S?
+ *
+ * Derived from the curve rather than hard-coded to two indices, so widening
+ * CAPEX_TIER_CURVE cannot leave the drawing highlighting the wrong bars. A rung
+ * is steep when it gains more than an even share of the total climb.
+ *
+ * @param {{paise: number, effect: number}} tier
+ * @returns {boolean}
+ */
+function steepRung(tier) {
+  const i = CAPEX_TIER_CURVE.indexOf(tier);
+  if (i <= 0) return false;
+  const gain = tier.effect - CAPEX_TIER_CURVE[i - 1].effect;
+  const total = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].effect - CAPEX_TIER_CURVE[0].effect;
+  return gain > total / (CAPEX_TIER_CURVE.length - 1);
+}
+
 function syncPage(draft) {
   draft.ad.landingPageDescription = composeDescription(draft.capex);
 }
@@ -287,14 +306,39 @@ function sectionWhereSearch(brief) {
   const node = card('Where the search happens',
     'the metros are the smallest of the three', true);
 
-  const places = el('table', 'mini');
+  // The card owns which tier is lit. Local state, not draft state: choosing a
+  // tier here changes nothing about the account, it only asks the card to show
+  // one row of a table it is already showing.
+  let lit = null;
+
+  const split = el('div', 'where-split');
+  const mapWrap = el('div', 'india-wrap');
+  const right = el('div');
+  split.append(mapWrap, right);
+  node.append(split);
+
+  const places = el('table', 'mini places');
+  right.append(places);
+  right.append(el('p', 'note', brief.returnsVaryByLocation));
+
+  const rowFor = {};
+  const draw = () => {
+    mapWrap.replaceChildren(indiaMap(brief.locations, lit));
+    for (const [id, row] of Object.entries(rowFor)) {
+      row.classList.toggle('dim', lit !== null && lit !== id);
+      row.classList.toggle('on', lit === id);
+    }
+  };
+
   table(places,
     ['Where', { label: 'Value', num: true }, { label: 'Mid', num: true },
       { label: 'Premium', num: true }],
     brief.locations.map((place) => {
       const name = el('div');
       name.append(el('div', null, place.label));
-      name.append(el('div', 'muted small', place.examples.slice(0, 3).join(', ')));
+      // All six, not the first three. The card used to slice to three and throw
+      // the rest away, which is most of what the map now draws.
+      name.append(el('div', 'muted small', place.examples.join(', ')));
       return {
         cells: [
           name,
@@ -302,17 +346,81 @@ function sectionWhereSearch(brief) {
           `${Math.round(100 * place.shareOfSearches.mid)}%`,
           `${Math.round(100 * place.shareOfSearches.premium)}%`,
         ],
+        onRow: (tr) => {
+          rowFor[place.id] = tr;
+          tr.classList.add('pick');
+          tr.addEventListener('click', () => {
+            lit = lit === place.id ? null : place.id;
+            draw();
+          });
+        },
       };
     }));
 
-  const split = el('div', 'where-split');
-  const left = el('div');
-  const right = el('div');
-  left.append(places);
-  right.append(el('p', 'note', brief.returnsVaryByLocation));
-  split.append(left, right);
-  node.append(split);
+  draw();
   return node;
+}
+
+/**
+ * The country, with the tiers on it.
+ *
+ * WHY A MAP AT ALL. The card names eighteen real cities across three tiers, so
+ * this is the chart the data already asks for rather than an ornament: the
+ * shape of the argument is that the metros are the SMALLEST of the three, and a
+ * table of percentages says that in a way nobody feels.
+ *
+ * `lit` is a location tier id or null for all of them. Everything the card draws
+ * comes from `brief.locations` (17.2, public) and `ui/india-map.js` (display
+ * geography); no engine constant and no affinity field is touched here.
+ *
+ * @param {Array<object>} locations from `briefing(querySet)`
+ * @param {string|null} lit the tier to light, or null for every one
+ * @returns {SVGElement}
+ */
+function indiaMap(locations, lit) {
+  const NS = 'http://www.w3.org/2000/svg';
+  const make = (tag, attrs) => {
+    const n = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v));
+    return n;
+  };
+
+  const svg = make('svg', { viewBox: MAP_VIEWBOX, class: 'india' });
+
+  const defs = make('defs', {});
+  const glow = make('filter', { id: 'city-glow', x: '-80%', y: '-80%', width: '260%', height: '260%' });
+  glow.append(make('feGaussianBlur', { stdDeviation: 3.2, result: 'b' }));
+  const merge = make('feMerge', {});
+  merge.append(make('feMergeNode', { in: 'b' }), make('feMergeNode', { in: 'SourceGraphic' }));
+  glow.append(merge);
+  defs.append(glow);
+  svg.append(defs);
+
+  svg.append(make('path', { d: INDIA_PATH, class: 'india-halo', filter: 'url(#city-glow)' }));
+  svg.append(make('path', { d: INDIA_PATH, class: 'india-land' }));
+
+  const back = make('g', { class: 'india-backdrop' });
+  for (const [x, y] of BACKDROP) back.append(make('circle', { cx: x, cy: y, r: 2 }));
+  svg.append(back);
+
+  for (const place of locations) {
+    const g = make('g', { class: `india-tier${lit && lit !== place.id ? ' dim' : ''}` });
+    for (const name of place.examples) {
+      const point = CITY_POINTS[name];
+      // A city the map has no coordinate for is skipped rather than guessed at.
+      if (!point) continue;
+      const [x, y] = point;
+      g.append(make('circle', { cx: x, cy: y, r: 6, class: 'india-city', filter: 'url(#city-glow)' }));
+      g.append(make('circle', { cx: x, cy: y, r: 3, class: 'india-city-core' }));
+      const label = make('text', {
+        x: x + 9, y: y + 3, class: `india-label${lit === place.id ? ' show' : ''}`,
+      });
+      label.textContent = name;
+      g.append(label);
+    }
+    svg.append(g);
+  }
+  return svg;
 }
 
 /**
@@ -523,6 +631,34 @@ function sectionCapex(draft, rerender) {
     row.append(el('div', 'capex-why muted', why));
     node.append(row);
   }
+
+  // WHAT A RUPEE BUYS, AND WHERE IT STOPS BUYING IT. Measured over three seeds:
+  // against not investing at all, photography is worth +22.3% of net profit,
+  // the page +7.6% and the size guide +4.0% - and two of those three targets
+  // have no on-screen indicator anywhere in the game. Nor did anything show the
+  // shape of the curve, which is the whole skill: topping up a funded target
+  // earned +5.4% where funding a fresh one earned +14.1%.
+  //
+  // Read from CAPEX_TIER_CURVE rather than restated, so a change to the curve
+  // moves the drawing with it.
+  node.append(el('p', 'field-label', 'What a rupee buys, by rung'));
+  const curve = el('div', 'capex-curve');
+  const peak = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].effect - 1;
+  for (const tier of CAPEX_TIER_CURVE) {
+    const bar = el('div', steepRung(tier) ? 'steep' : null);
+    bar.style.height = `${Math.round(((tier.effect - 1) / peak) * 50) + 3}px`;
+    curve.append(bar);
+  }
+  node.append(curve);
+  const ticks = el('div', 'capex-ticks');
+  for (const tier of CAPEX_TIER_CURVE) {
+    ticks.append(el('span', null, tier.paise === 0 ? '0' : rupees(tier.paise)));
+  }
+  node.append(ticks);
+  node.append(el('p', 'note',
+    'The steep stretch is the middle of the ladder. Past it, another rung on the '
+    + 'same target buys very little — two targets part-funded beat one maxed out, '
+    + 'and a target you have not started is worth more than a top-up.'));
 
   // Stacked, not beside the chips. Measured: at half a row the two-column
   // version took this card from 670px to 868px, because the chip rows wrap
