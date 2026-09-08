@@ -446,7 +446,73 @@ tr.best-place td { background: rgba(126, 198, 153, 0.06); }
 .setup .india { display: block; width: 100%; height: 430px; }
 .setup .india-halo { fill: none; stroke: var(--r0-accent); stroke-width: 3.4; opacity: 0.2; }
 .setup .india-land { fill: #1b2c3d; stroke: #5d93ad; stroke-width: 1.4; stroke-linejoin: round; }
-.setup .india-backdrop circle { fill: #83bad6; opacity: 0.75; }
+/* --- the map moves ------------------------------------------------------- */
+
+/* WHY ANY OF THIS MOVES. A map of where the searches are is a picture of demand,
+   and demand is not a still object - the point of the card is that traffic is
+   arriving, unevenly, in places you did not choose. Motion is doing work here
+   rather than decorating: the pulses say these are live, the arcs say a tier is
+   a network rather than three scattered dots, and both stop mattering the moment
+   a tier is dimmed, which is why `.dim` fades them out with everything else. */
+
+@keyframes india-twinkle { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.95; } }
+@keyframes india-pulse {
+  0% { r: 6; opacity: 0.5; }
+  72% { r: 25; opacity: 0; }
+  100% { r: 25; opacity: 0; }
+}
+@keyframes india-flow { to { stroke-dashoffset: -240; } }
+@keyframes india-sweep {
+  0% { transform: translateY(-16px); opacity: 0; }
+  10%, 90% { opacity: 1; }
+  100% { transform: translateY(470px); opacity: 0; }
+}
+
+.setup .india-backdrop circle {
+  fill: #83bad6;
+  animation: india-twinkle 4.5s ease-in-out infinite;
+}
+
+.setup .india-halo-city {
+  fill: var(--r0-accent);
+  animation: india-pulse 3.6s ease-out infinite;
+}
+
+.setup .india-arc {
+  fill: none;
+  stroke: var(--r0-accent);
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0.42;
+  stroke-dasharray: 4 12;
+  animation: india-flow 4.2s linear infinite;
+}
+
+.setup .india-scan {
+  fill: var(--r0-accent);
+  opacity: 0.28;
+  animation: india-sweep 11s linear infinite;
+}
+
+/* A city is a control, so it has to feel like one. */
+.setup .india-pin { cursor: pointer; }
+.setup .india-pin:hover .india-city { filter: brightness(1.4); }
+.setup .india-pin:hover .india-label { opacity: 1; }
+
+/* Everything a dimmed tier owns fades together - dots, arcs and pulses - or the
+   arcs of a tier you have just dismissed keep flowing over the one you chose. */
+.setup .india-tier.dim .india-arc,
+.setup .india-tier.dim .india-halo-city { opacity: 0; animation: none; }
+
+/* Anyone who has asked not to be moved is not moved. */
+@media (prefers-reduced-motion: reduce) {
+  .setup .india-backdrop circle,
+  .setup .india-halo-city,
+  .setup .india-arc,
+  .setup .india-scan { animation: none; }
+  .setup .india-scan { opacity: 0; }
+  .setup .india-halo-city { opacity: 0; }
+}
 .setup .india-tier { transition: opacity 380ms ease; }
 .setup .india-tier.dim { opacity: 0.22; }
 .setup .india-city { fill: var(--r0-accent); }

@@ -323,7 +323,10 @@ function sectionWhereSearch(brief) {
 
   const rowFor = {};
   const draw = () => {
-    mapWrap.replaceChildren(indiaMap(brief.locations, lit));
+    mapWrap.replaceChildren(indiaMap(brief.locations, lit, (id) => {
+      lit = lit === id ? null : id;
+      draw();
+    }));
     for (const [id, row] of Object.entries(rowFor)) {
       row.classList.toggle('dim', lit !== null && lit !== id);
       row.classList.toggle('on', lit === id);
@@ -375,9 +378,10 @@ function sectionWhereSearch(brief) {
  *
  * @param {Array<object>} locations from `briefing(querySet)`
  * @param {string|null} lit the tier to light, or null for every one
+ * @param {(id: string) => void} onPick called with a tier id when a city is clicked
  * @returns {SVGElement}
  */
-function indiaMap(locations, lit) {
+function indiaMap(locations, lit, onPick) {
   const NS = 'http://www.w3.org/2000/svg';
   const make = (tag, attrs) => {
     const n = document.createElementNS(NS, tag);
@@ -399,24 +403,60 @@ function indiaMap(locations, lit) {
   svg.append(make('path', { d: INDIA_PATH, class: 'india-halo', filter: 'url(#city-glow)' }));
   svg.append(make('path', { d: INDIA_PATH, class: 'india-land' }));
 
+  // The backdrop twinkles on staggered delays. A single shared animation would
+  // pulse 150 dots in lockstep, which reads as a flashing screen rather than a
+  // country with the lights on.
   const back = make('g', { class: 'india-backdrop' });
-  for (const [x, y] of BACKDROP) back.append(make('circle', { cx: x, cy: y, r: 2 }));
+  for (const [i, [x, y]] of BACKDROP.entries()) {
+    const dot = make('circle', { cx: x, cy: y, r: 2 });
+    dot.style.animationDelay = `${((i * 0.21) % 4.5).toFixed(2)}s`;
+    back.append(dot);
+  }
   svg.append(back);
+
+  svg.append(make('rect', { class: 'india-scan', x: 0, y: 0, width: 450, height: 2 }));
 
   for (const place of locations) {
     const g = make('g', { class: `india-tier${lit && lit !== place.id ? ' dim' : ''}` });
-    for (const name of place.examples) {
+    const drawn = place.examples.map((n) => CITY_POINTS[n]).filter(Boolean);
+
+    // A ring through the tier's cities, so a tier reads as a network rather than
+    // as scattered dots. Drawn under them, and it flows.
+    for (let i = 0; i < drawn.length; i += 1) {
+      const [ax, ay] = drawn[i];
+      const [bx, by] = drawn[(i + 1) % drawn.length];
+      const mx = (ax + bx) / 2;
+      const my = (ay + by) / 2;
+      const dx = bx - ax;
+      const dy = by - ay;
+      const len = Math.hypot(dx, dy) || 1;
+      const bend = 16 + (i % 3) * 8;
+      g.append(make('path', {
+        class: 'india-arc',
+        d: `M${ax} ${ay} Q${(mx - (dy / len) * bend).toFixed(1)} ${(my + (dx / len) * bend).toFixed(1)} ${bx} ${by}`,
+      }));
+    }
+
+    for (const [i, name] of place.examples.entries()) {
       const point = CITY_POINTS[name];
       // A city the map has no coordinate for is skipped rather than guessed at.
       if (!point) continue;
       const [x, y] = point;
-      g.append(make('circle', { cx: x, cy: y, r: 6, class: 'india-city', filter: 'url(#city-glow)' }));
-      g.append(make('circle', { cx: x, cy: y, r: 3, class: 'india-city-core' }));
+      // CLICKING A CITY PICKS ITS TIER, because a glowing dot that does nothing
+      // when pressed is the control this card already had too many of.
+      const pin = make('g', { class: 'india-pin' });
+      const halo = make('circle', { cx: x, cy: y, class: 'india-halo-city' });
+      halo.style.animationDelay = `${(i * 0.19).toFixed(2)}s`;
+      pin.append(halo);
+      pin.append(make('circle', { cx: x, cy: y, r: 6, class: 'india-city', filter: 'url(#city-glow)' }));
+      pin.append(make('circle', { cx: x, cy: y, r: 3, class: 'india-city-core' }));
       const label = make('text', {
         x: x + 9, y: y + 3, class: `india-label${lit === place.id ? ' show' : ''}`,
       });
       label.textContent = name;
-      g.append(label);
+      pin.append(label);
+      pin.addEventListener('click', () => onPick(place.id));
+      g.append(pin);
     }
     svg.append(g);
   }
