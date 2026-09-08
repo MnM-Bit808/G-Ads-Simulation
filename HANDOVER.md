@@ -1157,6 +1157,15 @@ needing it: ten near-identical grey rectangles.
   visual one — see *What capital is actually worth*.
 - **The skin, scoped to `.setup`**. Not one selector wider, deliberately.
 
+**And it moves** (`4a21bc7`). The first cut shipped the design's geometry and none
+of its motion, which a player noticed immediately: *"the map is stationary."* Now
+the 150 backdrop cities twinkle on staggered delays, each tier city throws a
+halo, a tier's cities are joined by arcs that flow, and a scanline crosses the
+country. **A city is a control** — clicking one picks its tier exactly as clicking
+the table row does. A dimmed tier's arcs and halos stop, animations cancelled, or
+the tier you dismissed keeps flowing over the one you chose.
+`prefers-reduced-motion` turns all of it off.
+
 ### What is designed and NOT built
 
 The identity panel on *Where you sit*, the market tiles, the keyword planner and
@@ -1201,6 +1210,32 @@ open item below.
 
 **The one at the top is where I would start, and it is bigger than the two it
 replaced.**
+
+- **Deployment, a database and a backend are planned, in that order** (agreed
+  2026-09-08, nothing started). The project has none of the four — no backend, no
+  database, no auth, no deployment — because everything runs in the player's
+  browser off `dev-server.js`. Each earns its place:
+
+  **Deployment** unlocks the largest open item in this file. You cannot hand a
+  playtester a localhost address, and the app is static with no build step, so a
+  service watching the GitHub repo needs no code changes at all.
+
+  **A database** fixes a hazard already recorded here — the game lives in memory,
+  so a reload loses twelve weeks with no error. It does **not** need the whole
+  world stored: the engine is pure and seeded per advertiser, and
+  `serialise.test.js` proves a replayed decision log reproduces a game exactly, so
+  the seed plus the decisions rebuilds anything. Say that before anyone designs a
+  schema around snapshotting `GameState`. Auth arrives with it rather than
+  separately, since a saved game is meaningless without knowing whose it is.
+
+  **A backend** is the only route to `agents/llmPolicy.js`, which §2 asks for and
+  which has never been built. That is not a scheduling problem: an API key cannot
+  live in browser JavaScript, so the first live model call is *blocked* on having
+  a server to hold it.
+
+  Two constraints the work must not break: hard rule 1 keeps `engine/` pure — no
+  network, no clocks, no global state — and hard rule 2 keeps model calls inside
+  `agents/` with the full suite passing offline.
 
 - **A hired writer should hand you the copy.** A tester paid ₹50,000 for the
   premium retainer, committed capital, watched the ratings reach 8/8/8 — and
