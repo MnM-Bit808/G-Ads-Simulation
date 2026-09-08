@@ -1133,10 +1133,96 @@ and the no-op variant is asserted to reproduce `spender` to the paise. A replica
 of `spender` would have drifted from `spender`, which is the failure this file
 records twice already.
 
+## Round 0 has a design, and part of it is built
+
+**The canvas:** https://claude.ai/code/artifact/5e9555b3-28fa-4d12-8479-5f10812a086a
+
+Six interactive artboards covering all ten round 0 cards, built on the
+simulator's own content — the nine brands, the tier economics, the break-even
+sums, the geography splits, the eight rival ads from `content/adCopy.js`, the
+writer tiers, the capital rungs and the planner's head terms. It is a design
+surface, not code: nothing in it drops into `ui/`, which is the point given the
+two `.jsx` prototypes were deleted for drifting away from the engine.
+
+**The brief was "it looks too mundane", and the diagnosis is in `style.css`'s own
+opening line** — *"dense on purpose. This is a dashboard for reading numbers
+against each other"*. True of the dashboard. Round 0 is a briefing and seven
+decisions read once, and it had inherited the telemetry-panel look without
+needing it: ten near-identical grey rectangles.
+
+### What is built (`61304b9`)
+
+- **The map.** `ui/india-map.js` plus a rebuilt `sectionWhereSearch`.
+- **The capital curve**, which is the fix for a measured finding rather than a
+  visual one — see *What capital is actually worth*.
+- **The skin, scoped to `.setup`**. Not one selector wider, deliberately.
+
+### What is designed and NOT built
+
+The identity panel on *Where you sit*, the market tiles, the keyword planner and
+the ad card. All four are in the canvas at full fidelity. They were left because
+they are the delicate parts of `round-zero.js` — the `live`/`rerender` split,
+`submittedAd`, the reserve warning and the Go gate — and rewriting them is where
+the risk is, not because the design is unsettled.
+
+### Three decisions worth not relitigating
+
+**The map is the honest chart, not an ornament.** The card already names eighteen
+real cities across three tiers; drawing them is the figure that data asks for.
+The coastline is DataMeet's boundary reduced by Douglas-Peucker, projected from
+latitude and longitude. **Earlier attempts drew it by eye and were wrong however
+many points were added** — 34, then 120, then a redraw. Adding points to a wrong
+shape gives a wrong shape with more points. Only switching to real coordinates
+fixed it.
+
+**"Where you sit" is an identity, not a chart.** The first attempt plotted the
+six cells on searches against ceiling. It was correct, and it was an analyst's
+chart: it stripped out the thing the card actually asks, which is what kind of
+company you are. The canvas version keeps the 3×2 grid — the intuitive part —
+and makes choosing one show who you would be, with the real ad a shop like that
+runs. Rejected on sight, and the rejection was right.
+
+**Nothing may plot territory.** The tempting version of the positioning chart
+lights up your own queries, and it would need `priceAffinity` and
+`purposeAffinity` — exactly what 16.1 withholds and what I3 removed the round 0
+dot for. Every figure on that card is public: order value, margin, searches,
+break-even.
+
+### One thing the canvas takes a position on that the code does not
+
+The ad artboard opens in **the failing state a tester met**: retainer hired,
+8/8/8 on screen, account still blocked because the description boxes are empty.
+A tweak above the artboard flips it to the resolved state. The fix — a hired
+writer supplying copy the player can edit — is proposed and unbuilt, and is the
+open item below.
+
+
 ## Still open
 
 **The one at the top is where I would start, and it is bigger than the two it
 replaced.**
+
+- **A hired writer should hand you the copy.** A tester paid ₹50,000 for the
+  premium retainer, committed capital, watched the ratings reach 8/8/8 — and
+  **could not start the game at all**, because `ui/round-zero.js` disables the Go
+  button when `validateAdCopy` fails and the description boxes were empty. They
+  had paid a copywriter and were still required to write the copy.
+
+  **The block is created by I19's own fix.** Refusing an invalid ad was right — it
+  stopped the panel promising 8·8·8 while the account ran 8·8·4 — but for a
+  retainer buyer it turned a misleading state into an impassable one. I11 buys the
+  GRADE and leaves the player writing the words, which is a strange deal at
+  ₹50,000 and is exactly why people leave the boxes alone.
+
+  **The proposal:** seed headlines and descriptions for HIRED tiers only, from the
+  brand name and the chosen position, editable rather than locked. Never for DIY,
+  and never triggered by capital — that version was argued and rejected on
+  2026-09-08, because it would run an ad the player never wrote and make the round
+  0 decision for them (I3's lesson).
+
+  Known costs before building: new copy for four tiers, the SERP preview will show
+  it, `writerBalance.test.js` holds self-written against retainer at 1.014 inside
+  0.85–1.15 bounds and must be re-measured, and I11's argument needs rewriting.
 
 - **Two of the three capital targets have no surface at all.** Photography is the
   best-paying investment measured — **+22.3%** against not investing, against the
