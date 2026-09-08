@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and the location mechanic with them.** 1276 tests, all passing, 1 todo.
+**Every build-order step is done, and the location mechanic with them.** 1286 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -816,6 +816,113 @@ inside the drawing**, so it is neither unit-tested nor readable without a browse
 defect class lives.
 
 
+## What capital is actually worth, and why it does not feel like it
+
+**Asked by a player mid-game: "the capital investment seems to be a waste."** It is
+not, and the gap between the money working and the money LOOKING like it works is
+the finding.
+
+**THE COMPARISON THAT MATTERS IS NOT AGAINST ZERO.** Uncommitted capital rolls into
+the advertising budget (13.3), so every rupee on the page is a rupee not spent on
+clicks. Measured over 3 seeds, `premium|lifestyle`, retainer, twelve rounds,
+passive after round 0:
+
+| ₹1,00,000 at round 0 | net profit | vs not investing |
+|---|---|---|
+| nothing (it all rolls into ad budget) | ₹14.61L | — |
+| size guide | ₹15.19L | +4.0% |
+| split three ways | ₹15.25L | +4.4% |
+| page ₹55,000 + size chart ₹25,000 | ₹15.47L | +5.9% |
+| page ₹1,00,000 | ₹15.73L | +7.6% |
+| **photography ₹1,00,000** | **₹17.87L** | **+22.3%** |
+
+Every allocation beats spending nothing, and the three targets do it by different
+routes: photography leaves clicks and spend flat and moves **conversions 686 to
+811**; the page buys cheaper clicks through quality (20,328 to 21,789 clicks at
+much the same spend); the size guide moves neither and earns its 4% on returns
+alone.
+
+**THE SECOND ALLOCATION IS WORTH HAVING AND NOT ON THE SAME TARGET.** Round 0 at
+₹55,000 page plus ₹25,000 chart in every row, varying only round 5:
+
+| at round 5 | net profit | vs doing nothing |
+|---|---|---|
+| nothing | ₹18.33L | — |
+| size chart to ₹1,00,000 (+₹75,000) | ₹18.98L | +3.5% |
+| page to ₹1,00,000 (+₹45,000) | ₹19.32L | +5.4% |
+| photography ₹55,000 + page to ₹1,00,000 | ₹20.31L | +10.8% |
+| **photography ₹1,00,000** (a fresh target) | **₹20.92L** | **+14.1%** |
+
+**Topping up something you have already funded earns a third of what funding a
+fresh target does**, and the reason is `CAPEX_TIER_CURVE`:
+
+| spend on one target | effect | landing page bonus |
+|---|---|---|
+| ₹0 | 1.00 | 0 |
+| ₹25,000 | 1.04 | 0 |
+| ₹55,000 | 1.16 | 2 |
+| ₹70,000 | 1.22 | **3** |
+| ₹1,00,000 | 1.25 | 3 |
+
+The steep part of every target is **₹25,000 to ₹70,000**. Past ₹70,000 the landing
+page bonus is capped, so the last ₹30,000 on that target buys *nothing* on the
+score — which is D7's S-curve working exactly as designed: splitting is available
+and sometimes right, spreading thin underperforms committing, and maxing one
+target is neither.
+
+**SO WHY IT FEELS LIKE A WASTE, which is the part worth acting on.** Three things
+stack up, and only the first is fixed:
+
+- **The landing page used to freeze at 4.** An unfinished ad capped all three
+  components, so a player who hired a writer, left the copy boxes alone and spent
+  ₹80,000 saw nothing move. Fixed (I19, reversed).
+- **`landingPageBonus` is 0 until round 4**, because round 0's capital carries a
+  three-round delay. The copy lands before the capital does.
+- **A6's compression means grades 5 to 8 all report as `average`**, so even a real
+  5 → 8 improvement leaves the Quality Score diagnostic unmoved.
+
+**AND THE BEST-PAYING TARGET IS COMPLETELY INVISIBLE.** Photography is +22.3% and
+has no on-screen indicator of any kind — it moves a business number the player can
+only infer from the report weeks later. The size guide is the same. The landing
+page is the only one of the three with a visible score, which is why it is the one
+a player judges the whole mechanic by. That is the I16 shape again: the number was
+right and no screen mentioned it.
+
+**Caveat, and it is a real one:** three seeds, one cell. D7 argues Value should
+invest and Premium often should not, so the ranking may well flip elsewhere.
+"Photography first" is not safe to write into the briefing on this evidence.
+
+## What changed in round 0, and what it cost
+
+Three commits, all measured before they were built.
+
+**The geography got its own card** (`a8b7554`). "The market" was 817px against
+"Your brand"'s 386, so 432px of column sat empty. Splitting it is what was asked
+for, and **every naive version made the page taller** — a half-width card costs
++118px, full width with the note stretched underneath +36px. What works is full
+width with the note BESIDE the table: **4,274px, 25px shorter than before the
+split**, and dead column under Your brand down to 148px. The arrangement
+originally asked for — the market stacked under the brand with geography beside
+them — cannot remove the dead space at all: it needs a 936px card on the right and
+the geography card is the shortest on the page.
+
+**The cap stopped freezing the landing page** (`286b0ab`). See DECISIONS I19,
+which is reversed rather than amended, because the argument that kept the cap
+depended on a state the Go button now makes unreachable.
+
+**A worked example ad** (`71e41c6`), asked for so the ad rules are learnable. It
+costs **no height at all** — 4,274px before and after — because it shares a grid
+cell with the budget card through `.setup-stack` rather than starting a row of its
+own. It had to land beside **Capital**: against "Who writes it" it overflowed by
+169px, and Capital at 670px is the only card tall enough. That is why the writer
+card now sits before the keyword planner — a layout constraint, not a reading
+preference.
+
+**Why an example is safe here when I3's territory dot was not:** `adRelevance` is
+scored against the player's OWN keywords, so a copied ad scores *worse* than the
+same effort in their own words. The dot made the decision; this cannot.
+
+
 ## The location mechanic
 
 **Built, measured and on screen — all nine steps.** It was the first engine change
@@ -1030,6 +1137,20 @@ records twice already.
 
 **The one at the top is where I would start, and it is bigger than the two it
 replaced.**
+
+- **Two of the three capital targets have no surface at all.** Photography is the
+  best-paying investment measured — **+22.3%** against not investing, against the
+  landing page's +7.6% — and nothing on any screen says it happened. The size guide
+  is the same. The landing page is the only one of the three with a visible score,
+  which is why a player judges the whole mechanic by it and concluded the money was
+  wasted. Same shape as I16, which put "your copy is not live yet" on the dashboard
+  after measuring that the round it lands is the largest single movement in a game.
+  The measurements are in *What capital is actually worth* above.
+
+- **And nothing shows the shape of the curve.** `CAPEX_TIER_CURVE` is steep between
+  ₹25,000 and ₹70,000 and flat after, so topping up a funded target earns +5.4%
+  where funding a fresh one earns +14.1%. That is the whole skill in the mechanic
+  and it is discoverable only by reading `constants.js`.
 
 - **The two positioning axes have swapped, and the mechanism is now known.**
   Realised gross profit splits **1.55x by purpose against 1.27x by price**, over 30
