@@ -31,7 +31,14 @@ import { renderTrends } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
 import {
   MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH, DEFAULT_UNGRADED_QUALITY,
+  ATTRIBUTION_LAG_DISTRIBUTION,
 } from '../engine/constants.js';
+
+/** "55% this week, then 28%, 12%, 5%", read off the constant it describes. */
+const ARRIVAL_SHAPE = ATTRIBUTION_LAG_DISTRIBUTION
+  .map((share, i) => `${Math.round(100 * share)}%${i === 0 ? ' this week' : ''}`)
+  .join(', then ')
+  .replace(/, then (?=[^,]*$)/, ' and then ');
 
 // ---------------------------------------------------------------------------
 // Panels
@@ -176,16 +183,105 @@ function renderShare(root, row) {
   );
 }
 
+/**
+ * Every week's conversions, landed against still arriving (I27).
+ *
+ * WHY THIS IS A PICTURE AND NOT A SENTENCE. "49.7 still pending" was a grey
+ * sub-label under a headline figure, and a player who has played this twenty
+ * times still had to ask what it meant. The delay is a SHAPE — 55% of a week's
+ * conversions land that week, then 28, 12 and 5 — and a shape is the one thing
+ * prose is worst at. Drawn, the whole game reads at a glance: week 1 is a solid
+ * bar, this week is mostly hollow, and the staircase between them is the lag.
+ *
+ * NOTHING HERE IS ESTIMATED. `stillPending` is tracked per week by `report.js`
+ * and decremented as conversions land, and `asFirstReported` is the twin W11
+ * stores. The tick is where the number sat when the player read it, so the gap
+ * between the tick and the end of the solid bar is what they were not told.
+ */
+function arrivalChart(game) {
+  const weeks = game.state.history.map((h) => {
+    const c = h.byAdvertiser[game.playerId]?.conversions;
+    return {
+      round: h.round,
+      landed: c?.final ?? 0,
+      pending: c?.stillPending ?? 0,
+      first: c?.asFirstReported ?? 0,
+    };
+  });
+  if (weeks.length === 0) return null;
+
+  // One scale for every row, or a week cannot be compared with the week above
+  // it — which is the only thing this chart is for.
+  const max = Math.max(...weeks.map((w) => w.landed + w.pending), 1);
+  // Rounded, and anything under a twentieth of a percent snapped to zero. A
+  // settled week's `stillPending` lands on floating-point crumbs rather than on
+  // 0, and `width: 5.77183e-15%` is what that renders as.
+  const pc = (n) => {
+    const share = (100 * n) / max;
+    return `${share < 0.05 ? 0 : Math.round(share * 100) / 100}%`;
+  };
+  const wrap = el('div', 'arrival');
+
+  for (const w of weeks) {
+    const row = el('div', 'arrival-row');
+    row.append(el('div', 'k', `Week ${w.round}`));
+
+    const track = el('div', 'track');
+    const landed = el('div', 'fill landed');
+    landed.style.width = pc(w.landed);
+    track.append(landed);
+    // Appended only when there is something to show, so `:only-child` can round
+    // both ends of a finished week's bar.
+    if (w.pending > 0.05) {
+      const pending = el('div', 'fill pending');
+      pending.style.width = pc(w.pending);
+      track.append(pending);
+    }
+
+    // Where the figure stood when this week was on screen as "the week".
+    if (w.first > 0 && w.first < w.landed) {
+      const tick = el('div', 'arrival-tick');
+      tick.style.left = pc(w.first);
+      tick.title = `read as ${w.first.toFixed(1)} at the time, now ${w.landed.toFixed(1)}`;
+      track.append(tick);
+    }
+    row.append(track);
+
+    const v = el('div', 'v');
+    v.append(el('span', null, w.landed.toFixed(1)));
+    if (w.pending > 0.05) v.append(el('span', 'arrival-more', `+${w.pending.toFixed(1)}`));
+    row.append(v);
+    wrap.append(row);
+  }
+
+  const key = el('div', 'arrival-key');
+  key.append(el('span', 'arrival-swatch landed'), el('span', null, 'landed'));
+  key.append(el('span', 'arrival-swatch pending'), el('span', null, 'still to arrive'));
+  key.append(el('span', 'arrival-swatch tick'), el('span', null, 'what you read at the time'));
+  wrap.append(key);
+  return wrap;
+}
+
 /** W11: what moved since the player last looked. */
 function renderRevised(root, game) {
   const body = root.querySelector('[data-slot="revised-body"]');
   body.replaceChildren();
 
+  const chart = arrivalChart(game);
+  if (chart) {
+    body.append(el('p', 'note arrival-lead',
+      `A click is charged the moment it happens. Its conversions arrive over the `
+      + `next three weeks — ${ARRIVAL_SHAPE} — and returns resolve two weeks after `
+      + 'that. So the newest bars are the least finished, and the week you are '
+      + 'reading now is the least finished of all.'));
+    body.append(chart);
+  }
+
   const revised = game.state.history.filter((h) => h.revisedAtRound != null);
   if (revised.length === 0) {
     body.append(el('p', 'muted',
-      'Nothing yet. Conversions from this week will start arriving next week, '
-      + 'and they rewrite the week that earned them.'));
+      'Nothing has been rewritten yet. Conversions from this week start arriving '
+      + 'next week, and they rewrite the week that earned them.'));
     return;
   }
 

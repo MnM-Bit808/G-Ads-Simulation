@@ -58,12 +58,47 @@ describe('the interface uses the real engine (spec 6, build step 14)', () => {
       'HOUR_PROFILES', 'POSITION_ECONOMICS', 'PURPOSE_MODIFIERS',
       'CONV_RATE_CLAMP', 'ATTRIBUTION_LAG_DISTRIBUTION', 'BROAD_MATCH_MIN_OVERLAP',
     ];
+
+    // ONE ALLOWANCE, AND IT IS NARROWER THAN IT LOOKS (I27).
+    //
+    // This guard is a proxy: the name stands in for "the view is deciding
+    // economics". `ui/dashboard.js` QUOTES the attribution lag to the player —
+    // "55% this week, then 28%, then 12% and then 5%" — and computes nothing
+    // from it. The card above it was already describing the same rule in
+    // hardcoded prose ("about five rounds ... three for the order to arrive"),
+    // so the choice was never between naming the constant and staying pure. It
+    // was between DERIVING the sentence and TYPING the numbers again, and the
+    // test directly above this one forbids the second: a copy of something in
+    // constants.js that stays right until one of them changes.
+    //
+    // So the name is allowed in exactly one file, for exactly one constant. If
+    // a second entry ever wants adding here, that is the moment to ask whether
+    // the view has started doing arithmetic it should not be doing.
+    const quoted = new Map([['dashboard.js', ['ATTRIBUTION_LAG_DISTRIBUTION']]]);
+
     for (const { file, text } of source) {
       const body = stripped(text);
+      const allowed = quoted.get(file) ?? [];
       for (const name of forbidden) {
+        if (allowed.includes(name)) continue;
         expect(body.includes(name), `${file} names ${name}`).toBe(false);
       }
     }
+  });
+
+  test('the one quoted constant is displayed, never computed with', () => {
+    // The allowance above is only safe while dashboard.js reads the lag to
+    // WRITE A SENTENCE. The moment it multiplies by it, it is deciding when a
+    // conversion lands, which is `attribution.js`'s job and nobody else's.
+    const dashboard = source.find((s) => s.file === 'dashboard.js');
+    const body = stripped(dashboard.text);
+    const uses = body.split('ATTRIBUTION_LAG_DISTRIBUTION').slice(1);
+    for (const after of uses) {
+      const next = after.slice(0, 90);
+      expect(next, 'the lag is being computed with, not quoted').not.toMatch(/^\s*[*/+-]/);
+    }
+    // And it must still reach the screen as a percentage, not as a raw share.
+    expect(body).toMatch(/ATTRIBUTION_LAG_DISTRIBUTION[\s\S]{0,200}100 \*/);
   });
 
   test('it formats money from paise and never stores rupees', () => {

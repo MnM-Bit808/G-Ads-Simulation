@@ -1154,3 +1154,83 @@ svg.trend .dot.self { fill: var(--accent); }
   font-size: 0.78rem;
   line-height: 1.5;
 }
+
+/* --- conversions arriving (I27) ------------------------------------------ */
+
+/*
+ * The lag, drawn. "49.7 still pending" was a grey sub-label, and a player who
+ * had played twenty games still had to ask what it meant — because the delay is
+ * a SHAPE and prose is worst at shapes. Solid is landed, hatched is on its way,
+ * and the tick is where the figure stood when that week was on screen.
+ *
+ * Same row grammar as `.bar-row` above, narrower, because there is one of these
+ * per week played and twelve of them have to sit inside one card.
+ */
+.arrival { display: flex; flex-direction: column; gap: 0.3rem; margin: 0.7rem 0 0.9rem; }
+
+.arrival-lead { margin-top: 0; border-top: 0; padding-top: 0; }
+
+.arrival-row {
+  display: grid;
+  grid-template-columns: 4.2rem 1fr 5.4rem;
+  align-items: center;
+  gap: 0.55rem;
+}
+.arrival-row .k { font-size: 0.74rem; color: var(--muted); }
+.arrival-row .track { height: 11px; position: relative; display: flex; }
+.arrival-row .v {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.3rem;
+}
+
+/* The fills sit side by side rather than stacking, so the bar reads as one
+   quantity split in two rather than two quantities. */
+.arrival-row .fill { border-radius: 0; height: 100%; }
+.arrival-row .fill.landed { background: var(--good); border-radius: 5px 0 0 5px; }
+.arrival-row .fill.pending {
+  border-radius: 0 5px 5px 0;
+  /* Hatched, not just paler: colour alone would read as a second category, and
+     this is the same conversions seen earlier. */
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(126, 198, 153, 0.34) 0 3px,
+    rgba(126, 198, 153, 0.10) 3px 6px
+  );
+}
+.arrival-row .fill.landed:only-child { border-radius: 5px; }
+
+.arrival-tick {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: 15px;
+  background: var(--ink);
+  opacity: 0.75;
+}
+
+.arrival-more { color: var(--muted); }
+
+.arrival-key {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 0.45rem;
+}
+.arrival-key span:not(.arrival-swatch) { margin-right: 0.7rem; }
+.arrival-swatch { width: 11px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.arrival-swatch.landed { background: var(--good); }
+.arrival-swatch.pending {
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(126, 198, 153, 0.34) 0 3px,
+    rgba(126, 198, 153, 0.10) 3px 6px
+  );
+}
+.arrival-swatch.tick { width: 2px; height: 12px; background: var(--ink); opacity: 0.75; border-radius: 0; }

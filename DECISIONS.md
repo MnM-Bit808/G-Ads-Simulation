@@ -2777,6 +2777,62 @@ stray pair in an anonymous table box, so it LOOKED correct while
 `<table>` and this one now does too. It had been wrong since the card was
 written, and no test could see it — the suite reads source as text.
 
+### I27. The attribution lag is drawn, not described — `FIXED`
+
+**A player who has played this twenty-odd times asked what "conversions still
+pending" means.** That is the whole finding. It had a sub-label under the
+headline figure — *"49.7 still pending"* — and a paragraph under the card, and
+neither worked, because **the lag is a SHAPE and prose is the worst medium for a
+shape.**
+
+`Changed since you looked` now opens with one bar per week played: solid for what
+has landed, hatched for what is still arriving, and a tick where the figure stood
+when that week was the week on screen. Read down it and the mechanic explains
+itself — week 1 is a full bar, this week is a third of one, and the staircase
+between them IS the lag. Measured on a real game at week 9:
+
+| week | landed | still to arrive |
+|---|---|---|
+| 1 | 60.0 | — |
+| 7 | 77.4 | +4.1 |
+| 8 | 64.4 | +13.2 |
+| **9** | **44.6** | **+36.5** |
+
+The week the player is reading is **45% complete**. Nothing on the old screen
+said that in a form anybody absorbed.
+
+**NOTHING IN IT IS ESTIMATED.** `stillPending` is tracked per week by `report.js`
+and decremented as conversions land; `asFirstReported` is the twin W11 already
+stores. The chart reads state and draws it — no model of the lag lives in the
+view.
+
+**The sentence is derived from the constant**, so *"55% this week, then 28%, then
+12% and then 5%"* cannot drift from `ATTRIBUTION_LAG_DISTRIBUTION`. That mattered
+more than it looks: the card above it was already describing the same rule in
+hardcoded prose — *"about five rounds ... three for the order to arrive, two more
+for the return window"* — which is exactly the copy-of-a-constant this project
+has been bitten by before.
+
+**AND IT MADE A GUARD IN `ui.test.js` FIRE, CORRECTLY.** That test forbids the
+view from naming nine engine constants, `ATTRIBUTION_LAG_DISTRIBUTION` among
+them, because the name stands in for *"the view is deciding economics"*. Here it
+was a false positive: the view is QUOTING the rule, not computing with it, and
+the alternative the guard was pushing toward is the hardcoded decimals the test
+immediately above it forbids.
+
+Following the precedent set when `roundZero.test.js`'s own proxy misfired, **the
+guard was narrowed rather than worked around.** One allowance, one file, one
+constant, with the reasoning in the test — plus a second test that fails if
+dashboard.js ever starts doing ARITHMETIC with it rather than printing it. The
+comment says what to do if a second entry is ever proposed: ask whether the view
+has started doing work it should not be doing.
+
+**One defect found in the browser and nowhere else.** A settled week's
+`stillPending` lands on floating-point crumbs rather than on zero, so three rows
+rendered `width: 5.77183e-15%`. Widths are now rounded, and a pending segment
+below a twentieth of a percent is not appended at all — which also lets
+`:only-child` round both ends of a finished week's bar.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
