@@ -31,8 +31,11 @@ import { renderTrends } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
 import {
   MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH, DEFAULT_UNGRADED_QUALITY,
-  ATTRIBUTION_LAG_DISTRIBUTION, RTO_FREIGHT_PAISE,
+  ATTRIBUTION_LAG_DISTRIBUTION, RTO_FREIGHT_PAISE, RANK_BUDGET_MULTIPLIERS,
 } from '../engine/constants.js';
+
+/** 13.1's snapshot round, when `budgetSchedule` does not name its own. */
+const RANK_SNAPSHOT_ROUND = 8;
 
 /** A click in round R is final at R+5: three rounds to arrive, two to resolve. */
 const SETTLES_AFTER_ROUNDS = ATTRIBUTION_LAG_DISTRIBUTION.length + 1;
@@ -403,11 +406,115 @@ function renderReturns(root, game) {
   note.append(el('strong', null, `Every refusal costs you about ${rupees(perRefusal)}`));
   note.append(document.createTextNode(
     ` — ${rupees(RTO_FREIGHT_PAISE)} of freight both ways, and ${rupees(aovPaise * marginPct)} `
-    + 'of margin on a sale that never happened. A size guide cannot reach any of it: '
-    + 'it fixes the wrong size, not somebody changing their mind at the door. '
-    + `Order confirmation is the one that can. Only weeks 1 to ${latest - SETTLES_AFTER_ROUNDS} `
-    + 'are counted above; the rest are still arriving and will read better than they are.',
+    + 'of margin on a sale that never happened. ',
   ));
+
+  // I33: THREE LEVERS, AND WHICH OF THEM IS AVAILABLE THIS WEEK. The card was
+  // a statistic without this — a player watched a number they had no way to
+  // move, because capital closes at round 5 and nothing named the two levers
+  // that never close. Same complaint I24 makes about the location card:
+  // it states a fact and names none.
+  const allocations = game.state.budgetSchedule?.capexAllocationRounds ?? [];
+  const capexOpen = allocations.includes(game.state.round);
+  note.append(el('strong', null, 'Three things move it, and two of them this week. '));
+  note.append(document.createTextNode(
+    'Bid less where cash on delivery is commonest — the location card is the same '
+    + 'decision seen from the other side, and it is open every round. Block a search '
+    + 'that comes back worse than the rest of your account; the search terms card '
+    + 'marks them and the button is on the row. '
+    + (capexOpen
+      ? 'And capital is open THIS round: order confirmation reaches refusals, the size '
+        + 'guide reaches send-backs, and neither reaches the other.'
+      : `Capital is the third and it is shut — it opens at ${
+        allocations.length > 0 ? `round${allocations.length > 1 ? 's' : ''} ${allocations.join(' and ')}` : 'the allocation rounds'
+      } only, so the first two are what you have now.`),
+  ));
+
+  note.append(document.createTextNode(
+    ` Only weeks 1 to ${latest - SETTLES_AFTER_ROUNDS} are counted above; the rest `
+    + 'are still arriving and will read better than they are.',
+  ));
+}
+
+/**
+ * Your own running total against the week-8 deadline (I33).
+ *
+ * R3 IS NOT LIFTED HERE AND MUST NOT BE. I7 records this request being made
+ * before — a chart of all nine "to evaluate who has the current lead" — and
+ * refused: the lead is cumulative gross profit and that is exactly what an
+ * advertiser may not read about anybody else. `finalStandings` opens the books
+ * only because the game is over and nothing can change.
+ *
+ * So this card carries THE PLAYER'S OWN FIGURE, the published rule, and the
+ * published multipliers. Not one number on it belongs to a rival, and the note
+ * says so rather than letting the omission read as an oversight.
+ *
+ * WHY IT EXISTS. Month 3's budget is allocated on cumulative gross profit at
+ * week 8, the rule is announced at round 1 — and nothing on the dashboard showed
+ * that total accumulating. The player was being ranked on a number they could
+ * not watch. Same shape as I16, I24 and I31.
+ *
+ * The budget card already explains the outcome AFTER the snapshot, including
+ * D4's two traps. This is the half that was missing: the part you can still act
+ * on.
+ */
+function renderDeadline(root, game) {
+  const figures = root.querySelector('[data-slot="deadline-figures"]');
+  const note = root.querySelector('[data-slot="deadline-note"]');
+  const snapshot = game.state.budgetSchedule?.rankSnapshotRound ?? RANK_SNAPSHOT_ROUND;
+  const history = game.state.history ?? [];
+  const latest = history.length > 0 ? history[history.length - 1].round : 0;
+
+  // Exactly what `rankByGrossProfit` sums: cumulative gross profit over the
+  // rounds up to and including the snapshot, and no further.
+  const counted = history.filter((h) => h.round <= snapshot);
+  const total = counted.reduce(
+    (a, h) => a + (h.byAdvertiser[game.playerId]?.money?.grossProfitPaise ?? 0), 0,
+  );
+  const weeksLeft = Math.max(0, snapshot - latest);
+  const taken = latest >= snapshot;
+
+  figures.replaceChildren();
+  add(
+    figures,
+    figure(taken ? 'Counted at week 8' : 'Counted so far', rupees(total),
+      `gross profit, weeks 1 to ${Math.min(latest, snapshot)}`),
+    figure(taken ? 'Snapshot' : 'Weeks left',
+      taken ? 'taken' : String(weeksLeft),
+      taken ? 'month 3 is already split' : `week ${snapshot} is the cut-off`),
+  );
+
+  // What each place is worth, in rupees rather than as a multiplier — a player
+  // cannot spend 1.30.
+  table(
+    root.querySelector('[data-slot="deadline-ladder"]'),
+    ['Finish', { label: 'Month 3 budget', num: true }, { label: 'Against average', num: true }],
+    RANK_BUDGET_MULTIPLIERS.map((m, i) => ({
+      cells: [
+        `${i + 1}${i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th'}`,
+        rupees(MONTHLY_BUDGET_PAISE * m),
+        `${m > 1 ? '+' : ''}${Math.round(100 * (m - 1))}%`,
+      ],
+      className: m === 1 ? 'muted-row' : null,
+    })),
+  );
+
+  const first = MONTHLY_BUDGET_PAISE * RANK_BUDGET_MULTIPLIERS[0];
+  const last = MONTHLY_BUDGET_PAISE * RANK_BUDGET_MULTIPLIERS[RANK_BUDGET_MULTIPLIERS.length - 1];
+  note.replaceChildren();
+  note.append(el('strong', null,
+    `${rupees(first - last)} separates first from last`));
+  note.append(document.createTextNode(
+    ' in month 3, on a pool that does not change size — only the shares move. '
+    + 'The figure above is GROSS profit, so what came back is not netted off, and '
+    + 'it is counted as reported at week 8, before attribution has caught up. '
+    + 'Both of those are the rule rather than a mistake, and both reward spending '
+    + 'that looks better than it is. ',
+  ));
+  note.append(el('em', null,
+    'Nothing here tells you where you stand against the other eight. It cannot: '
+    + 'a real account never shows you a rival’s profit, and neither does this one '
+    + 'until the last week is played.'));
 }
 
 /** W11: what moved since the player last looked. */
@@ -853,6 +960,7 @@ export function renderDashboard(game, onDecisionChange) {
   renderHeadline(root, row, game, game.playerId, report);
   renderShare(root, row);
   renderReturns(root, game);
+  renderDeadline(root, game);
   renderRevised(root, game);
   renderInsights(root, game);
   renderBudget(root, row, game);

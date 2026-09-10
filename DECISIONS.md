@@ -3243,6 +3243,55 @@ made on, and it adapts to whatever cell the player chose.
 `Sent back` for the post-delivery half specifically, against `Refused`; this
 column is both. Two surfaces using one word for two quantities is I19's lesson.
 
+### I33. The week-8 deadline, and the levers the returns card was not naming — `FIXED`
+
+Two halves of one complaint: a statistic you cannot act on, and an empty half of
+a row.
+
+**THE LEVERS.** The returns card was a chart with no verbs. Capital closes at
+round 5 and nothing named the two levers that never close, so a player watched a
+number they had no way to move — exactly what I24 says about the location card.
+It now names three and says which are open THIS round, read off
+`capexAllocationRounds` rather than assumed: bid down where cash is commonest,
+block a search that comes back worse than the rest of the account (possible only
+since I32 attributed returns to the query), and capital when its window is open.
+
+**THE DEADLINE CARD, AND WHAT IT DELIBERATELY DOES NOT SHOW.**
+
+The player asked for the final-round rankings in short form, mid-game. **That is
+I7, refused before**: *"Asked for a graph putting all nine advertisers side by
+side to evaluate who has the current lead. The chart exists; the framing could
+not."* The lead is cumulative gross profit, and R3 forbids reading that about
+anybody else. `finalStandings` opens the books only because the game is over.
+
+**But the legal version was missing and is more useful than a leaderboard.** Month
+3's budget is allocated on cumulative gross profit at week 8, the rule is
+announced at round 1 — and no screen showed that total accumulating. The player
+was ranked on a number they could not watch. Same shape as I16, I24 and I31.
+
+So the card carries the player's OWN running total, the weeks left, and what each
+finish is worth in rupees:
+
+| finish | month 3 | vs average |
+|---|---|---|
+| 1st | ₹2,18,400 | +30% |
+| 5th | ₹1,68,000 | 0% |
+| 9th | ₹1,17,600 | −30% |
+
+**₹1,00,800 separates first from last**, on a pool that does not change size —
+and the dashboard had never said so.
+
+Not one figure on it belongs to a rival, and **the note says so outright** rather
+than letting the omission read as an oversight: *"Nothing here tells you where
+you stand against the other eight. It cannot."* A gap a player notices and
+understands teaches R3; a gap they merely notice reads as a missing feature.
+
+It sits beside the search terms card, which was alone on its row with **685px of
+empty width** — measured, and the reason this card exists where it does.
+
+**The budget card already covers the other half** — after week 8 it names the
+rank and D4's two traps. This is the part that can still be acted on.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
