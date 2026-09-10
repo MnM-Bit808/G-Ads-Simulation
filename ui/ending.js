@@ -26,7 +26,7 @@
  * constants `tests/ui.test.js` forbids the view from naming.
  */
 
-import { el, add, table, figure, rupees, whole, ratio } from './dom.js';
+import { el, add, table, figure, rupees, whole, ratio, pct } from './dom.js';
 import {
   CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE, DAYPART_BLOCKS,
 } from '../engine/constants.js';
@@ -80,8 +80,25 @@ export function rankOf(state, playerId) {
  * section G — things the simulation knows that reality cannot. A real account
  * never shows you a competitor's ROAS, and the screen says so.
  *
- * Ranked by cumulative GROSS profit, because 13.1 defines the lead that way and
- * the month-3 budget is already allocated on it.
+ * RANKED BY CONTRIBUTION MARGIN, and it did not used to be (I26).
+ *
+ * `netProfitPaise` is revenue after returns, times the margin that covers the
+ * goods, minus what the traffic cost — contribution margin after advertising,
+ * and it has been on every row of this function since it was written, computed
+ * and unused. The sort was on GROSS, which counts an order that came straight
+ * back as an order.
+ *
+ * Measured over five seeds and 45 placings, sorting on the honest number moves
+ * **15 of them**, because returns take between 18% and 75% of gross depending on
+ * the advertiser. In one game Halcyon finishes 2nd on gross and 6th on
+ * contribution margin, having shipped 45% of what it sold back.
+ *
+ * `grossRank` is kept beside it ON PURPOSE. 13.1 does define the lead as gross
+ * and `budgetSchedule.rankedAtSnapshot` really did allocate month 3 on it — D4
+ * makes that a deliberate trap, announced at round 1. This screen is read when
+ * the game is over and nothing rests on it, so it ranks honestly and shows the
+ * other number beside it. Where the two disagree, the player is looking at the
+ * trap they just played through, in their own figures.
  *
  * @param {object} state the final GameState
  * @returns {object[]} one row per advertiser, best first; empty before any week
@@ -108,8 +125,20 @@ export function finalStandings(state) {
     };
   });
 
-  rows.sort((x, y) => y.grossProfitPaise - x.grossProfitPaise);
-  for (const [i, row] of rows.entries()) row.rank = i + 1;
+  // The rank month 3's budget was actually allocated on, worked out first so it
+  // survives the re-sort below and can be shown against it.
+  const byGross = [...rows].sort((x, y) => y.grossProfitPaise - x.grossProfitPaise);
+  const grossRank = new Map(byGross.map((r, i) => [r.id, i + 1]));
+
+  rows.sort((x, y) => y.netProfitPaise - x.netProfitPaise);
+  for (const [i, row] of rows.entries()) {
+    row.rank = i + 1;
+    row.grossRank = grossRank.get(row.id);
+    // What the returns took, which is the whole reason the two ranks differ.
+    row.returnedShare = row.grossProfitPaise > 0
+      ? 1 - (row.netProfitPaise / row.grossProfitPaise)
+      : null;
+  }
   return rows;
 }
 
@@ -413,35 +442,67 @@ function standingsCard(ctx) {
     + 'competitor’s spend, not their conversions, and certainly not their '
     + 'profit. Read it as the answer sheet, not as a report.'));
 
-  // A wrapper, because `table()` calls replaceChildren on what it is given —
-  // handing it the card would delete the heading and the warning above.
-  const wrap = el('div');
+  // A real <table>, because `table()` calls replaceChildren on what it is given
+  // and handing it the card would delete the heading and the warning above. It
+  // used to be a <div>: the browser wraps a stray thead and tbody in an
+  // anonymous table box, so it rendered while `table { width: 100% }` never
+  // matched it, and the columns huddled in the left two thirds of the card.
+  const wrap = el('table');
   table(wrap, [
     '#', 'Brand', 'Where they sat',
     { label: 'Spend', num: true }, { label: 'Conv', num: true },
     { label: 'CPA', num: true }, { label: 'Net ROAS', num: true },
     { label: 'Gross profit', num: true },
-  ], rows.map((r) => ({
-    className: r.isYou ? 'you' : null,
-    cells: [
-      String(r.rank),
-      r.isYou ? `${r.name} (you)` : r.name,
-      r.cell.replace('|', ' · '),
-      rupees(r.costPaise),
-      r.conversions.toFixed(1),
-      r.cpaPaise == null ? '—' : rupees(r.cpaPaise),
-      ratio(r.netRoas),
-      rupees(r.grossProfitPaise),
-    ],
-  })));
+    { label: 'Returns took', num: true },
+    { label: 'Contribution', num: true },
+    { label: 'On gross', num: true },
+  ], rows.map((r) => {
+    // A rival who placed differently on the two metrics is the whole point of
+    // showing both, so the row says which way and by how much.
+    const moved = r.grossRank != null && r.grossRank !== r.rank;
+    const arrow = moved ? `${r.grossRank} ${r.grossRank > r.rank ? '▲' : '▼'}` : `${r.grossRank}`;
+    return {
+      className: r.isYou ? 'you' : null,
+      cells: [
+        String(r.rank),
+        r.isYou ? `${r.name} (you)` : r.name,
+        r.cell.replace('|', ' · '),
+        rupees(r.costPaise),
+        r.conversions.toFixed(1),
+        r.cpaPaise == null ? '—' : rupees(r.cpaPaise),
+        ratio(r.netRoas),
+        rupees(r.grossProfitPaise),
+        r.returnedShare == null ? '—' : pct(r.returnedShare),
+        rupees(r.netProfitPaise),
+        arrow,
+      ],
+    };
+  }));
   node.append(wrap);
 
-  node.append(el('p', 'note',
-    'Ranked by cumulative gross profit, which is what 13.1 calls the lead and '
-    + 'what month 3’s budgets were allocated on. The position column is the one '
-    + 'nothing has ever told you: every rival’s cell was inferable only from the '
-    + 'eight ads you read at round 0, so this is where you find out whether you '
-    + 'read them right.'));
+  const disagree = rows.filter((r) => r.grossRank != null && r.grossRank !== r.rank);
+  const note = el('p', 'note');
+  note.append(el('strong', null, 'Ranked by contribution margin'));
+  note.append(document.createTextNode(
+    ' — revenue after returns, less the cost of the goods and the cost of the '
+    + 'traffic. It is the only column here that is money you actually kept.',
+  ));
+  if (disagree.length > 0) {
+    note.append(document.createTextNode(
+      ` The last column is where each brand placed on GROSS profit, and ${disagree.length} `
+      + `of ${rows.length} placed differently. That is the metric 13.1 calls the lead and `
+      + 'the one month 3’s budgets were actually allocated on, at week 8, before the '
+      + 'returns had come back. A brand that sold a great deal and shipped much of it '
+      + 'back ranks high on gross and low here — which is the trap you were playing '
+      + 'inside for twelve weeks, and this is the first screen that says so.',
+    ));
+  }
+  note.append(document.createTextNode(
+    ' The position column is the one nothing has ever told you: every rival’s cell '
+    + 'was inferable only from the eight ads you read at round 0, so this is where '
+    + 'you find out whether you read them right.',
+  ));
+  node.append(note);
   return node;
 }
 

@@ -233,13 +233,48 @@ describe('the books are opened after the last round (DECISIONS G3)', () => {
     expect(rows.filter((r) => r.isYou)).toHaveLength(1);
   });
 
-  test('it ranks by cumulative gross profit, which is what 13.1 calls the lead', () => {
+  test('it ranks by CONTRIBUTION MARGIN, not by gross (I26)', () => {
+    // Gross counts an order that came straight back as an order. Measured over
+    // five seeds, sorting on the honest number moves 15 of 45 placings, because
+    // returns take between 18% and 75% of gross depending on the advertiser.
     const rows = finalStandings(played());
     for (let i = 1; i < rows.length; i++) {
-      expect(rows[i - 1].grossProfitPaise).toBeGreaterThanOrEqual(rows[i].grossProfitPaise);
+      expect(rows[i - 1].netProfitPaise).toBeGreaterThanOrEqual(rows[i].netProfitPaise);
     }
     expect(rows[0].rank).toBe(1);
     expect(rows[rows.length - 1].rank).toBe(rows.length);
+  });
+
+  test('it keeps the gross rank beside it, because month 3 was allocated on that', () => {
+    // D4's trap is deliberate and `rankedAtSnapshot` still uses gross. This
+    // screen ranks honestly and shows the other number, so the two disagreeing
+    // is the player seeing the trap they played through.
+    const rows = finalStandings(played());
+    const grossOrder = [...rows]
+      .sort((a, b) => b.grossProfitPaise - a.grossProfitPaise)
+      .map((r) => r.id);
+    for (const row of rows) {
+      expect(row.grossRank, row.name).toBe(grossOrder.indexOf(row.id) + 1);
+    }
+  });
+
+  test('every row says what its returns took, which is why the ranks differ', () => {
+    for (const row of finalStandings(played())) {
+      if (row.grossProfitPaise <= 0) {
+        expect(row.returnedShare, row.name).toBeNull();
+        continue;
+      }
+      expect(row.returnedShare, row.name).toBeCloseTo(
+        1 - (row.netProfitPaise / row.grossProfitPaise), 10,
+      );
+    }
+  });
+
+  test('contribution margin never exceeds gross, whoever is ranked where', () => {
+    // If it did, returns would be adding revenue and something upstream is wrong.
+    for (const row of finalStandings(played())) {
+      expect(row.netProfitPaise, row.name).toBeLessThanOrEqual(row.grossProfitPaise);
+    }
   });
 
   test('it names where each rival actually sat', () => {

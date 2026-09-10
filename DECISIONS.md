@@ -2714,6 +2714,69 @@ no two tiers in a cell share a headline. **That last one failed on the first run
 the agency and the freelancer both said "Everyday Leggings", which is ₹15,000
 buying the same words.
 
+### I26. The end screen ranks on contribution margin, not gross — `FIXED`
+
+**Raised by a player after twenty-odd playthroughs**, and the strongest form of
+the question this project has been asked: *should gross profit really be the
+metric to gauge who ranks first?* No. And the engine already computed the right
+one.
+
+`netProfitPaise` is `(revenue − returns) × margin − cost`: revenue after returns,
+times the margin that covers the goods, minus what the traffic cost. That is
+contribution margin after advertising, and it has been on every row of
+`finalStandings` since it was written, computed and **unused as a sort key.**
+
+**IT IS NOT COSMETIC. 15 OF 45 PLACINGS MOVE**, measured over five seeds, because
+returns take between **18% and 75%** of gross depending on the advertiser. One
+example, seed 20260904:
+
+| | by gross | by contribution | returns took |
+|---|---|---|---|
+| 2nd | **Halcyon** | Nira | Halcyon 45% |
+| 6th | Satva | **Halcyon** | Auren 18% |
+
+Halcyon finishes 2nd on gross and 6th on contribution margin, having shipped 45%
+of what it sold back. Ranking on gross treats a company that keeps its revenue
+and one that ships it back and forth as the same company. The winner did not
+change in those five seeds; the midfield reordered heavily, 7 of 9 in one game.
+
+**ONLY ONE OF THE TWO RANKINGS CHANGED, AND THE OTHER MUST NOT.**
+
+| | what it is | what rests on it |
+|---|---|---|
+| `rankedAtSnapshot` | round 8, cumulative gross | month-3 budget allocation |
+| `finalStandings` | all twelve rounds, cumulative gross | who won; nothing else |
+
+D4 makes the round-8 snapshot a **deliberate trap**, announced to the player at
+round 1: gross so returns are not netted out, and as-reported-at-round-8 so
+attribution has not resolved. That trap is the lesson and it drives real money —
+it stays exactly as it is.
+
+`finalStandings` is different in kind. It is read when the game is over and
+nothing rests on it, which is the same argument that lets it lift R3 and open
+everyone's books at all. There is no lesson in declaring the wrong winner once
+no decision can follow.
+
+**And the gap between the two becomes the teaching.** The table now carries
+`Returns took`, `Contribution` and `On gross`, and a rival whose two ranks
+disagree is marked on its own row with the direction it moved. The note says how
+many placed differently and why. A trap that was invisible for twelve weeks is
+made visible at the one moment it can no longer be gamed.
+
+**Two defects found while building it, one of them older than this change.**
+
+The position sentence was appended to the CARD rather than to the note paragraph,
+so it rendered as a bare text node above the paragraph it belonged to. Mine, and
+the browser is the only place it was visible.
+
+**`standingsCard` was the only caller handing `table()` a `<div>`.** `table()`
+appends a `thead` and a `tbody` to whatever it is given; the browser wraps a
+stray pair in an anonymous table box, so it LOOKED correct while
+`table { width: 100% }` never matched it. Eleven columns sat in 1,135px of a
+1,383px card with a third of the width empty. Every other caller passes a real
+`<table>` and this one now does too. It had been wrong since the card was
+written, and no test could see it — the suite reads source as text.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
