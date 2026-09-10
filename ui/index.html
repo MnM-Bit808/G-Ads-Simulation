@@ -46,8 +46,17 @@
       </p>
     </article>
 
-    <!-- Where the money came from, and where it went back (G4). ----------- -->
-    <article class="card span-2" data-slot="places">
+    <!-- Where the money came from, and where it went back (G4).
+         FULL WIDTH, and it has to be. Seven columns, the last holding five bid
+         chips that are 297px of the 730 the table needs. At span-2 the card is
+         683px at its widest — `main` caps at 1500 — so the table overflowed by
+         47px on a 1920 screen and 140px on a 1280 one, and `.card` does not
+         clip, so `+100%` was drawn on top of the card beside it. Tightening
+         every gap in the card recovers 79px, which is not enough below 1440.
+         Width is also what the first column needs: "Where" was squeezed to 58px
+         and is 261px here, which is the difference between reading "Smaller
+         cities and towns" and its example cities and not. --------------------->
+    <article class="card span-4" data-slot="places">
       <h2>Where you advertise <span class="muted">the same click is worth different money in different places</span></h2>
       <table class="mini" data-slot="places-table"></table>
       <p class="note" data-slot="places-note"></p>
