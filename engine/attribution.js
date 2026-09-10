@@ -152,7 +152,7 @@ export function sampleOrderValuePaise(business, query, rng, mode) {
  * @returns {Array<object>} pendingConversions entries
  */
 export function queueConversions({
-  clicks, convRate, orderValuePaise, returnRate, round, rng, mode,
+  clicks, convRate, orderValuePaise, returnRate, refusedShare = 0, round, rng, mode,
   queryId = null, locationTier = null,
 }) {
   let count = clicks * convRate;
@@ -184,6 +184,11 @@ export function queueConversions({
       count: slice,
       valuePaise: Math.round(slice * orderValuePaise),
       returnRate,
+      // I28: how much of this cohort's returns will be parcels refused at the
+      // door rather than sent back after delivery. Snapshotted with the rate it
+      // belongs to, for the same reason that is — an order is judged by the
+      // account as it was when the click happened, not as it is now.
+      refusedShare,
     });
   }
   return entries;
@@ -239,6 +244,10 @@ export function queueReturns(landed, round, returnWindowRounds) {
       resolvesInRound: round + returnWindowRounds,
       count: entry.count * rate,
       valuePaise: mulRate(entry.valuePaise, rate),
+      // Carried the same way and for the same reason as `locationTier`: a
+      // resolved return that could not say whether it ever got through the door
+      // could not be charged the freight it owes.
+      refusedShare: entry.refusedShare ?? 0,
     });
   }
   return out;

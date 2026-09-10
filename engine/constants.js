@@ -135,46 +135,86 @@ export const LOCATION_AOV_MULTIPLIER = Object.freeze([1.10, 1.00, 0.92]);
  * often." The consequence was simulated and the mechanism was invisible, so a
  * player could see that small towns return more and never learn why.
  *
- * TWO AXES, NOT ONE. Location is the obvious one and it is not enough: a premium
- * buyer in a small town still mostly pays by card, and a flat share by geography
- * would have a ₹4,800 order paid in cash three times out of four. Cash skews
- * non-metro AND low-value, so the table carries both, and the interaction is the
- * point — it is where the price decision and the location decision finally talk
- * to each other.
+ * TWO AXES, AND THEY ARE NOT EQUALLY WELL EVIDENCED. Say so rather than let the
+ * table imply otherwise:
  *
- * These are ESTIMATED. Published Indian D2C figures vary enormously by category
- * and by who is publishing them; what is not in dispute is the direction and the
- * rough spread, which is what this table is for.
+ *   LOCATION is sourced. Tier 2 and tier 3 markets run 58-64% COD across 142
+ *   D2C brands (Unicommerce, 2024) and 60-80% by other trackers, against a
+ *   lower metro share. The direction and the rough spread are not in dispute.
+ *
+ *   PRICE is INFERRED and stays an estimate. No source found gives COD share by
+ *   order value, and the nearest fact cuts the other way: RTO by order band is
+ *   nearly flat, 25% under ₹500, 28% at ₹500-1,000, 24% above (Unicommerce).
+ *   What justifies the axis is that cash skews impulse and premium buyers are
+ *   more card-comfortable — reasoning, not measurement.
+ *
+ * THE LEVEL IS SET BY THE CATEGORY, NOT BY ECOMMERCE AT LARGE. Fashion and
+ * accessories run 68-76% COD, the highest of any category, because fit and
+ * style make people want the parcel in front of them first (Pragma). India
+ * overall is 58-65%. The mid row averages 0.71, which is where this vertical
+ * belongs; an earlier version of this table averaged about 0.55 and was quietly
+ * modelling electronics.
  */
 export const COD_SHARE_BY_PRICE_LOCATION = Object.freeze({
-  value: Object.freeze([0.45, 0.65, 0.78]),
-  mid: Object.freeze([0.35, 0.52, 0.66]),
-  premium: Object.freeze([0.22, 0.35, 0.48]),
+  value: Object.freeze([0.70, 0.80, 0.86]),
+  mid: Object.freeze([0.60, 0.72, 0.80]),
+  premium: Object.freeze([0.42, 0.55, 0.65]),
 });
 
 /**
- * How much likelier a COD order is to be REFUSED rather than sent back.
+ * How often a parcel is refused at the door, by how it was going to be paid for.
  *
- * A return and an RTO are not the same event, and the difference is the whole
- * reason this is worth modelling:
+ * DOCUMENTED, and the single most useful pair of numbers found: across FY23,
+ * Unicommerce measured RTO at **20.9% on COD against 5.8% on prepaid** — a 3.6x
+ * gap. GoKwik's 180M-shopper network puts it wider still, ~26% against under
+ * 2%, and industry averages sit at 28-35% against 4-8%. The conservative pair
+ * is used because it is the one attached to a named study and a stated period.
  *
- *   RETURN   delivered, then sent back. There was a sale and it reversed.
- *   RTO      refused at the door, or nobody there. There was never a sale.
- *
- * This splits the returns an advertiser already has into those two, as a share
- * of the total rather than as a new rate — so nothing about the market's
- * economics moves. `rtoShareOfReturns` is the function that applies it.
- *
- * ONE THING IT DELIBERATELY GETS WRONG, AND THE FIX BELONGS WITH THE NEXT
- * CHANGE. `positions.js` divides the return rate by the size guide's capex
- * effect, and this split is applied afterwards, so a size guide currently
- * reduces refusals as well as send-backs. It should not: a size guide fixes
- * "wrong size", not "changed my mind at the door". Correcting it moves the
- * numbers rather than only the display, so it lands with the RTO freight cost
- * and a calibration re-run, where the before and after can be measured in one
- * place instead of two.
+ * THIS REPLACED AN INVENTED NUMBER AND NARROWED THE ANSWER A LOT. The first
+ * version of this file had a `COD_REFUSAL_PROPENSITY` of 0.75, chosen by
+ * nothing, which made refusals run from 16% of returns in the metros to 58% in
+ * the towns. On these figures the real range is 31% to 44% — the geography
+ * penalty is real and roughly half as dramatic as the guess. Worth remembering
+ * the next time a plausible-feeling constant goes in unsourced.
  */
-export const COD_REFUSAL_PROPENSITY = 0.75;
+export const RTO_RATE_COD = 0.209;
+export const RTO_RATE_PREPAID = 0.058;
+
+/**
+ * How often a DELIVERED fashion order is sent back afterwards.
+ *
+ * DOCUMENTED: 25-40% for fashion and apparel (GoKwik, ClickPost), 30-35% for
+ * fashion and footwear specifically (Pragma). Dresses alone reach 54%.
+ *
+ * READ AS A SHAPE, NOT AS A LEVEL — the same discipline `locationEffects`
+ * applies to its own tables. This does NOT set any advertiser's return rate:
+ * `POSITION_ECONOMICS` does that, F8 argues for it, and value's 30% / mid's 24%
+ * / premium's 20% are unchanged by anything here. It is used only to work out
+ * what PROPORTION of a return is a refusal rather than a send-back, which is a
+ * ratio the industry data can speak to and the engine's own totals cannot.
+ */
+export const POST_DELIVERY_RETURN_RATE = 0.30;
+
+/**
+ * What one refused parcel costs in freight, in paise.
+ *
+ * DOCUMENTED: ClickPost puts direct logistics on an RTO at ₹150-300, and GoKwik
+ * puts the typical loss on a ₹1,000 order at ₹200-250. (Fully loaded with
+ * acquisition and handling it reaches ₹450-900, which is a different quantity —
+ * the ad spend is already charged separately here, so counting it again would
+ * bill the player twice for the same click.)
+ *
+ * FLAT, NOT A SHARE OF THE ORDER, because freight is charged per parcel and not
+ * per rupee. That is what makes it bite unevenly, and the unevenness is the
+ * lesson: ₹200 against value's ₹480 margin on a ₹1,200 basket is 42% of the
+ * order gone, against 16% for mid and 7% for premium. A value brand is punished
+ * six times harder than a premium one for the same parcel coming back.
+ *
+ * THE ENGINE HAD NO SHIPPING COST AT ALL BEFORE THIS. `marginPct` absorbed it
+ * silently, so a refusal cost nothing but revenue that never arrived — which is
+ * precisely why cash on delivery looked harmless here and does not in life.
+ */
+export const RTO_FREIGHT_PAISE = 20000;
 
 
 /**
@@ -839,8 +879,13 @@ export const PROVENANCE = {
   LOCATION_VOLUME_BY_PRICE: 'CALIBRATE',
   LOCATION_RETURN_MULTIPLIER: 'CALIBRATE',
   LOCATION_AOV_MULTIPLIER: 'CALIBRATE',
+  // Location axis sourced, price axis inferred — the comment on the table says
+  // which is which, and they are tagged for the weaker of the two.
   COD_SHARE_BY_PRICE_LOCATION: 'ESTIMATED',
-  COD_REFUSAL_PROPENSITY: 'ESTIMATED',
+  RTO_RATE_COD: 'DOCUMENTED',
+  RTO_RATE_PREPAID: 'DOCUMENTED',
+  POST_DELIVERY_RETURN_RATE: 'DOCUMENTED',
+  RTO_FREIGHT_PAISE: 'DOCUMENTED',
   RELEVANCE_INTENT_MULTIPLIERS: 'INVENTED',
   CONTEXT_FACTOR_CURVE: 'INVENTED',
   QUALITY_NOISE_SIGMA: 'INVENTED',

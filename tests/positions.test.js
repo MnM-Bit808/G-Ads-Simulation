@@ -497,3 +497,51 @@ describe('purity (R1)', () => {
     expect(businessFor(p, noCapex, 5)).toEqual(businessFor(p, noCapex, 5));
   });
 });
+
+/**
+ * The size guide reaches only half of what comes back (I28 build 2).
+ *
+ * A size guide fixes "wrong size". It does nothing about a parcel refused at
+ * the door, and refusals are the half that varies with geography — so the two
+ * halves have to be separable before `round.js` can apply the capex to one and
+ * not the other.
+ */
+describe('the two halves of the return rate', () => {
+  const noCapex = { committed: {}, pending: [] };
+  const fullGuide = { committed: { sizeGuide: 10000000 }, pending: [] };
+  const cell = { price: 'mid', purpose: 'lifestyle' };
+
+  test('the pre-size-guide rate is exactly what the tables say, capex or not', () => {
+    // If capex ever leaks into this, the split downstream applies the size
+    // guide twice — once here and once to the send-back half.
+    const a = businessFor(cell, noCapex, 6);
+    const b = businessFor(cell, fullGuide, 6);
+    expect(b.returnRateBeforeSizeGuide).toBe(a.returnRateBeforeSizeGuide);
+    expect(a.returnRateBeforeSizeGuide).toBeCloseTo(
+      POSITION_ECONOMICS[cell.price].returnRate * PURPOSE_MODIFIERS[cell.purpose].ret, 10,
+    );
+  });
+
+  test('the size guide effect is 1 with no capex and above 1 with it', () => {
+    expect(businessFor(cell, noCapex, 6).sizeGuideEffect).toBe(1);
+    expect(businessFor(cell, fullGuide, 6).sizeGuideEffect).toBeGreaterThan(1);
+  });
+
+  test('the headline returnRate is still the two divided, so nothing else moves', () => {
+    // `returnRate` is what every caller that does not know the location reads,
+    // and it must keep meaning exactly what it did before this split existed.
+    for (const capex of [noCapex, fullGuide]) {
+      const b = businessFor(cell, capex, 6);
+      expect(b.returnRate).toBeCloseTo(b.returnRateBeforeSizeGuide / b.sizeGuideEffect, 10);
+    }
+  });
+
+  test('a capex tranche still pending does not reduce anything yet', () => {
+    const pending = {
+      committed: { sizeGuide: 10000000 },
+      pending: [{ target: 'sizeGuide', paise: 10000000, liveAtRound: 9 }],
+    };
+    expect(businessFor(cell, pending, 6).sizeGuideEffect).toBe(1);
+    expect(businessFor(cell, pending, 9).sizeGuideEffect).toBeGreaterThan(1);
+  });
+});

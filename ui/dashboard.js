@@ -55,7 +55,9 @@ function renderHeadline(root, row, game, playerId, report) {
       `${row.conversions.stillPending.toFixed(1)} still pending`),
     figure('Net ROAS', ratio(row.money.netRoas), `gross ${ratio(row.money.grossRoas)}`),
     figure('Net profit', rupees(row.money.netProfitPaise),
-      `gross ${rupees(row.money.grossProfitPaise)}`,
+      row.money.rtoFreightPaise > 0
+        ? `gross ${rupees(row.money.grossProfitPaise)}, less ${rupees(row.money.rtoFreightPaise)} freight`
+        : `gross ${rupees(row.money.grossProfitPaise)}`,
       row.money.netProfitPaise < 0 ? 'neg' : 'pos'),
     figure('CPA', row.money.cpaPaise == null ? '—' : rupees(row.money.cpaPaise), ''),
   );

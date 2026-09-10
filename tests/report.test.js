@@ -6,7 +6,7 @@ import {
   FORBIDDEN_IN_PUBLIC_VIEW, FORBIDDEN_IN_SELF_VIEW,
 } from '../engine/insights.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
-import { LOCATION_TIERS } from '../engine/constants.js';
+import { LOCATION_TIERS, RTO_FREIGHT_PAISE } from '../engine/constants.js';
 import { codShareFor } from '../engine/locations.js';
 
 const STATE = makeGameState();
@@ -679,5 +679,92 @@ describe('refusals and send-backs are told apart', () => {
         .reduce((a, r) => a + (r.returned ?? 0), 0);
       expect(fromLocations).toBeCloseTo(row.conversions.returned, 6);
     }
+  });
+});
+
+/**
+ * The freight on a refused parcel (I28 build 2).
+ *
+ * The first shipping cost this engine has ever had. `marginPct` absorbed it
+ * silently before, so a parcel refused at the door cost nothing but revenue
+ * that never arrived — which is why cash on delivery looked harmless here and
+ * does not in life.
+ */
+describe('refused parcels cost freight', () => {
+  const played = () => {
+    let s = makeGameState();
+    const out = [];
+    for (let r = 1; r <= 6; r++) {
+      const result = runRound({ ...s, round: r }, { mode: 'expected' });
+      out.push(result);
+      s = result.nextGameState;
+    }
+    return { state: s, results: out };
+  };
+
+  test('the charge is exactly the refused count times the freight', () => {
+    const { state } = played();
+    for (const report of state.history) {
+      for (const [id, row] of Object.entries(report.byAdvertiser)) {
+        expect(row.money.rtoFreightPaise, `${id} wk${report.round}`)
+          .toBe(Math.round((row.conversions.refused ?? 0) * RTO_FREIGHT_PAISE));
+      }
+    }
+  });
+
+  test('it comes off NET profit and leaves GROSS alone', () => {
+    // Gross is the reading where nothing came back, and if nothing came back
+    // there is no freight to pay. It also sharpens D4's trap rather than
+    // softening it: the metric month 3 is allocated on now ignores the returns
+    // AND what they cost to carry.
+    const { state } = played();
+    let checked = 0;
+    for (const report of state.history) {
+      for (const [id, row] of Object.entries(report.byAdvertiser)) {
+        const m = row.money;
+        if (m.rtoFreightPaise <= 0 || m.grossRevenuePaise <= 0) continue;
+        checked += 1;
+
+        // The margin this advertiser ran at, recovered from the gross figures —
+        // which is only possible because gross carries no freight term.
+        const margin = (m.grossProfitPaise + row.traffic.costPaise) / m.grossRevenuePaise;
+
+        // Net, with the freight added back, must land on the same formula gross
+        // uses. If freight had leaked into gross this would miss by twice it.
+        const netBeforeFreight = m.netProfitPaise + m.rtoFreightPaise;
+        expect(netBeforeFreight, `${id} wk${report.round}`)
+          .toBeCloseTo(m.netRevenuePaise * margin - row.traffic.costPaise, -1);
+      }
+    }
+    expect(checked, 'no advertiser paid any freight, so this proved nothing')
+      .toBeGreaterThan(0);
+  });
+
+  test('no freight is charged in the round the click happened', () => {
+    // A return needs the window, so nothing can have come back yet. A charge
+    // here would be billing for a parcel that has not been refused.
+    const first = runRound(makeGameState(), { mode: 'expected' });
+    for (const row of Object.values(first.report.byAdvertiser)) {
+      expect(row.money.rtoFreightPaise).toBe(0);
+      expect(row.conversions.refused).toBe(0);
+    }
+  });
+
+  test('refused and sent back still add to returned, after every revision', () => {
+    const { state } = played();
+    for (const report of state.history) {
+      for (const [id, row] of Object.entries(report.byAdvertiser)) {
+        expect(row.conversions.refused + row.conversions.sentBack, `${id} wk${report.round}`)
+          .toBeCloseTo(row.conversions.returned, 8);
+      }
+    }
+  });
+
+  test('somebody was actually refused, or none of the above proves anything', () => {
+    // The guard against a suite that passes because every figure is zero.
+    const { state } = played();
+    const total = state.history.reduce((a, h) => a + Object.values(h.byAdvertiser)
+      .reduce((b, r) => b + (r.conversions.refused ?? 0), 0), 0);
+    expect(total).toBeGreaterThan(0);
   });
 });

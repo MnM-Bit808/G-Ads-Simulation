@@ -2833,7 +2833,7 @@ rendered `width: 5.77183e-15%`. Widths are now rounded, and a pending segment
 below a twentieth of a percent is not appended at all — which also lets
 `:only-child` round both ends of a finished week's bar.
 
-### I28. Cash on delivery, and the returns that were never sales — `BUILD 1 OF 3`
+### I28. Cash on delivery, and the returns that were never sales — `BUILDS 1 AND 2 OF 3`
 
 **COD has been in this model since G4 with no name.** `LOCATION_RETURN_MULTIPLIER`
 exists because of it — its own comment says *"cash on delivery is ordinary
@@ -2891,13 +2891,64 @@ size guide fixes somebody changing their mind on a doorstep. Correcting it moves
 numbers rather than only the display, so it lands with build 2 and a calibration
 re-run, where before and after can be measured in one place instead of two.
 
-**Builds 2 and 3, agreed and not started.** 2 adds the freight an RTO actually
-costs — the engine has NO shipping cost at all today, `marginPct` absorbs it, so
-an RTO currently costs nothing but the revenue that never arrived. That is the
-change that makes COD dangerous and it moves the market: calibration re-run,
-I1/I3/I4 may move. 3 adds the player's lever — a prepaid discount, a COD fee, or
-COD off by tier — trading conversion rate against refusals, and rivals get it
-under R6.
+**BUILD 2 LANDED, AND THE NUMBERS WERE SOURCED FIRST.** The player asked whether
+the constants were factual. They were not — `COD_REFUSAL_PROPENSITY` was 0.75,
+chosen by nothing — so they were looked up before any of build 2 was written.
+
+| | was | is | source |
+|---|---|---|---|
+| freight per refused parcel | ₹140, invented | **₹200** | ClickPost ₹150-300 direct; GoKwik ₹200-250 loss on a ₹1,000 order |
+| refusal propensity | 0.75, invented | **RTO 20.9% COD / 5.8% prepaid** | Unicommerce FY23, a 3.6x gap |
+| post-delivery returns | — | **30%** | Pragma 30-35% fashion; GoKwik/ClickPost 25-40% |
+| COD share, mid row mean | 0.51 | **0.71** | fashion runs 68-76%, the highest category (Pragma) |
+
+**THE INVENTED CONSTANT WAS WRONG BY ABOUT DOUBLE.** It made refusals run from
+16% of returns in the metros to 58% in the towns. On the sourced figures the
+range is **31.5% to 43.5%** — the geography penalty is real and roughly half as
+dramatic as the guess. Worth remembering the next time a plausible-feeling number
+goes in unsourced.
+
+**The two axes are not equally evidenced and are now tagged as such.** Location is
+sourced — tier 2/3 runs 58-64% COD across 142 D2C brands. Price is INFERRED, and
+the nearest fact cuts against it: RTO by order band is nearly flat, 25% under
+₹500, 28% at ₹500-1,000, 24% above. What justifies the axis is reasoning, not
+measurement, and the table says so.
+
+**WHAT BUILD 2 CHANGED.** Freight on every refused parcel, and the size guide
+reduced to reaching only send-backs. `positions.js` exposes
+`returnRateBeforeSizeGuide` and `sizeGuideEffect`; `round.js` rebuilds the rate
+per location as `refused + sentBack / sizeGuideEffect`; `attribution.js` carries
+`refusedShare` through the return queue so a resolved return knows what freight
+it owes; `report.js` charges it against NET profit only — gross is the reading
+where nothing came back, and if nothing came back there is no freight.
+
+**MEASURED, twelve weeks, three seeds:**
+
+| cell | refused parcels | freight | share of profit |
+|---|---|---|---|
+| value / lifestyle | 275 | ₹55L | **13.6%** |
+| mid / lifestyle | 126 | ₹25L | 2.5% |
+| premium / performance | 13 | ₹3L | 0.6% |
+
+A 23x spread. Flat freight against value's ₹480 margin on a ₹1,200 basket is 42%
+of the order; against premium's ₹2,976 it is 7%.
+
+**AND A PREDICTION OF MINE WAS WRONG, WHICH IS WORTH RECORDING.** I argued the
+size guide would be worth LESS where COD is higher, since less of the return is
+reachable. Measured, the full guide is worth **+10.8%** to value / lifestyle,
+**+5.4%** to mid and **+3.4%** to premium — the opposite ordering. The COD effect
+is real but subordinate: a premium brand's size guide reaches ~66% of its returns
+against value's ~58%, and that 14% difference is swamped by value having half as
+much margin and the highest base return rate to begin with. The mechanism is in
+the model; it is not what drives the ranking.
+
+**`calibration.test.js` PASSES UNCHANGED.** Build 2 moves economics and does not
+move them past the calibrated bounds, so `AD_RANK_FLOOR` and `WEEKLY_VOLUME` hold.
+That is a result, not a formality — it was expected to need a re-run.
+
+**Build 3, agreed and not started:** the player's lever — a prepaid discount, a
+COD fee, or COD off by tier — trading conversion rate against refusals, with
+rivals getting it under R6.
 
 **One defect, caught by the suite in seconds.** `byLocation` is keyed by INDEX,
 not by tier id — `round.js` writes `locationTier: bucket.tier` and `locationRows`

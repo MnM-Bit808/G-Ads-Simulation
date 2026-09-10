@@ -45,6 +45,7 @@ import {
   LEARNING_ROUNDS, MAX_BID_MULTIPLE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
   REPOSITION_COST_PAISE, ROUNDS_PER_MONTH, LOCATION_TIERS,
   DAYPART_BLOCKS, MIN_HOUR_OBSERVATIONS, QUALITY_MIN_IMPRESSIONS, QUALITY_WINDOW_ROUNDS,
+  RTO_FREIGHT_PAISE,
 } from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
@@ -876,8 +877,10 @@ export function locationOutlook(rows) {
     note += ` In ${worstRefusal.label.toLowerCase()}, `
       + `${pct(worstRefusal.codShare)} of orders are paid at the door and `
       + `${pct(worstRefusal.refusedShare)} of the returns from there never got through it. `
-      + 'A refusal is not a return: there was no sale to reverse, and no size guide '
-      + 'fixes somebody changing their mind on the doorstep.';
+      + `A refusal is not a return: there was no sale to reverse, it still cost you `
+      + `${rupees(RTO_FREIGHT_PAISE)} of freight both ways, and no size guide fixes `
+      + 'somebody changing their mind on the doorstep — which is the half of your '
+      + 'returns a size guide can never reach.';
   }
 
   return { played: true, best, worst, note };

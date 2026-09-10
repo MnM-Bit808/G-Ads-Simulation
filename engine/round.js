@@ -43,7 +43,7 @@ import { searches, DAYS_PER_WEEK, HOURS_PER_DAY } from './querySet.js';
 import { isBlocked, findMatches, selectAdGroup, normalise } from './matching.js';
 import { qualitySignalBase, applyHourAndNoise } from './quality.js';
 import { businessFor, landingPageBonus } from './positions.js';
-import { locationSharesFor, locationEffects } from './locations.js';
+import { locationSharesFor, locationEffects, rtoShareOfReturns } from './locations.js';
 import { resolveAuction } from './auction.js';
 import { estimatedConvRate, effectiveBidPaise, locationMultiplier } from './strategies.js';
 import {
@@ -52,7 +52,7 @@ import {
 } from './pacing.js';
 import { buildRoundOutput, reviseReports } from './report.js';
 import {
-  effectiveConvRate, retentionRate, sampleOrderValuePaise,
+  effectiveConvRate, sampleOrderValuePaise,
   queueConversions, landDueConversions, queueReturns, resolveReturns,
 } from './attribution.js';
 
@@ -483,7 +483,14 @@ function recordAuction({
       });
       if (convRate > 0) {
         const base = sampleOrderValuePaise(business[i], query, perAdvertiserRng[i], mode);
-        const queryReturn = 1 - retentionRate(business[i], query);
+        // The return rate for this query BEFORE the size guide was divided into
+        // it, which is what the per-location split below has to start from.
+        // `retentionRate` is still the right function for anything that wants
+        // the headline figure; this path needs the two halves separately.
+        const queryReturnGross = Math.min(
+          RETURN_RATE_CLAMP_MAX,
+          business[i].returnRateBeforeSizeGuide * (query.returnRateMultiplier ?? 1),
+        );
         const converted = clicks * convRate;
         // ONE BUCKET PER QUERY AND LOCATION. The basket and the return rate are
         // both per location, and they are the only two things location changes -
@@ -498,12 +505,37 @@ function recordAuction({
           const here = converted * share;
           const key = `${query.id}\u0000${t}`;
           const bucket = convAccum[i].get(key)
-            ?? { queryId: query.id, tier: t, count: 0, valuePaise: 0, returnWeighted: 0 };
+            ?? {
+              queryId: query.id, tier: t, count: 0, valuePaise: 0,
+              returnWeighted: 0, refusedWeighted: 0,
+            };
           bucket.count += here;
           bucket.valuePaise += here * base * effects.aovMultiplier[t];
-          bucket.returnWeighted += here * Math.min(
-            RETURN_RATE_CLAMP_MAX, queryReturn * effects.returnMultiplier[t],
+
+          // I28 BUILD 2: THE SIZE GUIDE ONLY REACHES HALF OF THIS.
+          //
+          // A refusal at the door and a send-back after delivery are different
+          // events, and a size guide fixes only the second — nobody's fit chart
+          // stops a customer changing their mind on the doorstep. So the return
+          // rate is rebuilt from its two halves here, where the location is
+          // known, rather than taken from `business.returnRate`, which has
+          // already divided the whole thing by the capex effect.
+          //
+          // The consequence is a real strategic lever and it falls out of
+          // numbers the player can already see: the more of your orders are cash
+          // on delivery, the less a size guide is worth to you.
+          const gross = Math.min(
+            RETURN_RATE_CLAMP_MAX, queryReturnGross * effects.returnMultiplier[t],
           );
+          const refusedHere = gross * rtoShareOfReturns(advertisers[i].position.price, t);
+          const sentBackHere = (gross - refusedHere) / business[i].sizeGuideEffect;
+          const rate = Math.min(RETURN_RATE_CLAMP_MAX, refusedHere + sentBackHere);
+
+          bucket.returnWeighted += here * rate;
+          // Carried so the freight on a refused parcel can be charged to the
+          // round that earned it. Weighted the same way, because a bucket is a
+          // cohort and not a single order.
+          bucket.refusedWeighted += here * Math.min(rate, refusedHere);
           convAccum[i].set(key, bucket);
         }
         // Kept separately from the money buckets, which are per query because
@@ -641,6 +673,11 @@ function settleRound({ advertisers, business, acc, convAccum, round, perAdvertis
         // Already the cohort's own rate for this query in this location, so no
         // averaging is left to do here.
         returnRate: bucket.returnWeighted / bucket.count,
+        // What share of THIS bucket's returns never got through the door. Rides
+        // along so a resolved return can say how much freight it owes.
+        refusedShare: bucket.returnWeighted > 0
+          ? bucket.refusedWeighted / bucket.returnWeighted
+          : 0,
         round,
         rng: perAdvertiserRng[i],
         mode,

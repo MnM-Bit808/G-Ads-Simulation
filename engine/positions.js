@@ -116,6 +116,16 @@ export function businessFor(position, capex, round) {
     aovSpread: tier.aovSpread,
     marginPct: tier.marginPct,
     returnRate: clamp(tier.returnRate * modifier.ret / sizeGuide, 0, RETURN_RATE_CLAMP_MAX),
+    // THE TWO HALVES OF THAT DIVISION, kept so a caller that knows the LOCATION
+    // can apply the size guide to the part it can actually reach (I28 build 2).
+    // A size guide fixes "wrong size"; it does nothing about a parcel refused at
+    // the door, and refusals are the half that varies with geography. `round.js`
+    // is the only place both this and the location are in scope.
+    //
+    // `returnRate` above stays exactly as it was so nothing that only wants the
+    // headline number has to know any of this.
+    returnRateBeforeSizeGuide: clamp(tier.returnRate * modifier.ret, 0, RETURN_RATE_CLAMP_MAX),
+    sizeGuideEffect: sizeGuide,
     returnWindowRounds: tier.returnWindowRounds,
   };
 }

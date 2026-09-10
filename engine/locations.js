@@ -26,7 +26,7 @@
 import {
   LOCATION_TIERS, LOCATION_VOLUME_BY_PRICE, LOCATION_RETURN_MULTIPLIER,
   LOCATION_AOV_MULTIPLIER, PRICE_TIERS,
-  COD_SHARE_BY_PRICE_LOCATION, COD_REFUSAL_PROPENSITY,
+  COD_SHARE_BY_PRICE_LOCATION, RTO_RATE_COD, RTO_RATE_PREPAID, POST_DELIVERY_RETURN_RATE,
 } from './constants.js';
 import { homeCell } from './querySet.js';
 
@@ -205,27 +205,54 @@ export function codShareFor(price, tierIndex) {
 }
 
 /**
+ * How often a parcel bound here is refused at the door.
+ *
+ * The payment mix does the work: cash orders come back refused at
+ * `RTO_RATE_COD` and prepaid ones at `RTO_RATE_PREPAID`, which Unicommerce
+ * measured at 20.9% against 5.8% over FY23. A place with more cash in it has
+ * more refusals, and that is the whole of the mechanism.
+ *
+ * @param {string} price a `PRICE_TIERS` entry
+ * @param {number} tierIndex into `LOCATION_TIERS`
+ * @returns {number} 0..1
+ */
+export function refusalRateFor(price, tierIndex) {
+  const cod = codShareFor(price, tierIndex);
+  return cod * RTO_RATE_COD + (1 - cod) * RTO_RATE_PREPAID;
+}
+
+/**
  * What fraction of the returns from here were REFUSALS rather than send-backs.
  *
  * A return and an RTO are different events — one reverses a sale, the other
- * means there never was one — and the engine has only ever had the first. This
- * splits what an advertiser already returns into the two, so the reporting can
- * tell them apart.
+ * means there never was one — and the engine has only ever had the first.
  *
- * IT SPLITS, IT DOES NOT ADD. The result is a share of the returns already
- * computed, so an advertiser's total return rate is exactly what it was before
- * this function existed, and no calibrated number moves. The freight an RTO
- * actually costs is the next change, and that one does move them.
+ * A SHAPE FROM THE INDUSTRY, A LEVEL FROM F8. This is a RATIO, and it is applied
+ * to whatever return rate `POSITION_ECONOMICS` already gives an advertiser.
+ * Nothing here sets how much comes back; value's 30%, mid's 24% and premium's
+ * 20% are untouched. That is the same discipline `locationEffects` applies to
+ * its own tables, and for the same reason: the published figures are good
+ * evidence about proportions and poor evidence about this particular vertical's
+ * absolute rate.
+ *
+ * Of 100 orders sent here, `refusalRateFor` are refused. The rest are delivered,
+ * and `POST_DELIVERY_RETURN_RATE` of those come back afterwards. The share is
+ * the first over the sum — which lands between 31% and 44% across the grid,
+ * against the 16% to 58% an invented constant produced before the figures were
+ * looked up.
  *
  * @param {string} price a `PRICE_TIERS` entry
  * @param {number} tierIndex into `LOCATION_TIERS`
  * @returns {number} 0..1, the share of returns that were refused at the door
  */
 export function rtoShareOfReturns(price, tierIndex) {
-  const share = codShareFor(price, tierIndex) * COD_REFUSAL_PROPENSITY;
-  // Cannot exceed the returns it is a share of, whatever the tables say later.
-  return Math.max(0, Math.min(1, share));
+  const refused = refusalRateFor(price, tierIndex);
+  const sentBack = (1 - refused) * POST_DELIVERY_RETURN_RATE;
+  const total = refused + sentBack;
+  if (total <= 0) return 0;
+  return Math.max(0, Math.min(1, refused / total));
 }
+
 
 export function validateLocationTables() {
   const problems = [];

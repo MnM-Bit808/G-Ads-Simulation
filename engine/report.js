@@ -23,8 +23,8 @@
 import { businessFor } from './positions.js';
 import { mulRate } from './money.js';
 import { buildInsights } from './insights.js';
-import { SCHEMA_VERSION } from './constants.js';
-import { rtoShareOfReturns, codShareFor } from './locations.js';
+import { SCHEMA_VERSION, RTO_FREIGHT_PAISE } from './constants.js';
+import { codShareFor, refusalRateFor } from './locations.js';
 
 /**
  * Build a fresh report for one round.
@@ -70,6 +70,9 @@ export function buildRoundReport({ round, raw, advertisers }) {
       grossRevenuePaise,
       returnedRevenuePaise: 0,
       marginPct: business.marginPct,
+      // Nothing has come back yet — a return needs the window — so there is no
+      // freight to charge in the round the click happened.
+      refused: 0,
     });
 
     byAdvertiser[advertiser.id] = {
@@ -92,6 +95,8 @@ export function buildRoundReport({ round, raw, advertisers }) {
         final: conversions,
         stillPending,
         returned: 0,
+        refused: 0,
+        sentBack: 0,
       },
       money: {
         ...money,
@@ -192,6 +197,10 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
       const business = marginByAdvertiser.get(advertiser.id);
       const conversions = existing.conversions.final + sum(lateLanded, (e) => e.count);
       const returned = existing.conversions.returned + sum(lateReturns, (e) => e.count);
+      // I28 build 2: how many of those never got through the door, from the
+      // entries themselves rather than from a rate applied afterwards.
+      const refused = (existing.conversions.refused ?? 0)
+        + sum(lateReturns, (e) => e.count * (e.refusedShare ?? 0));
       const grossRevenuePaise = existing.money.grossRevenuePaise
         + sum(lateLanded, (e) => e.valuePaise);
       const returnedRevenuePaise = existing.money.returnedRevenuePaise
@@ -203,6 +212,7 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
         grossRevenuePaise,
         returnedRevenuePaise,
         marginPct: business.marginPct,
+        refused,
       });
 
       byAdvertiser[advertiser.id] = {
@@ -214,6 +224,9 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
           ...existing.conversions,
           final: conversions,
           returned,
+          // The half of `returned` that was never a sale (I28).
+          refused,
+          sentBack: returned - refused,
           stillPending: Math.max(0, existing.conversions.stillPending - sum(lateLanded, (e) => e.count)),
         },
         money: {
@@ -374,12 +387,16 @@ function splitRefusals(byLocation, price) {
     const index = Number(key);
     if (!Number.isInteger(index)) { out[key] = row; continue; }
     const returned = row.returned ?? 0;
-    const refused = returned * rtoShareOfReturns(price, index);
     out[key] = {
       ...row,
-      refused,
-      sentBack: returned - refused,
+      // Defaulted, never overwritten: `reviseBreakdown` fills these from the
+      // resolved returns, and a row that has not had any yet is all zero rather
+      // than all estimate.
+      refused: row.refused ?? 0,
+      sentBack: row.sentBack ?? (returned - (row.refused ?? 0)),
+      // The reason the two differ, which the card cannot say the split without.
       codShare: codShareFor(price, index),
+      refusalRate: refusalRateFor(price, index),
     };
   }
   return out;
@@ -420,25 +437,45 @@ function reviseBreakdown(breakdown, keywordFor, late, lateReturns = []) {
   for (const entry of lateReturns) {
     const row = byLocation[entry.locationTier];
     if (!row) continue;
+    // I28 build 2: the entry knows how much of itself never got through the
+    // door, so this is a real count now rather than build 1's derived share.
+    const refusedHere = entry.count * (entry.refusedShare ?? 0);
     byLocation[entry.locationTier] = {
       ...row,
       returned: (row.returned ?? 0) + entry.count,
       returnedRevenuePaise: (row.returnedRevenuePaise ?? 0) + entry.valuePaise,
+      refused: (row.refused ?? 0) + refusedHere,
+      sentBack: (row.sentBack ?? 0) + (entry.count - refusedHere),
     };
   }
   return { byKeyword, byQuery, byLocation };
 }
 
-function moneyBlock({ costPaise, conversions, grossRevenuePaise, returnedRevenuePaise, marginPct }) {
+function moneyBlock({
+  costPaise, conversions, grossRevenuePaise, returnedRevenuePaise, marginPct, refused = 0,
+}) {
   const netRevenuePaise = grossRevenuePaise - returnedRevenuePaise;
+  // I28 BUILD 2: THE FIRST SHIPPING COST THIS ENGINE HAS EVER HAD.
+  //
+  // `marginPct` absorbed freight silently, so a parcel refused at the door cost
+  // nothing but revenue that never arrived — which is exactly why cash on
+  // delivery looked harmless here and does not in life.
+  //
+  // It comes off NET profit and not gross, deliberately. Gross profit is the
+  // reading where nothing came back, and if nothing came back there is no
+  // freight to pay. That also sharpens D4's trap rather than softening it: the
+  // metric month 3's budget is allocated on now ignores the returns AND what
+  // they cost to carry.
+  const rtoFreightPaise = Math.round(refused * RTO_FREIGHT_PAISE);
   return {
     grossRevenuePaise,
     returnedRevenuePaise,
     netRevenuePaise,
+    rtoFreightPaise,
     grossRoas: ratio(grossRevenuePaise, costPaise),
     netRoas: ratio(netRevenuePaise, costPaise),
     grossProfitPaise: mulRate(grossRevenuePaise, marginPct) - costPaise,
-    netProfitPaise: mulRate(netRevenuePaise, marginPct) - costPaise,
+    netProfitPaise: mulRate(netRevenuePaise, marginPct) - costPaise - rtoFreightPaise,
     cpaPaise: conversions > 0 ? Math.round(costPaise / conversions) : null,
   };
 }
