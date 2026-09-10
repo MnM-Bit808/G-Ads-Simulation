@@ -881,6 +881,58 @@ export const CAPEX_TARGETS = Object.freeze([
   'photography', 'sizeGuide', 'landingPage', 'orderConfirmation',
 ]);
 
+/**
+ * Photography climbs a longer, shallower ladder than the other three (I30).
+ *
+ * MEASURED, AND IT WAS NOT A CLOSE CALL. On the shared curve, ₹80,000 of
+ * photography was worth +46.3% of profit averaged over the six cells, against
+ * +8.5% for the landing page, +6.4% for the size guide and +5.7% for order
+ * confirmation. **Five and a half times the next best, in every cell.** So there
+ * was no "which three of four" — everybody bought photography and the real
+ * decision was over the leftovers.
+ *
+ * The reason is structural rather than a tuning error. Photography multiplies
+ * `convRateBase`, so a 25% lift is 25% more revenue on advertising that costs
+ * the same either way. The two return targets divide a rate that is only about a
+ * quarter of revenue to begin with, so a 25% cut there is worth about 6%.
+ *
+ * PRICE ALONE COULD NOT FIX IT, and the arithmetic is worth keeping because the
+ * idea will come back:
+ *
+ *   to make photography no better per rupee than the landing page it would have
+ *   to cost ₹4,35,068 — 1.8x the ₹2,40,000 the whole game provides, so nobody
+ *   could ever buy it
+ *
+ *   cutting the other three to match photography per rupee puts all four at
+ *   ₹1,15,000 together, leaving ₹1,25,000 spare — you buy everything and the
+ *   choice disappears, which is where the rejected carryover idea also led
+ *
+ * And equal value per rupee was never the goal anyway: if all four pay the same,
+ * every allocation is as good as any other and there is still nothing to decide.
+ * What makes a choice is COMPARABLE SIZE WITH DIFFERENT ORDERING BY CELL, and
+ * the other three already have it — the landing page pays most at
+ * premium|performance, exactly where the size guide and order confirmation pay
+ * least.
+ *
+ * So the effect comes down and the price goes up. The top is 1.11, worth about
+ * +20% of profit, and the ladder runs to ₹1,60,000 at the same proportions the
+ * shared curve uses. That leaves two strategies costing exactly the ₹2,40,000
+ * two allocation rounds provide:
+ *
+ *   photography, and one other target maxed
+ *   three of the other three, and no photography
+ *
+ * Photography stays the strongest single lever — about 1.3x the landing page per
+ * rupee — and taking it now costs two of the other three. That is the trade.
+ */
+export const CAPEX_PHOTOGRAPHY_CURVE = [
+  { paise: 0, effect: 1 },
+  { paise: 5000000, effect: 1.02 },
+  { paise: 11000000, effect: 1.07 },
+  { paise: 16000000, effect: 1.11 },
+];
+
+
 // ---------------------------------------------------------------------------
 // Ad copy limits (spec 18.1)
 // ---------------------------------------------------------------------------
@@ -981,6 +1033,12 @@ export const PROVENANCE = {
   CAPEX_DELAY_ROUNDS: 'INVENTED',
   CAPEX_TIER_CURVE: 'INVENTED',
   CAPEX_TARGETS: 'INVENTED',
+  // ESTIMATED and not CALIBRATE, by that set's own rule: this was FITTED to a
+  // measurement rather than left provisional. The gap it closes was measured at
+  // 5.4x and the top was chosen to land near +20% of profit, so it is settled by
+  // evidence — re-measure it if the six-cell gains move, do not widen a set the
+  // spec pinned at two.
+  CAPEX_PHOTOGRAPHY_CURVE: 'ESTIMATED',
   CAPEX_LANDING_PAGE_MAX_POINTS: 'INVENTED',
   CREATIVE_ALLOCATION_PAISE: 'INVENTED',
   // ESTIMATED, not CALIBRATE, and the distinction is not pedantry: CALIBRATE

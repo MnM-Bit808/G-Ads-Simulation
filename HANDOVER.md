@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and the location mechanic with them.** 1341 tests, all passing, 1 todo.
+**Every build-order step is done, and the location mechanic with them.** 1342 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution

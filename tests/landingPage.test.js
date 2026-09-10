@@ -16,7 +16,7 @@ import { describe, test, expect } from 'vitest';
 import { explainGrade } from '../agents/grader.js';
 import { CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS } from '../engine/constants.js';
 import {
-  PAGE_FEATURES, CAPEX_STEPS, composeDescription, featureAt, capexChoices,
+  PAGE_FEATURES, CAPEX_STEPS, stepsFor, composeDescription, featureAt, capexChoices,
 } from '../ui/landing-page.js';
 
 const NOTHING = { sizeGuide: 0, photography: 0, landingPage: 0 };
@@ -68,10 +68,22 @@ describe('the steps are the engine, not a copy of it', () => {
     expect(CAPEX_STEPS).toEqual(CAPEX_TIER_CURVE.map((t) => t.paise));
   });
 
-  test('every capex target has a tier for every step', () => {
+  test('every capex target has a tier for every step of ITS OWN ladder', () => {
+    // It used to compare all four against `CAPEX_STEPS`. Photography climbs a
+    // longer, shallower ladder now (I30), so a shared list would demand rungs it
+    // does not have — and, worse, would pass if photography's rungs were
+    // silently reset to the shared ones.
     for (const [target, tiers] of Object.entries(PAGE_FEATURES)) {
-      expect(tiers.map((t) => t.paise), target).toEqual(CAPEX_STEPS);
+      expect(tiers.map((t) => t.paise), target).toEqual(stepsFor(target));
     }
+  });
+
+  test('and photographys own ladder really is the longer one', () => {
+    // The guard against the above passing vacuously if `stepsFor` ever returns
+    // the shared curve for everything.
+    expect(stepsFor('photography')).not.toEqual(CAPEX_STEPS);
+    const photoTop = stepsFor('photography').at(-1);
+    expect(photoTop).toBe(2 * CAPEX_STEPS.at(-1));
   });
 });
 
@@ -309,21 +321,23 @@ describe('a partly funded target can still climb its own ladder', () => {
     // committed, so every increment equals the rung's own price.
     for (const target of TARGETS) {
       const choices = capexChoices(target, 0);
-      expect(choices.map((c) => c.amountPaise))
-        .toEqual(CAPEX_STEPS.filter((p) => p > 0));
+      expect(choices.map((c) => c.amountPaise), target)
+        .toEqual(stepsFor(target).filter((p) => p > 0));
       expect(choices.some((c) => c.wasteful), `${target} has nothing to waste yet`).toBe(false);
     }
   });
 
-  test('topping up ₹25,000 of photography offers exactly what it should', () => {
-    // The reported case, pinned as a whole so the shape cannot drift.
-    const choices = capexChoices('photography', 2500000);
+  test('topping up ₹25,000 of the size guide offers exactly what it should', () => {
+    // THE REPORTED CASE, pinned as a whole so the shape cannot drift. It was
+    // photography when it was found; photography left the shared ladder in I30,
+    // so the case moved to a target that still climbs the one the bug was about.
+    const choices = capexChoices('sizeGuide', 2500000);
     expect(choices.map((c) => [c.amountPaise, c.reaches.label, c.wasteful])).toEqual([
-      [2500000, 'product shots', true],   // I15's chip: spends and changes nothing
-      [3000000, 'on real bodies', false], // the rung that used to be unreachable
+      [2500000, 'a chart', true],    // I15's chip: spends and changes nothing
+      [3000000, 'measured', false],  // the rung that used to be unreachable
       // Three rungs, not four: the ladder lost the step that cost ₹30,000 for
       // three hundredths (I29), and its label merged into the top one.
-      [5500000, 'video', false],
+      [5500000, 'fit finder', false],
     ]);
   });
 

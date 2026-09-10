@@ -3049,6 +3049,92 @@ live decisions, this is one fixed account making no decisions after round 0 — 
 nothing here shows the spread widened. A matched before-and-after would be needed
 to claim that, and it has not been run.
 
+### I30. Photography climbs a longer, shallower ladder — `FIXED, and not fully`
+
+I29's measurement found that **photography was worth 5.4x the next best target in
+every cell**, so "which three of four" was not a choice: everybody bought
+photography and the real decision was over the leftovers.
+
+Structural rather than a tuning slip. Photography multiplies `convRateBase`, so a
+25% lift is 25% more revenue on advertising that costs the same either way. The
+two return targets divide a rate that is only about a quarter of revenue, so a
+25% cut there is worth about 6%.
+
+**PRICE ALONE COULD NOT FIX IT**, and the arithmetic is kept because the idea will
+come back:
+
+- to make photography no better per rupee than the landing page it would have to
+  cost **₹4,35,068** — **1.8x the ₹2,40,000 the whole game provides**, so nobody
+  could ever buy it
+- cutting the other three to match photography per rupee puts all four at
+  ₹1,15,000 together, **leaving ₹1,25,000 spare** — you buy everything and the
+  choice disappears, which is where the rejected carryover idea also led
+
+**Equal value per rupee was never the goal anyway.** If all four pay the same,
+every allocation is as good as any other and there is still nothing to decide.
+What makes a choice is comparable size with DIFFERENT ORDERING BY CELL, and the
+other three already had it — the landing page pays most at `premium|performance`,
+exactly where the size guide and order confirmation pay least.
+
+**WHAT SHIPPED.** Photography gets `CAPEX_PHOTOGRAPHY_CURVE`: 0 / ₹50,000 /
+₹1,10,000 / ₹1,60,000 at 1.00 / 1.02 / 1.07 / **1.11**, against the shared
+0 / ₹25,000 / ₹55,000 / ₹80,000 at 1.00 / 1.04 / 1.16 / 1.25. Two strategies then
+cost exactly the ₹2,40,000 two rounds provide: **photography plus one other**, or
+**three of the other three**.
+
+**MEASURED AFTER, six cells, three seeds, and the target was hit:**
+
+| target | before | after | cost | per ₹10,000 |
+|---|---|---|---|---|
+| photography | 46.3% | **20.0%** | ₹1,60,000 | 1.25 |
+| landing page | 8.5% | 8.5% | ₹80,000 | 1.06 |
+| size guide | 6.4% | 6.4% | ₹80,000 | 0.80 |
+| order confirmation | 5.7% | 5.6% | ₹80,000 | 0.71 |
+
+The aim was "about +20% of profit" and it landed on 20.0%. Photography's lead over
+the best alternative fell from **5.44x to 2.36x**, and **to 1.18x per rupee.**
+
+**IT IS NOT FULLY FIXED, AND THE HONEST NUMBER IS THE STRATEGY ONE.** Comparing
+the two ₹2,40,000 routes:
+
+| cell | photography + best other | three others | ratio |
+|---|---|---|---|
+| value / performance | 37.6% | 23.4% | 1.61x |
+| mid / performance | 27.1% | 14.7% | **1.84x** |
+| premium / performance | 27.8% | 17.7% | 1.57x |
+| value / lifestyle | 36.4% | 33.2% | **1.10x** |
+| mid / lifestyle | 25.8% | 19.0% | 1.36x |
+| premium / lifestyle | 22.4% | 15.1% | 1.48x |
+
+**Photography still leads in all six cells**, by 1.10x to 1.84x. It is a real
+choice now rather than a solved one — `value|lifestyle` is nearly a coin toss —
+but it is not balanced, and calling it balanced would be the second time this
+ledger recorded a prediction that the measurement did not support.
+
+Two caveats on those figures. **The gains are not additive** — they interact
+through the auction, so summing three of them overstates the combined result by
+an unknown amount, and the "three others" column is the more overstated of the
+two. And there is a case that photography SHOULD lead: raising conversion rate
+genuinely is the highest-leverage move in performance marketing, because the ad
+spend is fixed either way. 5.4x was "no decision"; 1.5x is arguably the lesson.
+
+**Three things the suite caught that would otherwise have shipped.**
+
+`capexCurveFor` was written into `constants.js`, and a FUNCTION there hid
+`CAPEX_PHOTOGRAPHY_CURVE` from the guard that checks every constant is read
+outside its own file. Moved to `positions.js`.
+
+The new curve was tagged `CALIBRATE` and the provenance test refused it, by its
+own stated rule: *"is the thing being added genuinely unsettleable, or merely
+unmeasured?"* It was FITTED to a measurement, so it is settled by evidence.
+Retagged `ESTIMATED`; the CALIBRATE set stays at the five the spec and G4 pinned.
+
+`landingPage.test.js` compared all four ladders against `CAPEX_STEPS`, which
+would have passed silently if photography's rungs were ever reset to the shared
+ones. It now checks each target against its own ladder, **plus a guard asserting
+photography's really is the longer one** — without which the first assertion is
+vacuous.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

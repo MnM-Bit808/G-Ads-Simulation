@@ -25,7 +25,7 @@
 
 import {
   PRICE_TIERS, PURPOSES, POSITION_ECONOMICS, PURPOSE_MODIFIERS,
-  RETURN_RATE_CLAMP_MAX, CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE,
+  RETURN_RATE_CLAMP_MAX, CAPEX_TIER_CURVE, CAPEX_PHOTOGRAPHY_CURVE, CAPEX_ALLOCATION_PAISE,
   CAPEX_LANDING_PAGE_MAX_POINTS, REPOSITION_ROUND,
   HOUR_PROFILES, HOURLY_INTENT_CURVE, CONV_RATE_CLAMP,
 } from './constants.js';
@@ -107,13 +107,15 @@ export function businessFor(position, capex, round) {
   // Photography raises conversion; the size guide lowers returns. Dividing by
   // the effect rather than multiplying keeps "more investment is better" true
   // for a number you want to go down.
-  const photography = capexEffect(liveCapexPaise(capex, 'photography', round));
-  const sizeGuide = capexEffect(liveCapexPaise(capex, 'sizeGuide', round));
+  const photography = capexEffect(liveCapexPaise(capex, 'photography', round), 'photography');
+  const sizeGuide = capexEffect(liveCapexPaise(capex, 'sizeGuide', round), 'sizeGuide');
   // I29: the fourth target, and the only defence against the freight build 2
   // charges. A WhatsApp or IVR confirmation before dispatch does nothing about
   // a customer who takes delivery and changes their mind — it stops the parcel
   // that would have come back from the door.
-  const orderConfirmation = capexEffect(liveCapexPaise(capex, 'orderConfirmation', round));
+  const orderConfirmation = capexEffect(
+    liveCapexPaise(capex, 'orderConfirmation', round), 'orderConfirmation',
+  );
 
   return {
     convRateBase: tier.convRateBase * modifier.conv * photography,
@@ -290,6 +292,20 @@ export function realisedBreakEvenCpcPaise(business, querySet, position) {
 // ---------------------------------------------------------------------------
 
 /**
+ * The ladder a given target climbs (I30). Everything but photography shares one.
+ *
+ * Lives here rather than in `constants.js` because that file holds constants,
+ * and because a function there put `CAPEX_PHOTOGRAPHY_CURVE` out of reach of the
+ * guard that checks every constant is read by something outside its own file.
+ *
+ * @param {string|null} target one of `CAPEX_TARGETS`, or null for the shared one
+ * @returns {Array<{paise: number, effect: number}>}
+ */
+export function capexCurveFor(target) {
+  return target === 'photography' ? CAPEX_PHOTOGRAPHY_CURVE : CAPEX_TIER_CURVE;
+}
+
+/**
  * Read the S-curve at a commitment, interpolating between authored points and
  * flat outside them.
  *
@@ -299,11 +315,17 @@ export function realisedBreakEvenCpcPaise(business, querySet, position) {
  * into a solved puzzle. It is also the more honest shape: a quarter of the
  * budget buys a half-built fit tool that helps nobody (DECISIONS D7).
  *
+ * WHICH LADDER depends on the target (I30). Photography climbs a longer,
+ * shallower one, because on the shared curve it was worth five and a half times
+ * the next best target in every cell and there was no choice left to make.
+ * Omitting `target` reads the shared curve, which is what the other three use.
+ *
  * @param {number} paise cumulative commitment to one target
+ * @param {string} [target] one of `CAPEX_TARGETS`
  * @returns {number} effect multiplier, >= 1
  */
-export function capexEffect(paise) {
-  const curve = CAPEX_TIER_CURVE;
+export function capexEffect(paise, target = null) {
+  const curve = capexCurveFor(target);
   if (paise <= curve[0].paise) return curve[0].effect;
   const last = curve[curve.length - 1];
   if (paise >= last.paise) return last.effect;
@@ -353,7 +375,7 @@ export function liveCapexPaise(capex, target, round) {
  * @returns {number} whole points, 0..CAPEX_LANDING_PAGE_MAX_POINTS
  */
 export function landingPageBonus(capex, round) {
-  const effect = capexEffect(liveCapexPaise(capex, 'landingPage', round));
+  const effect = capexEffect(liveCapexPaise(capex, 'landingPage', round), 'landingPage');
   const maxEffect = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].effect;
   const fraction = maxEffect === 1 ? 0 : (effect - 1) / (maxEffect - 1);
   return Math.round(fraction * CAPEX_LANDING_PAGE_MAX_POINTS);

@@ -19,6 +19,7 @@
  */
 
 import { CAPEX_TIER_CURVE } from '../engine/constants.js';
+import { capexCurveFor } from '../engine/positions.js';
 
 /**
  * The amounts the S-curve actually distinguishes (13.3).
@@ -29,6 +30,19 @@ import { CAPEX_TIER_CURVE } from '../engine/constants.js';
  * prevent and could not see, because its guard matches DECIMAL arrays only.
  */
 export const CAPEX_STEPS = CAPEX_TIER_CURVE.map((tier) => tier.paise);
+
+/**
+ * The rungs one target's ladder actually has (I30).
+ *
+ * Photography climbs a longer, shallower one, so `CAPEX_STEPS` is no longer the
+ * answer for every target — it is the answer for three of them. A card reading
+ * the shared list for photography would offer ₹25,000 as a rung photography does
+ * not have and quietly charge for a step that reaches nothing.
+ */
+export const stepsFor = (target) => capexCurveFor(target).map((tier) => tier.paise);
+
+/** Photography's own rungs, named so the table below reads as a ladder. */
+const PHOTO_STEPS = stepsFor('photography');
 
 /**
  * What each rung of each capex target puts on the page.
@@ -78,16 +92,19 @@ export const PAGE_FEATURES = Object.freeze({
         + 'size from height and build.',
     },
   ]),
+  // Photography's rungs are its own — ₹50,000 / ₹1,10,000 / ₹1,60,000 rather
+  // than the shared ₹25,000 / ₹55,000 / ₹80,000 (I30). It is the strongest
+  // lever in the game and it now costs twice what anything else does.
   photography: Object.freeze([
-    { paise: CAPEX_STEPS[0], label: 'none', sentence: null },
-    { paise: CAPEX_STEPS[1], label: 'product shots', sentence: 'Product shots on white.' },
+    { paise: PHOTO_STEPS[0], label: 'none', sentence: null },
+    { paise: PHOTO_STEPS[1], label: 'product shots', sentence: 'Product shots on white.' },
     {
-      paise: CAPEX_STEPS[2],
+      paise: PHOTO_STEPS[2],
       label: 'on real bodies',
       sentence: 'Photographed on more than one body type.',
     },
     {
-      paise: CAPEX_STEPS[3],
+      paise: PHOTO_STEPS[3],
       label: 'video',
       sentence: 'Close detail shots of the fabric and the seams, and a short '
         + 'video on every product, moving.',
@@ -196,7 +213,7 @@ export function capexChoices(target, alreadyPaise = 0) {
   for (const tier of tiers) {
     if (tier.paise > alreadyPaise) candidates.add(tier.paise - alreadyPaise);
   }
-  for (const step of CAPEX_STEPS) {
+  for (const step of stepsFor(target)) {
     if (step > 0) candidates.add(step);
   }
 
