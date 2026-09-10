@@ -299,6 +299,9 @@ export function buildRival(identity, cell, index, querySet, rng, variant = 0) {
       // absent so the shape is always the one the engine expects, and so the
       // round's flat-market fast path is the default rather than a special case.
       locationAdjustments: [0, 0, 0],
+      // I34: what a prepaid order is discounted by, in paise. Zero is "cash is
+      // fine", which is where every advertiser starts.
+      prepaidDiscountPaise: 0,
       negatives: [],
     },
     adGroups: [{
@@ -689,6 +692,9 @@ function buildPlayer(identity, choices) {
       // absent so the shape is always the one the engine expects, and so the
       // round's flat-market fast path is the default rather than a special case.
       locationAdjustments: [0, 0, 0],
+      // I34: what a prepaid order is discounted by, in paise. Zero is "cash is
+      // fine", which is where every advertiser starts.
+      prepaidDiscountPaise: 0,
       negatives: [],
     },
     adGroups: [{

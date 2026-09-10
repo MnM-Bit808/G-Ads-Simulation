@@ -3292,6 +3292,88 @@ empty width** — measured, and the reason this card exists where it does.
 **The budget card already covers the other half** — after week 8 it names the
 rank and D4's two traps. This is the part that can still be acted on.
 
+### I34. A prepaid discount, and the version of it that was a trap — `FIXED, and modest`
+
+**The gap the player named:** every lever on returns shut at round 5. What was
+left — a bid adjustment and a negative — moves your MIX and your TRAFFIC. Neither
+moves a rate.
+
+A prepaid discount does, and it is an operating decision rather than a capital
+project, so it is open every week. Sourced, including its shape: ₹30-50 shifts
+10-20% of the cash mix, and the returns diminish hard — ₹30 to ₹50 is a 38%
+improvement, ₹50 to ₹70 only 12%, past ₹100 under 5% per further ₹25. Those three
+deltas build `PREPAID_DISCOUNT_CURVE` rather than a guess.
+
+**DIMINISHING, NOT AN S**, deliberately unlike `CAPEX_TIER_CURVE`. Capital rewards
+committing because half a fit tool helps nobody; a discount does not work that
+way, and a second S would teach one lesson twice.
+
+**FLAT RUPEES**, which is the whole of its balance: ₹50 is 4.2% of a value
+brand's ₹1,200 basket and 1.0% of a premium brand's ₹4,800, so the advertiser
+with the most refusals to prevent pays the most to prevent them.
+
+**THE FIRST VERSION WAS STRICTLY DOMINATED, AND THE MEASUREMENT CAUGHT IT.**
+"No discount" won in all six cells, monotonically, at every rung.
+
+The fault was mine and it was structural. `round.js` read one share for both
+halves:
+
+    refused  = gross x rtoShare(discount)
+    sentBack = gross x (1 - rtoShare(discount))
+
+Those sum to `gross` EXACTLY, whatever the discount is — `rtoShareOfReturns` is a
+share of a fixed total, which was correct for build 1's "it splits, it does not
+add" and wrong the moment something tried to move the total. So the discount
+converted refusals into send-backs one for one: it bought a change of door, not
+a kept sale, and the only saving left was ₹200 of freight against a margin lost
+either way. Per order at ₹30 that is **−₹5.39** for value, **−₹8.22** for mid,
+**−₹14.19** for premium.
+
+**Two of my own calculations disagreed and that is what found it** — the
+per-order arithmetic said the discount should pay in five of six rows while the
+played game said it lost in all six. Neither number was wrong; the wiring
+between them was.
+
+It was also wrong about the world. Prepaid RTO runs 5-10% against COD's 25-35%,
+and somebody who has already paid mostly does not send it back either. So
+send-backs are now computed from the mix BEFORE the discount, and the refusals it
+prevents leave the account rather than reappearing.
+
+**AFTER THE FIX, measured the same way — 90 games, six cells, five rungs, three
+seeds:**
+
+| cell | best rung | gain over none | what ₹100 costs |
+|---|---|---|---|
+| value / lifestyle | ₹30 | **+1.4%** | −1.2% |
+| value / performance | ₹30 | +0.4% | **−3.2%** |
+| mid / lifestyle | ₹30 | +0.4% | −0.4% |
+| premium / lifestyle | ₹30 | +0.2% | −0.6% |
+| mid / performance | **none** | 0.0% | −1.5% |
+| premium / performance | **none** | 0.0% | −1.0% |
+
+**IT IS A REAL LEVER AND A MODEST ONE, AND THE SECOND HALF OF THAT MATTERS.**
+₹30 is right in four of six cells and the gain is 0.2% to 1.4% — closer to a
+slider with an obvious answer than to a fork. What it teaches properly is the
+penalty: ₹100 loses in every cell, up to 3.2%, which is exactly the diminishing
+return the sources describe. "A little helps, a lot hurts" is a true lesson and
+a small one.
+
+The two cells that decline it are the two with the fewest refusals to prevent, so
+the cell-dependence is real but narrow.
+
+**Not strengthened, deliberately.** The obvious way to make it bigger is to let
+it lift conversion rate, which a discount genuinely does and which was excluded
+on purpose so the lever has one effect. Doing that would also make it partly pay
+for itself, which is a different mechanic from this one. If the modesty is a
+problem, that is the lever to pull — and it should be pulled on purpose rather
+than by retuning this curve until the answer flatters the idea.
+
+**Rivals pull it too (R6)**, reading their own refusal rate rather than a
+constant, one rung and not a hill-climb: 5.2 wants a competent operator, not a
+solver. And `submitRound` REJECTS an out-of-range discount rather than clamping
+— a clamp would let a controller ask for ₹500 and be quietly charged for ₹100,
+which is the shape of bug that survives a whole game.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

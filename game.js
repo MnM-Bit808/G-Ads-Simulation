@@ -35,7 +35,7 @@ import { logDecisions } from './engine/serialise.js';
 import { reposition, canReposition } from './engine/positions.js';
 import {
   LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, TOTAL_ROUNDS,
-  CAPEX_TARGETS,
+  CAPEX_TARGETS, PREPAID_DISCOUNT_MAX_PAISE,
 } from './engine/constants.js';
 
 /**
@@ -365,12 +365,33 @@ function applyCapex(capex, allocation, round, budgetSchedule) {
 
 // ---------------------------------------------------------------------------
 
+/**
+ * A prepaid discount is money off every prepaid order, so it is checked before
+ * the round spends it (I34).
+ *
+ * Rejected rather than clamped. A clamp would let a controller ask for ₹500 and
+ * be quietly charged for ₹100, which is the shape of bug that survives a whole
+ * game because every number downstream still looks reasonable.
+ */
+function assertPrepaidDiscount(paise, id) {
+  if (paise === undefined) return;
+  if (!Number.isSafeInteger(paise) || paise < 0) {
+    throw new RangeError(`${id}: prepaid discount must be non-negative integer paise, got ${String(paise)}`);
+  }
+  if (paise > PREPAID_DISCOUNT_MAX_PAISE) {
+    throw new RangeError(`${id}: prepaid discount ${paise} is over the ${PREPAID_DISCOUNT_MAX_PAISE} cap`);
+  }
+}
+
 function campaignDecisionsOnly(decisions) {
   const out = {};
   for (const [id, decision] of Object.entries(decisions ?? {})) {
     if (!decision) continue;
     const slice = {};
-    if (decision.campaign) slice.campaign = decision.campaign;
+    if (decision.campaign) {
+      assertPrepaidDiscount(decision.campaign.prepaidDiscountPaise, id);
+      slice.campaign = decision.campaign;
+    }
     if (decision.adGroups) slice.adGroups = decision.adGroups;
     if (Object.keys(slice).length > 0) out[id] = slice;
   }

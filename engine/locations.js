@@ -27,6 +27,7 @@ import {
   LOCATION_TIERS, LOCATION_VOLUME_BY_PRICE, LOCATION_RETURN_MULTIPLIER,
   LOCATION_AOV_MULTIPLIER, PRICE_TIERS,
   COD_SHARE_BY_PRICE_LOCATION, RTO_RATE_COD, RTO_RATE_PREPAID, POST_DELIVERY_RETURN_RATE,
+  PREPAID_DISCOUNT_CURVE,
 } from './constants.js';
 import { homeCell } from './querySet.js';
 
@@ -196,12 +197,41 @@ export function locationEffects(querySet, price = null) {
  *   silent fallback would report a plausible COD share for a position that does
  *   not exist, and nothing downstream could tell.
  */
-export function codShareFor(price, tierIndex) {
+export function codShareFor(price, tierIndex, discountPaise = 0) {
   const row = COD_SHARE_BY_PRICE_LOCATION[price];
   if (!row) throw new RangeError(`no COD share for price tier "${price}"`);
   const share = row[tierIndex];
   if (share == null) throw new RangeError(`no COD share for location index ${tierIndex}`);
-  return share;
+  // I34: a prepaid discount moves buyers off cash, and everything downstream
+  // already reads the mix — refusals, the freight on them, and the split the
+  // cards show all follow from this one number.
+  return share * (1 - prepaidShiftFor(discountPaise));
+}
+
+/**
+ * What share of would-be cash orders a discount moves to prepaid.
+ *
+ * Interpolated between the authored points and flat outside them, the same way
+ * `capexEffect` reads its curve — but the curve DIMINISHES rather than being an
+ * S, because that is what the figures say: the first ₹30 does most of the work.
+ *
+ * @param {number} discountPaise 0..`PREPAID_DISCOUNT_MAX_PAISE`
+ * @returns {number} 0..1
+ */
+export function prepaidShiftFor(discountPaise) {
+  const curve = PREPAID_DISCOUNT_CURVE;
+  const paise = Math.max(0, discountPaise || 0);
+  if (paise <= curve[0].paise) return curve[0].shifted;
+  const last = curve[curve.length - 1];
+  if (paise >= last.paise) return last.shifted;
+  for (let i = 1; i < curve.length; i++) {
+    if (paise <= curve[i].paise) {
+      const a = curve[i - 1];
+      const b = curve[i];
+      return a.shifted + ((paise - a.paise) / (b.paise - a.paise)) * (b.shifted - a.shifted);
+    }
+  }
+  return last.shifted;
 }
 
 /**
@@ -216,8 +246,8 @@ export function codShareFor(price, tierIndex) {
  * @param {number} tierIndex into `LOCATION_TIERS`
  * @returns {number} 0..1
  */
-export function refusalRateFor(price, tierIndex) {
-  const cod = codShareFor(price, tierIndex);
+export function refusalRateFor(price, tierIndex, discountPaise = 0) {
+  const cod = codShareFor(price, tierIndex, discountPaise);
   return cod * RTO_RATE_COD + (1 - cod) * RTO_RATE_PREPAID;
 }
 
@@ -245,8 +275,8 @@ export function refusalRateFor(price, tierIndex) {
  * @param {number} tierIndex into `LOCATION_TIERS`
  * @returns {number} 0..1, the share of returns that were refused at the door
  */
-export function rtoShareOfReturns(price, tierIndex) {
-  const refused = refusalRateFor(price, tierIndex);
+export function rtoShareOfReturns(price, tierIndex, discountPaise = 0) {
+  const refused = refusalRateFor(price, tierIndex, discountPaise);
   const sentBack = (1 - refused) * POST_DELIVERY_RETURN_RATE;
   const total = refused + sentBack;
   if (total <= 0) return 0;

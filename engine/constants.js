@@ -217,6 +217,55 @@ export const POST_DELIVERY_RETURN_RATE = 0.30;
 export const RTO_FREIGHT_PAISE = 20000;
 
 /**
+ * How much of the cash-on-delivery mix a prepaid discount moves (I34).
+ *
+ * THE LEVER THE BACK HALF WAS MISSING. Capital shuts at round 5, and after that
+ * the only things left were a bid adjustment, which moves your MIX rather than
+ * any rate, and a negative, which removes traffic rather than improving it. A
+ * prepaid discount is an operating decision — set it every round like a bid —
+ * and it moves the underlying rate.
+ *
+ * SOURCED, INCLUDING THE SHAPE. ₹30-50 shifts 10-20% of the COD mix to prepaid,
+ * and the returns diminish hard and early:
+ *
+ *   ₹30 -> ₹50   a 38% improvement in conversion
+ *   ₹50 -> ₹70   only 12% more
+ *   past ₹100    under 5% per further ₹25
+ *
+ * Those three deltas build the curve rather than a guess: 10% shifted at ₹30,
+ * 13.8% at ₹50, 15.5% at ₹70, 16.3% at ₹100, which lands inside the 10-20% the
+ * same sources quote for the tactic as a whole.
+ *
+ * DIMINISHING, NOT AN S, AND DELIBERATELY UNLIKE `CAPEX_TIER_CURVE`. Capital
+ * rewards committing because half a fit tool helps nobody; a discount does not
+ * work that way — the first ₹30 does most of the work and the last ₹30 does
+ * almost none. A second S here would teach the same lesson twice and would
+ * contradict the figures.
+ *
+ * FLAT RUPEES, NOT A PERCENTAGE, and that is the whole of its balance. ₹50 is
+ * 4.2% of a value brand's ₹1,200 basket and 1.0% of a premium brand's ₹4,800 —
+ * so the advertiser with the most refusals to prevent pays the most to prevent
+ * them, and the one who can afford it barely needs it. A percentage would be
+ * neutral across the grid and would make the choice the same everywhere.
+ *
+ * IT DOES NOT TOUCH CONVERSION RATE, and the question did arise. A discount
+ * genuinely lifts conversion a little in life. It is left out so the lever has
+ * ONE effect and the trade stays legible: fewer refusals, bought with margin. If
+ * that is ever revisited, note that it would also make the discount partly pay
+ * for itself, which is a different mechanic from the one this is.
+ */
+export const PREPAID_DISCOUNT_CURVE = [
+  { paise: 0, shifted: 0 },
+  { paise: 3000, shifted: 0.100 },
+  { paise: 5000, shifted: 0.138 },
+  { paise: 7000, shifted: 0.155 },
+  { paise: 10000, shifted: 0.163 },
+];
+
+/** The most a player may offer. Past this the sources measure almost nothing. */
+export const PREPAID_DISCOUNT_MAX_PAISE = 10000;
+
+/**
  * What order confirmation is worth against refusals, at full commitment.
  *
  * THE COUNTERWEIGHT TO THE FREIGHT (I29). Build 2 charged ₹200 on every parcel
@@ -1000,6 +1049,8 @@ export const PROVENANCE = {
   RTO_RATE_PREPAID: 'DOCUMENTED',
   POST_DELIVERY_RETURN_RATE: 'DOCUMENTED',
   RTO_FREIGHT_PAISE: 'DOCUMENTED',
+  PREPAID_DISCOUNT_CURVE: 'DOCUMENTED',
+  PREPAID_DISCOUNT_MAX_PAISE: 'ESTIMATED',
   RELEVANCE_INTENT_MULTIPLIERS: 'INVENTED',
   CONTEXT_FACTOR_CURVE: 'INVENTED',
   QUALITY_NOISE_SIGMA: 'INVENTED',

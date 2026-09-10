@@ -43,7 +43,9 @@ import { searches, DAYS_PER_WEEK, HOURS_PER_DAY } from './querySet.js';
 import { isBlocked, findMatches, selectAdGroup, normalise } from './matching.js';
 import { qualitySignalBase, applyHourAndNoise } from './quality.js';
 import { businessFor, landingPageBonus } from './positions.js';
-import { locationSharesFor, locationEffects, rtoShareOfReturns } from './locations.js';
+import {
+  locationSharesFor, locationEffects, rtoShareOfReturns, codShareFor,
+} from './locations.js';
 import { resolveAuction } from './auction.js';
 import { estimatedConvRate, effectiveBidPaise, locationMultiplier } from './strategies.js';
 import {
@@ -487,6 +489,7 @@ function recordAuction({
         // it, which is what the per-location split below has to start from.
         // `retentionRate` is still the right function for anything that wants
         // the headline figure; this path needs the two halves separately.
+        const discountPaise = advertisers[i].campaign?.prepaidDiscountPaise ?? 0;
         const queryReturnGross = Math.min(
           RETURN_RATE_CLAMP_MAX,
           business[i].returnRateBeforeSizeGuide * (query.returnRateMultiplier ?? 1),
@@ -510,7 +513,14 @@ function recordAuction({
               returnWeighted: 0, refusedWeighted: 0,
             };
           bucket.count += here;
-          bucket.valuePaise += here * base * effects.aovMultiplier[t];
+          // The discount is paid on PREPAID orders only — that is what it is for
+          // — so it costs the discount times the prepaid share of the mix it
+          // just created. Flat rupees, so it is 4.2% of a value basket and 1.0%
+          // of a premium one (I34).
+          const prepaidShare = 1 - codShareFor(advertisers[i].position.price, t, discountPaise);
+          bucket.valuePaise += here * Math.max(
+            0, base * effects.aovMultiplier[t] - discountPaise * prepaidShare,
+          );
 
           // I28 BUILD 2: THE SIZE GUIDE ONLY REACHES HALF OF THIS.
           //
@@ -532,9 +542,25 @@ function recordAuction({
           // the size guide fixes the one that was delivered and did not fit.
           // Neither converts into the other — an order that is confirmed rather
           // than refused simply does not come back.
-          const rtoShare = rtoShareOfReturns(advertisers[i].position.price, t);
-          const refusedHere = (gross * rtoShare) / business[i].orderConfirmationEffect;
-          const sentBackHere = (gross * (1 - rtoShare)) / business[i].sizeGuideEffect;
+          // I34: THE DISCOUNT REMOVES REFUSALS, IT DOES NOT RELABEL THEM.
+          //
+          // The first version read one share for both halves, so lowering the
+          // refusal share raised the send-back share by exactly as much and the
+          // total return rate never moved — the discount bought a change of
+          // door, not a kept sale. Measured, that made it strictly dominated:
+          // "no discount" won in all six cells because the only saving left was
+          // ₹200 of freight against a margin lost either way.
+          //
+          // It is also wrong about the world. Prepaid RTO runs 5-10% against
+          // COD's 25-35%, and a customer who has already paid mostly does not
+          // send it back either — the sale survives. So send-backs are computed
+          // from the mix BEFORE the discount, and the refusals it prevents leave
+          // the account instead of reappearing.
+          const price = advertisers[i].position.price;
+          const baseShare = rtoShareOfReturns(price, t, 0);
+          const paidShare = rtoShareOfReturns(price, t, discountPaise);
+          const refusedHere = (gross * paidShare) / business[i].orderConfirmationEffect;
+          const sentBackHere = (gross * (1 - baseShare)) / business[i].sizeGuideEffect;
           const rate = Math.min(RETURN_RATE_CLAMP_MAX, refusedHere + sentBackHere);
 
           bucket.returnWeighted += here * rate;

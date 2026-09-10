@@ -34,6 +34,7 @@ import { blockedBy, normalise, tokenise } from '../engine/matching.js';
 import { STRATEGIES, daypartMultiplier, effectiveBidPaise } from '../engine/strategies.js';
 import { minimumBidToShowPaise } from '../engine/auction.js';
 import { qualitySignalBase } from '../engine/quality.js';
+import { refusalRateFor } from '../engine/locations.js';
 // Derived from the hour curves rather than declared, so it lives with them.
 import { HOURS_PER_DAY } from '../engine/querySet.js';
 import { featureAt, pageShape, capexChoices } from './landing-page.js';
@@ -45,7 +46,7 @@ import {
   LEARNING_ROUNDS, MAX_BID_MULTIPLE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
   REPOSITION_COST_PAISE, ROUNDS_PER_MONTH, LOCATION_TIERS,
   DAYPART_BLOCKS, MIN_HOUR_OBSERVATIONS, QUALITY_MIN_IMPRESSIONS, QUALITY_WINDOW_ROUNDS,
-  RTO_FREIGHT_PAISE,
+  RTO_FREIGHT_PAISE, PREPAID_DISCOUNT_MAX_PAISE, PREPAID_DISCOUNT_CURVE,
 } from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
@@ -188,6 +189,7 @@ export function createDraft(selfView, options = {}) {
       ?? DAYPART_BLOCKS.map(() => 0))],
 
     // G4's place level. The same kind of control, one per location tier.
+    prepaidDiscountPaise: selfView.campaign?.prepaidDiscountPaise ?? 0,
     locationAdjustments: [...(selfView.campaign?.locationAdjustments
       ?? LOCATION_TIERS.map(() => 0))],
 
@@ -200,6 +202,7 @@ export function createDraft(selfView, options = {}) {
       weeklySplitPaise: [...(selfView.campaign?.weeklySplitPaise ?? [])],
       daypartAdjustments: [...(selfView.campaign?.daypartAdjustments
         ?? DAYPART_BLOCKS.map(() => 0))],
+      prepaidDiscountPaise: selfView.campaign?.prepaidDiscountPaise ?? 0,
       locationAdjustments: [...(selfView.campaign?.locationAdjustments
         ?? LOCATION_TIERS.map(() => 0))],
     },
@@ -242,6 +245,11 @@ export function toDecision(draft) {
   }
   if (!sameSplit(draft.locationAdjustments, draft.base.locationAdjustments)) {
     campaign.locationAdjustments = [...draft.locationAdjustments];
+  }
+  // I34: an operating decision rather than a structural one, so it does not
+  // trigger a learning period the way a bidding change does (12.3).
+  if (draft.prepaidDiscountPaise !== draft.base.prepaidDiscountPaise) {
+    campaign.prepaidDiscountPaise = draft.prepaidDiscountPaise;
   }
   if (!sameSplit(draft.daypartAdjustments, draft.base.daypartAdjustments)) {
     campaign.daypartAdjustments = [...draft.daypartAdjustments];
@@ -739,6 +747,24 @@ const DAYPART_RANGE = [-100, 900];
  * @param {number} percent -100..900
  * @returns {{ok: boolean, reason?: string}}
  */
+/**
+ * What a prepaid order is discounted by, in paise (I34).
+ *
+ * @param {object} draft
+ * @param {number} paise 0..`PREPAID_DISCOUNT_MAX_PAISE`
+ * @returns {{ok: boolean, reason?: string}}
+ */
+export function setPrepaidDiscount(draft, paise) {
+  if (!Number.isSafeInteger(paise) || paise < 0) {
+    return { ok: false, reason: 'a discount is whole rupees, and not negative' };
+  }
+  if (paise > PREPAID_DISCOUNT_MAX_PAISE) {
+    return { ok: false, reason: `the most worth offering is ${rupees(PREPAID_DISCOUNT_MAX_PAISE)}` };
+  }
+  draft.prepaidDiscountPaise = paise;
+  return { ok: true };
+}
+
 export function setLocation(draft, index, percent) {
   if (!Number.isInteger(index) || index < 0 || index >= LOCATION_TIERS.length) {
     return { ok: false, reason: `no location tier ${String(index)}` };
@@ -1449,6 +1475,7 @@ export function renderDecisions(ctx) {
       windowCard(ctx, refresh),
       biddingCard(ctx, refresh),
       splitCard(ctx, refresh),
+      prepaidCard(ctx, refresh),
       daypartCard(ctx, refresh),
       negativesCard(ctx, refresh),
       keywordsCard(ctx, refresh),
@@ -1943,6 +1970,81 @@ function ownRoasHint(ctx) {
  * unspent money is lost at the month boundary, so a plan that leaves the pot
  * unfinished is a plan to throw some of it away.
  */
+/**
+ * What a prepaid order is discounted by (I34).
+ *
+ * THE LEVER THE BACK HALF DID NOT HAVE. Capital shuts at round 5 and the two
+ * things left after it — a bid adjustment and a negative — move your MIX and
+ * your TRAFFIC. Neither moves a rate. This does: a discount shifts buyers off
+ * cash, cash is what gets refused, and a refusal costs freight and a sale.
+ *
+ * Every chip is a real rung of the sourced curve, and the card says what each
+ * one buys and what it costs, because the whole decision is that arithmetic.
+ */
+function prepaidCard(ctx, refresh) {
+  const node = card('Prepaid discount', 'money off, to keep the parcel out of the wrong hands', 'span-2');
+  const draft = ctx.draft;
+  const chips = el('div', 'chip-row');
+
+  for (const rung of PREPAID_DISCOUNT_CURVE) {
+    const on = draft.prepaidDiscountPaise === rung.paise;
+    const chip = el('button', `chip small${on ? ' on' : ''}`);
+    chip.type = 'button';
+    chip.textContent = rung.paise === 0 ? 'none' : rupees(rung.paise);
+    chip.title = rung.paise === 0
+      ? 'cash on delivery at whatever rate the market runs'
+      : `moves ${pct(rung.shifted)} of your cash orders to prepaid`;
+    chip.addEventListener('click', () => {
+      setPrepaidDiscount(draft, rung.paise);
+      refresh();
+    });
+    chips.append(chip);
+  }
+  node.append(chips);
+
+  // What it is doing to this account, at the mix this account actually buys.
+  const rows = locationRows(draft, ctx.history ?? [], ctx.playerId);
+  const clicks = rows.reduce((a, r) => a + (r.clicks ?? 0), 0);
+  const at = (paise) => (clicks > 0
+    ? rows.reduce((a, r, i) => a + (r.clicks ?? 0) * refusalRateFor(ctx.price, i, paise), 0) / clicks
+    : refusalRateFor(ctx.price, 2, paise));
+
+  const now = at(draft.prepaidDiscountPaise);
+  const none = at(0);
+  const table_ = el('table', 'mini');
+  table(table_, ['', { label: 'Refusals', num: true }, { label: 'Costs you', num: true }], [
+    { cells: ['No discount', pct(none, 1), '—'] },
+    {
+      cells: [
+        draft.prepaidDiscountPaise === 0 ? 'This setting' : `At ${rupees(draft.prepaidDiscountPaise)}`,
+        pct(now, 1),
+        draft.prepaidDiscountPaise === 0 ? '—' : `${rupees(draft.prepaidDiscountPaise)} a prepaid order`,
+      ],
+      className: draft.prepaidDiscountPaise > 0 ? 'best-place' : null,
+    },
+  ]);
+  node.append(table_);
+
+  const note = el('p', 'note');
+  if (draft.prepaidDiscountPaise === 0) {
+    note.append(document.createTextNode(
+      'Cash orders are refused about three and a half times as often as prepaid ones, '
+      + 'and a refusal costs the freight both ways plus a sale that never happened. '
+      + 'A discount is the only lever on that which is open every week — capital is not.',
+    ));
+  } else {
+    note.append(el('strong', null,
+      `${pct(Math.max(0, 1 - now / none))} fewer refusals`));
+    note.append(document.createTextNode(
+      `, bought with ${rupees(draft.prepaidDiscountPaise)} off every prepaid order. `
+      + 'The rungs get worse as they get bigger — the first one does most of the work — '
+      + 'so the question is whether the freight you save is worth the margin you give up.',
+    ));
+  }
+  node.append(note);
+  return node;
+}
+
 function splitCard(ctx, refresh) {
   const draft = ctx.draft;
   if (draft.weeklySplitPaise.length === 0) return null;

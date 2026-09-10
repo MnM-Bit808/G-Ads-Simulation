@@ -155,6 +155,38 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
  * @param {object} view from getPublicView
  * @returns {object|null} a decision, or null to change nothing
  */
+/**
+ * What a competent rival offers to keep a parcel out of cash (I34).
+ *
+ * R6 IS WHY THIS EXISTS. A prepaid discount is the only lever on refusals that
+ * is open after round 5, and a market where only the player pulls it is not the
+ * market the player thinks they are in — their own restraint would look like
+ * skill and their rivals' refusals would be a handicap nobody chose.
+ *
+ * It reads its OWN report, like every other decision here: the discount is worth
+ * offering when refusals are actually costing something, and a rival with few
+ * of them should keep the margin. The threshold is its own refusal rate rather
+ * than a constant, so a premium advertiser in the metros arrives at "no" and a
+ * value one in the towns arrives at "yes" without either being told.
+ *
+ * One rung, not a search. A policy that hill-climbed the curve every week would
+ * out-optimise a player who gets one look at it, and 5.2 wants a competent
+ * operator rather than a solver.
+ */
+function prepaidNudge(self, report) {
+  const rows = Object.values(report?.breakdown?.byLocation ?? {});
+  const conversions = rows.reduce((a, r) => a + (r.conversions ?? 0), 0);
+  const refused = rows.reduce((a, r) => a + (r.refused ?? 0), 0);
+  if (conversions < 5) return null;
+
+  const rate = refused / conversions;
+  const held = self.campaign?.prepaidDiscountPaise ?? 0;
+  // The rung the sources call the one that does most of the work, and a bigger
+  // one only where refusals are genuinely heavy.
+  const want = rate > 0.12 ? 5000 : rate > 0.06 ? 3000 : 0;
+  return want === held ? null : want;
+}
+
 // ---------------------------------------------------------------------------
 // Where to bid (DECISIONS G4)
 // ---------------------------------------------------------------------------
@@ -264,11 +296,14 @@ export function disciplined(self, report, view) {
   // start sending things back.
   const locationAdjustments = locationTilt(self, report);
 
+  const prepaid = prepaidNudge(self, report);
+
   return {
     campaign: {
       strategy: 'manual',
       negatives,
       ...(locationAdjustments ? { locationAdjustments } : {}),
+      ...(prepaid === null ? {} : { prepaidDiscountPaise: prepaid }),
     },
     adGroups: withBids(self.adGroups, (keyword) => {
       const target = Math.round(affordable * TARGET_MARGIN_OF_SAFETY);
@@ -601,11 +636,14 @@ export function grossOptimiser(self, report, view) {
   // difference. Section 14's missing multiplication, applied to geography.
   const locationAdjustments = locationTilt(self, report, LOCATION_LEAN, { net: false });
 
+  const prepaid = prepaidNudge(self, report);
+
   return {
     campaign: {
       strategy: 'manual',
       negatives,
       ...(locationAdjustments ? { locationAdjustments } : {}),
+      ...(prepaid === null ? {} : { prepaidDiscountPaise: prepaid }),
     },
     adGroups: withBids(self.adGroups, () => target),
   };
