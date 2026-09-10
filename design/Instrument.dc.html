@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #07090c; }
+    a { color: #e0af68; } a:hover { color: #f0c88a; }
+    .m { font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+    .lbl { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #5d6674; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; color: #d7dee8; background: #07090c; min-height: 1500px;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 32px; background: #0c1015; border-bottom: 1px solid #1c2430;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="width: 8px; height: 8px; background: #e0af68;"></div>
+      <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.03em;">ROUND 0</span>
+      <span class="m" style="font-size: 12px; color: #5d6674;">/ before you have seen a single auction</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 24px;">
+      <span class="lbl">decisions 0 / 7</span>
+      <span class="m" style="font-size: 12px; color: #7ec699;">MARKET OPEN</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding: 20px 32px;">
+
+    <section style="background: #0c1015; border: 1px solid #1c2430;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 18px; border-bottom: 1px solid #1c2430; background: #0f141b;">
+        <div style="display: flex; align-items: baseline; gap: 12px;">
+          <span class="m" style="font-size: 12px; color: #e0af68;">01</span>
+          <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase;">Your brand</span>
+        </div>
+        <span class="lbl">nine names &middot; none signals anything</span>
+      </div>
+      <div style="padding: 16px 18px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: #1c2430;">
+        <div style="background: #14202b; padding: 11px 13px; border-left: 2px solid #e0af68;">
+          <div style="font-size: 14px; font-weight: 600;">Vella &amp; Co.</div>
+          <div class="m" style="font-size: 10px; color: #e0af68; margin-top: 3px;">vellaandco.in</div>
+        </div>
+        <div style="background: #0c1015; padding: 11px 13px; border-left: 2px solid transparent;">
+          <div style="font-size: 14px; color: #9aa5b4;">Kestrel</div>
+          <div class="m" style="font-size: 10px; color: #5d6674; margin-top: 3px;">kestrel.in</div>
+        </div>
+        <div style="background: #0c1015; padding: 11px 13px; border-left: 2px solid transparent;">
+          <div style="font-size: 14px; color: #9aa5b4;">Marlow</div>
+          <div class="m" style="font-size: 10px; color: #5d6674; margin-top: 3px;">marlowlabel.in</div>
+        </div>
+        <div style="background: #0c1015; padding: 11px 13px; border-left: 2px solid transparent;">
+          <div style="font-size: 14px; color: #9aa5b4;">Satva</div>
+          <div class="m" style="font-size: 10px; color: #5d6674; margin-top: 3px;">satva.in</div>
+        </div>
+        <div style="background: #0c1015; padding: 11px 13px; border-left: 2px solid transparent;">
+          <div style="font-size: 14px; color: #9aa5b4;">Halcyon</div>
+          <div class="m" style="font-size: 10px; color: #5d6674; margin-top: 3px;">halcyon.in</div>
+        </div>
+        <div style="background: #0c1015; padding: 11px 13px; border-left: 2px solid transparent;">
+          <div style="font-size: 14px; color: #9aa5b4;">Lumen</div>
+          <div class="m" style="font-size: 10px; color: #5d6674; margin-top: 3px;">lumenlabel.in</div>
+        </div>
+      </div>
+      <p class="m" style="margin: 0; padding: 0 18px 16px 18px; font-size: 12px; line-height: 1.65; color: #7b8494; max-width: 60ch;">
+        The other eight go to your rivals. Names are deliberately abstract: position is
+        signalled through ad copy alone.
+      </p>
+    </section>
+
+    <section style="background: #0c1015; border: 1px solid #1c2430;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 18px; border-bottom: 1px solid #1c2430; background: #0f141b;">
+        <div style="display: flex; align-items: baseline; gap: 12px;">
+          <span class="m" style="font-size: 12px; color: #e0af68;">02</span>
+          <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase;">The market</span>
+        </div>
+        <span class="lbl">desk research</span>
+      </div>
+      <div style="padding: 14px 18px;">
+        <div style="display: grid; grid-template-columns: 1fr auto auto auto;">
+          <div class="lbl" style="padding-bottom: 9px;">Tier</div>
+          <div class="lbl" style="text-align: right; padding: 0 0 9px 26px;">Searches/wk</div>
+          <div class="lbl" style="text-align: right; padding: 0 0 9px 26px;">Order</div>
+          <div class="lbl" style="text-align: right; padding: 0 0 9px 26px;">Margin</div>
+
+          <div class="m" style="font-size: 13px; padding: 8px 0; border-top: 1px solid #161d27; color: #9aa5b4;">value</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 8px 0 8px 26px; border-top: 1px solid #161d27;">1,82,000</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 8px 0 8px 26px; border-top: 1px solid #161d27;">&#8377;1,200</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 8px 0 8px 26px; border-top: 1px solid #161d27; color: #f07178;">40%</div>
+
+          <div class="m" style="font-size: 13px; padding: 8px 0; border-top: 1px solid #161d27; color: #9aa5b4;">mid</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 8px 0 8px 26px; border-top: 1px solid #161d27;">98,000</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 8px 0 8px 26px; border-top: 1px solid #161d27;">&#8377;2,400</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 8px 0 8px 26px; border-top: 1px solid #161d27; color: #e0af68;">52%</div>
+
+          <div class="m" style="font-size: 13px; padding: 8px 0; border-top: 1px solid #161d27; color: #9aa5b4;">premium</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 8px 0 8px 26px; border-top: 1px solid #161d27;">70,000</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 8px 0 8px 26px; border-top: 1px solid #161d27;">&#8377;4,800</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 8px 0 8px 26px; border-top: 1px solid #161d27; color: #7ec699;">62%</div>
+        </div>
+
+        <div style="margin-top: 16px; background: #0f141b; border: 1px solid #1c2430; padding: 13px 15px;">
+          <div class="lbl" style="margin-bottom: 8px;">break-even per search</div>
+          <div class="m" style="font-size: 12px; color: #7b8494;">order value &times; margin &times; (1 &minus; return rate) &times; conv rate</div>
+          <div class="m" style="font-size: 17px; margin-top: 8px;">&#8377;2,400 &times; 52% &times; 76% &times; 2.8% = <span style="color: #e0af68; font-weight: 600;">&#8377;26.56</span></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div style="padding: 0 32px 24px 32px;">
+    <section style="background: #0c1015; border: 1px solid #1c2430;">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 18px; border-bottom: 1px solid #1c2430; background: #0f141b;">
+        <div style="display: flex; align-items: baseline; gap: 12px;">
+          <span class="m" style="font-size: 12px; color: #e0af68;">03</span>
+          <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase;">Where the search happens</span>
+        </div>
+        <span class="lbl">the metros are the smallest of the three</span>
+      </div>
+      <div style="padding: 14px 18px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 32px; align-items: start;">
+        <div style="display: grid; grid-template-columns: 1fr repeat(3, auto);">
+          <div class="lbl" style="padding-bottom: 9px;">Where</div>
+          <div class="lbl" style="text-align: right; padding: 0 0 9px 30px;">Value</div>
+          <div class="lbl" style="text-align: right; padding: 0 0 9px 30px;">Mid</div>
+          <div class="lbl" style="text-align: right; padding: 0 0 9px 30px;">Premium</div>
+
+          <div style="padding: 9px 0; border-top: 1px solid #161d27;">
+            <div style="font-size: 13px;">Metros</div>
+            <div class="m" style="font-size: 10px; color: #5d6674; margin-top: 2px;">Mumbai, Delhi NCR, Bengaluru</div>
+          </div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 9px 0 9px 30px; border-top: 1px solid #161d27;">12%</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 9px 0 9px 30px; border-top: 1px solid #161d27;">22%</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 9px 0 9px 30px; border-top: 1px solid #161d27; color: #e0af68;">38%</div>
+
+          <div style="padding: 9px 0; border-top: 1px solid #161d27;">
+            <div style="font-size: 13px;">Large cities</div>
+            <div class="m" style="font-size: 10px; color: #5d6674; margin-top: 2px;">Jaipur, Lucknow, Kochi</div>
+          </div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 9px 0 9px 30px; border-top: 1px solid #161d27;">35%</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 9px 0 9px 30px; border-top: 1px solid #161d27;">38%</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 9px 0 9px 30px; border-top: 1px solid #161d27;">36%</div>
+
+          <div style="padding: 9px 0; border-top: 1px solid #161d27;">
+            <div style="font-size: 13px;">Smaller cities and towns</div>
+            <div class="m" style="font-size: 10px; color: #5d6674; margin-top: 2px;">Guwahati, Raipur, Jodhpur</div>
+          </div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 9px 0 9px 30px; border-top: 1px solid #161d27; color: #e0af68;">53%</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 9px 0 9px 30px; border-top: 1px solid #161d27;">40%</div>
+          <div class="m" style="font-size: 13px; text-align: right; padding: 9px 0 9px 30px; border-top: 1px solid #161d27;">26%</div>
+        </div>
+        <p class="m" style="margin: 22px 0 0 0; font-size: 12px; line-height: 1.7; color: #7b8494;">
+          Cash on delivery is ordinary outside the metros, and COD orders come back more often.
+          The same click is worth less the further out it is &mdash; not because fewer people buy,
+          but because more of what they buy comes back.
+        </p>
+      </div>
+    </section>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

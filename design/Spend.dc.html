@@ -1,0 +1,254 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; background: #070a10; }
+    a { color: #64d2c7; } a:hover { color: #8fe4db; }
+    .m { font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+    @keyframes grow { from { transform: scaleY(0.05); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+    .bar { transform-origin: bottom; animation: grow 700ms cubic-bezier(0.2,0.8,0.2,1) both; }
+    .rung { transition: all 180ms ease; cursor: pointer; }
+    .tier { transition: all 200ms ease; cursor: pointer; }
+    .wk { transition: all 200ms ease; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; background: #070a10; color: #dfe7f0; min-height: 900px;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; border-bottom: 1px solid #16202e;">
+    <div style="display: flex; align-items: baseline; gap: 13px;">
+      <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.04em;">ROUND 0</span>
+      <span class="m" style="font-size: 12px; color: #5b6a7d;">before you have seen a single auction</span>
+    </div>
+    <span class="m" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #64d2c7;">06&ndash;08 &nbsp;/&nbsp; the money</span>
+  </div>
+
+  <div style="padding: 26px 30px; display: flex; flex-direction: column; gap: 26px;">
+
+    <section>
+      <div style="display: flex; align-items: baseline; gap: 13px; margin-bottom: 14px;">
+        <span class="m" style="font-size: 12px; color: #64d2c7;">06</span>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em;">Who writes it</h2>
+        <span style="font-size: 13.5px; color: #6d7d90;">a separate &#8377;50,000 &mdash; whatever is left buys traffic instead</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px;">
+        <sc-for list="{{writers}}" as="w" hint-placeholder-count="4">
+          <div class="tier" onClick="{{w.pick}}" style="{{w.style}}">
+            <div style="display: flex; align-items: baseline; justify-content: space-between;">
+              <span style="font-size: 14px; font-weight: 600; color: {{w.nameColour}};">{{w.name}}</span>
+              <span class="m" style="font-size: 11.5px; color: {{w.priceColour}};">{{w.price}}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px; margin-top: 13px;">
+              <sc-for list="{{w.pips}}" as="p" hint-placeholder-count="10">
+                <div style="height: 5px; flex-grow: 1; border-radius: 1px; background: {{p.fill}};"></div>
+              </sc-for>
+            </div>
+            <div class="m" style="font-size: 10.5px; color: #6d7d90; margin-top: 8px;">{{w.grade}}</div>
+            <div class="m" style="font-size: 10.5px; color: {{w.liveColour}}; margin-top: 4px;">{{w.live}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <p class="m" style="margin: 12px 0 0 0; font-size: 11.5px; color: #566577;">{{writerNote}}</p>
+    </section>
+
+    <section>
+      <div style="display: flex; align-items: baseline; gap: 13px; margin-bottom: 4px;">
+        <span class="m" style="font-size: 12px; color: #64d2c7;">07</span>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em;">Capital</h2>
+        <span style="font-size: 13.5px; color: #6d7d90;">&#8377;1,00,000 to build the site they land on, or to keep</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 268px; gap: 24px; margin-top: 14px; align-items: start;">
+
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+          <sc-for list="{{targets}}" as="t" hint-placeholder-count="3">
+            <div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 7px;">
+                <div style="display: flex; align-items: baseline; gap: 9px;">
+                  <span style="font-size: 14px; font-weight: 600;">{{t.label}}</span>
+                  <span class="m" style="font-size: 11px; color: {{t.effectColour}};">{{t.effect}}</span>
+                </div>
+                <span class="m" style="font-size: 11px; color: #566577;">{{t.buys}}</span>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <sc-for list="{{t.rungs}}" as="r" hint-placeholder-count="5">
+                  <div class="rung m" onClick="{{r.pick}}" style="{{r.style}}">
+                    <div style="font-size: 11px;">{{r.label}}</div>
+                    <div style="font-size: 9.5px; opacity: 0.62; margin-top: 2px;">{{r.price}}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background: #0b1017; border: 1px solid #16202e; border-radius: 11px; padding: 17px 18px;">
+          <div class="m" style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #4d5c6e;">what a rupee buys, by rung</div>
+          <div style="display: flex; align-items: flex-end; gap: 7px; height: 88px; margin-top: 15px;">
+            <sc-for list="{{curve}}" as="c" hint-placeholder-count="5">
+              <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+                <span class="m" style="font-size: 9.5px; color: {{c.textColour}};">{{c.effect}}</span>
+                <div class="bar" style="width: 100%; background: {{c.fill}}; height: {{c.h}}; border-radius: 2px 2px 0 0;"></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: flex; gap: 7px; margin-top: 6px;">
+            <sc-for list="{{curve}}" as="c" hint-placeholder-count="5">
+              <span class="m" style="flex-grow: 1; text-align: center; font-size: 8.5px; color: #46566a;">{{c.tick}}</span>
+            </sc-for>
+          </div>
+          <p class="m" style="margin: 13px 0 0 0; font-size: 11px; line-height: 1.6; color: #7d8b9c;">
+            The steep stretch is &#8377;25,000 to &#8377;70,000. Past &#8377;70,000 on one target the
+            last &#8377;30,000 buys almost nothing &mdash; two targets at &#8377;55,000 beat one at
+            &#8377;1,00,000.
+          </p>
+          <div style="height: 1px; background: #16202e; margin: 14px 0;"></div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <span class="m" style="font-size: 11px; color: #7d8b9c;">committed</span>
+            <span class="m" style="font-size: 15px; color: {{committedColour}};">{{committed}}</span>
+          </div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 5px;">
+            <span class="m" style="font-size: 11px; color: #7d8b9c;">rolls into ad budget</span>
+            <span class="m" style="font-size: 15px; color: #c3d0de;">{{rolled}}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div style="display: flex; align-items: baseline; gap: 13px; margin-bottom: 14px;">
+        <span class="m" style="font-size: 12px; color: #64d2c7;">08</span>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em;">This month</h2>
+        <span class="m" style="font-size: 13.5px; color: #6d7d90;">{{monthTotal}} across four weeks</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+        <sc-for list="{{weeks}}" as="w" hint-placeholder-count="4">
+          <div class="wk" style="{{w.style}}">
+            <div class="m" style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #4d5c6e;">{{w.name}}</div>
+            <div class="m" style="font-size: 19px; letter-spacing: -0.02em; margin-top: 7px; color: #eef4fa;">{{w.amount}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; height: 9px; border-radius: 5px; overflow: hidden; margin-top: 12px; background: #0b1017;">
+        <sc-for list="{{weeks}}" as="w" hint-placeholder-count="4">
+          <div style="width: 25%; background: {{w.barFill}}; border-right: 1px solid #070a10;"></div>
+        </sc-for>
+      </div>
+      <p class="m" style="margin: 11px 0 0 0; font-size: 11.5px; color: #566577;">
+        Even, for now. The split resets at every month boundary &mdash; a shape set in month 1
+        does not survive into month 2.
+      </p>
+    </section>
+
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#64d2c7","options":["#64d2c7","#7aa2f7","#e0af68","#c98bdb"]}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { writer: 'agency', capex: { landingPage: 5500000, sizeGuide: 2500000, photography: 0 } };
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? '#64d2c7';
+    const rupees = (p) => '₹' + (p / 100).toLocaleString('en-IN');
+
+    // WRITER_TIERS, and the grade each one buys (I11).
+    const WRITERS = [
+      { id: 'diy', name: 'Write it yourself', price: 'free', paise: 0, grade: null, live: 'live at week 3' },
+      { id: 'freelancer', name: 'Freelancer', price: '₹10,000', paise: 1000000, grade: 6, live: 'live at week 1' },
+      { id: 'agency', name: 'Creative agency', price: '₹25,000', paise: 2500000, grade: 7, live: 'live at week 1' },
+      { id: 'retainer', name: 'Premium retainer', price: '₹50,000', paise: 5000000, grade: 8, live: 'live at week 1' },
+    ];
+    const writers = WRITERS.map((w) => {
+      const on = w.id === this.state.writer;
+      const filled = w.grade ?? 3;
+      return {
+        name: w.name, price: w.price,
+        grade: w.grade ? `graded ${w.grade}/10, whatever you type` : 'graded on what you write',
+        live: w.live,
+        liveColour: w.grade ? '#7ec699' : '#e0af68',
+        nameColour: on ? '#eef4fa' : '#c3d0de',
+        priceColour: on ? accent : '#566577',
+        pips: Array.from({ length: 10 }, (_, i) => ({
+          fill: i < filled ? (on ? accent : '#3d5265') : '#16202e',
+        })),
+        style: `background: ${on ? '#0f1c26' : '#0b1017'}; border: 1px solid ${on ? accent : '#16202e'}; border-radius: 10px; padding: 14px 15px;`,
+        pick: () => this.setState({ writer: w.id }),
+      };
+    });
+    const chosenW = WRITERS.find((w) => w.id === this.state.writer);
+    const writerNote = chosenW.paise === 0
+      ? 'Nothing spent — the whole ₹50,000 buys traffic instead, and your own words are graded as written.'
+      : `${rupees(5000000 - chosenW.paise)} of the ₹50,000 is left, and buys traffic instead.`;
+
+    // CAPEX_TIER_CURVE, and what each target moves.
+    const STEPS = [0, 2500000, 5500000, 7000000, 10000000];
+    const EFFECT = [1, 1.04, 1.16, 1.22, 1.25];
+    const TARGETS = [
+      { id: 'landingPage', label: 'The page itself', buys: 'cheaper clicks', labels: ['plain', 'faster', 'reviews', 'full detail', 'built around the search'] },
+      { id: 'sizeGuide', label: 'Size guide', buys: 'fewer returns', labels: ['none', 'a chart', 'measured', 'per garment', 'fit finder'] },
+      { id: 'photography', label: 'Photography', buys: 'more of them buy', labels: ['none', 'product shots', 'on real bodies', 'fabric detail', 'video'] },
+    ];
+
+    const targets = TARGETS.map((t) => {
+      const at = this.state.capex[t.id];
+      const idx = STEPS.indexOf(at);
+      return {
+        label: t.label,
+        buys: t.buys,
+        effect: idx > 0 ? `×${EFFECT[idx].toFixed(2)}` : 'nothing yet',
+        effectColour: idx > 0 ? accent : '#46566a',
+        rungs: STEPS.map((paise, i) => {
+          const on = paise === at;
+          return {
+            label: t.labels[i],
+            price: paise === 0 ? '—' : rupees(paise),
+            style: `flex: 1; text-align: center; padding: 8px 6px; border-radius: 7px; border: 1px solid ${on ? accent : '#16202e'}; background: ${on ? '#0f1c26' : '#0b1017'}; color: ${on ? accent : '#8a9aad'};`,
+            pick: () => this.setState({ capex: { ...this.state.capex, [t.id]: paise } }),
+          };
+        }),
+      };
+    });
+
+    const spent = Object.values(this.state.capex).reduce((a, b) => a + b, 0);
+    const over = spent > 10000000;
+
+    const curve = STEPS.map((paise, i) => ({
+      effect: i === 0 ? '—' : `×${EFFECT[i].toFixed(2)}`,
+      tick: paise === 0 ? '0' : `${paise / 100000}k`,
+      h: `${Math.round(((EFFECT[i] - 1) / 0.25) * 74) + 3}px`,
+      fill: i === 0 ? '#16202e' : (i === 2 || i === 3 ? accent : '#2c4457'),
+      textColour: i === 2 || i === 3 ? accent : '#6d7d90',
+    }));
+
+    const monthPaise = 16800000 + (10000000 - spent) + (5000000 - chosenW.paise);
+    const each = Math.round(monthPaise / 4);
+    const weeks = ['week 1', 'week 2', 'week 3', 'week 4'].map((name) => ({
+      name,
+      amount: rupees(each),
+      barFill: accent,
+      style: 'background: #0b1017; border: 1px solid #16202e; border-radius: 9px; padding: 13px 14px;',
+    }));
+
+    return {
+      writers, writerNote, targets, curve, weeks,
+      committed: rupees(spent),
+      committedColour: over ? '#f07178' : accent,
+      rolled: rupees(Math.max(0, 10000000 - spent)),
+      monthTotal: rupees(monthPaise),
+    };
+  }
+}
+</script>
+</body>
+</html>

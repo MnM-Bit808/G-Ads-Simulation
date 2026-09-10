@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; background: #070a10; }
+    a { color: #64d2c7; } a:hover { color: #8fe4db; }
+    .m { font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(100,210,199,0.28); } 50% { box-shadow: 0 0 0 7px rgba(100,210,199,0); } }
+    .cell { transition: all 220ms cubic-bezier(0.2,0.8,0.2,1); cursor: pointer; }
+    .cell.on { animation: pulse 2.4s ease-out infinite; }
+    .serp { transition: border-color 200ms ease, background 200ms ease, transform 200ms ease; cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; background: #070a10; color: #dfe7f0; min-height: 900px;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; border-bottom: 1px solid #16202e;">
+    <div style="display: flex; align-items: baseline; gap: 13px;">
+      <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.04em;">ROUND 0</span>
+      <span class="m" style="font-size: 12px; color: #5b6a7d;">before you have seen a single auction</span>
+    </div>
+    <span class="m" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #64d2c7;">04 &nbsp;/&nbsp; who else is here</span>
+  </div>
+
+  <div style="padding: 26px 30px; display: flex; flex-direction: column; gap: 26px;">
+
+    <section>
+      <div style="display: flex; align-items: baseline; gap: 13px; margin-bottom: 6px;">
+        <span class="m" style="font-size: 12px; color: #64d2c7;">04</span>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em;">Who else is here</h2>
+      </div>
+      <p style="margin: 0 0 16px 0; font-size: 13.5px; line-height: 1.6; color: #7d8b9c; max-width: 92ch; text-wrap: pretty;">
+        The other eight, in no particular order. Nobody will tell you where any of them sits on
+        the grid &mdash; the copy is the only evidence you get before the first auction. Two
+        rivals can share a cell, and when they do they are competing for exactly the searches
+        you would be.
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px;">
+        <sc-for list="{{rivals}}" as="r" hint-placeholder-count="8">
+          <div class="serp" onClick="{{r.pick}}" style="{{r.style}}">
+            <div style="display: flex; align-items: center; gap: 7px;">
+              <span class="m" style="font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #46566a; border: 1px solid #22303f; border-radius: 3px; padding: 1px 4px;">Ad</span>
+              <span class="m" style="font-size: 10.5px; color: {{r.domainColour}};">{{r.domain}}</span>
+            </div>
+            <div style="font-size: 13.5px; font-weight: 600; color: {{r.headColour}}; margin-top: 8px; line-height: 1.35;">{{r.headline}}</div>
+            <div style="font-size: 11.5px; color: #7d8b9c; margin-top: 6px; line-height: 1.5;">{{r.description}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <p class="m" style="margin: 13px 0 0 0; font-size: 11.5px; color: #566577;">{{rivalNote}}</p>
+    </section>
+
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#64d2c7","options":["#64d2c7","#7aa2f7","#e0af68","#c98bdb"]}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { rival: null };
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? '#64d2c7';
+
+    // Real copy from content/adCopy.js — 17.1 makes these the only evidence of
+    // where anyone sits, so a mock with invented ads would be teaching nothing.
+    const RIVALS = [
+      { brand: 'Kestrel', domain: 'kestrel.in', h: 'Gym Leggings From ₹799', d: 'Train hard, spend little. Squat-proof leggings and high-impact bras that hold.' },
+      { brand: 'Marlow', domain: 'marlowlabel.in', h: 'Co-ord Sets From ₹1199', d: 'Soft co-ord sets and joggers that look put together, for a lot less.' },
+      { brand: 'Satva', domain: 'satva.in', h: 'Athleisure For All Day', d: 'Everyday athleisure for the school run, the studio, and whatever comes after.' },
+      { brand: 'Halcyon', domain: 'halcyon.in', h: 'Leggings Built To Train In', d: 'Gym wear that survives four sessions a week and a hot Indian summer.' },
+      { brand: 'Lumen', domain: 'lumenlabel.in', h: 'Pockets That Hold A Phone', d: 'Deep pockets, flat seams and a waistband that stays put, at the gym or on the road.' },
+      { brand: 'Nira', domain: 'nira.in', h: 'Gym Tees From ₹299', d: 'Quick-dry tees and running shorts for people who turn up four times a week.' },
+      { brand: 'Torvi', domain: 'torvi.in', h: 'Loungewear From ₹899', d: 'Co-ord sets and joggers you can live in, without the designer markup.' },
+      { brand: 'Auren', domain: 'auren.in', h: 'Co-ord Sets For All Day', d: 'Joggers and co-ord sets that look considered without looking like effort.' },
+    ];
+
+    const rivals = RIVALS.map((r) => {
+      const on = this.state.rival === r.brand;
+      return {
+        domain: r.domain, headline: r.h, description: r.d,
+        domainColour: on ? accent : '#566577',
+        headColour: on ? '#eef4fa' : '#c3d0de',
+        style: `background: ${on ? '#0f1c26' : '#0b1017'}; border: 1px solid ${on ? accent : '#16202e'}; border-radius: 9px; padding: 13px 14px; transform: translateY(${on ? '-2px' : '0'});`,
+        pick: () => this.setState({ rival: this.state.rival === r.brand ? null : r.brand }),
+      };
+    });
+
+    const rivalNote = this.state.rival
+      ? `${this.state.rival} — price talk, or none? Ranges and discounts read value; fabric and fit read premium.`
+      : 'Read the copy, not the names. A brand shouting a price is telling you its tier.';
+
+    return { rivals, rivalNote };
+  }
+}
+</script>
+</body>
+</html>

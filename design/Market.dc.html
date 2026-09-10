@@ -1,0 +1,219 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; background: #070a10; }
+    a { color: #64d2c7; } a:hover { color: #8fe4db; }
+    .m { font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+    @keyframes rise { from { transform: scaleY(0.04); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+    @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @keyframes tick { 0%, 100% { opacity: 0.32; } 50% { opacity: 1; } }
+
+    .bar { transform-origin: bottom; animation: rise 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+    .step { animation: fadein 520ms ease both; }
+    .live { animation: tick 2.2s ease-in-out infinite; }
+    .tile { transition: border-color 220ms ease, background 220ms ease, transform 220ms ease; cursor: pointer; }
+    .brand { transition: border-color 200ms ease, background 200ms ease, transform 200ms ease; cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; background: #070a10; color: #dfe7f0; min-height: 900px;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; border-bottom: 1px solid #16202e;">
+    <div style="display: flex; align-items: baseline; gap: 13px;">
+      <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.04em;">ROUND 0</span>
+      <span class="m" style="font-size: 12px; color: #5b6a7d;">before you have seen a single auction</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 9px;">
+      <span class="live" style="width: 6px; height: 6px; border-radius: 50%; background: #64d2c7; display: inline-block;"></span>
+      <span class="m" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #64d2c7;">nothing spent yet</span>
+    </div>
+  </div>
+
+  <div style="padding: 26px 30px; display: flex; flex-direction: column; gap: 26px;">
+
+    <section>
+      <div style="display: flex; align-items: baseline; gap: 13px; margin-bottom: 16px;">
+        <span class="m" style="font-size: 12px; color: #64d2c7;">02</span>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em;">The market</h2>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+        <sc-for list="{{tiers}}" as="t" hint-placeholder-count="3">
+          <div class="tile" onClick="{{t.pick}}" style="{{t.style}}">
+            <div style="display: flex; align-items: baseline; justify-content: space-between;">
+              <span class="m" style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: {{t.labelColour}};">{{t.name}}</span>
+              <span class="m" style="font-size: 11px; color: #566577;">{{t.margin}}</span>
+            </div>
+            <div style="display: flex; align-items: flex-end; gap: 12px; margin-top: 15px;">
+              <div style="display: flex; align-items: flex-end; gap: 5px; height: 66px;">
+                <sc-for list="{{t.bars}}" as="b" hint-placeholder-count="3">
+                  <div style="display: flex; flex-direction: column; align-items: center; gap: 5px; width: 22px;">
+                    <span class="m" style="font-size: 9px; color: {{b.tickColour}};">{{b.tick}}</span>
+                    <div class="bar" style="width: 100%; background: {{b.fill}}; height: {{b.h}}; border-radius: 3px 3px 0 0;"></div>
+                    <span class="m" style="font-size: 8.5px; letter-spacing: 0.05em; color: {{b.nameColour}};">{{b.name}}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding-bottom: 16px;">
+                <div class="m" style="font-size: 21px; letter-spacing: -0.02em; color: {{t.worthColour}};">{{t.worth}}</div>
+                <div class="m" style="font-size: 10.5px; color: #6d7d90; line-height: 1.4;">the most you can<br>pay for a click</div>
+              </div>
+            </div>
+            <div class="m" style="font-size: 11.5px; color: #8a9aad; margin-top: 13px;">{{t.searches}} searches &middot; {{t.order}} order</div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="background: linear-gradient(180deg, #0c141f 0%, #090e16 100%); border: 1px solid #16202e; border-radius: 12px; padding: 22px 24px;">
+      <div class="m" style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #4d5c6e;">the most a {{chosen}} advertiser can pay for a click</div>
+
+      <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 16px;">
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="7">
+          <div class="step" style="{{s.style}}">
+            <div class="m" style="font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #4d5c6e;">{{s.label}}</div>
+            <div class="m" style="font-size: 17px; color: {{s.colour}}; margin-top: 4px;">{{s.value}}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <p style="margin: 16px 0 0 0; font-size: 13.5px; line-height: 1.65; color: #7d8b9c; max-width: 74ch; text-wrap: pretty;">
+        Pay more than that per click, on average, and you lose money. It is the ceiling every
+        bid in the game is measured against &mdash; and it is for a search worth nothing in
+        particular. The ones you choose to compete for are worth roughly double, which is the
+        entire reason choosing a position matters.
+      </p>
+    </section>
+
+    <section>
+      <div style="display: flex; align-items: baseline; gap: 13px; margin-bottom: 14px;">
+        <span class="m" style="font-size: 12px; color: #64d2c7;">01</span>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em;">Your brand</h2>
+        <span style="font-size: 13.5px; color: #6d7d90;">nine names, and none of them says anything</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px;">
+        <sc-for list="{{brands}}" as="b" hint-placeholder-count="9">
+          <div class="brand" onClick="{{b.pick}}" style="{{b.style}}">
+            <div style="font-size: 14px; font-weight: 600; color: {{b.nameColour}};">{{b.name}}</div>
+            <div class="m" style="font-size: 10px; color: {{b.domainColour}}; margin-top: 4px;">{{b.domain}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 14px 0 0 0; font-size: 13.5px; line-height: 1.6; color: #7d8b9c; max-width: 80ch; text-wrap: pretty;">
+        The other eight go to your rivals. The names are deliberately abstract &mdash; a brand
+        called BudgetBox turning up in the premium tier would mislead you, so position is
+        signalled entirely through ad copy.
+      </p>
+    </section>
+
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#64d2c7","options":["#64d2c7","#7aa2f7","#e0af68","#c98bdb"]}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tier: 'mid', brand: 'vella' };
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? '#64d2c7';
+    const tier = this.state.tier;
+
+    const TIERS = [
+      { id: 'value', name: 'value', searches: '1,82,000', order: '₹1,200', margin: '40%', h: '58px', ret: '24%', conv: '3.4%', be: '₹9.79' },
+      { id: 'mid', name: 'mid', searches: '98,000', order: '₹2,400', margin: '52%', h: '34px', ret: '24%', conv: '2.8%', be: '₹26.56' },
+      { id: 'premium', name: 'premium', searches: '70,000', order: '₹4,800', margin: '62%', h: '24px', ret: '20%', conv: '2.2%', be: '₹52.36' },
+    ];
+
+    // EVERY TILE DRAWS ALL THREE and highlights its own, so the comparison the
+    // whole card exists to make never leaves the screen. The bars are what a
+    // search is WORTH, not how many there are - which runs opposite to volume:
+    // the tier with the most searches is worth least per search, and that
+    // inversion is most of the decision being made here.
+    const WORTH = TIERS.map((x) => Number(x.be.replace(/[^0-9.]/g, '')));
+    const TALLEST = Math.max.apply(null, WORTH);
+    const SHORT = { value: 'val', mid: 'mid', premium: 'prem' };
+
+    const tiers = TIERS.map((t, ti) => {
+      const on = t.id === tier;
+      return {
+        ...t,
+        worth: t.be,
+        worthColour: on ? accent : '#8a9aad',
+        labelColour: on ? accent : '#566577',
+        bars: TIERS.map((b, bi) => {
+          const mine = bi === ti;
+          const hot = mine && on;
+          return {
+            name: SHORT[b.id],
+            // The figure appears on the bar only once it is chosen, so reading
+            // a number is something the click earns rather than wallpaper.
+            tick: hot ? b.be : '',
+            tickColour: hot ? accent : 'transparent',
+            h: `${Math.round((WORTH[bi] / TALLEST) * 46) + 3}px`,
+            fill: hot ? accent : '#1e2b39',
+            nameColour: hot ? accent : '#46566a',
+          };
+        }),
+        style: `background: ${on ? '#0f1c26' : '#0b1017'}; border: 1px solid ${on ? accent : '#16202e'}; border-radius: 11px; padding: 16px 17px; transform: translateY(${on ? '-2px' : '0'});`,
+        pick: () => this.setState({ tier: t.id }),
+      };
+    });
+
+    const t = TIERS.find((x) => x.id === tier);
+    const box = (label, value, colour, i) => ({
+      label, value, colour,
+      style: `background: #0a1119; border: 1px solid #18242f; border-radius: 8px; padding: 9px 13px; min-width: 84px; animation-delay: ${(i * 70)}ms;`,
+    });
+    const op = (glyph, i) => ({
+      label: '', value: glyph, colour: '#4d5c6e',
+      style: `padding: 0 2px; animation-delay: ${(i * 70)}ms;`,
+    });
+
+    const steps = [
+      box('order value', t.order, '#dfe7f0', 0),
+      op('×', 1),
+      box('margin', t.margin, '#dfe7f0', 2),
+      op('×', 3),
+      box('kept', `${100 - parseInt(t.ret, 10)}%`, '#dfe7f0', 4),
+      op('×', 5),
+      box('converts', t.conv, '#dfe7f0', 6),
+      op('=', 7),
+      box('ceiling per click', t.be, accent, 8),
+    ];
+
+    const BRANDS = [
+      ['vella', 'Vella & Co.', 'vellaandco.in'], ['kestrel', 'Kestrel', 'kestrel.in'],
+      ['marlow', 'Marlow', 'marlowlabel.in'], ['satva', 'Satva', 'satva.in'],
+      ['halcyon', 'Halcyon', 'halcyon.in'], ['lumen', 'Lumen', 'lumenlabel.in'],
+      ['nira', 'Nira', 'nira.in'], ['torvi', 'Torvi', 'torvi.in'], ['auren', 'Auren', 'auren.in'],
+    ];
+
+    const brands = BRANDS.map((b) => {
+      const on = b[0] === this.state.brand;
+      return {
+        name: b[1], domain: b[2],
+        nameColour: on ? '#eef4fa' : '#a8b6c6',
+        domainColour: on ? accent : '#566577',
+        style: `background: ${on ? '#0f1c26' : '#0b1017'}; border: 1px solid ${on ? accent : '#16202e'}; border-radius: 9px; padding: 11px 13px; transform: translateY(${on ? '-2px' : '0'});`,
+        pick: () => this.setState({ brand: b[0] }),
+      };
+    });
+
+    return { tiers, steps, brands, chosen: t.name };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+{
+  "artboards": [
+    {
+      "file": "Market.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1100,
+      "h": 820,
+      "title": "01–02 · Your brand + The market",
+      "is_interactive": true
+    },
+    {
+      "file": "Main.dc.html",
+      "x": 1220,
+      "y": 0,
+      "w": 1240,
+      "h": 820,
+      "title": "03 · Where the search happens",
+      "is_interactive": true
+    },
+    {
+      "file": "Position.dc.html",
+      "x": 2580,
+      "y": 0,
+      "w": 1240,
+      "h": 620,
+      "title": "04 · Who else is here",
+      "is_interactive": true
+    },
+    {
+      "file": "Grid.dc.html",
+      "x": 3940,
+      "y": 0,
+      "w": 1240,
+      "h": 860,
+      "title": "05 · Where you sit",
+      "is_interactive": true
+    },
+    {
+      "file": "Spend.dc.html",
+      "x": 0,
+      "y": 1010,
+      "w": 1240,
+      "h": 900,
+      "title": "06–08 · The money",
+      "is_interactive": true
+    },
+    {
+      "file": "Account.dc.html",
+      "x": 1360,
+      "y": 1010,
+      "w": 1240,
+      "h": 900,
+      "title": "09–10 · Keywords + Your ad",
+      "is_interactive": true
+    },
+    {
+      "file": "Instrument.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1080,
+      "title": "Earlier: B - Instrument",
+      "page": "page-2"
+    },
+    {
+      "file": "Workspace.dc.html",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1080,
+      "title": "Earlier: C - Workspace",
+      "page": "page-2"
+    }
+  ],
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Round 0"
+    },
+    {
+      "id": "page-2",
+      "name": "Superseded"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": 0,
+      "y": -280,
+      "w": 620,
+      "text": "ROUND 0 — THE SETUP SCREEN, ALL TEN CARDS.\n\nSix interactive artboards. Click everything; nothing here is a picture of a control.\n\nReal content throughout: the nine brands, the tier economics, the break-even sums, the geography splits, the eight rival ads from content/adCopy.js, the writer tiers, the capital rungs and the planner's own head terms. Where a figure appears it is the simulator's, not a placeholder.\n\nReads left to right, then down: brand and market, geography, who else is here, where you sit, the money, the account you open with."
+    },
+    {
+      "id": "map-note",
+      "x": 1220,
+      "y": -280,
+      "w": 520,
+      "text": "THE MAP IS REAL DATA.\n\nDataMeet's india-composite boundary, reduced from 242,146 points to 2,088 by Douglas-Peucker. 168 cities: the 18 the simulator models are teal and clickable, 150 more come from a geonames-derived set thinned to spread evenly. Those 150 are texture, not simulator data."
+    },
+    {
+      "id": "capital-note",
+      "x": 0,
+      "y": 1960,
+      "w": 560,
+      "text": "THE CAPITAL CARD ANSWERS A MEASURED COMPLAINT.\n\nA player said mid-game that capital \"seems to be a waste\". It is not - measured, photography is worth +22.3% against not investing, the page +7.6%, the size guide +4.0%. But two of the three targets have NO on-screen indicator at all in the app today, and the S-curve is invisible.\n\nSo each target now says what it buys, and the curve is drawn beside the rungs: the steep stretch is 25,000-70,000, and past 70,000 on one target the last 30,000 buys almost nothing."
+    },
+    {
+      "id": "block-note",
+      "x": 1360,
+      "y": 1960,
+      "w": 560,
+      "text": "THE BLOCK YOUR TESTER HIT, MADE VISIBLE.\n\nThis artboard opens in the failing state: retainer hired, ratings 8/8/8, and the account still will not open because the description boxes are empty. The Go button says why, and the panel names the trap.\n\nFlip the descriptionsWritten tweak above the artboard to see the same screen once the copy is in.\n\nThe fix itself - seeding copy from a hired writer - is the open proposal saved in memory, not built."
+    },
+    {
+      "id": "grid-note",
+      "x": 3940,
+      "y": -280,
+      "w": 520,
+      "text": "WHERE YOU SIT, AS AN IDENTITY RATHER THAN A SQUARE.\n\nSecond attempt. The first was a scatter of the six cells on searches against ceiling - correct, and an analyst's chart. It stripped out the thing the card is actually asking: what kind of company are you.\n\nSo the grid stays a grid, because a 3x2 matrix is the intuitive part. What changes is that picking one shows you WHO YOU WOULD BE - the customer, the real ad a shop like that runs (content/adCopy.js), and what the position gives you against what it costs you.\n\nEach square carries six small bars - all the cells, its own picked out - so the comparison never leaves the screen.\n\nStill nothing marks a cell as yours before you choose: that would need the affinity fields 16.1 withholds, which is what I3 removed the round 0 dot for."
+    },
+    {
+      "id": "open-work",
+      "x": 2580,
+      "y": 1960,
+      "w": 560,
+      "text": "TWO THINGS THIS DESIGN TAKES A POSITION ON.\n\nTHE CAPITAL CARD shows what each target buys and draws the S-curve. Measured, photography is worth +22.3% against not investing and has no on-screen indicator in the app at all. The curve's steep stretch is 25,000-70,000.\n\nTHE AD CARD opens in the failing state a tester hit: retainer hired, 8/8/8 showing, account still blocked by empty descriptions. Flip the descriptionsWritten tweak to see it resolved. The fix - a hired writer supplying copy - is proposed, not built."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-1"
+  }
+}

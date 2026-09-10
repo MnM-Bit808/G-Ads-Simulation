@@ -1,0 +1,268 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; background: #070a10; }
+    a { color: #64d2c7; } a:hover { color: #8fe4db; }
+    .m { font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+
+    @keyframes slidein { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+    @keyframes grow { from { transform: scaleX(0.02); } to { transform: scaleX(1); } }
+    @keyframes breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(100,210,199,0.26); } 50% { box-shadow: 0 0 0 8px rgba(100,210,199,0); } }
+
+    .in { animation: slidein 420ms cubic-bezier(0.2,0.8,0.2,1) both; }
+    .bar { transform-origin: left; animation: grow 640ms cubic-bezier(0.2,0.8,0.2,1) both; }
+    .tile { transition: all 200ms cubic-bezier(0.2,0.8,0.2,1); cursor: pointer; }
+    .tile.on { animation: breathe 2.6s ease-out infinite; }
+    .axis { transition: color 220ms ease; cursor: pointer; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; background: #070a10; color: #dfe7f0; min-height: 900px;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; border-bottom: 1px solid #16202e;">
+    <div style="display: flex; align-items: baseline; gap: 13px;">
+      <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.04em;">ROUND 0</span>
+      <span class="m" style="font-size: 12px; color: #5b6a7d;">before you have seen a single auction</span>
+    </div>
+    <span class="m" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #64d2c7;">05 &nbsp;/&nbsp; where you sit</span>
+  </div>
+
+  <div style="padding: 24px 30px 30px 30px;">
+
+    <div style="display: flex; align-items: baseline; gap: 14px; margin-bottom: 4px;">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em;">Where you sit</h2>
+      <span style="font-size: 13.5px; color: #6d7d90;">chosen once, and fixed until round 5</span>
+    </div>
+    <p style="margin: 0 0 20px 0; font-size: 13.5px; line-height: 1.6; color: #7d8b9c; max-width: 96ch; text-wrap: pretty;">
+      You are not picking a square. You are picking what kind of company you are &mdash; what you
+      sell, who buys it, and therefore which searches are worth your money.
+    </p>
+
+    <div style="display: grid; grid-template-columns: 470px 1fr; gap: 26px; align-items: start;">
+
+      <div>
+        <div style="display: grid; grid-template-columns: 76px repeat(3, minmax(0, 1fr)); gap: 9px;">
+          <div></div>
+          <sc-for list="{{priceAxis}}" as="p" hint-placeholder-count="3">
+            <div class="axis m" onClick="{{p.pick}}" style="{{p.style}}">{{p.name}}</div>
+          </sc-for>
+
+          <sc-for list="{{rows}}" as="row" hint-placeholder-count="2">
+            <div style="display: contents;">
+              <div class="axis m" onClick="{{row.pick}}" style="{{row.style}}">{{row.name}}</div>
+              <sc-for list="{{row.cells}}" as="c" hint-placeholder-count="3">
+                <div class="tile {{c.cls}}" onClick="{{c.pick}}" style="{{c.style}}">
+                  <div class="m" style="font-size: 19px; letter-spacing: -0.02em; color: {{c.beColour}};">{{c.be}}</div>
+                  <div class="m" style="font-size: 9px; color: #566577; margin-top: 3px;">a click, at most</div>
+                  <div style="display: flex; align-items: flex-end; gap: 2px; height: 22px; margin-top: 11px;">
+                    <sc-for list="{{c.spark}}" as="s" hint-placeholder-count="6">
+                      <div style="flex-grow: 1; background: {{s.fill}}; height: {{s.h}}; border-radius: 1px;"></div>
+                    </sc-for>
+                  </div>
+                  <div class="m" style="font-size: 9.5px; color: #6d7d90; margin-top: 7px;">{{c.searches}}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+
+        <p class="m" style="margin: 14px 0 0 0; font-size: 11px; line-height: 1.65; color: #566577;">
+          The bars in each square are all six cells, so you can see where that one stands without
+          leaving it. Taller means a click there can be worth more.
+        </p>
+      </div>
+
+      <div class="in" key="{{cellKey}}" style="background: linear-gradient(180deg, #0d1620 0%, #090e16 100%); border: 1px solid {{panelBorder}}; border-radius: 14px; padding: 22px 24px;">
+
+        <div class="m" style="font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #4d5c6e;">you would be</div>
+        <div style="font-size: 25px; font-weight: 700; letter-spacing: -0.025em; margin-top: 6px; color: #eef4fa;">{{identity}}</div>
+        <p style="margin: 9px 0 0 0; font-size: 14px; line-height: 1.6; color: #9fb0c2; max-width: 60ch; text-wrap: pretty;">{{customer}}</p>
+
+        <div style="background: #0a1119; border: 1px solid #17222f; border-radius: 10px; padding: 15px 16px; margin-top: 18px;">
+          <div class="m" style="font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #46566a; margin-bottom: 10px;">the ad a shop like that runs</div>
+          <div style="display: flex; align-items: center; gap: 7px;">
+            <span class="m" style="font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #46566a; border: 1px solid #22303f; border-radius: 3px; padding: 1px 4px;">Ad</span>
+            <span class="m" style="font-size: 10.5px; color: #64d2c7;">yourbrand.in</span>
+          </div>
+          <div style="font-size: 15px; font-weight: 600; color: #cfe0ee; margin-top: 8px; line-height: 1.35;">{{adHead}}</div>
+          <div style="font-size: 12.5px; color: #7d8b9c; margin-top: 6px; line-height: 1.55;">{{adDesc}}</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px;">
+          <sc-for list="{{figures}}" as="f" hint-placeholder-count="3">
+            <div style="background: #0a1119; border-radius: 9px; padding: 13px 14px;">
+              <div class="m" style="font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #46566a;">{{f.label}}</div>
+              <div class="m" style="font-size: 19px; letter-spacing: -0.02em; margin-top: 6px; color: {{f.colour}};">{{f.value}}</div>
+              <div style="height: 4px; background: #16202e; border-radius: 2px; margin-top: 8px; overflow: hidden;">
+                <div class="bar" style="width: {{f.w}}; height: 100%; background: {{f.colour}};"></div>
+              </div>
+              <div class="m" style="font-size: 9.5px; color: #566577; margin-top: 6px;">{{f.foot}}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 16px;">
+          <div style="flex: 1; border-left: 2px solid #7ec699; padding-left: 13px;">
+            <div class="m" style="font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #5f8f77;">what it gives you</div>
+            <p style="margin: 5px 0 0 0; font-size: 12.5px; line-height: 1.55; color: #b9c9da; text-wrap: pretty;">{{upside}}</p>
+          </div>
+          <div style="flex: 1; border-left: 2px solid #e0af68; padding-left: 13px;">
+            <div class="m" style="font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #9a7c48;">what it costs you</div>
+            <p style="margin: 5px 0 0 0; font-size: 12.5px; line-height: 1.55; color: #b9c9da; text-wrap: pretty;">{{downside}}</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#64d2c7","options":["#64d2c7","#7aa2f7","#e0af68","#c98bdb"]}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { price: 'mid', purpose: 'performance' };
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? '#64d2c7';
+
+    // Public figures plus the real ad copy each cell's shops actually run
+    // (content/adCopy.js). The copy is the point: 17.1 makes it the only way
+    // anyone reads a position, so it is also the clearest way to show your own.
+    const CELLS = {
+      'value|performance': {
+        be: 9.79, searches: 79310, order: '₹1,200', margin: '40%',
+        identity: 'A cheap gym-wear brand',
+        customer: 'People who train four times a week and will not pay ₹2,000 for leggings. They compare, and they buy on price.',
+        head: 'Gym Leggings From ₹799',
+        desc: 'Train hard, spend little. Squat-proof leggings and high-impact bras that hold.',
+        up: 'The most searches of any cell — 79,310 a week, and the cheapest attention in the country.',
+        down: '₹9.79 a click and 40% margin. One bad week of bidding and the month is gone.',
+      },
+      'value|lifestyle': {
+        be: 10.42, searches: 75565, order: '₹1,200', margin: '40%',
+        identity: 'A budget loungewear label',
+        customer: 'People buying co-ord sets to live in, not to train in. Bigger baskets than the gym crowd, and more of it comes back.',
+        head: 'Co-ord Sets From ₹1199',
+        desc: 'Soft co-ord sets and joggers that look put together, for a lot less.',
+        up: 'Almost as much traffic as value performance, with slightly bigger orders.',
+        down: 'The worst returns in the game — cheap and bought on looks is the combination that comes back.',
+      },
+      'mid|performance': {
+        be: 26.56, searches: 42840, order: '₹2,400', margin: '52%',
+        identity: 'A serious training brand',
+        customer: 'People who have bought cheap kit once and are not doing it again. They read fabric claims and check the fit guide.',
+        head: 'Leggings Built To Train In',
+        desc: 'Gym wear that survives four sessions a week and a hot Indian summer.',
+        up: '₹26.56 a click, nearly three times what value can pay, on half the traffic.',
+        down: 'The most contested ground on the board. Everyone thinks the middle is safe.',
+      },
+      'mid|lifestyle': {
+        be: 28.44, searches: 39200, order: '₹2,400', margin: '52%',
+        identity: 'An everyday athleisure label',
+        customer: 'People dressing for the school run and the studio in the same outfit. They buy sets, not pieces.',
+        head: 'Athleisure For All Day',
+        desc: 'Everyday athleisure for the school run, the studio, and whatever comes after.',
+        up: 'Bigger baskets than performance and fewer returns than value — a comfortable middle.',
+        down: '39,200 searches a week is the second-thinnest field. You cannot outspend a mistake here.',
+      },
+      'premium|performance': {
+        be: 52.36, searches: 30135, order: '₹4,800', margin: '62%',
+        identity: 'A technical performance house',
+        customer: 'Lifters and runners who treat kit as equipment. Few of them, and they do not flinch at ₹4,800.',
+        head: 'Seamless Compression Kit',
+        desc: 'Seamless, sculpting, second-skin. Japanese yarn, knitted to hold under load.',
+        up: '₹52.36 a click. You can be wrong five times as often as a value brand and survive it.',
+        down: 'Only 30,135 searches a week. You will struggle to spend your budget at all.',
+      },
+      'premium|lifestyle': {
+        be: 56.18, searches: 26950, order: '₹4,800', margin: '62%',
+        identity: 'A considered luxury label',
+        customer: 'People buying loungewear as clothing rather than as kit. The fewest searches, the biggest baskets, the fewest returns.',
+        head: 'Modal And Cashmere Blend',
+        desc: 'Loungewear in modal and cashmere blend, cut to hold its shape for years.',
+        up: 'The highest ceiling in the game at ₹56.18, and the gentlest returns.',
+        down: 'The thinnest traffic of all six. Demand runs out long before your money does.',
+      },
+    };
+
+    const PRICES = ['value', 'mid', 'premium'];
+    const PURPOSES = ['performance', 'lifestyle'];
+    const id = `${this.state.price}|${this.state.purpose}`;
+    const c = CELLS[id];
+
+    const ALL = Object.values(CELLS);
+    const MAXB = Math.max(...ALL.map((x) => x.be));
+    const MAXS = Math.max(...ALL.map((x) => x.searches));
+    const ORDER = Object.keys(CELLS);
+
+    const priceAxis = PRICES.map((p) => {
+      const on = this.state.price === p;
+      return {
+        name: p,
+        style: `text-align: center; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; padding: 4px 0 6px 0; color: ${on ? accent : '#4d5c6e'};`,
+        pick: () => this.setState({ price: p }),
+      };
+    });
+
+    const rows = PURPOSES.map((purpose) => {
+      const rowOn = this.state.purpose === purpose;
+      return {
+        name: purpose,
+        style: `display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; text-align: right; color: ${rowOn ? accent : '#4d5c6e'};`,
+        pick: () => this.setState({ purpose }),
+        cells: PRICES.map((price) => {
+          const cid = `${price}|${purpose}`;
+          const cc = CELLS[cid];
+          const on = cid === id;
+          return {
+            be: `₹${cc.be.toFixed(2)}`,
+            searches: `${Math.round(cc.searches / 1000)}k a week`,
+            beColour: on ? accent : '#c3d0de',
+            cls: on ? 'on' : '',
+            // Every square carries all six bars, its own picked out. The
+            // comparison never leaves the screen, which is what the flat table
+            // could not do.
+            spark: ORDER.map((oid) => ({
+              h: `${Math.round((CELLS[oid].be / MAXB) * 20) + 2}px`,
+              fill: oid === cid ? (on ? accent : '#7d9cb5') : '#1c2836',
+            })),
+            style: `background: ${on ? '#0f1c26' : '#0b1017'}; border: 1px solid ${on ? accent : '#16202e'}; border-radius: 11px; padding: 13px 14px; transform: translateY(${on ? '-2px' : '0'});`,
+            pick: () => this.setState({ price, purpose }),
+          };
+        }),
+      };
+    });
+
+    const figures = [
+      { label: 'ceiling per click', value: `₹${c.be.toFixed(2)}`, w: `${(c.be / MAXB) * 100}%`, colour: accent, foot: 'pay more and you lose money' },
+      { label: 'searches a week', value: c.searches.toLocaleString('en-IN'), w: `${(c.searches / MAXS) * 100}%`, colour: '#7d9cb5', foot: 'in this cell alone' },
+      { label: 'order · margin', value: c.order, w: c.margin, colour: '#7d9cb5', foot: `${c.margin} of it is yours` },
+    ];
+
+    return {
+      priceAxis, rows, figures,
+      cellKey: id,
+      identity: c.identity,
+      customer: c.customer,
+      adHead: c.head,
+      adDesc: c.desc,
+      upside: c.up,
+      downside: c.down,
+      panelBorder: accent,
+    };
+  }
+}
+</script>
+</body>
+</html>

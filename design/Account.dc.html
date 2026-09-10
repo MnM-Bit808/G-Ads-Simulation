@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; background: #070a10; }
+    a { color: #64d2c7; } a:hover { color: #8fe4db; }
+    .m { font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace; font-variant-numeric: tabular-nums; }
+    @keyframes fill { from { width: 0; } }
+    @keyframes warn { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+    .vol { animation: fill 800ms cubic-bezier(0.2,0.8,0.2,1) both; }
+    .alert { animation: warn 2.2s ease-in-out infinite; }
+    .kw { transition: background 180ms ease; cursor: pointer; }
+    .mt { transition: all 160ms ease; cursor: pointer; }
+    .grade { transition: color 300ms ease; }
+  </style>
+</helmet>
+
+<div style="font-family: 'Space Grotesk', system-ui, sans-serif; background: #070a10; color: #dfe7f0; min-height: 900px;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 30px; border-bottom: 1px solid #16202e;">
+    <div style="display: flex; align-items: baseline; gap: 13px;">
+      <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.04em;">ROUND 0</span>
+      <span class="m" style="font-size: 12px; color: #5b6a7d;">before you have seen a single auction</span>
+    </div>
+    <span class="m" style="font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #64d2c7;">09&ndash;10 &nbsp;/&nbsp; keywords &middot; your ad</span>
+  </div>
+
+  <div style="padding: 26px 30px; display: flex; flex-direction: column; gap: 26px;">
+
+    <section>
+      <div style="display: flex; align-items: baseline; gap: 13px; margin-bottom: 4px;">
+        <span class="m" style="font-size: 12px; color: #64d2c7;">09</span>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em;">Keywords</h2>
+        <span style="font-size: 13.5px; color: #6d7d90;">what you bid on, and how loosely it matches</span>
+      </div>
+      <p class="m" style="margin: 0 0 14px 0; font-size: 11.5px; color: #566577;">
+        In the order Keyword Planner gives it: biggest first. That is not the order to buy in.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 118px 128px 84px 78px; gap: 0; align-items: center;">
+        <div class="m" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #4d5c6e; padding-bottom: 9px;">Search</div>
+        <div class="m" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #4d5c6e; padding-bottom: 9px;">A week</div>
+        <div class="m" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #4d5c6e; padding-bottom: 9px;">Match</div>
+        <div class="m" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #4d5c6e; padding-bottom: 9px; text-align: right;">Bid</div>
+        <div class="m" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #4d5c6e; padding-bottom: 9px; text-align: right;">Clears?</div>
+
+        <sc-for list="{{keywords}}" as="k" hint-placeholder-count="7">
+          <div style="display: contents;">
+            <div class="kw" onClick="{{k.pick}}" style="{{k.rowStyle}}">
+              <span style="font-size: 13.5px; color: {{k.textColour}};">{{k.text}}</span>
+            </div>
+            <div style="{{k.cellStyle}}">
+              <div style="display: flex; align-items: center; gap: 7px;">
+                <div style="width: 52px; height: 5px; background: #16202e; border-radius: 3px; overflow: hidden;">
+                  <div class="vol" style="width: {{k.barW}}; height: 100%; background: {{k.barFill}};"></div>
+                </div>
+                <span class="m" style="font-size: 11px; color: #8a9aad;">{{k.volume}}</span>
+              </div>
+            </div>
+            <div style="{{k.cellStyle}}">
+              <div style="display: flex; gap: 3px;">
+                <sc-for list="{{k.matches}}" as="mt" hint-placeholder-count="3">
+                  <div class="mt m" onClick="{{mt.pick}}" style="{{mt.style}}">{{mt.label}}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div class="m" style="{{k.bidStyle}}">{{k.bid}}</div>
+            <div class="m" style="{{k.clearStyle}}">{{k.clears}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <p class="m" style="margin: 12px 0 0 0; font-size: 11.5px; color: {{reserveColour}};">{{reserveNote}}</p>
+    </section>
+
+    <section>
+      <div style="display: flex; align-items: baseline; gap: 13px; margin-bottom: 14px;">
+        <span class="m" style="font-size: 12px; color: #64d2c7;">10</span>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.015em;">Your ad</h2>
+        <span style="font-size: 13.5px; color: #6d7d90;">the only thing your rivals can see about you</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 340px; gap: 22px; align-items: start;">
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <sc-for list="{{fields}}" as="f" hint-placeholder-count="5">
+            <div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 5px;">
+                <span class="m" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #4d5c6e;">{{f.label}}</span>
+                <span class="m" style="font-size: 10px; color: {{f.countColour}};">{{f.count}}</span>
+              </div>
+              <div style="{{f.boxStyle}}">{{f.value}}</div>
+            </div>
+          </sc-for>
+
+          <div style="background: #0b1017; border: 1px solid #16202e; border-radius: 10px; padding: 14px 15px; margin-top: 4px;">
+            <div class="m" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #4d5c6e; margin-bottom: 10px;">as a searcher meets it</div>
+            <div style="display: flex; align-items: center; gap: 7px;">
+              <span class="m" style="font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #46566a; border: 1px solid #22303f; border-radius: 3px; padding: 1px 4px;">Ad</span>
+              <span class="m" style="font-size: 11px; color: #64d2c7;">vellaandco.in</span>
+            </div>
+            <div style="font-size: 15px; font-weight: 600; color: #cfe0ee; margin-top: 8px;">{{serpHead}}</div>
+            <div style="font-size: 12.5px; color: #7d8b9c; margin-top: 6px; line-height: 1.55;">{{serpDesc}}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="background: #0b1017; border: 1px solid #16202e; border-radius: 11px; padding: 17px 18px;">
+            <div class="m" style="font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #4d5c6e;">how this ad grades, live</div>
+            <div style="display: flex; flex-direction: column; gap: 11px; margin-top: 14px;">
+              <sc-for list="{{grades}}" as="g" hint-placeholder-count="3">
+                <div>
+                  <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                    <span style="font-size: 13px; color: #c3d0de;">{{g.label}}</span>
+                    <span class="m grade" style="font-size: 15px; color: {{g.colour}};">{{g.score}}</span>
+                  </div>
+                  <div style="height: 5px; background: #16202e; border-radius: 3px; margin-top: 6px; overflow: hidden;">
+                    <div class="vol" style="width: {{g.w}}; height: 100%; background: {{g.colour}};"></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div class="{{noteClass}}" style="{{noteStyle}}">
+            <div class="m" style="font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: {{noteHeadColour}};">{{noteHead}}</div>
+            <p style="margin: 8px 0 0 0; font-size: 12.5px; line-height: 1.6; color: #b9c9da; text-wrap: pretty;">{{noteBody}}</p>
+          </div>
+
+          <div style="{{goStyle}}">{{goLabel}}</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#64d2c7","options":["#64d2c7","#7aa2f7","#e0af68","#c98bdb"]},"descriptionsWritten":{"editor":"boolean","default":false,"section":"Try it"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { match: {}, focus: null };
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? '#64d2c7';
+    const written = this.props.descriptionsWritten ?? false;
+
+    // Real rows from the frozen query set, biggest first as the planner gives them.
+    const KW = [
+      { text: 'gym leggings', vol: 8225, bid: '₹30', need: 6.87 },
+      { text: 'sports bra high impact', vol: 5140, bid: '₹30', need: 6.87 },
+      { text: 'workout leggings', vol: 4390, bid: '₹30', need: 6.87 },
+      { text: 'co ord set women', vol: 3980, bid: '₹30', need: 6.87 },
+      { text: 'high waisted gym leggings', vol: 2870, bid: '₹30', need: 6.87 },
+      { text: 'seamless leggings', vol: 2310, bid: '₹30', need: 6.87 },
+      { text: 'premium athleisure', vol: 1640, bid: '₹30', need: 6.87 },
+    ];
+    const TOP = 8225;
+    const MATCHES = [['exact', 'exact'], ['phrase', 'phrase'], ['broad', 'broad']];
+
+    const cell = (extra) => `padding: 9px 0; border-top: 1px solid #121c27; ${extra || ''}`;
+
+    const keywords = KW.map((k, i) => {
+      const chosen = this.state.match[k.text] ?? 'phrase';
+      const focused = this.state.focus === k.text;
+      return {
+        text: k.text,
+        volume: k.vol.toLocaleString('en-IN'),
+        barW: `${Math.round((k.vol / TOP) * 100)}%`,
+        barFill: focused ? accent : '#2c4457',
+        bid: k.bid,
+        clears: 'yes',
+        textColour: focused ? '#eef4fa' : '#c3d0de',
+        rowStyle: cell(`background: ${focused ? '#0f1c26' : 'transparent'}; border-radius: 6px 0 0 6px; padding-left: 8px; margin-left: -8px;`),
+        cellStyle: cell(`background: ${focused ? '#0f1c26' : 'transparent'};`),
+        bidStyle: cell(`background: ${focused ? '#0f1c26' : 'transparent'}; font-size: 13px; text-align: right; color: #c3d0de;`),
+        clearStyle: cell(`background: ${focused ? '#0f1c26' : 'transparent'}; font-size: 12px; text-align: right; color: #7ec699; border-radius: 0 6px 6px 0; padding-right: 8px; margin-right: -8px;`),
+        matches: MATCHES.map((mt) => {
+          const on = mt[0] === chosen;
+          return {
+            label: mt[1],
+            style: `font-size: 10px; padding: 3px 7px; border-radius: 5px; border: 1px solid ${on ? accent : '#1c2836'}; background: ${on ? 'rgba(100,210,199,0.12)' : 'transparent'}; color: ${on ? accent : '#6d7d90'};`,
+            pick: () => this.setState({ match: { ...this.state.match, [k.text]: mt[0] }, focus: k.text }),
+          };
+        }),
+        pick: () => this.setState({ focus: this.state.focus === k.text ? null : k.text }),
+      };
+    });
+
+    const anyBroad = Object.values(this.state.match).includes('broad');
+    const reserveNote = anyBroad
+      ? 'A broad keyword reaches searches you did not name — impressions rise, impression share falls, and you find out what it dragged you into from next week’s report.'
+      : 'Every bid clears the reserve at the grade this account opens on. Below it you enter every auction and show in none.';
+
+    // THE BLOCK A TESTER ACTUALLY HIT: retainer hired, descriptions left blank,
+    // and the Go button refuses. The toggle above flips it.
+    const DESCS = [
+      'Lounge co-ord sets in soft modal that hold their shape wash after wash.',
+      'Sizes XS to XXL, free delivery and easy 30 day returns.',
+    ];
+    const fields = [
+      { label: 'Headline 1', value: 'Premium Lounge Co Ord Sets', max: 30 },
+      { label: 'Headline 2', value: 'Everyday Luxe For Women', max: 30 },
+      { label: 'Headline 3', value: 'Soft Modal, Sizes XS-XXL', max: 30 },
+      { label: 'Description 1', value: written ? DESCS[0] : '', max: 90 },
+      { label: 'Description 2', value: written ? DESCS[1] : '', max: 90 },
+    ].map((f) => {
+      const empty = f.value.length === 0;
+      return {
+        label: f.label,
+        value: empty ? 'nothing written yet' : f.value,
+        count: `${f.value.length}/${f.max}`,
+        countColour: empty ? '#e0af68' : '#566577',
+        boxStyle: `background: #0b1017; border: 1px solid ${empty ? '#3d3320' : '#16202e'}; border-radius: 8px; padding: 10px 12px; font-size: 13.5px; color: ${empty ? '#6d7d90' : '#dfe7f0'}; font-style: ${empty ? 'italic' : 'normal'};`,
+      };
+    });
+
+    // A retainer overwrites the two copy components outright (I11). The landing
+    // page is graded on the page the capital built, and — since the fix — an
+    // unfinished ad no longer drags it down with them.
+    const grades = [
+      { label: 'Expected CTR', score: '8/10', n: 8, colour: accent },
+      { label: 'Ad relevance', score: '8/10', n: 8, colour: accent },
+      { label: 'Landing page', score: '8/10', n: 8, colour: accent },
+    ].map((g) => ({ ...g, w: `${g.n * 10}%` }));
+
+    const canGo = written;
+    return {
+      keywords, reserveNote,
+      reserveColour: anyBroad ? '#e0af68' : '#566577',
+      fields, grades,
+      serpHead: 'Premium Lounge Co Ord Sets | Everyday Luxe For Women',
+      serpDesc: written ? DESCS.join(' ') : 'No description yet — this is the line a searcher reads under your headline.',
+      noteClass: canGo ? '' : 'alert',
+      noteHead: canGo ? 'ready' : 'you cannot start yet',
+      noteHeadColour: canGo ? '#7ec699' : '#e0af68',
+      noteBody: canGo
+        ? 'Twelve weeks, ₹1,68,000 a month, eight rivals. You may redo all of this once, up to the end of week 3.'
+        : 'You hired a writer, so leaving the copy boxes alone is reasonable — but the account will not open without a description. This is the wall a tester hit: paid for the ad, still blocked by it.',
+      noteStyle: `background: ${canGo ? '#0d1a16' : '#1a1509'}; border: 1px solid ${canGo ? '#2c4a3c' : '#3d3320'}; border-radius: 10px; padding: 14px 15px;`,
+      goLabel: canGo ? 'Open the account and run week 1' : 'Your ad is not finished',
+      goStyle: `text-align: center; padding: 12px; border-radius: 9px; font-size: 13.5px; font-weight: 600; ${canGo
+        ? `background: ${accent}; color: #06121a;`
+        : 'background: #131a22; color: #46566a; border: 1px solid #1c2836;'}`,
+    };
+  }
+}
+</script>
+</body>
+</html>

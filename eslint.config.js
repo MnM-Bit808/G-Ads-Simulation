@@ -82,4 +82,18 @@ export default [
       globals: { ...globals.node, ...globals.browser },
     },
   },
+
+  {
+    // design/ holds the Claude Design artboards and the two one-shot Node
+    // scripts that turned a downloaded boundary into `ui/india-map.js`. They
+    // run by hand, never in the app and never in the suite, and they are kept
+    // because R7 asks where a figure came from — the map is 2,088 points
+    // reduced from 242,146, and this is the only record of how.
+    files: ['design/**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'module',
+      globals: globals.node,
+    },
+  },
 ];
