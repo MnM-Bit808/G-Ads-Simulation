@@ -479,11 +479,18 @@ function accumulate(game, which, range) {
   for (const stored of rounds) {
     const breakdown = stored.byAdvertiser?.[game.playerId]?.breakdown?.[which];
     for (const [id, r] of Object.entries(breakdown ?? {})) {
-      const acc = out[id] ?? (out[id] = { impressions: 0, clicks: 0, costPaise: 0, conversions: 0 });
+      const acc = out[id] ?? (out[id] = {
+        impressions: 0, clicks: 0, costPaise: 0, conversions: 0,
+        returned: 0, returnedRevenuePaise: 0,
+      });
       acc.impressions += r.impressions ?? 0;
       acc.clicks += r.clicks ?? 0;
       acc.costPaise += r.costPaise ?? 0;
       acc.conversions += r.conversions ?? 0;
+      // I32: which search sent it back, so a negative can be written on return
+      // grounds rather than only on "took clicks and never converted".
+      acc.returned += r.returned ?? 0;
+      acc.returnedRevenuePaise += r.returnedRevenuePaise ?? 0;
     }
   }
   return out;
@@ -520,6 +527,13 @@ function spentByWeekOfMonth(game) {
  */
 function renderTerms(root, game, ctx) {
   const range = game.view.termsRange;
+  // The comparison every row is marked against, over exactly the rows on screen
+  // so the table and its highlighting cannot disagree about the period.
+  const totals = Object.values(ctx.terms).reduce(
+    (a, r) => ({ conv: a.conv + (r.conversions ?? 0), ret: a.ret + (r.returned ?? 0) }),
+    { conv: 0, ret: 0 },
+  );
+  const accountReturnRate = totals.conv > 0 ? totals.ret / totals.conv : 0;
   const rows = Object.entries(ctx.terms)
     .filter(([, r]) => r.impressions > 0)
     .sort((a, b) => b[1].costPaise - a[1].costPaise)
@@ -558,6 +572,29 @@ function renderTerms(root, game, ctx) {
           + 'gets. If you did not choose this, a keyword of yours matched into it.';
       }
 
+      // I32: the return rate of this SEARCH, invisible until the returns were
+      // attributed back here.
+      //
+      // MARKED AGAINST THIS ACCOUNT'S OWN RATE, not against a fixed threshold.
+      // The first version used 34% and never fired, because a mid|lifestyle
+      // account runs at 20-22% and a value one runs higher — an absolute cut-off
+      // marks a whole cell or none of it. What a player can act on is a search
+      // returning worse than THEIR OTHER SEARCHES, which is the comparison a
+      // negative is actually made on.
+      // `returned` is a SUBSET of `conversions`, not a separate cohort: an
+      // order is counted when it lands and counted again when it comes back.
+      // Dividing by the sum double-counts and understates every rate.
+      const returnRate = r.conversions > 0 ? r.returned / r.conversions : null;
+      const worse = returnRate != null && accountReturnRate > 0
+        && returnRate > accountReturnRate * 1.15;
+      const returns = el('span', worse ? 'bad' : null);
+      returns.textContent = returnRate == null ? '—' : pct(returnRate, 0);
+      returns.title = returnRate == null
+        ? 'nothing has come back from this search yet'
+        : `${r.returned.toFixed(1)} of ${r.conversions.toFixed(1)} orders came back, `
+          + `${rupees(r.returnedRevenuePaise)} of revenue`
+          + (worse ? `. That is worse than your account's ${pct(accountReturnRate, 0)}.` : '');
+
       return {
         className: blocked ? 'blocked-row' : (r.clicks >= 5 && r.conversions === 0 ? 'wasted' : null),
         cells: [
@@ -566,6 +603,7 @@ function renderTerms(root, game, ctx) {
           whole(r.clicks),
           rupees(r.costPaise),
           r.conversions > 0 ? r.conversions.toFixed(1) : '0',
+          returns,
           r.clicks > 0 ? rupees(r.costPaise / r.clicks) : '—',
           button,
         ],
@@ -575,7 +613,8 @@ function renderTerms(root, game, ctx) {
   table(
     root.querySelector('[data-slot="terms-table"]'),
     ['Search term', { label: 'Impr', num: true }, { label: 'Clicks', num: true },
-      { label: 'Cost', num: true }, { label: 'Conv', num: true }, { label: 'CPC', num: true }, ''],
+      { label: 'Cost', num: true }, { label: 'Conv', num: true },
+      { label: 'Came back', num: true }, { label: 'CPC', num: true }, ''],
     rows,
   );
 

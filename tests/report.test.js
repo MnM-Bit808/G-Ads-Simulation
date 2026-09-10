@@ -8,6 +8,11 @@ import {
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 import { LOCATION_TIERS, RTO_FREIGHT_PAISE } from '../engine/constants.js';
 import { codShareFor } from '../engine/locations.js';
+import { startGame } from '../setup.js';
+import { submitRound } from '../game.js';
+import { QUERY_SET } from '../content/querySet.js';
+import { BRAND_IDENTITIES } from '../content/brands.js';
+import { homeCell } from '../engine/querySet.js';
 
 const STATE = makeGameState();
 const R1 = runRound(STATE, { mode: 'expected', counterfactualFor: ['halcyon'] });
@@ -766,5 +771,131 @@ describe('refused parcels cost freight', () => {
     const total = state.history.reduce((a, h) => a + Object.values(h.byAdvertiser)
       .reduce((b, r) => b + (r.conversions.refused ?? 0), 0), 0);
     expect(total).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * Which search sent it back (I32).
+ *
+ * `queueReturns` has carried `queryId` on every resolved return since it was
+ * written, and the revision loop threw it away — only the location was
+ * credited. So a player could see that the towns return badly and never that a
+ * SEARCH does, which left the one lever available in every round unusable on
+ * return grounds.
+ *
+ * The first test is the safety property: this attributes returns that already
+ * happened and must move no total.
+ */
+describe('returns are attributed to the search that earned them', () => {
+  const played = () => {
+    let s = makeGameState();
+    for (let r = 1; r <= 6; r++) s = runRound({ ...s, round: r }, { mode: 'expected' }).nextGameState;
+    return s;
+  };
+
+  test('NOTHING MOVED: the query rows sum to the account total', () => {
+    // If this ever fails, the attribution has become a second source of returns
+    // rather than a breakdown of the ones the account already had.
+    const state = played();
+    for (const report of state.history) {
+      const row = report.byAdvertiser[PLAYER_ID];
+      const fromQueries = Object.values(row.breakdown.byQuery ?? {})
+        .reduce((a, r) => a + (r.returned ?? 0), 0);
+      expect(fromQueries, `week ${report.round}`).toBeCloseTo(row.conversions.returned, 6);
+    }
+  });
+
+  test('and so do the keyword rows', () => {
+    const state = played();
+    for (const report of state.history) {
+      const row = report.byAdvertiser[PLAYER_ID];
+      const fromKeywords = Object.values(row.breakdown.byKeyword ?? {})
+        .reduce((a, r) => a + (r.returned ?? 0), 0);
+      expect(fromKeywords, `week ${report.round}`).toBeCloseTo(row.conversions.returned, 6);
+    }
+  });
+
+  test('every query row carries the fields whether or not anything came back', () => {
+    // A row whose shape depends on its history makes the view branch on
+    // `undefined`, which is how a column ends up reading NaN in one week and a
+    // number in the next.
+    const state = played();
+    for (const report of state.history) {
+      for (const [id, r] of Object.entries(report.byAdvertiser[PLAYER_ID].breakdown.byQuery)) {
+        expect(r, `${id} week ${report.round}`).toHaveProperty('returned');
+        expect(r, `${id} week ${report.round}`).toHaveProperty('returnedRevenuePaise');
+        expect(Number.isFinite(r.returned), `${id}`).toBe(true);
+      }
+    }
+  });
+
+  test('no search returns more than it converted', () => {
+    const state = played();
+    for (const report of state.history) {
+      for (const [id, r] of Object.entries(report.byAdvertiser[PLAYER_ID].breakdown.byQuery)) {
+        expect(r.returned, `${id} week ${report.round}`)
+          .toBeLessThanOrEqual(r.conversions + r.returned + 1e-6);
+      }
+    }
+  });
+
+  test('somebody actually returned something, or none of the above proves anything', () => {
+    const state = played();
+    const total = state.history.reduce((a, h) => a
+      + Object.values(h.byAdvertiser[PLAYER_ID].breakdown.byQuery ?? {})
+        .reduce((b, r) => b + (r.returned ?? 0), 0), 0);
+    expect(total).toBeGreaterThan(0);
+  });
+
+  test('the searches do not all return at the same rate — ON THE REAL SET', () => {
+    // The reason this column is worth showing at all: if every search returned
+    // alike it would be decoration.
+    //
+    // IT HAS TO RUN ON `content/querySet.js`, AND THE FIRST VERSION DID NOT.
+    // `tests/fixtures/querySet.js` hardcodes `returnRateMultiplier: 1.0` on
+    // every query — it exists to satisfy 7.4's rules, not to carry the content's
+    // spread — so the same assertion against `makeGameState` measured a flat
+    // column and would have reported a working feature as broken. The real set
+    // carries six distinct values from 0.85 to 1.2.
+    const own = QUERY_SET.queries
+      .filter((q) => homeCell(q) === 'mid|lifestyle')
+      .sort((a, b) => (b.volumeShareBp ?? 0) - (a.volumeShareBp ?? 0))
+      .slice(0, 8);
+
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: { price: 'mid', purpose: 'lifestyle' },
+        capex: { committed: {}, pending: [], remainingUnallocatedPaise: 0 },
+        keywords: own.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: 3000 })),
+        ad: {
+          headlines: ['Everyday Athleisure', 'Co-ord Sets', 'All Day Wear'],
+          descriptions: [
+            'Soft co-ord sets and joggers that look put together, morning to night.',
+            'Sizes XS to XXL, free delivery and easy returns across India.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    for (let r = 1; r <= 7; r++) state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+
+    // WEEK 1, NOT THE LAST WEEK. Two earlier versions of this assertion read
+    // `history.at(-1)`, whose returns have not resolved — a return needs two
+    // rounds after the conversion — so every rate was 0 and the test reported a
+    // working feature as broken, twice.
+    const early = state.history.find((h) => h.round === 1)
+      .byAdvertiser[BRAND_IDENTITIES[0].id];
+    const rates = Object.values(early.breakdown.byQuery)
+      .filter((r) => r.conversions > 1)
+      // `returned` is a subset of `conversions`, so this is the rate and not a
+      // share of some larger cohort.
+      .map((r) => r.returned / r.conversions);
+    expect(rates.length, 'not enough searches converted to compare').toBeGreaterThan(2);
+    expect(Math.max(...rates)).toBeGreaterThan(0);
+    expect(Math.max(...rates) - Math.min(...rates)).toBeGreaterThan(0.01);
   });
 });

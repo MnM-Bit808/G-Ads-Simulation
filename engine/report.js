@@ -315,9 +315,13 @@ export function buildRoundOutput({ round, raw, advertisers }) {
  */
 function attributeConversions(r, landed) {
   const byQuery = {};
-  for (const [id, row] of r.byQuery ?? []) byQuery[id] = { ...row, conversions: 0 };
+  for (const [id, row] of r.byQuery ?? []) {
+    byQuery[id] = { ...row, conversions: 0, returned: 0, returnedRevenuePaise: 0 };
+  }
   const byKeyword = {};
-  for (const [id, row] of r.byKeyword ?? []) byKeyword[id] = { ...row, conversions: 0 };
+  for (const [id, row] of r.byKeyword ?? []) {
+    byKeyword[id] = { ...row, conversions: 0, returned: 0, returnedRevenuePaise: 0 };
+  }
   // WHERE IT HAPPENED (G4). Carries revenue as well as conversions, because
   // location changes the basket and the return rate and nothing else - a
   // breakdown of clicks alone would show three columns differing only by volume
@@ -435,6 +439,35 @@ function reviseBreakdown(breakdown, keywordFor, late, lateReturns = []) {
   // location reads well for several rounds and is then revised downward, which
   // is exactly the shape of the mistake the mechanic exists to teach.
   for (const entry of lateReturns) {
+    // I32: WHICH SEARCH SENT IT BACK. `queueReturns` has carried `queryId` on
+    // every resolved return since it was written, and this loop threw it away —
+    // only the location was credited. So a player could see that the towns
+    // return badly and never that a SEARCH does, which left the one lever
+    // available in every round (a negative) unusable on return grounds.
+    //
+    // 51 of the queries carry a `ret:` multiplier, from 0.85 to 1.2, so this is
+    // a real spread rather than noise. Nothing here changes a total: the returns
+    // already happened and were already counted against the account. This says
+    // where they came from.
+    const queryRow = byQuery[entry.queryId];
+    if (queryRow) {
+      byQuery[entry.queryId] = {
+        ...queryRow,
+        returned: (queryRow.returned ?? 0) + entry.count,
+        returnedRevenuePaise: (queryRow.returnedRevenuePaise ?? 0) + entry.valuePaise,
+      };
+    }
+    const returnedKeywordId = keywordFor.get(entry.queryId);
+    const returnedKeywordRow = byKeyword[returnedKeywordId];
+    if (returnedKeywordRow) {
+      byKeyword[returnedKeywordId] = {
+        ...returnedKeywordRow,
+        returned: (returnedKeywordRow.returned ?? 0) + entry.count,
+        returnedRevenuePaise:
+          (returnedKeywordRow.returnedRevenuePaise ?? 0) + entry.valuePaise,
+      };
+    }
+
     const row = byLocation[entry.locationTier];
     if (!row) continue;
     // I28 build 2: the entry knows how much of itself never got through the

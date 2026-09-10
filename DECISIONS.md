@@ -3196,6 +3196,53 @@ been built, and adding it took the slack to **24px**, which is the card's own
 bottom padding. Verified at 1152, 1280, 1366, 1440 and 1920 with no card on the
 screen overflowing at any of them.
 
+### I32. Which search sent it back — `FIXED`
+
+**The player's criticism, and it was right:** the returns chart is a statistic
+rather than something to work on. Capital closes at round 5, and after that a
+player watches a number they cannot move.
+
+**They can move it, and the data to do so was being thrown away.** `queueReturns`
+has carried `queryId` on every resolved return since it was written. The revision
+loop credited the LOCATION and dropped the query. So a player could see that the
+towns return badly and never that a SEARCH does — leaving the one lever available
+in every round unusable on return grounds, with the block button already sitting
+on the row.
+
+**51 of the queries carry a `ret:` multiplier**, six distinct values from 0.85 to
+1.2. Attributing returns back to the query costs nothing and moves nothing: the
+returns already happened and were already charged. `report.test.js` asserts the
+query rows and the keyword rows each sum to the account's own total.
+
+**Measured on a broad account at week 7:** 59 searches with returns, a **6 point**
+spread, and five flagged as worse than the account's own rate — `flared leggings
+under 699`, `crop top under 299`, `sports bra combo pack`, `sports bra under 500`.
+Those are precisely the queries carrying 1.15 and 1.2, so the multiplier reads
+through end to end.
+
+**THREE MISTAKES OF MINE, AND THE FIRST TWO ARE THE SAME MISTAKE TWICE.**
+
+The test asserting that rates vary read `history.at(-1)` — the last week, whose
+returns have not resolved, because a return needs two rounds after the
+conversion. Every rate was 0 and the test reported a working feature as broken.
+**Then I blamed the fixture, rewrote it against the real query set, and it failed
+again for the identical reason.** The fixture WAS also wrong — it hardcodes
+`returnRateMultiplier: 1.0` on every query — but that was not what the test was
+measuring. Two wrong diagnoses of one symptom.
+
+The column divided by `conversions + returned`. A returned order was already
+counted when it landed, so `returned` is a SUBSET of `conversions` and the sum
+double-counts. Every rate was understated.
+
+The highlight used a fixed 34% and never fired, because a `mid|lifestyle` account
+runs at 20-22%. It now compares each search against **this account's own rate**
+over exactly the rows on screen — which is the comparison a negative is actually
+made on, and it adapts to whatever cell the player chose.
+
+**The column is called `Came back` and not `Sent back`.** The returns card uses
+`Sent back` for the post-delivery half specifically, against `Refused`; this
+column is both. Two surfaces using one word for two quantities is I19's lesson.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
