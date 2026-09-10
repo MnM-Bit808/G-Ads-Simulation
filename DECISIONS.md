@@ -2833,6 +2833,78 @@ rendered `width: 5.77183e-15%`. Widths are now rounded, and a pending segment
 below a twentieth of a percent is not appended at all — which also lets
 `:only-child` round both ends of a finished week's bar.
 
+### I28. Cash on delivery, and the returns that were never sales — `BUILD 1 OF 3`
+
+**COD has been in this model since G4 with no name.** `LOCATION_RETURN_MULTIPLIER`
+exists because of it — its own comment says *"cash on delivery is ordinary
+outside the metros and COD orders come back materially more often"* — so a
+player could see that small towns return more and never learn why. Raised by a
+player who wanted enough on screen to work out COD and RTO for themselves and
+found there was nothing to work with.
+
+**AN RTO AND A RETURN ARE DIFFERENT EVENTS, and the engine had only ever had
+one.**
+
+| | what happened | what it costs |
+|---|---|---|
+| Return | delivered, then sent back | a sale reversed |
+| RTO | refused at the door | **there was never a sale** |
+
+**COD share is keyed on price AND location.** Cash skews non-metro *and*
+low-value, and a table on geography alone would have a ₹4,800 premium order paid
+in cash three times in four — the kind of detail that reads as invented to
+anyone who knows the market. It is also where the price decision and the
+location decision finally talk to each other.
+
+`COD_SHARE_BY_PRICE_LOCATION`, both `ESTIMATED`:
+
+| | metros | large cities | towns |
+|---|---|---|---|
+| value | 45% | 65% | 78% |
+| mid | 35% | 52% | 66% |
+| premium | 22% | 35% | 48% |
+
+**BUILD 1 SPLITS AND DOES NOT ADD.** `refused + sentBack === returned`, exactly,
+asserted in `report.test.js` — so no advertiser's economics move and no
+calibrated number changes. `calibration.test.js` passes untouched, which is the
+proof rather than the claim.
+
+**AND THE SPLIT TAUGHT SOMETHING NOBODY HAD SEEN.** Playing `value|lifestyle` to
+week 7:
+
+| | paid at door | refused | sent back |
+|---|---|---|---|
+| Metros | 45% | **6.1%** | 11.9% |
+| Large cities | 65% | **11.6%** | 12.2% |
+| Towns | 78% | **16.0%** | 11.3% |
+
+**The send-back rate is flat — 11 to 12% everywhere. Refusals nearly triple.**
+So the geography penalty G4 built the whole location mechanic around is almost
+entirely parcels that never got through the door, and the size guide, which
+fixes *fit*, can only ever reach the flat half. That is now the sentence the
+card ends on.
+
+**ONE THING BUILD 1 DELIBERATELY GETS WRONG.** `positions.js` divides the return
+rate by the size guide's capex effect and this split is applied afterwards, so a
+size guide currently reduces refusals as well as send-backs. It should not — no
+size guide fixes somebody changing their mind on a doorstep. Correcting it moves
+numbers rather than only the display, so it lands with build 2 and a calibration
+re-run, where before and after can be measured in one place instead of two.
+
+**Builds 2 and 3, agreed and not started.** 2 adds the freight an RTO actually
+costs — the engine has NO shipping cost at all today, `marginPct` absorbs it, so
+an RTO currently costs nothing but the revenue that never arrived. That is the
+change that makes COD dangerous and it moves the market: calibration re-run,
+I1/I3/I4 may move. 3 adds the player's lever — a prepaid discount, a COD fee, or
+COD off by tier — trading conversion rate against refusals, and rivals get it
+under R6.
+
+**One defect, caught by the suite in seconds.** `byLocation` is keyed by INDEX,
+not by tier id — `round.js` writes `locationTier: bucket.tier` and `locationRows`
+reads it as `totals[tier]`. Passing the key to `locationIndex` threw on `"0"` and
+took the entire report suite down with it. Worth knowing before touching that
+breakdown again.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

@@ -496,7 +496,9 @@ function renderPlaces(root, game, ctx) {
   table(
     root.querySelector('[data-slot="places-table"]'),
     ['Where', { label: 'Clicks', num: true }, { label: 'Avg CPC', num: true },
-      { label: 'Returned', num: true }, { label: 'Net per click', num: true },
+      { label: 'Paid at door', num: true },
+      { label: 'Refused', num: true }, { label: 'Sent back', num: true },
+      { label: 'Net per click', num: true },
       { label: 'Your bid', num: true }, ''],
     rows.map((row) => {
       const name = el('div');
@@ -521,12 +523,23 @@ function renderPlaces(root, game, ctx) {
         control.append(chip);
       }
 
+      // I28: the two halves of the return rate, side by side, because they are
+      // different events and only one of them a size guide can do anything
+      // about. `Paid at door` is the reason they differ and belongs beside them.
+      const refused = el('span', row.refusedRate > 0.08 ? 'bad' : null);
+      refused.textContent = row.refusedRate == null ? '—' : pct(row.refusedRate, 1);
+      refused.title = row.refusedShare == null
+        ? 'no returns from here yet'
+        : `${pct(row.refusedShare)} of the returns from here never got through the door`;
+
       return {
         cells: [
           name,
           whole(row.clicks),
           row.cpcPaise == null ? '—' : rupees(row.cpcPaise),
-          row.returnRate == null ? '—' : pct(row.returnRate, 1),
+          row.codShare == null ? '—' : pct(row.codShare),
+          refused,
+          row.sentBackRate == null ? '—' : pct(row.sentBackRate, 1),
           row.netPerClickPaise == null ? '—' : rupees(row.netPerClickPaise),
           row.adjustment === 0 ? 'even' : `${row.adjustment > 0 ? '+' : ''}${row.adjustment}%`,
           control,

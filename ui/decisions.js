@@ -29,7 +29,7 @@
  * one of them changed, which is exactly how the v0.1 prototypes went wrong.
  */
 
-import { el, add, table, field, input, select, rupees, whole, ratio } from './dom.js';
+import { el, add, table, field, input, select, rupees, whole, ratio, pct } from './dom.js';
 import { blockedBy, normalise, tokenise } from '../engine/matching.js';
 import { STRATEGIES, daypartMultiplier, effectiveBidPaise } from '../engine/strategies.js';
 import { minimumBidToShowPaise } from '../engine/auction.js';
@@ -771,6 +771,7 @@ export function locationRows(draft, history, playerId) {
   const totals = LOCATION_TIERS.map(() => ({
     impressions: 0, clicks: 0, costPaise: 0, conversions: 0,
     grossRevenuePaise: 0, returned: 0, returnedRevenuePaise: 0, eligibleAuctions: 0,
+    refused: 0, sentBack: 0, codShare: null,
   }));
 
   for (const report of history ?? []) {
@@ -786,6 +787,10 @@ export function locationRows(draft, history, playerId) {
       at.grossRevenuePaise += row.grossRevenuePaise ?? 0;
       at.returned += row.returned ?? 0;
       at.returnedRevenuePaise += row.returnedRevenuePaise ?? 0;
+      // I28: which of those returns never made it through the door.
+      at.refused += row.refused ?? 0;
+      at.sentBack += row.sentBack ?? 0;
+      if (row.codShare != null) at.codShare = row.codShare;
       at.eligibleAuctions += row.eligibleAuctions ?? 0;
     }
   }
@@ -806,6 +811,12 @@ export function locationRows(draft, history, playerId) {
       netPerClickPaise: at.clicks > 0 ? netRevenuePaise / at.clicks : null,
       cpcPaise: at.clicks > 0 ? at.costPaise / at.clicks : null,
       returnRate: at.conversions > 0 ? at.returned / at.conversions : null,
+      // The two halves of that rate, which the engine has always had and never
+      // named: a refusal at the door was never a sale, a send-back was.
+      refusedRate: at.conversions > 0 ? at.refused / at.conversions : null,
+      sentBackRate: at.conversions > 0 ? at.sentBack / at.conversions : null,
+      refusedShare: at.returned > 0 ? at.refused / at.returned : null,
+      codShare: at.codShare ?? null,
       impressionShare: at.eligibleAuctions > 0 ? at.impressions / at.eligibleAuctions : null,
     };
   });
@@ -851,6 +862,22 @@ export function locationOutlook(rows) {
   if (settling) {
     note += ' Some of these weeks have conversions that have not been returned yet, '
       + 'so the worse places will look better than they are for a while longer.';
+  }
+
+  // I28: the arithmetic the player has to be able to do for themselves. A
+  // refusal and a send-back are different events and the card now separates
+  // them, but the split only means something beside the reason for it — and the
+  // consequence, which is that a size guide can only ever reach half of it.
+  const worstRefusal = [...traded]
+    .filter((r) => r.refusedRate != null && r.codShare != null)
+    .sort((a, b) => b.refusedRate - a.refusedRate)[0];
+
+  if (worstRefusal && worstRefusal.refusedRate > 0) {
+    note += ` In ${worstRefusal.label.toLowerCase()}, `
+      + `${pct(worstRefusal.codShare)} of orders are paid at the door and `
+      + `${pct(worstRefusal.refusedShare)} of the returns from there never got through it. `
+      + 'A refusal is not a return: there was no sale to reverse, and no size guide '
+      + 'fixes somebody changing their mind on the doorstep.';
   }
 
   return { played: true, best, worst, note };

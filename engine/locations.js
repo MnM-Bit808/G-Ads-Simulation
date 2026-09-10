@@ -26,6 +26,7 @@
 import {
   LOCATION_TIERS, LOCATION_VOLUME_BY_PRICE, LOCATION_RETURN_MULTIPLIER,
   LOCATION_AOV_MULTIPLIER, PRICE_TIERS,
+  COD_SHARE_BY_PRICE_LOCATION, COD_REFUSAL_PROPENSITY,
 } from './constants.js';
 import { homeCell } from './querySet.js';
 
@@ -185,6 +186,47 @@ export function locationEffects(querySet, price = null) {
  *
  * @returns {{valid: boolean, problems: string[]}}
  */
+/**
+ * How much of an advertiser's orders are paid for at the door, here.
+ *
+ * @param {string} price a `PRICE_TIERS` entry
+ * @param {number} tierIndex into `LOCATION_TIERS`
+ * @returns {number} 0..1
+ * @throws {RangeError} on an unknown price tier, rather than defaulting — a
+ *   silent fallback would report a plausible COD share for a position that does
+ *   not exist, and nothing downstream could tell.
+ */
+export function codShareFor(price, tierIndex) {
+  const row = COD_SHARE_BY_PRICE_LOCATION[price];
+  if (!row) throw new RangeError(`no COD share for price tier "${price}"`);
+  const share = row[tierIndex];
+  if (share == null) throw new RangeError(`no COD share for location index ${tierIndex}`);
+  return share;
+}
+
+/**
+ * What fraction of the returns from here were REFUSALS rather than send-backs.
+ *
+ * A return and an RTO are different events — one reverses a sale, the other
+ * means there never was one — and the engine has only ever had the first. This
+ * splits what an advertiser already returns into the two, so the reporting can
+ * tell them apart.
+ *
+ * IT SPLITS, IT DOES NOT ADD. The result is a share of the returns already
+ * computed, so an advertiser's total return rate is exactly what it was before
+ * this function existed, and no calibrated number moves. The freight an RTO
+ * actually costs is the next change, and that one does move them.
+ *
+ * @param {string} price a `PRICE_TIERS` entry
+ * @param {number} tierIndex into `LOCATION_TIERS`
+ * @returns {number} 0..1, the share of returns that were refused at the door
+ */
+export function rtoShareOfReturns(price, tierIndex) {
+  const share = codShareFor(price, tierIndex) * COD_REFUSAL_PROPENSITY;
+  // Cannot exceed the returns it is a share of, whatever the tables say later.
+  return Math.max(0, Math.min(1, share));
+}
+
 export function validateLocationTables() {
   const problems = [];
 

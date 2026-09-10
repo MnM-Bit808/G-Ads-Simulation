@@ -7,6 +7,7 @@ import {
 } from '../engine/insights.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 import { LOCATION_TIERS } from '../engine/constants.js';
+import { codShareFor } from '../engine/locations.js';
 
 const STATE = makeGameState();
 const R1 = runRound(STATE, { mode: 'expected', counterfactualFor: ['halcyon'] });
@@ -587,5 +588,96 @@ describe('the returns arrive late, and that is the lesson', () => {
       expect(cpc[i] / cpc[0], `cpc tier ${i} against the metros`).toBeCloseTo(1, 2);
     }
     expect(netPerClick[netPerClick.length - 1]).toBeLessThan(netPerClick[0]);
+  });
+});
+
+/**
+ * The returns that were never sales (I28).
+ *
+ * Build 1 is a decomposition and nothing else: the player learns which of their
+ * returns came back from the door, and not one economic number moves. These are
+ * the assertions that make that claim checkable rather than stated — the first
+ * is the safety property, and if it ever fails the split has become an addition.
+ */
+describe('refusals and send-backs are told apart', () => {
+  const rows = (result, id = PLAYER_ID) => Object.entries(
+    result.report.byAdvertiser[id].breakdown.byLocation ?? {},
+  );
+
+  test('every location row carries both halves and the reason for them', () => {
+    for (const [tier, row] of rows(R1)) {
+      expect(row, `tier ${tier}`).toHaveProperty('refused');
+      expect(row, `tier ${tier}`).toHaveProperty('sentBack');
+      expect(row.codShare, `tier ${tier}`).toBeGreaterThan(0);
+      expect(row.codShare, `tier ${tier}`).toBeLessThan(1);
+    }
+  });
+
+  test('refused plus sent back is EXACTLY what was returned', () => {
+    // The safety property of the whole change. A split that does not add up is
+    // an invented number wearing a decomposition's clothes.
+    for (const result of [R1, R2]) {
+      for (const [tier, row] of rows(result)) {
+        expect(row.refused + row.sentBack, `tier ${tier}`)
+          .toBeCloseTo(row.returned ?? 0, 10);
+      }
+    }
+  });
+
+  test('neither half is ever negative', () => {
+    for (const result of [R1, R2]) {
+      for (const [tier, row] of rows(result)) {
+        expect(row.refused, `tier ${tier}`).toBeGreaterThanOrEqual(0);
+        expect(row.sentBack, `tier ${tier}`).toBeGreaterThanOrEqual(0);
+      }
+    }
+  });
+
+  test('the COD share on a row matches the table for that advertiser', () => {
+    // Two axes, so reading the wrong one is a real possibility: a row keyed by
+    // location, holding a share that also depends on the advertiser's price.
+    const price = STATE.advertisers.find((a) => a.id === PLAYER_ID).position.price;
+    for (const [tier, row] of rows(R1)) {
+      expect(row.codShare, `tier ${tier}`).toBe(codShareFor(price, Number(tier)));
+    }
+  });
+
+  test('two advertisers in different price tiers get different COD shares', () => {
+    const others = STATE.advertisers.filter((a) => a.position.price
+      !== STATE.advertisers.find((x) => x.id === PLAYER_ID).position.price);
+    if (others.length === 0) return;
+    const mineRows = Object.fromEntries(rows(R1));
+    const theirs = Object.fromEntries(rows(R1, others[0].id));
+    const tier = Object.keys(mineRows).find((k) => theirs[k]);
+    if (tier == null) return;
+    expect(theirs[tier].codShare).not.toBe(mineRows[tier].codShare);
+  });
+
+  test('the split survives revision, which is when returns actually arrive', () => {
+    // Returns resolve two rounds after the conversion, so the interesting rows
+    // only exist after `reviseReports` has been through them. A split applied
+    // only on the way in would silently stop adding up here.
+    const revised = reviseReports([R1.report], {
+      currentRound: R2.report.round, raw: R2.raw, advertisers: R2.nextGameState.advertisers,
+    });
+    for (const report of revised) {
+      const byLocation = report.byAdvertiser[PLAYER_ID].breakdown.byLocation ?? {};
+      for (const [tier, row] of Object.entries(byLocation)) {
+        expect(row.refused + row.sentBack, `tier ${tier}`)
+          .toBeCloseTo(row.returned ?? 0, 10);
+      }
+    }
+  });
+
+  test('NOTHING ELSE MOVED: the returned totals are untouched by the split', () => {
+    // The claim build 1 rests on, asserted rather than trusted. `refused` and
+    // `sentBack` are derived from `returned`; if the derivation ever writes back
+    // into it, the market's economics have changed and calibration is stale.
+    for (const result of [R1, R2]) {
+      const row = mine(result);
+      const fromLocations = Object.values(row.breakdown.byLocation ?? {})
+        .reduce((a, r) => a + (r.returned ?? 0), 0);
+      expect(fromLocations).toBeCloseTo(row.conversions.returned, 6);
+    }
   });
 });

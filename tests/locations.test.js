@@ -27,7 +27,7 @@ import { QUERY_SET } from '../content/querySet.js';
 import { homeCell } from '../engine/querySet.js';
 import {
   locationIndex, locationIdAt, locationSharesFor, locationEffects, locationWeights,
-  validateLocationTables, assertValidLocationTables,
+  validateLocationTables, assertValidLocationTables, codShareFor, rtoShareOfReturns,
 } from '../engine/locations.js';
 
 describe('the tables split demand rather than inventing it', () => {
@@ -340,5 +340,85 @@ describe('the engine stays pure', () => {
     const neutral = QUERY_SET.queries.find((q) => !homeCell(q));
     expect(Object.isFrozen(locationSharesFor(commercial))).toBe(true);
     expect(Object.isFrozen(locationSharesFor(neutral))).toBe(true);
+  });
+});
+
+/**
+ * Cash on delivery, and the returns that were never sales (I28).
+ *
+ * `LOCATION_RETURN_MULTIPLIER` has always existed BECAUSE of COD — its comment
+ * says so — but nothing named it and nothing told the two kinds of return
+ * apart. These assert the split says what the design says, and above all that it
+ * SPLITS: build 1 must not move a single economic number, and the proof that it
+ * has not is that `refused + sentBack` is exactly `returned`.
+ */
+describe('cash on delivery, and refusals against send-backs', () => {
+  test('every price tier has a share for every location', () => {
+    for (const price of PRICE_TIERS) {
+      for (let i = 0; i < LOCATION_TIERS.length; i++) {
+        const share = codShareFor(price, i);
+        expect(share, `${price} at ${LOCATION_TIERS[i]}`).toBeGreaterThan(0);
+        expect(share, `${price} at ${LOCATION_TIERS[i]}`).toBeLessThan(1);
+      }
+    }
+  });
+
+  test('cash is likelier the further from a metro, in every price tier', () => {
+    for (const price of PRICE_TIERS) {
+      for (let i = 1; i < LOCATION_TIERS.length; i++) {
+        expect(codShareFor(price, i), `${price} ${i}`)
+          .toBeGreaterThan(codShareFor(price, i - 1));
+      }
+    }
+  });
+
+  test('cash is likelier the cheaper the basket, in every location', () => {
+    // The reason the table has two axes. A flat share by geography would have a
+    // premium buyer in a small town paying cash for a 4,800 order three times
+    // out of four, which is the kind of detail that reads as invented.
+    for (let i = 0; i < LOCATION_TIERS.length; i++) {
+      expect(codShareFor('value', i)).toBeGreaterThan(codShareFor('mid', i));
+      expect(codShareFor('mid', i)).toBeGreaterThan(codShareFor('premium', i));
+    }
+  });
+
+  test('a premium metro buyer is the least likely to pay at the door', () => {
+    const lowest = codShareFor('premium', 0);
+    for (const price of PRICE_TIERS) {
+      for (let i = 0; i < LOCATION_TIERS.length; i++) {
+        if (price === 'premium' && i === 0) continue;
+        expect(codShareFor(price, i), `${price} ${i}`).toBeGreaterThan(lowest);
+      }
+    }
+  });
+
+  test('the refusal share follows the COD share and never leaves 0..1', () => {
+    for (const price of PRICE_TIERS) {
+      for (let i = 0; i < LOCATION_TIERS.length; i++) {
+        const share = rtoShareOfReturns(price, i);
+        expect(share).toBeGreaterThanOrEqual(0);
+        expect(share).toBeLessThanOrEqual(1);
+        if (i > 0) {
+          expect(share, `${price} ${i}`).toBeGreaterThan(rtoShareOfReturns(price, i - 1));
+        }
+      }
+    }
+  });
+
+  test('it is a SHARE of returns, so it can never exceed them', () => {
+    // The whole safety property of build 1. If this can exceed 1, an advertiser
+    // reports more refusals than returns and the two halves stop adding up.
+    for (const price of PRICE_TIERS) {
+      for (let i = 0; i < LOCATION_TIERS.length; i++) {
+        expect(rtoShareOfReturns(price, i)).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  test('an unknown price tier throws rather than defaulting', () => {
+    // A silent fallback would report a plausible COD share for a position that
+    // does not exist, and nothing downstream could tell.
+    expect(() => codShareFor('luxury', 0)).toThrow(RangeError);
+    expect(() => codShareFor('value', 9)).toThrow(RangeError);
   });
 });

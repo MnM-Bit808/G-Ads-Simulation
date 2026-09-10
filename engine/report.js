@@ -24,6 +24,7 @@ import { businessFor } from './positions.js';
 import { mulRate } from './money.js';
 import { buildInsights } from './insights.js';
 import { SCHEMA_VERSION } from './constants.js';
+import { rtoShareOfReturns, codShareFor } from './locations.js';
 
 /**
  * Build a fresh report for one round.
@@ -115,7 +116,7 @@ export function buildRoundReport({ round, raw, advertisers }) {
       quality: {},
       missedToBudget: missedToBudget(r, business),
       warnings: [...(r.warnings ?? [])],
-      breakdown: attributeConversions(r, ownLanded),
+      breakdown: withRefusals(attributeConversions(r, ownLanded), advertiser.position?.price),
     };
   }
 
@@ -206,9 +207,9 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
 
       byAdvertiser[advertiser.id] = {
         ...existing,
-        breakdown: reviseBreakdown(
+        breakdown: withRefusals(reviseBreakdown(
           existing.breakdown, r.keywordForQuery ?? new Map(), lateLanded, lateReturns,
-        ),
+        ), advertiser.position?.price),
         conversions: {
           ...existing.conversions,
           final: conversions,
@@ -334,6 +335,54 @@ function attributeConversions(r, landed) {
     }
   }
   return { byKeyword, byQuery, byLocation };
+}
+
+/**
+ * Say which of a location's returns were REFUSED and which were sent back.
+ *
+ * An RTO and a return are different events. One reverses a sale; the other means
+ * there was never a sale — the parcel came back from the door. The engine has
+ * only ever had the second, folded into `returnRate`, and
+ * `LOCATION_RETURN_MULTIPLIER` exists BECAUSE of the first: its comment says
+ * cash on delivery is ordinary outside the metros and COD orders come back more
+ * often. The mechanism was simulated and unnamed.
+ *
+ * IT SPLITS, IT DOES NOT ADD. `refused + sentBack === returned`, exactly, so no
+ * advertiser's economics move and no calibrated number changes. The freight an
+ * RTO costs is the next change and that one does move them.
+ *
+ * `codShare` rides along because the player cannot judge the split without it —
+ * "59% of your returns were refusals" only means something beside "78% of your
+ * orders here are paid at the door".
+ *
+ * @param {object} byLocation rows keyed by `LOCATION_TIERS` id
+ * @param {string} price the advertiser's own price tier
+ * @returns {object} a new map, each row carrying refused, sentBack and codShare
+ */
+function withRefusals(breakdown, price) {
+  if (!price) return breakdown;
+  return { ...breakdown, byLocation: splitRefusals(breakdown.byLocation, price) };
+}
+
+function splitRefusals(byLocation, price) {
+  const out = {};
+  for (const [key, row] of Object.entries(byLocation ?? {})) {
+    // KEYED BY INDEX, not by tier id. `round.js` writes `locationTier:
+    // bucket.tier` and that is a position in `LOCATION_TIERS`, which is also why
+    // `locationRows` reads it as `totals[tier]`. Passing the key to
+    // `locationIndex` threw on "0" and took the whole report suite with it.
+    const index = Number(key);
+    if (!Number.isInteger(index)) { out[key] = row; continue; }
+    const returned = row.returned ?? 0;
+    const refused = returned * rtoShareOfReturns(price, index);
+    out[key] = {
+      ...row,
+      refused,
+      sentBack: returned - refused,
+      codShare: codShareFor(price, index),
+    };
+  }
+  return out;
 }
 
 /** Add later arrivals to the breakdown rows they belong to. */

@@ -125,6 +125,59 @@ export const LOCATION_RETURN_MULTIPLIER = Object.freeze([1.0, 1.25, 1.5]);
 export const LOCATION_AOV_MULTIPLIER = Object.freeze([1.10, 1.00, 0.92]);
 
 /**
+ * How much of what sells is paid for at the door, by price tier and location.
+ *
+ * Rows are `PRICE_TIERS`, columns are `LOCATION_TIERS`.
+ *
+ * COD WAS ALREADY IN THIS MODEL, WITH NO NAME. `LOCATION_RETURN_MULTIPLIER`
+ * above exists because of it — its comment says so outright: "Cash on delivery
+ * is ordinary outside the metros and COD orders come back materially more
+ * often." The consequence was simulated and the mechanism was invisible, so a
+ * player could see that small towns return more and never learn why.
+ *
+ * TWO AXES, NOT ONE. Location is the obvious one and it is not enough: a premium
+ * buyer in a small town still mostly pays by card, and a flat share by geography
+ * would have a ₹4,800 order paid in cash three times out of four. Cash skews
+ * non-metro AND low-value, so the table carries both, and the interaction is the
+ * point — it is where the price decision and the location decision finally talk
+ * to each other.
+ *
+ * These are ESTIMATED. Published Indian D2C figures vary enormously by category
+ * and by who is publishing them; what is not in dispute is the direction and the
+ * rough spread, which is what this table is for.
+ */
+export const COD_SHARE_BY_PRICE_LOCATION = Object.freeze({
+  value: Object.freeze([0.45, 0.65, 0.78]),
+  mid: Object.freeze([0.35, 0.52, 0.66]),
+  premium: Object.freeze([0.22, 0.35, 0.48]),
+});
+
+/**
+ * How much likelier a COD order is to be REFUSED rather than sent back.
+ *
+ * A return and an RTO are not the same event, and the difference is the whole
+ * reason this is worth modelling:
+ *
+ *   RETURN   delivered, then sent back. There was a sale and it reversed.
+ *   RTO      refused at the door, or nobody there. There was never a sale.
+ *
+ * This splits the returns an advertiser already has into those two, as a share
+ * of the total rather than as a new rate — so nothing about the market's
+ * economics moves. `rtoShareOfReturns` is the function that applies it.
+ *
+ * ONE THING IT DELIBERATELY GETS WRONG, AND THE FIX BELONGS WITH THE NEXT
+ * CHANGE. `positions.js` divides the return rate by the size guide's capex
+ * effect, and this split is applied afterwards, so a size guide currently
+ * reduces refusals as well as send-backs. It should not: a size guide fixes
+ * "wrong size", not "changed my mind at the door". Correcting it moves the
+ * numbers rather than only the display, so it lands with the RTO freight cost
+ * and a calibration re-run, where the before and after can be measured in one
+ * place instead of two.
+ */
+export const COD_REFUSAL_PROPENSITY = 0.75;
+
+
+/**
  * Price tier sets the economics: what a click can be worth.
  *
  * The internal logic, not just the numbers: cheap things convert well because
@@ -786,6 +839,8 @@ export const PROVENANCE = {
   LOCATION_VOLUME_BY_PRICE: 'CALIBRATE',
   LOCATION_RETURN_MULTIPLIER: 'CALIBRATE',
   LOCATION_AOV_MULTIPLIER: 'CALIBRATE',
+  COD_SHARE_BY_PRICE_LOCATION: 'ESTIMATED',
+  COD_REFUSAL_PROPENSITY: 'ESTIMATED',
   RELEVANCE_INTENT_MULTIPLIERS: 'INVENTED',
   CONTEXT_FACTOR_CURVE: 'INVENTED',
   QUALITY_NOISE_SIGMA: 'INVENTED',
