@@ -33,6 +33,7 @@ import {
 import { briefing, placeRivals, buildRivals } from '../setup.js';
 import { BRAND_IDENTITIES, assignIdentities, brandNamedIn } from '../content/brands.js';
 import { cellKey, parseCell } from '../engine/positions.js';
+import { writerCopyFor, WRITER_COPY_VARIANTS } from '../content/writerCopy.js';
 import { validateAdCopy, namesARival, explainGrade } from '../agents/grader.js';
 import { heuristicTags } from '../agents/keywordTagger.js';
 import {
@@ -85,6 +86,53 @@ function syncPage(draft) {
   draft.ad.landingPageDescription = composeDescription(draft.capex);
 }
 
+/** Has anybody put words in the two boxes that block the Go button? */
+const anyCopyWritten = (ad) => [...(ad.headlines ?? []), ...(ad.descriptions ?? [])]
+  .some((line) => String(line).trim() !== '');
+
+/**
+ * Fill the ad boxes from the writer the player hired, or empty them (I25).
+ *
+ * A player paid 50,000 for the retainer and could not start the game, because
+ * the Go button asks `validateAdCopy` and the description boxes were empty.
+ * They had hired a copywriter and were still required to write the copy.
+ *
+ * THREE RULES, AND EACH ONE IS A WAY THIS COULD GO WRONG.
+ *
+ * It never overwrites what the PLAYER wrote. `draft.adIsSeeded` records whose
+ * words are in the boxes, so switching tier rewrites a delivered ad but leaves a
+ * hand-written one alone. Without it, typing three headlines and then changing
+ * your mind about the writer would silently discard them.
+ *
+ * It CLEARS on the way to DIY, which is the whole reason the flag exists. The
+ * words belong to the writer who was paid for them, and carrying an agency's
+ * copy into DIY takes something the player did not buy — measured, retainer
+ * copy grades `adRelevance` 1 against the keywords, so keeping it would punish
+ * them for holding on to the best writing in the game.
+ *
+ * The variant follows `rootSeed`, which `app.js` increments for a new market,
+ * so restarting shows a different ad rather than the same one three times.
+ */
+function syncWriterCopy(draft, rootSeed) {
+  if (isDiy(draft.writerTier)) {
+    if (draft.adIsSeeded) {
+      draft.ad.headlines = ['', '', ''];
+      draft.ad.descriptions = ['', ''];
+      draft.adIsSeeded = false;
+    }
+    return;
+  }
+  if (!draft.adIsSeeded && anyCopyWritten(draft.ad)) return;
+
+  const brand = BRAND_IDENTITIES.find((b) => b.id === draft.playerBrandId);
+  const copy = writerCopyFor(
+    draft.cell, draft.writerTier, brand.name, rootSeed % WRITER_COPY_VARIANTS,
+  );
+  draft.ad.headlines = copy.headlines;
+  draft.ad.descriptions = copy.descriptions;
+  draft.adIsSeeded = true;
+}
+
 /**
  * @param {object} args
  * @param {object} args.querySet
@@ -105,6 +153,9 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
     // Who writes it (I11). DIY by default because writing their own copy is
     // what the player has always done here; hiring is the new option.
     writerTier: 'diy',
+    // Whose words are in the ad boxes. `syncWriterCopy` rewrites a delivered
+    // ad and never a written one, and it cannot tell them apart from content.
+    adIsSeeded: false,
     split: null,
     // What is typed in the planner's search box. UI state, kept on the draft
     // because adding a keyword rebuilds the whole form and would otherwise
@@ -146,14 +197,14 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
   const rerender = () => {
     root.replaceChildren();
     add(root,
-      sectionBrand(draft, querySet, rerender),
+      sectionBrand(draft, querySet, rerender, rootSeed),
       sectionBriefing(brief),
       // Split out of the briefing (G4). Full width because the table needs the
       // room beside its explanation rather than under it, and because seven
       // half-width cards leave one orphaned in a row of its own.
       sectionWhereSearch(brief),
       sectionRivals(querySet, rootSeed, draft),
-      sectionPosition(brief, draft, rerender),
+      sectionPosition(brief, draft, rerender, rootSeed),
       // WRITER BEFORE KEYWORDS, AND CAPITAL AFTER THEM, which is a layout
       // constraint rather than a reading preference and is worth saying so.
       // Three cards here are full width, so the half-width ones pair in the gaps
@@ -162,7 +213,7 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
       // without adding a row. Any other order orphans a card. The writer card
       // already handles being read before the planner - with no keywords chosen
       // it says "pick them first" rather than scoring relevance against nothing.
-      sectionWriter(draft, rerender, live),
+      sectionWriter(draft, rerender, live, rootSeed),
       sectionKeywords(querySet, draft, rerender, live),
       sectionCapex(draft, rerender),
       // Before the ad, and that is a dependency rather than a layout choice:
@@ -204,7 +255,7 @@ const card = (title, subtitle, wide = false) => {
 // 2. The brand
 // ---------------------------------------------------------------------------
 
-function sectionBrand(draft, querySet, rerender) {
+function sectionBrand(draft, querySet, rerender, rootSeed) {
   const node = card('Your brand', 'nine names, and none of them says anything');
   const row = el('div', 'chips');
   for (const brand of BRAND_IDENTITIES) {
@@ -212,7 +263,11 @@ function sectionBrand(draft, querySet, rerender) {
     chip.type = 'button';
     chip.append(el('strong', null, brand.name));
     chip.append(el('span', 'muted', brand.domain));
-    chip.addEventListener('click', () => { draft.playerBrandId = brand.id; rerender(); });
+    chip.addEventListener('click', () => {
+      draft.playerBrandId = brand.id;
+      syncWriterCopy(draft, rootSeed);
+      rerender();
+    });
     row.append(chip);
   }
   node.append(row);
@@ -554,7 +609,7 @@ function sectionRivals(querySet, rootSeed, draft) {
 // 8. Position
 // ---------------------------------------------------------------------------
 
-function sectionPosition(brief, draft, rerender) {
+function sectionPosition(brief, draft, rerender, rootSeed) {
   const node = card('Where you sit', 'chosen once, and fixed until round 5');
   const matrix = positionMatrix();
 
@@ -588,7 +643,11 @@ function sectionPosition(brief, draft, rerender) {
         + `${Math.round(100 * economics.marginPct)}% margin`));
       box.append(el('div', 'cell-vol',
         `${whole(brief.weeklySearchesByTier[price])} a week in this tier`));
-      box.addEventListener('click', () => { draft.cell = key; rerender(); });
+      box.addEventListener('click', () => {
+        draft.cell = key;
+        syncWriterCopy(draft, rootSeed);
+        rerender();
+      });
       grid.append(box);
     }
   }
@@ -1139,7 +1198,7 @@ function sectionKeywords(querySet, draft, rerender, live) {
  * It updates as they write, so the card is worth coming back to — which is why
  * it sits directly above the ad rather than beside the capital.
  */
-function sectionWriter(draft, rerender, live) {
+function sectionWriter(draft, rerender, live, rootSeed) {
   const node = card('Who writes it', 'a separate budget, and whatever is left buys traffic instead');
   const rows = el('div');
   const summary = el('p', 'capex-summary');
@@ -1165,7 +1224,11 @@ function sectionWriter(draft, rerender, live) {
       pick.type = 'button';
       pick.append(el('span', 'writer-name', tier.label));
       pick.append(el('span', 'writer-price', tier.pricePaise === 0 ? 'free' : rupees(tier.pricePaise)));
-      pick.addEventListener('click', () => { draft.writerTier = tier.id; rerender(); });
+      pick.addEventListener('click', () => {
+        draft.writerTier = tier.id;
+        syncWriterCopy(draft, rootSeed);
+        rerender();
+      });
       row.append(pick);
 
       row.append(el('div', 'writer-what muted', tier.grade === null
@@ -1241,7 +1304,11 @@ function sectionAd(draft, revalidate, live) {
       value: text,
       maxlength: String(HEADLINE_MAX_CHARS + 20),
       // No rerender: this box is the one being typed into.
-      onInput: (value) => { draft.ad.headlines[i] = value; revalidate(); },
+      onInput: (value) => {
+        draft.ad.headlines[i] = value;
+        draft.adIsSeeded = false;
+        revalidate();
+      },
     });
     addField(`Headline ${i + 1}`, box, HEADLINE_MAX_CHARS, () => draft.ad.headlines[i]);
   });
@@ -1250,7 +1317,11 @@ function sectionAd(draft, revalidate, live) {
     const box = input({
       value: text,
       maxlength: String(DESCRIPTION_MAX_CHARS + 40),
-      onInput: (value) => { draft.ad.descriptions[i] = value; revalidate(); },
+      onInput: (value) => {
+        draft.ad.descriptions[i] = value;
+        draft.adIsSeeded = false;
+        revalidate();
+      },
     });
     addField(`Description ${i + 1}`, box, DESCRIPTION_MAX_CHARS, () => draft.ad.descriptions[i]);
   });

@@ -2627,6 +2627,93 @@ columns and says nothing, and the lesson landed. The difference is that dayparti
 puts the evidence and the control in one place and lets the player draw the
 conclusion, while the location card draws the conclusion and withholds the control.
 
+### I25. A hired writer hands the player the copy — `FIXED`
+
+**A player paid ₹50,000 for the premium retainer, committed capital to reviews
+and the size guide, watched the ad card reach 8/8/8 — and could not start the
+game at all.** `ui/round-zero.js` disables the Go button when `validateAdCopy`
+fails, and the description boxes were empty. They had hired a copywriter and were
+still required to write the copy.
+
+**THE BLOCK IS I19'S OWN FIX, WORKING CORRECTLY.** Refusing an invalid ad was
+right — it stopped the panel promising 8·8·8 while the account ran 8·8·4 under
+`OVERLONG_CEILING`. But for a retainer buyer it converted a MISLEADING state into
+an IMPASSABLE one. The fix was correct and its blast radius was not checked, which
+is the shape to watch for: a validation added for one caller reaching a second one
+nobody enumerated.
+
+**And the player leaving the boxes empty was reasoning correctly.** I11 sells the
+GRADE and leaves the words to the player, which is a strange deal at ₹50,000.
+Having just bought a copywriter, inferring that the boxes are the copywriter's job
+is the right inference from what the screen sold them. Nothing said otherwise.
+
+**THE PROPOSAL THAT WAS MEASURED AND REJECTED: copy authored to GRADE at its
+tier.** The idea was that a retainer's seeded copy should genuinely grade 8. It
+cannot be done, and the measurement is worth keeping because it will be proposed
+again. Run through `gradeAdOffline` against each cell's own top keywords:
+
+| set | `expectedCtr` | `adRelevance` |
+|---|---|---|
+| `content/adCopy.js`, all 12 rival ads | 7–8 | **3–5** |
+| `writerCopy.js` freelancer, mid-lifestyle | 8, 8, 8 | 2, 5, 4 |
+| `writerCopy.js` agency | 8, 8, 8 | 5, 3, 5 |
+| `writerCopy.js` retainer | 8, 7, 8 | **1, 6, 1** |
+
+**The best copy grades the worst.** "Four Places To Be Today" scores 1 because it
+echoes no keyword; "Everyday Co-ord Sets" scores higher because it does.
+`adRelevance` rewards keyword echo and good advertising avoids it. Making a
+retainer set grade 8 would require copy that reads like a keyword list — and 17.1
+makes ad copy the ONLY evidence of where an advertiser sits, so that trade buys a
+number by spending the mechanic. The rivals' own table, hand-authored and
+human-reviewed end to end, never reaches 8 either.
+
+It would also be a second mechanism writing one number. `creativeBlock` takes a
+hired tier's grades from `openingCopyGrades(tierId, bias)` and discards the ad
+text; `constants.js` says why in one line — *"two things writing one number is how
+L6 happened."* **So the tier remains the sole source of the grade, and none of
+these numbers touches gameplay.**
+
+**WHAT SHIPPED.** `content/writerCopy.js`, keyed cell → tier → three variants:
+6 × 3 × 3 = **54 sets**, covering 9 × 6 × 3 = 162 combinations because `{brand}`
+is interpolated. Keyed by CELL and not by brand, because 7.5 makes brand names
+position-neutral on purpose — the player picks brand and cell independently, so
+brand-keyed copy would contradict the cell in most combinations. The tier shows up
+in the WRITING: the freelancer names the category, the agency adds a hook and one
+concrete detail, the retainer knows the customer's day. That difference is visible
+at the moment it is paid for, because `serpBlock` previews the player's own ad in
+round 0 beside the rivals'.
+
+**Four rules in `syncWriterCopy`, each of which is a way this could go wrong:**
+
+1. **It clears the boxes on the way to DIY.** The words belong to the writer who
+   was paid for them. Measured, retainer copy grades `adRelevance` **1**, so a
+   player who kept it after cancelling the writer would be punished for holding on
+   to the best writing in the game — a trap they could not see.
+2. **It never overwrites what the player wrote.** `draft.adIsSeeded` records whose
+   words are in the boxes; without it, typing three headlines and then changing
+   your mind about the writer would silently discard them.
+3. **The variant follows `rootSeed`**, which `app.js` increments for a new market,
+   so a restart shows a different ad. `content/adCopy.js` carries the scar of the
+   alternative: with one ad per cell, two rivals in a cell ran the same ad word
+   for word.
+4. **The landing page line is not seeded.** `syncPage` composes it from CAPITAL
+   and I9 grades the page from what that capital built. A writer supplying it
+   would be the second mechanism this entry argues against.
+
+**`writerBalance.test.js` was expected to need re-measuring and did not.** It holds
+self-written against retainer at 1.014 inside 0.85–1.15 bounds, and passes
+unchanged — which is the prediction the decoupling makes: seeded text changes no
+grade for a hired tier, so it can change no outcome. Had it moved, the decoupling
+would have been broken somewhere.
+
+**`writerCopy.test.js` asserts what content cannot be reviewed for.** All 54 pass
+`validateAdCopy`; every limit is checked with the LONGEST brand name interpolated,
+because a headline that fits "Nira" and not "Vella & Co." is a violation only some
+games would show; no set names a rival (8.7); no line duplicates a rival ad; and
+no two tiers in a cell share a headline. **That last one failed on the first run** —
+the agency and the freelancer both said "Everyday Leggings", which is ₹15,000
+buying the same words.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

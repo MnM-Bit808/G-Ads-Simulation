@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and the location mechanic with them.** 1286 tests, all passing, 1 todo.
+**Every build-order step is done, and the location mechanic with them.** 1305 tests, all passing, 1 todo.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
@@ -1237,27 +1237,35 @@ replaced.**
   network, no clocks, no global state — and hard rule 2 keeps model calls inside
   `agents/` with the full suite passing offline.
 
-- **A hired writer should hand you the copy.** A tester paid ₹50,000 for the
-  premium retainer, committed capital, watched the ratings reach 8/8/8 — and
-  **could not start the game at all**, because `ui/round-zero.js` disables the Go
-  button when `validateAdCopy` fails and the description boxes were empty. They
-  had paid a copywriter and were still required to write the copy.
+- ~~A hired writer should hand you the copy.~~ **Built (I25).** A tester paid
+  ₹50,000 for the premium retainer, committed capital, watched the ratings reach
+  8/8/8 — and could not start the game at all, because the Go button asks
+  `validateAdCopy` and the description boxes were empty. They had paid a
+  copywriter and were still required to write the copy.
 
-  **The block is created by I19's own fix.** Refusing an invalid ad was right — it
-  stopped the panel promising 8·8·8 while the account ran 8·8·4 — but for a
-  retainer buyer it turned a misleading state into an impassable one. I11 buys the
-  GRADE and leaves the player writing the words, which is a strange deal at
-  ₹50,000 and is exactly why people leave the boxes alone.
+  `content/writerCopy.js` now delivers the ad: **54 sets**, keyed cell → tier →
+  three variants, `{brand}` interpolated, covering all 162 combinations. Keyed by
+  CELL and not by brand, because 7.5 makes brand names position-neutral and the
+  player picks brand and cell independently — brand-keyed copy would contradict
+  the cell in most combinations.
 
-  **The proposal:** seed headlines and descriptions for HIRED tiers only, from the
-  brand name and the chosen position, editable rather than locked. Never for DIY,
-  and never triggered by capital — that version was argued and rejected on
-  2026-09-08, because it would run an ad the player never wrote and make the round
-  0 decision for them (I3's lesson).
+  **Two things in I25 are worth reading before touching any of it.** The proposal
+  on the table was copy authored to GRADE at its tier, and it was measured and
+  rejected: run through the grader, the retainer sets score `adRelevance` 1, 6, 1
+  against the freelancer's 2, 5, 4 — **the best copy grades the worst**, because
+  relevance rewards keyword echo and good advertising avoids it. The rivals' own
+  human-reviewed table never exceeds 5 either. And seeding must never become a
+  second source for the grade: `creativeBlock` still takes a hired tier's grades
+  from the tier and discards the text.
 
-  Known costs before building: new copy for four tiers, the SERP preview will show
-  it, `writerBalance.test.js` holds self-written against retainer at 1.014 inside
-  0.85–1.15 bounds and must be re-measured, and I11's argument needs rewriting.
+  The rule that took a decision: **switching to DIY clears the boxes**, because
+  the words belong to the writer who was paid for them and retainer copy grades
+  `adRelevance` 1 — a player who kept it would be punished for holding on to the
+  best writing in the game. Hand-written copy is never overwritten, tracked by
+  `draft.adIsSeeded`.
+
+  `writerBalance.test.js` was expected to need re-measuring and did not — it
+  passes unchanged at 1.014, which is exactly what the decoupling predicts.
 
 - **Two of the three capital targets have no surface at all.** Photography is the
   best-paying investment measured — **+22.3%** against not investing, against the
