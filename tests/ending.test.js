@@ -170,7 +170,7 @@ describe('summariseDecisions reads the log back (12.4)', () => {
     expect(lines([entry(5, { capex: { sizeGuide: 5500000, photography: 0, landingPage: 0 } })])[0])
       .toBe('Committed ₹55,000 to the size guide');
     expect(lines([entry(5, { capex: { sizeGuide: 0, photography: 0, landingPage: 0 } })])[0])
-      .toBe('Took the whole ₹1,00,000 as advertising budget');
+      .toBe('Took the whole ₹1,20,000 as advertising budget');
   });
 
   test('the budget plan and the hour adjustments are read back too', () => {

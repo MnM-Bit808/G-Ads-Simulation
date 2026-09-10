@@ -109,6 +109,11 @@ export function businessFor(position, capex, round) {
   // for a number you want to go down.
   const photography = capexEffect(liveCapexPaise(capex, 'photography', round));
   const sizeGuide = capexEffect(liveCapexPaise(capex, 'sizeGuide', round));
+  // I29: the fourth target, and the only defence against the freight build 2
+  // charges. A WhatsApp or IVR confirmation before dispatch does nothing about
+  // a customer who takes delivery and changes their mind — it stops the parcel
+  // that would have come back from the door.
+  const orderConfirmation = capexEffect(liveCapexPaise(capex, 'orderConfirmation', round));
 
   return {
     convRateBase: tier.convRateBase * modifier.conv * photography,
@@ -126,6 +131,7 @@ export function businessFor(position, capex, round) {
     // headline number has to know any of this.
     returnRateBeforeSizeGuide: clamp(tier.returnRate * modifier.ret, 0, RETURN_RATE_CLAMP_MAX),
     sizeGuideEffect: sizeGuide,
+    orderConfirmationEffect: orderConfirmation,
     returnWindowRounds: tier.returnWindowRounds,
   };
 }

@@ -42,7 +42,7 @@
 import {
   ADVERTISER_COUNT, MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH, SCHEMA_VERSION,
   RIVAL_PLACEMENT_CONSTRAINTS, POSITION_ECONOMICS,
-  CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, RANK_BUDGET_MULTIPLIERS,
+  CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS, CAPEX_TIER_CURVE, CAPEX_DELAY_ROUNDS, RANK_BUDGET_MULTIPLIERS,
   PRICE_TIERS, PURPOSES, TOTAL_ROUNDS, QUERY_SET_RULES,
   CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
   LOCATION_TIERS, LOCATION_VOLUME_BY_PRICE,
@@ -363,8 +363,9 @@ function rivalKeywords(cell, querySet, business, rng) {
  * for its tier — and therefore sometimes wrong.
  */
 function rivalCapex(position, rng) {
-  const committed = { sizeGuide: 0, photography: 0, landingPage: 0 };
+  const committed = Object.fromEntries(CAPEX_TARGETS.map((t) => [t, 0]));
   const pending = [];
+  const cap = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].paise;
 
   // Value has conversions to spare and the worst returns problem, so it should
   // invest. Premium is data-starved and often should not.
@@ -374,12 +375,32 @@ function rivalCapex(position, rng) {
   }
 
   // Which target, tilted by what its position actually needs (13.3).
-  const target = position.price === 'value' ? 'sizeGuide'
+  //
+  // TWO NOW, NOT ONE, and R6 is why. A round's allocation is ₹1,20,000 and the
+  // ladder tops at ₹80,000 (I29), so an advertiser that commits to one target
+  // has ₹40,000 left. Leaving it unspent would hand the player a second lever
+  // no rival ever pulls — and the second lever is order confirmation, the only
+  // defence against the freight build 2 charges. A market where only the player
+  // can defend itself is not the same game.
+  const primary = position.price === 'value' ? 'sizeGuide'
     : position.price === 'premium' ? 'photography'
       : 'landingPage';
-  const paise = CAPEX_ALLOCATION_PAISE;
-  committed[target] = paise;
-  pending.push({ target, paise, liveAtRound: 1 + CAPEX_DELAY_ROUNDS });
+
+  // The second choice is where order confirmation gets into the market. Value
+  // and mid carry the most cash at the door and the most refusals, so they reach
+  // for it oftener; premium has few refusals to prevent and buys reach instead.
+  const secondary = position.price === 'premium'
+    ? (rng() < 0.35 ? 'orderConfirmation' : 'landingPage')
+    : (rng() < 0.6 ? 'orderConfirmation' : 'photography');
+
+  const commit = (target, paise) => {
+    committed[target] += paise;
+    pending.push({ target, paise, liveAtRound: 1 + CAPEX_DELAY_ROUNDS });
+  };
+
+  commit(primary, cap);
+  const left = CAPEX_ALLOCATION_PAISE - cap;
+  if (left > 0) commit(secondary, left);
 
   return { committed, pending, remainingUnallocatedPaise: 0 };
 }
@@ -652,7 +673,11 @@ function buildPlayer(identity, choices) {
     policyId: null,
     active: true,
     position,
-    capex: capex ?? { committed: { sizeGuide: 0, photography: 0, landingPage: 0 }, pending: [], remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE },
+    capex: capex ?? {
+      committed: Object.fromEntries(CAPEX_TARGETS.map((t) => [t, 0])),
+      pending: [],
+      remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE,
+    },
     campaign: {
       monthlyBudgetPaise: monthBase,
       monthSpentPaise: 0,

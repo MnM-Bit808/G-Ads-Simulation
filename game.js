@@ -35,6 +35,7 @@ import { logDecisions } from './engine/serialise.js';
 import { reposition, canReposition } from './engine/positions.js';
 import {
   LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, TOTAL_ROUNDS,
+  CAPEX_TARGETS,
 } from './engine/constants.js';
 
 /**
@@ -330,9 +331,14 @@ function applyCapex(capex, allocation, round, budgetSchedule) {
   let spent = 0;
 
   for (const [target, paise] of Object.entries(allocation)) {
-    if (!(target in committed)) {
+    // AGAINST THE LIST, NOT AGAINST WHATEVER THIS ADVERTISER HAPPENS TO HOLD.
+    // It used to test `target in committed`, so a target was "unknown" whenever
+    // an advertiser's block predated it — which is every state written before
+    // the fourth target existed (I29), and every fixture built by hand.
+    if (!CAPEX_TARGETS.includes(target)) {
       throw new RangeError(`unknown capex target "${target}"`);
     }
+    if (!(target in committed)) committed[target] = 0;
     if (!Number.isSafeInteger(paise) || paise < 0) {
       throw new RangeError(`capex for ${target} must be non-negative integer paise, got ${String(paise)}`);
     }

@@ -102,8 +102,23 @@ describe('budget constants', () => {
     expect(C.MONTHLY_BUDGET_PAISE).toBe(168000 * 100);
   });
 
-  test('capex allocation and reposition cost are both ₹1,00,000', () => {
-    expect(C.CAPEX_ALLOCATION_PAISE).toBe(100000 * 100);
+  test('a capex round is ₹1,20,000 and the two of them fund three of four targets', () => {
+    // THE TIE TO `REPOSITION_COST_PAISE` WAS BROKEN DELIBERATELY (I29), and it
+    // could not be kept. "One allocation buys one maxed target" means A = T;
+    // "two allocations fund three of four" means 2A = 3T. Both together require
+    // 2T = 3T. The second is the structure the fourth target needs, so the
+    // first went.
+    const top = C.CAPEX_TIER_CURVE[C.CAPEX_TIER_CURVE.length - 1].paise;
+    expect(C.CAPEX_ALLOCATION_PAISE).toBe(120000 * 100);
+    expect(2 * C.CAPEX_ALLOCATION_PAISE).toBe(3 * top);
+    expect(C.CAPEX_TARGETS).toHaveLength(4);
+  });
+
+  test('and repositioning still costs ₹1,00,000, which is now its own number', () => {
+    // Left where it was rather than following the allocation up. HANDOVER
+    // records that repositioning is already barely affordable because it is
+    // charged against the month's budget; a 20% rise would worsen a problem
+    // already on the open list.
     expect(C.REPOSITION_COST_PAISE).toBe(100000 * 100);
   });
 
@@ -151,9 +166,27 @@ describe('CAPEX_TIER_CURVE is an S, not a diminishing curve', () => {
     expect(peak).toBeLessThan(eff.length - 1);
   });
 
-  test('the top tier costs exactly one capex allocation', () => {
+  test('the top tier is ₹80,000, and one allocation buys it with ₹40,000 left', () => {
+    // It used to be exactly one allocation. See the budget test above for why
+    // that equivalence is arithmetically incompatible with three-of-four.
     const top = C.CAPEX_TIER_CURVE[C.CAPEX_TIER_CURVE.length - 1];
-    expect(top.paise).toBe(C.CAPEX_ALLOCATION_PAISE);
+    expect(top.paise).toBe(80000 * 100);
+    expect(C.CAPEX_ALLOCATION_PAISE - top.paise).toBe(40000 * 100);
+  });
+
+  test('the ladder has no dud rung any more', () => {
+    // The old top step cost ₹30,000 for +0.03 — a quarter the efficiency of the
+    // middle of the ladder and worse than the first rung, so nobody rational
+    // bought it. Every step must now be worth at least half the best step.
+    const curve = C.CAPEX_TIER_CURVE;
+    const rates = [];
+    for (let i = 1; i < curve.length; i++) {
+      rates.push((curve[i].effect - curve[i - 1].effect) / (curve[i].paise - curve[i - 1].paise));
+    }
+    const best = Math.max(...rates);
+    // The FIRST rung is allowed to be the weak one: D7 wants spreading thin to
+    // underperform committing, and that is what makes it so.
+    for (const r of rates.slice(1)) expect(r).toBeGreaterThan(best * 0.5);
   });
 });
 

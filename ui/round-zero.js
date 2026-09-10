@@ -52,8 +52,13 @@ import { MAP_VIEWBOX, INDIA_PATH, CITY_POINTS, BACKDROP } from './india-map.js';
 
 const CAPEX_TARGETS = [
   ['landingPage', 'The page itself', 'Better quality, so a cheaper click. Worth most in the middle.'],
-  ['sizeGuide', 'Size guide', 'Fewer returns. Worth most at the cheap end, and to anything sold on how it looks.'],
+  ['sizeGuide', 'Size guide', 'Fewer parcels sent back after delivery. Worth most at the cheap end, '
+    + 'and to anything sold on how it looks.'],
   ['photography', 'Photography', 'More of your visitors buy. Worth most where the decision is considered.'],
+  // I29: the only one that is not about the page, and the only defence against
+  // the freight a refused parcel costs.
+  ['orderConfirmation', 'Order confirmation', 'Fewer parcels refused at the door. Worth most '
+    + 'where cash on delivery is commonest, which is the cheap end and the small towns.'],
 ];
 
 /**
@@ -146,7 +151,7 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
   const draft = {
     playerBrandId: BRAND_IDENTITIES[0].id,
     cell: 'mid|performance',
-    capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
+    capex: Object.fromEntries(CAPEX_TARGETS.map(([key]) => [key, 0])),
     keywords: [],
     // landingPageDescription is derived from `capex` by syncPage, below.
     ad: { headlines: ['', '', ''], descriptions: ['', ''], landingPageDescription: '' },

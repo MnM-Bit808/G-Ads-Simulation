@@ -2956,6 +2956,99 @@ reads it as `totals[tier]`. Passing the key to `locationIndex` threw on `"0"` an
 took the entire report suite down with it. Worth knowing before touching that
 breakdown again.
 
+### I29. Order confirmation, and a capital ladder that can be finished — `BUILD 3 OF 3`
+
+**Build 2 charged ₹200 on every parcel refused at the door and gave the player
+nothing to do about it.** The size guide reaches send-backs only — no fit chart
+stops somebody changing their mind on a doorstep — so refusals were a cost with
+no defence, which is a tax rather than a decision. Raised by the player, and
+correctly.
+
+**THE FOURTH TARGET.** A WhatsApp or IVR confirmation before dispatch, plus
+address verification. Sourced: one automated confirmation cuts RTO by **6-12
+percentage points** at a 60-70% response rate; brands running IVR, WhatsApp and
+COD-to-prepaid nudges together report **up to 40%**. Against India's 25-35%
+baseline that is a 20-40% relative cut, and it reuses `CAPEX_TIER_CURVE`
+unchanged — full commitment divides refusals by 1.25, a 20% cut, the
+conservative end of the range.
+
+It contributes no page sentence and cannot move a grade, asserted in
+`landingPage.test.js`. If that ever starts passing, capital has found a second
+route into quality score and L6 is happening again.
+
+**AND IT LANDS EXACTLY WHERE THE FREIGHT DOES**, which is what makes it the
+corrective rather than a fourth thing to buy. Measured, twelve weeks, three
+seeds, ₹80,000 on one target against funding nothing:
+
+| cell | freight as % of profit | order confirmation buys |
+|---|---|---|
+| value / lifestyle | 14.3% | **+11.8%** |
+| value / performance | 12.4% | **+9.5%** |
+| mid / lifestyle | 2.6% | +4.4% |
+| premium / performance | 0.6% | +2.0% |
+
+**THE STRUCTURE CHANGED TO MAKE ROOM, AND TWO INVARIANTS DIED.**
+
+The ladder now tops at **₹80,000** and a round allocates **₹1,20,000**, so two
+rounds are ₹2,40,000 = exactly three maxed targets of four. The player finishes
+three and must abandon one entirely.
+
+The old top rung was what paid for it: ₹30,000 for +0.03, a quarter the
+efficiency of the middle of the ladder and worse than the first step. `HANDOVER`
+already recorded that the last ₹30,000 "buys almost nothing". Deleting it costs
+nothing and the ladder still reaches 1.25.
+
+**One invariant could not be kept, and the arithmetic says so outright.** "One
+allocation buys one maxed target" is A = T. "Two allocations fund three of four"
+is 2A = 3T. Together they require 2T = 3T. The second is the structure the fourth
+target needs, so `CAPEX_ALLOCATION_PAISE === REPOSITION_COST_PAISE` and
+`top.paise === CAPEX_ALLOCATION_PAISE` both went. Repositioning stays at
+₹1,00,000 rather than following the allocation up — HANDOVER records it as
+barely affordable already.
+
+**The second was MEASURED and is a real loss.** `THE BEST PAGE AND BETTER
+PHOTOGRAPHY ARE MUTUALLY EXCLUSIVE` held because the top page cost ₹80,000 of a
+₹1,00,000 round, leaving less than photography's first rung. At ₹1,20,000 it
+leaves ₹40,000 and the exclusion is gone. The trade did not vanish — it moved
+from *"page or photos, this round"* to *"which of the four do I abandon, all
+game"* — and both forms are now asserted, the old one as a record of what
+changed.
+
+**THE MEASUREMENT FOUND SOMETHING BIGGER THAN THE CHANGE, AND IT IS OPEN.**
+₹80,000 on each target, every cell:
+
+| cell | order conf. | size guide | **photography** |
+|---|---|---|---|
+| value / performance | 9.5% | 8.9% | **65.1%** |
+| mid / performance | 4.0% | 5.0% | **49.9%** |
+| premium / performance | 2.0% | 3.4% | **35.2%** |
+| value / lifestyle | 11.8% | 11.4% | **56.9%** |
+| mid / lifestyle | 4.4% | 5.6% | **39.7%** |
+| premium / lifestyle | 2.3% | 4.0% | **31.1%** |
+
+**Photography is five to seven times better than either alternative in every
+cell.** The reason is structural and predates all of this work: photography
+multiplies `convRateBase`, so a 25% lift is 25% more revenue on the same ad
+spend, while the two return targets divide a rate that is only ~24% of revenue
+to begin with. A 25% cut in returns is worth about 6%.
+
+So "which three of four" is not yet the choice it is meant to be — everybody
+buys photography first, and the real decision is over the remaining two slots.
+D7's argument assumes the targets are comparable and they are not.
+
+**Not fixed here, deliberately.** It predates build 2 and I29; those only made it
+visible by giving it something to be compared against. Options, none taken: give
+photography its own flatter curve; move some of its effect onto a target that
+costs something elsewhere; or accept that one target dominates and rewrite D7 to
+say the choice is among the other three.
+
+**One thing the measurement CANNOT say.** Profit across the six cells spreads
+3.40x best to worst, and F13 records 1.55x by purpose against 1.27x by price.
+Those are not comparable — F13 measured realised profit across 30 markets with
+live decisions, this is one fixed account making no decisions after round 0 — so
+nothing here shows the spread widened. A matched before-and-after would be needed
+to claim that, and it has not been run.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

@@ -14,7 +14,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { explainGrade } from '../agents/grader.js';
-import { CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE } from '../engine/constants.js';
+import { CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS } from '../engine/constants.js';
 import {
   PAGE_FEATURES, CAPEX_STEPS, composeDescription, featureAt, capexChoices,
 } from '../ui/landing-page.js';
@@ -109,11 +109,20 @@ describe('a player who funds nothing still has a page', () => {
       .toBeGreaterThan(explainGrade(stunted, {}).grade.landingPage);
   });
 
-  test('but every target can still beat it', () => {
-    for (const target of Object.keys(PAGE_FEATURES)) {
+  test('every target that is ABOUT the page can still beat it', () => {
+    for (const target of ['landingPage', 'sizeGuide', 'photography']) {
       expect(gradeOf({ ...NOTHING, [target]: TOP }), target)
         .toBeGreaterThan(gradeOf(NOTHING));
     }
+  });
+
+  test('and order confirmation cannot, which is the whole point of it', () => {
+    // I29. Confirming an order before dispatch changes nothing a visitor reads,
+    // so it must not move a grade the copy grader writes. It acts on refusals
+    // and on nothing else. If this ever starts passing, capital has found a
+    // second route into quality score and L6 is happening again.
+    expect(gradeOf({ ...NOTHING, orderConfirmation: TOP }))
+      .toBe(gradeOf(NOTHING));
   });
 });
 
@@ -171,25 +180,36 @@ describe('the page competes with the rest of the business for the same money', (
       .toBeGreaterThan(CAPEX_ALLOCATION_PAISE);
   });
 
-  test('THE BEST PAGE AND BETTER PHOTOGRAPHY ARE MUTUALLY EXCLUSIVE', () => {
-    // The trade-off the builder exists to make visible, and it was MEASURED
-    // rather than designed: the cheapest route to the top landing grade costs
-    // 80,000, leaving 20,000 — under photography's 25,000 first rung. So a
-    // player who wants the best page buys no photography at all, and
-    // photography is what raises conversion rate.
+  test('THE BEST PAGE NO LONGER COSTS YOU PHOTOGRAPHY, and that was a choice', () => {
+    // IT USED TO. The top landing grade cost ₹80,000 of a ₹1,00,000 round,
+    // leaving ₹20,000 — under photography's ₹25,000 first rung — so a player
+    // who wanted the best page bought no photography at all. That was measured
+    // rather than designed and it was the sharpest trade in the mechanic.
     //
-    // The choice is therefore between a cheaper click and more of the visitors
-    // buying, which is a real decision rather than a slider.
+    // I29 raised the round to ₹1,20,000 so that two rounds fund three of four
+    // targets, which leaves ₹40,000 beside the best page. The trade did not
+    // disappear; it moved from "page or photos, this round" to "which of the
+    // four do I give up, all game" — asserted below.
     const atBest = affordable().filter((c) => gradeOf(c) === bestGrade());
     expect(atBest.length).toBeGreaterThan(0);
-    for (const c of atBest) expect(c.photography, JSON.stringify(c)).toBe(0);
+    expect(atBest.some((c) => c.photography > 0)).toBe(true);
   });
 
-  test('and reaching it costs most of the allocation', () => {
+  test('BUT ONE TARGET MUST STILL BE ABANDONED ENTIRELY, across the whole game', () => {
+    // The trade the one above gave up, in the form it now takes. Two rounds are
+    // ₹2,40,000 and four maxed targets are ₹3,20,000, so a player can finish
+    // three and must leave the fourth at nothing.
+    const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].paise;
+    const wholeGame = 2 * CAPEX_ALLOCATION_PAISE;
+    expect(wholeGame).toBe(3 * top);
+    expect(CAPEX_TARGETS.length * top).toBeGreaterThan(wholeGame);
+  });
+
+  test('and reaching it still costs most of a round', () => {
     const cheapest = Math.min(
       ...affordable().filter((c) => gradeOf(c) === bestGrade()).map(cost),
     );
-    expect(cheapest).toBeGreaterThanOrEqual(0.75 * CAPEX_ALLOCATION_PAISE);
+    expect(cheapest).toBeGreaterThanOrEqual(0.66 * CAPEX_ALLOCATION_PAISE);
   });
 });
 
@@ -301,8 +321,9 @@ describe('a partly funded target can still climb its own ladder', () => {
     expect(choices.map((c) => [c.amountPaise, c.reaches.label, c.wasteful])).toEqual([
       [2500000, 'product shots', true],   // I15's chip: spends and changes nothing
       [3000000, 'on real bodies', false], // the rung that used to be unreachable
-      [4500000, 'fabric detail', false],
-      [7500000, 'video', false],
+      // Three rungs, not four: the ladder lost the step that cost ₹30,000 for
+      // three hundredths (I29), and its label merged into the top one.
+      [5500000, 'video', false],
     ]);
   });
 

@@ -527,8 +527,14 @@ function recordAuction({
           const gross = Math.min(
             RETURN_RATE_CLAMP_MAX, queryReturnGross * effects.returnMultiplier[t],
           );
-          const refusedHere = gross * rtoShareOfReturns(advertisers[i].position.price, t);
-          const sentBackHere = (gross - refusedHere) / business[i].sizeGuideEffect;
+          // EACH TARGET REDUCES ITS OWN HALF AND ONLY ITS OWN HALF (I29).
+          // Order confirmation stops the parcel that never got through the door;
+          // the size guide fixes the one that was delivered and did not fit.
+          // Neither converts into the other — an order that is confirmed rather
+          // than refused simply does not come back.
+          const rtoShare = rtoShareOfReturns(advertisers[i].position.price, t);
+          const refusedHere = (gross * rtoShare) / business[i].orderConfirmationEffect;
+          const sentBackHere = (gross * (1 - rtoShare)) / business[i].sizeGuideEffect;
           const rate = Math.min(RETURN_RATE_CLAMP_MAX, refusedHere + sentBackHere);
 
           bucket.returnWeighted += here * rate;

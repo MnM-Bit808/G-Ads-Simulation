@@ -8,6 +8,7 @@ import { validateWeeklySplit } from '../engine/pacing.js';
 import {
   LEARNING_ROUNDS, REPOSITION_ROUND, CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE,
   DAYPART_BLOCKS, QUALITY_MIN_IMPRESSIONS, AD_RANK_FLOOR,
+  CAPEX_TARGETS,
 } from '../engine/constants.js';
 import { submitRound, triggersLearning } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -570,9 +571,14 @@ describe('capital and position, one round each (13.3, 4.5)', () => {
 
   test('an untouched round 5 still claims the allocation, as an explicit zero', () => {
     // Omitting `capex` does not mean "decline". It means the allocation is
-    // never claimed and ₹1,00,000 disappears: no investment AND no rollover.
+    // never claimed and ₹1,20,000 disappears: no investment AND no rollover.
+    //
+    // Compared against `CAPEX_TARGETS` rather than a literal, so the fourth
+    // target could not be added to the cards and left out of the decision — the
+    // failure mode would be a target a player could fund and the log could not
+    // record.
     const decision = toDecision(draftAt(atFive()));
-    expect(decision.capex).toEqual({ sizeGuide: 0, photography: 0, landingPage: 0 });
+    expect(decision.capex).toEqual(Object.fromEntries(CAPEX_TARGETS.map((t) => [t, 0])));
   });
 
   test('and it is listed as a decision, because it is one', () => {

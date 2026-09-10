@@ -55,13 +55,12 @@ export const PAGE_FEATURES = Object.freeze({
     },
     {
       paise: CAPEX_STEPS[3],
-      label: 'full detail',
-      sentence: 'Fabric, care and delivery details are written out in full.',
-    },
-    {
-      paise: CAPEX_STEPS[4],
       label: 'built around the search',
-      sentence: 'Each page is built around the search that brought them to it.',
+      // The old ladder had these as two rungs, ₹70,000 and ₹1,00,000, and the
+      // second was the worst buy on it. Merged rather than dropped, so the top
+      // of the ladder is still the best page a player can build (I29).
+      sentence: 'Fabric, care and delivery are written out in full, and each page '
+        + 'is built around the search that brought them to it.',
     },
   ]),
   sizeGuide: Object.freeze([
@@ -74,13 +73,9 @@ export const PAGE_FEATURES = Object.freeze({
     },
     {
       paise: CAPEX_STEPS[3],
-      label: 'per garment',
-      sentence: 'Fit notes for each garment, cut by cut.',
-    },
-    {
-      paise: CAPEX_STEPS[4],
       label: 'fit finder',
-      sentence: 'A fit finder that recommends a size from height and build.',
+      sentence: 'Fit notes for each garment, and a fit finder that recommends a '
+        + 'size from height and build.',
     },
   ]),
   photography: Object.freeze([
@@ -93,14 +88,26 @@ export const PAGE_FEATURES = Object.freeze({
     },
     {
       paise: CAPEX_STEPS[3],
-      label: 'fabric detail',
-      sentence: 'Close detail shots of the fabric and the seams.',
-    },
-    {
-      paise: CAPEX_STEPS[4],
       label: 'video',
-      sentence: 'A short video on every product, moving.',
+      sentence: 'Close detail shots of the fabric and the seams, and a short '
+        + 'video on every product, moving.',
     },
+  ]),
+
+  /**
+   * The fourth target (I29), and the only one that is not about the page.
+   *
+   * It contributes NO sentence, and that is the point rather than an omission:
+   * confirming an order before dispatch changes nothing a visitor reads, so it
+   * cannot move a grade the copy grader writes. It acts on refusals and on
+   * nothing else, which is why it is the answer to the freight build 2 charges
+   * and not a second route to quality score.
+   */
+  orderConfirmation: Object.freeze([
+    { paise: CAPEX_STEPS[0], label: 'none', sentence: null },
+    { paise: CAPEX_STEPS[1], label: 'an SMS', sentence: null },
+    { paise: CAPEX_STEPS[2], label: 'WhatsApp confirm', sentence: null },
+    { paise: CAPEX_STEPS[3], label: 'confirm and verify', sentence: null },
   ]),
 });
 

@@ -120,8 +120,13 @@ const NEGATIVE_HELP = {
  */
 const CAPEX_TARGETS = [
   ['landingPage', 'The page itself', 'Better quality, so a cheaper click. Worth most in the middle.'],
-  ['sizeGuide', 'Size guide', 'Fewer returns. Worth most at the cheap end, and to anything sold on how it looks.'],
+  ['sizeGuide', 'Size guide', 'Fewer parcels sent back after delivery. Worth most at the cheap end, '
+    + 'and to anything sold on how it looks.'],
   ['photography', 'Photography', 'More of your visitors buy. Worth most where the decision is considered.'],
+  // I29: the only one that is not about the page, and the only defence against
+  // the freight a refused parcel costs.
+  ['orderConfirmation', 'Order confirmation', 'Fewer parcels refused at the door. Worth most '
+    + 'where cash on delivery is commonest, which is the cheap end and the small towns.'],
 ];
 
 /**
@@ -163,7 +168,7 @@ export function createDraft(selfView, options = {}) {
     round: selfView.round,
     capexOpen: inGameAllocationRounds(options.allocationRounds).includes(selfView.round),
     repositionOpen: canReposition({ position: selfView.position }, selfView.round),
-    capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
+    capex: Object.fromEntries(CAPEX_TARGETS.map(([key]) => [key, 0])),
     committed: structuredClone(selfView.capex?.committed ?? {}),
     // The whole block, not just `committed`: `liveCapexPaise` subtracts
     // tranches that have not reached `liveAtRound` yet, and a capex block
@@ -486,7 +491,7 @@ export function setCapex(draft, target, paise) {
 
 /** Back to committing nothing, which rolls the whole allocation into budget. */
 export function resetCapex(draft) {
-  draft.capex = { sizeGuide: 0, photography: 0, landingPage: 0 };
+  draft.capex = Object.fromEntries(CAPEX_TARGETS.map(([key]) => [key, 0]));
 }
 
 /**

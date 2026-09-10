@@ -216,6 +216,38 @@ export const POST_DELIVERY_RETURN_RATE = 0.30;
  */
 export const RTO_FREIGHT_PAISE = 20000;
 
+/**
+ * What order confirmation is worth against refusals, at full commitment.
+ *
+ * THE COUNTERWEIGHT TO THE FREIGHT (I29). Build 2 charged ₹200 on every parcel
+ * refused at the door and gave the player nothing to do about it: the size
+ * guide reaches send-backs only, because no fit chart stops somebody changing
+ * their mind on a doorstep. That left a cost with no defence, which is not a
+ * decision — it is a tax.
+ *
+ * So capital gets a fourth target. In life it is a WhatsApp or IVR confirmation
+ * before dispatch plus address verification, and it is the standard tool:
+ *
+ *   one automated WhatsApp confirmation cuts RTO by 6-12 PERCENTAGE POINTS, at
+ *   a 60-70% response rate when it goes out within 15 minutes of the order
+ *
+ *   brands running IVR, WhatsApp and COD-to-prepaid nudges together report up
+ *   to a 40% reduction
+ *
+ * Against India's 25-35% RTO baseline, 6-12 points is a 20-40% relative cut. It
+ * reuses `CAPEX_TIER_CURVE`, so full commitment divides refusals by 1.25 — a
+ * 20% cut, the CONSERVATIVE end of that range, and the same ladder every other
+ * target climbs.
+ *
+ * IT DOES NOT DISTINGUISH CASH FROM PREPAID, deliberately. Confirmation mostly
+ * filters cash orders, but the refusal rate it acts on is already cash-dominated
+ * by construction — `refusalRateFor` blends 20.9% on COD against 5.8% on prepaid
+ * — so splitting it again would model the same fact twice for no gain the player
+ * could act on. The cards state the COD share beside the refusal rate instead,
+ * which is the form a player can do arithmetic with.
+ */
+// The effect itself is `CAPEX_TIER_CURVE`, applied in `businessFor`.
+
 
 /**
  * Price tier sets the economics: what a click can be worth.
@@ -735,7 +767,7 @@ export const DAILY_BUDGET_OVERSPEND_CAP = 2.0;
 // Capital expenditure (spec 13.3)
 // ---------------------------------------------------------------------------
 
-export const CAPEX_ALLOCATION_PAISE = 10000000; // ₹1,00,000, at rounds 1 and 5
+export const CAPEX_ALLOCATION_PAISE = 12000000; // ₹1,20,000, at rounds 1 and 5
 export const CAPEX_DELAY_ROUNDS = 3;
 
 // ---------------------------------------------------------------------------
@@ -803,21 +835,51 @@ export const CAPEX_LANDING_PAGE_MAX_POINTS = 3;
  * An S-curve, not a diminishing one. Interpolated linearly between points.
  *
  * The shape is the whole mechanic. With diminishing returns the first tranche
- * on a fresh target would always be the cheapest gain, splitting three ways
+ * on a fresh target would always be the cheapest gain, splitting four ways
  * would be strictly optimal, and the amount choice would collapse into a solved
  * puzzle. The S makes splitting available and sometimes right while spreading
  * thin genuinely underperforms committing.
  *
  * It is also the more honest shape: ₹25,000 of engineering buys a half-built
  * fit tool that helps nobody. See DECISIONS D7.
+ *
+ * RESHAPED WHEN THE FOURTH TARGET ARRIVED (I29), and the old top rung was the
+ * reason it could be. Measured against the version before it:
+ *
+ *   0 -> 25,000   +0.04 for ₹25,000    0.002 per ₹10,000
+ *   25 -> 55,000  +0.12 for ₹30,000    0.004 per ₹10,000
+ *   55 -> 70,000  +0.06 for ₹15,000    0.004 per ₹10,000
+ *   70 -> 100,000 +0.03 for ₹30,000    0.001 per ₹10,000   <- the worst buy
+ *
+ * The last rung cost ₹30,000 for three hundredths, a quarter the efficiency of
+ * the middle of the ladder and worse than the first step. Nobody rational
+ * bought it, and `HANDOVER.md` had already recorded that the last ₹30,000
+ * "buys almost nothing".
+ *
+ * So the ladder now tops at ₹80,000 and reaches the same 1.25 it always did.
+ * The dud rung is gone, the top rung is a good buy rather than a trap, and
+ * ₹80,000 x 3 is exactly the ₹2,40,000 two allocation rounds provide — so a
+ * player can finish three of the four targets and must give one up. The choice
+ * D7 exists to protect is intact; what changed is that the budget now lands on
+ * a round number instead of two thirds of one.
  */
 export const CAPEX_TIER_CURVE = [
   { paise: 0, effect: 1 },
   { paise: 2500000, effect: 1.04 },
   { paise: 5500000, effect: 1.16 },
-  { paise: 7000000, effect: 1.22 },
-  { paise: 10000000, effect: 1.25 },
+  { paise: 8000000, effect: 1.25 },
 ];
+
+/**
+ * The four things capital can be spent on, and the order the cards list them.
+ *
+ * Named here rather than written out at each site, because a fourth target was
+ * added to a codebase that had three in object literals in five files, and the
+ * one that got missed would have been a target nobody could fund.
+ */
+export const CAPEX_TARGETS = Object.freeze([
+  'photography', 'sizeGuide', 'landingPage', 'orderConfirmation',
+]);
 
 // ---------------------------------------------------------------------------
 // Ad copy limits (spec 18.1)
@@ -918,6 +980,7 @@ export const PROVENANCE = {
   CAPEX_ALLOCATION_PAISE: 'INVENTED',
   CAPEX_DELAY_ROUNDS: 'INVENTED',
   CAPEX_TIER_CURVE: 'INVENTED',
+  CAPEX_TARGETS: 'INVENTED',
   CAPEX_LANDING_PAGE_MAX_POINTS: 'INVENTED',
   CREATIVE_ALLOCATION_PAISE: 'INVENTED',
   // ESTIMATED, not CALIBRATE, and the distinction is not pedantry: CALIBRATE

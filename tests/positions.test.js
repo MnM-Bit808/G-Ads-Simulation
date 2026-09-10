@@ -462,8 +462,15 @@ describe('repositioning (spec 4.5)', () => {
       .toThrow(/once/i);
   });
 
-  test('the cost is a full capex allocation, which is the point', () => {
-    expect(REPOSITION_COST_PAISE).toBe(CAPEX_ALLOCATION_PAISE);
+  test('the cost is one maxed target, which is the point it makes now', () => {
+    // It used to be one full capex allocation. That tie broke when the fourth
+    // target arrived (I29) — see `constants.test.js` for why it could not be
+    // kept — and repositioning was left at ₹1,00,000 rather than following the
+    // allocation up to ₹1,20,000, because HANDOVER already records that it is
+    // barely affordable against a month's budget.
+    const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].paise;
+    expect(REPOSITION_COST_PAISE).toBeGreaterThan(top);
+    expect(REPOSITION_COST_PAISE).toBeLessThan(CAPEX_ALLOCATION_PAISE);
   });
 
   test('it does not mutate the position it was given (R1)', () => {
@@ -543,5 +550,58 @@ describe('the two halves of the return rate', () => {
     };
     expect(businessFor(cell, pending, 6).sizeGuideEffect).toBe(1);
     expect(businessFor(cell, pending, 9).sizeGuideEffect).toBeGreaterThan(1);
+  });
+});
+
+/**
+ * Order confirmation, the fourth target (I29).
+ *
+ * Build 2 charged ₹200 on every parcel refused at the door and gave the player
+ * nothing to do about it — the size guide reaches send-backs only. A cost with
+ * no defence is a tax, not a decision. These assert that the defence exists,
+ * that it reaches the right half, and that it cannot reach the wrong one.
+ */
+describe('order confirmation acts on refusals and nothing else', () => {
+  const cell = { price: 'mid', purpose: 'lifestyle' };
+  const none = { committed: {}, pending: [] };
+  const confirmed = { committed: { orderConfirmation: 8000000 }, pending: [] };
+  const guided = { committed: { sizeGuide: 8000000 }, pending: [] };
+
+  test('funding it raises its effect and leaves the size guide alone', () => {
+    const b = businessFor(cell, confirmed, 6);
+    expect(b.orderConfirmationEffect).toBeGreaterThan(1);
+    expect(b.sizeGuideEffect).toBe(1);
+  });
+
+  test('and the size guide does not touch order confirmation either', () => {
+    const b = businessFor(cell, guided, 6);
+    expect(b.sizeGuideEffect).toBeGreaterThan(1);
+    expect(b.orderConfirmationEffect).toBe(1);
+  });
+
+  test('it does NOT move the headline return rate, because it is not a fit problem', () => {
+    // `returnRate` is the size-guide-adjusted figure every caller that does not
+    // know the location reads. Order confirmation acts per location, inside
+    // `round.js`, on the refusal half only — so if it ever starts moving this,
+    // it has become a second size guide and the two halves have merged.
+    expect(businessFor(cell, confirmed, 6).returnRate)
+      .toBe(businessFor(cell, none, 6).returnRate);
+  });
+
+  test('it climbs the same ladder as everything else', () => {
+    const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1];
+    expect(businessFor(cell, confirmed, 6).orderConfirmationEffect).toBe(top.effect);
+    const half = { committed: { orderConfirmation: 5500000 }, pending: [] };
+    expect(businessFor(cell, half, 6).orderConfirmationEffect)
+      .toBeLessThan(top.effect);
+  });
+
+  test('a pending tranche buys nothing until it lands', () => {
+    const pending = {
+      committed: { orderConfirmation: 8000000 },
+      pending: [{ target: 'orderConfirmation', paise: 8000000, liveAtRound: 9 }],
+    };
+    expect(businessFor(cell, pending, 6).orderConfirmationEffect).toBe(1);
+    expect(businessFor(cell, pending, 9).orderConfirmationEffect).toBeGreaterThan(1);
   });
 });
