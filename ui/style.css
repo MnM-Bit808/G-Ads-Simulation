@@ -68,10 +68,29 @@ button:disabled { opacity: 0.4; cursor: default; filter: none; }
 main { padding: 1.25rem; max-width: 1500px; margin: 0 auto; }
 .loading { color: var(--muted); }
 
+/*
+ * `align-items: start` for the same reason round 0's grid has it, and it should
+ * have had it from the start — the two grids were written months apart and only
+ * one got the fix.
+ *
+ * MEASURED at week 1, where the imbalance is worst because half the cards have
+ * nothing to report yet: 1,179px of empty space INSIDE cards, 333px of it in
+ * Auction insights alone, which sits beside a 685px trends chart. Starting the
+ * cards rather than stretching them takes that to 269px, which is the bottom
+ * padding fifteen cards are supposed to have.
+ *
+ * IT RECLAIMS NO SCROLL. The page is 4,362px either way, because a grid row is
+ * still as tall as its tallest card — the gap moves from inside a card's border
+ * to the page behind it. That is the whole of the improvement and it is worth
+ * having: an empty card reads as broken, a gap reads as deliberate. Re-pairing
+ * the cards tall-with-tall was measured too and saves about 215px of 4,362,
+ * which is not worth reordering a dashboard for.
+ */
 .grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
+  align-items: start;
 }
 .span-2 { grid-column: span 2; }
 .span-4 { grid-column: span 4; }
