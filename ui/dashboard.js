@@ -19,7 +19,7 @@
  *        clicks and returned nothing are marked.
  */
 
-import { el, table, figure, rupees, whole, pct, ratio } from './dom.js';
+import { el, add, table, figure, rupees, whole, pct, ratio } from './dom.js';
 import { getPublicView } from '../engine/insights.js';
 import { briefing } from '../setup.js';
 import {
@@ -31,8 +31,11 @@ import { renderTrends } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
 import {
   MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH, DEFAULT_UNGRADED_QUALITY,
-  ATTRIBUTION_LAG_DISTRIBUTION,
+  ATTRIBUTION_LAG_DISTRIBUTION, RTO_FREIGHT_PAISE,
 } from '../engine/constants.js';
+
+/** A click in round R is final at R+5: three rounds to arrive, two to resolve. */
+const SETTLES_AFTER_ROUNDS = ATTRIBUTION_LAG_DISTRIBUTION.length + 1;
 
 /** "55% this week, then 28%, 12%, 5%", read off the constant it describes. */
 const ARRIVAL_SHAPE = ATTRIBUTION_LAG_DISTRIBUTION
@@ -262,6 +265,149 @@ function arrivalChart(game) {
   key.append(el('span', 'arrival-swatch tick'), el('span', null, 'what you read at the time'));
   wrap.append(key);
   return wrap;
+}
+
+/**
+ * What came back, what it cost, and whether it is getting better (I31).
+ *
+ * WHY THIS CARD EXISTS. Build 2 charged ₹200 on every parcel refused at the
+ * door and build 3 sold a ₹80,000 lever against it — and there was nowhere to
+ * watch either. Returns appeared in exactly two places during a game: a
+ * sub-label under net profit, and three columns on a card about GEOGRAPHY. No
+ * account-level return rate existed at all until the end screen, by which point
+ * nothing can be done about it.
+ *
+ * THE WEEK COLUMN IS THE POINT OF IT. `locationRows` sums every week played and
+ * has no week/all toggle, so a capex landing at round 4 is permanently diluted
+ * by rounds 1-3 and moves an average too slowly to read. A player could buy
+ * order confirmation and never find out whether it worked. Here each week is its
+ * own bar, so the round the investment lands is a step rather than a smudge.
+ *
+ * SETTLED WEEKS ARE MARKED, because a return needs two rounds after the
+ * conversion and the conversion needs up to three after the click. Recent weeks
+ * always understate, and a card that let a player read week 11 as good news
+ * would be teaching the opposite of W11.
+ */
+function renderReturns(root, game) {
+  const history = game.state.history ?? [];
+  const latest = history.length > 0 ? history[history.length - 1].round : 0;
+
+  const weeks = history.map((h) => {
+    const row = h.byAdvertiser[game.playerId];
+    const c = row?.conversions ?? {};
+    return {
+      round: h.round,
+      conversions: c.final ?? 0,
+      refused: c.refused ?? 0,
+      sentBack: c.sentBack ?? 0,
+      freightPaise: row?.money?.rtoFreightPaise ?? 0,
+      grossRevenuePaise: row?.money?.grossRevenuePaise ?? 0,
+      grossProfitPaise: row?.money?.grossProfitPaise ?? 0,
+      costPaise: row?.traffic?.costPaise ?? 0,
+      // A click in round R is final at R+5 (3 for the order, 2 for the window).
+      settled: latest - h.round >= SETTLES_AFTER_ROUNDS,
+    };
+  });
+
+  const figures = root.querySelector('[data-slot="returns-figures"]');
+  const body = root.querySelector('[data-slot="returns-weeks"]');
+  const note = root.querySelector('[data-slot="returns-note"]');
+  figures.replaceChildren();
+  body.replaceChildren();
+
+  const settled = weeks.filter((w) => w.settled);
+  const sum = (rows, fn) => rows.reduce((a, r) => a + fn(r), 0);
+  const freightAll = sum(weeks, (w) => w.freightPaise);
+
+  if (settled.length === 0) {
+    note.textContent = 'Nothing has settled yet. A click is final about five weeks '
+      + `after it happens, so the first honest reading of this card is week ${SETTLES_AFTER_ROUNDS + 1}.`;
+    return;
+  }
+
+  const conv = sum(settled, (w) => w.conversions);
+  const refused = sum(settled, (w) => w.refused);
+  const sentBack = sum(settled, (w) => w.sentBack);
+  const rate = (n) => (conv > 0 ? n / conv : 0);
+
+  // What one refused parcel is actually worth, from this account's own figures
+  // rather than from a constant — the arithmetic the player would otherwise do
+  // by hand. Margin is recovered from the gross figures, which carry no freight.
+  let codClicks = 0;
+  let codWeighted = 0;
+  for (const h of history) {
+    const rows = h.byAdvertiser[game.playerId]?.breakdown?.byLocation ?? {};
+    for (const row of Object.values(rows)) {
+      if (row.codShare == null) continue;
+      codClicks += row.clicks ?? 0;
+      codWeighted += (row.clicks ?? 0) * row.codShare;
+    }
+  }
+  const codShare = codClicks > 0 ? codWeighted / codClicks : null;
+
+  const grossRev = sum(settled, (w) => w.grossRevenuePaise);
+  const grossProfit = sum(settled, (w) => w.grossProfitPaise);
+  const spend = sum(settled, (w) => w.costPaise);
+  const marginPct = grossRev > 0 ? (grossProfit + spend) / grossRev : 0;
+  const aovPaise = conv > 0 ? grossRev / conv : 0;
+  const perRefusal = aovPaise * marginPct + RTO_FREIGHT_PAISE;
+
+  add(
+    figures,
+    figure('Came back', pct(rate(refused + sentBack), 1),
+      `${whole(refused + sentBack)} of ${whole(conv)} orders`),
+    figure('Refused', pct(rate(refused), 1), `${whole(refused)} never delivered`,
+      rate(refused) > 0.08 ? 'neg' : null),
+    figure('Sent back', pct(rate(sentBack), 1), `${whole(sentBack)} after delivery`),
+    figure('Freight paid', rupees(freightAll),
+      `${rupees(RTO_FREIGHT_PAISE)} a parcel, every week`),
+    // WHY the split is what it is, and the only figure here a player can change
+    // by moving their money rather than by buying something.
+    codShare == null ? null : figure('Paid at door', pct(codShare),
+      'across where you actually advertise'),
+  );
+
+  const max = Math.max(...weeks.map((w) => w.refused + w.sentBack), 1);
+  const pc = (n) => {
+    const share = (100 * n) / max;
+    return `${share < 0.05 ? 0 : Math.round(share * 100) / 100}%`;
+  };
+  const wrap = el('div', 'arrival');
+  for (const w of weeks) {
+    const line = el('div', `arrival-row${w.settled ? '' : ' unsettled'}`);
+    line.append(el('div', 'k', `Week ${w.round}`));
+    const track = el('div', 'track');
+    const bad = el('div', 'fill refused');
+    bad.style.width = pc(w.refused);
+    track.append(bad);
+    if (w.sentBack > 0.05) {
+      const soft = el('div', 'fill sent-back');
+      soft.style.width = pc(w.sentBack);
+      track.append(soft);
+    }
+    line.append(track);
+    const v = el('div', 'v');
+    v.append(el('span', null, w.conversions > 0
+      ? pct((w.refused + w.sentBack) / w.conversions, 0) : '—'));
+    if (!w.settled) v.append(el('span', 'arrival-more', 'still in'));
+    line.append(v);
+    wrap.append(line);
+  }
+  const key = el('div', 'arrival-key');
+  key.append(el('span', 'arrival-swatch refused'), el('span', null, 'refused at the door'));
+  key.append(el('span', 'arrival-swatch sent-back'), el('span', null, 'sent back after delivery'));
+  wrap.append(key);
+  body.append(wrap);
+
+  note.replaceChildren();
+  note.append(el('strong', null, `Every refusal costs you about ${rupees(perRefusal)}`));
+  note.append(document.createTextNode(
+    ` — ${rupees(RTO_FREIGHT_PAISE)} of freight both ways, and ${rupees(aovPaise * marginPct)} `
+    + 'of margin on a sale that never happened. A size guide cannot reach any of it: '
+    + 'it fixes the wrong size, not somebody changing their mind at the door. '
+    + `Order confirmation is the one that can. Only weeks 1 to ${latest - SETTLES_AFTER_ROUNDS} `
+    + 'are counted above; the rest are still arriving and will read better than they are.',
+  ));
 }
 
 /** W11: what moved since the player last looked. */
@@ -667,6 +813,7 @@ export function renderDashboard(game, onDecisionChange) {
 
   renderHeadline(root, row, game, game.playerId, report);
   renderShare(root, row);
+  renderReturns(root, game);
   renderRevised(root, game);
   renderInsights(root, game);
   renderBudget(root, row, game);

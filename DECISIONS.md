@@ -3135,6 +3135,67 @@ ones. It now checks each target against its own ladder, **plus a guard asserting
 photography's really is the longer one** — without which the first assertion is
 vacuous.
 
+### I31. What came back, given somewhere to be watched — `FIXED`
+
+**Raised by the player: why is there no section for RTO and return statistics?**
+There wasn't, and the inventory is short enough to be damning. During a whole
+game, returns appeared in exactly two places:
+
+- a sub-label under net profit — *"less ₹Y freight"* — this week only, one number
+- three columns on **the location card**, which is a card about geography
+
+No account-level return rate existed anywhere before the end screen, by which
+point nothing can be done with it.
+
+**AND THE SHARPEST CONSEQUENCE.** `locationRows` sums every week played and has
+no week/all toggle — the search terms card has one, that card does not. So a
+capex landing at round 4 is permanently diluted by rounds 1 to 3 in a cumulative
+average. **A player could spend ₹80,000 on order confirmation and never find out
+whether it worked.** Build 2 added a cost and build 3 added the lever against it,
+and neither got a place to be watched.
+
+Same shape as I16 (*"your copy is not live yet"*), I24 (the location card states
+a fact and names no lever) and *two of three capital targets have no surface*.
+
+**WHAT SHIPPED.** One card, `What came back`, carrying five figures and a bar per
+week. On a played `value|lifestyle` account at week 9:
+
+| | |
+|---|---|
+| Came back | 35.9% — 305 of 849 orders |
+| Refused | **15.3%** — 130 never delivered |
+| Sent back | 20.6% — 175 after delivery |
+| Freight paid | **₹40,009** |
+| Paid at door | 82%, weighted across where the clicks went |
+
+**The week column is the point of it**, and the reason the card exists rather
+than three more columns somewhere: each week is its own bar, so the round an
+investment lands is a step rather than a smudge. Weeks that have not settled are
+dimmed rather than hidden — a gap where a week should be reads as a bug.
+
+**The arithmetic the player asked for is computed from their own account**, not
+from a constant: *"every refusal costs you about ₹712 — ₹200 of freight both
+ways, and ₹512 of margin on a sale that never happened."* Margin is recovered
+from the gross figures, which is only possible because gross carries no freight
+term (I28 build 2).
+
+**It reuses the arrival chart's row grammar deliberately.** Both are "one bar per
+week, split in two", and a player who has learned to read one should not have to
+learn the other. Only the colours differ, because these two halves are a problem
+where the arrival chart's two are a delay.
+
+**The location columns stay.** They answer *where*; this answers *how much, and
+is it improving*. The duplication is deliberate and worth watching: I19's whole
+lesson was two surfaces disagreeing, so both read `refused` from the same
+`conversions.refused` the engine writes, never from a second derivation.
+
+**Dead space was measured, not eyeballed.** The first build left 110px of slack
+at the bottom — the grid stretches rows and the neighbouring card is taller. The
+fifth figure was the fix rather than padding: it was in the proposal, had not
+been built, and adding it took the slack to **24px**, which is the card's own
+bottom padding. Verified at 1152, 1280, 1366, 1440 and 1920 with no card on the
+screen overflowing at any of them.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
