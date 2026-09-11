@@ -51,7 +51,7 @@ import { mulberry32, deriveSeed } from './engine/rng.js';
 import { allCells, cellKey, parseCell, businessFor, breakEvenCpcPaise } from './engine/positions.js';
 import { assertValidQuerySet, homeCell } from './engine/querySet.js';
 import { validateWeeklySplit } from './engine/pacing.js';
-import { allocate, mulRate } from './engine/money.js';
+import { allocate, mulRate, formatINR } from './engine/money.js';
 import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
 import { LOCATIONS } from './content/locations.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
@@ -420,7 +420,7 @@ function rivalCapex(position, rng) {
  *
  * The worked anchor is the neutral-query figure from 4.4, and 17.2 is explicit
  * that the sentence after it is not optional: every position's real ceiling is
- * about 2.4x the anchor, and a player handed ₹26 with no warning bids ₹26,
+ * 2.2 to 2.6x the anchor, and a player handed ₹20 with no warning bids ₹20,
  * loses every auction, and concludes the arithmetic they were taught is broken.
  * Direction and rough size, never the multiplier — the affinities stay withheld
  * from everyone (C4) and the precise figure is earned by running the keyword.
@@ -436,6 +436,13 @@ export function briefing(querySet) {
   const anchorPaise = mulRate(
     mid.aovMeanPaise, mid.marginPct * (1 - mid.returnRate) * mid.convRateBase,
   );
+  // Built from the same fields as the figure, never typed. It was a literal,
+  // and F14 changed mid's return rate under it: the anchor became ₹20.37 while
+  // the sentence went on saying ₹26.56 at 76% retention.
+  const pct = (x) => `${Number((x * 100).toFixed(1))}%`;
+  const arithmetic = `${formatINR(mid.aovMeanPaise)} x ${pct(mid.marginPct)} x `
+    + `${pct(1 - mid.returnRate)} x ${pct(mid.convRateBase)} = `
+    + `${formatINR(anchorPaise, { decimals: 2 })} on an average search`;
 
   return {
     weeklySearchesByTier: {
@@ -456,7 +463,7 @@ export function briefing(querySet) {
       retentionPct: 1 - mid.returnRate,
       convRate: mid.convRateBase,
       resultPaise: anchorPaise,
-      arithmetic: '₹2,400 x 52% x 76% x 2.8% = ₹26.56 on an average search',
+      arithmetic,
       // 17.2: not optional.
       caveat: 'That is what a search worth nothing in particular is worth to you. '
         + 'The searches you choose to compete for are worth appreciably more — '
@@ -506,8 +513,13 @@ export function briefing(querySet) {
     hints: {
       conversionRate: 'Cheaper products convert more often; a ₹4,800 decision is '
         + 'researched, compared and slept on.',
-      returns: 'About a quarter of orders category-wide, higher at the cheap end '
-        + 'where people order two sizes, lower at the premium end.',
+      // F14. Every return, including parcels refused at the door, which is how
+      // the engine counts it. The old line said returns ran higher at the cheap
+      // end because people order two sizes; nothing sourced supports that, and
+      // what price really changes is the cost of each one.
+      returns: 'About two in five orders come back category-wide, counting parcels '
+        + 'refused at the door as well as those sent back. Price barely changes how '
+        + 'often; it changes how much each one costs you.',
     },
   };
 }

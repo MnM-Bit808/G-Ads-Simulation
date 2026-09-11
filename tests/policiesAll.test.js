@@ -188,9 +188,11 @@ describe('grossOptimiser: the section 14 trap, walking around', () => {
 
   test('the overpayment is exactly the return rate it forgot', () => {
     // affordable = aov x margin x (1 - returns) x rate. Deleting the retention
-    // term is the whole of section 14, and the gap it opens is 1/(1 - r).
+    // term is the whole of section 14, and the gap it opens is 1/(1 - r) at the
+    // briefing's two in five: a gross optimiser overpays by two thirds (F14 —
+    // it was a third, when the briefing said a quarter).
     const ratio = grossAffordableCpcPaise(SELF) / affordableCpcPaise(SELF, null);
-    expect(ratio).toBeCloseTo(1 / (1 - 0.25), 2);
+    expect(ratio).toBeCloseTo(1 / (1 - 0.40), 2);
   });
 
   test('it is careful about the wrong number, not careless', () => {

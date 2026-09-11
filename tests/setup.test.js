@@ -13,6 +13,7 @@ import { BRAND_IDENTITIES, assignIdentities } from '../content/brands.js';
 import { AD_COPY_BY_CELL } from '../content/adCopy.js';
 import { allCells } from '../engine/positions.js';
 import { homeCell } from '../engine/querySet.js';
+import { formatINR } from '../engine/money.js';
 import {
   ADVERTISER_COUNT, MONTHLY_BUDGET_PAISE,
   ROUNDS_PER_MONTH, PRICE_TIERS, CAPEX_ALLOCATION_PAISE, TAG_VOCABULARY,
@@ -430,12 +431,26 @@ describe('the briefing shows research and withholds experience (spec 17.2)', () 
     expect(a.tier).toBe('mid');
     const recomputed = Math.round(a.aovMeanPaise * a.marginPct * a.retentionPct * a.convRate);
     expect(a.resultPaise).toBe(recomputed);
-    expect(a.arithmetic).toContain('26.56');
+  });
+
+  test('and the sentence on screen states the figures it was computed from', () => {
+    // It used to be a hard-coded string, and F14 changed mid's return rate
+    // underneath it: the engine computed ₹20.37 while the sentence still read
+    // "₹2,400 x 52% x 76% x 2.8% = ₹26.56". This file stayed green, because it
+    // asserted the string contained "26.56" — the stale figure — and checked the
+    // arithmetic against the fields rather than against the words.
+    const a = brief.workedAnchor;
+    const pct = (x) => `${Number((x * 100).toFixed(1))}%`;
+    expect(a.arithmetic).toContain(formatINR(a.aovMeanPaise));
+    expect(a.arithmetic).toContain(pct(a.marginPct));
+    expect(a.arithmetic).toContain(pct(a.retentionPct));
+    expect(a.arithmetic).toContain(pct(a.convRate));
+    expect(a.arithmetic).toContain(formatINR(a.resultPaise, { decimals: 2 }));
   });
 
   test('and the sentence 17.2 says is not optional', () => {
-    // The anchor is the NEUTRAL-QUERY figure and every real ceiling is about
-    // 2.4x it. A player handed 26.56 with no warning bids 26.56, loses every
+    // The anchor is the NEUTRAL-QUERY figure and every real ceiling is 2.2 to
+    // 2.6x it. A player handed ₹20 with no warning bids ₹20, loses every
     // auction, and concludes the arithmetic they were taught is broken.
     expect(brief.workedAnchor.caveat).toMatch(/roughly double/i);
     expect(brief.workedAnchor.caveat).toMatch(/choose to compete for/i);
@@ -451,6 +466,11 @@ describe('the briefing shows research and withholds experience (spec 17.2)', () 
     const text = JSON.stringify(brief.hints);
     expect(text).toMatch(/cheaper products convert more often/i);
     expect(text).not.toMatch(/0\.042|4\.2%|0\.016|1\.6%/);
+    // F14: the level the engine runs, said the way a founder would know it —
+    // and no longer "higher at the cheap end", which nothing sourced supports.
+    expect(text).toMatch(/two in five/i);
+    expect(text).not.toMatch(/cheap end|two sizes/i);
+    expect(text).not.toMatch(/42\.7|41\.7|39\.6/);
   });
 
   test('nothing in it leaks 4.2, 4.3 or the affinities', () => {

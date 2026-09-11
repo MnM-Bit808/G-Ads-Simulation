@@ -43,13 +43,18 @@
 /**
  * What a competent operator assumes about returns before it has seen any.
  *
- * The round 0 briefing tells the player "about a quarter of orders
- * category-wide" (17.2) and withholds the rest, so a quarter is what a
+ * The round 0 briefing tells the player "about two in five orders come back
+ * category-wide" (17.2) and withholds the rest, so two in five is what a
  * disciplined rival assumes too. It is wrong in both directions — Value-
- * Lifestyle really returns 36%, Premium-Performance 17% — and it is corrected
+ * Lifestyle really returns 46.5%, Premium-Performance 36% — and it is corrected
  * from the report as soon as returns start resolving.
+ *
+ * Was 0.25, when the briefing said a quarter. F14 raised the engine's return
+ * level to the sourced total and the briefing followed; this follows the
+ * briefing, because a rival that has read a different briefing from the
+ * player's is not playing the same game.
  */
-const ASSUMED_RETURN_RATE = 0.25;
+const ASSUMED_RETURN_RATE = 0.40;
 
 /**
  * The conversion rate to assume before any has been observed.
@@ -350,8 +355,8 @@ function assumedConvRate(self) {
  *
  * Returns resolve two rounds after a conversion lands, so early reports show
  * conversions with nothing returned yet and this reads 0 — which would make the
- * advertiser believe it can afford more than it can. So the briefing's quarter
- * holds until enough has settled to argue otherwise.
+ * advertiser believe it can afford more than it can. So the briefing's two in
+ * five holds until enough has settled to argue otherwise.
  */
 function observedReturnRate(report) {
   if (!report) return ASSUMED_RETURN_RATE;

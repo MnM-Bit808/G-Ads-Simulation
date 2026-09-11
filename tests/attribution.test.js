@@ -380,14 +380,16 @@ describe('gross and net diverge by the return rate (spec 14)', () => {
     expect(net / gross).toBeCloseTo(0.76, 6);
   });
 
-  test('a value-lifestyle brand loses far more to returns than premium-performance', () => {
-    // 36% against 17%. Which cell you chose decides how much of your revenue
-    // walks back out of the door.
+  test('a value-lifestyle brand loses more to returns than premium-performance', () => {
+    // 46.5% against 36%. It was 36% against 17% — "far more", and the test was
+    // named for it — until F14 set the level from the sourced constants, which
+    // barely vary by price. What spread survives is the cash mix, which is
+    // sourced, and the purpose modifier, which is not.
     const worst = businessFor(pos('value', 'lifestyle'), noCapex, 1);
     const best = businessFor(pos('premium', 'performance'), noCapex, 1);
     expect(retentionRate(worst, neutralQuery())).toBeLessThan(retentionRate(best, neutralQuery()));
-    expect(1 - retentionRate(worst, neutralQuery())).toBeGreaterThan(0.35);
-    expect(1 - retentionRate(best, neutralQuery())).toBeLessThan(0.18);
+    expect(1 - retentionRate(worst, neutralQuery())).toBeCloseTo(0.465, 2);
+    expect(1 - retentionRate(best, neutralQuery())).toBeCloseTo(0.360, 2);
   });
 
   test('summaries return integer paise (R7)', () => {

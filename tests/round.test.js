@@ -257,12 +257,21 @@ describe('an open cell is not a free ride (spec 17.1)', () => {
   const market = runRound(STATE, { mode: 'expected' }).raw.byAdvertiser[PLAYER_ID];
 
   test('the rivals take no impressions at all', () => {
-    expect(market.impressions / market.eligibleAuctions).toBeCloseTo(1, 3);
+    // Through RANK, which is the claim. Nothing the player is eligible for goes
+    // to a rival who outranked it.
     expect(market.lostToRank / market.eligibleAuctions).toBeLessThan(0.001);
-    // Not exactly equal: 7 impressions in 32,900, two parts in ten thousand,
-    // where a rival edges it out of a sliver of one hour. Relative, because
-    // "loses no impressions" is a claim about proportion, not about integers.
-    expect(Math.abs(market.impressions / alone.impressions - 1)).toBeLessThan(0.001);
+    // Every eligible auction is either shown or lost to the player's OWN
+    // budget. This used to assert impressions alone were ~100%, and at
+    // WEEKLY_VOLUME 430,000 (F14) it failed at 99.83%: lostToRank was exactly
+    // zero and the missing 0.17% was budget, running out at the end of a day
+    // because rivals had raised the price of every click. That is the NEXT
+    // test's point arriving a little early, not a rival winning auctions.
+    expect((market.impressions + market.lostToBudget) / market.eligibleAuctions)
+      .toBeCloseTo(1, 3);
+    // Relative, because "loses no impressions" is a claim about proportion,
+    // not about integers — and the gap to playing alone is that same sliver of
+    // budget, not rank.
+    expect(Math.abs(market.impressions / alone.impressions - 1)).toBeLessThan(0.005);
   });
 
   test('and cost it half its margin anyway, through the price', () => {
@@ -558,11 +567,18 @@ describe('hour-of-day history, so dayparting can be earned (DECISIONS D2)', () =
     // The branch has to be REACHABLE or dayparting cannot be earned at all.
     // It also has to stay unreachable somewhere, or it is not earned - an
     // advertiser should not form an opinion about 3am off nine clicks. After
-    // three rounds 19 of 24 hours qualify and the overnight ones do not.
+    // three rounds 22 of 24 hours qualify and the deepest night does not.
+    //
+    // It was 19 of 24 with hours 2 to 4 all short, until F14 raised
+    // WEEKLY_VOLUME from 350,000 to 430,000 and 2am went from about 21 clicks
+    // to 26. MIN_HOUR_OBSERVATIONS was deliberately NOT scaled with it: it is a
+    // sample size, and 26 clicks is as good a sample at 2am as at noon, so a
+    // bigger market genuinely earns more hours. What this guards is that SOME
+    // of the night stays unearned, not which hour.
     const cleared = hourly.map((h) => h.clicks >= MIN_HOUR_OBSERVATIONS);
     expect(cleared.filter(Boolean).length).toBeGreaterThan(12);
     expect(cleared.filter(Boolean).length).toBeLessThan(24);
-    expect(cleared.slice(2, 5).some(Boolean)).toBe(false);
+    expect(cleared.slice(2, 5).every(Boolean)).toBe(false);
   });
 
   test('hourly conversions lag exactly as the aggregate does', () => {

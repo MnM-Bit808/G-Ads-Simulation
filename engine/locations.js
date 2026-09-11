@@ -130,8 +130,8 @@ export function locationWeights(querySet, price = null) {
  * reads 1.0 / 1.25 / 1.5, which weighted by where the searches actually are has a
  * mean of **1.243** — so applying it raw would have raised every advertiser's
  * return rate by a quarter. `POSITION_ECONOMICS.returnRate` IS the category-wide
- * rate (F8), and the briefing tells the player "about a quarter of orders
- * category-wide": value's documented 30% would silently have become 37%.
+ * rate (F8, F14), and the briefing tells the player "about two in five orders":
+ * value's 42.7% would silently have become 53%.
  *
  * That is the F10 and F11 shape exactly — a modifier stacked on a number that
  * already contains the effect. Both entries in this ledger are records of the
@@ -257,13 +257,13 @@ export function refusalRateFor(price, tierIndex, discountPaise = 0) {
  * A return and an RTO are different events — one reverses a sale, the other
  * means there never was one — and the engine has only ever had the first.
  *
- * A SHAPE FROM THE INDUSTRY, A LEVEL FROM F8. This is a RATIO, and it is applied
- * to whatever return rate `POSITION_ECONOMICS` already gives an advertiser.
- * Nothing here sets how much comes back; value's 30%, mid's 24% and premium's
- * 20% are untouched. That is the same discipline `locationEffects` applies to
- * its own tables, and for the same reason: the published figures are good
- * evidence about proportions and poor evidence about this particular vertical's
- * absolute rate.
+ * A SHAPE, APPLIED TO A LEVEL SET ELSEWHERE. This is a RATIO, and it is applied
+ * to whatever return rate `POSITION_ECONOMICS` already gives an advertiser —
+ * nothing here sets how much comes back. Since F14 that level is itself the
+ * total these same figures imply, and `constants.test.js` holds it there. Before
+ * F14 it was not: the split was built on an invented 30% / 24% / 20% that meant
+ * post-delivery returns alone, so the shape came from the sources and the level
+ * contradicted them.
  *
  * Of 100 orders sent here, `refusalRateFor` are refused. The rest are delivered,
  * and `POST_DELIVERY_RETURN_RATE` of those come back afterwards. The share is

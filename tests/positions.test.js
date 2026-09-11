@@ -107,16 +107,18 @@ describe('break-even (spec 4.4)', () => {
 
   test('matches the figures the spec documents', () => {
     // These moved when PURPOSE_MODIFIERS.conv shrank from 0.90/1.10 to
-    // 0.94/1.06. They are the NEUTRAL-QUERY figures - every query multiplier
-    // at 1, every hour equally likely - and no advertiser ever buys that
-    // query. What a position can really pay is realisedBreakEvenCpcPaise,
-    // roughly 2.4x these, and that is what I2 and the briefing quote.
-    expect(be('value', 'performance')).toBe(1412);
-    expect(be('value', 'lifestyle')).toBe(1368);
-    expect(be('mid', 'performance')).toBe(2615);
-    expect(be('mid', 'lifestyle')).toBe(2637);
-    expect(be('premium', 'performance')).toBe(3715);
-    expect(be('premium', 'lifestyle')).toBe(3836);
+    // 0.94/1.06, and again with F14, when the return level rose to the sourced
+    // total and ret narrowed to 0.91/1.09 (they were 1412 / 1368 / 2615 / 2637
+    // / 3715 / 3836). They are the NEUTRAL-QUERY figures - every query
+    // multiplier at 1, every hour equally likely - and no advertiser ever buys
+    // that query. What a position can really pay is realisedBreakEvenCpcPaise,
+    // 2.2 to 2.6x these, and that is what I2 and the briefing quote.
+    expect(be('value', 'performance')).toBe(1159);
+    expect(be('value', 'lifestyle')).toBe(1142);
+    expect(be('mid', 'performance')).toBe(2038);
+    expect(be('mid', 'lifestyle')).toBe(2020);
+    expect(be('premium', 'performance')).toBe(2863);
+    expect(be('premium', 'lifestyle')).toBe(2869);
   });
 
   test('the realised figure is what a position can really pay', () => {
@@ -187,15 +189,18 @@ describe('break-even (spec 4.4)', () => {
     expect(priceSpread).toBeGreaterThan(purposeSpread * 5);
   });
 
-  test('the documented 43/32/25 gross-net gaps are the BASE tier figures', () => {
+  test('the documented 75/72/66 gross-net gaps are the BASE tier figures', () => {
     // Worth pinning: DECISIONS quotes these for the price tier alone. The
-    // purpose modifier then moves them a long way in both directions, so the
-    // headline numbers describe a row, not any actual cell an advertiser
-    // occupies.
+    // purpose modifier then moves them in both directions, so the headline
+    // numbers describe a row, not any actual cell an advertiser occupies.
+    //
+    // They were 43/32/25 until F14. The level rose to the sourced total and
+    // the spread collapsed with it: section 14's trap is now nearly as deep at
+    // premium as at value, because returns barely vary by price.
     const baseGap = (price) => 1 / (1 - POSITION_ECONOMICS[price].returnRate) - 1;
-    expect(baseGap('value')).toBeCloseTo(0.43, 2);
-    expect(baseGap('mid')).toBeCloseTo(0.32, 2);
-    expect(baseGap('premium')).toBeCloseTo(0.25, 2);
+    expect(baseGap('value')).toBeCloseTo(0.745, 2);
+    expect(baseGap('mid')).toBeCloseTo(0.715, 2);
+    expect(baseGap('premium')).toBeCloseTo(0.656, 2);
   });
 
   test('gross always exceeds net, and the gap is widest where margin is thinnest', () => {
@@ -213,7 +218,7 @@ describe('break-even (spec 4.4)', () => {
   });
 
   test('a lifestyle brand is punished harder than a performance one', () => {
-    // Lifestyle returns run 1.2x, performance 0.85x, so the same price tier
+    // Lifestyle returns run 1.09x, performance 0.91x, so the same price tier
     // faces a very different gross-net gap depending on what it sells. Value
     // lifestyle is the worst place in the grid to optimise to gross.
     const gap = (price, purpose) => {

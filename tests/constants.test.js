@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as C from '../engine/constants.js';
 import { landingFactor } from '../engine/quality.js';
+import { refusalRateFor } from '../engine/locations.js';
 import { RIVAL_GRADE_VARIATION } from '../content/adCopy.js';
 
 const sum = (a) => a.reduce((x, y) => x + y, 0);
@@ -223,6 +224,35 @@ describe('position economics', () => {
       expect(C.PURPOSE_MODIFIERS[p].ret).toBeTypeOf('number');
     }
   });
+
+  test('the return level is the one the sourced constants imply (F14)', () => {
+    // For five days the engine contradicted itself. `returnRate` was authored
+    // as returns AFTER delivery, I28 redefined it as every return including
+    // refusals at the door without changing its size, and the DOCUMENTED
+    // constants beside it said the total should be 30% to 100% higher.
+    //
+    // So the INVENTED number now answers to the sourced ones. Of 100 orders,
+    // `refusalRateFor` are refused at the door on this tier's cash mix, and
+    // POST_DELIVERY_RETURN_RATE of the rest come back afterwards; weighted by
+    // where this tier's searches are, because that is the country
+    // `locationEffects` centres each position on. Change any of RTO_RATE_COD,
+    // RTO_RATE_PREPAID, POST_DELIVERY_RETURN_RATE or the COD table and this
+    // fails until `returnRate` follows.
+    //
+    // Across the purpose axis, not per cell: PURPOSE_MODIFIERS.ret shapes the
+    // level between the two purposes and the sources say nothing about purpose.
+    const purposeMean = C.PURPOSES
+      .reduce((a, p) => a + C.PURPOSE_MODIFIERS[p].ret, 0) / C.PURPOSES.length;
+    for (const price of C.PRICE_TIERS) {
+      const weights = C.LOCATION_VOLUME_BY_PRICE[price];
+      const sourced = weights.reduce((a, w, t) => {
+        const refused = refusalRateFor(price, t);
+        return a + w * (refused + (1 - refused) * C.POST_DELIVERY_RETURN_RATE);
+      }, 0) / sum(weights);
+      expect(C.POSITION_ECONOMICS[price].returnRate * purposeMean, price)
+        .toBeCloseTo(sourced, 2);
+    }
+  });
 });
 
 describe('I4 — the axes stay in their lanes (spec 4.4)', () => {
@@ -254,9 +284,10 @@ describe('I4 — the axes stay in their lanes (spec 4.4)', () => {
     // PER CELL, not per row. This used to read POSITION_ECONOMICS alone and
     // never apply PURPOSE_MODIFIERS, so it checked the 43/32/25 figures that
     // DECISIONS F8 explicitly says are base-tier and that no advertiser
-    // occupies. The real spread runs 20.5% at Premium-Performance to 56.3% at
-    // Value-Lifestyle, and which cell you chose decides how badly section 14
-    // hurts.
+    // occupies. The real spread runs 56.3% at Premium-Performance to 87.1% at
+    // Value-Lifestyle — it was 20.5% to 56.3% until F14 raised the return level
+    // to the sourced total — and which cell you chose decides how badly
+    // section 14 hurts.
     const gap = (price, purpose) => {
       const t = C.POSITION_ECONOMICS[price];
       const m = C.PURPOSE_MODIFIERS[purpose];
@@ -271,8 +302,8 @@ describe('I4 — the axes stay in their lanes (spec 4.4)', () => {
     for (const price of ['value', 'mid', 'premium']) {
       expect(gap(price, 'lifestyle'), price).toBeGreaterThan(gap(price, 'performance'));
     }
-    expect(gap('value', 'lifestyle')).toBeCloseTo(0.5625, 4);
-    expect(gap('mid', 'performance')).toBeCloseTo(0.2563, 4);
+    expect(gap('value', 'lifestyle')).toBeCloseTo(0.8707, 4);
+    expect(gap('mid', 'performance')).toBeCloseTo(0.6115, 4);
   });
 });
 

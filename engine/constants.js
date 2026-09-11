@@ -107,7 +107,7 @@ export const LOCATION_VOLUME_BY_PRICE = Object.freeze({
  * their volume-weighted mean before anything applies them, because that mean is
  * 1.243 and applying it raw would raise every advertiser's return rate by a
  * quarter - `POSITION_ECONOMICS.returnRate` is already the category-wide figure
- * (F8), so value's documented 30% would silently have become 37%. What survives
+ * (F8, F14), so value's 42.7% would silently have become 53%. What survives
  * normalisation is the spread, which is the part the design is about.
  */
 export const LOCATION_RETURN_MULTIPLIER = Object.freeze([1.0, 1.25, 1.5]);
@@ -186,12 +186,20 @@ export const RTO_RATE_PREPAID = 0.058;
  * DOCUMENTED: 25-40% for fashion and apparel (GoKwik, ClickPost), 30-35% for
  * fashion and footwear specifically (Pragma). Dresses alone reach 54%.
  *
- * READ AS A SHAPE, NOT AS A LEVEL — the same discipline `locationEffects`
- * applies to its own tables. This does NOT set any advertiser's return rate:
- * `POSITION_ECONOMICS` does that, F8 argues for it, and value's 30% / mid's 24%
- * / premium's 20% are unchanged by anything here. It is used only to work out
- * what PROPORTION of a return is a refusal rather than a send-back, which is a
- * ratio the industry data can speak to and the engine's own totals cannot.
+ * IT SETS THE LEVEL AS WELL AS THE SHAPE, since F14. It was first used only to
+ * work out what PROPORTION of a return is a refusal, while `POSITION_ECONOMICS`
+ * kept an invented 30% / 24% / 20% that meant post-delivery returns alone —
+ * and I28 then treated that as the total, so the two disagreed by 30% to 100%.
+ * `returnRate` now equals the total this figure and the RTO pair imply, and a
+ * test holds it there.
+ *
+ * ONE FIGURE FOR EVERY TIER AND EVERY PLACE, because the sources quote it as
+ * one. That makes the chain nearly flat by price (1.08x value to premium) and
+ * by location (1.04-1.06x towns to metros). On price the flatness is accepted:
+ * nothing found says otherwise. On location it is known to be too flat — tier-3
+ * RTO is quoted at 3-5x the metros, far more than the cash mix alone explains —
+ * which is why `LOCATION_RETURN_MULTIPLIER` carries the gradient instead. F14
+ * records what that multiplier does to send-backs as an open question.
  */
 export const POST_DELIVERY_RETURN_RATE = 0.30;
 
@@ -301,24 +309,50 @@ export const PREPAID_DISCOUNT_MAX_PAISE = 10000;
 /**
  * Price tier sets the economics: what a click can be worth.
  *
- * The internal logic, not just the numbers: cheap things convert well because
- * the decision is near-impulse, but the margin has been competed away and price
- * shoppers order two sizes meaning to return one. Expensive things are
- * considered purchases — slow to convert, high margin, fewer returns because the
- * size guide is better and the buyer is committed.
+ * Cheap things convert well because the decision is near-impulse, but the
+ * margin has been competed away. Expensive things are considered purchases —
+ * slow to convert, high margin.
+ *
+ * RETURNS BARELY VARY BY PRICE, and that is the sourced position rather than an
+ * oversight (F14). This comment used to say price shoppers order two sizes
+ * meaning to return one, and that premium returns less because the size guide
+ * is better and the buyer is committed. Neither survived a search for evidence.
+ * The one breakdown by order value found puts RTO at 25% / 28% / 24% across
+ * bands (Unicommerce), and what is quoted about post-delivery returns by price
+ * leans the OTHER way — a high price leaves less tolerance for a mismatch. "The
+ * size guide is better" also counted one thing twice: a size guide is a capital
+ * target any tier can buy.
+ *
+ * `returnRate` IS EVERY RETURN — refused at the door and sent back after
+ * delivery — and it is the total the DOCUMENTED constants imply: `RTO_RATE_COD`
+ * and `RTO_RATE_PREPAID` on this tier's cash mix, then
+ * `POST_DELIVERY_RETURN_RATE` on whatever was delivered. `constants.test.js`
+ * holds the two together, so this can no longer drift from its own sources the
+ * way it did between I28 and F14. What genuinely differs by tier is the cash
+ * mix, so premium returns a little less: 39.6% against value's 42.7%.
+ *
+ * WHAT PRICE DOES DECIDE IS WHAT A RETURN COSTS. Freight is a flat ₹200 per
+ * refused parcel — 42% of value's margin on an order, 7% of premium's — and a
+ * thin margin loses more to every reversal. Cheap goods do not come back much
+ * more often; each one that does hurts more.
+ *
+ * The tag stays INVENTED because the other fields are: order value and margin
+ * sit inside quoted bands without a citation tight enough to call documented,
+ * and `convRateBase` is conversion on a PAID CLICK, which the 1.8-3% site-wide
+ * benchmark that looks like it does not measure (F14).
  */
 export const POSITION_ECONOMICS = {
   value: {
     aovMeanPaise: 120000, marginPct: 0.40, convRateBase: 0.042,
-    returnRate: 0.30, aovSpread: 0.35, returnWindowRounds: 2,
+    returnRate: 0.427, aovSpread: 0.35, returnWindowRounds: 2,
   },
   mid: {
     aovMeanPaise: 240000, marginPct: 0.52, convRateBase: 0.028,
-    returnRate: 0.24, aovSpread: 0.35, returnWindowRounds: 2,
+    returnRate: 0.417, aovSpread: 0.35, returnWindowRounds: 2,
   },
   premium: {
     aovMeanPaise: 480000, marginPct: 0.62, convRateBase: 0.016,
-    returnRate: 0.20, aovSpread: 0.35, returnWindowRounds: 2,
+    returnRate: 0.396, aovSpread: 0.35, returnWindowRounds: 2,
   },
 };
 
@@ -347,10 +381,25 @@ export const POSITION_ECONOMICS = {
  * instead. At 0.94/1.06 the realised gap is 3.5 / 7.9 / 11.2%, which is what
  * the 4.4 table always claimed and never delivered.
  *
- * ret stays at 0.85/1.20. It is the better-argued half of 4.3, and it is the
- * half the query set reinforces rather than duplicates. Shrinking it would
- * WIDEN the break-even gap, not narrow it: the return modifier currently
- * offsets the conversion modifier rather than compounding it.
+ * WHY ret IS 0.91/1.09 AND NOT 0.85/1.20 (F14)
+ *
+ * ret is an OFFSET. Lifestyle converts a little more and returns a little
+ * more, and the two cancel so that purpose does not move what a click is worth.
+ * That balance was struck when returns ran at 20-30%. When `returnRate` rose to
+ * the sourced 40-43%, the same 1.41x ratio on a larger base took lifestyle 13.5%
+ * below performance in I3 (tilt 0.865 against a 0.9 bound) and pushed I4's
+ * neutral purpose gap to 14.5% of its 15%. No CALIBRATE constant moves that tilt
+ * — measured at three volumes and two floors, it sat at 0.86 in every one.
+ *
+ * Measured in POINTS, which is what the argument was about, the lifestyle
+ * penalty moved much less than the ratio did: 8.4 points at mid before and 7.5
+ * after, 7.0 and 7.1 at premium. Value is the exception and narrowed, 10.5 to
+ * 7.7, because its old 30% was the level most understated. At 0.91/1.09 the
+ * I3 tilt is 1.01 and the neutral gap 1.5%; the realised gap is 12.0%, up from
+ * 11.2%, which is the widening this comment always predicted for a narrower ret.
+ *
+ * They average exactly 1.0, deliberately, so `returnRate` IS the sourced total
+ * with nothing to back-solve.
  *
  * The cost, named: the query set carries no purpose effect on CONVERSION — the
  * affinity ratio within a price row measures 1.001, 0.992, 1.001 — so nothing
@@ -358,8 +407,8 @@ export const POSITION_ECONOMICS = {
  * now made more mildly. See DECISIONS F11.
  */
 export const PURPOSE_MODIFIERS = {
-  performance: { conv: 0.94, ret: 0.85 },
-  lifestyle: { conv: 1.06, ret: 1.20 },
+  performance: { conv: 0.94, ret: 0.91 },
+  lifestyle: { conv: 1.06, ret: 1.09 },
 };
 
 export const REPOSITION_COST_PAISE = 10000000; // ₹1,00,000
@@ -483,27 +532,41 @@ export const DAYPART_BLOCKS = [
  *
  * Pinned from BOTH sides, which is what took it off 225000.
  *
- * Below about 315,000 invariant I1 fails: a competently covered advertiser
+ * Below about 395,000 invariant I1 fails: a competently covered advertiser
  * running alone cannot exhaust its monthly budget, so `lostToBudget` never
  * fires, `missedToBudget` is always zero, the monthly pot never binds, and the
- * whole of section 13 does nothing. At 225,000 that advertiser reached 73% of
+ * whole of section 13 does nothing. At 330,000 that advertiser reaches 86% of
  * its month with `lostToBudget` at 0.0%.
  *
- * Above about 375,000 invariant I3 fails: more cells become budget-limited,
- * and the budget cap is FLAT while break-evens differ 2.7x top to bottom, so
+ * Above about 460,000 invariant I3 fails: more cells become budget-limited,
+ * and the budget cap is FLAT while break-evens differ 2.5x top to bottom, so
  * the cap bites unequally and positions stop balancing.
  *
  *   volume    I1 spend   I1 lostToBudget   I3 worst deviation
- *   225000      0.730          0.0%              2.8%     I1 fails
- *   315000      1.000          2.2%              3.7%
- *   350000      1.000         12.0%              9.5%
- *   400000      1.000         23.0%             17.0%     I3 fails
+ *   330000      0.857          0.0%              6.0%     I1 fails
+ *   380000      0.985          0.2%              6.0%     I1 fails
+ *   400000      1.000          3.8%              7.5%
+ *   430000      1.000         10.5%             11.3%
+ *   460000      1.000         16.3%             14.9%     I3 at its bound
+ *   500000      1.000         23.0%             19.6%     I3 fails
  *
- * 350,000 sits near the middle of that window with headroom on both sides.
+ * WAS 350,000, AND F14 MOVED IT, together with AD_RANK_FLOOR. Raising returns
+ * to the sourced level cut every ceiling by 20-30%; the reserve had to follow
+ * or the weakest ads fell under it (see AD_RANK_FLOOR), and a lower reserve
+ * means cheaper clicks in a thin auction — so it takes more searches before a
+ * competent advertiser can spend its month. The window moved from roughly
+ * 315,000-375,000 to 395,000-460,000, and 430,000 sits in its middle.
+ *
+ * The window's floor on I3 is no longer near zero. With no budget binding at
+ * all, I3 reads 6.0%, against 2.8% before freight was charged on refused
+ * parcels (I28 build 2): a flat ₹200 per parcel is a structural cost to the
+ * thinnest margin, and no volume removes it.
+ *
  * Still CALIBRATE: it is governed by two invariants that disagree, so a change
- * to either the query set or MONTHLY_BUDGET_PAISE can move the window.
+ * to the query set, MONTHLY_BUDGET_PAISE, AD_RANK_FLOOR or the return level
+ * moves the window.
  */
-export const WEEKLY_VOLUME = 350000;
+export const WEEKLY_VOLUME = 430000;
 
 // ---------------------------------------------------------------------------
 // Auction (spec 10)
@@ -530,9 +593,22 @@ export const MIN_INCREMENT_PAISE = 1;
  * Minimum ad rank to show at all. adRank is bidPaise x qualitySignal, so a
  * mid-market advertiser bidding 2500 paise at a 0.06 signal sits at 150.
  * Governed by invariant I2: median CPC must stay below the Value tier's net
- * break-even (~1352 paise) or the cheapest position becomes unplayable.
+ * break-even or the cheapest position becomes unplayable.
+ *
+ * WAS 60, AND F14 MOVED IT. A reserve is a fixed price in a market where every
+ * ceiling just fell 20-30%, because returns rose to the sourced level. Left at
+ * 60 it became a quarter stricter relative to what anybody could afford, and
+ * it bit the weakest ads first: with rivals assuming the briefing's two in
+ * five, both `cautious` rivals showed in nothing for one to four opening weeks
+ * on 10 of 12 seeds, and a DIY account on `disciplined` got no impressions in
+ * week 1. At 60 with rivals assuming a quarter, nobody went dark — so it was the
+ * reserve falling behind the ceilings, not the returns themselves.
+ *
+ * 48 is 60 scaled down by roughly what the ceilings fell. It moves
+ * WEEKLY_VOLUME with it: in a thin auction the reserve IS the price, so cheaper
+ * clicks need more searches before a budget binds (I1).
  */
-export const AD_RANK_FLOOR = 60;
+export const AD_RANK_FLOOR = 48;
 
 export const AUCTIONS_PER_QUERY_HOUR = { expected: 1, sampled: 6 };
 

@@ -249,14 +249,19 @@ describe('I1 \u2014 budget must bind', () => {
     // it. At 225,000 - the value this project carried for eleven commits - a
     // competently covered advertiser reached 73% of its month with
     // lostToBudget at exactly 0.0%.
-    const small = await playSolo(225000);
+    //
+    // The probe was 225,000 until F14, and after F14 that was so far below the
+    // window that it tested nothing. 330,000 is the value F14 first chose,
+    // before the reserve was lowered: with AD_RANK_FLOOR at 48 the same
+    // advertiser reaches 86% of its month and never loses an auction to budget.
+    const small = await playSolo(330000);
     expect(small.spentFraction).toBeLessThan(0.99);
     expect(small.lostToBudget).toBeLessThan(0.001);
   });
 
   test('WEEKLY_VOLUME is still marked provisional', () => {
     expect(PROVENANCE.WEEKLY_VOLUME).toBe('CALIBRATE');
-    expect(WEEKLY_VOLUME).toBe(350000);
+    expect(WEEKLY_VOLUME).toBe(430000);
   });
 });
 
@@ -316,7 +321,7 @@ describe('I2 — the market must be affordable', () => {
 
   test('AD_RANK_FLOOR is still marked provisional', () => {
     expect(PROVENANCE.AD_RANK_FLOOR).toBe('CALIBRATE');
-    expect(AD_RANK_FLOOR).toBe(60);
+    expect(AD_RANK_FLOOR).toBe(48);
   });
 });
 
@@ -403,17 +408,21 @@ describe('I3 — positions must balance', () => {
     // Premium by very different amounts and the positions stop balancing.
     //
     //   volume    I1 spend   I3 worst deviation
-    //   225000      0.730           2.8%     I1 fails
-    //   350000      1.000           9.5%     both hold
-    //   400000      1.000          17.0%     I3 fails
+    //   330000      0.857           6.0%     I1 fails
+    //   430000      1.000          11.3%     both hold
+    //   460000      1.000          14.9%     both hold, barely
+    //   500000      1.000          19.6%     I3 fails
     //
     // So WEEKLY_VOLUME is governed by two invariants that disagree, and sits
-    // in the window between them rather than above a single floor.
-    const inflated = playBalanced(400000).profit;
+    // in the window between them rather than above a single floor. F14 moved
+    // the window from about 315,000-375,000 to 395,000-460,000, by lowering
+    // AD_RANK_FLOOR after the return level rose — and this probe with it, from
+    // 400,000, which now sits comfortably inside.
+    const inflated = playBalanced(500000).profit;
     const values = CELLS.map((c) => inflated[c]);
     const centre = values.reduce((a, b) => a + b, 0) / values.length;
     const deviation = Math.max(...values.map((v) => Math.abs(v - centre))) / Math.abs(centre);
-    expect(deviation, `at 400000 the spread is ${(deviation * 100).toFixed(1)}%`)
+    expect(deviation, `at 500000 the spread is ${(deviation * 100).toFixed(1)}%`)
       .toBeGreaterThan(0.15);
   });
 
