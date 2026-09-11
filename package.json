@@ -9,7 +9,10 @@
     "test": "eslint . && vitest run",
     "test:watch": "vitest",
     "test:perf": "vitest run --config vitest.perf.config.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build": "node scripts/build-site.js",
+    "preview": "node scripts/build-site.js && node dev-server.js dist",
+    "ci": "eslint . && vitest run --testTimeout=60000 --hookTimeout=60000 && node scripts/build-site.js"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

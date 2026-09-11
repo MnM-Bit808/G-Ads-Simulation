@@ -17,15 +17,24 @@
  * It serves the repository root rather than `ui/`, because the whole point is
  * that the interface reaches back into `engine/`, `content/`, `agents/` and
  * `setup.js`. Development only: no caching, no compression, no range requests.
+ *
+ * `npm run preview` passes `dist` and serves the BUILT site instead — exactly
+ * the files Cloudflare publishes, through the same no-caching header, so what
+ * gets checked locally is what goes live. A plain static server was tried for
+ * this first and let the browser keep a stale module through a hard reload.
  */
 
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { join, extname, normalize, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const ROOT = fileURLToPath(new URL('.', import.meta.url));
+const ROOT = fileURLToPath(new URL(process.argv[2] ? `./${process.argv[2]}/` : '.', import.meta.url));
 const PORT = Number(process.env.PORT ?? 5173);
+// The built site has a front page of its own that sends visitors to ui/, and
+// serving it is how that page gets checked. The repository root has none.
+const HAS_FRONT_PAGE = existsSync(join(ROOT, 'index.html'));
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -44,7 +53,7 @@ const server = createServer(async (request, response) => {
     // would leave the document's base URL at "/", so its own "./style.css"
     // would resolve to "/style.css" and 404 — and every relative import in the
     // module graph would be off by a directory in the same way.
-    if (url.pathname === '/') {
+    if (url.pathname === '/' && !HAS_FRONT_PAGE) {
       response.writeHead(302, { Location: '/ui/' }).end();
       return;
     }

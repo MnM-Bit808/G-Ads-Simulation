@@ -12,7 +12,12 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and the location mechanic with them.** 1350 tests, all passing, 1 todo.
+**Every build-order step is done, and the location mechanic with them.** 1367 tests, all passing, 1 todo.
+
+**THE SITE IS BUILT FOR CLOUDFLARE PAGES, AND NOT YET CONNECTED** (2026-09-11).
+See *Deployment* below. The repository side is finished and verified; the
+Cloudflare account, the connection to GitHub and the invite list are the user's
+to set up, and have not been.
 
 **The returns model is the newest thing here** (I28-I34, 2026-09-10, and F14,
 2026-09-11). It was one number — `returnRate` — and is now a chain of six: price
@@ -1244,10 +1249,9 @@ open item below.
 
 ## Still open
 
-**Deployment is where I would start** — it is the only way anybody but the
-person who built this gets to play it, and it needs no code changes. Then F13,
-which F14 made visibly worse and which needs a decision rather than more
-measurement.
+**Finish connecting Cloudflare first** (see *Deployment*) — it is the only way
+anybody but the person who built this gets to play it. Then F13, which F14 made
+visibly worse and which needs a decision rather than more measurement.
 
 - ~~The engine contradicts itself about returns (F14).~~ **Fixed 2026-09-11.**
   The price question was settled by accepting the flattening — nothing sourced
@@ -1270,13 +1274,15 @@ measurement.
   - **F13 is now 1.73x**, from 1.58x on the same harness. See F13's F14 note.
 
 - **Deployment, a database and a backend are planned, in that order** (agreed
-  2026-09-08, nothing started). The project has none of the four — no backend, no
-  database, no auth, no deployment — because everything runs in the player's
-  browser off `dev-server.js`. Each earns its place:
+  2026-09-08). Everything runs in the player's browser, so there is no backend,
+  database or auth yet. Each earns its place:
 
   **Deployment** unlocks the largest open item in this file. You cannot hand a
-  playtester a localhost address, and the app is static with no build step, so a
-  service watching the GitHub repo needs no code changes at all.
+  playtester a localhost address. **The repository side is done** (2026-09-11):
+  a build that publishes exactly the 40 files the game loads, gated on the full
+  suite, for Cloudflare Pages. Connecting the account is what remains — see
+  *Deployment*. It did need a little code after all: a build script, a front
+  page and a caching header, none of them in `engine/`.
 
   **A database** fixes a hazard already recorded here — the game lives in memory,
   so a reload loses twelve weeks with no error. It does **not** need the whole
@@ -1664,6 +1670,74 @@ tooling and one untested claim.
   someone who did not build it.~~ **Both done, once.** A full twelve rounds played
   by hand with a DOM recorder running; see *What playing it as a learner found*
   and the two entries at the top of this list.
+
+---
+
+## Deployment
+
+**Cloudflare Pages, running the tests before every deploy, invite-only.**
+Chosen 2026-09-11. The repository is private, which rules out free GitHub Pages,
+and Cloudflare can later hold the backend (Workers) and the database (D1) the
+plan puts next, so nothing has to move.
+
+**How it works, in one paragraph.** Nothing is compiled. `scripts/build-site.js`
+follows the imports from `ui/index.html` exactly as a browser does and copies the
+40 files it reaches into `dist/` — the page, its stylesheet and 38 modules, about
+820 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
+Docs, tests, the design canvas and `files.zip` are never published, and
+`tests/build.test.js` holds both halves: nothing missing (Node imports every
+module from the built copy, so the check does not trust the build's own reader)
+and nothing extra.
+
+| command | what it does |
+|---|---|
+| `npm run build` | builds `dist/` |
+| `npm run preview` | builds, then serves `dist/` the way the live site will be served — the `site` entry in `.claude/launch.json` |
+| `npm run ci` | lint, the whole suite with a 60-second test timeout, then build. **This is Cloudflare's build command.** |
+
+**Cloudflare settings**, for whoever connects it: framework preset *None*, build
+command `npm run ci`, output directory `dist`, production branch `main`.
+`.node-version` asks for Node 24 — ESLint 10 will not run on the old default, so
+if a build log shows Node 18, set `NODE_VERSION` to `24` in the project's
+environment variables.
+
+**Why the test timeout is 60 seconds in `ci` and 5 locally.** Several tests take
+1-3 seconds here; Cloudflare's build machines are slower, and a test that fails
+because the machine was busy is the exact thing `vitest.config.js` already refuses
+to tolerate for timing. Nothing asserts on it. The performance suite is not run
+at all.
+
+### What building it found
+
+- **The dashboard crashed after week 1, and had since 2026-09-10.** The first
+  smoke test of the build played round 0 into week 1 and got an error: the
+  prepaid discount card read a `ctx.price` nothing ever set. 1348 tests passed
+  throughout. Fixed and recorded in I34 — and a reminder that "the build works"
+  means playing it, not loading it.
+- **A plain static server let the browser keep a stale module through a hard
+  reload.** With no bundler every module is cached on its own, so a returning
+  player could pair new files with old ones after a deploy. The build writes a
+  `_headers` file with `Cache-Control: no-cache` (revalidate every load, a cheap
+  304 when unchanged), and `npm run preview` serves through `dev-server.js`, which
+  never lets a browser cache.
+- **`eslint .` linted the built copy** and reported 78 false errors — the rules
+  are keyed on paths like `ui/**`, which `dist/ui/...` does not match. `dist/**`
+  is ignored now.
+
+### What is left, and whose it is
+
+All in the Cloudflare dashboard, none of it code: create the account, connect the
+`G-Ads-Simulation` repository, enter the settings above, then put the site behind
+Cloudflare Access with an email allow-list (free up to 50 people). Access may ask
+for a payment method to activate its free plan; that is for the account owner to
+decide and enter. After that, every push to `main` that passes `npm run ci` goes
+live on its own, every branch gets a preview address, and any earlier deploy can
+be restored in one click.
+
+**Tell playtesters three things**: a reload loses the game (it lives in memory
+until the database step); late weeks freeze the page for 30-60 seconds and have
+not crashed; and the numbers the game withholds are withheld by the screen, not
+the network — the developer tools can read them, and only a server can change that.
 
 ---
 

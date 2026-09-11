@@ -27,7 +27,10 @@ import globals from 'globals';
  */
 
 export default [
-  { ignores: ['node_modules/**', 'engine-audit.test.mjs'] },
+  // dist/ is the built site: copies of files already linted where they live,
+  // under paths none of the rules below match — so linted again there, every
+  // `document` in ui/ reads as undefined. 78 false errors on the first build.
+  { ignores: ['node_modules/**', 'engine-audit.test.mjs', 'dist/**'] },
 
   js.configs.recommended,
 
@@ -75,7 +78,7 @@ export default [
   },
 
   {
-    files: ['tests/**/*.js', 'dev-server.js', 'eslint.config.js'],
+    files: ['tests/**/*.js', 'scripts/**/*.js', 'dev-server.js', 'eslint.config.js'],
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',
