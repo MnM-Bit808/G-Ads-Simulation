@@ -14,10 +14,11 @@ still resting on a guess.
 
 **Every build-order step is done, and the location mechanic with them.** 1370 tests, all passing, 1 todo.
 
-**THE GAME IS LIVE ON CLOUDFLARE, AND NOT YET INVITE-ONLY** (2026-09-11), at
+**THE GAME IS LIVE ON CLOUDFLARE, INVITE-ONLY** (2026-09-12), at
 `https://g-ads-simulation.manikhorocks.workers.dev`. Every push to `main` runs the
-full suite and deploys only if it passes. See *Deployment* below; the invite list
-is the one thing left.
+full suite and deploys only if it passes; every visitor signs in with an emailed
+code, and only addresses on the list get one. The list holds the owner's address
+alone so far. See *Deployment* below, including how to add playtesters.
 
 **The returns model is the newest thing here** (I28-I34, 2026-09-10, and F14,
 2026-09-11). It was one number — `returnRate` — and is now a chain of six: price
@@ -1249,9 +1250,10 @@ open item below.
 
 ## Still open
 
-**Make the site invite-only first** (see *Deployment*) — it is live and public.
-Then F13, which F14 made visibly worse and which needs a decision rather than more
-measurement.
+**F13 is where I would start**: F14 made it visibly worse, and it needs a decision
+rather than more measurement. The site is live and invite-only, so the other
+thing worth doing soon is the one only people can do — add a playtester who has
+never seen it, and record the session (see *One playthrough is one playthrough*).
 
 - ~~The engine contradicts itself about returns (F14).~~ **Fixed 2026-09-11.**
   The price question was settled by accepting the flattening — nothing sourced
@@ -1280,7 +1282,7 @@ measurement.
   **Deployment** unlocks the largest open item in this file. You cannot hand a
   playtester a localhost address. **The repository side is done** (2026-09-11):
   a build that publishes exactly the 40 files the game loads, gated on the full
-  suite, live on Cloudflare. Making it invite-only is what remains — see
+  suite, live on Cloudflare and invite-only since 2026-09-12 — see
   *Deployment*. It did need a little code after all: a build script, a front
   page and a caching header, none of them in `engine/`.
 
@@ -1744,22 +1746,48 @@ at all.
   are keyed on paths like `ui/**`, which `dist/ui/...` does not match. `dist/**`
   is ignored now.
 
-### What is left, and whose it is
+### Invite-only, through Cloudflare Access
 
-**Invite-only is not done: the site is public to anyone with the address.** It is
-done in the project's **Access** tab, through Cloudflare Zero Trust, with an
-email allow-list (free up to 50 people) — and it has to cover the preview
-addresses as well as `main`. Zero Trust may ask for a payment method to activate
-its free plan; that is for the account owner to decide and enter.
+**Done 2026-09-12, and verified from both sides.** Signed out, every path — the
+front page, `ui/`, `engine/constants.js` — answers with a redirect to a sign-in
+page and not one line of game code. Signed in with an allowed address, the game
+loads and plays.
 
-Everything else is live: every push to `main` that passes `npm run ci` deploys on
-its own, every branch gets a preview, and any earlier version can be restored from
-the Deployments tab.
+| piece | where it lives | value |
+|---|---|---|
+| Zero Trust organisation | Cloudflare One | plan **Zero Trust Free** (up to 50 people), team name `bitter-recipe-3091` — it is what the sign-in page's address shows, chosen by Cloudflare, and can be renamed under Zero Trust → Settings |
+| the rule | Zero Trust → Access controls → **Policies** | **Playtesters**: Allow, Include → **Emails** → the owner's address only |
+| where it applies | the Worker → **Access** tab | scope **All traffic** (production AND every preview), session 24 hours |
+
+**Adding a playtester** is one edit and no deploy: Zero Trust → Access controls →
+Policies → **Playtesters** → add their address under Include → Emails → save.
+They open the site, enter that address, and get a one-time code by email.
+
+**Two choices on those screens that are traps**, both recorded because the
+dashboard puts them first:
+
+- **"Emails ending in" and the preset "Email domain"** admit a whole domain. With
+  `gmail.com` that is every Gmail user alive. The rule uses exact **Emails**.
+- **The Access dialog's scope defaults to "Previews only"**, which protects the
+  branch previews and leaves the main site public. It is set to **All traffic**.
+
+**What it changed about the "withheld" numbers.** They were readable by anyone
+with the developer tools; now they are readable only by people on the list.
+Signed-in players can still read `content/querySet.js`. Only a server holding the
+numbers back changes that, and that is still the backend step.
+
+### Deploys, from here on
+
+Every push to `main` that passes `npm run ci` goes live on its own, every branch
+gets a preview (also behind sign-in), and any earlier version can be restored from
+the Worker's **Deployments** tab. The first build with the tests on took 5m49s,
+4m54s of it the suite — one replay test takes 12 seconds on Cloudflare's machine,
+which is why `ci` sets a 60-second timeout.
 
 **Tell playtesters three things**: a reload loses the game (it lives in memory
 until the database step); late weeks freeze the page for 30-60 seconds and have
-not crashed; and the numbers the game withholds are withheld by the screen, not
-the network — the developer tools can read them, and only a server can change that.
+not crashed; and the sign-in code arrives by email from Cloudflare, sometimes in
+spam.
 
 ---
 
