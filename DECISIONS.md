@@ -3439,6 +3439,21 @@ a small one.
 The two cells that decline it are the two with the fewest refusals to prevent, so
 the cell-dependence is real but narrow.
 
+**THE CARD CRASHED THE GAME AFTER WEEK 1, FROM THE DAY IT SHIPPED.** Found
+2026-09-11 by the first smoke test of the deployable build, not by the suite.
+`prepaidCard` asked for `refusalRateFor(ctx.price, ...)` and nothing ever set
+`ctx.price`, so it requested the cash mix of price tier "undefined", which
+throws. The card draws on the dashboard after every week, so a player pressing
+"Open the account and run week 1" got round 0 back with an error in the console
+and no dashboard. 1348 tests passed throughout — none of them draws the card —
+and the commit that built it records tests and calibration but no browser.
+
+That is this project's most repeated defect shape, and the rule that would have
+caught it is already written in HANDOVER: open the browser before believing the
+interface works. Fixed by reading the tier from the draft's position, and the
+arithmetic moved out of the render into `prepaidOutlook(draft, rows)`, where four
+tests hold it — including one on a real draft after a real round.
+
 **LESS MODEST SINCE F14, without touching the curve.** The return level rose to
 the sourced total, so there are more refusals to prevent everywhere. On F14's
 harness ₹50 is now best in all six cells for +1.2% to +2.7%, where the same

@@ -22,6 +22,7 @@ import {
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
   removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
+  prepaidOutlook, setPrepaidDiscount, locationRows,
 } from '../ui/decisions.js';
 
 /**
@@ -1216,5 +1217,54 @@ describe('the search terms report says why it is the size it is (I8)', () => {
     const t = terms(40);
     expect(termsOutlook(d, t).searches).toBe(negativesOutlook(d, t).searches);
     expect(termsOutlook(d, t).keywords).toBe(negativesOutlook(d, t).keywords);
+  });
+});
+
+describe('the prepaid card reads the account it is drawn for (I34)', () => {
+  // The card shipped calling `refusalRateFor(ctx.price, ...)`, and nothing ever
+  // set `ctx.price`. So it asked for the cash mix of price tier "undefined",
+  // which throws — and the card draws on the dashboard after every week, so the
+  // game stopped at week 1 from the commit that added it until the deployment
+  // smoke test ran one. 1348 tests passed throughout: none of them drew it.
+  //
+  // The arithmetic lives here now, outside the render, where it can be tested
+  // with a real draft rather than only by opening a browser.
+  const draftOf = (price) => {
+    const state = makeGameState({ round: 3 });
+    const player = state.advertisers.find((a) => a.id === PLAYER_ID);
+    player.position = { ...player.position, price };
+    return createDraft(getSelfView(state, PLAYER_ID));
+  };
+
+  test('it runs on a real draft, and the rate is a rate', () => {
+    const out = prepaidOutlook(draftOf('mid'), []);
+    for (const v of [out.now, out.none]) {
+      expect(Number.isFinite(v)).toBe(true);
+      expect(v).toBeGreaterThan(0);
+      expect(v).toBeLessThan(1);
+    }
+  });
+
+  test('a discount lowers refusals, and none leaves them where they were', () => {
+    const d = draftOf('mid');
+    expect(prepaidOutlook(d, []).now).toBe(prepaidOutlook(d, []).none);
+    setPrepaidDiscount(d, 5000);
+    expect(prepaidOutlook(d, []).now).toBeLessThan(prepaidOutlook(d, []).none);
+  });
+
+  test('it reads THIS account\'s price tier — value carries more cash than premium', () => {
+    expect(prepaidOutlook(draftOf('value'), []).none)
+      .toBeGreaterThan(prepaidOutlook(draftOf('premium'), []).none);
+  });
+
+  test('and it weights by where the account actually bought clicks, once it has', () => {
+    const state = makeGameState({ round: 1 });
+    const played = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+    const d = createDraft(getSelfView(played, PLAYER_ID));
+    const rows = locationRows(d, played.history, PLAYER_ID);
+    expect(rows.reduce((a, r) => a + (r.clicks ?? 0), 0)).toBeGreaterThan(0);
+    const out = prepaidOutlook(d, rows);
+    expect(out.none).toBeGreaterThan(0);
+    expect(out.none).toBeLessThan(1);
   });
 });

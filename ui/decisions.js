@@ -1981,6 +1981,32 @@ function ownRoasHint(ctx) {
  * Every chip is a real rung of the sourced curve, and the card says what each
  * one buys and what it costs, because the whole decision is that arithmetic.
  */
+/**
+ * The refusal rate this account runs at, with and without its prepaid discount.
+ *
+ * Weighted by where the account actually bought clicks once it has bought any,
+ * and at the towns' mix before then — the most cash-heavy place, so the card
+ * never opens by understating what the discount is for.
+ *
+ * THE PRICE TIER COMES FROM THE DRAFT. The card first read it from `ctx.price`,
+ * which nothing ever set, so it asked for the cash mix of tier "undefined" and
+ * threw — on the dashboard, after every week, from the day it shipped until a
+ * deployment smoke test played one. The draft's position is the staged one, so
+ * a player about to move tier sees the rate the next week will actually run at.
+ *
+ * @param {object} draft from `createDraft`
+ * @param {object[]} rows from `locationRows`, one per location tier
+ * @returns {{now: number, none: number}} refusal rates, 0..1
+ */
+export function prepaidOutlook(draft, rows) {
+  const price = draft.position?.price;
+  const clicks = rows.reduce((a, r) => a + (r.clicks ?? 0), 0);
+  const at = (paise) => (clicks > 0
+    ? rows.reduce((a, r, i) => a + (r.clicks ?? 0) * refusalRateFor(price, i, paise), 0) / clicks
+    : refusalRateFor(price, LOCATION_TIERS.length - 1, paise));
+  return { now: at(draft.prepaidDiscountPaise), none: at(0) };
+}
+
 function prepaidCard(ctx, refresh) {
   const node = card('Prepaid discount', 'money off, to keep the parcel out of the wrong hands', 'span-2');
   const draft = ctx.draft;
@@ -2004,13 +2030,7 @@ function prepaidCard(ctx, refresh) {
 
   // What it is doing to this account, at the mix this account actually buys.
   const rows = locationRows(draft, ctx.history ?? [], ctx.playerId);
-  const clicks = rows.reduce((a, r) => a + (r.clicks ?? 0), 0);
-  const at = (paise) => (clicks > 0
-    ? rows.reduce((a, r, i) => a + (r.clicks ?? 0) * refusalRateFor(ctx.price, i, paise), 0) / clicks
-    : refusalRateFor(ctx.price, 2, paise));
-
-  const now = at(draft.prepaidDiscountPaise);
-  const none = at(0);
+  const { now, none } = prepaidOutlook(draft, rows);
   const table_ = el('table', 'mini');
   table(table_, ['', { label: 'Refusals', num: true }, { label: 'Costs you', num: true }], [
     { cells: ['No discount', pct(none, 1), '—'] },
