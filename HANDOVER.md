@@ -1238,11 +1238,21 @@ sourcing a constant is worth doing at all.**
   | premium | 20.0% | **39.6%** |
 
   **This is not a benchmark disagreement — it is an INVENTED constant
-  disagreeing with the DOCUMENTED ones beside it.** F14 carries the per-half
-  figures, three ways out, and what sourcing the other three fields of
-  `POSITION_ECONOMICS` found. Fixing it nearly doubles returns and invalidates
-  every measured number under *What measuring it found*, so it needs a session
-  with a measurement at each step and a calibration re-run — not a quick edit.
+  disagreeing with the DOCUMENTED ones beside it.**
+
+  **OPTION 1 IS CHOSEN: raise `returnRate` to the sourced total and
+  recalibrate.** Two things measured after that decision, both in F14. The split
+  ratio is ALREADY correct, so only the level moves — a three-number change
+  (0.417 / 0.407 / 0.387) plus a calibration run, not a re-derivation. But it
+  flattens the price axis from 1.5x to 1.08x and makes
+  `POSITION_ECONOMICS`'s own comment about price shoppers largely false — and
+  that flatness is probably an artefact of `POST_DELIVERY_RETURN_RATE` being a
+  single tier-blind figure rather than evidence that returns really are flat.
+  **Settle that before pasting the numbers in.**
+
+  Fixing it nearly doubles returns and invalidates every measured number under
+  *What measuring it found*, so it needs a session with a measurement at each
+  step — not a quick edit.
 
 - **Deployment, a database and a backend are planned, in that order** (agreed
   2026-09-08, nothing started). The project has none of the four — no backend, no

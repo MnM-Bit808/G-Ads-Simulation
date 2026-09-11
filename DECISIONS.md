@@ -3411,7 +3411,44 @@ spread G4 rests on, F13's purpose measurements, and every figure quoted in
 `WEEKLY_VOLUME` are `CALIBRATE` and would almost certainly need retuning. That is
 a session's work with a measurement at each step, not a tail-end edit.
 
-**Three ways out, none taken:**
+**OPTION 1 IS CHOSEN** (2026-09-11). Raise `returnRate` to the sourced total and
+recalibrate. The three options are kept below because the reasoning against the
+other two is the reason this one was picked.
+
+**TWO THINGS MEASURED AFTER THE DECISION, and the second may reopen it.**
+
+**Only the LEVEL is wrong — the split is already right.** `rtoShareOfReturns`
+gives 42.5 / 40.1 / 34.6% against a sourced 42.5 / 40.2 / 34.7%, so nothing about
+the refused/sent-back ratio needs touching. This is a three-number change plus a
+calibration run, not a re-derivation of the chain. The targets, back-solved
+through `PURPOSE_MODIFIERS.ret` (mean 1.025) because `locationEffects` normalises
+to a mean of 1:
+
+| cell | is | should be | target total |
+|---|---|---|---|
+| value | 0.30 | **0.417** | 42.7% |
+| mid | 0.24 | **0.407** | 41.7% |
+| premium | 0.20 | **0.387** | 39.6% |
+
+**IT ALSO FLATTENS THE PRICE AXIS, AND THAT CONTRADICTS THE AUTHORED STORY.**
+Today the spread is 30 / 24 / 20 — **1.5x** from value to premium. The sourced
+targets spread **1.08x**. So the price tier would barely affect returns at all,
+and `POSITION_ECONOMICS`'s own comment — *"price shoppers order two sizes meaning
+to return one"*, premium has *"fewer returns because the size guide is better and
+the buyer is committed"* — becomes largely false.
+
+**That flatness is probably an artefact of my sourcing rather than a fact.**
+`POST_DELIVERY_RETURN_RATE` is a single 30% for all tiers because the sources
+found quote fashion returns as one figure and do not break them down by price
+point. What genuinely varies by tier in the sourced view is the COD mix, and that
+is already modelled. So before implementing, consider whether
+`POST_DELIVERY_RETURN_RATE` should take a per-tier variation of its own — which
+would keep the authored story AND the sourced level — or whether the flattening
+is accepted and the comment rewritten. **Do not simply paste the three numbers in
+without settling that**; it is the difference between importing evidence and
+importing a gap in the evidence.
+
+**The three ways out, for the record:**
 
 1. **Raise `returnRate` to the sourced total** (~43 / 42 / 40%) and recalibrate.
    Most honest, largest blast radius, and it makes the whole vertical harsher —
