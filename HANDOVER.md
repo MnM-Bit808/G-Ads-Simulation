@@ -12,7 +12,7 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and the location mechanic with them.** 1370 tests, all passing, 1 todo.
+**Every build-order step is done, and the location mechanic with them.** 1373 tests, all passing, 1 todo.
 
 **THE GAME IS LIVE ON CLOUDFLARE, INVITE-ONLY** (2026-09-12), at
 `https://g-ads-simulation.manikhorocks.workers.dev`. Every push to `main` runs the
@@ -1250,10 +1250,11 @@ open item below.
 
 ## Still open
 
-**F13 is where I would start**: F14 made it visibly worse, and it needs a decision
-rather than more measurement. The site is live and invite-only, so the other
-thing worth doing soon is the one only people can do — add a playtester who has
-never seen it, and record the session (see *One playthrough is one playthrough*).
+**A playtest is where I would start.** The site is live and invite-only, F14 and
+F13 are both settled, and the thing only people can do is now the most valuable:
+add a playtester who has never seen it to the Access list and record the session
+(see *One playthrough is one playthrough*). It is also what would decide whether
+F13's rejected volume option has to come back.
 
 - ~~The engine contradicts itself about returns (F14).~~ **Fixed 2026-09-11.**
   The price question was settled by accepting the flattening — nothing sourced
@@ -1376,7 +1377,9 @@ never seen it, and record the session (see *One playthrough is one playthrough*)
   `PREPAID_DISCOUNT_CURVE`**, which is built from published deltas rather than
   chosen.
 
-- **The two positioning axes have swapped, and the mechanism is now known.**
+- ~~The two positioning axes have swapped.~~ **Settled as F13, below.** Kept for
+  the measurements, which are the reason the decision could be made.
+  **The two positioning axes have swapped, and the mechanism is now known.**
   Realised gross profit splits **1.55x by purpose against 1.27x by price**, over 30
   markets and 240 rival accounts, and `lifestyle` takes top rival in **28 of 30**.
   Spec 4.4 and I4 have that the other way round — I4 asserts price moves break-even
@@ -1409,13 +1412,17 @@ never seen it, and record the session (see *One playthrough is one playthrough*)
   click is WORTH; the asymmetry is in what it COSTS. Same shape as G4's two failed
   `CALIBRATE` tweaks on the location payoff.
 
-  **What is still undecided is a design question, not a measurement.** The spill is
-  arguably true to life and E8 already holds broad's reach open — what was never
-  argued is a one-directional spill that subsidises half the grid and decides 28
-  games in 30. Options, none taken: retag so performance vocabulary reaches back;
-  rebalance territory volume against realised MARGIN rather than break-even, which
-  compensates without addressing the cause and needs calibration re-run; or accept
-  it and rewrite 4.4, which currently claims the opposite axis dominates.
+  **DECIDED 2026-09-12: accepted, and told.** A sharper look found half the
+  crossing is one word — "leggings" sits on 33 activewear rows against 12
+  lifestyle, and two-tag lifestyle keywords like "everyday leggings" need only
+  that one shared word to reach all of them. True to life; the problem was that it
+  decided the round 0 choice (27 of 30 after F14, lifestyle's net lead 1.73x) and
+  nobody was told. Now the briefing says activewear searches are the most
+  contested, spec 4.4 separates what a position can pay from what it earns, and
+  `querySetContent.test.js` pins the asymmetry from both sides. Symmetric broad
+  match, retagging and volume compensation were each argued and turned down —
+  F13's *What was decided* says why, and names volume compensation as the one to
+  reopen if playtesting shows the lifestyle seat spoiling the game.
 
 - **Is 1.76x break-even the aggression `spender` should have?** A design question
   about what the cautionary rival teaches, not a defect, which is why the value was

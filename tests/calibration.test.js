@@ -371,6 +371,13 @@ describe('I3 — positions must balance', () => {
   test('no single position is systematically the place to be', () => {
     // If one tier reliably took the top and another the bottom, the round 0
     // choice would have a right answer and the grid would be decoration.
+    //
+    // IN ISOLATED TERRITORY, which is all this harness plays: one entrant per
+    // auction, so no broad match reaches anyone. In a PLAYED market one purpose
+    // is the place to be — lifestyle takes top rival in 27 of 30, because its
+    // broad keywords crowd activewear auctions and not the reverse. That is
+    // DECISIONS F13, accepted and told to the player; this test passing does not
+    // contradict it and should not be read as if it did.
     const ranked = CELLS.slice().sort((a, b) => profit[b] - profit[a]);
     const spreadWithinTier = (tier) => {
       const vals = CELLS.filter((c) => c.startsWith(tier)).map((c) => profit[c]);

@@ -227,6 +227,30 @@ from the query set. Strengthening the query affinities — the remedy this secti
 used to recommend — would have made it worse, not better. The lever that works
 is whichever of the two is the *weaker argument*, and today that is the modifier.
 
+**What a position can PAY is not what it EARNS in play, and in play purpose
+dominates** (`DECISIONS.md` F13, accepted 2026-09-12). Everything above is about
+break-even, and there price does move things 2.2-2.5x while purpose moves them
+under 13%. In a played market the ordering flips: over 30 markets lifestyle's
+net profit runs about 1.7x performance's, and lifestyle takes top rival in 27 of
+30.
+
+Not because a lifestyle sale is worth more — because a lifestyle click is
+cheaper. Broad match (8.2) compares tags, and a keyword needs half ITS tags on
+the query. Lifestyle keywords are short and vague — "everyday leggings",
+"designer leggings", two tags — so the one word "leggings" is enough to reach
+every activewear leggings search, and most leggings searching in this market is
+activewear (33 performance rows carry the tag against 12 lifestyle). Performance
+keywords are specific and barely reach back. So the whole market's broad match
+lands in activewear auctions, which run more entrants and a higher second price.
+
+**Accepted, not engineered away**, because the mechanism is true to life: a
+casual brand bidding broad on leggings does show on gym leggings searches. What
+the design refuses is letting it stay hidden. The round 0 briefing (17.2) says
+activewear searches are the most contested; `querySetContent.test.js` pins the
+asymmetry from both sides, so it can neither grow unrecorded nor vanish and leave
+that sentence false. The rejected alternatives — symmetric broad match, retagging
+the vague rows, compensating with territory volume — are argued in F13.
+
 Gross break-even (ignoring returns) is materially higher in every cell. Per cell,
 not per row — no advertiser occupies a row:
 
@@ -1452,6 +1476,11 @@ player able to reason. The precise figure is earned by running the keyword.
   counting parcels refused at the door as well as those sent back. Price barely
   changes how often; it changes how much each one costs you."* (F14; it used to
   say a quarter, higher at the cheap end, which nothing sourced supports)
+- which searches are fought over — *"Activewear searches are the most contested
+  in the category. Almost everyone sells leggings, so anyone bidding broadly on
+  them turns up in gym and training auctions, while searches for casual and
+  lounge wear draw fewer bidders."* (F13: accepted, so it has to be told; what a
+  real Keyword Planner shows as competition)
 - everything in 4.2 and 4.3 as numbers
 - the statistical consequence of a low conversion rate — Premium's real problem
   (12.2) must be discovered, not read off a card

@@ -1204,7 +1204,11 @@ Pinned by `round.test.js`, "an open cell is not a free ride".
 
 ---
 
-### F13. Broad match crosses the purpose axis in one direction only — `OPEN`
+### F13. Broad match crosses the purpose axis in one direction only — `ACCEPTED, and told`
+
+**Decided 2026-09-12: kept as a true mechanism, and stated to the player.** The
+decision and the reasons are at the end of this entry, under *What was decided*.
+The finding below is as it was recorded.
 
 **The finding, in one line: `lifestyle` wins 28 of 30 played markets, and it is
 not because a lifestyle sale is worth more. It is because a lifestyle click is
@@ -1313,6 +1317,71 @@ shrink the location payoff.
 from the figures above — see F14 on why those cannot be re-run). The version of
 F14 that would have left `ret` alone penalised lifestyle through returns and hid
 part of this finding by accident. The cause is still the one-way tag spill.
+
+#### What was decided
+
+**A SHARPER DIAGNOSIS FIRST, because the options could not be costed without
+it.** Every commercial row bid on as a broad keyword, run through the engine's
+own `tagOverlap`:
+
+| | reaches the other purpose's volume |
+|---|---|
+| lifestyle keywords into performance searches | **5.27x** |
+| performance keywords into lifestyle searches | 3.10x |
+
+**Half the crossing is one word.** "leggings" alone makes 50% of the
+lifestyle-to-performance matches, and with its pairings about two thirds. It
+sits on 33 performance rows against 12 lifestyle ones — most leggings searching
+in this market is activewear — and the lifestyle keywords that carry it are
+short and vague: "everyday leggings", "designer leggings", "athleisure
+leggings", two tags each. E8's rule asks for half the KEYWORD's tags, so one
+shared word is enough, and one word reaches every activewear leggings search.
+Performance keywords are specific, three or four tags, and reach back far less.
+
+**THE MECHANISM IS TRUE TO LIFE; THE CONSEQUENCE IS THE PROBLEM.** A casual brand
+bidding broad on "everyday leggings" really does show on "gym leggings", and
+activewear really is where a category's search volume sits. What is not fine is
+that it decides the round 0 choice — lifestyle takes top rival in 27 of 30 — and
+that nothing told the player.
+
+**Chosen: accept it, and say it.**
+
+- The round 0 briefing gains a hint: *"Activewear searches are the most
+  contested in the category. Almost everyone sells leggings, so anyone bidding
+  broadly on them turns up in gym and training auctions, while searches for
+  casual and lounge wear draw fewer bidders."* A founder would know this — it is
+  what a real Keyword Planner's competition column shows — so it withholds
+  nothing the character would have, and it gives no multiplier and ranks no cell.
+- Spec 4.4 now separates what a position can PAY, where price dominates, from
+  what it EARNS in play, where purpose does and why.
+- `querySetContent.test.js` pins the asymmetry from both sides — the reach ratio
+  between 1.5 and 1.9 (1.70 today), "leggings" alone carrying over 40% of it, and
+  activewear holding more than twice lifestyle's leggings rows. Growing silently
+  would widen a gap this entry records at one size; vanishing silently would leave
+  the briefing telling the player something false.
+
+**REJECTED, and why, so they are not retried without new evidence:**
+
+- **Symmetric broad match** (divide by the larger tag count, or Jaccard). It
+  removes the one-way flow and also stops a generic keyword reaching specific
+  searches — "leggings" against a four-tag activewear row falls to 0.25 — which is
+  the central broad match lesson (I8: one broad keyword, seventy search terms) and
+  exactly what E8 keeps on purpose.
+- **Adding a third tag to the vague lifestyle rows.** Cheap, and it is content
+  tuned to hit a number: F11's rule against spending content as currency, and
+  arguably less true, since "everyday leggings" IS related to "gym leggings".
+- **More territory volume for performance**, turning the asymmetry into a trade:
+  bigger but crowded against smaller but quiet. The most promising of the three
+  and the one to reopen if playtesting shows the lifestyle seat spoiling the game.
+  Not taken now because it edits volumes across the frozen set, needs a full
+  recalibration, fights I3 — which measures territory WITHOUT crowding and would
+  read the compensation as a performance advantage, so the spec would need a
+  played-market check — and nobody knows yet whether any sane volume closes 1.7x.
+
+**What this leaves true that was not before:** I3 says no position is the place
+to be, and it measures isolated territory. In a played market one is. The test
+is right about what it measures; the grid is not balanced in play, and the
+player is now told which way it leans.
 
 ---
 

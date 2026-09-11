@@ -520,6 +520,17 @@ export function briefing(querySet) {
       returns: 'About two in five orders come back category-wide, counting parcels '
         + 'refused at the door as well as those sent back. Price barely changes how '
         + 'often; it changes how much each one costs you.',
+      // F13, accepted and therefore told. Broad keywords built on a generic word
+      // travel furthest, most leggings searching is activewear searching, and so
+      // the whole market's broad match lands on gym and training searches while
+      // casual ones stay quiet. A founder here would know activewear keywords are
+      // fought over — Keyword Planner shows them as high competition — so saying
+      // it withholds nothing the character would not have. What it does NOT say
+      // is how much that is worth, or which position to take.
+      competition: 'Activewear searches are the most contested in the category. '
+        + 'Almost everyone sells leggings, so anyone bidding broadly on them turns '
+        + 'up in gym and training auctions, while searches for casual and lounge '
+        + 'wear draw fewer bidders.',
     },
   };
 }

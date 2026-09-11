@@ -473,6 +473,19 @@ describe('the briefing shows research and withholds experience (spec 17.2)', () 
     expect(text).not.toMatch(/42\.7|41\.7|39\.6/);
   });
 
+  test('and it says which searches are the most contested (F13)', () => {
+    // Lifestyle takes top rival in 27 of 30 played markets, because its broad
+    // keywords spill into activewear auctions and activewear keywords barely
+    // reach back. That is accepted rather than engineered away, which makes it
+    // something the player must be TOLD: a founder in this category would know
+    // activewear keywords are fought over, the way Keyword Planner shows them as
+    // high competition. Direction only — no multiplier, no ranking of cells.
+    const hint = brief.hints.competition;
+    expect(hint).toMatch(/activewear|gym|training/i);
+    expect(hint).toMatch(/leggings/i);
+    expect(hint).not.toMatch(/\d/);
+  });
+
   test('nothing in it leaks 4.2, 4.3 or the affinities', () => {
     const text = JSON.stringify(brief);
     for (const forbidden of [

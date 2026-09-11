@@ -7,7 +7,8 @@ import {
 
 const EMPTY_CAPEX = { committed: { sizeGuide: 0, photography: 0, landingPage: 0 }, pending: [] };
 import { BRAND_IDS } from '../content/brands.js';
-import { TAG_VOCABULARY, QUERY_SET_RULES } from '../engine/constants.js';
+import { TAG_VOCABULARY, QUERY_SET_RULES, BROAD_MATCH_MIN_OVERLAP } from '../engine/constants.js';
+import { tagOverlap } from '../engine/matching.js';
 
 const opts = { advertiserIds: [...BRAND_IDS] };
 const result = validateQuerySet(QUERY_SET, opts);
@@ -230,6 +231,58 @@ describe('volume composition over the real set', () => {
     for (const q of QUERY_SET.queries) {
       expect(weeklySearches(QUERY_SET, q), q.text).toBeGreaterThan(40);
     }
+  });
+});
+
+describe('broad match crosses the purpose axis one way, and the game says so (F13)', () => {
+  // F13 is ACCEPTED rather than fixed: lifestyle takes top rival in 27 of 30
+  // played markets because its broad keywords crowd performance auctions and
+  // performance keywords barely reach back. The mechanism is realistic — a
+  // casual brand bidding broad on "everyday leggings" does show on "gym
+  // leggings" — and the round 0 briefing now warns that activewear searches are
+  // the most contested. That warning is only true while this asymmetry exists,
+  // so it is pinned from BOTH sides: growing silently would widen a gap the
+  // ledger records at one size, and vanishing silently would leave the briefing
+  // telling the player something false.
+  //
+  // Measured on the content alone, every commercial row bid on as a broad
+  // keyword, with the engine's own overlap rule: how much of the OTHER purpose's
+  // volume its keywords reach. Instant, where the played-market figure takes 30
+  // whole games.
+  const byPurpose = (p) => commercial.filter((q) => homeCell(q)?.endsWith(p));
+  const volumeOf = (qs) => qs.reduce((a, q) => a + q.volumeShareBp, 0);
+  const reach = (from, to) => {
+    let reached = 0;
+    let viaLeggingsAlone = 0;
+    for (const k of byPurpose(from)) {
+      for (const q of byPurpose(to)) {
+        if (tagOverlap(k.tags, q.tags) < BROAD_MATCH_MIN_OVERLAP) continue;
+        reached += q.volumeShareBp;
+        const shared = k.tags.filter((t) => q.tags.includes(t));
+        if (shared.length === 1 && shared[0] === 'leggings') viaLeggingsAlone += q.volumeShareBp;
+      }
+    }
+    return { times: reached / volumeOf(byPurpose(to)), leggingsShare: viaLeggingsAlone / reached };
+  };
+  const intoPerformance = reach('lifestyle', 'performance');
+  const intoLifestyle = reach('performance', 'lifestyle');
+
+  test('lifestyle keywords reach performance searches about 1.7x as far as the reverse', () => {
+    // 5.27x of performance volume against 3.10x of lifestyle's, on 2026-09-12.
+    const ratio = intoPerformance.times / intoLifestyle.times;
+    expect(ratio, `ratio ${ratio.toFixed(2)}`).toBeGreaterThan(1.5);
+    expect(ratio, `ratio ${ratio.toFixed(2)}`).toBeLessThan(1.9);
+  });
+
+  test('and one word carries most of it: "leggings", which lives in activewear', () => {
+    // A two-tag lifestyle keyword — "everyday leggings", "designer leggings" —
+    // needs one shared tag, and "leggings" alone reaches every activewear
+    // leggings search. Half the crossing is that single word. If this stops
+    // being true, the mechanism F13 describes has changed and the entry needs
+    // re-reading before anything else.
+    expect(intoPerformance.leggingsShare).toBeGreaterThan(0.4);
+    const rows = (p) => byPurpose(p).filter((q) => q.tags.includes('leggings')).length;
+    expect(rows('performance')).toBeGreaterThan(2 * rows('lifestyle'));
   });
 });
 
