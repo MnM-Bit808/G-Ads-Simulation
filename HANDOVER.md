@@ -14,6 +14,15 @@ still resting on a guess.
 
 **Every build-order step is done, and the location mechanic with them.** 1348 tests, all passing, 1 todo.
 
+**The returns model is the newest thing here and the least settled** (I28-I34,
+all 2026-09-10). It was one number — `returnRate` — and is now a chain of six:
+price tier, purpose, the search's own multiplier, where it was bought, which half
+of the return it is, and what capital and a prepaid discount do to each half. It
+is the only part of the engine with a shipping cost in it, and the only one whose
+constants are mostly `DOCUMENTED` rather than invented. Read I28 before touching
+it: the safety property it was built on — *a split of a fixed total* — is exactly
+what made a later change silently impossible.
+
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
 ✅  2  querySet + content             ✅  9  round
@@ -1267,19 +1276,48 @@ replaced.**
   `writerBalance.test.js` was expected to need re-measuring and did not — it
   passes unchanged at 1.014, which is exactly what the decoupling predicts.
 
-- **Two of the three capital targets have no surface at all.** Photography is the
-  best-paying investment measured — **+22.3%** against not investing, against the
-  landing page's +7.6% — and nothing on any screen says it happened. The size guide
-  is the same. The landing page is the only one of the three with a visible score,
-  which is why a player judges the whole mechanic by it and concluded the money was
-  wasted. Same shape as I16, which put "your copy is not live yet" on the dashboard
-  after measuring that the round it lands is the largest single movement in a game.
-  The measurements are in *What capital is actually worth* above.
+- **Two of the four capital targets still have no surface at all.** Photography
+  and order confirmation move a number and no screen says so. The landing page
+  has a visible score and the size guide now shows up on *What came back* (I31)
+  as the send-back half, so the gap has halved rather than closed. Same shape as
+  I16, which put "your copy is not live yet" on the dashboard after measuring
+  that the round it lands is the largest single movement in a game.
 
-- **And nothing shows the shape of the curve.** `CAPEX_TIER_CURVE` is steep between
-  ₹25,000 and ₹70,000 and flat after, so topping up a funded target earns +5.4%
-  where funding a fresh one earns +14.1%. That is the whole skill in the mechanic
-  and it is discoverable only by reading `constants.js`.
+  **THE FIGURES THAT USED TO BE HERE HAVE BEEN REMOVED, and the reason matters.**
+  This entry read "+22.3% for photography against the landing page's +7.6%". Both
+  numbers predate two things that invalidate them: `CAPEX_TIER_CURVE` was
+  reshaped and photography given a ladder of its own (I30), and the harness trap
+  under *Writing a measurement harness* — capex passed as `{sizeGuide: n}` when
+  `liveCapexPaise` reads `capex.committed` — was only found on 2026-09-10.
+  **Any capex measurement taken before then may have been measuring an account
+  with no capital committed at all**, silently, because the lookup returns 0 and
+  nothing throws. The current figures are in I30 and were taken after the fix.
+
+- ~~Nothing shows the shape of the curve.~~ **Round 0 draws it** — `steepRung`
+  derives the steep stretch from `CAPEX_TIER_CURVE` rather than hard-coding
+  indices, so the drawing cannot drift from the constant. **The round-5 window
+  does not**, and that is where a top-up decision is actually made.
+
+  The old numbers here are also superseded. The curve is now `0 / ₹25,000 /
+  ₹55,000 / ₹80,000` for three targets and `0 / ₹50,000 / ₹1,10,000 / ₹1,60,000`
+  for photography, and the rung that cost ₹30,000 for three hundredths is gone
+  (I29).
+
+- **Photography still leads in all six cells, by 1.10x to 1.84x.** Down from
+  5.44x, so it is a choice rather than a solved puzzle, and it is not balanced.
+  Per RUPEE the landing page beats it in three cells of the six, which is the
+  more decision-relevant comparison and the better news. I30 carries the table,
+  the arithmetic proving price alone could not fix it, and the argument for
+  leaving it where it is — a conversion-rate lever genuinely is the highest-
+  leverage thing in performance marketing, and 1.5x may be the lesson.
+
+- **The prepaid discount is a real lever and a modest one.** ₹30 is right in four
+  cells of six and the gain is 0.2% to 1.4%; what it teaches properly is the
+  penalty, since ₹100 loses everywhere by up to 3.2%. If the modesty is a
+  problem, the lever to pull is letting it lift conversion rate — excluded on
+  purpose so it has one effect, and I34 says why. **Do not reach that by retuning
+  `PREPAID_DISCOUNT_CURVE`**, which is built from published deltas rather than
+  chosen.
 
 - **The two positioning axes have swapped, and the mechanism is now known.**
   Realised gross profit splits **1.55x by purpose against 1.27x by price**, over 30
@@ -1707,6 +1745,22 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   will disagree with it by a factor.
 - **Play more than one seed and more than one cell.** Seeded rival PLACEMENT
   means a seed is a whole different market, not a different roll.
+- **`capex` is `{committed: {...}, pending: []}`, never `{sizeGuide: n}`.**
+  `liveCapexPaise` reads `capex.committed?.[target] ?? 0`, so a bare object
+  returns 0 for every target and NOTHING THROWS. Every harness written on
+  2026-09-10 had this until a measurement reported a full size guide as worth
+  0.0% in all three cells, identical to the rupee, which is what gave it away.
+  Proven directly: the bare shape gives `sizeGuideEffect` 1.000, the correct one
+  1.250. Any capex figure measured before that date is suspect.
+- **A week's returns have not resolved, so never measure them on the last one.**
+  A return needs two rounds after the conversion, which needs up to three after
+  the click. An assertion on `history.at(-1)` reads zero and reports a working
+  feature as broken — it did, twice in a row on 2026-09-10, and the second time
+  was after wrongly blaming the fixture.
+- **`tests/fixtures/querySet.js` hardcodes `returnRateMultiplier: 1.0`.** It
+  exists to satisfy 7.4's rules, not to carry the content set's spread. Anything
+  measuring variation BY SEARCH has to run on `content/querySet.js`, which has six
+  distinct values from 0.85 to 1.2.
 - **If your replica cannot reproduce a documented baseline, it is measuring
   something else** — whatever it says about your change. Two separate wrong
   conclusions this session were caught by exactly that check and by nothing
