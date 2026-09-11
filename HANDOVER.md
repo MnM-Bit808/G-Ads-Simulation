@@ -12,12 +12,12 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and the location mechanic with them.** 1367 tests, all passing, 1 todo.
+**Every build-order step is done, and the location mechanic with them.** 1370 tests, all passing, 1 todo.
 
-**THE SITE IS BUILT FOR CLOUDFLARE PAGES, AND NOT YET CONNECTED** (2026-09-11).
-See *Deployment* below. The repository side is finished and verified; the
-Cloudflare account, the connection to GitHub and the invite list are the user's
-to set up, and have not been.
+**THE GAME IS LIVE ON CLOUDFLARE, AND NOT YET INVITE-ONLY** (2026-09-11), at
+`https://g-ads-simulation.manikhorocks.workers.dev`. Every push to `main` runs the
+full suite and deploys only if it passes. See *Deployment* below; the invite list
+is the one thing left.
 
 **The returns model is the newest thing here** (I28-I34, 2026-09-10, and F14,
 2026-09-11). It was one number — `returnRate` — and is now a chain of six: price
@@ -1249,9 +1249,9 @@ open item below.
 
 ## Still open
 
-**Finish connecting Cloudflare first** (see *Deployment*) — it is the only way
-anybody but the person who built this gets to play it. Then F13, which F14 made
-visibly worse and which needs a decision rather than more measurement.
+**Make the site invite-only first** (see *Deployment*) — it is live and public.
+Then F13, which F14 made visibly worse and which needs a decision rather than more
+measurement.
 
 - ~~The engine contradicts itself about returns (F14).~~ **Fixed 2026-09-11.**
   The price question was settled by accepting the flattening — nothing sourced
@@ -1280,7 +1280,7 @@ visibly worse and which needs a decision rather than more measurement.
   **Deployment** unlocks the largest open item in this file. You cannot hand a
   playtester a localhost address. **The repository side is done** (2026-09-11):
   a build that publishes exactly the 40 files the game loads, gated on the full
-  suite, for Cloudflare Pages. Connecting the account is what remains — see
+  suite, live on Cloudflare. Making it invite-only is what remains — see
   *Deployment*. It did need a little code after all: a build script, a front
   page and a caching header, none of them in `engine/`.
 
@@ -1675,10 +1675,20 @@ tooling and one untested claim.
 
 ## Deployment
 
-**Cloudflare Pages, running the tests before every deploy, invite-only.**
-Chosen 2026-09-11. The repository is private, which rules out free GitHub Pages,
-and Cloudflare can later hold the backend (Workers) and the database (D1) the
-plan puts next, so nothing has to move.
+**Cloudflare, running the tests before every deploy, invite-only.** Chosen
+2026-09-11. The repository is private, which rules out free GitHub Pages, and
+Cloudflare can later hold the backend and the database (D1) the plan puts next,
+so nothing has to move.
+
+**It is a Cloudflare WORKER serving static files, not a Pages project**, and that
+was not the plan: the dashboard now steers new sites to Workers, and the account
+was set up through that path before the instructions caught up. It was kept on
+purpose — for a site like this the two do the same job, and Workers is where the
+backend will run anyway.
+
+**Live at `https://g-ads-simulation.manikhorocks.workers.dev`**, project
+`g-ads-simulation`, connected to `MnM-Bit808/G-Ads-Simulation`, production branch
+`main`, and every other branch gets a preview build.
 
 **How it works, in one paragraph.** Nothing is compiled. `scripts/build-site.js`
 follows the imports from `ui/index.html` exactly as a browser does and copies the
@@ -1695,11 +1705,21 @@ and nothing extra.
 | `npm run preview` | builds, then serves `dist/` the way the live site will be served — the `site` entry in `.claude/launch.json` |
 | `npm run ci` | lint, the whole suite with a 60-second test timeout, then build. **This is Cloudflare's build command.** |
 
-**Cloudflare settings**, for whoever connects it: framework preset *None*, build
-command `npm run ci`, output directory `dist`, production branch `main`.
-`.node-version` asks for Node 24 — ESLint 10 will not run on the old default, so
-if a build log shows Node 18, set `NODE_VERSION` to `24` in the project's
-environment variables.
+**The Cloudflare settings** (project → Settings → Builds): build command
+`npm run ci`, deploy command `npx wrangler deploy`, root directory `/`. The build
+command was `npm run build` when the account was connected, which skipped the
+tests; it was changed to `npm run ci` on 2026-09-11. `.node-version` asks for Node
+24 and the build log confirms Cloudflare honours it (24.21.0) — ESLint 10 would
+not run on an old default.
+
+**`wrangler.jsonc` says which folder to publish, and it has to.** The first
+build had no such file, and the log shows Wrangler guessing: *"Detected Project
+Settings: Framework: Static, Output Directory: dist"*. It also wrote itself a
+temporary config and rewrote the `preview` script inside the build machine. The
+guess was right, and a guess re-made on every deploy is one detection change
+from publishing the repository root while still reporting success. The file pins
+`./dist`, and `tests/build.test.js` fails if it ever points elsewhere or grows a
+`main` script — that would make it a backend.
 
 **Why the test timeout is 60 seconds in `ci` and 5 locally.** Several tests take
 1-3 seconds here; Cloudflare's build machines are slower, and a test that fails
@@ -1726,13 +1746,15 @@ at all.
 
 ### What is left, and whose it is
 
-All in the Cloudflare dashboard, none of it code: create the account, connect the
-`G-Ads-Simulation` repository, enter the settings above, then put the site behind
-Cloudflare Access with an email allow-list (free up to 50 people). Access may ask
-for a payment method to activate its free plan; that is for the account owner to
-decide and enter. After that, every push to `main` that passes `npm run ci` goes
-live on its own, every branch gets a preview address, and any earlier deploy can
-be restored in one click.
+**Invite-only is not done: the site is public to anyone with the address.** It is
+done in the project's **Access** tab, through Cloudflare Zero Trust, with an
+email allow-list (free up to 50 people) — and it has to cover the preview
+addresses as well as `main`. Zero Trust may ask for a payment method to activate
+its free plan; that is for the account owner to decide and enter.
+
+Everything else is live: every push to `main` that passes `npm run ci` deploys on
+its own, every branch gets a preview, and any earlier version can be restored from
+the Deployments tab.
 
 **Tell playtesters three things**: a reload loses the game (it lives in memory
 until the database step); late weeks freeze the page for 30-60 seconds and have

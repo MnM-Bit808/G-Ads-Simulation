@@ -1,0 +1,22 @@
+// Cloudflare's deploy tool, Wrangler, reads this on every build.
+//
+// Without it, every build GUESSED which folder to publish. The first build log
+// says so: "Detected Project Settings: Framework: Static, Output Directory:
+// dist". It guessed right — and a guess made fresh on each deploy is one
+// detection change away from publishing the repository root, DECISIONS.md and
+// the tests included, while still reporting success.
+//
+// dist/ is what `npm run ci` builds: the 40 files the game loads, and nothing
+// else (scripts/build-site.js). tests/build.test.js fails if this ever points
+// somewhere else, and if a `main` script appears — that would be a backend,
+// which has its own plan.
+//
+// Full-line comments only, so the test can read it as plain JSON.
+{
+  "name": "g-ads-simulation",
+  "compatibility_date": "2026-09-11",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./dist"
+  }
+}

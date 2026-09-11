@@ -1,6 +1,6 @@
 /**
- * Build the playable site into `dist/`, which is what Cloudflare Pages
- * publishes.
+ * Build the playable site into `dist/`, which is what Cloudflare publishes —
+ * `wrangler.jsonc` names the folder, so the deploy never has to guess.
  *
  * `npm run build` locally; `npm run ci` is what Cloudflare runs, and it runs
  * the whole suite first so a red commit never reaches a player.
@@ -102,7 +102,9 @@ export const ROOT_INDEX = `<!doctype html>
 `;
 
 /**
- * Response headers, in Cloudflare Pages' `_headers` format.
+ * Response headers, in Cloudflare's `_headers` format — confirmed live: the
+ * site answers every file with `Cache-Control: no-cache`, and `/_headers`
+ * itself is not served.
  *
  * `no-cache` is "check before reusing", not "never store": an unchanged file
  * costs a 304. It matters because nothing here is bundled, so every module is

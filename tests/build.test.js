@@ -21,7 +21,7 @@
 
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
 import { mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, posix } from 'node:path';
 import { tmpdir } from 'node:os';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { siteFiles, buildSite } from '../scripts/build-site.js';
@@ -59,6 +59,34 @@ describe('the site holds what the game loads', () => {
     // an argument — and if something ever does, the build must refuse rather
     // than publish a page that dies on load.
     expect(files).not.toContain('agents/claude.js');
+  });
+});
+
+describe('Cloudflare publishes dist/ because the repository says so', () => {
+  // Without wrangler.jsonc, Cloudflare's deploy tool GUESSED the folder on every
+  // build — "Detected Project Settings: Framework: Static, Output Directory:
+  // dist" in the first build log. Right, and one detection change away from
+  // publishing the repository root with the docs and tests in it, while still
+  // reporting success. The build test above checks what goes INTO dist/; this
+  // checks that dist/ is what goes out.
+  //
+  // Full-line comments only, so stripping them leaves plain JSON.
+  const config = JSON.parse(
+    readFileSync(join(ROOT, 'wrangler.jsonc'), 'utf8').replace(/^\s*\/\/.*$/gm, ''),
+  );
+
+  test('the published folder is dist/, where the build writes', () => {
+    expect(posix.normalize(config.assets?.directory ?? '')).toBe('dist');
+  });
+
+  test('it names the project connected in the dashboard', () => {
+    expect(config.name).toBe('g-ads-simulation');
+  });
+
+  test('and runs no code on the server — the site is files, nothing more', () => {
+    // A `main` script would make this a backend. The backend has its own plan
+    // (HANDOVER, Still open) and must not arrive as a line in a config file.
+    expect(config.main).toBeUndefined();
   });
 });
 
@@ -153,7 +181,7 @@ describe('the built copy runs', () => {
     // player's browser can pair a freshly fetched ui/decisions.js with an engine
     // module it cached last week — found while verifying this very build, when a
     // plain static server let the browser keep a stale decisions.js through a
-    // hard reload. `_headers` is Cloudflare Pages' own file; `no-cache` means
+    // hard reload. `_headers` is Cloudflare's own file format; `no-cache` means
     // "revalidate", which costs a 304 when nothing changed.
     const headers = readFileSync(join(out, '_headers'), 'utf8');
     expect(headers).toMatch(/^\/\*$/m);
