@@ -159,5 +159,20 @@ number in the simulation without ever throwing an error.
   multipliers — to anyone, including the advertiser the affinity favours.
 - **The two hourly curves must not peak together.** If demand peak and intent peak
   coincide, dayparting earns nothing and `DECISIONS.md` H4 is false.
-- **`AD_RANK_FLOOR` and `WEEKLY_VOLUME` are `CALIBRATE`.** They are provisional
-  until `calibration.test.js` passes. Do not treat them as settled numbers.
+- **Five constants are `CALIBRATE`, not two:** `AD_RANK_FLOOR`, `WEEKLY_VOLUME`,
+  and the three location tables G4 added — `LOCATION_VOLUME_BY_PRICE`,
+  `LOCATION_RETURN_MULTIPLIER`, `LOCATION_AOV_MULTIPLIER`. All provisional until
+  `calibration.test.js` passes, and `constants.test.js` pins the set so it cannot
+  grow quietly. Anything that moves returns or volume — F14 does — means
+  re-running calibration and checking all five.
+- **A split of a fixed total can never move the total.** `rtoShareOfReturns`
+  divides returns into refused and sent-back as SHARES, which was right when it
+  was built and has since caused two defects: a prepaid discount that could only
+  relabel a return rather than remove one (I34), and `returnRate` being redefined
+  as all returns without its magnitude changing (F14). When a lever cannot move a
+  number, ask what is holding it fixed by construction.
+- **Each returns lever reaches only its own half.** The size guide reduces
+  send-backs and nothing else; order confirmation and the prepaid discount reduce
+  refusals and nothing else. A size guide that reduced refusals would be claiming
+  a fit chart stops someone changing their mind at the door — the first build of
+  I28 did exactly that.

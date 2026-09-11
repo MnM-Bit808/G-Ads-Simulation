@@ -21,7 +21,15 @@ of the return it is, and what capital and a prepaid discount do to each half. It
 is the only part of the engine with a shipping cost in it, and the only one whose
 constants are mostly `DOCUMENTED` rather than invented. Read I28 before touching
 it: the safety property it was built on — *a split of a fixed total* — is exactly
-what made a later change silently impossible.
+what made a later change silently impossible, and then produced **F14**, where the
+engine's invented `returnRate` contradicts its own sourced constants. F14 is the
+top open item and option 1 is chosen.
+
+**74% of the model's constants are `INVENTED`** — 59 of 80, against 8
+`DOCUMENTED`, 8 `ESTIMATED` and 5 `CALIBRATE`. Roughly 25 of the 59 are
+legitimate game-design choices (twelve rounds, nine advertisers, the grid); the
+rest are empirical claims wearing a design tag. F14 is what happened the first
+time one of them was checked properly.
 
 ```
 ✅  1  constants, money, rng          ✅  8  pacing, attribution
