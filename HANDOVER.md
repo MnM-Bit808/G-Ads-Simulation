@@ -1217,8 +1217,32 @@ open item below.
 
 ## Still open
 
-**The one at the top is where I would start, and it is bigger than the two it
-replaced.**
+**The one at the top is where I would start. It is a defect rather than a
+feature, it was introduced by the most recent engine work, and it is the reason
+sourcing a constant is worth doing at all.**
+
+- **THE ENGINE CONTRADICTS ITSELF ABOUT RETURNS (F14), and this is now the top
+  item.** `POSITION_ECONOMICS.returnRate` was authored as POST-DELIVERY returns —
+  its comment says "price shoppers order two sizes meaning to return one" and
+  nothing about refusals. I28 split it as though it already contained refusals
+  and held the total fixed, so a number meaning one thing was silently redefined
+  as another without changing its magnitude.
+
+  The engine's own DOCUMENTED constants say what the total should be, and every
+  figure it actually uses is understated by 30% to 100%:
+
+  | cell | model total | sourced total |
+  |---|---|---|
+  | value | 30.0% | **42.7%** |
+  | mid | 24.0% | **41.7%** |
+  | premium | 20.0% | **39.6%** |
+
+  **This is not a benchmark disagreement — it is an INVENTED constant
+  disagreeing with the DOCUMENTED ones beside it.** F14 carries the per-half
+  figures, three ways out, and what sourcing the other three fields of
+  `POSITION_ECONOMICS` found. Fixing it nearly doubles returns and invalidates
+  every measured number under *What measuring it found*, so it needs a session
+  with a measurement at each step and a calibration re-run — not a quick edit.
 
 - **Deployment, a database and a backend are planned, in that order** (agreed
   2026-09-08, nothing started). The project has none of the four — no backend, no

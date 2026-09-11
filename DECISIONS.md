@@ -3374,6 +3374,77 @@ solver. And `submitRound` REJECTS an out-of-range discount rather than clamping
 — a clamp would let a controller ask for ₹500 and be quietly charged for ₹100,
 which is the shape of bug that survives a whole game.
 
+### F14. The engine contradicts itself about returns — `FOUND, not fixed`
+
+**THE BIGGEST OPEN PROBLEM IN THE MODEL, and it was introduced by I28.** Found on
+2026-09-11 by starting to source `POSITION_ECONOMICS`, which is what that
+exercise is for.
+
+`POSITION_ECONOMICS.returnRate` was authored as POST-DELIVERY returns. Its own
+comment says so and says nothing else: *"price shoppers order two sizes meaning
+to return one"*, and premium has *"fewer returns because the size guide is better
+and the buyer is committed"*. Fit, not refusal.
+
+**I28 split that number as though it already contained refusals, and held the
+total fixed.** So a figure meaning "returns after delivery" was silently
+redefined as "returns of every kind" without changing its magnitude — and the
+engine's own DOCUMENTED constants, added the same day, say what the total should
+actually be:
+
+| cell | model refused | sourced | model sent back | sourced | model total | sourced |
+|---|---|---|---|---|---|---|
+| value | 12.8% | **18.2%** | 17.2% | **24.5%** | 30.0% | **42.7%** |
+| mid | 9.6% | **16.8%** | 14.4% | **25.0%** | 24.0% | **41.7%** |
+| premium | 6.9% | **13.8%** | 13.1% | **25.9%** | 20.0% | **39.6%** |
+
+Sourced side: `RTO_RATE_COD` 20.9% and `RTO_RATE_PREPAID` 5.8% blended at each
+tier's own COD mix, then `POST_DELIVERY_RETURN_RATE` 30% on what survives.
+**Every figure the model uses is understated, by 30% to 100%.**
+
+**This is not a benchmark disagreement.** It is the engine's INVENTED constant
+disagreeing with the engine's own DOCUMENTED ones. One of them has to move.
+
+**WHY IT IS NOT FIXED HERE.** Raising `returnRate` to the sourced total nearly
+doubles returns, which moves net revenue, net profit, net ROAS, the location
+spread G4 rests on, F13's purpose measurements, and every figure quoted in
+`HANDOVER.md` under *What measuring it found*. `AD_RANK_FLOOR` and
+`WEEKLY_VOLUME` are `CALIBRATE` and would almost certainly need retuning. That is
+a session's work with a measurement at each step, not a tail-end edit.
+
+**Three ways out, none taken:**
+
+1. **Raise `returnRate` to the sourced total** (~43 / 42 / 40%) and recalibrate.
+   Most honest, largest blast radius, and it makes the whole vertical harsher —
+   which is arguably true to Indian D2C apparel and arguably a worse game.
+2. **Keep `returnRate` as post-delivery only and add refusals on top.**
+   Economically identical to (1); the difference is which constant carries the
+   meaning, and this version keeps the authored comment true.
+3. **Accept the model's total as a deliberate simplification** and say so in
+   `POSITION_ECONOMICS` — that the simulator runs a gentler returns regime than
+   the market, on purpose, so twelve rounds are playable. Cheapest, and it
+   requires writing down that the number is not the market's.
+
+**What sourcing `POSITION_ECONOMICS` found about the other three fields**, since
+that was the task:
+
+- **AOV ₹1,200 / ₹2,400 / ₹4,800** — defensible. Indian D2C quotes ₹1,200-2,500
+  as a good AOV band and ₹500-1,500 as the most commercially active; the value
+  and mid tiers sit inside that and premium sits deliberately above it.
+- **`marginPct` 40 / 52 / 62%** — defensible but at the low end. Indian fashion
+  apparel is quoted at 35-55% gross and digital-first D2C fashion at 65-70%, with
+  "above 60% healthy, below 50% very difficult". The model's value tier at 40% is
+  therefore in a regime the sources call very hard, which may be intended.
+- **`convRateBase` 4.2 / 2.8 / 1.6%** — **not comparable to the benchmark that
+  looks like it.** Indian D2C site-wide conversion is quoted at 1.8-3%, but this
+  is conversion on a PAID SEARCH CLICK, and brand search alone is quoted at
+  4-8%. The benchmark and the constant are different quantities and the
+  temptation to "correct" 4.2% down to 3% should be resisted without a
+  like-for-like source.
+
+**The tag stays `INVENTED`** on all of it. Three of the four fields now have
+evidence beside them and one is contradicted, which is more than they had, but
+none has a citation tight enough to call `DOCUMENTED`.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
