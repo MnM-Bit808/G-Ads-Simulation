@@ -10,6 +10,36 @@ still resting on a guess.
 
 ---
 
+## Start here
+
+**The last session (2026-09-11 to 12) closed the three items that had been open
+longest**, in this order. Each has its full record in `DECISIONS.md`; the commit
+messages carry the reasoning in between.
+
+| | what happened | read |
+|---|---|---|
+| **F14** | the return level now equals what the engine's own sourced constants imply (42.7 / 41.7 / 39.6%), and a test pins it. It forced `PURPOSE_MODIFIERS.ret`, `AD_RANK_FLOOR` and `WEEKLY_VOLUME` to move too, each measured before and after | F14 *What shipped* |
+| **A crash** | the dashboard had crashed after week 1 since 2026-09-10, with every test green. Found by playing the deployable build, fixed, recorded | I34 |
+| **Deployment** | live on Cloudflare, tests gating every push, invite-only through Cloudflare Access | *Deployment* below |
+| **F13** | accepted rather than engineered away: lifestyle's broad keywords crowd activewear auctions, the round 0 briefing now says so, and a test pins the asymmetry | F13 *What was decided* |
+
+**Pending, and nobody's but the owner's:** a first playtester has not been added
+to the Access list yet (see *Deployment* for how — it is one edit).
+
+**What the next session is for.** The owner intends a fresh, analytical review of
+the whole product rather than another fix — judging it as something a stranger
+plays, not as an engine that passes its tests. Two things in this file are the
+best raw material for that and are easy to miss in its length: *What playing it
+as a learner found* (one full recorded game, engagement ending at week 4) and
+*Still open* (what is known to be unfinished, and why).
+
+**Reading order for a new session:** `CLAUDE.md`, then this section and *Where we
+are*, then *Still open*, then *Deployment*. `DECISIONS.md` is a ledger to look
+things up in, not to read front to back — its entries are long because they
+carry their measurements.
+
+---
+
 ## Where we are
 
 **Every build-order step is done, and the location mechanic with them.** 1373 tests, all passing, 1 todo.
@@ -39,6 +69,13 @@ went dark), `WEEKLY_VOLUME` 350,000 → 430,000 (or budgets stopped binding). Re
 across a played market went 22% → 34%. **Every absolute figure measured before
 2026-09-11 in this file describes the old market** — the directions mostly
 survive, the numbers do not. F14's *What shipped* has the before-and-after.
+
+**F13 IS ACCEPTED, AND TOLD** (2026-09-12). Lifestyle takes top rival in 27 of 30
+played markets because its short, vague broad keywords — "everyday leggings" —
+reach every activewear leggings search and activewear keywords barely reach back.
+True to life, so it stays; the briefing now warns that activewear searches are the
+most contested. The lifestyle seat is still the easier one, and whether that spoils
+the game is a question for playtesting.
 
 **74% of the model's constants are `INVENTED`** — 59 of 80, against 8
 `DOCUMENTED`, 8 `ESTIMATED` and 5 `CALIBRATE`. Roughly 25 of the 59 are

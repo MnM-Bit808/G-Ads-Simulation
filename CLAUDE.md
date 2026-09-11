@@ -100,6 +100,18 @@ npm run test:perf
 
 Commit after every green test run. Small commits, present tense, one concern each.
 
+**Pushing to `main` deploys.** The game is live on Cloudflare at
+`https://g-ads-simulation.manikhorocks.workers.dev`, invite-only. Every push runs
+`npm run ci` there — lint, the whole suite, then the build — and publishes only
+if it passes. To see the built site exactly as it will be served:
+
+```bash
+npm run preview
+```
+
+`HANDOVER.md` *Deployment* has the Cloudflare settings and how to add a
+playtester.
+
 ## Conventions
 
 - ES modules, `.js`, no TypeScript for now.
@@ -163,8 +175,15 @@ number in the simulation without ever throwing an error.
   and the three location tables G4 added — `LOCATION_VOLUME_BY_PRICE`,
   `LOCATION_RETURN_MULTIPLIER`, `LOCATION_AOV_MULTIPLIER`. All provisional until
   `calibration.test.js` passes, and `constants.test.js` pins the set so it cannot
-  grow quietly. Anything that moves returns or volume — F14 does — means
-  re-running calibration and checking all five.
+  grow quietly. Anything that moves returns or volume means re-running
+  calibration and checking all five — F14 moved both `AD_RANK_FLOOR` (60 → 48)
+  and `WEEKLY_VOLUME` (350,000 → 430,000). **The test only asserts a bound and
+  prints nothing when it passes**, so I3 once drifted from 9.5% to 13.2%
+  unseen: measure the figure, don't just read the green tick.
+- **A fixed price falls behind when everything else moves.** `AD_RANK_FLOOR` is
+  an absolute reserve. When F14 cut every ceiling by 20-30%, leaving it put made
+  it a quarter stricter and two rivals went dark for weeks. Standing still is
+  itself a change.
 - **A split of a fixed total can never move the total.** `rtoShareOfReturns`
   divides returns into refused and sent-back as SHARES, which was right when it
   was built and has since caused two defects: a prepaid discount that could only
@@ -176,3 +195,11 @@ number in the simulation without ever throwing an error.
   refusals and nothing else. A size guide that reduced refusals would be claiming
   a fit chart stops someone changing their mind at the door — the first build of
   I28 did exactly that.
+- **"The build works" means playing it, not loading it.** The dashboard crashed
+  after week 1 for two days with 1348 tests green; only a smoke test that played
+  round 0 into week 1 found it (I34). Open the browser and play a week.
+- **`wrangler.jsonc` must keep pointing at `./dist`.** Without it Cloudflare
+  guesses the folder to publish on every deploy, and a wrong guess publishes the
+  repository — docs and tests — while still reporting success.
+  `tests/build.test.js` holds it, and holds `dist/` to exactly the 40 files the
+  game loads.
