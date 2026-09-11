@@ -220,6 +220,23 @@ nothing routes a player there any more.
 
 ---
 
+**F14 LOWERED `AD_RANK_FLOOR` FROM 60 TO 48, and that is not a breach of the
+line above.** "Do not lower it" was advice against lowering the reserve *to
+rescue an ungraded ad*, on the grounds that it is calibrated against I2 and I3.
+F14 lowered it for a different reason and re-calibrated it against those same
+invariants: raising returns to the sourced level cut every ceiling by 20-30%, a
+fixed reserve became a quarter stricter relative to all of them, and the weakest
+rival ads fell under it. The floor followed the ceilings, and I1, I2 and I3 all
+pass at the new value.
+
+**The gap this entry describes is unchanged by it**, which is the check that
+matters. A cold-start `disciplined` bid fell by a fifth too — it now assumes
+the briefing's two in five, not a quarter — so an ungraded 3/3/3 ad still sits
+just under the reserve at a cautious bid. The floor and the bids moved together;
+the line between them did not.
+
+---
+
 ## B. Auction and pricing
 
 ### B1. Ad rank threshold is a constant — `CALIBRATE`
@@ -400,11 +417,12 @@ why that value, and grouped at the top of the file rather than inlined where it
 is used. Every number is still findable in one place — just a different place,
 chosen so that strategy and physics do not share a blast radius.
 
-**The tell that this is the right line:** `ASSUMED_RETURN_RATE` is 0.25 because
+**The tell that this is the right line:** `ASSUMED_RETURN_RATE` is 0.40 because
 that is what the round 0 briefing tells the player (17.2), and it is *wrong* for
-every cell on the grid — Value-Lifestyle really returns 36%, Premium-Performance
-17%. A number that is deliberately wrong has no business in the file that defines
-what is true.
+every cell on the grid — Value-Lifestyle really returns 46.5%, Premium-Performance
+36%. A number that is deliberately wrong has no business in the file that defines
+what is true. (It was 0.25 against 36% / 17% until F14 raised the level and the
+briefing followed.)
 
 **AND THE COUNTEREXAMPLE THAT SHOWS WHERE THE LINE COSTS SOMETHING.** The
 justification above rests on each policy number being *"named, commented with
@@ -924,6 +942,10 @@ wrong for everyone rather than quietly correct for the mid-market.
 signal, so a mid-market advertiser bidding ₹25 at a 0.06 signal sits at 150.
 A floor of 60 excludes roughly the bottom third of plausible bids. Governed by
 invariant I2 and not to be trusted until `calibration.test.js` runs.
+**Now 48 (F14)**: every ceiling fell 20-30% when the return level rose to the
+sourced total, and a reserve that stayed put was a quarter stricter relative to
+them — both `cautious` rivals went dark for 1-4 opening weeks on 10 of 12 seeds.
+Lowering it moved `WEEKLY_VOLUME` from 350,000 to 430,000 with it.
 
 **`TAG_VOCABULARY`** — 48 provisional tags across product, attribute, use,
 audience, price signal and intent. Query-set content living temporarily in
@@ -1002,6 +1024,25 @@ gets off lightest at 21%, which is still enough to matter.
 That spread is a feature: the section 14 trap does not punish everyone equally,
 and which cell you chose decides how badly it hurts.
 
+**SUPERSEDED IN PART BY F14.** The 30 / 24 / 20 level was post-delivery returns
+alone, and I28 then treated it as the total. It is now the total the engine's
+own DOCUMENTED constants imply — 42.7 / 41.7 / 39.6% — and `ret` narrowed to
+×0.91 / ×1.09 to keep the purpose axis level on the larger base. The argument
+above for price ("cheap goods invite size-gambling") did not survive a search
+for evidence and has been withdrawn; see F14. The purpose argument stands, at a
+smaller ratio. The gaps are now:
+
+| | Performance (ret ×0.91) | Lifestyle (ret ×1.09) |
+|---|---|---|
+| Value | 63.6% | **87.1%** |
+| Mid | 61.2% | 83.3% |
+| Premium | 56.3% | 75.9% |
+
+Base tier: 75 / 72 / 66, where it was 43 / 32 / 25. The trap is deeper
+everywhere and far less uneven by price: which cell you chose now matters
+mostly through purpose, and through what each return COSTS — a flat ₹200 of
+freight on every refused parcel, against margins that differ 6x.
+
 ### F9. Territory volume is engineered for balance — `OPEN`
 Volume is split 52 / 28 / 20 across Value / Mid / Premium, derived so that each
 tier's *total margin potential* comes out roughly equal — Premium generates about
@@ -1076,6 +1117,16 @@ set was already the stronger of the two, so these gave way. `ret` stays at
 0.85/1.20 — it is the better-argued half of 4.3, and shrinking it would *widen*
 the gap rather than narrow it, because the return modifier currently offsets the
 conversion modifier instead of compounding it.
+
+**`ret` IS NOW 0.91/1.09 (F14), and the reason is the offset argued above.** It
+cancels the conversion modifier, and it was sized to do that at a 20-30% return
+level. When the level rose to the sourced 40-43%, the same 1.41x ratio on a larger
+base over-penalised lifestyle: I3's tilt fell to 0.865 against a 0.9 bound and
+I4's neutral purpose gap reached 14.5% of its 15%. No `CALIBRATE` constant moved
+the tilt — measured at three volumes and two floors. At 0.91/1.09 the tilt is
+1.01, the neutral gap 1.5%, and the realised gap 12.0% (up from 11.2%: the
+widening predicted above, now inside the bound). In points the lifestyle penalty
+barely moved — 8.4 to 7.5 at mid, 7.0 to 7.1 at premium, 10.5 to 7.7 at value.
 
 Flattening the query set was the first plan and was the wrong one. It would have
 asserted that compression leggings and modal lounge pants come back at the same
@@ -1256,6 +1307,13 @@ constant. Three have now been measured on this axis and all three were the wrong
 lever, which is the same lesson G4 records when two `CALIBRATE` tweaks failed to
 shrink the location payoff.
 
+**F14 MADE IT WORSE, and that is recorded rather than regretted.** Narrowing
+`PURPOSE_MODIFIERS.ret` to hold I3 level took lifestyle's net-profit lead from
+1.58x to 1.73x, and lifestyle top rival from 26 to 27 of 30 (a different harness
+from the figures above — see F14 on why those cannot be re-run). The version of
+F14 that would have left `ret` alone penalised lifestyle through returns and hid
+part of this finding by accident. The cause is still the one-way tag spill.
+
 ---
 
 ## G. Things the simulation knows that reality cannot
@@ -1399,7 +1457,8 @@ answer and a third of the market dead ground.
 
 **THE BUDGET DOES NOT MOVE.** Splitting a market into three does not create
 searchers, and `WEEKLY_VOLUME` is pinned in a narrow band anyway — below ~315,000
-I1 fails, above ~375,000 I3 fails. The measured risk runs the other way: the player
+I1 fails, above ~375,000 I3 fails (F14 has since moved that band to
+395,000-460,000, with the floor lowered to 48). The measured risk runs the other way: the player
 already spends 18–20% of their month, and a targeting decision that narrows
 eligibility makes that worse. Budget pressure is also what makes the choice bite;
 if everyone could afford to be everywhere there would be no trade.
@@ -2946,6 +3005,18 @@ the model; it is not what drives the ranking.
 move them past the calibrated bounds, so `AD_RANK_FLOOR` and `WEEKLY_VOLUME` hold.
 That is a result, not a formality — it was expected to need a re-run.
 
+**CORRECTED BY F14: it passed, and it spent two thirds of I3's headroom doing
+so.** The test asserts under 15% and prints nothing when it passes, so nobody saw
+the figure move. Replaying the I3 harness at every commit since it was recorded:
+
+| commit | I3 at 350,000 | at the raised budget |
+|---|---|---|
+| `10fa372` (build 1) | 9.5% | 5.4% |
+| `ce04a04` (this build) | **13.2%** | **11.5%** |
+
+The flat ₹200 of freight lands on value's thin margin, and value fell further
+below the mean. "Passes unchanged" was true and should have carried the number.
+
 **Build 3, agreed and not started:** the player's lever — a prepaid discount, a
 COD fee, or COD off by tier — trading conversion rate against refusals, with
 rivals getting it under R6.
@@ -3117,6 +3188,13 @@ an unknown amount, and the "three others" column is the more overstated of the
 two. And there is a case that photography SHOULD lead: raising conversion rate
 genuinely is the highest-leverage move in performance marketing, because the ad
 spend is fixed either way. 5.4x was "no decision"; 1.5x is arguably the lesson.
+
+**F14 moved this a long way without trying to.** Raising returns to the sourced
+level gave the two returns targets twice as much to act on. On F14's harness
+(not comparable in absolute terms with the table above), per ₹10,000: photography
+0.34 → 0.54, size guide 0.15 → **0.88**, order confirmation 0.05 → 0.65. The size
+guide now beats photography per rupee, and photography is the best single target
+in 4 cells of 6 rather than 5.
 
 **Three things the suite caught that would otherwise have shipped.**
 
@@ -3361,6 +3439,13 @@ a small one.
 The two cells that decline it are the two with the fewest refusals to prevent, so
 the cell-dependence is real but narrow.
 
+**LESS MODEST SINCE F14, without touching the curve.** The return level rose to
+the sourced total, so there are more refusals to prevent everywhere. On F14's
+harness ₹50 is now best in all six cells for +1.2% to +2.7%, where the same
+harness gave ₹30 in five of six for +0.0% to +1.2% before; ₹100 loses only at
+value/performance. Still one lever with one effect — the curve and the rule
+below are unchanged.
+
 **Not strengthened, deliberately.** The obvious way to make it bigger is to let
 it lift conversion rate, which a discount genuinely does and which was excluded
 on purpose so the lever has one effect. Doing that would also make it partly pay
@@ -3374,7 +3459,15 @@ solver. And `submitRound` REJECTS an out-of-range discount rather than clamping
 — a clamp would let a controller ask for ₹500 and be quietly charged for ₹100,
 which is the shape of bug that survives a whole game.
 
-### F14. The engine contradicts itself about returns — `FOUND, not fixed`
+### F14. The engine contradicts itself about returns — `FIXED`
+
+**RESOLVED 2026-09-11, and it took four constants rather than three numbers.**
+The return level is now the total the engine's own DOCUMENTED constants imply,
+and a test holds it there; the price axis was allowed to flatten; and three
+further changes turned out to be forced by the first — `PURPOSE_MODIFIERS.ret`,
+`AD_RANK_FLOOR` and `WEEKLY_VOLUME`. *What shipped* at the end of this entry
+carries every measurement. What follows first is the finding, as recorded before
+anything moved.
 
 **THE BIGGEST OPEN PROBLEM IN THE MODEL, and it was introduced by I28.** Found on
 2026-09-11 by starting to source `POSITION_ECONOMICS`, which is what that
@@ -3481,6 +3574,171 @@ that was the task:
 **The tag stays `INVENTED`** on all of it. Three of the four fields now have
 evidence beside them and one is contradicted, which is more than they had, but
 none has a citation tight enough to call `DOCUMENTED`.
+
+#### What shipped
+
+| | was | is | tag |
+|---|---|---|---|
+| `POSITION_ECONOMICS.returnRate` | 0.30 / 0.24 / 0.20 | **0.427 / 0.417 / 0.396** | object stays `INVENTED`; the level is pinned to the DOCUMENTED chain |
+| `PURPOSE_MODIFIERS.ret` | 0.85 / 1.20 | **0.91 / 1.09** | `INVENTED` |
+| `AD_RANK_FLOOR` | 60 | **48** | `CALIBRATE` |
+| `WEEKLY_VOLUME` | 350,000 | **430,000** | `CALIBRATE` |
+| `ASSUMED_RETURN_RATE` (policy, C7) | 0.25 | **0.40** | policy number |
+
+Plus the round 0 briefing: *"About two in five orders come back category-wide,
+counting parcels refused at the door as well as those sent back. Price barely
+changes how often; it changes how much each one costs you."*
+
+**THE PRICE QUESTION WAS SETTLED BY ACCEPTING THE FLATTENING.** Giving
+`POST_DELIVERY_RETURN_RATE` a per-tier shape would have put an invented shape
+inside a DOCUMENTED constant — the exact thing this entry is about. And the
+evidence does not support the old story: the only breakdown by order value found
+is flat (RTO 25 / 28 / 24%), what is quoted about post-delivery returns by price
+leans the other way (luxury 18-30%, a high price leaving less tolerance for a
+mismatch), and "the size guide is better" gave premium for free a capital target
+every tier can buy. So the `POSITION_ECONOMICS` comment was rewritten rather than
+the data bent: cheap goods do not come back much more often; each one that does
+costs more, because ₹200 of freight is 42% of value's margin and 7% of premium's.
+
+**THE PIN.** `constants.test.js` computes, for each price tier, refusals on its
+own cash mix plus `POST_DELIVERY_RETURN_RATE` of what is delivered, weighted by
+where that tier's searches are, and holds `returnRate` × the mean purpose
+modifier to it within half a point. Mutation-tested three ways — `RTO_RATE_COD`
+0.26, `POST_DELIVERY_RETURN_RATE` 0.35, premium's `returnRate` 0.20 — and it
+fires on each. `ret` averages exactly 1.0 by design, so nothing is back-solved.
+
+**EACH FURTHER CHANGE WAS FORCED BY THE ONE BEFORE, AND EACH WAS MEASURED.**
+
+1. **Option 1 as written failed I3 three ways, and no `CALIBRATE` constant
+   could fix it.** The same 1.41x purpose ratio on a 40% base over-penalised
+   lifestyle. Measured with the replica of the I3 harness:
+
+   | | I3 worst | spread | lifestyle ÷ performance | I4 neutral gap |
+   |---|---|---|---|---|
+   | before | 13.2% | 1.23 | 0.998 | 3.3% |
+   | option 1 | **21.1%** | **1.45** | **0.865** | 14.5% |
+   | option 1, volume 320,000 | **18.2%** | **1.37** | **0.860** | 14.5% |
+   | option 1, floor 30 | 12.3% | 1.25 | **0.859** | 14.5% (I1 breaks) |
+
+   The tilt sat at 0.86 whatever the volume or floor. `ret` narrowed to
+   0.91/1.09 — see F11 — and the tilt went to 1.01.
+
+2. **At 350,000 that passed I3 by 0.6 points**, so 330,000 was chosen first.
+
+3. **Then the rival prior made two rivals go dark.** Moving
+   `ASSUMED_RETURN_RATE` to the briefing's 0.40 is correct — real ceilings fell
+   20-30% — but `AD_RANK_FLOOR` is a fixed price and did not move, so relative
+   to every ceiling it became a quarter stricter. Played, 12 rounds, the twelve
+   seeds `setup.test.js` uses:
+
+   | | rivals with a dark week | DIY player on `disciplined`, week 1 |
+   |---|---|---|
+   | before F14 | 0 | trades |
+   | F14 constants, prior 0.25 | 0 | trades |
+   | F14 constants, prior 0.40 | **14, on 10 of 12 seeds** — both `cautious` seats, 1-4 weeks | **0 impressions** |
+
+   Caught by `setup.test.js`'s guard that every rival clears the reserve —
+   exactly what it was written for, after a rival once showed in nothing for
+   twelve rounds. Four ways out were put to the user: loosen the guards, make
+   `cautious` braver, keep the prior at 0.25, or move the reserve. **The reserve
+   moved**, because leaving it put was itself a change: A8 and B1 record raising
+   it as regressive, and that is what standing still did.
+
+4. **A lower reserve moved the volume window.** In a thin auction the reserve is
+   the price, so cheaper clicks need more searches before a budget binds.
+   Measured on the repo:
+
+   | volume | I1 spend | I1 lostToBudget | I3 worst | |
+   |---|---|---|---|---|
+   | 330,000 | 0.857 | 0.0% | 6.0% | I1 fails |
+   | 400,000 | 1.000 | 3.8% | 7.5% | |
+   | **430,000** | 1.000 | 10.5% | 11.3% | |
+   | 460,000 | 1.000 | 16.3% | 14.9% | I3 at its bound |
+   | 500,000 | 1.000 | 23.0% | 19.6% | I3 fails |
+
+   The window moved from about 315,000-375,000 to 395,000-460,000. Both
+   jaw tests in `calibration.test.js` moved with it — the lower probe from
+   225,000, which after F14 sat so far below the window it tested nothing, to
+   330,000; the upper from 400,000, which now sits inside, to 500,000.
+
+**CALIBRATION, BEFORE AND AFTER**
+
+| | before | after |
+|---|---|---|
+| I1 lostToBudget | 12.0% | 10.5% |
+| I2 median CPC against value's realised ceiling | ₹20.02 / ₹34.56 | ₹15.84 / ₹28.22 |
+| I3 worst / raised budget | 13.2% / 11.5% | **11.3% / 7.8%** |
+| I3 lifestyle ÷ performance | 0.998 | 1.012 |
+| I4 purpose gap, neutral / realised | 3.3% / 11.2% | 1.5% / 12.0% |
+| I4 price, premium ÷ value (neutral) | 2.63x | 2.47x |
+
+I3 ends with MORE headroom than it started with. The three location tables were
+not retuned: I3 passes with them unchanged, and `locationEffects` centres each
+position on its own country, so a change of level passes through them. G4's own
+payoff figures could not be re-measured — see the harness finding below.
+
+**WHAT IT DID TO PLAYED GAMES.** One harness, run before and after: 30 markets
+with a passive `mid|performance` player for the market figures, and 6 cells × 3
+seeds for the player's own account. Absolute figures are this harness's and are
+NOT comparable to earlier entries; the direction of each change is the finding.
+
+| | before | after |
+|---|---|---|
+| returns across the market | 22.4% | **34.2%** |
+| freight as a share of net profit | 3.7% | 6.9% |
+| market net profit per game | ₹66.6L | ₹62.3L (−6.5%) |
+| market gross profit per game | ₹98.1L | ₹124.3L (more clicks: 281k → 334k) |
+| market spend / net ROAS | ₹42.3L / 5.16 | ₹42.2L / 5.08 |
+| lifestyle ÷ performance, net profit (F13) | 1.58x | **1.73x** |
+| lifestyle top rival, net | 26 of 30 | 27 of 30 |
+| capital per ₹10,000: photography / size guide / order confirmation / page | 0.34 / 0.15 / 0.05 / 0.18 | 0.54 / **0.88** / 0.65 / 0.20 |
+| best single capital target | photography in 5 of 6 cells | photography in 4, size guide in 2 |
+| best prepaid discount | ₹30 in 5 of 6, +0.0-1.2% | **₹50 in 6 of 6, +1.2-2.7%** |
+
+Two of those are gains nobody set out to buy. **The returns levers caught up
+with photography** — per rupee the size guide now beats it, which is most of
+what I30 left open. And **the prepaid discount became a decision** rather than a
+slider with an obvious answer (I34), because there is now twice as much to
+prevent.
+
+**F13 IS VISIBLY WORSE, AND THAT IS THE HONEST OUTCOME.** Option 1 as written
+would have taken lifestyle's profit down through returns, partly cancelling the
+cheaper clicks F13 is about — two wrongs making a smaller one. Holding I3 level
+removed that accidental offset. F13's cause is broad match spilling one way
+across the tags, and it should be fixed there.
+
+**THREE THINGS IT FOUND THAT WERE WRONG BEFORE IT STARTED.**
+
+- **I3 had drifted from 9.5% to 13.2% and nobody knew.** Replaying the harness
+  at every economics commit since it was recorded puts the whole move at
+  `ce04a04`, I28 build 2. I28 is corrected in place. The test asserts under 15%
+  and prints nothing when it passes — a passing invariant is not a measurement.
+- **The briefing's worked anchor was a hard-coded string**: "₹2,400 x 52% x 76%
+  x 2.8% = ₹26.56". This change would have left the engine computing ₹20.37
+  under a sentence saying ₹26.56, and `setup.test.js` would have stayed green —
+  it asserted the string contained "26.56". The sentence is built from the
+  constants now, and the test checks the words against the fields.
+- **F13, I30 and G4 cannot be re-run, because none recorded its harness.**
+  The replica used here reproduces the calibration figures EXACTLY at the
+  commits where they were written (9.5 / 17.0 / 5.3%) and I34's discount ranking
+  roughly. Against F13's recorded 1.55x / 1.27x / 28 of 30 it gives 1.69x /
+  1.79x / 27 — identically at F13's own commit and at HEAD, so the engine did
+  not move them and the difference is the unrecorded player setup. I30's and
+  G4's figures depend on a player account that was never written down either.
+  The comparison above is therefore before-and-after on one harness, which is
+  the only claim it makes.
+
+**RECORDED AND NOT FIXED: THE LOCATION GRADIENT SITS ON THE WRONG HALF.** The
+sourced chain is nearly flat by location (towns 1.04-1.06x the metros) because
+`POST_DELIVERY_RETURN_RATE` and the RTO pair are single figures. There the
+flatness is known to be wrong — tier-3 RTO is quoted at 3-5x the metros, far more
+than the cash mix explains — which is why `LOCATION_RETURN_MULTIPLIER` carries a
+1.5x gradient. But it multiplies the WHOLE total, and the refused/sent-back split
+is applied afterwards, so send-backs also come out 1.36-1.40x higher in the
+towns. That is arithmetic from `round.js` rather than an observation in play,
+and it contradicts I28's measured *"the send-back rate is flat"* — which was
+measured on an earlier COD table. The evidence says the gradient belongs on
+refusals. Not touched here: F14 was already four constants.
 
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 

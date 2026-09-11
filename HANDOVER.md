@@ -12,18 +12,27 @@ still resting on a guess.
 
 ## Where we are
 
-**Every build-order step is done, and the location mechanic with them.** 1348 tests, all passing, 1 todo.
+**Every build-order step is done, and the location mechanic with them.** 1350 tests, all passing, 1 todo.
 
-**The returns model is the newest thing here and the least settled** (I28-I34,
-all 2026-09-10). It was one number — `returnRate` — and is now a chain of six:
-price tier, purpose, the search's own multiplier, where it was bought, which half
-of the return it is, and what capital and a prepaid discount do to each half. It
-is the only part of the engine with a shipping cost in it, and the only one whose
+**The returns model is the newest thing here** (I28-I34, 2026-09-10, and F14,
+2026-09-11). It was one number — `returnRate` — and is now a chain of six: price
+tier, purpose, the search's own multiplier, where it was bought, which half of
+the return it is, and what capital and a prepaid discount do to each half. It is
+the only part of the engine with a shipping cost in it, and the only one whose
 constants are mostly `DOCUMENTED` rather than invented. Read I28 before touching
 it: the safety property it was built on — *a split of a fixed total* — is exactly
-what made a later change silently impossible, and then produced **F14**, where the
-engine's invented `returnRate` contradicts its own sourced constants. F14 is the
-top open item and option 1 is chosen.
+what made a later change silently impossible, and then produced F14.
+
+**F14 IS FIXED, AND IT MOVED THE WHOLE MARKET.** The invented `returnRate`
+(30 / 24 / 20%, meaning post-delivery returns only) contradicted the engine's own
+sourced constants, which imply 42.7 / 41.7 / 39.6% for every kind of return. It
+now equals them and a test holds it there. Three more constants had to follow,
+each forced by the one before and each measured: `PURPOSE_MODIFIERS.ret` 0.85/1.20
+→ 0.91/1.09 (or I3's purpose tilt broke), `AD_RANK_FLOOR` 60 → 48 (or two rivals
+went dark), `WEEKLY_VOLUME` 350,000 → 430,000 (or budgets stopped binding). Returns
+across a played market went 22% → 34%. **Every absolute figure measured before
+2026-09-11 in this file describes the old market** — the directions mostly
+survive, the numbers do not. F14's *What shipped* has the before-and-after.
 
 **74% of the model's constants are `INVENTED`** — 59 of 80, against 8
 `DOCUMENTED`, 8 `ESTIMATED` and 5 `CALIBRATE`. Roughly 25 of the 59 are
@@ -126,14 +135,17 @@ search terms report defaults to every week played* (−₹5,796, reproduced to 1
 Two different week 3s, both real, and only the second one is replayable.
 
 All five calibration invariants pass. Neither `CALIBRATE` constant moved without
-argument:
+argument, and both moved in F14:
 
 | | value | why it is where it is |
 |---|---|---|
-| `AD_RANK_FLOOR` | 60 | Raising it is regressive. A flat reserve takes the same absolute paise from every cell — a small bite out of Premium's ceiling, a fatal one out of Value's. Floor 150 takes I3 from 2.8% to 50.8%; 250 wipes the Value tier out. |
-| `WEEKLY_VOLUME` | 350000 | Pinned from both sides. Below ~315,000 I1 fails — a competently covered advertiser cannot exhaust its month. Above ~375,000 I3 fails — the flat budget cap bites unequally across break-evens differing 2.7x. |
+| `AD_RANK_FLOOR` | 48 (was 60) | Raising it is regressive. A flat reserve takes the same absolute paise from every cell — a small bite out of Premium's ceiling, a fatal one out of Value's. Floor 150 took I3 from 2.8% to 50.8%; 250 wiped the Value tier out. **Standing still is raising it** when every ceiling falls, which is why F14 moved it: at 60 after the return level rose, both `cautious` rivals went dark for up to four weeks. |
+| `WEEKLY_VOLUME` | 430000 (was 350000) | Pinned from both sides. Below ~395,000 I1 fails — a competently covered advertiser cannot exhaust its month. Above ~460,000 I3 fails — the flat budget cap bites unequally across break-evens differing 2.5x. **The two are read together**: a lower floor means cheaper clicks, which take more searches to exhaust a budget. |
 
-I3 sits at **2.8% worst deviation, 1.05x spread** against a 15% target.
+I3 sits at **11.3% worst deviation, 1.19x spread** against a 15% target, 7.8% at
+the raised budget. It had drifted to 13.2% after I28 build 2 without anybody
+seeing it, because a passing invariant prints nothing — the 2.8% above predates
+the location mechanic and freight.
 
 ---
 
@@ -578,6 +590,13 @@ A session spent measuring rather than building produced four findings, and three
 of them were **defects in the measurements themselves**. That is the pattern
 worth carrying: in this project a wrong number is far more likely than a wrong
 feature, and it never announces itself.
+
+> **Every rupee and percentage in this section predates F14** (2026-09-11), which
+> raised returns across the market from 22% to 34% and moved the reserve and the
+> weekly volume with them. The LESSONS are unaffected — they are about how
+> measurements go wrong. The figures are a record of the old market and should
+> not be quoted as current. None of them has been re-run, and several cannot be:
+> see *Record the harness* under *Writing a measurement harness*.
 
 ### `advertiser.policyId` was dead, so every rival stood still
 
@@ -1225,42 +1244,30 @@ open item below.
 
 ## Still open
 
-**The one at the top is where I would start. It is a defect rather than a
-feature, it was introduced by the most recent engine work, and it is the reason
-sourcing a constant is worth doing at all.**
+**Deployment is where I would start** — it is the only way anybody but the
+person who built this gets to play it, and it needs no code changes. Then F13,
+which F14 made visibly worse and which needs a decision rather than more
+measurement.
 
-- **THE ENGINE CONTRADICTS ITSELF ABOUT RETURNS (F14), and this is now the top
-  item.** `POSITION_ECONOMICS.returnRate` was authored as POST-DELIVERY returns —
-  its comment says "price shoppers order two sizes meaning to return one" and
-  nothing about refusals. I28 split it as though it already contained refusals
-  and held the total fixed, so a number meaning one thing was silently redefined
-  as another without changing its magnitude.
+- ~~The engine contradicts itself about returns (F14).~~ **Fixed 2026-09-11.**
+  The price question was settled by accepting the flattening — nothing sourced
+  supports returns rising at the cheap end, and the one breakdown by order value
+  found is flat. The three-number change turned out to need four constants; F14
+  records why each was forced and what each measured.
 
-  The engine's own DOCUMENTED constants say what the total should be, and every
-  figure it actually uses is understated by 30% to 100%:
+  **What it left behind, for whoever is next:**
 
-  | cell | model total | sourced total |
-  |---|---|---|
-  | value | 30.0% | **42.7%** |
-  | mid | 24.0% | **41.7%** |
-  | premium | 20.0% | **39.6%** |
-
-  **This is not a benchmark disagreement — it is an INVENTED constant
-  disagreeing with the DOCUMENTED ones beside it.**
-
-  **OPTION 1 IS CHOSEN: raise `returnRate` to the sourced total and
-  recalibrate.** Two things measured after that decision, both in F14. The split
-  ratio is ALREADY correct, so only the level moves — a three-number change
-  (0.417 / 0.407 / 0.387) plus a calibration run, not a re-derivation. But it
-  flattens the price axis from 1.5x to 1.08x and makes
-  `POSITION_ECONOMICS`'s own comment about price shoppers largely false — and
-  that flatness is probably an artefact of `POST_DELIVERY_RETURN_RATE` being a
-  single tier-blind figure rather than evidence that returns really are flat.
-  **Settle that before pasting the numbers in.**
-
-  Fixing it nearly doubles returns and invalidates every measured number under
-  *What measuring it found*, so it needs a session with a measurement at each
-  step — not a quick edit.
+  - **The location gradient sits on the wrong half of a return.**
+    `LOCATION_RETURN_MULTIPLIER` multiplies the whole total, so send-backs come out
+    1.36-1.40x higher in the towns as well as refusals. The evidence says it is
+    refusals that climb outside the metros (tier-3 RTO 3-5x), and I28 once measured
+    send-backs flat. Arithmetic from `round.js`, not yet seen in play. Recorded in
+    F14, not touched.
+  - **The design canvas quotes the old market.** `design/*.dc.html` still shows
+    ₹26.56 at 76% retention, and returns of 24% for mid. They are artboards, not
+    code, so nothing breaks — but they would teach the old numbers to anyone
+    building from them.
+  - **F13 is now 1.73x**, from 1.58x on the same harness. See F13's F14 note.
 
 - **Deployment, a database and a backend are planned, in that order** (agreed
   2026-09-08, nothing started). The project has none of the four — no backend, no
@@ -1807,6 +1814,36 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   something else** — whatever it says about your change. Two separate wrong
   conclusions this session were caught by exactly that check and by nothing
   else.
+- **Record the harness, not just the result.** F14 wanted to re-measure F13, I30
+  and G4 and could not: none of them wrote down the player account it was
+  measured on, so no replica could be checked against them. F14's own, so the
+  next session can reproduce it: `startGame` on `content/querySet.js`,
+  `BRAND_IDENTITIES[0]` as the player on an agency writer, the six
+  highest-volume queries of the cell as PHRASE keywords bid at 0.7 x
+  `realisedBreakEvenCpcPaise`, a controller that returns null every round except
+  round 5, where it returns `{ capex: {...} }` explicitly (an omitted round-5
+  allocation is lost, not rolled in), rivals on `controllerFor(policyId)`,
+  `mode: 'expected'`, totals from `gameTotals(finalState.history, id).all`.
+  Market figures: 30 seeds (1-30), player on `mid|performance`. Account
+  figures: seeds 1-3 in each of the six cells.
+- **A passing invariant is not a measurement.** `calibration.test.js` asserts
+  under 15% and prints nothing, so I3 drifted from 9.5% to 13.2% across I28
+  without anybody seeing. To find where a number moved, `git archive <commit>
+  engine content tests/fixtures agents game.js | tar -x -C <dir>` into the
+  scratchpad for each commit and run the same replica against every snapshot —
+  it found the whole move in one commit on the first pass.
+- **A constant change can be measured before it is made.** `POSITION_ECONOMICS`
+  and `PURPOSE_MODIFIERS` are plain objects read at call time, so a harness can
+  set them in memory — then read `businessFor` back to prove it took. Primitive
+  constants (`AD_RANK_FLOOR`, `WEEKLY_VOLUME`) cannot be reassigned from outside;
+  copy the tree into a snapshot and edit the copy. Weekly volume reaches a game
+  through `querySet.weeklyVolume`, so it can also be overridden there.
+- **Whole games are fast in node.** About 3 seconds each — the 30-60 second
+  rounds in *Playing it to the end* are the browser. On worker threads, 90 games
+  take about 90 seconds on this machine. Terminate the workers when the pool is
+  done or the process waits forever with nothing to do, which looks exactly
+  like a hung engine. And never run `npm run test:perf` while a pool is busy: it
+  failed at 2,902ms under load and passed at idle.
 
 ### The one that will cost you an afternoon
 

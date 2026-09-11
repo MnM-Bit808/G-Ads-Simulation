@@ -123,14 +123,23 @@ The two axes do different jobs, and must not be allowed to do each other's:
 | `aovMeanPaise` | 120000 | 240000 | 480000 |
 | `marginPct` | 0.40 | 0.52 | 0.62 |
 | `convRateBase` | 0.042 | 0.028 | 0.016 |
-| `returnRate` | 0.30 | 0.24 | 0.20 |
+| `returnRate` | 0.427 | 0.417 | 0.396 |
 | `aovSpread` | 0.35 | 0.35 | 0.35 |
 | `returnWindowRounds` | 2 | 2 | 2 |
 
 The internal logic: cheap things convert well because the decision is near-impulse,
-but the margin has been competed away and price shoppers size-gamble. Expensive
-things are considered purchases — slow to convert, high margin, fewer returns
-because the size guide is better and the buyer is committed.
+but the margin has been competed away. Expensive things are considered purchases —
+slow to convert, high margin.
+
+**`returnRate` is every return, and it is not invented** (amended by `DECISIONS.md`
+F14). It was 0.30 / 0.24 / 0.20, authored as returns after delivery and then
+treated as the total when refusals at the door were modelled — so the engine's own
+DOCUMENTED constants contradicted it by 30% to 100%. It is now the total those
+constants imply: RTO at 20.9% on cash and 5.8% prepaid, on each tier's cash mix,
+then 30% of whatever was delivered. A test holds the two together. Returns barely
+vary by price as a result, and that is the sourced position: the one breakdown by
+order value found is flat, and nothing found supports "price shoppers size-gamble".
+What price decides is what a return **costs**.
 
 ### 4.3 Purpose modifiers
 
@@ -139,7 +148,7 @@ Applied on top of the price tier. `INVENTED`.
 | | Performance | Lifestyle |
 |---|---|---|
 | conversion x | 0.94 | 1.06 |
-| return rate x | 0.85 | 1.20 |
+| return rate x | 0.91 | 1.09 |
 
 Performance goods are bought on stated specs — they either do the job or they
 don't, and mostly they do. Lifestyle goods are bought on appearance, and *how it
@@ -151,10 +160,15 @@ territory has genuinely bigger baskets (it is full of co-ord sets) and genuinely
 fewer returns (oversized and modal fit anybody; compression and high-impact do
 not). Both are per-query and argued. Applying a blunt modifier on top of them
 put the *realised* purpose gap at 12.2 / 17.0 / 20.5%, through I4's bound in two
-rows out of three — invisible, because I4 read only this table. The return
-modifier stays: it is the half the query set reinforces rather than duplicates,
-and shrinking it would widen the gap rather than narrow it. See `DECISIONS.md`
+rows out of three — invisible, because I4 read only this table. See `DECISIONS.md`
 F11.
+
+**The return modifier was 0.85/1.20 and narrowed with F14.** It exists to offset
+the conversion modifier, and it was sized at a 20-30% return level. At the
+sourced 40-43% the same ratio over-penalised lifestyle — I3's purpose tilt fell
+to 0.865 against a 0.9 bound — and no calibration constant could move it. In
+percentage points the lifestyle penalty is nearly what it was; the two values
+average exactly 1.0, so 4.2's `returnRate` is the sourced total unadjusted.
 
 ### 4.4 What each position can pay
 
@@ -176,9 +190,9 @@ alone, for a query whose every multiplier is 1 at an hour of average intent:
 
 | | Performance | Lifestyle |
 |---|---|---|
-| **Value** | 1412 paise | 1368 paise |
-| **Mid** | 2615 paise | 2637 paise |
-| **Premium** | 3715 paise | 3836 paise |
+| **Value** | 1159 paise | 1142 paise |
+| **Mid** | 2038 paise | 2020 paise |
+| **Premium** | 2863 paise | 2869 paise |
 
 **Nobody buys that query.** What an advertiser buys is its own territory, and by
 construction (7.1, `homeCell`) territory is exactly the set where *both* of its
@@ -193,12 +207,15 @@ the round 0 briefing (17.2) and the test fixtures quote:
 
 | | Performance | Lifestyle | gap |
 |---|---|---|---|
-| **Value** | 3456 paise | 3577 paise | +3.5% |
-| **Mid** | 6105 paise | 6589 paise | +7.9% |
-| **Premium** | 8327 paise | 9261 paise | +11.2% |
+| **Value** | 2822 paise | 2998 paise | +6.2% |
+| **Mid** | 4714 paise | 5092 paise | +8.0% |
+| **Premium** | 6212 paise | 6956 paise | +12.0% |
 
-Note the intended property: **the purpose axis moves break-even by under 12%
-within a price row, while the price axis moves it 2.7x top to bottom.** If a
+(All three tables moved with F14: the return level rose to the sourced total and
+the return modifier narrowed. They were 1412-3836 neutral and 3456-9261 realised.)
+
+Note the intended property: **the purpose axis moves break-even by under 13%
+within a price row, while the price axis moves it 2.2 to 2.5x top to bottom.** If a
 change to the constants *or to the query set* breaks that property, the axes have
 started doing each other's job. **I4 must be checked against the realised table**
 — checking only the neutral one is how a 20.5% purpose gap went unseen.
@@ -215,13 +232,14 @@ not per row — no advertiser occupies a row:
 
 | | Performance | Lifestyle |
 |---|---|---|
-| **Value** | +34.2% | **+56.3%** |
-| **Mid** | +25.6% | +40.4% |
-| **Premium** | +20.5% | +31.6% |
+| **Value** | +63.6% | **+87.1%** |
+| **Mid** | +61.2% | +83.3% |
+| **Premium** | +56.3% | +75.9% |
 
 That gap is the section 14 trap. It is widest at Value-Lifestyle, which is the
 worst place on the grid to optimise to gross, and narrowest at
-Premium-Performance, where it still costs a fifth.
+Premium-Performance, where it still costs more than half. Before F14 it ran
++20.5% to +56.3%; the level rose and the spread by price nearly vanished.
 
 ### 4.5 Position is fixed, with one exception
 
@@ -441,7 +459,7 @@ whole game and frozen as a test fixture.
 {
   schemaVersion: '0.3',
   generatedFrom: 'Athleisure D2C brand, India...',
-  weeklyVolume: 350000,                 // absolute searches per week
+  weeklyVolume: 430000,                 // absolute searches per week (WEEKLY_VOLUME)
   tagVocabulary: ['leggings','gym','seamless','price-sensitive', /* ~40-60 */ ],
   queries: [{
     id: 'q_017',
@@ -1409,7 +1427,9 @@ Show what a real founder could research. Withhold what you only learn by operati
 - typical order values and margins for all three tiers — competitor prices are on
   their websites; apparel margin norms are common knowledge
 - **one fully worked anchor**, mid-market, with the arithmetic visible:
-  `₹2,400 x 52% x 76% x 2.8% = ₹26.56 on an average search`
+  `₹2,400 x 52% x 58.3% x 2.8% = ₹20.37 on an average search` — built from the
+  constants, never typed (it was a literal reading ₹26.56 at 76%, and would have
+  gone on saying so after F14 moved the return level under it)
 - **and the sentence that makes it usable**: *"that is what a search worth
   nothing in particular is worth to you. The searches you choose to compete for
   are worth appreciably more — roughly double — which is the entire reason
@@ -1418,8 +1438,8 @@ Show what a real founder could research. Withhold what you only learn by operati
 - the month-3 ranking rule, stated in full (13.1)
 
 **The second bullet is not optional.** The worked anchor is the neutral-query
-figure from 4.4, and every advertiser's real ceiling is about 2.4x it. A player
-handed ₹26 and no warning bids ₹26, loses every auction, and concludes the
+figure from 4.4, and every advertiser's real ceiling is 2.2 to 2.6x it. A player
+handed ₹20 and no warning bids ₹20, loses every auction, and concludes the
 arithmetic they were taught does not work. Giving the direction and rough size
 without the exact multiplier keeps the affinities withheld (C4) while leaving the
 player able to reason. The precise figure is earned by running the keyword.
@@ -1428,16 +1448,18 @@ player able to reason. The precise figure is earned by running the keyword.
 
 - conversion rates for Value and Premium — *"cheaper products convert more often; a
   ₹4,800 decision is researched, compared and slept on"*
-- return rate variation — *"about a quarter of orders category-wide, higher at the
-  cheap end where people order two sizes, lower at the premium end"*
+- return rate variation — *"about two in five orders come back category-wide,
+  counting parcels refused at the door as well as those sent back. Price barely
+  changes how often; it changes how much each one costs you."* (F14; it used to
+  say a quarter, higher at the cheap end, which nothing sourced supports)
 - everything in 4.2 and 4.3 as numbers
 - the statistical consequence of a low conversion rate — Premium's real problem
   (12.2) must be discovered, not read off a card
 
 The intended experience: break-even has four inputs, the player is handed two plus
 a fully worked example, and must estimate the other two. Then weigh a high ceiling
-on thin volume (Premium: 70,000 searches) against a low ceiling on thick volume
-(Value: 182,000). By design the answer is *about the same* — so the real
+on thin volume (Premium: 86,000 searches) against a low ceiling on thick volume
+(Value: 223,600). By design the answer is *about the same* — so the real
 differentiator is the risk they cannot see.
 
 ### 17.3 Replayable round 0
@@ -1497,8 +1519,9 @@ RIVAL_PLACEMENT_CONSTRAINTS
 TAG_VOCABULARY
 
 // CALIBRATE — provisional, governed by 18.2
-AD_RANK_FLOOR
-WEEKLY_VOLUME = 350000
+AD_RANK_FLOOR = 48          // was 60 until F14
+WEEKLY_VOLUME = 430000      // was 350000 until F14
+LOCATION_VOLUME_BY_PRICE, LOCATION_RETURN_MULTIPLIER, LOCATION_AOV_MULTIPLIER  // G4
 ```
 
 Deleted from v0.2: `QUALITY_WEIGHTS` and `EXTENSIONS_IMPACT`, both orphans no
@@ -1519,17 +1542,22 @@ binds, and the entire section 13 scheme does nothing. This is what governs
 below — too small and the budget never binds — so `WEEKLY_VOLUME` could have
 been set arbitrarily large and I1 would have stayed green. **I3 is the other
 jaw:** a bigger market puts more cells against their budget cap, and that cap is
-flat while break-evens differ 2.7x top to bottom, so it bites unequally and
+flat while break-evens differ 2.5x top to bottom, so it bites unequally and
 positions stop balancing.
 
 | weekly volume | I1 spend | I1 `lostToBudget` | I3 worst deviation | |
 |---|---|---|---|---|
-| 225,000 | 0.730 | 0.0% | 2.8% | I1 fails |
-| 315,000 | 1.000 | 2.2% | 3.7% | |
-| 350,000 | 1.000 | 12.0% | 9.5% | both hold |
-| 400,000 | 1.000 | 23.0% | 17.0% | I3 fails |
+| 330,000 | 0.857 | 0.0% | 6.0% | I1 fails |
+| 400,000 | 1.000 | 3.8% | 7.5% | |
+| 430,000 | 1.000 | 10.5% | 11.3% | both hold |
+| 460,000 | 1.000 | 16.3% | 14.9% | I3 at its bound |
+| 500,000 | 1.000 | 23.0% | 19.6% | I3 fails |
 
-`WEEKLY_VOLUME` sits in that window rather than above a single floor.
+`WEEKLY_VOLUME` sits in that window rather than above a single floor. **The
+window is not fixed**: F14 moved it from about 315,000-375,000 to
+395,000-460,000, because lowering `AD_RANK_FLOOR` makes clicks in a thin auction
+cheaper, and cheaper clicks take more searches to exhaust a budget. The two
+`CALIBRATE` constants have to be read together.
 
 **The "running alone" clause was added after `round.js` first ran.** The
 original wording asked that *every* advertiser exhaust its budget
@@ -1542,9 +1570,14 @@ not market size, and would push `WEEKLY_VOLUME` up to compensate for something
 volume cannot fix.
 
 **I2 — The market must be affordable.** Median CPC across the game must sit below
-the Value tier's net break-even (~1352 paise) for a competently run Value account.
-If it does not, the cheapest position is unplayable and the grid collapses to two
-tiers. This is what governs `AD_RANK_FLOOR`.
+the Value tier's realised net break-even (2822 paise since F14) for a competently
+run Value account. If it does not, the cheapest position is unplayable and the
+grid collapses to two tiers. This is what governs `AD_RANK_FLOOR`.
+
+**And the floor has to follow the ceilings.** A reserve is a fixed price. When F14
+raised the return level and every ceiling fell 20-30%, leaving it at 60 made it a
+quarter stricter relative to all of them, and the weakest rival ads went dark for
+up to four weeks. It moved to 48 with them.
 
 **I3 — Positions must balance.** **Six advertisers, one per cell, identical in
 every respect except position — including identical keyword coverage** — must
