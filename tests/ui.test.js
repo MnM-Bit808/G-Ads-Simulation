@@ -20,7 +20,11 @@ import { FORBIDDEN_IN_PUBLIC_VIEW } from '../engine/insights.js';
  */
 
 const UI = fileURLToPath(new URL('../ui/', import.meta.url));
-const source = readdirSync(UI)
+// Every module under ui/, folders included. It used to read only the top
+// level, so the guards below would never have reached ui/words/ or ui/guide/,
+// which hold the sentences most likely to quote something withheld.
+const source = readdirSync(UI, { recursive: true })
+  .map((f) => f.split('\\').join('/'))
   .filter((f) => f.endsWith('.js'))
   .map((f) => ({ file: f, text: readFileSync(join(UI, f), 'utf8') }));
 
@@ -194,6 +198,9 @@ describe('every interface module at least loads', () => {
     'india-map.js': () => import('../ui/india-map.js'),
     'save.js': () => import('../ui/save.js'),
     'recorder.js': () => import('../ui/recorder.js'),
+    'words/line.js': () => import('../ui/words/line.js'),
+    'words/returns.js': () => import('../ui/words/returns.js'),
+    'guide/chapters.js': () => import('../ui/guide/chapters.js'),
   };
 
   test('the list of modules to load is complete', () => {

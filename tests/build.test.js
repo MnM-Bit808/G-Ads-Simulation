@@ -27,7 +27,9 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 import { siteFiles, buildSite } from '../scripts/build-site.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const RUNTIME = /^(ui|engine|content|agents)\/[^/]+\.(js|html|css)$|^(setup|game)\.js$/;
+// ui/ alone may hold one level of folders: ui/words/ carries the screens'
+// sentences (stage C1) and is loaded by the game like any other module.
+const RUNTIME = /^(ui|engine|content|agents)\/[^/]+\.(js|html|css)$|^ui\/[a-z]+\/[^/]+\.js$|^(setup|game)\.js$/;
 
 describe('the site holds what the game loads', () => {
   const files = siteFiles(ROOT);

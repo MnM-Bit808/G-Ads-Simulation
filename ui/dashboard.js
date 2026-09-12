@@ -29,6 +29,7 @@ import {
 import { rankOf } from './ending.js';
 import { renderTrends } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
+import { RETURNS } from './words/returns.js';
 import { tagKeywordOffline } from '../agents/keywordTagger.js';
 import {
   MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH, DEFAULT_UNGRADED_QUALITY,
@@ -393,8 +394,10 @@ function renderReturns(root, game) {
   const freightAll = sum(weeks, (w) => w.freightPaise);
 
   if (settled.length === 0) {
-    note.textContent = 'Nothing has settled yet. A click is final about five weeks '
-      + `after it happens, so the first honest reading of this card is week ${SETTLES_AFTER_ROUNDS + 1}.`;
+    note.textContent = RETURNS.nothingSettled({
+      settlesAfter: SETTLES_AFTER_ROUNDS,
+      firstHonestWeek: SETTLES_AFTER_ROUNDS + 1,
+    });
     return;
   }
 
@@ -427,17 +430,16 @@ function renderReturns(root, game) {
 
   add(
     figures,
-    figure('Came back', pct(rate(refused + sentBack), 1),
-      `${whole(refused + sentBack)} of ${whole(conv)} orders`),
-    figure('Refused', pct(rate(refused), 1), `${whole(refused)} never delivered`,
+    figure(RETURNS.cameBack(), pct(rate(refused + sentBack), 1),
+      RETURNS.cameBackSub({ returned: whole(refused + sentBack), orders: whole(conv) })),
+    figure(RETURNS.refused(), pct(rate(refused), 1), RETURNS.refusedSub({ refused: whole(refused) }),
       rate(refused) > 0.08 ? 'neg' : null),
-    figure('Sent back', pct(rate(sentBack), 1), `${whole(sentBack)} after delivery`),
-    figure('Freight paid', rupees(freightAll),
-      `${rupees(RTO_FREIGHT_PAISE)} a parcel, every week`),
+    figure(RETURNS.sentBack(), pct(rate(sentBack), 1), RETURNS.sentBackSub({ sentBack: whole(sentBack) })),
+    figure(RETURNS.freight(), rupees(freightAll),
+      RETURNS.freightSub({ perParcel: rupees(RTO_FREIGHT_PAISE) })),
     // WHY the split is what it is, and the only figure here a player can change
     // by moving their money rather than by buying something.
-    codShare == null ? null : figure('Paid at door', pct(codShare),
-      'across where you actually advertise'),
+    codShare == null ? null : figure(RETURNS.paidAtDoor(), pct(codShare), RETURNS.paidAtDoorSub()),
   );
 
   const max = Math.max(...weeks.map((w) => w.refused + w.sentBack), 1);
@@ -448,7 +450,7 @@ function renderReturns(root, game) {
   const wrap = el('div', 'arrival');
   for (const w of weeks) {
     const line = el('div', `arrival-row${w.settled ? '' : ' unsettled'}`);
-    line.append(el('div', 'k', `Week ${w.round}`));
+    line.append(el('div', 'k', RETURNS.week({ round: w.round })));
     const track = el('div', 'track');
     const bad = el('div', 'fill refused');
     bad.style.width = pc(w.refused);
@@ -462,22 +464,22 @@ function renderReturns(root, game) {
     const v = el('div', 'v');
     v.append(el('span', null, w.conversions > 0
       ? pct((w.refused + w.sentBack) / w.conversions, 0) : '—'));
-    if (!w.settled) v.append(el('span', 'arrival-more', 'still in'));
+    if (!w.settled) v.append(el('span', 'arrival-more', RETURNS.stillIn()));
     line.append(v);
     wrap.append(line);
   }
   const key = el('div', 'arrival-key');
-  key.append(el('span', 'arrival-swatch refused'), el('span', null, 'refused at the door'));
-  key.append(el('span', 'arrival-swatch sent-back'), el('span', null, 'sent back after delivery'));
+  key.append(el('span', 'arrival-swatch refused'), el('span', null, RETURNS.keyRefused()));
+  key.append(el('span', 'arrival-swatch sent-back'), el('span', null, RETURNS.keySentBack()));
   wrap.append(key);
   body.append(wrap);
 
   note.replaceChildren();
-  note.append(el('strong', null, `Every refusal costs you about ${rupees(perRefusal)}`));
-  note.append(document.createTextNode(
-    ` — ${rupees(RTO_FREIGHT_PAISE)} of freight both ways, and ${rupees(aovPaise * marginPct)} `
-    + 'of margin on a sale that never happened. ',
-  ));
+  note.append(el('strong', null, RETURNS.refusalCost({ perRefusal: rupees(perRefusal) })));
+  note.append(document.createTextNode(` ${RETURNS.refusalCostParts({
+    freight: rupees(RTO_FREIGHT_PAISE),
+    margin: rupees(aovPaise * marginPct),
+  })} `));
 
   // I33: THREE LEVERS, AND WHICH OF THEM IS AVAILABLE THIS WEEK. The card was
   // a statistic without this — a player watched a number they had no way to
@@ -486,24 +488,15 @@ function renderReturns(root, game) {
   // it states a fact and names none.
   const allocations = game.state.budgetSchedule?.capexAllocationRounds ?? [];
   const capexOpen = allocations.includes(game.state.round);
-  note.append(el('strong', null, 'Three things move it, and two of them this week. '));
-  note.append(document.createTextNode(
-    'Bid less where cash on delivery is commonest — the location card is the same '
-    + 'decision seen from the other side, and it is open every round. Block a search '
-    + 'that comes back worse than the rest of your account; the search terms card '
-    + 'marks them and the button is on the row. '
-    + (capexOpen
-      ? 'And capital is open THIS round: order confirmation reaches refusals, the size '
-        + 'guide reaches send-backs, and neither reaches the other.'
-      : `Capital is the third and it is shut — it opens only ${
-        allocationWindowPhrase(allocations)
-      }, so the first two are what you have now.`),
-  ));
+  note.append(el('strong', null, `${RETURNS.leversHead()} `));
+  note.append(document.createTextNode(`${RETURNS.levers()} ${capexOpen
+    ? RETURNS.capitalOpen()
+    : RETURNS.capitalShut({ window: allocationWindowPhrase(allocations) })}`));
 
-  note.append(document.createTextNode(
-    ` Only weeks 1 to ${latest - SETTLES_AFTER_ROUNDS} are counted above; the rest `
-    + 'are still arriving and will read better than they are.',
-  ));
+  note.append(document.createTextNode(` ${RETURNS.countedWeeks({
+    first: settled[0].round,
+    last: latest - SETTLES_AFTER_ROUNDS,
+  })}`));
 }
 
 /**

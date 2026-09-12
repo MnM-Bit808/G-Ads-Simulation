@@ -1359,7 +1359,7 @@ F13's rejected volume option has to come back.
 
   **Deployment** unlocks the largest open item in this file. You cannot hand a
   playtester a localhost address. **The repository side is done** (2026-09-11):
-  a build that publishes exactly the files the game loads (42 now), gated on the full
+  a build that publishes exactly the files the game loads (44 now), gated on the full
   suite, live on Cloudflare and invite-only since 2026-09-12 — see
   *Deployment*. It did need a little code after all: a build script, a front
   page and a caching header, none of them in `engine/`.
@@ -1784,8 +1784,8 @@ backend will run anyway.
 
 **How it works, in one paragraph.** Nothing is compiled. `scripts/build-site.js`
 follows the imports from `ui/index.html` exactly as a browser does and copies the
-42 files it reaches into `dist/` — the page, its stylesheet and 40 modules, about
-870 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
+44 files it reaches into `dist/` — the page, its stylesheet and 42 modules, about
+875 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
 Docs, tests, the design canvas and `files.zip` are never published, and
 `tests/build.test.js` holds both halves: nothing missing (Node imports every
 module from the built copy, so the check does not trust the build's own reader)
