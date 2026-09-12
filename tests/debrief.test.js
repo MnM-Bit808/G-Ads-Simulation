@@ -15,16 +15,16 @@
 
 import { describe, test, expect } from 'vitest';
 import {
-  MAX_MOMENTS, moments, windowDifference, budgetWeeks,
+  MAX_MOMENTS, MATERIAL_LOSS, moments, windowDifference, budgetWeeks, lessons, revealRows,
 } from '../ui/debrief/read.js';
-import { summariseDecisions } from '../ui/ending.js';
+import { summariseDecisions, finalStandings } from '../ui/ending.js';
 import { startGame } from '../setup.js';
 import { playRound, replayLog } from '../game.js';
 import { controllerFor } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
-import { ROUNDS_PER_MONTH } from '../engine/constants.js';
+import { ROUNDS_PER_MONTH, LEARNING_ROUNDS } from '../engine/constants.js';
 
 const P = 'player';
 
@@ -173,6 +173,186 @@ describe('the budget weeks', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// The lessons (spec section 5)
+// ---------------------------------------------------------------------------
+
+/**
+ * A fuller week, for the lessons: everything `finalStandings` reads, plus the
+ * search terms breakdown. `terms` maps a query id to its clicks and cost.
+ */
+function fullWeek(round, {
+  lostToBudget = 0, lostToRank = 0, gross = 1000, firstGross = gross, net = 600, terms = {},
+} = {}) {
+  const byQuery = Object.fromEntries(Object.entries(terms)
+    .map(([id, [clicks, costPaise]]) => [id, { impressions: clicks * 10, clicks, costPaise }]));
+  return {
+    round,
+    byAdvertiser: {
+      [P]: {
+        traffic: { impressions: 1000, clicks: 100, costPaise: 50_000 },
+        share: { impressionShare: 0.5, lostToRank, lostToBudget },
+        conversions: { final: 5, stillPending: 0, returned: 2 },
+        money: {
+          grossRevenuePaise: 3000, netRevenuePaise: 2000,
+          grossProfitPaise: gross, netProfitPaise: net, grossProfitAsFirstReportedPaise: firstGross,
+        },
+        breakdown: { byQuery, byKeyword: {}, byLocation: {} },
+        missedToBudget: null,
+      },
+    },
+  };
+}
+
+const QUERIES = [
+  { id: 'q1', text: 'co ord set' },
+  { id: 'q2', text: 'lounge pants women' },
+  { id: 'q3', text: 'gym leggings' },
+  { id: 'q4', text: 'vella and co co ord' },
+];
+const ADVERTISERS = [
+  { id: P, name: 'Vella & Co.', controller: 'player', position: { price: 'mid', purpose: 'lifestyle' } },
+  { id: 'r1', name: 'Kestrel', controller: 'policy', position: { price: 'premium', purpose: 'lifestyle' } },
+];
+const phrase = (text, extra = {}) => ({ id: `k-${text}`, text, matchType: 'phrase', bidPaise: 1500, ...extra });
+
+function lessonsFor({ history, decisionLog = [], keywords = [phrase('co ord set')], negatives = [] }) {
+  const read = lessons({
+    history,
+    decisionLog,
+    playerId: P,
+    opening: { negatives, keywords },
+    state: { advertisers: ADVERTISERS, querySet: { queries: QUERIES }, history },
+  });
+  return Object.fromEntries(read.map((lesson) => [lesson.id, lesson]));
+}
+
+describe('the six lessons', () => {
+  test('come in the order the debrief shows them', () => {
+    const read = lessons({
+      history: [fullWeek(1)], decisionLog: [], playerId: P, opening: { negatives: [], keywords: [] },
+      state: { advertisers: ADVERTISERS, querySet: { queries: QUERIES }, history: [fullWeek(1)] },
+    });
+    expect(read.map((l) => l.id))
+      .toEqual(['numbersMove', 'rankOrBudget', 'broadMatch', 'returns', 'ownName', 'smartBidding']);
+  });
+
+  test('numbers keep moving: week 1 as first reported against as it stands', () => {
+    const { numbersMove } = lessonsFor({ history: [fullWeek(1, { gross: 90_000, firstGross: 40_000 }), fullWeek(2)] });
+    expect(numbersMove).toMatchObject({ met: true, figures: { firstReportedPaise: 40_000, nowPaise: 90_000 } });
+  });
+
+  test('rank or budget: met at 10%, naming the worst week and which kind of loss', () => {
+    expect(MATERIAL_LOSS).toBe(0.10);
+    const met = lessonsFor({ history: [fullWeek(1, { lostToBudget: 0.05 }), fullWeek(2, { lostToRank: 0.10 }),
+      fullWeek(3, { lostToBudget: 0.30 })] }).rankOrBudget;
+    expect(met).toMatchObject({ met: true, figures: { round: 3, kind: 'budget', share: 0.30 } });
+    const edge = lessonsFor({ history: [fullWeek(1, { lostToRank: 0.10 })] }).rankOrBudget;
+    expect(edge).toMatchObject({ met: true, figures: { round: 1, kind: 'rank' } });
+    const missed = lessonsFor({ history: [fullWeek(1, { lostToBudget: 0.09 }), fullWeek(2, { lostToRank: 0.02 })] }).rankOrBudget;
+    expect(missed.met).toBe(false);
+  });
+
+  test('broad match: met by an active broad keyword, counting searches no keyword spelled out', () => {
+    const history = [fullWeek(1, { terms: { q1: [10, 500], q2: [4, 200], q3: [0, 0] } }),
+      fullWeek(2, { terms: { q2: [3, 150], q3: [2, 100] } })];
+    const broad = lessonsFor({
+      history,
+      keywords: [phrase('co ord set', { matchType: 'broad' })],
+      negatives: [{ text: 'gym', matchType: 'phrase' }],
+    }).broadMatch;
+    // q1 is a keyword's own text; q2 and q3 bought clicks and are no keyword's.
+    expect(broad).toMatchObject({ met: true, figures: { unwrittenTerms: 2, negatives: 1 } });
+
+    const later = lessonsFor({
+      history,
+      decisionLog: [{ round: 2, advertiserId: P, source: 'player',
+        decision: { adGroups: [{ keywords: [phrase('co ord set', { matchType: 'broad' })] }] } }],
+    }).broadMatch;
+    expect(later.met).toBe(true);
+
+    expect(lessonsFor({ history }).broadMatch.met).toBe(false);
+    expect(lessonsFor({ history, keywords: [phrase('co ord set', { matchType: 'broad', active: false })] })
+      .broadMatch.met).toBe(false);
+  });
+
+  test('defending your name: met by a keyword naming your own brand, not a rival\'s', () => {
+    const history = [fullWeek(1, { terms: { q4: [10, 1000], q1: [20, 6000] } })];
+    const own = lessonsFor({ history, keywords: [phrase('vella and co co ord'), phrase('co ord set')] }).ownName;
+    expect(own).toMatchObject({ met: true, figures: { ownCpcPaise: 100, otherCpcPaise: 300 } });
+    expect(lessonsFor({ history, keywords: [phrase('kestrel leggings')] }).ownName.met).toBe(false);
+    expect(lessonsFor({ history }).ownName.met).toBe(false);
+  });
+
+  test('smart bidding: met by the first strategy switch, with its learning weeks', () => {
+    const history = [fullWeek(1), fullWeek(2), fullWeek(3)];
+    const decisionLog = [
+      { round: 2, advertiserId: P, source: 'player', decision: { campaign: { strategy: 'maxConv' } } },
+      { round: 3, advertiserId: P, source: 'player', decision: { campaign: { strategy: 'manual' } } },
+      { round: 2, advertiserId: 'r1', source: 'policy', decision: { campaign: { strategy: 'targetRoas' } } },
+    ];
+    expect(lessonsFor({ history, decisionLog }).smartBidding)
+      .toMatchObject({ met: true, figures: { round: 2, strategy: 'maxConv', learningWeeks: LEARNING_ROUNDS } });
+    expect(lessonsFor({ history }).smartBidding.met).toBe(false);
+  });
+
+  test('returns: always met, with the end screen\'s own share and ranks', () => {
+    const history = [fullWeek(1, { gross: 1000, net: 600 })];
+    const { returns } = lessonsFor({ history });
+    const row = finalStandings({ advertisers: ADVERTISERS, history }).find((r) => r.id === P);
+    expect(returns).toMatchObject({
+      met: true, figures: { returnedShare: row.returnedShare, rank: row.rank, grossRank: row.grossRank },
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The reveal (spec section 6)
+// ---------------------------------------------------------------------------
+
+describe('where they sat: scoring the guesses', () => {
+  const ad = (name) => ({ headlines: [`${name} one`, 'two', 'three'], descriptions: ['a', 'b'] });
+  const rival = (id, name, price, purpose) => ({
+    id, name, domain: `${id}.in`, position: { price, purpose }, adGroups: [{ ad: ad(name) }],
+  });
+  const START = {
+    advertisers: [
+      { id: P, name: 'Vella & Co.', domain: 'vella.in', position: { price: 'mid', purpose: 'lifestyle' }, adGroups: [{ ad: ad('Vella') }] },
+      rival('b', 'Birch', 'value', 'lifestyle'),
+      rival('a', 'Aster', 'mid', 'lifestyle'),
+      rival('c', 'Cedar', 'premium', 'performance'),
+      rival('d', 'Dune', 'mid', 'performance'),
+      rival('e', 'Elm', 'value', 'performance'),
+    ],
+  };
+
+  test('exact, half on price, half on purpose, wrong, and skipped', () => {
+    const read = revealRows(START, P, {
+      a: { price: 'mid', purpose: 'lifestyle' },
+      b: { price: 'value', purpose: 'performance' },
+      c: { price: 'value', purpose: 'performance' },
+      d: { price: 'premium', purpose: 'lifestyle' },
+    });
+    expect(Object.fromEntries(read.rows.map((r) => [r.id, r.result])))
+      .toEqual({ a: 'exact', b: 'price', c: 'purpose', d: 'wrong', e: 'skipped' });
+    expect(read.exact).toBe(1);
+    expect(read.half).toBe(2);
+  });
+
+  test('rivals in alphabetical order, with their round-0 ad, and never the player', () => {
+    const read = revealRows(START, P, {});
+    expect(read.rows.map((r) => r.name)).toEqual(['Aster', 'Birch', 'Cedar', 'Dune', 'Elm']);
+    expect(read.rows[0]).toMatchObject({ domain: 'a.in', ad: ad('Aster'), truth: { price: 'mid', purpose: 'lifestyle' } });
+    expect(read.rows.some((r) => r.id === P)).toBe(false);
+  });
+
+  test('who shared the player\'s cell, and nobody when nobody did', () => {
+    expect(revealRows(START, P, {}).cellmates).toEqual(['Aster']);
+    const alone = { advertisers: START.advertisers.filter((a) => a.id !== 'a') };
+    expect(revealRows(alone, P, {}).cellmates).toEqual([]);
+  });
+});
+
 // Plays whole games: a ceiling, not a speed test (see save.test.js).
 describe('on a real played game', { timeout: 60_000 }, () => {
   const PLAYER = BRAND_IDENTITIES[0].id;
@@ -267,6 +447,16 @@ describe('on a real played game', { timeout: 60_000 }, () => {
     })));
     expect(strip(plain.finalState.history)).toBe(strip(state.history));
     expect(plain.finalState.history.some((r) => r.byAdvertiser[PLAYER].missedToBudget)).toBe(false);
+  });
+
+  test('the reveal\'s truth agrees with the standings table\'s position column', async () => {
+    const { start, state } = await spendingGame();
+    const { rows } = revealRows(start, PLAYER, {});
+    const standings = new Map(finalStandings(state).map((r) => [r.id, r.cell]));
+    expect(rows).toHaveLength(state.advertisers.length - 1);
+    for (const row of rows) {
+      expect(`${row.truth.price}|${row.truth.purpose}`, row.name).toBe(standings.get(row.id));
+    }
   });
 
   test('the budget weeks are exactly the weeks the game reported running out', async () => {
