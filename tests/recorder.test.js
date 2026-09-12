@@ -121,6 +121,20 @@ describe('time per phase', () => {
     expect(round0.activeSeconds).toBe(5);
   });
 
+  test('a link opened in a background tab counts as hidden until it is looked at', () => {
+    const { now, recorder } = fresh();
+    recorder.hidden();
+    recorder.phase('round 0');
+    now.advance(60_000);
+    recorder.visible();
+    tickFor(recorder, now, 10);
+
+    const round0 = phaseNamed(recorder.log(), 'round 0');
+    expect(round0.seconds).toBe(70);
+    expect(round0.hiddenSeconds).toBe(60);
+    expect(round0.activeSeconds).toBe(10);
+  });
+
   test('a visible tab nobody touches for two minutes counts as idle, not reading', () => {
     const { now, recorder } = fresh();
     recorder.phase('week 3');

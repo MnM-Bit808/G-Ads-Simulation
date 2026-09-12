@@ -408,7 +408,9 @@ function controlLabel(control) {
       || control.name
       || control.type;
   }
-  return control.textContent;
+  // innerText, not textContent: a brand button holds "Kestrel" and
+  // "kestrel.in" in two blocks, which textContent runs together.
+  return control.innerText || control.textContent;
 }
 
 /**
@@ -433,6 +435,9 @@ export function attachRecorder(recorder) {
     if (document.hidden) recorder.hidden();
     else recorder.visible();
   });
+  // A link opened in a background tab starts hidden and fires no event until
+  // it is looked at, so without this the wait would count as reading.
+  if (document.hidden) recorder.hidden();
   window.addEventListener('pagehide', () => recorder.flush());
 
   setInterval(() => {

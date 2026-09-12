@@ -31,6 +31,9 @@ import { renderEnding } from './ending.js';
 import {
   makeSave, writeSave, readSave, clearSave, fingerprintOf, restoreSave,
 } from './save.js';
+import {
+  playtestMode, createRecorder, attachRecorder, downloadPlaytestFile, renderPlaytestPanel,
+} from './recorder.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -59,6 +62,16 @@ const storage = (() => {
     return null;
   }
 })();
+
+/**
+ * The playtest recorder, on the invite link only (stage B). Null for everyone
+ * else, and every use below is `recorder?.`, so the ordinary game runs none of
+ * it and draws nothing it did not draw before.
+ */
+const recorder = playtestMode(window.location.search, storage)
+  ? createRecorder({ storage, now: () => Date.now() })
+  : null;
+const playtestButton = document.getElementById('playtest');
 
 /**
  * Whether round 0 has been touched since it was drawn. Round 0 is never saved
@@ -258,8 +271,16 @@ function restart(market) {
   window.scrollTo(0, 0);
 }
 
+/** What the recorder calls the screen about to be drawn. */
+function screenName() {
+  if (!game) return rewinding ? 'round 0 (redo)' : 'round 0';
+  const played = game.reports.length;
+  return played >= TOTAL_ROUNDS ? 'end screen' : `week ${played}`;
+}
+
 function render() {
   chrome();
+  recorder?.phase(screenName());
   if (!game) {
     roundZeroTouched = false;
     app.replaceChildren(renderRoundZero({
@@ -288,7 +309,16 @@ function render() {
       opening: game.opening,
       onRestart: restart,
     }));
-    app.replaceChildren(ending, dashboard);
+    // A playtester's questions come after the books are open and before the
+    // last week, so they are asked once the whole game has been seen.
+    const questions = el('section', 'grid');
+    if (recorder) {
+      questions.append(renderPlaytestPanel({
+        recorder,
+        onDownload: () => downloadPlaytestFile(recorder, storage),
+      }));
+    }
+    app.replaceChildren(ending, ...(recorder ? [questions] : []), dashboard);
     return;
   }
   app.replaceChildren(dashboard);
@@ -303,14 +333,17 @@ function render() {
  */
 async function runWeek() {
   // The player's controller reads `game.draft`, so nothing is passed here.
+  const started = performance.now();
   const out = await playRound(game.state, game.controllers, {
     mode: 'expected',
     sources: game.sources,
   });
+  const computeMs = performance.now() - started;
   game.state = out.nextGameState;
   game.reports.push(out.report);
   game.insights.push(out.insights);
   persist();
+  recorder?.week(game.reports.length, computeMs);
   // Rebuilt from the account the round produced, so what the form shows is
   // what the engine now holds — staged changes have become real ones.
   // `game.opening` is deliberately NOT refreshed: it is the round 0 snapshot
@@ -375,6 +408,7 @@ function offerResume(saved) {
   document.getElementById('round-label').textContent = 'saved game';
   nextButton.hidden = true;
   redoButton.hidden = true;
+  recorder?.phase('resume offer');
 
   const finished = saved.weeksPlayed >= TOTAL_ROUNDS;
   const node = panel('A game in progress', 'saved in this browser');
@@ -394,6 +428,7 @@ function offerResume(saved) {
 }
 
 async function resume(saved) {
+  recorder?.phase('restoring');
   const node = panel('Restoring your game');
   const progress = el('p', 'note', `Replaying week 1 of ${saved.weeksPlayed}…`);
   node.append(progress);
@@ -421,6 +456,7 @@ async function resume(saved) {
   // The same decisions, run by an engine that has changed since the save was
   // written, gave different weeks. Say so rather than hand back a game quietly
   // different from the one that was played.
+  recorder?.phase('replay changed');
   const warn = panel('This game has changed since you saved it');
   warn.append(el('p', 'note',
     'The simulator has been updated since this game was saved. Replayed on this '
@@ -468,6 +504,21 @@ redoButton.addEventListener('click', () => {
   game = null;
   render();
 });
+
+if (recorder) {
+  // Before the first screen is drawn, so the load is recorded ahead of the
+  // phase it opens on.
+  recorder.load();
+  attachRecorder(recorder);
+  playtestButton.hidden = false;
+  playtestButton.addEventListener('click', () => {
+    // At the end the questions come first; anywhere else, the file at once, so
+    // a player who stops halfway can still send what they did.
+    const questions = document.getElementById('playtest-panel');
+    if (questions) questions.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    else downloadPlaytestFile(recorder, storage);
+  });
+}
 
 const saved = readSave(storage);
 if (saved) offerResume(saved);
