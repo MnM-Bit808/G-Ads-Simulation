@@ -23,13 +23,20 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { creativeOutlook } from '../ui/dashboard.js';
+import {
+  creativeOutlook, allocationWindowPhrase, rankSentence, profitSubLabel,
+} from '../ui/dashboard.js';
 import { startGame } from '../setup.js';
+import { getSelfView } from '../engine/insights.js';
+import { rankOf } from '../ui/ending.js';
 import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
-import { CREATIVE_DIY_LIVE_ROUND, DEFAULT_UNGRADED_QUALITY } from '../engine/constants.js';
+import {
+  CREATIVE_DIY_LIVE_ROUND, DEFAULT_UNGRADED_QUALITY,
+  MONTHLY_BUDGET_PAISE, RANK_BUDGET_MULTIPLIERS,
+} from '../engine/constants.js';
 
 const diy = (over = {}) => ({ tier: 'diy', liveAtRound: CREATIVE_DIY_LIVE_ROUND, ...over });
 const hired = (over = {}) => ({ tier: 'freelancer', liveAtRound: 1, ...over });
@@ -153,5 +160,120 @@ describe('it agrees with the game rather than restating it', () => {
         .toBeNull();
       state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
     }
+  });
+});
+
+/**
+ * Three sentences the SLC review (reviews/slc-review.md, 9B and 9C) found
+ * saying something the model does not do. Each was a literal or a condition in
+ * the render; each is now a function of the state it describes, so it cannot
+ * drift from it again.
+ */
+describe('when capital can be spent, in the weeks the player actually sees', () => {
+  test('the allocation rounds read as the weeks the decision comes before', () => {
+    // The engine applies an allocation AT round 1 and round 5; the player makes
+    // it at round 0 and after week 4. "Opens at rounds 1 and 5" named neither.
+    expect(allocationWindowPhrase([1, 5])).toBe('before week 1 and before week 5');
+  });
+
+  test('it never says "round", which no other screen uses for these', () => {
+    expect(allocationWindowPhrase([1, 5])).not.toMatch(/round/i);
+  });
+
+  test('one window, three windows, and none all read as sentences', () => {
+    expect(allocationWindowPhrase([5])).toBe('before week 5');
+    expect(allocationWindowPhrase([1, 5, 9])).toBe('before week 1, before week 5 and before week 9');
+    expect(allocationWindowPhrase([])).toBe('only in its allocation weeks');
+  });
+});
+
+describe('the week-8 rank is told to every finisher, not only the ones whose month moved', () => {
+  test('nothing is claimed before the snapshot', () => {
+    expect(rankSentence(null, MONTHLY_BUDGET_PAISE, 8)).toBeNull();
+  });
+
+  test('every position gets a sentence, including the one whose month 3 is unchanged', () => {
+    // The budget card only drew its rank note when month 3 differed from
+    // MONTHLY_BUDGET_PAISE, and 5th place's multiplier is exactly 1 - so the
+    // one player guaranteed a normal-sized month was never told why.
+    RANK_BUDGET_MULTIPLIERS.forEach((multiplier, i) => {
+      const of = RANK_BUDGET_MULTIPLIERS.length;
+      const text = rankSentence({ position: i + 1, of }, MONTHLY_BUDGET_PAISE * multiplier, 8);
+      expect(text, `position ${i + 1}`).toContain(`ranked ${i + 1} of ${of}`);
+      if (multiplier > 1) expect(text).toMatch(/more than/);
+      if (multiplier < 1) expect(text).toMatch(/less than/);
+      if (multiplier === 1) expect(text).toMatch(/the same/);
+    });
+  });
+
+  test('the week it names is the snapshot the state carries, not a typed 8', () => {
+    expect(rankSentence({ position: 2, of: 9 }, MONTHLY_BUDGET_PAISE, 6)).toContain('week 6');
+  });
+});
+
+describe('the headline profit says when returns have not landed yet', () => {
+  const money = { grossProfitPaise: 19145700, netProfitPaise: 19145700, rtoFreightPaise: 0 };
+
+  test('a week with orders and no returns resolved is marked, because net equals gross', () => {
+    // The week just played can never have a resolved return - the window is two
+    // rounds after the conversion - so its "net profit" was gross in green.
+    expect(profitSubLabel(money, { final: 181.4, returned: 0 })).toMatch(/returns not in yet/);
+  });
+
+  test('once any return has resolved, the marker goes', () => {
+    expect(profitSubLabel(money, { final: 181.4, returned: 12 })).not.toMatch(/returns not in yet/);
+  });
+
+  test('a week with no orders has nothing to come back, so no marker', () => {
+    expect(profitSubLabel(money, { final: 0, returned: 0 })).not.toMatch(/returns not in yet/);
+  });
+
+  test('gross and freight still read as they did', () => {
+    expect(profitSubLabel(money, { final: 0, returned: 0 })).toBe('gross ₹1,91,457');
+    expect(profitSubLabel({ ...money, rtoFreightPaise: 20000 }, { final: 0, returned: 0 }))
+      .toBe('gross ₹1,91,457, less ₹200 freight');
+  });
+});
+
+describe('the month the rank sentence quotes is the month the rank bought', () => {
+  // Found by playing it: at the week-8 dashboard the REPORT row still carries
+  // month 2's budget, which includes any capital rolled in at round 5. A 5th-place
+  // player read "month 3 is ₹2,88,000, more than ₹1,68,000" - the month-2 figure
+  // with ₹1,20,000 of uncommitted capital in it. Month 3 lives on the account the
+  // form is built from (getSelfView), which is what the dashboard must quote.
+  test('after the snapshot, the self view carries exactly the rank\'s allocation', () => {
+    const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|lifestyle').slice(0, 4);
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: { price: 'mid', purpose: 'lifestyle' },
+        capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
+        keywords: own.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: 1500 })),
+        ad: {
+          headlines: ['Everyday Co-ord Sets', 'Soft Lounge Sets', 'Sizes XS To XXL'],
+          descriptions: [
+            'Soft co-ord sets and lounge pants to wear all day.',
+            'Free delivery over Rs 1,499 and 30-day returns.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    const snapshot = state.budgetSchedule.rankSnapshotRound;
+    while (state.round <= snapshot) {
+      state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+    }
+    const rank = rankOf(state, state.advertisers[0].id);
+    expect(rank, 'the snapshot was taken').not.toBeNull();
+
+    const month = getSelfView(state, state.advertisers[0].id).campaign.monthlyBudgetPaise;
+    expect(month).toBe(Math.round(MONTHLY_BUDGET_PAISE * RANK_BUDGET_MULTIPLIERS[rank.position - 1]));
+
+    const text = rankSentence(rank, month, snapshot);
+    const unchanged = RANK_BUDGET_MULTIPLIERS[rank.position - 1] === 1;
+    expect(/the same/.test(text), text).toBe(unchanged);
   });
 });

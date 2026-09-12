@@ -47,6 +47,77 @@ const ARRIVAL_SHAPE = ATTRIBUTION_LAG_DISTRIBUTION
   .replace(/, then (?=[^,]*$)/, ' and then ');
 
 // ---------------------------------------------------------------------------
+// Sentences that quote the state
+// ---------------------------------------------------------------------------
+//
+// Each of these used to be a literal or a condition inside a render, and each
+// said something the model did not do (reviews/slc-review.md, 9B and 9C). Out
+// here they are a function of what they describe, and tested against it.
+
+/**
+ * When capital can be committed, in the weeks the player sees.
+ *
+ * The engine applies an allocation AT a round; the player makes it in the
+ * form before that round runs, so round 1's is made at round 0 and round 5's
+ * after week 4. The screens never call these "rounds", so neither does this.
+ *
+ * @param {number[]} allocationRounds - rounds an allocation is applied at
+ * @returns {string} e.g. "before week 1 and before week 5"
+ */
+export function allocationWindowPhrase(allocationRounds) {
+  const weeks = (allocationRounds ?? []).map((r) => `before week ${r}`);
+  if (weeks.length === 0) return 'only in its allocation weeks';
+  if (weeks.length === 1) return weeks[0];
+  return `${weeks.slice(0, -1).join(', ')} and ${weeks[weeks.length - 1]}`;
+}
+
+/**
+ * The player's own week-8 rank, and what it did to month 3.
+ *
+ * Told to every finisher. It used to be drawn only when month 3 differed from
+ * MONTHLY_BUDGET_PAISE, which silenced exactly the position whose multiplier
+ * is 1. Two integers and the player's own budget — nothing about the field (R3).
+ *
+ * @param {{position: number, of: number}|null} rank - from `rankOf`
+ * @param {number} monthPaise - the player's month-3 budget, in paise
+ * @param {number} snapshotRound - the round the ranking was taken at
+ * @returns {string|null} null before the snapshot
+ */
+export function rankSentence(rank, monthPaise, snapshotRound) {
+  if (!rank) return null;
+  const lead = `You finished week ${snapshotRound} ranked ${rank.position} of ${rank.of} `
+    + 'on cumulative gross profit';
+  if (monthPaise === MONTHLY_BUDGET_PAISE) {
+    return `${lead}, so month 3 is the same ${rupees(MONTHLY_BUDGET_PAISE)} as months 1 and 2.`;
+  }
+  const direction = monthPaise > MONTHLY_BUDGET_PAISE ? 'more than' : 'less than';
+  return `${lead}, so month 3 is ${rupees(monthPaise)}, ${direction} the `
+    + `${rupees(MONTHLY_BUDGET_PAISE)} of months 1 and 2.`;
+}
+
+/**
+ * The line under the headline net profit.
+ *
+ * Returns resolve two rounds after the conversion that earned them, so the week
+ * just played never has any: its "net profit" is gross less freight, shown in
+ * the net slot. Saying so is the difference between a provisional figure and a
+ * flattering one.
+ *
+ * @param {{grossProfitPaise: number, rtoFreightPaise: number}} money
+ * @param {{final: number, returned: number}} conversions
+ * @returns {string}
+ */
+export function profitSubLabel(money, conversions) {
+  const freight = money.rtoFreightPaise > 0
+    ? `, less ${rupees(money.rtoFreightPaise)} freight`
+    : '';
+  const unreturned = (conversions?.final ?? 0) > 0 && (conversions?.returned ?? 0) === 0
+    ? ' · returns not in yet'
+    : '';
+  return `gross ${rupees(money.grossProfitPaise)}${freight}${unreturned}`;
+}
+
+// ---------------------------------------------------------------------------
 // Panels
 // ---------------------------------------------------------------------------
 
@@ -61,9 +132,7 @@ function renderHeadline(root, row, game, playerId, report) {
       `${row.conversions.stillPending.toFixed(1)} still pending`),
     figure('Net ROAS', ratio(row.money.netRoas), `gross ${ratio(row.money.grossRoas)}`),
     figure('Net profit', rupees(row.money.netProfitPaise),
-      row.money.rtoFreightPaise > 0
-        ? `gross ${rupees(row.money.grossProfitPaise)}, less ${rupees(row.money.rtoFreightPaise)} freight`
-        : `gross ${rupees(row.money.grossProfitPaise)}`,
+      profitSubLabel(row.money, row.conversions),
       row.money.netProfitPaise < 0 ? 'neg' : 'pos'),
     figure('CPA', row.money.cpaPaise == null ? '—' : rupees(row.money.cpaPaise), ''),
   );
@@ -425,9 +494,9 @@ function renderReturns(root, game) {
     + (capexOpen
       ? 'And capital is open THIS round: order confirmation reaches refusals, the size '
         + 'guide reaches send-backs, and neither reaches the other.'
-      : `Capital is the third and it is shut — it opens at ${
-        allocations.length > 0 ? `round${allocations.length > 1 ? 's' : ''} ${allocations.join(' and ')}` : 'the allocation rounds'
-      } only, so the first two are what you have now.`),
+      : `Capital is the third and it is shut — it opens only ${
+        allocationWindowPhrase(allocations)
+      }, so the first two are what you have now.`),
   ));
 
   note.append(document.createTextNode(
@@ -458,7 +527,7 @@ function renderReturns(root, game) {
  * D4's two traps. This is the half that was missing: the part you can still act
  * on.
  */
-function renderDeadline(root, game) {
+function renderDeadline(root, row, game) {
   const figures = root.querySelector('[data-slot="deadline-figures"]');
   const note = root.querySelector('[data-slot="deadline-note"]');
   const snapshot = game.state.budgetSchedule?.rankSnapshotRound ?? RANK_SNAPSHOT_ROUND;
@@ -477,7 +546,7 @@ function renderDeadline(root, game) {
   figures.replaceChildren();
   add(
     figures,
-    figure(taken ? 'Counted at week 8' : 'Counted so far', rupees(total),
+    figure(taken ? `Counted at week ${snapshot}` : 'Counted so far', rupees(total),
       `gross profit, weeks 1 to ${Math.min(latest, snapshot)}`),
     figure(taken ? 'Snapshot' : 'Weeks left',
       taken ? 'taken' : String(weeksLeft),
@@ -507,14 +576,24 @@ function renderDeadline(root, game) {
   note.append(document.createTextNode(
     ' in month 3, on a pool that does not change size — only the shares move. '
     + 'The figure above is GROSS profit, so what came back is not netted off, and '
-    + 'it is counted as reported at week 8, before attribution has caught up. '
-    + 'Both of those are the rule rather than a mistake, and both reward spending '
-    + 'that looks better than it is. ',
+    + `it is counted as reported at week ${snapshot}, before attribution has caught up. `
+    // D4: the two halves pull opposite ways. Gross flatters traffic that sells
+    // and comes back; the early reading penalises spend near the deadline. The
+    // sentence used to say both "reward spending that looks better than it is".
+    + 'Both are the rule rather than a mistake, and they pull in opposite '
+    + 'directions: gross flatters traffic that sells and then comes back, while '
+    + 'the early reading makes spending near the deadline look worse than it is, '
+    + 'because a late click shows all of its cost and only part of its revenue. ',
   ));
-  note.append(el('em', null,
-    'Nothing here tells you where you stand against the other eight. It cannot: '
-    + 'a real account never shows you a rival’s profit, and neither does this one '
-    + 'until the last week is played.'));
+  const rank = taken ? rankOf(game.state, game.playerId) : null;
+  const told = rank ? rankSentence(rank, monthAhead(game, row), snapshot) : null;
+  note.append(told
+    ? el('strong', null, told)
+    : el('em', null,
+      'Nothing here tells you where you stand against the other eight yet. At '
+      + `week ${snapshot} you learn your own rank and nobody else's — a real `
+      + 'account never shows you a rival’s profit, and neither does this one '
+      + 'until the last week is played.'));
 }
 
 /** W11: what moved since the player last looked. */
@@ -868,6 +947,19 @@ function renderInsights(root, game) {
   );
 }
 
+/**
+ * The budget of the month the NEXT week runs in.
+ *
+ * Not the report row's: a report describes the week just played, so at the
+ * week-8 dashboard it still carries month 2 - including any capital rolled in at
+ * round 5 - while the rank has already bought month 3. Found by playing it: a
+ * 5th-place player read "month 3 is ₹2,88,000, more than ₹1,68,000". The draft
+ * is rebuilt from getSelfView after every week, so it holds the month ahead.
+ */
+function monthAhead(game, row) {
+  return game.draft?.monthlyBudgetPaise ?? row.budget.monthlyBudgetPaise;
+}
+
 /** 13.2 requires a burn-down of the remaining pot against rounds remaining. */
 function renderBudget(root, row, game) {
   const body = root.querySelector('[data-slot="budget-body"]');
@@ -903,15 +995,18 @@ function renderBudget(root, row, game) {
   // between months is attributable. Month 3's pool is split by rank, and until
   // this existed the budget simply shrank in silence — a twelve-round account
   // went from ₹1,68,000 to ₹1,17,600 with nothing on screen saying why.
-  const ranked = rankOf(game.state, game.playerId);
-  if (ranked && b.monthlyBudgetPaise !== MONTHLY_BUDGET_PAISE) {
+  //
+  // Told to every finisher, including the one whose month did not move: the
+  // condition used to be "month 3 differs from the base", which is false for
+  // exactly one position and left that player never told (slc-review 9C).
+  const snapshot = game.state.budgetSchedule?.rankSnapshotRound ?? RANK_SNAPSHOT_ROUND;
+  const told = rankSentence(rankOf(game.state, game.playerId), monthAhead(game, row), snapshot);
+  if (told) {
     const note = el('p', 'rank-note');
-    note.append(document.createTextNode('This month is not the same size as the last two. You finished week 8 ranked '));
-    note.append(el('strong', null, `${ranked.position} of ${ranked.of}`));
+    note.append(el('strong', null, told));
     note.append(document.createTextNode(
-      ' on cumulative gross profit, and month 3 was split on that ranking — the '
-      + 'pool is unchanged, only the shares moved. Gross, so returns were not '
-      + 'netted off; and as reported at week 8, when attribution had not caught up.',
+      ' The pool is unchanged; only the shares moved. Gross, so returns were not '
+      + `netted off; and as reported at week ${snapshot}, when attribution had not caught up.`,
     ));
     body.append(note);
   }
@@ -960,7 +1055,7 @@ export function renderDashboard(game, onDecisionChange) {
   renderHeadline(root, row, game, game.playerId, report);
   renderShare(root, row);
   renderReturns(root, game);
-  renderDeadline(root, game);
+  renderDeadline(root, row, game);
   renderRevised(root, game);
   renderInsights(root, game);
   renderBudget(root, row, game);

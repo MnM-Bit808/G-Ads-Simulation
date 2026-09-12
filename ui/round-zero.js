@@ -38,7 +38,7 @@ import { validateAdCopy, namesARival, explainGrade } from '../agents/grader.js';
 import { heuristicTags } from '../agents/keywordTagger.js';
 import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS, MONTHLY_BUDGET_PAISE,
-  CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH, TOTAL_ROUNDS,
+  CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH,
   WRITER_TIERS, CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
   PRICE_TIERS, PURPOSES, CAPEX_TIER_CURVE,
 } from '../engine/constants.js';
@@ -231,7 +231,7 @@ export function renderRoundZero({ querySet, rootSeed, onStart }) {
       // that 229px gap is where the example goes. Adding it as a seventh
       // half-width card would instead orphan one card in a row of its own.
       stack(
-        sectionBudget(draft, revalidate, live),
+        sectionBudget(brief, draft, revalidate, live),
         sectionExample(),
       ),
       sectionAd(draft, revalidate, live),
@@ -364,7 +364,7 @@ function sectionBriefing(brief) {
  */
 function sectionWhereSearch(brief) {
   const node = card('Where the search happens',
-    'the metros are the smallest of the three', true);
+    'most searches happen outside the metros', true);
 
   // The card owns which tier is lit. Local state, not draft state: choosing a
   // tier here changes nothing about the account, it only asks the card to show
@@ -705,7 +705,7 @@ function sectionPagePreview(draft) {
 }
 
 function sectionCapex(draft, rerender) {
-  const node = card('Capital', `₹1,00,000 to build the site they land on, or to keep`);
+  const node = card('Capital', `${rupees(CAPEX_ALLOCATION_PAISE)} to build the site they land on, or to keep`);
   const spent = committed(draft);
   const left = CAPEX_ALLOCATION_PAISE - spent;
 
@@ -1281,7 +1281,7 @@ function sectionAd(draft, revalidate, live) {
     + 'landing page line sets the third. Quality multiplies your bid into ad '
     + 'rank, so a better ad wins better positions AND pays less for the position '
     + 'it had. It is the only lever in this game that makes traffic cheaper '
-    + 'rather than just buying more of it, and it costs nothing.'));
+    + 'rather than just buying more of it — and writing it yourself costs no money.'));
 
   // Two columns: what you write on the left, what it scores on the right. They
   // used to stack, which put the grade a screen below the words that earned it.
@@ -1503,7 +1503,7 @@ function evenSplit(total) {
   return split;
 }
 
-function sectionBudget(draft, revalidate, live) {
+function sectionBudget(brief, draft, revalidate, live) {
   const total = monthlyBudget(draft);
   if (!draft.split || draft.split.reduce((a, b) => a + b, 0) !== total) {
     draft.split = evenSplit(total);
@@ -1558,8 +1558,8 @@ function sectionBudget(draft, revalidate, live) {
 
   node.append(el('p', 'note',
     'Unspent money is lost at the month boundary — there is no carry-over. '
-    + `Months 1 and 2 are identical for everyone; month 3 is redistributed by `
-    + `rank across all ${TOTAL_ROUNDS} rounds.`));
+    + 'Months 1 and 2 are identical for everyone; month 3 is redistributed by '
+    + `rank on ${brief.rankingRule.metric}.`));
   return node;
 }
 

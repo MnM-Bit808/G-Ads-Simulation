@@ -2,6 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { rankOf, gameTotals, summariseDecisions, finalStandings } from '../ui/ending.js';
 import { submitRound } from '../game.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
+import { CAPEX_TARGETS } from '../engine/constants.js';
 
 /**
  * The end screen's arithmetic and its account of what the player did.
@@ -164,6 +165,19 @@ describe('summariseDecisions reads the log back (12.4)', () => {
       campaign: { strategy: 'maxClicks', strategyParams: { targetCpaPaise: 52000, targetRoas: 4 } },
     })];
     expect(lines(log)[0]).toBe('Switched bidding to Maximise clicks');
+  });
+
+  test('every capital target reads in words, never as its code name', () => {
+    // Order confirmation was added as a fourth target (I29) and the end screen's
+    // names were never told: a played game printed "Committed ₹55,000 to
+    // orderConfirmation" (reviews/slc-review.md, 9C). Driven by CAPEX_TARGETS
+    // so a fifth target is checked the day it is added.
+    for (const target of CAPEX_TARGETS) {
+      const capex = Object.fromEntries(CAPEX_TARGETS.map((t) => [t, t === target ? 5500000 : 0]));
+      const line = lines([entry(5, { capex })])[0];
+      expect(line, target).toMatch(/^Committed ₹55,000 to /);
+      expect(line, `${target} leaked its code name`).not.toMatch(/[a-z][A-Z]/);
+    }
   });
 
   test('capital reads as what it bought, or as the budget it became', () => {

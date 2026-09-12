@@ -22,7 +22,7 @@ import {
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
   removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
-  prepaidOutlook, setPrepaidDiscount, locationRows,
+  prepaidOutlook, setPrepaidDiscount, locationRows, qualityWindowPhrase,
 } from '../ui/decisions.js';
 
 /**
@@ -1266,5 +1266,20 @@ describe('the prepaid card reads the account it is drawn for (I34)', () => {
     const out = prepaidOutlook(d, rows);
     expect(out.none).toBeGreaterThan(0);
     expect(out.none).toBeLessThan(1);
+  });
+});
+
+describe('the quality note names a window the game can actually have', () => {
+  // QUALITY_WINDOW_ROUNDS is 13, Google's ninety days in weeks, and a game is
+  // twelve. "Over the last 13 finished rounds" was true to the constant and read
+  // as a mistake to anyone counting (reviews/slc-review.md, 9C).
+  test('while every finished week is inside the window, it says so', () => {
+    for (const finished of [0, 1, 7, 13]) {
+      expect(qualityWindowPhrase(finished, 13), `${finished} played`).toBe('over every week played so far');
+    }
+  });
+
+  test('past the window, it names the window', () => {
+    expect(qualityWindowPhrase(14, 13)).toBe('over the last 13 finished weeks');
   });
 });

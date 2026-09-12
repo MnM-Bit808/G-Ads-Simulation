@@ -442,7 +442,7 @@ export function briefing(querySet) {
   const pct = (x) => `${Number((x * 100).toFixed(1))}%`;
   const arithmetic = `${formatINR(mid.aovMeanPaise)} x ${pct(mid.marginPct)} x `
     + `${pct(1 - mid.returnRate)} x ${pct(mid.convRateBase)} = `
-    + `${formatINR(anchorPaise, { decimals: 2 })} on an average search`;
+    + `${formatINR(anchorPaise, { decimals: 2 })} a click, on an average search`;
 
   return {
     weeklySearchesByTier: {
@@ -465,7 +465,7 @@ export function briefing(querySet) {
       resultPaise: anchorPaise,
       arithmetic,
       // 17.2: not optional.
-      caveat: 'That is what a search worth nothing in particular is worth to you. '
+      caveat: 'That is what a click on a search worth nothing in particular is worth to you. '
         + 'The searches you choose to compete for are worth appreciably more — '
         + 'roughly double — which is the entire reason choosing a position matters.',
     },

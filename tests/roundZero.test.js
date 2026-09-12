@@ -46,6 +46,7 @@ import { gradeAdOffline } from '../agents/grader.js';
 import {
   WRITER_TIERS, DEFAULT_UNGRADED_QUALITY, CAPEX_ALLOCATION_PAISE,
   CREATIVE_ALLOCATION_PAISE, PRICE_TIERS, PURPOSES,
+  LOCATION_VOLUME_BY_PRICE, LOCATION_TIERS,
 } from '../engine/constants.js';
 
 /**
@@ -605,5 +606,41 @@ describe('round 0 shows a worked example, in the space under the budget', () => 
     // on where the source happens to wrap.
     const flat = fn.slice(0, fn.indexOf('\n}')).replace(/'\s*\+\s*'/g, '');
     expect(flat).toMatch(/relevance is measured against the keywords you chose/i);
+  });
+});
+
+/**
+ * Three sentences round 0 got wrong (reviews/slc-review.md, 9C). Each claimed
+ * something about a number the model owns, and each was typed rather than read,
+ * so each was true on the day it was written and then was not.
+ */
+describe('round 0 states the numbers it is built on, not ones typed beside them', () => {
+  const source = readFileSync(new URL('../ui/round-zero.js', import.meta.url), 'utf8');
+
+  test('the capital heading is the allocation itself', () => {
+    // It read "₹1,00,000" while the card below it allocated ₹1,20,000.
+    expect(source).toMatch(/card\('Capital',\s*`\$\{rupees\(CAPEX_ALLOCATION_PAISE\)\}/);
+    expect(source).not.toMatch(/card\('Capital',\s*`₹/);
+  });
+
+  test('"most searches happen outside the metros" is true in every price tier', () => {
+    // The subtitle used to say the metros were the smallest of the three - true
+    // for the market, false for the premium column printed beside it (38% against
+    // 36 and 26). This pins the claim that replaced it to the data it describes,
+    // so a recalibrated LOCATION_VOLUME_BY_PRICE that broke it would fail here.
+    expect(source).toMatch(/card\('Where the search happens',\s*'most searches happen outside the metros'/);
+    const metros = LOCATION_TIERS.indexOf('tier1');
+    for (const price of PRICE_TIERS) {
+      expect(LOCATION_VOLUME_BY_PRICE[price][metros], price).toBeLessThan(0.5);
+    }
+  });
+
+  test('the month-3 rule on the budget card is the briefing\'s rule, not a paraphrase', () => {
+    // It said "redistributed by rank across all 12 rounds"; the rule is rounds 1
+    // to 8 as reported at round 8, and the briefing on the same page said so.
+    const budget = source.slice(source.indexOf('function sectionBudget('));
+    const body = budget.slice(0, budget.indexOf('\nfunction '));
+    expect(body).toMatch(/rankingRule\.metric/);
+    expect(body).not.toMatch(/across all/);
   });
 });

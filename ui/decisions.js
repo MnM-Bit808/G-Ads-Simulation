@@ -2536,16 +2536,35 @@ function qualityCell(score, graded) {
  * move this column at all - which is a true and useful thing to know, and a
  * miserable thing to work out on your own.
  */
+/**
+ * How far back the quality comparison reaches, in words that fit the game.
+ *
+ * `QUALITY_WINDOW_ROUNDS` is 13 — Google's ninety days in weeks — and a game is
+ * twelve, so "the last 13 finished rounds" was true to the constant and read as
+ * a mistake (reviews/slc-review.md, 9C). While every week played is inside the
+ * window, that is what it says.
+ *
+ * @param {number} finishedRounds - weeks already played
+ * @param {number} windowRounds - the comparison window
+ * @returns {string}
+ */
+export function qualityWindowPhrase(finishedRounds, windowRounds) {
+  return finishedRounds <= windowRounds
+    ? 'over every week played so far'
+    : `over the last ${windowRounds} finished weeks`;
+}
+
 function qualityNote(ctx) {
   const weakest = ctx.draft.keywords
     .map((k) => qualitySummary(ctx.quality?.[k.id], ctx.grades).weakest)
     .find(Boolean);
 
+  const finished = Math.max(0, (ctx.draft.round ?? 1) - 1);
   const note = el('p', 'note');
   note.append(document.createTextNode(
     'Quality is a comparison, not a grade: it measures you against everyone else '
-    + `who appeared on the same searches, over the last ${QUALITY_WINDOW_ROUNDS} finished `
-    + 'rounds. It is coarse on purpose — three levels per component — so a real '
+    + `who appeared on the same searches, ${qualityWindowPhrase(finished, QUALITY_WINDOW_ROUNDS)}. `
+    + 'It is coarse on purpose — three levels per component — so a real '
     + 'improvement can leave it exactly where it was. ',
   ));
   note.append(el('strong', null,

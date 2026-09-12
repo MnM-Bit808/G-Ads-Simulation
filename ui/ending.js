@@ -43,6 +43,7 @@ const CAPEX_NAMES = {
   sizeGuide: 'the size guide',
   photography: 'photography',
   landingPage: 'the landing page',
+  orderConfirmation: 'order confirmation',
 };
 
 // ---------------------------------------------------------------------------
@@ -490,8 +491,8 @@ function standingsCard(ctx) {
   if (disagree.length > 0) {
     note.append(document.createTextNode(
       ` The last column is where each brand placed on GROSS profit, and ${disagree.length} `
-      + `of ${rows.length} placed differently. That is the metric 13.1 calls the lead and `
-      + 'the one month 3’s budgets were actually allocated on, at week 8, before the '
+      + `of ${rows.length} placed differently. Gross is the metric month 3’s budgets `
+      + 'were actually allocated on, at week 8, before the '
       + 'returns had come back. A brand that sold a great deal and shipped much of it '
       + 'back ranks high on gross and low here — which is the trap you were playing '
       + 'inside for twelve weeks, and this is the first screen that says so.',
