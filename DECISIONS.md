@@ -2251,8 +2251,9 @@ becomes advertising budget. Without it the retainer was 20% ahead of a perfectly
 self-written ad and strictly dominated. With it, `tests/writerBalance.test.js`
 measures self-written against retainer at **1.002** — within 0.2%. **Re-measured
 at 1.014** through a replica of that test's own fixtures once rivals stopped
-writing their own ads, which raised the field it is measured against. Still far
-inside the test's 0.85-1.15 bounds.
+writing their own ads, which raised the field it is measured against. **Read at
+1.034 on 2026-09-12** (E9), identical before and after that change, so it had
+drifted there unseen. Still far inside the test's 0.85-1.15 bounds.
 
 It arrives differently from the capital rollover and the two must not be
 confused: capital has allocation rounds and `round.js` adds it there, rescaling

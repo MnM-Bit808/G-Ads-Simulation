@@ -202,7 +202,7 @@ number in the simulation without ever throwing an error.
   guesses the folder to publish on every deploy, and a wrong guess publishes the
   repository — docs and tests — while still reporting success.
   `tests/build.test.js` holds it, and holds `dist/` to exactly the files the
-  game loads — 41 since `ui/save.js` (2026-09-12).
+  game loads — 42 since `ui/recorder.js` (2026-09-12).
 - **The engine's `replayGame` is not a game replay.** It runs `runRound` alone,
   so it skips everything `game.js` adds: capital, repositioning, a self-written
   ad landing, Quality Scores. Measured, its costs do not match a played game.

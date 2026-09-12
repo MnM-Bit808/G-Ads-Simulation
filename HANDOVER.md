@@ -41,8 +41,14 @@ still resting on a guess.
     advertiser-games profit.
   - **The review's "winning is easy" is withdrawn.** A sensible player finishes
     median 6th of 9.
-- **Stage B's other half needs the owner:** add three people who have never
-  seen the game to the Access list (see *Deployment*), and record their sessions.
+- **Stage B's other half is ready to run, and needs the owner.** A playtest
+  recorder is built (`ui/recorder.js`, `a25d637` and `82f29e5`). It is on only
+  behind `?playtest=1`, and the player downloads a file at the end and sends it
+  back. `scripts/read-playtest.js` turns each file into the baseline table
+  (`dd25053`). Decided with the owner: two strangers play alone with the
+  recorder, and one plays on a video call with it running too. *Deployment →
+  Running a playtest* has the steps. The key rule: **don't push to `main`
+  between tagging and reading the files.**
 - **Decided with the owner:** the explanations will move into an optional field
   guide inside the game, after stage A.
 
@@ -76,7 +82,7 @@ carry their measurements.
 
 ## Where we are
 
-**Every build-order step is done, and the location mechanic with them.** 1373 tests, all passing, 1 todo.
+**Every build-order step is done, and the location mechanic with them.** 1466 tests, all passing, 1 todo (2026-09-12).
 
 **THE GAME IS LIVE ON CLOUDFLARE, INVITE-ONLY** (2026-09-12), at
 `https://g-ads-simulation.manikhorocks.workers.dev`. Every push to `main` runs the
@@ -1353,7 +1359,7 @@ F13's rejected volume option has to come back.
 
   **Deployment** unlocks the largest open item in this file. You cannot hand a
   playtester a localhost address. **The repository side is done** (2026-09-11):
-  a build that publishes exactly the files the game loads (41 now), gated on the full
+  a build that publishes exactly the files the game loads (42 now), gated on the full
   suite, live on Cloudflare and invite-only since 2026-09-12 — see
   *Deployment*. It did need a little code after all: a build script, a front
   page and a caching header, none of them in `engine/`.
@@ -1573,9 +1579,9 @@ tooling and one untested claim.
 
 - **The writer mechanic rests on a balance measured once.**
   `tests/writerBalance.test.js` plays the real configurations and holds
-  self-written against the retainer at **1.014** — re-measured this session
-  through a replica of the test's own fixtures; the **1.002** recorded here and
-  in I11 is the older figure and drifted when rivals stopped writing their own
+  self-written against the retainer at **1.034** (2026-09-12, E9). Before that,
+  **1.014** was re-measured through a replica of the test's own fixtures, and
+  **1.002** is the oldest figure; it drifted when rivals stopped writing their own
   ads, which is the drift the bullet below already warns about. Still far inside
   the test's 0.85-1.15 bounds. But that is two seeds and one cell,
   because whole games are slow. It is the tightest balance in the project
@@ -1778,8 +1784,8 @@ backend will run anyway.
 
 **How it works, in one paragraph.** Nothing is compiled. `scripts/build-site.js`
 follows the imports from `ui/index.html` exactly as a browser does and copies the
-41 files it reaches into `dist/` — the page, its stylesheet and 39 modules, about
-845 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
+42 files it reaches into `dist/` — the page, its stylesheet and 40 modules, about
+870 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
 Docs, tests, the design canvas and `files.zip` are never published, and
 `tests/build.test.js` holds both halves: nothing missing (Node imports every
 module from the built copy, so the check does not trust the build's own reader)
@@ -1859,6 +1865,65 @@ dashboard puts them first:
 with the developer tools; now they are readable only by people on the list.
 Signed-in players can still read `content/querySet.js`. Only a server holding the
 numbers back changes that, and that is still the backend step.
+
+### Running a playtest
+
+**The recorder is in the game and switched on only by the link.** Send
+`https://g-ads-simulation.manikhorocks.workers.dev/ui/?playtest=1`. The browser
+remembers it, so a reload stays in playtest mode; `?playtest=0` turns it off.
+Anyone on the plain link runs the game exactly as before.
+
+**What it records** (`ui/recorder.js`), in the player's own browser storage, and
+nothing is sent anywhere by the page:
+- time on each screen, with a hidden tab and two minutes without input taken
+  off, because the gate for stage C is written in active time;
+- clicks, named by card and control ("Search terms › Last week");
+- keystroke counts, never the keys;
+- how long each card was on screen;
+- page loads;
+- how long each week took to compute on their device, which is the phone and
+  live-site timing nobody has measured.
+
+**What the player does.** They play. A *Send playtest file* button in the header
+downloads the file at any point, so someone who gives up can still send what
+they did. After the end screen, a panel asks what three things the game taught
+them and what confused them, then offers the same file. They send it back by
+email or WhatsApp. It is about 280 KB and holds their save, so their whole game
+can be replayed.
+
+**Before the invites go out:**
+1. Add each address to the Access list (*Invite-only* below).
+2. Tag the commit they will play:
+
+   ```
+   git tag playtest-1 && git push origin playtest-1
+   ```
+3. **Don't push to `main` until every file is read.** A push redeploys, and a
+   save replayed on a changed engine no longer reproduces their game. The
+   reader says so when it happens (`THE REPLAY DOES NOT MATCH`), and the fix is
+   `git checkout playtest-1` and reading it again.
+
+**Reading the files:** `node scripts/read-playtest.js playtest-*.json`. It gives
+active time for round 0, weeks 1-4, weeks 5-11 and the end screen (the groups
+of the one recorded human game, *What playing it as a learner found*), every
+screen in order, cards by time on screen, week compute times, rank and
+contribution replayed from their save, the weeks in the red, and their answers.
+
+**For the one played on a call,** use the same link and record the call
+yourself. Watching changes how people read, so its timings are not pooled with
+the other two; it is there for the *why*.
+
+**What the recorder cannot see:** whether they read a card or only had it on
+screen, and anything outside the tab. One testing trap: an automation tool's
+"type" inserts text without key events, so its typing counts as 0 keys. A
+person typing does fire them; press real keys to test the count.
+
+**Found while testing it, not fixed:** the first dashboard appears to keep round
+0's scroll position. `render()` scrolls to the top only for round 0, and the
+"Open the account" button sits at the bottom of a much longer page, so week 1
+may open partway down. The recorder credited "Budget" and "The market" in
+week 1 before anything was scrolled. Read from the code and the card times, not
+seen on screen; worth a one-line fix before strangers play.
 
 ### Deploys, from here on
 

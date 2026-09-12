@@ -753,7 +753,7 @@ them for this review, so they're for that conversation.
 | **Labels on correct numbers** (UI) | 9B-4 net per click · 9B-5 two bases for click value · 9B-6 net shown as gross |
 | **Copy** (UI text only) | the ten rows of 9C |
 | **Flow and onboarding** (design) | intro screen · round 0 in steps · cards revealed as they become useful · debrief · the back half |
-| **Quality of life** | bulk bid edit · repeated notes · 60 of 151 searches hidden until you search · no ₹ unit on round-0 bids · the starter ad arrives unannounced when you pick a position |
+| **Quality of life** | bulk bid edit · repeated notes · 91 of 151 searches hidden until you search (60 are shown; *corrected: this row first said 60 hidden*) · no ₹ unit on round-0 bids · the starter ad arrives unannounced when you pick a position |
 | **Robustness** | save and replay · leave-page warning · live timing |
 | **Motion** (stage C onward) | the five gated rows of section 13 · the India map's loops and 380ms transitions, noted rather than contested |
 
