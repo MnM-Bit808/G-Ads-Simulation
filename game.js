@@ -31,7 +31,7 @@ import { runRound } from './engine/round.js';
 import { advertiserReport, attachQualityScores } from './engine/report.js';
 import { reportedScore } from './engine/quality.js';
 import { getPublicView, getSelfView } from './engine/insights.js';
-import { logDecisions } from './engine/serialise.js';
+import { logDecisions, decisionsForRound } from './engine/serialise.js';
 import { reposition, canReposition } from './engine/positions.js';
 import {
   LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, TOTAL_ROUNDS,
@@ -124,6 +124,68 @@ export function submitRound(gameState, decisions, options = {}) {
       history: result.nextGameState.history.map((h) => (h.round === report.round ? report : h)),
     },
   };
+}
+
+/**
+ * Replay one logged round through the same door the live round came in by.
+ *
+ * NOT `engine/serialise.js`'s `replayGame`. That runs `runRound` alone, which
+ * is right for the engine and wrong for a game played through this module: it
+ * skips the structural decisions (capital, repositioning), the self-written ad
+ * landing on its round, and the Quality Scores attached to each report.
+ * Measured on a real twelve-week game, its costs do not match the ones the
+ * player saw. Every decision in the log came in through `submitRound`, so a
+ * replay has to go back through it — with the log's own sources, so the log
+ * the replay writes is the log it read.
+ *
+ * Driven by the state's round rather than by which rounds have entries: a
+ * week in which nobody decided anything logs nothing and still happened.
+ *
+ * @param {object} gameState the state before the round
+ * @param {object[]} decisionLog the whole log; this round's entries are used
+ * @param {object} [options] passed through to `submitRound`
+ * @returns {{round: number, report: object, insights: object, raw: object, nextGameState: object}}
+ */
+export function replayRound(gameState, decisionLog, options = {}) {
+  const round = gameState.round;
+  const sources = {};
+  for (const entry of decisionLog ?? []) {
+    if (entry.round === round) sources[entry.advertiserId] = entry.source;
+  }
+  return submitRound(gameState, decisionsForRound(decisionLog, round), { ...options, sources });
+}
+
+/**
+ * Rebuild a game from its first state and its log, up to a given round.
+ *
+ * What a save restores from (stage A4): the start and the log, never the state,
+ * which reaches 4.5 MB by week 12 while the two together are about 260 KB.
+ *
+ * @param {object} initialState the state before the first logged round
+ * @param {object[]} decisionLog
+ * @param {object} options `throughRound` is the last round to replay; the rest
+ *   is passed through to `submitRound`
+ * @returns {{finalState: object, reports: object[], insights: object[]}}
+ */
+export function replayLog(initialState, decisionLog, options) {
+  const { throughRound, ...runOptions } = options;
+  const early = (decisionLog ?? []).find((e) => e.round < initialState.round);
+  if (early) {
+    throw new Error(
+      `replay desynchronised: the log has round ${early.round}, the state starts at ${initialState.round}`,
+    );
+  }
+
+  let state = initialState;
+  const reports = [];
+  const insights = [];
+  while (state.round <= throughRound) {
+    const out = replayRound(state, decisionLog, runOptions);
+    reports.push(out.report);
+    insights.push(out.insights);
+    state = out.nextGameState;
+  }
+  return { finalState: state, reports, insights };
 }
 
 /**

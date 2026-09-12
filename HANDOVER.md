@@ -12,7 +12,21 @@ still resting on a guess.
 
 ## Start here
 
-**The last session (2026-09-11 to 12) closed the three items that had been open
+**The newest session (2026-09-12) reviewed the product and began its stage A.**
+- **`reviews/slc-review.md` is the product review.** It covers Simple, Lovable
+  and Complete, with scores, a 45-minute verdict and a route of seven
+  recommendations in five stages. Read its section 12 for the route.
+- **Stage A1 is done (`4e24039`).** It fixed the ten sentences that contradicted
+  the model, plus the week-8 rank, which one finisher was never told.
+- **Stage A4 is done.** The game is saved in the browser and a reload offers it
+  back (*Still open*, the database bullet, says how).
+- **A2 and A3 are next.** A2 relabels "net per click". A3 gives planner keywords
+  the search row's tags; the owner chose option (i), which needs a DECISIONS
+  entry arguing why it is not a leak.
+- **Decided with the owner:** the explanations will move into an optional field
+  guide inside the game, after stage A.
+
+**The session before (2026-09-11 to 12) closed the three items that had been open
 longest**, in this order. Each has its full record in `DECISIONS.md`; the commit
 messages carry the reasoning in between.
 
@@ -1319,18 +1333,24 @@ F13's rejected volume option has to come back.
 
   **Deployment** unlocks the largest open item in this file. You cannot hand a
   playtester a localhost address. **The repository side is done** (2026-09-11):
-  a build that publishes exactly the 40 files the game loads, gated on the full
+  a build that publishes exactly the files the game loads (41 now), gated on the full
   suite, live on Cloudflare and invite-only since 2026-09-12 — see
   *Deployment*. It did need a little code after all: a build script, a front
   page and a caching header, none of them in `engine/`.
 
-  **A database** fixes a hazard already recorded here — the game lives in memory,
-  so a reload loses twelve weeks with no error. It does **not** need the whole
-  world stored: the engine is pure and seeded per advertiser, and
-  `serialise.test.js` proves a replayed decision log reproduces a game exactly, so
-  the seed plus the decisions rebuilds anything. Say that before anyone designs a
-  schema around snapshotting `GameState`. Auth arrives with it rather than
-  separately, since a saved game is meaningless without knowing whose it is.
+  **A reload no longer loses the game, and that did not need a database**
+  (stage A4, 2026-09-12). `ui/save.js` keeps the state before week 1 plus the
+  decision log in the browser's own storage after every week, about 280 KB by
+  week 12, and a reload offers the game back. The whole final state is 4.5 MB,
+  most of what a browser allows, which is why it is never stored. The replay goes
+  through `game.js`'s `replayLog`, NOT `engine/serialise.js`'s `replayGame`:
+  `serialise.test.js` proves the engine's replay for games played through
+  `runRound`, and a game played through `game.js` does not match it (measured).
+  A fingerprint of the player's weekly cost and clicks travels with the save, so a
+  deploy that changes the numbers between saving and loading is told to the
+  player rather than hidden. **A database is still the route to a game that
+  follows the player across devices**, and to anything the owner wants to read
+  back from playtests; auth arrives with it.
 
   **A backend** is the only route to `agents/llmPolicy.js`, which §2 asks for and
   which has never been built. That is not a scheduling problem: an API key cannot
@@ -1738,8 +1758,8 @@ backend will run anyway.
 
 **How it works, in one paragraph.** Nothing is compiled. `scripts/build-site.js`
 follows the imports from `ui/index.html` exactly as a browser does and copies the
-40 files it reaches into `dist/` — the page, its stylesheet and 38 modules, about
-820 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
+41 files it reaches into `dist/` — the page, its stylesheet and 39 modules, about
+845 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
 Docs, tests, the design canvas and `files.zip` are never published, and
 `tests/build.test.js` holds both halves: nothing missing (Node imports every
 module from the built copy, so the check does not trust the build's own reader)
@@ -1828,10 +1848,16 @@ the Worker's **Deployments** tab. The first build with the tests on took 5m49s,
 4m54s of it the suite — one replay test takes 12 seconds on Cloudflare's machine,
 which is why `ci` sets a 60-second timeout.
 
-**Tell playtesters three things**: a reload loses the game (it lives in memory
-until the database step); late weeks freeze the page for 30-60 seconds and have
-not crashed; and the sign-in code arrives by email from Cloudflare, sometimes in
-spam.
+**Tell playtesters two things**: the game is saved in their own browser after
+every week, so a reload offers it back, but a different browser or device starts
+fresh; and the sign-in code arrives by email from Cloudflare, sometimes in spam.
+
+**The "late weeks freeze for 30-60 seconds" warning is withdrawn.** It was
+measured on 2026-09-06 and copied here on 09-11 without re-measuring. On
+2026-09-12, on the built site (`npm run preview`) in a visible tab, every week of
+a sixty-broad-keyword game took 0.25-0.32s. A hidden browser pane measured 0.8-1.8s,
+so hidden tabs are slower. Still unmeasured: the live site on a phone. Ask the
+first playtester to say if any week takes more than a few seconds.
 
 ---
 
@@ -1933,8 +1959,10 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
 
 ### Playing it to the end
 
-- **Rounds get slow.** Early weeks resolve in about seven seconds; by week 10 or
-  11 a single round takes thirty to sixty. The round blocks the main thread, so
+- **Rounds USED to get slow** (measured 2026-09-06; not reproduced 2026-09-12,
+  when every week took under a third of a second on the built site). Early weeks
+  resolved in about seven seconds; by week 10 or 11 a single round took thirty to
+  sixty. The round blocks the main thread, so
   the button sits on "running 168 hours…" and the page is unresponsive — it
   looks hung and is not. Driving twelve rounds from a script needs waits far
   longer than the early rounds suggest, and a loop that clicks on a fixed

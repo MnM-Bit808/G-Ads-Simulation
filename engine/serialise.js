@@ -122,6 +122,12 @@ export function decisionsForRound(decisionLog, round) {
 /**
  * Replay a game from its log, without ever consulting a model.
  *
+ * THE ENGINE'S REPLAY, NOT THE GAME'S. This runs `runRound` alone, which is
+ * exact for a game played through `runRound` and wrong for one played through
+ * `game.js`: it skips capital, repositioning, a self-written ad landing and the
+ * Quality Scores the caller attaches. Measured on a played game, its costs do
+ * not match. A played game is restored with `game.js`'s `replayLog`.
+ *
  * @param {object} initialState the state as it was at the first logged round
  * @param {object[]} decisionLog
  * @param {object} [options] passed through to runRound; seed and mode included

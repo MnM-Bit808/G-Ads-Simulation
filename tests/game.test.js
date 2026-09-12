@@ -1,12 +1,17 @@
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { playRound, submitRound, playGame, triggersLearning } from '../game.js';
+import { playRound, submitRound, playGame, triggersLearning, replayLog } from '../game.js';
+import { startGame } from '../setup.js';
+import { controllerFor } from '../agents/policies.js';
+import { QUERY_SET } from '../content/querySet.js';
+import { BRAND_IDENTITIES } from '../content/brands.js';
+import { homeCell } from '../engine/querySet.js';
 import { advertiserReport } from '../engine/report.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
 import {
   LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
-  REPOSITION_ROUND, REPOSITION_COST_PAISE, MONTHLY_BUDGET_PAISE,
+  REPOSITION_ROUND, REPOSITION_COST_PAISE, MONTHLY_BUDGET_PAISE, TOTAL_ROUNDS,
 } from '../engine/constants.js';
 
 const STATE = makeGameState();
@@ -383,5 +388,93 @@ describe('self-written copy ships on its delivery date (DECISIONS I11)', () => {
     const was = state.advertisers.find((a) => a.id === PLAYER_ID).adGroups[0].gradedQuality;
     const out = submitRound(state, {}, { mode: 'expected' });
     expect(playerGrade(out.nextGameState)).toEqual(was);
+  });
+});
+
+/**
+ * Replaying a game played through THIS module (stage A4, save and resume).
+ *
+ * `engine/serialise.js`'s replayGame runs `runRound` alone, which skips what
+ * this module adds around it: structural decisions (capital, repositioning),
+ * the self-written ad landing at its round, and the Quality Scores attached to
+ * each report. Measured on a real game: its costs do not match the live ones.
+ * A save has to replay the way the game was played, through `submitRound`.
+ */
+describe('a game played here is rebuilt exactly from its first state and its log', () => {
+  const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|lifestyle').slice(0, 4);
+  const initial = () => startGame({
+    rootSeed: 20260902,
+    playerBrandId: BRAND_IDENTITIES[0].id,
+    querySet: QUERY_SET,
+    player: {
+      position: { price: 'mid', purpose: 'lifestyle' },
+      capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
+      keywords: own.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: 1500 })),
+      ad: {
+        headlines: ['Everyday Co-ord Sets', 'Soft Lounge Sets', 'Sizes XS To XXL'],
+        descriptions: [
+          'Soft co-ord sets and lounge pants to wear all day.',
+          'Free delivery over Rs 1,499 and 30-day returns.',
+        ],
+        landingPageDescription: 'A plain product page.',
+      },
+      // Self-written, so the copy lands mid-game: the thing runRound never does.
+      writerTier: 'diy',
+    },
+  });
+
+  // Everything the caller layer does that the engine's replay skips.
+  const scripted = {
+    2: { campaign: { negatives: [{ text: 'gym', matchType: 'broad' }] } },
+    4: { campaign: { strategy: 'maxClicks' } },
+    5: { capex: { photography: 5000000 } },
+  };
+
+  async function playLive(weeks) {
+    const start = initial();
+    const controllers = Object.fromEntries(start.advertisers.map((a, i) => [
+      a.id,
+      i === 0 ? (self) => scripted[self.round] ?? null : controllerFor(a.policyId),
+    ]));
+    const sources = Object.fromEntries(start.advertisers.map((a, i) => [
+      a.id, i === 0 ? 'player' : `policy:${a.policyId}`,
+    ]));
+    let state = start;
+    const reports = [];
+    while (state.round <= weeks) {
+      const out = await playRound(state, controllers, { mode: 'expected', sources });
+      reports.push(out.report);
+      state = out.nextGameState;
+    }
+    return { start, state, reports };
+  }
+
+  test('twelve weeks replay to the same state, report for report', async () => {
+    const live = await playLive(TOTAL_ROUNDS);
+    const replayed = replayLog(live.start, live.state.decisionLog, {
+      mode: 'expected', throughRound: TOTAL_ROUNDS,
+    });
+    expect(JSON.stringify(replayed.finalState)).toBe(JSON.stringify(live.state));
+    expect(JSON.stringify(replayed.reports)).toBe(JSON.stringify(live.reports));
+    expect(replayed.insights).toHaveLength(TOTAL_ROUNDS);
+  });
+
+  test('a week in which nobody decided anything still replays', () => {
+    // Replay is driven by the round count, not by which rounds have log entries,
+    // so a silent week cannot desynchronise it.
+    let state = initial();
+    const start = state;
+    for (let i = 0; i < 2; i++) state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+    expect(state.decisionLog).toEqual([]);
+    const replayed = replayLog(start, [], { mode: 'expected', throughRound: 2 });
+    expect(JSON.stringify(replayed.finalState)).toBe(JSON.stringify(state));
+  });
+
+  test('a log from before the state it is replayed onto throws', () => {
+    const start = initial();
+    const later = { ...start, round: 3 };
+    const log = [{ round: 1, advertiserId: 'x', source: 'player', decision: {} }];
+    expect(() => replayLog(later, log, { mode: 'expected', throughRound: 4 }))
+      .toThrow(/desynchronised/);
   });
 });

@@ -28,6 +28,9 @@ import { renderRoundZero } from './round-zero.js';
 import { renderDashboard } from './dashboard.js';
 import { createDraft, toDecision, changes } from './decisions.js';
 import { renderEnding } from './ending.js';
+import {
+  makeSave, writeSave, readSave, clearSave, fingerprintOf, restoreSave,
+} from './save.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -45,6 +48,26 @@ const redoButton = document.getElementById('redo');
 let game = null;
 
 /**
+ * Where the game is saved between visits (stage A4). Reaching for
+ * `localStorage` can itself throw where a browser blocks site data, so the
+ * lookup is guarded and a null storage simply means nothing is saved.
+ */
+const storage = (() => {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+})();
+
+/**
+ * Whether round 0 has been touched since it was drawn. Round 0 is never saved
+ * (a game only exists once the account opens), so it is the one screen a
+ * reload can still cost work on.
+ */
+let roundZeroTouched = false;
+
+/**
  * The game being rewound, while round 0 is on screen for a second time (17.3).
  *
  * Held rather than discarded because the rewind has to go back THROUGH
@@ -59,9 +82,42 @@ async function begin({ playerBrandId, player }) {
     ? redoRoundZero(rewinding, { playerBrandId, player })
     : startGame({ rootSeed, playerBrandId, player, querySet: QUERY_SET });
   rewinding = null;
+  openGame(state, playerBrandId);
 
+  // AND RUN THE FIRST WEEK, rather than rendering an account with no rounds in
+  // it. There used to be a screen between here and the dashboard carrying one
+  // sentence — "The account is open and nothing has run yet. Run the week to buy
+  // some traffic." — which told the player to press a button in the opposite
+  // corner of the page from the form they had just spent five screens filling
+  // in, and showed them nothing at all in the meantime.
+  //
+  // Leaving round 0 on screen instead would have been worse: `game` exists by
+  // this line, so the form's draft is no longer read by anything and every field
+  // on it would accept edits that did nothing. A control that does nothing is
+  // worse than no control.
+  //
+  // So the account is created and the week is bought by one press of one button,
+  // at the bottom of the form it belongs to. `render` is not called until a
+  // report exists, because the dashboard reads the last one.
+  await runWeek();
+}
+
+/**
+ * Build the interface's game around a state that has not played a week yet.
+ *
+ * Shared by a new game and a restored one, so a resumed game is wired exactly
+ * as it was the first time: the same controllers, the same sources, and the
+ * same round 0 snapshot for the end screen to diff against.
+ *
+ * @param {object} state - the state before week 1
+ * @param {string} playerId
+ */
+function openGame(state, playerId) {
   game = {
-    playerId: playerBrandId,
+    playerId,
+    // Kept for the save (A4): the start plus the log rebuilds everything else.
+    initial: state,
+    saved: null,
     state,
     reports: [],
     insights: [],
@@ -97,23 +153,22 @@ async function begin({ playerBrandId, player }) {
     negatives: game.draft.base.negatives,
     keywords: game.draft.base.keywords,
   };
+}
 
-  // AND RUN THE FIRST WEEK, rather than rendering an account with no rounds in
-  // it. There used to be a screen between here and the dashboard carrying one
-  // sentence — "The account is open and nothing has run yet. Run the week to buy
-  // some traffic." — which told the player to press a button in the opposite
-  // corner of the page from the form they had just spent five screens filling
-  // in, and showed them nothing at all in the meantime.
-  //
-  // Leaving round 0 on screen instead would have been worse: `game` exists by
-  // this line, so the form's draft is no longer read by anything and every field
-  // on it would accept edits that did nothing. A control that does nothing is
-  // worse than no control.
-  //
-  // So the account is created and the week is bought by one press of one button,
-  // at the bottom of the form it belongs to. `render` is not called until a
-  // report exists, because the dashboard reads the last one.
-  await runWeek();
+/**
+ * Store the game as it now stands. Called after every week.
+ *
+ * `game.saved` records whether it worked, so the header can say so and the
+ * leave warning knows whether a reload would cost anything.
+ */
+function persist() {
+  game.saved = writeSave(storage, makeSave({
+    initial: game.initial,
+    decisionLog: game.state.decisionLog,
+    playerId: game.playerId,
+    weeksPlayed: game.reports.length,
+    fingerprint: fingerprintOf(game.reports, game.playerId),
+  }));
 }
 
 /**
@@ -151,7 +206,13 @@ function chrome() {
   position.textContent = `${me.position.price} · ${me.position.purpose}`;
 
   const played = game.reports.length;
-  label.textContent = `week ${played} of ${TOTAL_ROUNDS}`;
+  // Said quietly when it worked and plainly when it did not, because a reload
+  // is the one thing a player cannot undo.
+  const saveState = game.saved === true ? ' · saved' : game.saved === false ? ' · not saved' : '';
+  label.textContent = `week ${played} of ${TOTAL_ROUNDS}${saveState}`;
+  label.title = game.saved === false
+    ? 'This browser is refusing to store the game, so a reload will lose it.'
+    : game.saved ? 'Saved in this browser. A reload brings you back here.' : '';
   nextButton.hidden = false;
   nextButton.disabled = played >= TOTAL_ROUNDS;
   nextButton.textContent = played >= TOTAL_ROUNDS ? 'Game over' : commitLabel();
@@ -190,6 +251,7 @@ function commitLabel() {
  */
 function restart(market) {
   if (market === 'new') rootSeed += 1;
+  clearSave(storage);
   game = null;
   rewinding = null;
   render();
@@ -199,6 +261,7 @@ function restart(market) {
 function render() {
   chrome();
   if (!game) {
+    roundZeroTouched = false;
     app.replaceChildren(renderRoundZero({
       querySet: QUERY_SET,
       rootSeed,
@@ -247,6 +310,7 @@ async function runWeek() {
   game.state = out.nextGameState;
   game.reports.push(out.report);
   game.insights.push(out.insights);
+  persist();
   // Rebuilt from the account the round produced, so what the form shows is
   // what the engine now holds — staged changes have become real ones.
   // `game.opening` is deliberately NOT refreshed: it is the round 0 snapshot
@@ -264,6 +328,138 @@ nextButton.addEventListener('click', async () => {
   await runWeek();
 });
 
+// ---------------------------------------------------------------------------
+// Resuming a saved game (stage A4)
+// ---------------------------------------------------------------------------
+
+/** One full-width card, the shape every screen here is built from. */
+function panel(title, subtitle) {
+  const node = el('article', 'card span-4');
+  const heading = el('h2', null, title);
+  if (subtitle) heading.append(el('span', 'muted', subtitle));
+  node.append(heading);
+  return node;
+}
+
+function showPanel(node) {
+  const grid = el('section', 'grid');
+  grid.append(node);
+  app.replaceChildren(grid);
+  window.scrollTo(0, 0);
+}
+
+function choice(label, why, onPick) {
+  const row = el('div', 'restart-row');
+  const button = el('button', 'restart-pick', label);
+  button.type = 'button';
+  button.addEventListener('click', onPick);
+  row.append(button, el('div', 'restart-why muted', why));
+  return row;
+}
+
+/** Throw the saved game away and open round 0. */
+function startAfresh() {
+  clearSave(storage);
+  game = null;
+  render();
+}
+
+/**
+ * Offer the saved game back. It is never resumed silently: a player who meant
+ * to start again should not find themselves in week 9.
+ */
+function offerResume(saved) {
+  const me = saved.initialState.advertisers.find((a) => a.id === saved.playerId);
+  document.getElementById('brand').textContent = me.name;
+  document.getElementById('position').textContent = `${me.position.price} · ${me.position.purpose}`;
+  document.getElementById('round-label').textContent = 'saved game';
+  nextButton.hidden = true;
+  redoButton.hidden = true;
+
+  const finished = saved.weeksPlayed >= TOTAL_ROUNDS;
+  const node = panel('A game in progress', 'saved in this browser');
+  node.append(el('p', 'note',
+    `${me.name}, ${me.position.price} · ${me.position.purpose}: ${saved.weeksPlayed} of `
+    + `${TOTAL_ROUNDS} weeks played. Resuming replays those weeks from your own decisions, `
+    + 'which takes a few seconds.'));
+  node.append(
+    choice(finished ? 'Back to the end screen' : `Resume at week ${saved.weeksPlayed + 1}`,
+      'Everything as you left it, except changes you had staged and not yet run.',
+      () => resume(saved)),
+    choice('Start a new game',
+      'Discards the saved game. There is no getting it back.',
+      startAfresh),
+  );
+  showPanel(node);
+}
+
+async function resume(saved) {
+  const node = panel('Restoring your game');
+  const progress = el('p', 'note', `Replaying week 1 of ${saved.weeksPlayed}…`);
+  node.append(progress);
+  showPanel(node);
+
+  const restored = await restoreSave(saved, {
+    mode: 'expected',
+    onWeek: (week, of) => {
+      progress.textContent = week < of ? `Replaying week ${week + 1} of ${of}…` : 'Done.';
+    },
+  });
+
+  rootSeed = saved.initialState.rootSeed;
+  openGame(saved.initialState, saved.playerId);
+  game.state = restored.state;
+  game.reports = restored.reports;
+  game.insights = restored.insights;
+  refreshDraft();
+  if (restored.exact) {
+    game.saved = true;
+    render();
+    return;
+  }
+
+  // The same decisions, run by an engine that has changed since the save was
+  // written, gave different weeks. Say so rather than hand back a game quietly
+  // different from the one that was played.
+  const warn = panel('This game has changed since you saved it');
+  warn.append(el('p', 'note',
+    'The simulator has been updated since this game was saved. Replayed on this '
+    + 'version, your own decisions produce different weeks from the ones you '
+    + 'played, so the numbers you would see are this version’s, not the ones you '
+    + 'read at the time.'));
+  warn.append(
+    choice('Continue with these numbers', 'Carry on from here on the updated simulator.', () => {
+      persist();
+      render();
+    }),
+    choice('Start a new game', 'Discards the saved game.', startAfresh),
+  );
+  showPanel(warn);
+}
+
+/**
+ * Should leaving the page be questioned? Only when a reload would cost
+ * something: an unfinished round 0 that has been touched, a game the browser
+ * refused to store, or changes staged and not yet run. Warning on every visit
+ * would teach players to click straight through it.
+ */
+function leavingCostsWork() {
+  if (!game) return roundZeroTouched;
+  if (game.reports.length >= TOTAL_ROUNDS) return false;
+  return game.saved !== true || changes(game.draft).length > 0;
+}
+
+window.addEventListener('beforeunload', (event) => {
+  if (!leavingCostsWork()) return;
+  event.preventDefault();
+  // Older browsers only show the prompt when this is set.
+  event.returnValue = '';
+});
+
+for (const type of ['input', 'change', 'click']) {
+  app.addEventListener(type, () => { if (!game) roundZeroTouched = true; });
+}
+
 redoButton.addEventListener('click', () => {
   // Back to round 0, keeping the game to rewind FROM. Same seed, same rivals,
   // same cells, same ads — only the player's own choices change, because
@@ -273,4 +469,6 @@ redoButton.addEventListener('click', () => {
   render();
 });
 
-render();
+const saved = readSave(storage);
+if (saved) offerResume(saved);
+else render();
