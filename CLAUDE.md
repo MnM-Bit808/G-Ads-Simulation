@@ -208,3 +208,10 @@ number in the simulation without ever throwing an error.
   ad landing, Quality Scores. Measured, its costs do not match a played game.
   Anything that restores a PLAYED game goes through `game.js`'s `replayLog`, as
   the save does.
+- **The field guide cites DECISIONS, and a green test does not mean it
+  agrees.** `ui/guide/chapters.js` says what the game does and cites the entries
+  it rests on; `tests/guide.test.js` proves each cited entry exists, not that
+  the chapter still matches it. When a DECISIONS entry changes, search
+  `ui/guide/` for its ID and re-read every chapter that cites it. The chapters'
+  "in real Google Ads" halves come from sources fetched when written; never
+  add a real-world claim from memory.

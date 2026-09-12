@@ -52,6 +52,30 @@ still resting on a guess.
 - **Decided with the owner:** the explanations will move into an optional field
   guide inside the game, after stage A.
 
+**Stage C has begun, on the branch `stage-c`, NOT on `main`** (2026-09-12). It
+stays there until every playtest file is read, so the version strangers play
+does not change under them. The design is
+`plans/2026-09-12-content-model-and-field-guide.md`, and the task list with its
+Task 4 addendum is `…-plan.md` beside it.
+- **C1, the content model, is piloted on the returns card.** Its sentences live
+  in `ui/words/returns.js`, each labelled reading, disclosure, instruction or
+  label, and `tests/words.test.js` forbids typed numbers, a concept on screen, a
+  disclosure without a "why", and prose back in `renderReturns`. Every other
+  card moves across when C3 or C4 rebuilds it, not in one sweep.
+- **C2, the field guide, is built as a side drawer** (direction A, chosen from
+  three mock-ups in `design/field-guide/`). Three chapters so far, in
+  `ui/guide/chapters.js`: each says how real Google Ads does it, from sources
+  fetched while writing, then what this game does, citing DECISIONS.
+  `tests/guide.test.js` checks every citation exists; it cannot check that a
+  chapter agrees with what it cites (see CLAUDE.md's known traps).
+- **Found on the way:** DECISIONS D11 (place and hour adjustments go past
+  Google's limits and work under every strategy; the hours half is still owed
+  a disclosure in C4); two dead or misleading capital sentences on the returns
+  card; and four dashboard tables wider than a phone.
+- **Next:** C3 (round 0 in steps) and C4 (a dashboard that reveals itself) wait
+  for the playtest files. The recorder's card times say which cards strangers
+  read, which is what C4 needs.
+
 **The session before (2026-09-11 to 12) closed the three items that had been open
 longest**, in this order. Each has its full record in `DECISIONS.md`; the commit
 messages carry the reasoning in between.
