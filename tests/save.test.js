@@ -178,7 +178,11 @@ describe('loading is strict, and never throws at the interface', () => {
   });
 });
 
-describe('restoring rebuilds the game the player was playing', () => {
+// Whole games replayed, 2-4 seconds a test on their own. The suite runs files
+// in parallel, and beside the other replaying tests these crossed Vitest's
+// 5-second default on an ordinary run. They assert equality, never speed, so
+// the limit is only a ceiling (the writerBalance test sets one the same way).
+describe('restoring rebuilds the game the player was playing', { timeout: 30_000 }, () => {
   test('the state, every report and every insight come back exactly', async () => {
     const game = await play(4);
     const storage = memoryStorage();

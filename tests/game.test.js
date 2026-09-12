@@ -490,7 +490,8 @@ describe('a game played here is rebuilt exactly from its first state and its log
  * nothing, the weeks before the decision are untouched, and every rival makes
  * exactly the moves it made in the played game.
  */
-describe('a game replayed without one decision (the debrief)', () => {
+// Plays and replays whole games: a ceiling, not a speed test (see save.test.js).
+describe('a game replayed without one decision (the debrief)', { timeout: 30_000 }, () => {
   const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|lifestyle').slice(0, 4);
   const PLAYER = BRAND_IDENTITIES[0].id;
   const initial = () => startGame({
@@ -538,8 +539,14 @@ describe('a game replayed without one decision (the debrief)', () => {
 
   const row = (report) => report.byAdvertiser[PLAYER].traffic;
 
+  // One six-week game shared by every test here. Each used to play its own,
+  // and four extra games running beside the suite's other long tests pushed
+  // three of those past their 5-second limit on an ordinary run.
+  let shared = null;
+  const played = () => { shared ??= playLive(6); return shared; };
+
   test('only that advertiser\'s entry for that round is taken out', async () => {
-    const live = await playLive(4);
+    const live = await played();
     const log = live.state.decisionLog;
     const without = logWithout(log, { advertiserId: PLAYER, round: 2 });
     expect(without).toHaveLength(log.length - 1);
@@ -550,7 +557,7 @@ describe('a game replayed without one decision (the debrief)', () => {
   });
 
   test('removing a round the player never decided in changes nothing', async () => {
-    const live = await playLive(6);
+    const live = await played();
     const replayed = replayWithout(live.start, live.state.decisionLog, {
       advertiserId: PLAYER, round: 3, mode: 'expected', throughRound: 6,
     });
@@ -558,7 +565,7 @@ describe('a game replayed without one decision (the debrief)', () => {
   });
 
   test('removing a decision leaves every week before it identical, and changes its own week', async () => {
-    const live = await playLive(6);
+    const live = await played();
     const replayed = replayWithout(live.start, live.state.decisionLog, {
       advertiserId: PLAYER, round: 2, mode: 'expected', throughRound: 6,
     });
@@ -567,7 +574,7 @@ describe('a game replayed without one decision (the debrief)', () => {
   });
 
   test('rivals make exactly the moves they made, and the player\'s later decisions still happen', async () => {
-    const live = await playLive(6);
+    const live = await played();
     const replayed = replayWithout(live.start, live.state.decisionLog, {
       advertiserId: PLAYER, round: 2, mode: 'expected', throughRound: 6,
     });
