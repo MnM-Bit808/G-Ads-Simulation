@@ -39,11 +39,14 @@ import {
 /** 13.1's snapshot round, when `budgetSchedule` does not name its own. */
 const RANK_SNAPSHOT_ROUND = 8;
 
-/** A click in round R is final at R+5: three rounds to arrive, two to resolve. */
-const SETTLES_AFTER_ROUNDS = ATTRIBUTION_LAG_DISTRIBUTION.length + 1;
+/**
+ * A click in round R is final at R+5: three rounds to arrive, two to resolve.
+ * Exported for the field guide, which quotes it rather than deriving it again.
+ */
+export const SETTLES_AFTER_ROUNDS = ATTRIBUTION_LAG_DISTRIBUTION.length + 1;
 
 /** "55% this week, then 28%, 12%, 5%", read off the constant it describes. */
-const ARRIVAL_SHAPE = ATTRIBUTION_LAG_DISTRIBUTION
+export const ARRIVAL_SHAPE = ATTRIBUTION_LAG_DISTRIBUTION
   .map((share, i) => `${Math.round(100 * share)}%${i === 0 ? ' this week' : ''}`)
   .join(', then ')
   .replace(/, then (?=[^,]*$)/, ' and then ');

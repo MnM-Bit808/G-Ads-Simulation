@@ -201,6 +201,7 @@ describe('every interface module at least loads', () => {
     'words/line.js': () => import('../ui/words/line.js'),
     'words/returns.js': () => import('../ui/words/returns.js'),
     'guide/chapters.js': () => import('../ui/guide/chapters.js'),
+    'guide/figures.js': () => import('../ui/guide/figures.js'),
   };
 
   test('the list of modules to load is complete', () => {
