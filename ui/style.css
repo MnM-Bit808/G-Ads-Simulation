@@ -210,6 +210,11 @@ td + td, th + th { padding-left: 0.9rem; }
  */
 .scroll { max-height: 22rem; overflow-y: auto; }
 
+/* A table that may outgrow its card scrolls inside it, not the page with it
+   (`scrollX` in ui/dom.js). On a desktop every such table fits, so nothing
+   here changes there. */
+.scroll-x { max-width: 100%; overflow-x: auto; }
+
 /*
  * The location card's headers may break onto two lines. Adding "kept per click"
  * beside "revenue per click" (stage A2) took the table to 1048px in a 967px card

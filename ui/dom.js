@@ -70,6 +70,24 @@ export function table(node, headers, rows) {
   node.append(head, body);
 }
 
+/**
+ * A table that can be wider than its card, in a box that scrolls sideways.
+ *
+ * The scroll lives on a WRAPPER, never on the table: `display: block` on a
+ * <table> discards its layout, and the columns stop lining up (style.css,
+ * "tables"). Without this, six tables were wider than a 375px phone and
+ * widened the whole page with them, to 894px on the end screen, so every
+ * card on the page scrolled sideways instead of the one table that needed to.
+ *
+ * @param {HTMLTableElement} node
+ * @returns {HTMLDivElement} the wrapper, holding the table
+ */
+export function scrollX(node) {
+  const box = el('div', 'scroll-x');
+  box.append(node);
+  return box;
+}
+
 /** A labelled figure: the unit of the headline row. */
 export function figure(label, value, sub, tone) {
   const box = el('div', 'figure');
