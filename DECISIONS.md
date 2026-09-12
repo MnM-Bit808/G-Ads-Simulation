@@ -4332,6 +4332,79 @@ thing structurally*), none taken:
   allocation is spend-or-invest and which figure decides it, or something the
   game already has, such as rivals running out of money.
 
+#### Addendum: the festive season, measured and rejected too (2026-09-13)
+
+The owner chose the festive season next, and it was tested before any design
+rested on it.
+
+**Diwali's dates** (Lakshmi Puja, Drik Panchang, calculated for New Delhi):
+4 November 2021, 24 October 2022, 12 November 2023, 1 November 2024,
+20 October 2025. The site otherwise calculates for the visitor's location,
+which moved two of these by a day, so the New Delhi pages are the ones cited:
+https://www.drikpanchang.com/festivals/lakshmipuja/festivals-lakshmipuja-timings.html?geoname-id=1261481&year=2022
+(and `year=` 2021, 2023, 2024, 2025).
+
+**Lined up on Diwali** (each week over the 52 weeks centred on that year's
+Diwali week, 2022–2025; 2021 is too close to the files' start to centre):
+
+| | 4 weeks before | Diwali week | 5 weeks after |
+|---|---|---|---|
+| training | about 0.80 | 0.82 | 0.88–0.98 |
+| lifestyle | about 0.91 | 0.94 | 1.02–1.07 |
+
+Year by year, lifestyle's five weeks after Diwali read 1.05, 1.07, 1.06, 1.06:
+small, and the steadiest figure in these files. Training's four weeks before
+read 0.77, 0.87, 0.90, 0.65.
+
+**It follows the calendar, not Diwali.** Over the same 25 October–20 November,
+training reads 0.92 whether that stretch fell after Diwali (2022, 2025) or
+before it (2023, 2024). Lifestyle reads higher in the late years (1.19 against
+1.03), the opposite of a Diwali-driven rise, and only because of 2023 (1.32),
+an unexplained November spike; without it there is no Diwali pattern either
+way. So the monthly table's November 1.21 above was lifted by one year, and the
+dependable effect is a gentle calendar season: lifestyle about +5–7% in
+November–December, training quiet in October–November.
+
+**The share caveat bites harder here.** Before Diwali everyone searches more,
+so a flat count of gym searches reads as a falling share. Keyword Planner's
+absolute counts would settle it, but opening a Google Ads account now requires
+a payment method, and the owner chose not to add one. So the pre-Diwali
+training dip is recorded as possibly an artefact of how Trends measures, and
+the post-Diwali lifestyle rise, which comes after the shopping peak, as the
+trustworthy half.
+
+**Does it create a decision? Measured, and no.** A throwaway harness (D12's,
+72 markets, F15's full-account player, rivals live and not told): rounds 1–8
+played once, forked at round 9 into three worlds (lifestyle commercial searches
+×1, ×1.06 as measured, ×1.15 exaggerated, rounds 9–12, raised in the fork's own
+copy of the query set) and four responses at round 9 (none; chase: add the
+three biggest rising searches of the player's price tier; bids −15%; bids +15%).
+A response is a decision the event creates only if its advantage over doing
+nothing moves when the event is added.
+
+| response | advantage, no event | with +6% | with +15% | what +6% moves it by |
+|---|---|---|---|---|
+| chase | +₹9,058 (wins 65%) | +₹8,680 (65%) | +₹6,070 (61%) | −₹457 |
+| bids −15% | +₹15,733 (72%) | +₹18,528 (79%) | +₹26,600 (81%) | +₹117 |
+| bids +15% | −₹17,926 (15%) | −₹18,384 (18%) | −₹20,042 (18%) | −₹2 |
+
+The best response changes in 4 of 72 markets at +6% and 7 of 72 at +15%; the
+median cost of ignoring the event is ₹0. What the event does is hand
+lifestyle cells whose budget is not running out a windfall (premium · lifestyle
++₹16,461, value · lifestyle +₹10,980 at +6%), cost the budget-limited
+mid · lifestyle a little (−₹2,330: more searches, same money), and leave
+performance cells alone. **Scenery, and mildly false scenery: it would teach
+that a season is free money.** Not built.
+
+**Found on the way, and the thing worth keeping.** Without any event, cutting
+bids 15% at week 9 beats doing nothing in 72% of markets, by a median ₹15,733,
+and raising them loses in 85%. With D12, that is two measurements saying the
+decision the back half already holds is "my budget is running out, so pay less
+per click", and nothing on screen says so while it can be acted on (the
+debrief's *Rank or budget* says it after the game). It rests on one scripted
+player bidding 0.7 × realised break-even with rivals untold, so it is a lead to
+measure properly, not yet a claim for the screen.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`
