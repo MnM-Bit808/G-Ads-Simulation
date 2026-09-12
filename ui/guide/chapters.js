@@ -20,8 +20,11 @@
  * `tests/guide.test.js` proves a citation exists, not that the chapter agrees.
  */
 
-/** A DECISIONS entry (`I27`), a "what it gets right" item (`H2`), or a spec section (`§11.4`). */
-const CITATION = /^([A-Z]\d+|§\d+(\.\d+)*)$/;
+/**
+ * A DECISIONS entry (`I27`, or a sub-entry like `G1a`), a "what it gets right"
+ * item (`H2`), or a spec section (`§11.4`).
+ */
+const CITATION = /^([A-Z]\d+[a-z]?|§\d+(\.\d+)*)$/;
 
 /**
  * @param {object} spec
@@ -72,6 +75,18 @@ const GOOGLE = {
   bidAdjustments: {
     label: 'Google Ads Help: About bid adjustments',
     url: 'https://support.google.com/google-ads/answer/2732132',
+  },
+  impressionShareData: {
+    label: 'Google Ads Help: Get impression share data',
+    url: 'https://support.google.com/google-ads/answer/7103314',
+  },
+  impressionShare: {
+    label: 'Google Ads Help: About impression share',
+    url: 'https://support.google.com/google-ads/answer/2497703',
+  },
+  simulators: {
+    label: 'Google Ads Help: Estimate your results with bid, budget and target simulators',
+    url: 'https://support.google.com/google-ads/answer/2470105',
   },
 };
 
@@ -157,7 +172,27 @@ export const CHAPTERS = Object.freeze({
     yourAccount: 'places',
     related: ['returnsSplit'],
   }),
+
+  counterfactuals: chapter({
+    title: 'What only a simulation can tell you',
+    real: () => 'Google Ads never sees what would have happened. When your budget runs out, it '
+      + 'reports the share of searches you missed because of it, as impression share lost to '
+      + 'budget, and even the searches you were eligible for are an estimate. Its bid and budget '
+      + 'simulators go further, estimating from the last 7 days of auction data how your ads '
+      + 'might have performed with more money, and they warn that conversions are the hardest '
+      + 'part to estimate. Everything it tells you about the road not taken is a projection.',
+    realSources: [GOOGLE.impressionShareData, GOOGLE.impressionShare, GOOGLE.simulators],
+    game: () => 'This game can re-run a week exactly. The budget "what if" re-runs each week with '
+      + 'only your own budget lifted to what was left of the month, everyone else unchanged, and '
+      + 'reports the extra traffic and whether it would have paid; orders that never happened are '
+      + 'costed at your expected return rate. "What if I hadn’t?" replays the game without '
+      + 'one of your changes, with every rival making the moves it made in your game, though a '
+      + 'real market might have answered differently. Both are exact inside the game and '
+      + 'impossible outside it.',
+    cites: ['G1', 'G1a'],
+    yourAccount: 'budget',
+  }),
 });
 
 /** The guide's contents list, in reading order. */
-export const CONTENTS = Object.freeze(['attributionLag', 'returnsSplit', 'cashOnDelivery']);
+export const CONTENTS = Object.freeze(['attributionLag', 'returnsSplit', 'cashOnDelivery', 'counterfactuals']);
