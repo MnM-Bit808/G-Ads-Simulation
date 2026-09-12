@@ -1452,9 +1452,11 @@ button.guide-next:hover { filter: none; color: #a9c1fa; }
 /* A phone: the whole screen, its two ways out pinned to the bottom (the foot),
    and every control at least 44px tall. */
 /* Sized to the SCREEN (vw, dvh) and anchored top-left, not stretched between
-   the page's edges: four dashboard tables are wider than a phone, which widens
-   the page to 812px, and a drawer pinned to that page's right edge and bottom
-   opened off-screen with its bar far below the fold. Measured 2026-09-12. */
+   the page's edges. When this was built, six tables were wider than a phone
+   and widened the page to 812px, and a drawer pinned to that page's right edge
+   and bottom opened off-screen with its bar far below the fold. The tables
+   now scroll inside their cards (`scrollX`), and this stays so that the next
+   wide thing cannot do the same to the drawer. Measured 2026-09-12. */
 @media (max-width: 620px) {
   .card.guide {
     top: 0 !important;

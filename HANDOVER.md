@@ -70,8 +70,10 @@ Task 4 addendum is `…-plan.md` beside it.
   chapter agrees with what it cites (see CLAUDE.md's known traps).
 - **Found on the way:** DECISIONS D11 (place and hour adjustments go past
   Google's limits and work under every strategy; the hours half is still owed
-  a disclosure in C4); two dead or misleading capital sentences on the returns
-  card; and four dashboard tables wider than a phone.
+  a disclosure in C4); and two dead or misleading capital sentences on the
+  returns card. Also six tables wider than a phone, which widened the whole page
+  to as much as 894px: **fixed** on the branch `phone-tables` (`f725dda`, cut
+  from `main` so it can ship without stage C) and merged into `stage-c`.
 - **Next:** C3 (round 0 in steps) and C4 (a dashboard that reveals itself) wait
   for the playtest files. The recorder's card times say which cards strangers
   read, which is what C4 needs.
