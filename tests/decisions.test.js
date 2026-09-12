@@ -12,6 +12,7 @@ import {
 } from '../engine/constants.js';
 import { submitRound, triggersLearning } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
+import { tagKeywordOffline, heuristicTags } from '../agents/keywordTagger.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 import {
   createDraft, toDecision, changes,
@@ -1357,5 +1358,34 @@ describe('the location card says what a click kept, not only what it sold', () =
     expect(locationOutlook(rows).note).toMatch(/In towns a click has cost more than it left you/);
     const fine = rows.map((r) => ({ ...r, cpcPaise: 500 }));
     expect(locationOutlook(fine).note).not.toMatch(/cost more than it left/);
+  });
+});
+
+describe('a keyword added between weeks is tagged by the tagger it is handed (stage A3)', () => {
+  // The form works from the PUBLIC view of the query set, which carries no tags
+  // (16.1), so it cannot look a search's tags up itself and must not. The
+  // dashboard hands it a tagger built on the full set; the lookup stays in
+  // agents/keywordTagger.js.
+  const draftNow = () => createDraft(getSelfView(makeGameState({ round: 3 }), PLAYER_ID));
+
+  test('handed the query-set tagger, a planner search gets its own tags', () => {
+    const d = draftNow();
+    const tag = (keyword) => tagKeywordOffline(keyword, QUERY_SET);
+    const { keyword } = addKeyword(d, { text: 'matching set women', matchType: 'broad', bidPaise: 4000 }, { tag });
+    expect(keyword.tags).toEqual(['co-ord-set', 'women']);
+  });
+
+  test('handed nothing, it reads the words as it always did', () => {
+    const d = draftNow();
+    const { keyword } = addKeyword(d, { text: 'matching set women', matchType: 'broad', bidPaise: 4000 });
+    expect(keyword.tags).toEqual(heuristicTags('matching set women'));
+  });
+
+  test('and a batch passes the tagger to every keyword in it', () => {
+    const d = draftNow();
+    const tag = (keyword) => tagKeywordOffline(keyword, QUERY_SET);
+    addKeywords(d, [{ text: 'athleisure set india', matchType: 'broad', bidPaise: 4000 }], { tag });
+    expect(d.keywords.find((k) => k.text === 'athleisure set india').tags)
+      .toEqual(['co-ord-set', 'casual', 'india']);
   });
 });

@@ -274,3 +274,71 @@ describe('the suite stays offline (R2)', () => {
     }
   });
 });
+
+/**
+ * A planner keyword is tagged as the search it names (stage A3,
+ * reviews/slc-review.md 9A-1, DECISIONS E9).
+ *
+ * The query set's tags are the tagger's own output for those exact phrases,
+ * computed once offline and frozen (E2), and every rival's keyword already
+ * carries them (setup.js). The player's went through the word lookup instead,
+ * which reaches further: over the 120 commercial searches, 86 lost a tag, 34
+ * collapsed to one, and mean broad reach was 29.2 searches against 16.7.
+ */
+describe('a keyword that is a planner search is tagged as that search', () => {
+  const reach = (tags) => QUERY_SET.queries
+    .filter((q) => tagOverlap(tags, q.tags) >= BROAD_MATCH_MIN_OVERLAP).length;
+
+  test('every search in the planner, added as a keyword, carries its own tags', () => {
+    for (const q of QUERY_SET.queries) {
+      expect(tagKeywordOffline({ text: q.text }, QUERY_SET).tags, q.text)
+        .toEqual(enforceVocabulary(q.tags).tags);
+    }
+  });
+
+  test('so on broad it reaches exactly what a rival\'s identical keyword reaches', () => {
+    for (const q of QUERY_SET.queries.filter((x) => x.intent === 'commercial')) {
+      expect(reach(tagKeywordOffline({ text: q.text }, QUERY_SET).tags), q.text).toBe(reach(q.tags));
+    }
+  });
+
+  test('case and spacing do not stop it being the same search', () => {
+    expect(tagKeywordOffline({ text: '  Matching  Set WOMEN ' }, QUERY_SET).tags)
+      .toEqual(['co-ord-set', 'women']);
+  });
+
+  test('a keyword the planner does not contain is still read from its words', () => {
+    const typed = 'ribbed seamless leggings';
+    expect(QUERY_SET.queries.some((q) => q.text === typed)).toBe(false);
+    const out = tagKeywordOffline({ text: typed }, QUERY_SET);
+    expect(out.tags).toEqual(heuristicTags(typed));
+    expect(out.source).toBe('heuristic');
+  });
+
+  test('it says where the tags came from', () => {
+    expect(tagKeywordOffline({ text: 'matching set women' }, QUERY_SET).source).toBe('query-set');
+  });
+
+  test('without a query set it reads the words, exactly as before', () => {
+    expect(tagKeywordOffline({ text: 'matching set women' }).tags).toEqual(heuristicTags('matching set women'));
+  });
+
+  test('a whole ad group is tagged the same way, and a keyword\'s old tags do not survive', () => {
+    const [kept, typed] = tagKeywordsOffline([
+      { text: 'matching set women', tags: ['women'] },
+      { text: 'ribbed seamless leggings', tags: ['stale'] },
+    ], QUERY_SET);
+    expect(kept.tags).toEqual(['co-ord-set', 'women']);
+    expect(typed.tags).toEqual(heuristicTags('ribbed seamless leggings'));
+  });
+
+  test('the word lookup reaches FURTHER, which is why it was not a safe default', () => {
+    // The other half of "missing an implied tag costs nothing" above. Missing
+    // tags costs nothing on the keyword's own search, where overlap is still 1 -
+    // and widens broad match everywhere else, because tagOverlap divides by the
+    // KEYWORD's count. "studio to street leggings" read as just `leggings`.
+    const text = 'studio to street leggings';
+    const row = QUERY_SET.queries.find((q) => q.text === text);
+    expect(reach(heuristicTags(text))).toBeGreaterThan(reach(row.tags) * 5);
+  });
+});

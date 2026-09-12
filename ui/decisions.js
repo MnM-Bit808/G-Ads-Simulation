@@ -1315,11 +1315,18 @@ export function previewNegative(negative, { queries, terms }) {
  * untagged keyword matches nothing on broad, and a player who is not told that
  * sees a keyword that simply does not work.
  *
+ * THE TAGGER IS HANDED IN. This form works from the PUBLIC view of the query
+ * set, which carries no tags (16.1), so it cannot look a search's tags up and
+ * must not. The dashboard passes a tagger built on the full set, so a keyword
+ * taken from the planner carries that search's own tags, as a rival's does
+ * (E9); without one, the words are read as they always were.
+ *
  * @param {object} draft
  * @param {{text: string, matchType: string, bidPaise: number}} spec
+ * @param {{tag?: Function}} [options] - `tag({text})` returns `{tags, taggedContentHash}`
  * @returns {{ok: boolean, reason?: string, keyword?: object, inertOnBroad?: boolean}}
  */
-export function addKeyword(draft, { text, matchType = 'phrase', bidPaise } = {}) {
+export function addKeyword(draft, { text, matchType = 'phrase', bidPaise } = {}, { tag } = {}) {
   const clean = String(text ?? '').trim();
   if (tokenise(clean).length === 0) return { ok: false, reason: 'a keyword needs at least one word' };
   if (!MATCH_TYPES.includes(matchType)) return { ok: false, reason: 'unknown match type' };
@@ -1328,7 +1335,7 @@ export function addKeyword(draft, { text, matchType = 'phrase', bidPaise } = {})
     return { ok: false, reason: 'that keyword is already in the account' };
   }
 
-  const { tags, taggedContentHash } = tagKeywordOffline({ text: clean });
+  const { tags, taggedContentHash } = (tag ?? tagKeywordOffline)({ text: clean });
   const keyword = {
     id: freshId(clean, draft.keywords, draft.base.keywords),
     text: clean,
@@ -1384,11 +1391,11 @@ export function removeKeyword(draft, id) {
  * @param {Array<{text: string, matchType: string, bidPaise: number}>} specs
  * @returns {{added: number, skipped: number}}
  */
-export function addKeywords(draft, specs) {
+export function addKeywords(draft, specs, options = {}) {
   let added = 0;
   let skipped = 0;
   for (const spec of specs ?? []) {
-    if (addKeyword(draft, spec).ok) added++;
+    if (addKeyword(draft, spec, options).ok) added++;
     else skipped++;
   }
   return { added, skipped };
@@ -2670,7 +2677,7 @@ function planner(ctx, refresh) {
       go.addEventListener('click', () => {
         addKeywords(ctx.draft, addable.map((q) => ({
           text: q.text, matchType: chosen.matchType, bidPaise: chosen.bidPaise,
-        })));
+        })), { tag: ctx.tagKeyword });
         refresh();
       });
       bulk.append(go);
@@ -2684,7 +2691,9 @@ function planner(ctx, refresh) {
         button.textContent = already ? 'in account' : 'add';
         button.disabled = already;
         button.addEventListener('click', () => {
-          addKeyword(ctx.draft, { text: q.text, matchType: chosen.matchType, bidPaise: chosen.bidPaise });
+          addKeyword(ctx.draft,
+            { text: q.text, matchType: chosen.matchType, bidPaise: chosen.bidPaise },
+            { tag: ctx.tagKeyword });
           refresh();
         });
         return { cells: [q.text, whole(q.weekly), q.intent, button] };

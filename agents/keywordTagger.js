@@ -140,10 +140,15 @@ const FORMS = TAG_VOCABULARY.map((tag) => ({ tag, forms: surfaceForms(tag) }));
  * "cheap gym leggings" with `women` because the whole vertical is women's
  * athleisure, and no amount of reading that string will produce it.
  *
- * That miss costs less than it looks. `tagOverlap` divides by the KEYWORD's tag
- * count, so a keyword tagged with three terms the query also carries scores a
- * perfect 1.0 even though the query carries a fourth. Being conservative is
- * cheap here; inventing is not.
+ * THE MISS HAS TWO HALVES, AND THIS COMMENT ONCE ONLY KNEW THE FIRST. On the
+ * keyword's own search it costs nothing: `tagOverlap` divides by the KEYWORD's
+ * tag count, so three terms the query also carries score a perfect 1.0. But
+ * the same division makes a keyword with FEWER tags broad-match FURTHER, so
+ * "fewer" is not "conservative": "studio to street leggings" read as just
+ * `leggings` and reached 50 searches where its own tags reach 4. That is why a
+ * keyword the planner contains is tagged as the search it names instead
+ * (`tagKeywordOffline`, DECISIONS E9), and this runs only on words the planner
+ * has never seen.
  *
  * @param {string} text
  * @returns {string[]} tags, in vocabulary order
@@ -159,15 +164,39 @@ export function heuristicTags(text) {
 /**
  * Tag one keyword offline, synchronously — the path round 0 uses.
  *
+ * A KEYWORD THAT IS A PLANNER SEARCH IS TAGGED AS THAT SEARCH (DECISIONS E9).
+ * The query set's tags are this tagger's own output for those exact phrases,
+ * produced once offline and frozen (E2) — the cache the design always
+ * described — and every rival's keyword already carries them. Reading the words
+ * instead gave the player alone a keyword that reached further on broad than a
+ * rival's identical one: over the 120 commercial searches, mean reach 29.2
+ * against 16.7. So the query set is consulted first, and the words are read
+ * only for a phrase it does not contain.
+ *
+ * What this shows the player is the tags of a phrase THEY chose, which is what
+ * a live tagger would show. It never says which other searches carry which
+ * tags, so how far broad travels stays something learned from the search terms
+ * report (E8).
+ *
  * @param {{text: string}} keyword
+ * @param {{queries: Array<{text: string, tags?: string[]}>}} [querySet] - the
+ *   game's own query set; without it, the words are read as before
  * @returns {{tags: string[], taggedContentHash: string, source: string}}
+ *   `source` is 'query-set' or 'heuristic'
  */
-export function tagKeywordOffline(keyword) {
+export function tagKeywordOffline(keyword, querySet) {
+  const phrase = canonical(keyword.text);
+  const search = querySet?.queries?.find((q) => canonical(q.text) === phrase);
   return {
-    tags: heuristicTags(keyword.text),
+    tags: search ? enforceVocabulary(search.tags).tags : heuristicTags(keyword.text),
     taggedContentHash: tagContentHashOf(keyword),
-    source: 'heuristic',
+    source: search ? 'query-set' : 'heuristic',
   };
+}
+
+/** The form a phrase is compared in: the same canonical text its hash is taken of. */
+function canonical(text) {
+  return String(text ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
 // ---------------------------------------------------------------------------
@@ -302,7 +331,13 @@ export async function tagKeywords(keywords, { callModel } = {}) {
   return tagged;
 }
 
-/** Tag a whole ad group offline, synchronously — the path round 0 uses. */
-export function tagKeywordsOffline(keywords) {
-  return (keywords ?? []).map((keyword) => ({ ...keyword, ...tagKeywordOffline(keyword) }));
+/**
+ * Tag a whole ad group offline, synchronously — the path round 0 uses.
+ *
+ * @param {Array<object>} keywords
+ * @param {object} [querySet] - see `tagKeywordOffline`
+ * @returns {Array<object>} the keywords, each with fresh tags; any it arrived with are replaced
+ */
+export function tagKeywordsOffline(keywords, querySet) {
+  return (keywords ?? []).map((keyword) => ({ ...keyword, ...tagKeywordOffline(keyword, querySet) }));
 }

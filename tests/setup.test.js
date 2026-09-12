@@ -733,3 +733,44 @@ describe('every advertiser opens running everywhere (G4)', () => {
     }
   });
 });
+
+describe('the player\'s planner keywords are tagged as a rival\'s are (stage A3, DECISIONS E9)', () => {
+  // A rival's keyword carries the search row's own tags (rivalKeywords). The
+  // player's went through the word lookup, so the same text reached further on
+  // broad for the player than for any rival - an input asymmetry no DECISIONS
+  // entry recorded. Both now come from the row.
+  test('a keyword taken from the planner carries that search\'s tags', () => {
+    const state = start({
+      player: choices({ keywords: [{ text: 'matching set women', matchType: 'broad', bidPaise: 2400 }] }),
+    });
+    expect(state.advertisers[0].adGroups[0].keywords[0].tags).toEqual(['co-ord-set', 'women']);
+  });
+
+  test('which are exactly the tags a rival holding the same search is given', () => {
+    const state = start();
+    const rows = new Map(QUERY_SET.queries.map((q) => [q.text, q.tags]));
+    for (const rival of state.advertisers.slice(1)) {
+      for (const k of rival.adGroups[0].keywords.filter((x) => rows.has(x.text) && x.tags.length > 0)) {
+        const mine = start({
+          player: choices({ keywords: [{ text: k.text, matchType: 'broad', bidPaise: 2400 }] }),
+        }).advertisers[0].adGroups[0].keywords[0].tags;
+        expect([...mine].sort(), k.text).toEqual([...k.tags].sort());
+      }
+    }
+  });
+
+  test('a keyword typed rather than picked is still read from its words', () => {
+    const state = start({
+      player: choices({ keywords: [{ text: 'ribbed seamless leggings', matchType: 'broad', bidPaise: 2400 }] }),
+    });
+    expect(state.advertisers[0].adGroups[0].keywords[0].tags.length).toBeGreaterThan(0);
+  });
+
+  test('and the redo keeps it, because it goes back through the same door', () => {
+    const redone = redoRoundZero(start(), {
+      playerBrandId: PLAYER_BRAND,
+      player: choices({ keywords: [{ text: 'matching set women', matchType: 'broad', bidPaise: 2400 }] }),
+    });
+    expect(redone.advertisers[0].adGroups[0].keywords[0].tags).toEqual(['co-ord-set', 'women']);
+  });
+});

@@ -607,7 +607,7 @@ export function startGame({ rootSeed, playerBrandId, player, querySet }) {
   const rng = mulberry32(deriveSeed(rootSeed, 'rival-accounts'));
   const rivals = buildRivals(rivalIdentities, placement, querySet, rng);
 
-  const playerAdvertiser = buildPlayer(identity, player);
+  const playerAdvertiser = buildPlayer(identity, player, querySet);
 
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -637,7 +637,7 @@ export function startGame({ rootSeed, playerBrandId, player, querySet }) {
  * degradations (8.4, 9.5), not oversights: broad match is inert until something
  * tags the keyword, and an unevaluated ad performs like an unevaluated ad.
  */
-function buildPlayer(identity, choices) {
+function buildPlayer(identity, choices, querySet) {
   const { position: raw, capex, keywords, ad, weeklySplitPaise } = choices;
   const position = { ...parseCell(cellKey(raw.price, raw.purpose)), setAtRound: 0, repositionedAtRound: null };
 
@@ -726,6 +726,11 @@ function buildPlayer(identity, choices) {
       // Untagged is a safe degradation (8.4) and it is still an asymmetry -
       // every rival is tagged at placement, so broad match works for eight
       // advertisers and not for the ninth, in a game about match types.
+      //
+      // With the query set, so a keyword taken from the planner carries that
+      // search's own tags, exactly as `rivalKeywords` gives a rival (E9). The
+      // word lookup alone reached further on broad than a rival's identical
+      // keyword, which was the same asymmetry by another route.
       keywords: tagKeywordsOffline(keywords.map((k, i) => ({
         id: k.id ?? `kw_${i + 1}`,
         text: k.text,
@@ -734,7 +739,7 @@ function buildPlayer(identity, choices) {
         active: k.active ?? true,
         tags: k.tags,
         taggedContentHash: k.taggedContentHash,
-      }))),
+      })), querySet),
       ad: playerAd,
       // Spec 17 step 12: grade the player's assets before round 1. Offline
       // unless a grade was supplied, because round 0 has to complete without

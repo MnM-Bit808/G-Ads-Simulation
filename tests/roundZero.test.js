@@ -644,3 +644,17 @@ describe('round 0 states the numbers it is built on, not ones typed beside them'
     expect(body).not.toMatch(/across all/);
   });
 });
+
+describe('the tags round 0 shows are the tags the account will be given (stage A3)', () => {
+  // setup.js tags the player's keywords with the query set. Round 0 drew its
+  // tag chips from the word lookup, so a player reading "women" beside
+  // "matching set women" was shown a keyword the account would never run.
+  const source = readFileSync(new URL('../ui/round-zero.js', import.meta.url), 'utf8');
+  const keywords = source.slice(source.indexOf('function sectionKeywords('));
+  const body = keywords.slice(0, keywords.indexOf('\nfunction '));
+
+  test('the chips come from the tagger, handed the query set', () => {
+    expect(body).toMatch(/tagKeywordOffline\(\{\s*text: keyword\.text\s*\},\s*querySet\)/);
+    expect(body).not.toMatch(/heuristicTags\(keyword\.text\)/);
+  });
+});

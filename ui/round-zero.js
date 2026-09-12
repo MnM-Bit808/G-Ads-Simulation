@@ -35,7 +35,7 @@ import { BRAND_IDENTITIES, assignIdentities, brandNamedIn } from '../content/bra
 import { cellKey, parseCell } from '../engine/positions.js';
 import { writerCopyFor, WRITER_COPY_VARIANTS } from '../content/writerCopy.js';
 import { validateAdCopy, namesARival, explainGrade } from '../agents/grader.js';
-import { heuristicTags } from '../agents/keywordTagger.js';
+import { heuristicTags, tagKeywordOffline } from '../agents/keywordTagger.js';
 import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS, MONTHLY_BUDGET_PAISE,
   CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH,
@@ -1134,7 +1134,11 @@ function sectionKeywords(querySet, draft, rerender, live) {
           },
         });
         const tags = el('div', 'tag-row');
-        for (const tag of heuristicTags(keyword.text)) tags.append(el('span', 'tag', tag));
+        // The tags the account will actually be given (setup.js), not the word
+        // lookup's guess: "matching set women" runs as co-ord-set + women (E9).
+        for (const tag of tagKeywordOffline({ text: keyword.text }, querySet).tags) {
+          tags.append(el('span', 'tag', tag));
+        }
         const remove = el('button', 'add');
         remove.type = 'button';
         remove.textContent = 'remove';

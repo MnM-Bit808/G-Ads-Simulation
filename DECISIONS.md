@@ -822,6 +822,87 @@ and getting reach they cannot predict, the fix is to surface the tags in the
 interface rather than to change the formula. A player who can see that their
 keyword carries five tags can reason about it; one who cannot is guessing.
 
+### E9. A planner keyword is tagged as the search it names — `FIXED` (2026-09-12)
+
+**Found by the SLC review** (`reviews/slc-review.md` 9A-1), and nothing in this
+ledger had recorded it. Before this change there were two tagging routes:
+
+| who | route | where |
+|---|---|---|
+| rivals | the search row's own tags | `rivalKeywords` |
+| player | the word lookup, `heuristicTags` | `buildPlayer`, `addKeyword` |
+
+So the same text broad-matched further for the player than for any rival. It
+was not an R6 breach in the letter, because the engine treats both alike; the
+asymmetry was in what went into it.
+
+**Measured over the 120 commercial searches, each added as a keyword:**
+- 86 lost at least one tag and 34 collapsed to a single tag;
+- mean broad reach was **29.2 searches, against 16.7** with the row's own tags;
+- `studio to street leggings` read as just `leggings` and reached 50 searches
+  where its own tags reach 4;
+- `wrinkle free travel co ord` gained `free` and reached three "free workout"
+  searches.
+
+**The reasoning had it backwards.** `heuristicTags` called missing tags
+"conservative". It is harmless on the keyword's own search, where overlap is
+still 1, but `tagOverlap` divides by the KEYWORD's count, so fewer tags travel
+further, not less far.
+
+**The calibrated market never had this asymmetry.** `calibration.test.js` builds
+its advertisers with `tags: [...q.tags]`, and round 0's reserve warning already
+priced planner keywords on the row's tags (`round-zero.js`). The player was the
+only one tagged differently.
+
+**Decided by the owner, 2026-09-12: option (i).** `tagKeywordOffline(keyword,
+querySet)` consults the game's own query set first. A keyword whose text is a
+planner search (case and spacing aside) carries that search's tags, marked
+`source: 'query-set'`; a phrase the planner does not contain is still read from
+its words. The query set is passed in rather than imported, so a game played on
+a fixture set is tagged from that set. The form works from the public view,
+which has no tags, so the dashboard hands it a tagger (`ctx.tagKeyword`) and the
+lookup stays in `agents/`. Round 0's tag chips show the tags the account will
+actually get.
+
+**Why this is not a new leak, argued because `tags` is in
+`FORBIDDEN_IN_PUBLIC_VIEW`:**
+- **The public view is unchanged.** It still carries no tags on any search.
+- **What the player sees is the tags of a phrase THEY chose.** E2 describes the
+  query set's tags as the tagger's own output for those exact phrases, produced
+  once offline and frozen, so this is exactly what a live tagger would show.
+  Showing a keyword's tags was E8's chosen remedy.
+- **What stays withheld is which OTHER searches carry which tags,** so how far
+  broad travels is still learned from the search terms report.
+- **The residual leak, stated rather than hidden:** a player who added every
+  planner search one by one could read every search's tags. That is accepted.
+  The affinities and conversion multipliers that decide what a search is worth
+  stay withheld, and anyone who can sign in can already read
+  `content/querySet.js` (HANDOVER *Deployment*).
+
+**What it changed, measured before and after:**
+- **Exact-match accounts: nothing.** `writerBalance.test.js`'s games came out
+  identical to the rupee (diy/retainer 1.034 both times, where HANDOVER records
+  1.014, so it had already drifted inside its bounds before this change).
+- **Broad-match accounts: they now behave like a rival's, which is not always
+  narrower.** Twelve weeks, seed 20260902, 'before' re-creating the word lookup
+  on the same keywords:
+
+  | account | tags | searches reached | spend | net profit |
+  |---|---|---|---|---|
+  | five lifestyle keywords on broad | word lookup | 109 | ₹5.94L | ₹16.49L |
+  | | search tags | **62** | ₹5.19L | ₹17.00L |
+  | top 60 by volume, all broad (value · performance) | word lookup | 138 | ₹5.07L | −₹71,433 |
+  | | search tags | **148** | ₹4.94L | −₹1,28,546 |
+
+  A search's own tags include implied ones (`women` on "cheap gym leggings"), so
+  sixty of them reach a little further than their words did.
+
+**Not changed, and still open under E8:** a two-tag keyword needs one shared tag,
+and `women` sits on most of the set, so `matching set women` still reaches 53
+searches on broad. Whether a qualifier like `women` or `india` should count as a
+concept broad match travels on is a question for playtesting. F13's rejected
+options (retagging, symmetric broad match) are not reopened by this entry.
+
 ---
 
 ## F. Positioning, statistics and economics

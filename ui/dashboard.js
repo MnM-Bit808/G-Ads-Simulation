@@ -29,6 +29,7 @@ import {
 import { rankOf } from './ending.js';
 import { renderTrends } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
+import { tagKeywordOffline } from '../agents/keywordTagger.js';
 import {
   MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH, DEFAULT_UNGRADED_QUALITY,
   ATTRIBUTION_LAG_DISTRIBUTION, RTO_FREIGHT_PAISE, RANK_BUDGET_MULTIPLIERS,
@@ -1071,6 +1072,10 @@ export function renderDashboard(game, onDecisionChange) {
   const ctx = {
     draft: game.draft,
     queries: view.querySet,
+    // The form adds keywords from the public view, which has no tags; this is
+    // the one thing it may ask of the full set, and the lookup happens in
+    // agents/keywordTagger.js rather than here (E9).
+    tagKeyword: (keyword) => tagKeywordOffline(keyword, game.state.querySet),
     weeklyVolume: view.weeklyVolume,
     texts: new Map(view.querySet.map((q) => [q.id, q.text])),
     // Rival identity is public (R3), so a search carrying somebody's name can

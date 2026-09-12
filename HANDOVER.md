@@ -24,8 +24,13 @@ still resting on a guess.
   a CPC; it is now "revenue per click" plus "kept per click", taken from the
   engine's own `moneyBlock` (now exported), and the card ranks places by what a
   click kept.
-- **A3 is next.** It gives planner keywords the search row's tags; the owner
-  chose option (i), which needs a DECISIONS entry arguing why it is not a leak.
+- **Stage A3 is done: DECISIONS E9.** A keyword taken from the planner now
+  carries that search's own tags, as a rival's does; typed phrases are still read
+  from their words. Exact-match accounts are unchanged to the rupee. Broad
+  accounts now behave like a rival's: narrower for short lifestyle keywords,
+  slightly wider for a sixty-keyword spray. **Stage A is complete.**
+- **Next, by the review's route, is stage B:** measure brand ownership and the
+  absolute economics, then three stranger playtests.
 - **Decided with the owner:** the explanations will move into an optional field
   guide inside the game, after stage A.
 
