@@ -1597,6 +1597,26 @@ competitive advantage.
 **The UI must label it.** Knowing what kind of number you are looking at — an
 observation, an estimate, or an impossibility — is itself part of the education.
 
+**IT IS ONLY COMPUTED WHEN ASKED, AND UNTIL 2026-09-13 NOTHING ASKED.**
+`runRound` computes it for the advertisers named in `counterfactualFor`, and the
+report says `null` otherwise (spec 15.2 says so: "or null if not requested"). No
+caller in the game ever passed one, so no played game has had it. The review's
+"computed every round and shown nowhere", repeated in HANDOVER and in the
+debrief's first draft, was wrong: it was computable and never computed.
+
+**Decided with the owner: the debrief asks for it once, at the end, on
+demand** (`plans/2026-09-13-debrief.md`). The budget card replays the game
+through `game.js`'s `replayLog` with `counterfactualFor: [the player]`. Two
+things make that the played game's own figure: the replay reproduces a played
+game exactly, and the extra pass changes nothing else in it (both tested,
+`tests/game.test.js` and `tests/debrief.test.js`). Computing it live every week
+was the alternative, rejected on cost: measured, it makes a week about 2.5 times
+slower to compute, and a resumed save would pay it again for every week.
+
+**It is computed for the player only.** A teaching output that no controller
+reads (`tests/policies.test.js`), so asking for one advertiser and not the others
+changes no competitor's decisions, and R6 is untouched.
+
 **v0.2 got this wrong** by raising *every* advertiser's budget, which measures a
 different and more competitive market where the missed traffic would have been more
 expensive anyway. It answered the wrong question.

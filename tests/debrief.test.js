@@ -19,7 +19,7 @@ import {
 } from '../ui/debrief/read.js';
 import { summariseDecisions } from '../ui/ending.js';
 import { startGame } from '../setup.js';
-import { playRound } from '../game.js';
+import { playRound, replayLog } from '../game.js';
 import { controllerFor } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
@@ -250,6 +250,23 @@ describe('on a real played game', { timeout: 60_000 }, () => {
       expect(m.after.impressionShare).toBe(row.share.impressionShare);
     }
     expect(picked.map((m) => m.windowEnd)).toEqual([5, 8]);
+  });
+
+  test('asking for the budget "what if" changes nothing else about the game', async () => {
+    // The debrief works it out at the END, by replaying the game with
+    // counterfactualFor switched on (decided 2026-09-13). That is only the
+    // game the player played if the extra pass disturbs nothing: the same
+    // game replayed WITHOUT it must match, report for report, apart from the
+    // missedToBudget field itself.
+    const { start, state } = await spendingGame();
+    const plain = replayLog(start, state.decisionLog, { mode: 'expected', throughRound: 8 });
+    const strip = (history) => JSON.stringify(history.map((report) => ({
+      ...report,
+      byAdvertiser: Object.fromEntries(Object.entries(report.byAdvertiser)
+        .map(([id, row]) => [id, { ...row, missedToBudget: null }])),
+    })));
+    expect(strip(plain.finalState.history)).toBe(strip(state.history));
+    expect(plain.finalState.history.some((r) => r.byAdvertiser[PLAYER].missedToBudget)).toBe(false);
   });
 
   test('the budget weeks are exactly the weeks the game reported running out', async () => {

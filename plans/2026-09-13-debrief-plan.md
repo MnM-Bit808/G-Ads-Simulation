@@ -292,6 +292,11 @@ chapter.
 - [ ] `ui/debrief/render.js`: `renderDebrief(ctx)` and `renderReveal(ctx, onRevealed)`;
   "What if I hadn't?" runs `logWithout` then `replayRound` one week at a time,
   pausing between weeks, and writes the window's `windowDifference`.
+- [ ] The budget card starts with a button, *Work out what more budget would have
+  done*: it replays the played log with `replayRound` week by week,
+  `counterfactualFor: [playerId]` and `mode: 'expected'`, pausing between weeks
+  with progress, then shows `budgetWeeks` of the replayed history (decided
+  2026-09-13; DECISIONS G1).
 - [ ] `ui/ending.js`: new order (spec section 2); the standings' position column
   hidden until `onRevealed`; `ctx.initial` passed through from `ui/app.js`.
 - [ ] Styles for both cards, the guess grid at 44px cells on a phone.

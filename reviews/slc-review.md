@@ -263,6 +263,9 @@ reachable (HANDOVER).
 - **No save:** a reload loses the game [M].
 - **No debrief.** The end screen is an answer sheet plus a 60-line change log [O].
 - **The engine's exact counterfactual is computed every round and shown nowhere** [M].
+  *Corrected 2026-09-13: it is computable, not computed. The engine works it out only for the
+  advertisers a caller names in `counterfactualFor`, and nothing in the game named any, so no played
+  game has had it (DECISIONS G1).*
   `missedToBudget` (`engine/report.js:122`) has no reader in `ui/`, although G1 says *"The UI must
   label it."* It is the natural "what if" for a debrief.
 - **Two of the four capital targets have no surface at all** (HANDOVER *Still open*).
@@ -614,7 +617,8 @@ teaser for hidden cards.
 **What.** End with three to five moments from the player's *own* game, each a decision with its
 before and after (for example, "week 3: bids ₹30 → ₹15, clicks +33%, CPC −58%"). Add the exact
 "what if you'd had more budget" figure the engine already computes (`missedToBudget`, labelled as
-G1 requires) and one line per spec lesson they did or didn't meet.
+G1 requires) and one line per spec lesson they did or didn't meet. *(Corrected 2026-09-13: the
+engine can compute it but the game never asked; the debrief now asks once, at the end. See G1.)*
 
 **The game's one moment of delight belongs here (section 13, row 5).** The end screen reveals where
 each rival actually sat, the column `ui/ending.js` calls the one "nothing has ever told you". Reveal
@@ -627,7 +631,7 @@ outcome that may be too easy (9A-3) would amplify a lesson that may be false.
 reason to replay.
 
 **Cost.** One or two sessions. The data already exists in `decisionLog`, `history` and
-`missedToBudget`.
+`missedToBudget` *(the last only once asked for; see the correction above)*.
 
 **Proves it right.** In interviews, strangers state three correct lessons with the debrief, and
 fewer without it.
