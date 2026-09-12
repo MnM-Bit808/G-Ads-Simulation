@@ -54,10 +54,10 @@ still resting on a guess.
 - **Decided with the owner:** the explanations will move into an optional field
   guide inside the game, after stage A.
 
-**Stage C has begun, on the branch `stage-c`** (2026-09-12). It was held off
-`main` so the version strangers play would not change under them; with the
-playtests postponed and the baseline tagged, it can go to `main` when the owner
-says so. The design is
+**Stage C has begun, and is on `main`** (begun 2026-09-12 on the branch
+`stage-c`, merged and deployed 2026-09-13 as `dfa9bee`). It was held off `main`
+so the version strangers play would not change under them; the playtests are
+postponed and will run from the `playtest-1` tag instead. The design is
 `plans/2026-09-12-content-model-and-field-guide.md`, and the task list with its
 Task 4 addendum is `…-plan.md` beside it.
 - **C1, the content model, is piloted on the returns card.** Its sentences live
@@ -77,7 +77,7 @@ Task 4 addendum is `…-plan.md` beside it.
   returns card. Also six tables wider than a phone, which widened the whole page
   to as much as 894px: **fixed** on the branch `phone-tables` (`f725dda`, cut
   from `main` so it can ship without stage C) and merged into `stage-c`.
-- **Stage D1, the debrief, is built** (2026-09-13, also on `stage-c`). The
+- **Stage D1, the debrief, is built** (2026-09-13, merged with stage C). The
   design is `plans/2026-09-13-debrief.md` and the task list `…-plan.md` beside
   it. The end screen now opens with two cards before the standings:
   - **What your twelve weeks taught you** (`94867cf`). Up to five weeks the
@@ -101,7 +101,7 @@ Task 4 addendum is `…-plan.md` beside it.
 - **Next:** stage D's other recommendations, or C3 (round 0 in steps) and C4
   (a dashboard that reveals itself), which still wait for the playtest files:
   the recorder's card times say which cards strangers read, which is what C4
-  needs. `stage-c` is not on `main` yet; it goes when the owner says.
+  needs.
 
 **The session before (2026-09-11 to 12) closed the three items that had been open
 longest**, in this order. Each has its full record in `DECISIONS.md`; the commit
