@@ -1918,12 +1918,11 @@ screen, and anything outside the tab. One testing trap: an automation tool's
 "type" inserts text without key events, so its typing counts as 0 keys. A
 person typing does fire them; press real keys to test the count.
 
-**Found while testing it, not fixed:** the first dashboard appears to keep round
-0's scroll position. `render()` scrolls to the top only for round 0, and the
-"Open the account" button sits at the bottom of a much longer page, so week 1
-may open partway down. The recorder credited "Budget" and "The market" in
-week 1 before anything was scrolled. Read from the code and the card times, not
-seen on screen; worth a one-line fix before strangers play.
+**Found while testing it, and fixed before any stranger played:** week 1 opened
+at the foot of the dashboard, 6,409px down a 7,171px page, because the browser
+kept round 0's scroll position when the page was replaced. The recorder found
+it by timing "Budget" and "The market" in week 1 before anything was scrolled.
+`begin()` now scrolls to the top once the first week has run.
 
 ### Deploys, from here on
 

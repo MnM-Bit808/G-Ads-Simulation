@@ -113,6 +113,14 @@ async function begin({ playerBrandId, player }) {
   // at the bottom of the form it belongs to. `render` is not called until a
   // report exists, because the dashboard reads the last one.
   await runWeek();
+
+  // And to the top. That button sits at the bottom of round 0, and the browser
+  // keeps the scroll position when the page is replaced, so week 1 opened at
+  // the foot of the dashboard: 6,409px down a 7,171px page, "Week by week" on
+  // screen and "The week" out of sight. Only here, because only here does
+  // one page replace a different one. Later weeks redraw the same dashboard,
+  // and staying put there keeps the player's place.
+  window.scrollTo(0, 0);
 }
 
 /**
