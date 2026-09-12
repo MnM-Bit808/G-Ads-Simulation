@@ -315,7 +315,7 @@ export function renderReveal(ctx, onRevealed) {
     }
     const said = el('p', 'guess-result');
     said.hidden = true;
-    outcome.set(row.id, { picker, said });
+    outcome.set(row.id, { box, picker, said });
     box.append(picker, said);
     grid.append(box);
   }
@@ -331,6 +331,23 @@ export function renderReveal(ctx, onRevealed) {
 
   const show = (skipped) => {
     const read = revealRows(ctx.initial, ctx.playerId, skipped ? {} : guesses);
+    // Only the lines that land on screen take part in the stagger. On a phone
+    // five of the eight are above the screen when the button is pressed, and
+    // numbering those too spent the first quarter-second on motion nobody saw
+    // (reviewed 2026-09-13). Measured before any line un-hides, because each
+    // one that does moves the boxes after it.
+    const onScreen = new Set(read.rows.filter((row) => {
+      const { bottom } = outcome.get(row.id).box.getBoundingClientRect();
+      return bottom > 0 && bottom < window.innerHeight;
+    }).map((row) => row.id));
+
+    // The rows come back in the order the grid was built, so counting through
+    // them numbers the visible lines in reading order.
+    let next = 0;
+    const arrive = (line) => {
+      line.classList.add('arriving');
+      line.style.setProperty('--i', String(next++));
+    };
     for (const row of read.rows) {
       const { picker, said } = outcome.get(row.id);
       for (const cell of picker.children) cell.disabled = true;
@@ -338,14 +355,19 @@ export function renderReveal(ctx, onRevealed) {
       if (row.guess) parts.splice(1, 0, DEBRIEF.youSaid({ cell: DEBRIEF.cell(row.guess) }));
       said.textContent = `${parts.join('. ')}.`;
       said.className = `guess-result result-${row.result}`;
+      if (onScreen.has(row.id)) arrive(said);
       said.hidden = false;
     }
-    summary.replaceChildren(
-      el('p', null, skipped
-        ? DEBRIEF.shown()
-        : DEBRIEF.score({ exact: read.exact, half: read.half, of: read.rows.length })),
-      el('p', null, DEBRIEF.cellmates({ names: read.cellmates })),
-    );
+
+    // The score comes last, after the answers it adds up. It sits where the
+    // button just was, so it is always on screen.
+    const total = el('p', null, skipped
+      ? DEBRIEF.shown()
+      : DEBRIEF.score({ exact: read.exact, half: read.half, of: read.rows.length }));
+    const mates = el('p', null, DEBRIEF.cellmates({ names: read.cellmates }));
+    arrive(total);
+    arrive(mates);
+    summary.replaceChildren(total, mates);
     actions.remove();
     onRevealed?.();
   };
