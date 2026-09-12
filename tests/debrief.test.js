@@ -296,6 +296,17 @@ describe('the six lessons', () => {
     expect(lessonsFor({ history }).smartBidding.met).toBe(false);
   });
 
+  test('smart bidding: only a strategy that predicts conversions learns, so only that counts', () => {
+    // A learning period only affects a strategy that estimates conversions;
+    // manual and maximise clicks bid without one (engine/strategies.js), so a
+    // switch to either would make the lesson's sentence false.
+    const history = [fullWeek(1), fullWeek(2), fullWeek(3)];
+    const switchTo = (round, strategy) => ({ round, advertiserId: P, source: 'player', decision: { campaign: { strategy } } });
+    expect(lessonsFor({ history, decisionLog: [switchTo(2, 'maxClicks')] }).smartBidding.met).toBe(false);
+    expect(lessonsFor({ history, decisionLog: [switchTo(2, 'maxClicks'), switchTo(3, 'targetCpa')] }).smartBidding)
+      .toMatchObject({ met: true, figures: { round: 3, strategy: 'targetCpa' } });
+  });
+
   test('returns: always met, with the end screen\'s own share and ranks', () => {
     const history = [fullWeek(1, { gross: 1000, net: 600 })];
     const { returns } = lessonsFor({ history });

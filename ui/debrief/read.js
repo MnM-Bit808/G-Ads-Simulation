@@ -19,6 +19,7 @@
 import { summariseDecisions, finalStandings } from '../ending.js';
 import { brandNamedIn } from '../../content/brands.js';
 import { LEARNING_ROUNDS } from '../../engine/constants.js';
+import { STRATEGIES } from '../../engine/strategies.js';
 
 /** At most this many moments; more than five stops being a debrief. */
 export const MAX_MOMENTS = 5;
@@ -297,8 +298,11 @@ export function lessons({ history, decisionLog, playerId, opening, state }) {
     figures: { ownCpcPaise: cpcOf(own), otherCpcPaise: cpcOf(other) },
   };
 
-  // 6. The first switch of bidding strategy, and its learning weeks.
-  const switched = (decisionLog ?? []).find((e) => e.advertiserId === playerId && e.decision?.campaign?.strategy);
+  // 6. The first switch to a strategy that predicts conversions, and its
+  // learning weeks. Only those learn: manual and maximise clicks bid without a
+  // conversion estimate, so a learning period cannot touch them.
+  const switched = (decisionLog ?? []).find((e) => e.advertiserId === playerId
+    && STRATEGIES[e.decision?.campaign?.strategy]?.predictsConversions);
   const smartBidding = {
     id: 'smartBidding',
     met: Boolean(switched),
