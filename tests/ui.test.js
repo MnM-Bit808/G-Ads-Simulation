@@ -200,6 +200,7 @@ describe('every interface module at least loads', () => {
     'recorder.js': () => import('../ui/recorder.js'),
     'words/line.js': () => import('../ui/words/line.js'),
     'words/returns.js': () => import('../ui/words/returns.js'),
+    'words/guide.js': () => import('../ui/words/guide.js'),
     'guide/chapters.js': () => import('../ui/guide/chapters.js'),
     'guide/figures.js': () => import('../ui/guide/figures.js'),
     'guide/drawer.js': () => import('../ui/guide/drawer.js'),

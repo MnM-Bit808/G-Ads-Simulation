@@ -30,6 +30,7 @@ import { rankOf } from './ending.js';
 import { renderTrends } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
 import { RETURNS } from './words/returns.js';
+import { whyButton } from './guide/drawer.js';
 import { tagKeywordOffline } from '../agents/keywordTagger.js';
 import {
   MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH, DEFAULT_UNGRADED_QUALITY,
@@ -365,7 +366,7 @@ function arrivalChart(game) {
  * always understate, and a card that let a player read week 11 as good news
  * would be teaching the opposite of W11.
  */
-function renderReturns(root, game) {
+function renderReturns(root, game, openGuide) {
   const history = game.state.history ?? [];
   const latest = history.length > 0 ? history[history.length - 1].round : 0;
 
@@ -401,6 +402,7 @@ function renderReturns(root, game) {
       settlesAfter: SETTLES_AFTER_ROUNDS,
       firstHonestWeek: SETTLES_AFTER_ROUNDS + 1,
     });
+    add(note, whyButton(RETURNS.nothingSettled, openGuide));
     return;
   }
 
@@ -444,6 +446,8 @@ function renderReturns(root, game) {
     // by moving their money rather than by buying something.
     codShare == null ? null : figure(RETURNS.paidAtDoor(), pct(codShare), RETURNS.paidAtDoorSub()),
   );
+  const paidAtDoor = codShare == null ? null : figures.lastElementChild?.querySelector('.label');
+  if (paidAtDoor) add(paidAtDoor, whyButton(RETURNS.paidAtDoor, openGuide));
 
   const max = Math.max(...weeks.map((w) => w.refused + w.sentBack), 1);
   const pc = (n) => {
@@ -474,6 +478,7 @@ function renderReturns(root, game) {
   const key = el('div', 'arrival-key');
   key.append(el('span', 'arrival-swatch refused'), el('span', null, RETURNS.keyRefused()));
   key.append(el('span', 'arrival-swatch sent-back'), el('span', null, RETURNS.keySentBack()));
+  add(key, whyButton(RETURNS.keyRefused, openGuide));
   wrap.append(key);
   body.append(wrap);
 
@@ -500,6 +505,7 @@ function renderReturns(root, game) {
     first: settled[0].round,
     last: latest - SETTLES_AFTER_ROUNDS,
   })}`));
+  add(note, whyButton(RETURNS.countedWeeks, openGuide));
 }
 
 /**
@@ -1046,7 +1052,7 @@ function renderMarket(root, game) {
  * @param {Function} [onDecisionChange] so the header can say how much is staged
  * @returns {HTMLElement}
  */
-export function renderDashboard(game, onDecisionChange) {
+export function renderDashboard(game, onDecisionChange, { openGuide } = {}) {
   const report = game.reports[game.reports.length - 1];
   const row = report.byAdvertiser[game.playerId];
   const root = document.getElementById('tpl-dashboard').content
@@ -1054,7 +1060,7 @@ export function renderDashboard(game, onDecisionChange) {
 
   renderHeadline(root, row, game, game.playerId, report);
   renderShare(root, row);
-  renderReturns(root, game);
+  renderReturns(root, game, openGuide);
   renderDeadline(root, row, game);
   renderRevised(root, game);
   renderInsights(root, game);

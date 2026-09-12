@@ -34,6 +34,8 @@ import {
 import {
   playtestMode, createRecorder, attachRecorder, downloadPlaytestFile, renderPlaytestPanel,
 } from './recorder.js';
+import { createGuide } from './guide/drawer.js';
+import { guideFigures } from './guide/figures.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -46,6 +48,16 @@ let rootSeed = 20260902;
 const app = document.getElementById('app');
 const nextButton = document.getElementById('next');
 const redoButton = document.getElementById('redo');
+const guideButton = document.getElementById('guide');
+
+/**
+ * The field guide (stage C2). Built once and kept outside `#app`, so redrawing
+ * a week never removes it; the dashboard's "why?" buttons and the header's
+ * Field guide button all open this one drawer.
+ */
+const guide = createGuide({ figures: guideFigures() });
+document.body.append(guide.node);
+guideButton.addEventListener('click', () => guide.openContents(guideButton));
 
 /** Everything the interface knows. The engine owns the rest. */
 let game = null;
@@ -213,7 +225,11 @@ function chrome() {
   const brand = document.getElementById('brand');
   const position = document.getElementById('position');
 
+  // The guide's chapters point at dashboard cards, so it opens once there is a
+  // dashboard to point at.
+  guideButton.hidden = !game;
   if (!game) {
+    guide.close();
     brand.textContent = 'Round 0';
     position.textContent = 'before you have seen a single auction';
     label.textContent = '';
@@ -303,7 +319,7 @@ function render() {
     // Only the button, so staging a change does not rebuild the screen under
     // the cursor. The dashboard redraws its own cards.
     nextButton.textContent = commitLabel();
-  });
+  }, { openGuide: guide.open });
 
   // The ending goes ABOVE the last week rather than replacing it: the final
   // dashboard is still the most detailed thing in the game, and a summary that
@@ -416,6 +432,7 @@ function offerResume(saved) {
   document.getElementById('round-label').textContent = 'saved game';
   nextButton.hidden = true;
   redoButton.hidden = true;
+  guideButton.hidden = true;
   recorder?.phase('resume offer');
 
   const finished = saved.weeksPlayed >= TOTAL_ROUNDS;

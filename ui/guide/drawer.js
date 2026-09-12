@@ -11,6 +11,8 @@
  */
 
 import { CHAPTERS, CONTENTS } from './chapters.js';
+import { GUIDE } from '../words/guide.js';
+import { el } from '../dom.js';
 
 /**
  * What the drawer shows for one chapter.
@@ -34,4 +36,210 @@ export function guideView(id, figures) {
     yourAccount: chapter.yourAccount,
     next: nextId ? { id: nextId, title: CHAPTERS[nextId].title } : null,
   };
+}
+
+// ---------------------------------------------------------------------------
+// The drawer on the page. Everything below touches the DOM and is checked by
+// playing: at desktop and phone width, by mouse and by keyboard.
+// ---------------------------------------------------------------------------
+
+/** The class that marks a card after "Show me on the card". */
+const MARKED = 'guide-marked';
+
+const SVG = 'http://www.w3.org/2000/svg';
+
+/** A 16px stroke icon from path data, so no glyph or emoji stands in for one. */
+function icon(...paths) {
+  const svg = document.createElementNS(SVG, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('width', '15');
+  svg.setAttribute('height', '15');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '1.5');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+  for (const d of paths) {
+    const path = document.createElementNS(SVG, 'path');
+    path.setAttribute('d', d);
+    svg.append(path);
+  }
+  return svg;
+}
+
+const ICONS = {
+  contents: ['M5 4h8', 'M5 8h8', 'M5 12h8', 'M2.5 4h.01', 'M2.5 8h.01', 'M2.5 12h.01'],
+  close: ['M4 4l8 8', 'M12 4l-8 8'],
+  back: ['M10 3.5L5.5 8l4.5 4.5'],
+  next: ['M6 3.5L10.5 8 6 12.5'],
+};
+
+function button(className, label, onClick, iconPaths = null, iconAfter = false) {
+  const node = el('button', className);
+  node.type = 'button';
+  const text = label ? el('span', null, label) : null;
+  const glyph = iconPaths ? icon(...iconPaths) : null;
+  if (iconAfter) node.append(...[text, glyph].filter(Boolean));
+  else node.append(...[glyph, text].filter(Boolean));
+  node.addEventListener('click', onClick);
+  return node;
+}
+
+/**
+ * Build the drawer once. It lives outside `#app`, so redrawing a week never
+ * removes it, and it is a `.card` whose `h2` is the chapter title, so the
+ * playtest recorder times it and names clicks in it by chapter.
+ *
+ * Not modal: the dashboard beside it stays usable, which is the point of a
+ * drawer over a separate page.
+ *
+ * @param {object} options
+ * @param {Readonly<Record<string, string>>} options.figures - from `guideFigures()`
+ * @returns {{node: HTMLElement, open: (id: string, opener?: Element) => void,
+ *   openContents: (opener?: Element) => void, close: () => void}}
+ */
+export function createGuide({ figures }) {
+  const node = el('aside', 'card guide');
+  node.id = 'field-guide';
+  node.hidden = true;
+  node.setAttribute('role', 'dialog');
+  node.setAttribute('aria-modal', 'false');
+  node.setAttribute('aria-labelledby', 'field-guide-title');
+
+  let returnTo = null;
+
+  const top = el('div', 'guide-top');
+  const tools = el('div', 'guide-tools');
+  const closeButton = button('ghost guide-icon', null, () => close(), ICONS.close);
+  closeButton.setAttribute('aria-label', GUIDE.close());
+  tools.append(
+    button('ghost', GUIDE.contents(), () => openContents(), ICONS.contents),
+    closeButton,
+  );
+  top.append(el('span', 'guide-label', GUIDE.name()), tools);
+
+  const body = el('div', 'guide-body');
+  const foot = el('div', 'guide-foot');
+  node.append(top, body, foot);
+
+  function heading(text) {
+    const h2 = el('h2', 'guide-title', text);
+    h2.id = 'field-guide-title';
+    h2.tabIndex = -1;
+    return h2;
+  }
+
+  // Below the sticky bar rather than over it, so the week and "Run the week"
+  // stay in reach. On a phone the stylesheet takes the whole screen instead.
+  function reveal(opener) {
+    if (opener) returnTo = opener;
+    const bar = document.querySelector('.bar');
+    node.style.top = `${bar ? Math.round(bar.getBoundingClientRect().bottom) : 0}px`;
+    node.hidden = false;
+    node.querySelector('.guide-title')?.focus({ preventScroll: true });
+    body.scrollTop = 0;
+  }
+
+  function open(id, opener) {
+    const view = guideView(id, figures);
+
+    const real = el('section', 'guide-part');
+    real.append(el('h3', null, GUIDE.real()), el('p', null, view.real));
+    const sources = el('div', 'guide-sources');
+    sources.append(el('span', null, GUIDE.sources()));
+    for (const source of view.sources) {
+      const link = el('a', null, source.label);
+      link.href = source.url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      sources.append(link);
+    }
+    real.append(sources);
+
+    const game = el('section', 'guide-part');
+    game.append(el('h3', null, GUIDE.game()), el('p', null, view.game));
+
+    body.replaceChildren(heading(view.title), real, game);
+
+    foot.replaceChildren(button('ghost', GUIDE.showCard(), () => showCard(view.yourAccount), ICONS.back));
+    if (view.next) {
+      foot.append(button('guide-next', GUIDE.next({ title: view.next.title }),
+        () => open(view.next.id), ICONS.next, true));
+    }
+    foot.hidden = false;
+    reveal(opener);
+  }
+
+  function openContents(opener) {
+    const list = el('ul', 'guide-contents');
+    for (const id of CONTENTS) {
+      const item = el('li');
+      item.append(button(null, CHAPTERS[id].title, () => open(id)));
+      list.append(item);
+    }
+    body.replaceChildren(heading(GUIDE.contents()), list);
+    foot.replaceChildren();
+    foot.hidden = true;
+    reveal(opener);
+  }
+
+  function close({ restoreFocus = true } = {}) {
+    if (node.hidden) return;
+    node.hidden = true;
+    const back = returnTo;
+    returnTo = null;
+    if (restoreFocus && back?.isConnected) back.focus({ preventScroll: true });
+  }
+
+  // Close, bring the card into view, and mark it until the player next does
+  // something, so the eye lands on it without the mark lingering. Focus goes to
+  // the card's heading, not back to the "why?": a keyboard player pressing Tab
+  // would otherwise be thrown back to wherever they started.
+  function showCard(slot) {
+    close({ restoreFocus: false });
+    const card = document.querySelector(`[data-slot="${slot}"]`);
+    if (!card) return;
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    card.scrollIntoView({ block: 'start', behavior: still ? 'auto' : 'smooth' });
+    const heading = card.querySelector('h2');
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
+    }
+    card.classList.add(MARKED);
+    const clear = () => {
+      card.classList.remove(MARKED);
+      document.removeEventListener('pointerdown', clear, true);
+      document.removeEventListener('keydown', clear, true);
+    };
+    document.addEventListener('pointerdown', clear, true);
+    document.addEventListener('keydown', clear, true);
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !node.hidden) close();
+  });
+
+  return { node, open, openContents, close };
+}
+
+/**
+ * The "why?" beside a line that names a chapter, or nothing for a line that
+ * names none. A button, not a link: it opens something rather than going
+ * anywhere.
+ *
+ * @param {{why: string|null}} entry - a line from `ui/words/`
+ * @param {((id: string, opener: Element) => void)|undefined} openGuide
+ * @returns {HTMLButtonElement|null}
+ */
+export function whyButton(entry, openGuide) {
+  if (!entry?.why || !openGuide) return null;
+  const node = el('button', 'why', GUIDE.why());
+  node.type = 'button';
+  node.setAttribute('aria-label', GUIDE.whyFor({ title: CHAPTERS[entry.why].title }));
+  node.setAttribute('aria-haspopup', 'dialog');
+  node.setAttribute('aria-controls', 'field-guide');
+  node.addEventListener('click', () => openGuide(entry.why, node));
+  return node;
 }
