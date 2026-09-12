@@ -1,7 +1,9 @@
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { playRound, submitRound, playGame, triggersLearning, replayLog } from '../game.js';
+import {
+  playRound, submitRound, playGame, triggersLearning, replayLog, logWithout, replayWithout,
+} from '../game.js';
 import { startGame } from '../setup.js';
 import { controllerFor } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -476,5 +478,102 @@ describe('a game played here is rebuilt exactly from its first state and its log
     const log = [{ round: 1, advertiserId: 'x', source: 'player', decision: {} }];
     expect(() => replayLog(later, log, { mode: 'expected', throughRound: 4 }))
       .toThrow(/desynchronised/);
+  });
+});
+
+/**
+ * The debrief's "What if I hadn't?" (plans/2026-09-13-debrief.md, section 4).
+ *
+ * It replays the game with one of the player's decision weeks taken out, and
+ * reads the difference as what that decision did. That reading is only honest
+ * if three things hold, and each is a test below: removing nothing changes
+ * nothing, the weeks before the decision are untouched, and every rival makes
+ * exactly the moves it made in the played game.
+ */
+describe('a game replayed without one decision (the debrief)', () => {
+  const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|lifestyle').slice(0, 4);
+  const PLAYER = BRAND_IDENTITIES[0].id;
+  const initial = () => startGame({
+    rootSeed: 20260902,
+    playerBrandId: PLAYER,
+    querySet: QUERY_SET,
+    player: {
+      position: { price: 'mid', purpose: 'lifestyle' },
+      capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
+      // Broad, so a broad negative has something to block and week 2 changes.
+      keywords: own.map((q) => ({ text: q.text, matchType: 'broad', bidPaise: 3000 })),
+      ad: {
+        headlines: ['Everyday Co-ord Sets', 'Soft Lounge Sets', 'Sizes XS To XXL'],
+        descriptions: [
+          'Soft co-ord sets and lounge pants to wear all day.',
+          'Free delivery over Rs 1,499 and 30-day returns.',
+        ],
+        landingPageDescription: 'A plain product page.',
+      },
+      writerTier: 'agency',
+    },
+  });
+  const scripted = {
+    2: { campaign: { negatives: [{ text: 'gym', matchType: 'broad' }] } },
+    4: { campaign: { strategy: 'maxClicks' } },
+  };
+
+  async function playLive(weeks) {
+    const start = initial();
+    const controllers = Object.fromEntries(start.advertisers.map((a, i) => [
+      a.id, i === 0 ? (self) => scripted[self.round] ?? null : controllerFor(a.policyId),
+    ]));
+    const sources = Object.fromEntries(start.advertisers.map((a, i) => [
+      a.id, i === 0 ? 'player' : `policy:${a.policyId}`,
+    ]));
+    let state = start;
+    const reports = [];
+    while (state.round <= weeks) {
+      const out = await playRound(state, controllers, { mode: 'expected', sources });
+      reports.push(out.report);
+      state = out.nextGameState;
+    }
+    return { start, state, reports };
+  }
+
+  const row = (report) => report.byAdvertiser[PLAYER].traffic;
+
+  test('only that advertiser\'s entry for that round is taken out', async () => {
+    const live = await playLive(4);
+    const log = live.state.decisionLog;
+    const without = logWithout(log, { advertiserId: PLAYER, round: 2 });
+    expect(without).toHaveLength(log.length - 1);
+    expect(without.some((e) => e.advertiserId === PLAYER && e.round === 2)).toBe(false);
+    expect(without.filter((e) => e.round === 2)).toEqual(
+      log.filter((e) => e.round === 2 && e.advertiserId !== PLAYER),
+    );
+  });
+
+  test('removing a round the player never decided in changes nothing', async () => {
+    const live = await playLive(6);
+    const replayed = replayWithout(live.start, live.state.decisionLog, {
+      advertiserId: PLAYER, round: 3, mode: 'expected', throughRound: 6,
+    });
+    expect(JSON.stringify(replayed.reports)).toBe(JSON.stringify(live.reports));
+  });
+
+  test('removing a decision leaves every week before it identical, and changes its own week', async () => {
+    const live = await playLive(6);
+    const replayed = replayWithout(live.start, live.state.decisionLog, {
+      advertiserId: PLAYER, round: 2, mode: 'expected', throughRound: 6,
+    });
+    expect(JSON.stringify(replayed.reports[0])).toBe(JSON.stringify(live.reports[0]));
+    expect(row(replayed.reports[1])).not.toEqual(row(live.reports[1]));
+  });
+
+  test('rivals make exactly the moves they made, and the player\'s later decisions still happen', async () => {
+    const live = await playLive(6);
+    const replayed = replayWithout(live.start, live.state.decisionLog, {
+      advertiserId: PLAYER, round: 2, mode: 'expected', throughRound: 6,
+    });
+    const rivals = (log) => log.filter((e) => e.advertiserId !== PLAYER);
+    expect(rivals(replayed.finalState.decisionLog)).toEqual(rivals(live.state.decisionLog));
+    expect(replayed.finalState.decisionLog.some((e) => e.advertiserId === PLAYER && e.round === 4))
+      .toBe(true);
   });
 });

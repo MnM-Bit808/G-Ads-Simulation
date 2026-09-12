@@ -189,6 +189,43 @@ export function replayLog(initialState, decisionLog, options) {
 }
 
 /**
+ * The decision log with one advertiser's decision for one round taken out.
+ *
+ * What the debrief's "What if I hadn't?" replays (plans/2026-09-13-debrief.md):
+ * the player's week, gone; every other advertiser's logged decision, kept.
+ *
+ * @param {object[]} decisionLog
+ * @param {{advertiserId: string, round: number}} which
+ * @returns {object[]} a new log
+ */
+export function logWithout(decisionLog, { advertiserId, round }) {
+  return (decisionLog ?? []).filter(
+    (entry) => !(entry.advertiserId === advertiserId && entry.round === round),
+  );
+}
+
+/**
+ * Replay a game with one advertiser's decision for one round removed.
+ *
+ * RIVALS MAKE THE MOVES THEY MADE. Their logged decisions are replayed as they
+ * were, so the difference is this decision's alone, in a market that did not
+ * react to its absence. A real market might have, and the debrief says so.
+ *
+ * The advertiser's later decisions still happen. Keyword and negative lists
+ * are submitted whole, so a later submission can carry the removed change back
+ * in; the debrief therefore compares only the weeks before the next decision.
+ *
+ * @param {object} initialState the state before the first logged round
+ * @param {object[]} decisionLog
+ * @param {object} options `advertiserId` and `round` name the decision;
+ *   `throughRound` and the rest go to `replayLog`
+ * @returns {{finalState: object, reports: object[], insights: object[]}}
+ */
+export function replayWithout(initialState, decisionLog, { advertiserId, round, ...options }) {
+  return replayLog(initialState, logWithout(decisionLog, { advertiserId, round }), options);
+}
+
+/**
  * Each advertiser's own reported scores, attached to its own row (spec 15.2).
  *
  * `currentRound` is the round just played, which EXCLUDES it: 9.3 computes from
