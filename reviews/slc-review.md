@@ -2,6 +2,13 @@
 
 *2026-09-12 · a product review, not a fix · no code was changed · reviewed on `main` at `cf07b43`*
 
+*Revised the same day, after four motion skills were installed (`find-animation-opportunities`,
+`improve-animations`, `review-animations`, `animation-vocabulary`):*
+- *section 12 is now a staged route rather than a flat list;*
+- *section 13 is rewritten under the skills' rules, and withdraws one of my own ideas;*
+- *a final pass corrected the timing, word-count and ROAS figures (sections 4, 8 and 9A-3), the
+  count of contradicting sentences in the verdict, and a few smaller figures.*
+
 ## How to read this
 
 - **Labels.** **[O]** observed (I saw it on screen), **[M]** measured (I counted it, or read it in code),
@@ -42,7 +49,7 @@ The two games:
 - **The back half teaches nothing new.** That is the builder's own finding, and it agrees with mine.
 - **Four things on screen teach something false or misleading, all of them fixable** (section 9).
   Three are cheap: an unrecorded player-only broad-match inflation, a revenue figure labelled like
-  profit, and eight sentences that contradict the model.
+  profit, and ten sentences that contradict the model.
 - **45 minutes is enough to finish but not enough to read.** Round 0 takes two-thirds of it (section 8).
 
 ---
@@ -144,9 +151,10 @@ prompts (broad match).
 - **The pauses may be gone, and the warning may be stale.** HANDOVER says early weeks take about 7s
   and late weeks 30–60s, and tells playtesters to expect a freeze. That figure was written on
   2026-09-06 (`e9007d9`) and copied into the playtester advice on 09-11 without re-measuring.
-  [M] Today, locally, every week took **0.27–0.30s** in game 1 (19–32 keywords) and **0.8–1.8s** in
-  game 2 (60 broad keywords). Not checked on the live site or a slow phone. If the pause is gone,
-  telling strangers to expect a freeze sets a bad first impression for nothing.
+  [M] Today, locally, weeks 2–11 took **0.27–0.30s** each in game 1 (19–32 keywords), with the
+  final week at 0.82s. In game 2 (60 broad keywords) every week took **0.8–1.8s**. Not checked on
+  the live site or a slow phone. If the pause is gone, telling strangers to expect a freeze sets a
+  bad first impression for nothing.
 
 ---
 
@@ -224,7 +232,7 @@ so text only grows.
   (see 9A-3).
 - **Improving copy is never rewarded on screen.** QS never moves (A6, W11).
 - **No debrief and no counterfactual** at the end [O].
-- **A reload erases 30 minutes of work** [O].
+- **A reload erases the game so far, up to 45 minutes of work** [O].
 
 **Cut, add, change.** Recommendations 4–7.
 
@@ -270,7 +278,7 @@ reachable (HANDOVER).
 | week 2 | 2,933 words | 102s |
 | week 3 | not measured | 50s |
 | week 4 | 3,605 words, plus capital and repositioning | 148s |
-| weeks 5–11 | 3,300–3,500 words each | **72s in total** |
+| weeks 5–11 | 3,333 and 3,510 words at weeks 5 and 6, the two measured | **72s in total** |
 | end screen | about 2,000 words on top of the dashboard | not separate |
 | **total** | about 40,000 words across the game (estimated from the weeks measured) | **28 minutes** |
 
@@ -332,8 +340,9 @@ of the fixes suggested here makes the model less true.
      reverse. It needs a DECISIONS entry and a measurement across seeds before any change.
 
 3. **The market looks too profitable** [M, with the judgement inferred].
-   - **What I measured.** Lifetime conversion rate 4.87%. Weekly gross ROAS revised to 12.5–15.9.
-     ₹20.8L kept on ₹5.57L of spend. The human's net ROAS was 6.48.
+   - **What I measured.** Lifetime conversion rate 4.87%. Weekly gross ROAS, one week after the
+     fact, between 6.4 and 15.9 (13.1 for week 1). ₹20.8L kept on ₹5.57L of spend. The human's net
+     ROAS was 6.48.
    - **Why.** `convRateBase` is tagged INVENTED (`engine/constants.js:344`), and HANDOVER notes the
      affinity product on your own territory runs near 2.0, which doubles it by construction.
    - **Nothing checks the absolute level.** Invariants I1–I5 test balance and budget binding; none
@@ -358,8 +367,8 @@ of the fixes suggested here makes the model less true.
 |---|---|---|
 | `ui/round-zero.js:708` | Capital "₹1,00,000" | ₹1,20,000 (`CAPEX_ALLOCATION_PAISE`, `constants.js:895`) |
 | `ui/round-zero.js:1561` | month 3 "redistributed by rank across all 12 rounds" | D4: rounds 1–8, as reported at round 8 (the same page says so elsewhere) |
-| week-8 card | both halves of the rule "reward spending that looks better than it is" | D4: attribution lag makes deadline spending look *worse*; the end screen says so correctly |
-| week-8 card | "Nothing here tells you where you stand" | the budget card states your rank after week 8, except at 5th place (`dashboard.js:907`) |
+| `ui/dashboard.js:512` (week-8 card) | both halves of the rule "reward spending that looks better than it is" | D4: attribution lag makes deadline spending look *worse*; the end screen says so correctly |
+| `ui/dashboard.js:515` (week-8 card) | "Nothing here tells you where you stand" | the budget card states your rank after week 8, except at 5th place (`dashboard.js:907`) |
 | `ui/ending.js:493` | "the metric **13.1** calls the lead" | a spec section number shown to the player |
 | `ui/ending.js:42` | prints "orderConfirmation" | `CAPEX_NAMES` lacks that entry |
 | `ui/dashboard.js:428` | capital "opens at rounds 1 and 5" | the screens call these round 0 and week 4 |
@@ -441,9 +450,31 @@ inferred; the human's are measured. And I played two seeds, not thirty.
 
 ---
 
-## 12. Recommendations, in priority order
+## 12. The recommendation route
 
+Seven recommendations and a design stage, in five stages. Each stage has a gate: don't start the
+next until it's met.
 Costs are in working sessions like the ones this project already runs.
+
+| stage | recommendations | done when |
+|---|---|---|
+| **A. True and safe** | 1, 2 | no row of 9C is left, and a reload restores a game exactly |
+| **B. Measured** | 3 | brand and economics are measured; three stranger sessions are recorded as the baseline |
+| **C. Simple** | 4, 5, with only the motion their new transitions need | strangers finish round 0 in under 10 minutes and spend more than 72s on weeks 5–12; then re-run the playtest |
+| **D. Lands** | 6, 7; the game's one moment of delight lives in 6 | strangers state three lessons in their own words, and weeks 7–12 carry decisions |
+| **E. Game feel** | section 13 | only after C, because it polishes the screens C rebuilds |
+
+**Decided with the owner, 2026-09-12.** The explanations move into a **field guide inside the
+game**, reached from "why?" links on each card. It is **optional depth**, not required reading, and
+both the guide and the screens draw on one content source. Concepts go to the guide; readings of
+your account and disclosures stay on screen, short. This merges stages C and E into one track,
+"split the words from the play". **Stage A goes first.**
+
+**What the motion skills changed, and what they didn't.** They change *how* stages C and D are
+built. Each new transition gets one gated, specified motion, and in two places motion can replace a
+sentence of explanation, which serves Simple. They don't change the order. The skills' own premise
+is that the best animation is often none, and animating today's 3,600-word dashboard would polish
+the thing recommendation 5 exists to shrink. Motion never goes before truth, safety or structure.
 
 ### 1. Stop the screen saying false things
 **What.**
@@ -509,6 +540,11 @@ to my cells and seeds.
 
 Capital defaults to "keep it". Move the weekly split and the redo behind "advanced". Assign the brand.
 
+**Motion (section 13, row 3).** Moving between steps uses a direction-aware transition: forward
+slides one way and back slides the other, using transform and opacity only, over 200–300ms on
+`cubic-bezier(0.77, 0, 0.175, 1)`. Under reduced motion it becomes a plain fade. Its job is to show
+where you are in the sequence, which the scroll used to do.
+
 **Impact.** High. It attacks the 67% of the session that is round 0.
 
 **Cost.** Two sessions in `ui/round-zero.js`. It **re-opens I11**, and the new evidence is:
@@ -531,14 +567,23 @@ bring back a single "hire someone" shortcut.
   exist, the week-8 card from week 5.
 - Merge the two budget cards. Collapse a note after the player has seen it once.
 - Set a text budget of about 1,000 new words a week.
+- **Motion (section 13, rows 1 and 2).**
+  - A card appearing for the first time enters once: opacity 0 → 1 and scale 0.97 → 1 over
+    200–250ms on `cubic-bezier(0.23, 1, 0.32, 1)`. It is never animated again after that week.
+  - In *Changed since you looked*, a revised figure visibly gives way to its new value (a crossfade
+    or text morph under 300ms). That lets the card drop a sentence, because the player *sees* the
+    week they read being rewritten.
+  - **Use no counting ticker anywhere.** A ticker shows in-between numbers the engine never reported,
+    which is a small lie in a project that forbids them.
 
 **Impact.** High for Simple and Lovable, because the back half gets new things to look at.
 
 **Cost.** Two or three sessions in `ui/dashboard.js` and `ui/decisions.js`. Move the wording out of
 the render functions while there, which makes it testable (HANDOVER's own defect).
 
-**Proves it right.** Recorded time in weeks 5–12 rises well above 72 seconds, and newly revealed
-cards get clicked.
+**Proves it right.**
+- Recorded time in weeks 5–12 rises well above 72 seconds, and newly revealed cards get clicked.
+- The motion diff passes `review-animations`.
 
 **Proves it wrong.** Players miss a lever they needed because it was hidden. Then show a one-line
 teaser for hidden cards.
@@ -548,6 +593,13 @@ teaser for hidden cards.
 before and after (for example, "week 3: bids ₹30 → ₹15, clicks +33%, CPC −58%"). Add the exact
 "what if you'd had more budget" figure the engine already computes (`missedToBudget`, labelled as
 G1 requires) and one line per spec lesson they did or didn't meet.
+
+**The game's one moment of delight belongs here (section 13, row 5).** The end screen reveals where
+each rival actually sat, the column `ui/ending.js` calls the one "nothing has ever told you". Reveal
+it row by row, once per game, at a 50ms stagger, never blocking reading or scrolling. It's the rare
+tier, where the skills allow a longer beat, and it rewards reading the market rather than winning
+it. **A celebration for finishing 1st is rejected.** Both careful players won 1st, and celebrating an
+outcome that may be too easy (9A-3) would amplify a lesson that may be false.
 
 **Impact.** High for Lovable and Complete. It turns an experience into stated learning, and it's a
 reason to replay.
@@ -584,22 +636,90 @@ volume for performance (F13).
 
 ---
 
-## 13. After this: game feel, and the Capstone question
+## 13. Game feel and motion, with the motion skills applied
 
-This is agreed as a separate conversation, after recommendations 1–6 are at least decided. The
-direction, in one paragraph:
-- **Phases.** Borrow Capstone's round structure (brief, decide, run, results, debrief), not its open
+This is a separate conversation, for stage E. It still matters now, because it corrects two things
+my first draft said.
+
+### Two corrections to my first draft
+
+1. **Withdrawn: "show a few seconds of the 168 hours playing out" each week.** Put through
+   `find-animation-opportunities`' gate, it fails two of the four tests:
+   - **Speed:** it runs for several seconds, twelve times a game, and adds a wait to every week.
+   - **Function:** the player is waiting to *read* a result.
+
+   It would also stutter. The round runs on the page's main thread (HANDOVER *Playing it to the
+   end*), so nothing driven by script can move while it computes. At most it could be a skippable,
+   one-off explanation of pacing in week 1.
+2. **Motion needs no library.** I warned that new libraries would trip the 40-file guard in
+   `tests/build.test.js`. For motion that is beside the point: CSS transitions, `@starting-style` and
+   the browser's built-in Web Animations API need no new files. That suits this no-bundler build. A
+   React-oriented animation library would add files, and a framework the interface doesn't use.
+
+### What moves today [M]
+
+Nothing, except round 0's India map. It runs four infinite loops (`ui/style.css:477–514`: a 4.5s
+twinkle, a 3.6s pulse, a 4.2s arc flow and an 11s sweep), and respects reduced motion
+(`style.css:527`).
+
+Its comment argues the motion is doing work, saying the demand is live (`style.css:470`). The
+`improve-animations` skill says to respect a documented choice, so this is a note, not a finding.
+One observation for whoever redesigns round 0: the map moves for the whole 18 minutes a player
+spends reading that page, and its 380ms opacity transitions (`style.css:535, 543`) sit over the
+skills' 300ms budget for interface motion.
+
+### The opportunities that survive the gate
+
+Five, which is inside the skill's cap of 5–7 for a whole app. All use transform and opacity only.
+Under `prefers-reduced-motion` they keep the fades and drop the movement.
+
+| # | where | today | purpose | how often | motion |
+|---|---|---|---|---|---|
+| 1 | *Changed since you looked* (rec 5) | the rewrite arrives already done, with "you saw" and "actually" side by side | **state indication**: the revision *is* the lesson | once a week | old value gives way to new, a crossfade or text morph under 300ms; never a counting ticker |
+| 2 | a card's first appearance (rec 5) | cards appear from nowhere | **preventing a jarring change** | once per card per game | opacity 0 → 1, scale 0.97 → 1, 200–250ms, `cubic-bezier(0.23, 1, 0.32, 1)`, via `@starting-style` |
+| 3 | round-0 steps (rec 4) | one long scroll | **spatial consistency** | five steps, once | direction-aware translate and fade, 200–300ms, `cubic-bezier(0.77, 0, 0.175, 1)` |
+| 4 | *Run the week* and *Open the account* | the label changes, and that's all | **feedback** | 12 times a game | `:active { transform: scale(0.97) }`, 160ms ease-out; "running 168 hours…" stays the real signal |
+| 5 | end screen, where each rival sat (rec 6) | the table appears at once | **delight**, which the skills reserve for rare moments | once a game | row-by-row reveal at a 50ms stagger, never blocking reading or scrolling |
+
+### Rejected, with the test each one failed
+
+- **The 168-hour run:** Speed and Function (above).
+- **Counting tickers on the week's headline numbers:** Function, because these are numbers the
+  player reads. They'd also dramatise the "net equals gross" headline that 9B-6 already says
+  flatters.
+- **The week-by-week chart drawing itself in:** Function. It's the skill's own example of
+  decoration hindering a data graph.
+- **Hover motion on keyword and search-term rows:** Frequency. They're touched tens of times a
+  session.
+- **A celebration for finishing 1st:** Purpose. Delight on an outcome that may be too easy (9A-3).
+  The reveal in row 5 spends that budget on learning instead.
+
+### How to use the skills here
+
+All four are read-only: they write plans and reviews, never code.
+1. Re-run `find-animation-opportunities` against the redesigned screens after stage C. The table
+   above is a first sweep, not the final one.
+2. Turn a row into a self-contained plan in `plans/` with `improve-animations plan <row>`.
+3. Build the plan in a normal session.
+4. Use `review-animations` as the bar the diff must pass. It defaults to flagging.
+
+Doing this before stage C would animate screens that recommendation 5 is about to shrink.
+
+### The rest of the game-feel direction
+
+This part is unchanged, minus the withdrawn run.
+- **Phases.** Borrow Capstone's round structure (brief, decide, results, debrief), not its open
   books.
-- **A visible run.** The engine already simulates 168 hours, so show a few seconds of those hours
-  playing out as the week runs, with spend draining and auctions won and lost.
 - **A results page per week.** Replace the scroll with a single page of at most three stories: what
   changed, what it cost, what to look at.
 - **A map you return to.** Make the positioning grid a recurring picture, where rivals sit at *your*
   guesses and those guesses sharpen as Auction Insights comes in.
-- **Tools that unlock.** Present newly revealed cards as new tools.
+- **Tools that unlock.** Present newly revealed cards as new tools. Row 2's entrance is what makes
+  "a new tool" legible without adding a sentence.
 
-Mock it up with the design canvas before touching `ui/`. `tests/build.test.js` holds the published
-site to exactly 40 files, so new fonts or libraries must update that guard deliberately.
+Mock it up with the design canvas before touching `ui/`. Your skills folder also holds
+visual-design skills, among them `redesign-existing-projects` and `minimalist-ui`. I haven't read
+them for this review, so they're for that conversation.
 
 ---
 
@@ -613,6 +733,7 @@ site to exactly 40 files, so new fonts or libraries must update that guard delib
 | **Flow and onboarding** (design) | intro screen · round 0 in steps · cards revealed as they become useful · debrief · the back half |
 | **Quality of life** | bulk bid edit · repeated notes · 60 of 151 searches hidden until you search · no ₹ unit on round-0 bids · the starter ad arrives unannounced when you pick a position |
 | **Robustness** | save and replay · leave-page warning · live timing |
+| **Motion** (stage C onward) | the five gated rows of section 13 · the India map's loops and 380ms transitions, noted rather than contested |
 
 ## Appendix B — how the numbers were measured
 
@@ -620,7 +741,8 @@ site to exactly 40 files, so new fonts or libraries must update that guard delib
   at round 0 and after weeks 1, 2, 4, 5 and 6. Buttons and inputs counted with `querySelectorAll`.
 - **Week timing:** `performance.now()` from clicking *Run the week* until the header showed the next
   week number, local dev server, 2026-09-12.
-- **Broad reach, 9A-1:** a read-only script in the session scratchpad, importing the real modules:
+- **Broad reach, 9A-1:** a read-only script in the session scratchpad, importing the real modules
+  (paths shortened):
 
   ```js
   const { QUERY_SET } = await import('content/querySet.js');
