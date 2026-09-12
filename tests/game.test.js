@@ -491,7 +491,7 @@ describe('a game played here is rebuilt exactly from its first state and its log
  * exactly the moves it made in the played game.
  */
 // Plays and replays whole games: a ceiling, not a speed test (see save.test.js).
-describe('a game replayed without one decision (the debrief)', { timeout: 30_000 }, () => {
+describe('a game replayed without one decision (the debrief)', { timeout: 60_000 }, () => {
   const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|lifestyle').slice(0, 4);
   const PLAYER = BRAND_IDENTITIES[0].id;
   const initial = () => startGame({

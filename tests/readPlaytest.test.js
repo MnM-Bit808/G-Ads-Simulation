@@ -107,7 +107,7 @@ describe('how fast the weeks ran on their device', () => {
 });
 
 // Replays whole games: a ceiling, not a speed test (see save.test.js).
-describe('how the game came out, replayed from the save', { timeout: 30_000 }, () => {
+describe('how the game came out, replayed from the save', { timeout: 60_000 }, () => {
   const PLAYER = BRAND_IDENTITIES[0].id;
   const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|lifestyle').slice(0, 4);
 

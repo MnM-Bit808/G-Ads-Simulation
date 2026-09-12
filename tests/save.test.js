@@ -182,7 +182,10 @@ describe('loading is strict, and never throws at the interface', () => {
 // in parallel, and beside the other replaying tests these crossed Vitest's
 // 5-second default on an ordinary run. They assert equality, never speed, so
 // the limit is only a ceiling (the writerBalance test sets one the same way).
-describe('restoring rebuilds the game the player was playing', { timeout: 30_000 }, () => {
+// Sixty seconds, the same as `npm run ci` gives every test on Cloudflare's
+// slower machines: a group limit overrides that, so a lower one would be
+// stricter there than the default it replaces.
+describe('restoring rebuilds the game the player was playing', { timeout: 60_000 }, () => {
   test('the state, every report and every insight come back exactly', async () => {
     const game = await play(4);
     const storage = memoryStorage();
