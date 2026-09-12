@@ -95,8 +95,9 @@ Task 4 addendum is `…-plan.md` beside it.
     they sat" column. The answers arrive one rival at a time (`376ffea`), and
     the animation review's two fixes are in that commit's message.
   - **Found while checking it on a phone:** the dashboard's negatives table
-    still pokes 4px past a 375px screen, so the page scrolls sideways a
-    little. Not fixed; it was not part of the debrief.
+    poked 4px past a 375px screen, missed by the six-table fix because that
+    measured a game with no negatives. **Fixed** (`783d4b1`): a two-line
+    header makes it fit, remove buttons in view.
 - **Next:** stage D's other recommendations, or C3 (round 0 in steps) and C4
   (a dashboard that reveals itself), which still wait for the playtest files:
   the recorder's card times say which cards strangers read, which is what C4
