@@ -4246,6 +4246,92 @@ blogs.
 - PPC Chief, apparel and fashion benchmarks: https://ppcchief.com/google-ads-benchmarks/apparel-fashion
 - WordStream 2025 benchmarks, cited by both, not fetchable (403): https://www.wordstream.com/blog/2025-google-ads-benchmarks
 
+### F16. India has no January surge in activewear searches, so the January event is not built — `WONTFIX`, measured (2026-09-13)
+
+**The question.** Route B of the SLC review's recommendation 7, chosen after D12
+ruled out route A, was an announced market event: New Year fitness resolutions
+raising training searches in weeks 9–11, placed in the first weeks of January
+(`plans/2026-09-13-january-surge.md`). The design made its size wait on Google
+Trends, and set a stop before anything was built: if training searches did not
+rise in January, the premise was false.
+
+**The files** (`sources/trends/`, exported by the owner 2026-09-13): fourteen
+terms, one per file, India, all categories, web search, weekly, 12 September
+2021 to 6 September 2026. Five training terms (gym leggings, sports bra, gym
+wear, gym clothes, workout clothes), five lifestyle terms as the control (co ord
+set, loungewear, joggers, athleisure, lounge pants), and four searches broad
+match wanders into (gym near me, workout plan, how to lose belly fat, gym
+membership). Two are thin: workout clothes has 24 weeks at zero, and co ord set
+starts near zero because the term is new.
+
+**The method, fixed before the files were read** (`scripts/season-lift.js`,
+tested in `tests/seasonLift.test.js`): for each winter, each January game week's
+index over the mean of that winter's game weeks 1–8 (6 November to 31 December);
+the median over the five winters; the mean within each group. Only a term is
+ever compared with itself, so Trends scaling each file to its own 100 changes
+nothing.
+
+**Measured, January over November–December:**
+
+| | week 9 | week 10 | week 11 | week 12 |
+|---|---|---|---|---|
+| training, mean of five | **1.01** | **0.98** | **0.98** | 1.05 |
+| lifestyle, mean of five | 0.92 | 0.90 | 0.88 | 0.87 |
+| searches broad match wanders into, mean of four | 1.12 | 1.02 | 0.97 | 1.00 |
+| of which gym membership | 1.21 | 1.06 | 1.04 | 1.06 |
+
+No training term carries the group: in week 9 they read 1.10 (gym clothes), 0.87
+(gym leggings), 1.02 (gym wear), 0.96 (sports bra) and 1.08 (workout clothes).
+`node scripts/season-lift.js` prints all four weeks for every term.
+
+**The gate failed.** Training averages 0.99 over weeks 9–11, below the 1.00 the
+design set as "January is not a surge at all". It is not a median hiding a
+split: winter by winter, training's weeks 9–11 run from about 0.7 to 1.4 of the
+November–December level with no pattern, and a check against September–October
+instead of November–December (not the fixed method, run only to see whether the
+baseline was the cause) is just as flat.
+
+**What January does show:** lifestyle searches fall about 10% from their
+festive-season high, and gym-membership and workout-plan searches jump 12–21% in
+the first week only, then fade. Neither is a surge in anything this game sells.
+
+**When these searches do peak in India** (exploration on the same files, labelled
+as such: each full calendar year 2022–2025 over its own mean, so a growing term
+does not read as a season):
+
+| | Jan | Feb | Mar | Apr | May | Jun | Jul | Aug | Sep | Oct | Nov | Dec |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| training | 0.89 | 1.00 | 1.02 | 1.07 | 1.08 | **1.13** | 1.12 | 1.00 | 0.92 | 0.84 | 1.01 | 0.92 |
+| lifestyle | 0.82 | 0.85 | 0.99 | 0.98 | 1.00 | 1.03 | 0.99 | 0.99 | 0.96 | 1.07 | **1.21** | 1.09 |
+| broad-match junk | 0.95 | 1.00 | 1.02 | 1.02 | 1.04 | 1.09 | 1.07 | 1.02 | 0.96 | 0.87 | 1.00 | 0.97 |
+
+January is one of training's lowest months. India's training season is April to
+July, a gentle rise of about a tenth; lifestyle's is November, the festive and
+winter season, at about a fifth above its year.
+
+**So the New Year surge is a Western pattern, and building it would have taught
+something false about the market this game is set in.** The design, its plan and
+the reader stay in the repository as the record of how it was tested; nothing
+downstream of the gate was built, and no constant moved.
+
+**The caveat, stated so it is not mistaken for an escape:** Trends reports a
+term's share of all Indian searches, not a count. A flat line means the term
+kept its share. That is still the right measure for "does January bring more of
+these searches than November?", because both months are measured against the
+same total.
+
+**What is left for the back half** (HANDOVER, *And the calendar says the same
+thing structurally*), none taken:
+- **the festive season**, lifestyle's November rise, the strongest real signal
+  here; it favours lifestyle cells, its sales lift is mostly discounts (which
+  the design ruled out modelling), and Diwali moves between mid-October and
+  mid-November, so a calendar without a year does not hold it cleanly;
+- **the summer training season**, true but gradual, scenery rather than an
+  event;
+- **no calendar event**: D12's option (d), saying on screen that the second
+  allocation is spend-or-invest and which figure decides it, or something the
+  game already has, such as rivals running out of money.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

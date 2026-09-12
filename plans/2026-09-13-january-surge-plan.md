@@ -1,5 +1,9 @@
 # The January surge: implementation plan
 
+> **Stopped at Task 2, Step 6, 2026-09-13.** The training gate failed; see
+> DECISIONS F16. Tasks 1 and 2 (the files and the reader) are done; Tasks 3–11
+> were never started and should not be.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: use superpowers:executing-plans
 > (inline, the owner's choice for this project) task by task. Steps use checkbox
 > (`- [ ]`) syntax for tracking.

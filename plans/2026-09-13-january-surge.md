@@ -1,5 +1,9 @@
 # Stage D2: the January surge
 
+> **Stopped at its first gate, 2026-09-13: not built.** Google Trends shows no
+> January surge in Indian activewear searches (training 0.99 of November–December
+> over weeks 9–11). See DECISIONS F16. Kept as the record of how it was tested.
+
 *Design, 2026-09-13. Decided with the owner one section at a time. No code has
 been written against it. Route B of recommendation 7 in `reviews/slc-review.md`,
 after DECISIONS D12 measured and ruled out route A.*
