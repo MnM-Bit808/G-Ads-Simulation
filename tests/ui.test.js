@@ -193,6 +193,7 @@ describe('every interface module at least loads', () => {
     'round-zero.js': () => import('../ui/round-zero.js'),
     'india-map.js': () => import('../ui/india-map.js'),
     'save.js': () => import('../ui/save.js'),
+    'recorder.js': () => import('../ui/recorder.js'),
   };
 
   test('the list of modules to load is complete', () => {
