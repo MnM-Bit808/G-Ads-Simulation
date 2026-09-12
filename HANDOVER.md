@@ -47,14 +47,17 @@ still resting on a guess.
   back. `scripts/read-playtest.js` turns each file into the baseline table
   (`dd25053`). Decided with the owner: two strangers play alone with the
   recorder, and one plays on a video call with it running too. *Deployment →
-  Running a playtest* has the steps. The key rule: **don't push to `main`
-  between tagging and reading the files.**
+  Running a playtest* has the steps. **Postponed on 2026-09-13**: the owner
+  cannot run them yet. The baseline is tagged (`playtest-1` = `f725dda`), `main`
+  is not frozen, and the playtest will run from a preview site built from the
+  tag.
 - **Decided with the owner:** the explanations will move into an optional field
   guide inside the game, after stage A.
 
-**Stage C has begun, on the branch `stage-c`, NOT on `main`** (2026-09-12). It
-stays there until every playtest file is read, so the version strangers play
-does not change under them. The design is
+**Stage C has begun, on the branch `stage-c`** (2026-09-12). It was held off
+`main` so the version strangers play would not change under them; with the
+playtests postponed and the baseline tagged, it can go to `main` when the owner
+says so. The design is
 `plans/2026-09-12-content-model-and-field-guide.md`, and the task list with its
 Task 4 addendum is `…-plan.md` beside it.
 - **C1, the content model, is piloted on the returns card.** Its sentences live
@@ -74,9 +77,10 @@ Task 4 addendum is `…-plan.md` beside it.
   returns card. Also six tables wider than a phone, which widened the whole page
   to as much as 894px: **fixed** on the branch `phone-tables` (`f725dda`, cut
   from `main` so it can ship without stage C) and merged into `stage-c`.
-- **Next:** C3 (round 0 in steps) and C4 (a dashboard that reveals itself) wait
-  for the playtest files. The recorder's card times say which cards strangers
-  read, which is what C4 needs.
+- **Next, decided 2026-09-13: stage D's debrief**, which needs no playtest data.
+  C3 (round 0 in steps) and C4 (a dashboard that reveals itself) still wait for
+  the playtest files: the recorder's card times say which cards strangers read,
+  which is what C4 needs.
 
 **The session before (2026-09-11 to 12) closed the three items that had been open
 longest**, in this order. Each has its full record in `DECISIONS.md`; the commit
@@ -1917,17 +1921,27 @@ them and what confused them, then offers the same file. They send it back by
 email or WhatsApp. It is about 280 KB and holds their save, so their whole game
 can be replayed.
 
-**Before the invites go out:**
-1. Add each address to the Access list (*Invite-only* below).
-2. Tag the commit they will play:
+**POSTPONED (2026-09-13).** The owner cannot run the playtests yet. The version
+they are meant to measure is already tagged: **`playtest-1` = `f725dda`**, the
+game before stage C, with the phone-tables fix. `main` is NOT frozen and moves
+on; the playtest runs from a copy of the tag instead.
+
+**When the playtests happen:**
+1. Put the tagged version up as its own site. Cloudflare builds every branch as a
+   preview behind the same sign-in, so a branch made from the tag is enough:
 
    ```
-   git tag playtest-1 && git push origin playtest-1
+   git push origin playtest-1:refs/heads/playtest-1-site
    ```
-3. **Don't push to `main` until every file is read.** A push redeploys, and a
-   save replayed on a changed engine no longer reproduces their game. The
-   reader says so when it happens (`THE REPLAY DOES NOT MATCH`), and the fix is
-   `git checkout playtest-1` and reading it again.
+
+   Its address is on the Worker's **Deployments** tab. Check it asks for the
+   sign-in code before sending it to anyone.
+2. Add each address to the Access list (*Invite-only* below). The same list covers
+   the preview.
+3. Send that preview's `/ui/?playtest=1` link, not the main site's.
+4. **Read the files on the tag.** A save replays exactly only on the engine it
+   was played on. The reader says so when it does not (`THE REPLAY DOES NOT
+   MATCH`), and the fix is `git checkout playtest-1` and reading it again.
 
 **Reading the files:** `node scripts/read-playtest.js playtest-*.json`. It gives
 active time for round 0, weeks 1-4, weeks 5-11 and the end screen (the groups
