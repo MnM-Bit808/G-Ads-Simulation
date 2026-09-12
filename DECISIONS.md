@@ -799,6 +799,118 @@ chapter should cite this entry.
 hour adjustment visibly overbids, or a player who carries "you can set −100%" to
 a real account and is surprised.
 
+### D12. Moving the second capital window to week 7 keeps capital profitable and empties the returns levers — `OPEN` (2026-09-13)
+
+**The question.** The SLC review's recommendation 7 proposes, as its cheap
+test, moving the second capital window from week 5 to week 7, so that a
+decision lands after returns can be read (HANDOVER: "the back half of the game
+asks nothing and costs nothing"). Its stated failure: "moving capital later
+makes every capital allocation unprofitable". Nothing had measured it.
+
+**The harness, recorded so it can be re-run** (the script itself was a
+throwaway):
+- `startGame` on `content/querySet.js`, seeds 1–12, the player
+  (`BRAND_IDENTITIES[0]`) in each of the six cells: 72 markets; agency writer;
+  no capital at round 0;
+- two players. **Full**: F15's, the six highest-volume searches of its cell on
+  PHRASE at 0.7 × `realisedBreakEvenCpcPaise`, its brand search on EXACT at
+  1.2×. **Small**: three searches on EXACT at 0.5×, so its budget never runs out
+  and spare ad money buys nothing;
+- rounds 1–4 played once, then forked. Today's rule: at round 5, each of
+  photography ₹1,20,000, or ₹80,000 on one of the other three targets, against
+  committing nothing. The moved rule: `capexAllocationRounds: [1, 7]` on the
+  same market, the same five choices at round 7, and what is not invested put
+  into weeks 7 and 8, the only weeks of month 2 left to spend it;
+- rivals on `controllerFor(policyId)`, asserted live. They commit no capital
+  after round 0 (`agents/policies.js`), so the market is identical under both
+  rules;
+- `playRound` in `mode: 'expected'`; the measure is the end screen's
+  `gameTotals(...).all.netProfitPaise`, what the player is ranked on;
+- 13 minutes on 12 processes.
+
+**Measured: capital minus keeping the money for ads, median rupees of final net
+profit (and the share of markets where capital wins).**
+
+| | small, week 5 | small, week 7 | kept | full, week 5 | full, week 7 |
+|---|---|---|---|---|---|
+| photography | +23,717 (100%) | +14,966 (100%) | 0.64 | −1,569 (50%) | +5,668 (51%) |
+| landing page | +21,037 (100%) | +13,571 (100%) | 0.64 | +4,954 (54%) | +15,441 (58%) |
+| size guide | +10,879 (100%) | +2,548 (100%) | **0.24** | +11,689 (58%) | +3,263 (65%) |
+| order confirmation | +8,266 (100%) | +1,945 (100%) | **0.24** | +9,332 (56%) | +2,794 (65%) |
+| best of the four | +23,723 (100%) | +14,966 (100%) | 0.64 | +20,693 (63%) | +18,784 (71%) |
+
+"Kept" is the median of week 7 over week 5 for the small account, whose spare
+money buys nothing, so it is capital's own value.
+
+**1. The review's failure condition is not met.** At week 7 the best choice
+still beats keeping the money in every small-account market and in 71% of the
+full-account ones. Photography and the landing page keep about two thirds of
+their value, which is what landing at round 10 instead of round 8 predicts:
+three live weeks instead of five (`CAPEX_DELAY_ROUNDS` is 3).
+
+**2. The returns levers keep a quarter, because the game ends before their
+returns do.** Traced week by week on one small market (seed 1,
+mid · performance, ₹80,000 on the size guide against nothing):
+
+| week | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|
+| net profit gained, window at week 5 | ₹3,355 | ₹2,935 | ₹1,939 | 0 | 0 |
+| net profit gained, window at week 7 | — | — | ₹1,939 | 0 | 0 |
+
+A return resolves weeks after its order, so by the end of week 12 no return from
+weeks 11 or 12 has happened, and a lever that only removes returns shows
+nothing there. Live from week 10 it counts once; ₹1,939 over ₹8,229 is the 0.24
+measured across all 72 markets. Photography and the landing page raise orders,
+which land sooner, so they lose far less.
+
+**That is what sinks the cheap test.** Its purpose is a decision taken after
+returns can be read, and the natural answer to reading them is to fix them. At
+week 7 that fix earns a quarter of what it does today, so the move would teach
+"fixing returns does not pay", which is false, and would narrow D7's choice of
+four to photography or the landing page. The same truncation already costs
+today's returns levers two of their five live weeks; it is smaller, not absent.
+
+**3. Found on the way, about today's rule: whether capital pays depends on
+whether the budget is running out.** For the full account at week 5:
+
+| cell | lost to budget, weeks 5–8, if invested | capital wins |
+|---|---|---|
+| mid · performance | 64% | 0 of 12 |
+| mid · lifestyle | 62% | 2 of 12 |
+| premium · performance | 29% | 8 of 12 |
+| the other three | 0% | 35 of 36 |
+
+Where the budget runs out, ₹1,20,000 of ads beats a better shop almost every
+time; where it does not, the money buys nothing and capital always wins. D8
+predicted exactly this ("it will grow only for an advertiser aggressive enough
+to be budget-limited") and it is a fair decision. **But nothing on screen tells
+the player that "am I losing impressions to budget?" is the question the choice
+turns on.** The full account's apparent gains at week 7 (landing page +4,954 →
++15,441) are not capital improving: the money it is compared with is worth less,
+squeezed into two weeks and too late for the week-8 rank.
+
+**Limits.** Two scripted players; rivals do not react; no capital at round 0;
+one ad. Repositioning was not measured: `REPOSITION_ROUND` is a constant, and
+moving it is an engine change.
+
+**Options, none taken:**
+- **(a) Leave the window at week 5,** and look for the back half's decision
+  elsewhere: the review's route B, an announced market event true to the Indian
+  calendar (HANDOVER's preferred direction).
+- **(b) Move it and shorten `CAPEX_DELAY_ROUNDS`.** It is INVENTED. But D7 rests
+  on the delay ("without the delay, investing would simply dominate"), and a size
+  guide or order-confirmation flow built in a week is its own honesty question.
+- **(c) Score returns that are certain to come.** The end screen could count
+  weeks 11–12 net of the returns their orders will produce. That repairs the
+  truncation for every lever, today's included, but it puts an estimate where
+  the game has only ever shown what happened (G1).
+- **(d) Say the budget question on screen,** whichever of the above: the capital
+  card, or the debrief, can say that the second allocation is spend-or-invest,
+  and that the week's "lost to budget" figure decides it.
+
+(a) and (d) first. (b) and (c) change what the game claims, and each needs its
+own entry before it touches a constant.
+
 ---
 
 ## E. Queries, keywords and matching
