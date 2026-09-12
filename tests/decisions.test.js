@@ -22,7 +22,7 @@ import {
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
   removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
-  prepaidOutlook, setPrepaidDiscount, locationRows, qualityWindowPhrase,
+  prepaidOutlook, setPrepaidDiscount, locationRows, locationOutlook, qualityWindowPhrase,
 } from '../ui/decisions.js';
 
 /**
@@ -1281,5 +1281,81 @@ describe('the quality note names a window the game can actually have', () => {
 
   test('past the window, it names the window', () => {
     expect(qualityWindowPhrase(14, 13)).toBe('over the last 13 finished weeks');
+  });
+});
+
+/**
+ * What a click in each place actually left the player (stage A2,
+ * reviews/slc-review.md 9B-4).
+ *
+ * The location card showed "net per click" beside the cost per click, and it was
+ * revenue after returns: ₹78-112 against ₹8-11, which invites a bid two to three
+ * times what a click can bear, because the margin and the freight are still to
+ * come off it. The kept figure is the engine's own profit arithmetic
+ * (`moneyBlock`), with the click's own cost left out so it can sit beside it.
+ */
+describe('the location card says what a click kept, not only what it sold', () => {
+  const played = (rounds) => {
+    let state = makeGameState({ round: 1 });
+    for (let i = 0; i < rounds; i++) state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+    return state;
+  };
+
+  test('summed over the places, it is the account\'s own net profit', () => {
+    // Played long enough for returns and refusals to land, so margin and
+    // freight are both in it. Rounding is per place against per week, so the
+    // two may differ by a few paise and never by a real amount.
+    const state = played(6);
+    const d = createDraft(getSelfView(state, PLAYER_ID));
+    const rows = locationRows(d, state.history, PLAYER_ID);
+    expect(rows.some((r) => r.refused > 0), 'no refusals yet, so freight is untested').toBe(true);
+
+    const fromPlaces = rows
+      .filter((r) => r.clicks > 0)
+      .reduce((a, r) => a + r.keptPerClickPaise * r.clicks - r.costPaise, 0);
+    const fromAccount = state.history
+      .reduce((a, h) => a + h.byAdvertiser[PLAYER_ID].money.netProfitPaise, 0);
+    expect(Math.abs(fromPlaces - fromAccount)).toBeLessThan(5000);
+  });
+
+  test('it is always less than the revenue behind it, by at least the margin', () => {
+    const state = played(6);
+    const d = createDraft(getSelfView(state, PLAYER_ID));
+    for (const row of locationRows(d, state.history, PLAYER_ID).filter((r) => r.clicks > 0)) {
+      expect(row.keptPerClickPaise, row.label)
+        .toBeLessThanOrEqual(row.netPerClickPaise * d.catalogue.marginPct + 1);
+    }
+  });
+
+  test('a place with no clicks has no figure rather than a zero', () => {
+    const state = makeGameState({ round: 1 });
+    const d = createDraft(getSelfView(state, PLAYER_ID));
+    for (const row of locationRows(d, [], PLAYER_ID)) {
+      expect(row.keptPerClickPaise, row.label).toBeNull();
+    }
+  });
+
+  test('the sentence ranks places by what a click kept, not by what it sold', () => {
+    // Revenue says the metros; freight on refused parcels says otherwise. The
+    // card used to pick the best place on revenue.
+    const base = { clicks: 100, conversions: 5, returned: 1, refusedRate: null, codShare: null };
+    const rows = [
+      { ...base, label: 'Metros', netPerClickPaise: 11000, keptPerClickPaise: 2500, cpcPaise: 900 },
+      { ...base, label: 'Towns', netPerClickPaise: 9000, keptPerClickPaise: 3000, cpcPaise: 800 },
+    ];
+    const out = locationOutlook(rows);
+    expect(out.best.label).toBe('Towns');
+    expect(out.note).toMatch(/left you ₹30 in towns and ₹25 in metros/);
+  });
+
+  test('and it says where a click cost more than it left', () => {
+    const base = { clicks: 100, conversions: 5, returned: 1, refusedRate: null, codShare: null };
+    const rows = [
+      { ...base, label: 'Metros', netPerClickPaise: 11000, keptPerClickPaise: 3000, cpcPaise: 900 },
+      { ...base, label: 'Towns', netPerClickPaise: 5000, keptPerClickPaise: 700, cpcPaise: 1100 },
+    ];
+    expect(locationOutlook(rows).note).toMatch(/In towns a click has cost more than it left you/);
+    const fine = rows.map((r) => ({ ...r, cpcPaise: 500 }));
+    expect(locationOutlook(fine).note).not.toMatch(/cost more than it left/);
   });
 });

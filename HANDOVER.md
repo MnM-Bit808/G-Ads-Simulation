@@ -20,9 +20,12 @@ still resting on a guess.
   the model, plus the week-8 rank, which one finisher was never told.
 - **Stage A4 is done.** The game is saved in the browser and a reload offers it
   back (*Still open*, the database bullet, says how).
-- **A2 and A3 are next.** A2 relabels "net per click". A3 gives planner keywords
-  the search row's tags; the owner chose option (i), which needs a DECISIONS
-  entry arguing why it is not a leak.
+- **Stage A2 is done.** The location card's "net per click" was revenue beside
+  a CPC; it is now "revenue per click" plus "kept per click", taken from the
+  engine's own `moneyBlock` (now exported), and the card ranks places by what a
+  click kept.
+- **A3 is next.** It gives planner keywords the search row's tags; the owner
+  chose option (i), which needs a DECISIONS entry arguing why it is not a leak.
 - **Decided with the owner:** the explanations will move into an optional field
   guide inside the game, after stage A.
 

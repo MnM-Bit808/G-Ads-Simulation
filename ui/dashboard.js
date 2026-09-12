@@ -871,7 +871,9 @@ function renderPlaces(root, game, ctx) {
     ['Where', { label: 'Clicks', num: true }, { label: 'Avg CPC', num: true },
       { label: 'Paid at door', num: true },
       { label: 'Refused', num: true }, { label: 'Sent back', num: true },
-      { label: 'Net per click', num: true },
+      // Two lines each, or the card overflows at 1024px (style.css says how much).
+      { label: 'Revenue\nper click', num: true },
+      { label: 'Kept\nper click', num: true },
       { label: 'Your bid', num: true }, ''],
     rows.map((row) => {
       const name = el('div');
@@ -914,6 +916,7 @@ function renderPlaces(root, game, ctx) {
           refused,
           row.sentBackRate == null ? '—' : pct(row.sentBackRate, 1),
           row.netPerClickPaise == null ? '—' : rupees(row.netPerClickPaise),
+          row.keptPerClickPaise == null ? '—' : rupees(row.keptPerClickPaise),
           row.adjustment === 0 ? 'even' : `${row.adjustment > 0 ? '+' : ''}${row.adjustment}%`,
           control,
         ],

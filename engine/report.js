@@ -484,7 +484,25 @@ function reviseBreakdown(breakdown, keywordFor, late, lateReturns = []) {
   return { byKeyword, byQuery, byLocation };
 }
 
-function moneyBlock({
+/**
+ * Revenue, returns, freight and ad cost turned into the money figures a report
+ * carries. The engine's one definition of profit.
+ *
+ * Exported so a view that needs profit for a SLICE of an account — the location
+ * card's "kept per click" (stage A2) — asks this rather than restating it. A
+ * second copy of this arithmetic in `ui/` is the drift the interface tests exist
+ * to prevent.
+ *
+ * @param {object} inputs
+ * @param {number} inputs.costPaise - ad spend, integer paise
+ * @param {number} inputs.conversions
+ * @param {number} inputs.grossRevenuePaise - integer paise
+ * @param {number} inputs.returnedRevenuePaise - integer paise
+ * @param {number} inputs.marginPct - 0..1, the advertiser's own margin
+ * @param {number} [inputs.refused] - parcels refused at the door; each costs freight
+ * @returns {object} revenue, freight, ROAS, profit and CPA; money in integer paise
+ */
+export function moneyBlock({
   costPaise, conversions, grossRevenuePaise, returnedRevenuePaise, marginPct, refused = 0,
 }) {
   const netRevenuePaise = grossRevenuePaise - returnedRevenuePaise;

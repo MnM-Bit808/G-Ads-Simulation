@@ -209,6 +209,13 @@ td + td, th + th { padding-left: 0.9rem; }
  * happened the first time this rendered.
  */
 .scroll { max-height: 22rem; overflow-y: auto; }
+
+/*
+ * The location card's headers may break onto two lines. Adding "kept per click"
+ * beside "revenue per click" (stage A2) took the table to 1048px in a 967px card
+ * at a 1024px window; the two money headers on two lines bring it to 935px.
+ */
+table[data-slot="places-table"] th { white-space: pre-line; vertical-align: bottom; }
 .scroll thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
 .terms td:first-child { width: 40%; }
 .wasted td { color: var(--bad); }

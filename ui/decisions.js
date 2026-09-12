@@ -39,6 +39,7 @@ import { refusalRateFor } from '../engine/locations.js';
 import { HOURS_PER_DAY } from '../engine/querySet.js';
 import { featureAt, pageShape, capexChoices } from './landing-page.js';
 import { LOCATIONS } from '../content/locations.js';
+import { moneyBlock } from '../engine/report.js';
 import {
   canReposition, isOneStep, allCells, parseCell, cellKey, landingPageBonus,
 } from '../engine/positions.js';
@@ -831,6 +832,22 @@ export function locationRows(draft, history, playerId) {
     const at = totals[index];
     const place = LOCATIONS[index];
     const netRevenuePaise = at.grossRevenuePaise - at.returnedRevenuePaise;
+    // What a click here LEFT the player: the engine's own profit arithmetic on
+    // this slice of the account, with the clicks' own cost left out so the figure
+    // can sit beside the cost per click (stage A2). Revenue per click alone read
+    // ₹78-112 beside a ₹8-11 CPC and invited bids the margin cannot carry.
+    // Rounded first because `moneyBlock` works in whole paise, and a place's
+    // revenue is a sum of fractional conversions.
+    const kept = at.clicks > 0
+      ? moneyBlock({
+        costPaise: 0,
+        conversions: at.conversions,
+        grossRevenuePaise: Math.round(at.grossRevenuePaise),
+        returnedRevenuePaise: Math.round(at.returnedRevenuePaise),
+        marginPct: draft.catalogue?.marginPct ?? 0,
+        refused: at.refused,
+      }).netProfitPaise
+      : null;
     return {
       id,
       label: place.label,
@@ -841,6 +858,7 @@ export function locationRows(draft, history, playerId) {
       // Per click, because that is the only form in which three places of very
       // different sizes can be compared at all.
       netPerClickPaise: at.clicks > 0 ? netRevenuePaise / at.clicks : null,
+      keptPerClickPaise: kept === null ? null : kept / at.clicks,
       cpcPaise: at.clicks > 0 ? at.costPaise / at.clicks : null,
       returnRate: at.conversions > 0 ? at.returned / at.conversions : null,
       // The two halves of that rate, which the engine has always had and never
@@ -866,7 +884,7 @@ export function locationRows(draft, history, playerId) {
  * @returns {{played: boolean, best: object|null, worst: object|null, note: string}}
  */
 export function locationOutlook(rows) {
-  const traded = rows.filter((r) => r.clicks >= 1 && r.netPerClickPaise !== null);
+  const traded = rows.filter((r) => r.clicks >= 1 && r.keptPerClickPaise != null);
   if (traded.length < 2) {
     return {
       played: traded.length > 0,
@@ -877,19 +895,25 @@ export function locationOutlook(rows) {
     };
   }
 
-  const sorted = [...traded].sort((a, b) => b.netPerClickPaise - a.netPerClickPaise);
+  // Ranked on what a click KEPT, not on what it sold: revenue per click puts
+  // the metros on top by basket size alone, and the freight on a refused parcel
+  // can reverse that.
+  const sorted = [...traded].sort((a, b) => b.keptPerClickPaise - a.keptPerClickPaise);
   const best = sorted[0];
   const worst = sorted[sorted.length - 1];
   const settling = rows.some((r) => r.conversions > 0 && r.returned === 0);
 
-  const gap = worst.netPerClickPaise > 0
-    ? best.netPerClickPaise / worst.netPerClickPaise
-    : null;
+  let note = `A click has left you ${rupees(best.keptPerClickPaise)} in `
+    + `${best.label.toLowerCase()} and ${rupees(worst.keptPerClickPaise)} in `
+    + `${worst.label.toLowerCase()}, after returns, your margin and return freight — `
+    + `against ${rupees(best.cpcPaise)} and ${rupees(worst.cpcPaise)} paid for one.`;
 
-  let note = `A click is worth ${gap ? `${gap.toFixed(1)} times` : 'more'} as much in `
-    + `${best.label.toLowerCase()} as in ${worst.label.toLowerCase()}, after returns. `
-    + `You are paying ${rupees(best.cpcPaise)} for one there against `
-    + `${rupees(worst.cpcPaise)} here.`;
+  // The sentence the old figure could never produce: a place where the click
+  // cost more than it left. That is the bid to cut, and revenue hid it.
+  const losing = traded.filter((r) => r.keptPerClickPaise < r.cpcPaise);
+  for (const place of losing) {
+    note += ` In ${place.label.toLowerCase()} a click has cost more than it left you so far.`;
+  }
 
   if (settling) {
     note += ' Some of these weeks have conversions that have not been returned yet, '
