@@ -28,7 +28,7 @@
  */
 
 import {
-  el, add, table, field, input, select, rupees, whole,
+  el, add, table, field, input, select, rupees, whole, scrollX,
 } from './dom.js';
 import { briefing, placeRivals, buildRivals } from '../setup.js';
 import { BRAND_IDENTITIES, assignIdentities, brandNamedIn } from '../content/brands.js';
@@ -323,7 +323,7 @@ function sectionBriefing(brief) {
         `${Math.round(100 * brief.economicsByTier[tier].marginPct)}%`,
       ],
     })));
-  node.append(volumes);
+  node.append(scrollX(volumes));
 
   const anchor = el('div', 'anchor');
   anchor.append(el('div', 'anchor-formula', brief.breakEvenFormula));
@@ -1146,7 +1146,7 @@ function sectionKeywords(querySet, draft, rerender, live) {
         return { cells: [keyword.text, matchType, bid, tags, remove] };
       }));
     node.append(el('p', 'field-label', `Your keywords (${draft.keywords.length})`));
-    node.append(picked);
+    node.append(scrollX(picked));
   }
 
   // The reserve, live. It sits directly under the keyword table because that is

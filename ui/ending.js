@@ -26,7 +26,7 @@
  * constants `tests/ui.test.js` forbids the view from naming.
  */
 
-import { el, add, table, figure, rupees, whole, ratio, pct } from './dom.js';
+import { el, add, table, figure, rupees, whole, ratio, pct, scrollX } from './dom.js';
 import {
   CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE, DAYPART_BLOCKS,
 } from '../engine/constants.js';
@@ -479,7 +479,7 @@ function standingsCard(ctx) {
       ],
     };
   }));
-  node.append(wrap);
+  node.append(scrollX(wrap));
 
   const disagree = rows.filter((r) => r.grossRank != null && r.grossRank !== r.rank);
   const note = el('p', 'note');

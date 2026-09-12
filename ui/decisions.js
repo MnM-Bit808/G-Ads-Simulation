@@ -29,7 +29,7 @@
  * one of them changed, which is exactly how the v0.1 prototypes went wrong.
  */
 
-import { el, add, table, field, input, select, rupees, whole, ratio, pct } from './dom.js';
+import { el, add, table, field, input, select, rupees, whole, ratio, pct, scrollX } from './dom.js';
 import { blockedBy, normalise, tokenise } from '../engine/matching.js';
 import { STRATEGIES, daypartMultiplier, effectiveBidPaise } from '../engine/strategies.js';
 import { minimumBidToShowPaise } from '../engine/auction.js';
@@ -2254,7 +2254,7 @@ function daypartCard(ctx, refresh) {
       ],
     };
   }));
-  node.append(list);
+  node.append(scrollX(list));
 
   const thin = rows.filter((r) => r.thin);
   if (thin.length > 0) {
@@ -2504,7 +2504,7 @@ function keywordsCard(ctx, refresh) {
     { label: 'Cost', num: true }, { label: 'CPC', num: true }, { label: 'Conv', num: true },
     { label: 'Quality', num: true }, '',
   ], rows);
-  node.append(list);
+  node.append(scrollX(list));
 
   if (draft.keywords.every((k) => k.active === false)) {
     node.append(el('p', 'problems',
