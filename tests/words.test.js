@@ -20,6 +20,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { line, KINDS } from '../ui/words/line.js';
 import { RETURNS } from '../ui/words/returns.js';
+import { DEBRIEF } from '../ui/words/debrief.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -76,6 +77,54 @@ describe('the returns card', () => {
     for (const [name, entry] of Object.entries(RETURNS)) {
       expect(entry(FIGURES), name).not.toMatch(/undefined|NaN/);
     }
+  });
+});
+
+describe('the debrief', () => {
+  // One of every figure the debrief's lines quote, formatted as the render
+  // formats them, including the signs and the booleans that pick the wording.
+  const FIGURES = {
+    round: 3, from: 3, to: 4, toEnd: false, week: 5, of: 12,
+    newMonth: true, capitalLanded: true,
+    clicks: '1,204', clicksSign: 1, cost: '₹4,100', costSign: -1, kept: '₹12,300', keptSign: 1,
+    ranOut: 5, played: 12, count: 2, all: false,
+    first: '₹40,000', now: '₹90,000', share: '30%', threshold: '10%',
+    terms: 14, negatives: 3, rank: 3, grossRank: 1,
+    own: '₹10', other: '₹18', strategy: 'Maximise conversions', learning: 2,
+    price: 'mid', purpose: 'lifestyle', cell: 'mid · lifestyle',
+    exact: 5, half: 2, names: ['Marlow', 'Nira'],
+  };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(DEBRIEF)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of Object.entries(DEBRIEF)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(DEBRIEF)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('a difference reads the right way round: the game WITHOUT the change', () => {
+    // Played minus without: positive clicks means the game without it had fewer.
+    expect(DEBRIEF.withoutIt({ clicks: '10', clicksSign: 1, cost: '₹5', costSign: 1, kept: '₹7', keptSign: -1 }))
+      .toBe('Without it you would have had 10 fewer clicks, paid ₹5 less, and kept ₹7 more.');
+    expect(DEBRIEF.withoutIt({ clicksSign: 0, costSign: 0, keptSign: 0 }))
+      .toBe('Without it, those weeks would have come out exactly the same.');
+  });
+
+  test('ranks read as ordinals, and names as a list', () => {
+    expect(DEBRIEF.returns({ share: '30%', rank: 1, grossRank: 12 })).toMatch(/1st on what you kept and 12th on gross/);
+    expect(DEBRIEF.returns({ share: '30%', rank: 22, grossRank: 3 })).toMatch(/22nd .* 3rd/);
+    expect(DEBRIEF.cellmates({ names: ['Aster', 'Birch', 'Cedar'] })).toMatch(/^Aster, Birch and Cedar sat in your cell, so they/);
+    expect(DEBRIEF.cellmates({ names: ['Aster'] })).toMatch(/^Aster sat in your cell, so it/);
+    expect(DEBRIEF.cellmates({ names: [] })).toBe('Nobody sat in your cell.');
   });
 });
 
