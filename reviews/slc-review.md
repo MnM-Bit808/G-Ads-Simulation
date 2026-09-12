@@ -8,6 +8,11 @@
 - *section 13 is rewritten under the skills' rules, and withdraws one of my own ideas;*
 - *a final pass corrected the timing, word-count and ROAS figures (sections 4, 8 and 9A-3), the
   count of contradicting sentences in the verdict, and a few smaller figures.*
+- *Stage B (72 measured markets) then corrected two of this review's own claims:*
+  - *9A-2, brand, is largely wrong: defending your name IS cheaper traffic in play;*
+  - *"winning is easy" does not hold: a sensible player finishes median 6th of 9.*
+
+  *Both are marked where they appear. DECISIONS A9 and F15 hold the measurements.*
 
 ## How to read this
 
@@ -39,7 +44,7 @@ The two games:
 | | score | one line |
 |---|---|---|
 | **Simple** | **2 / 5** | A strong game buried under 2,600 words before the first auction and 2,600–3,600 per week |
-| **Lovable** | **3 / 5** | Real "aha" moments; they stop at week 4, and a sensible first-timer wins easily |
+| **Lovable** | **3 / 5** | Real "aha" moments; they stop at week 4 (the "wins easily" claim is withdrawn, see section 6) |
 | **Complete** | **3 / 5** | The loop runs end to end; a reload destroys it, and nothing turns the game into stated lessons |
 
 - **The core works.** Careful play won and careless play lost [M], and the best moments are genuine:
@@ -95,7 +100,7 @@ The human game is in `HANDOVER.md`, *What playing it as a learner found*: premiu
 
 | | human (HANDOVER) | me | agree? |
 |---|---|---|---|
-| Result | 1st of 9, 38% ahead, net ROAS 6.48 | 1st of 9, 2.2× the next rival, net ROAS 9.39 | **Yes.** A sensible first-timer wins, and wins big |
+| Result | 1st of 9, 38% ahead, net ROAS 6.48 | 1st of 9, 2.2× the next rival, net ROAS 9.39 | **Yes, in these two games.** Stage B's 72 markets put a sensible player at median 6th, so the wins came from choices, not the market |
 | Round 0's share | 1,076s, 67% of the session, 630 keystrokes | 2,633 words, 7 decision areas | **Yes.** Round 0 is the product's centre of gravity |
 | Back half | weeks 5–11 in 72s, 8 clicks, nothing typed | decisions in 6 of 12 weeks, most of them my own experiments, not prompts | **Yes.** Nothing new arrives after round 5 |
 | Search terms report | inert all game: all-phrase keywords mirror themselves | alive: one broad keyword took 73% of week 1's spend | **Differs.** The lesson depends on choosing broad, and nothing leads a player to it |
@@ -128,7 +133,7 @@ G4 (location and cash on delivery) and D2 (automation).
 | Dayparting (H4) | hours card | the human got it right; I didn't touch it | **Sometimes** |
 | Winning the auction is not winning (H7) | search terms CPC and conversions | gym terms at ₹28 CPC with 0.1–0.7 conversions [M] | **Partly**, if you sort the table |
 | Smart bidding has a learning period (D2) | bidding card | Max conversions spent ₹21k more for the same conversions [M] | **Yes, if tried** |
-| Brand bidding (§3.1) | red and green brand labels (I2) | own brand ₹25 CPC against ₹8 generic, 2.6% CTR [M] | **Teaches a doubtful version** (9A-2) |
+| Brand bidding (§3.1) | red and green brand labels (I2) | own brand ₹25 CPC against ₹8 generic, 2.6% CTR [M], in one game; across 72 markets, 0.59× generic CPC at 1.52× click-through | **Lands if you defend your name**, though smaller than real (9A-2, corrected) |
 | Cash on delivery by location (G4) | location card | used by me, never by the human | **Weak** until week 6 |
 | Competition emerges from everyone's play (H10) | nowhere on screen | — | **Invisible** |
 
@@ -225,8 +230,11 @@ so text only grows.
 - **Engagement ends at week 4.** The human clicked through weeks 5–11 in 72s (HANDOVER) [M].
   HANDOVER's own diagnosis holds: the last new decision arrives at round 5, and settled feedback
   starts at round 7.
-- **Winning is easy.** Both recorded careful games won 1st, by 38% and by 123% [M]. A game you
-  can't lose by thinking a little stops being tense.
+- ~~**Winning is easy.** Both recorded careful games won 1st, by 38% and by 123% [M].~~
+  **Withdrawn after stage B.** Across 72 markets, a sensible player finished median 6th of 9
+  (DECISIONS F15). Those two wins came from particular choices, not from the market. What stage B
+  did confirm is that almost nobody *loses money* (8 of 648 advertiser-games), which is the real
+  tension problem: the band of "fine" is very wide.
 - **The numbers flatter.** The headline profit is green and huge: week 1 revised to a gross ROAS of
   13.1, and weeks up to 15.9 [M]. It makes a first-timer feel like a genius rather than a learner
   (see 9A-3).
@@ -338,6 +346,13 @@ of the fixes suggested here makes the model less true.
    - [I] In real accounts the owner's ad on its own name is usually the account's highest-CTR,
      cheapest traffic, and a poacher pays a quality penalty. So the game currently teaches the
      reverse. It needs a DECISIONS entry and a measurement across seeds before any change.
+   - **Corrected by stage B: the "teaches the reverse" conclusion was one game, and wrong.**
+     Across 72 markets, a player defending its name gets 1.52× its generic click-through at 0.59×
+     the cost per click, and keeps 66% of its own-name clicks. What survives (DECISIONS A9):
+     - the advantage is emergent rather than modelled;
+     - it is probably smaller than real;
+     - poachers pay no quality penalty;
+     - five of six rival characters never defend their own names.
 
 3. **The market looks too profitable** [M, with the judgement inferred].
    - **What I measured.** Lifetime conversion rate 4.87%. Weekly gross ROAS, one week after the
@@ -351,6 +366,11 @@ of the fixes suggested here makes the model less true.
      modelled either.
    - [I] If a careful first-timer can't lose, "most traffic is marginal" can't be taught. **Measure
      against a sourced benchmark before changing anything.** I haven't sourced one.
+   - **Confirmed and located by stage B** (DECISIONS F15), against weak benchmarks:
+     - cost per click is realistic;
+     - the excess is click-through (about 2×, partly B6's ads-only results page) and conversion
+       (about 1.5×);
+     - 640 of 648 advertiser-games profit over the settled weeks.
 
 ### 9B. Labels that mislead (UI; the numbers are right)
 
@@ -434,6 +454,8 @@ report of about eight cards.
    evidence it's easy: a lifestyle rival tops 27 of 30 played markets (F13), and the market looks
    generous (9A-3).
    Every playtest should record whether the player *could* have lost.
+   *Stage B answered part of this. Winning isn't easy (median 6th across 72 markets), but losing
+   money is rare. The pushback stands, aimed at profitability rather than rank.*
 4. **You don't need a database to save a game.** For a solo learner, the seed plus the decision log
    in the browser's own storage is enough, and `serialise.test.js` already proves the replay is
    exact. The backend's only job is the Claude-backed rivals (`llmPolicy`), which HANDOVER itself

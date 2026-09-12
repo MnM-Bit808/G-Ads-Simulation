@@ -235,6 +235,71 @@ the briefing's two in five, not a quarter — so an ungraded 3/3/3 ad still sits
 just under the reserve at a cautious bid. The floor and the bids moved together;
 the line between them did not.
 
+### A9. A brand owner's advantage on its own name is emergent, not modelled — `OPEN` (2026-09-12)
+
+**What the model does.** Click-through is the quality signal × the position
+factor (`round.js`), and the signal comes from grades, keyword fit, relevance
+and landing page. **Nothing in it knows whose name a brand search is.**
+`RELEVANCE_INTENT_MULTIPLIERS.brand` is 1.0 for everyone, so an owner and a
+poacher with the same grades get the same click-through on the owner's name.
+Ownership changes only conversion: 2.5× for the owner, 0.25× for a poacher
+(12.1, `attribution.js`).
+
+**The SLC review said this made brand traffic dearer than generic.** That was
+**one game**, where the player's generic searches sat at the reserve price.
+**Measured properly it is largely wrong**, and this entry corrects it.
+
+**Measured.** 72 markets: seeds 1–12 × the player in each of the six cells. The
+harness is recorded under F15. The player defends its own name on exact at
+1.2× realised break-even:
+
+| player, 72 markets | click-through | cost per click | conversion |
+|---|---|---|---|
+| on its own name | 11.0% | ₹10.3 | 8.2% |
+| on its generic searches | 7.2% | ₹17.5 | 6.2% |
+| ratio | 1.52× | 0.59× | 1.32× |
+
+It keeps 66% of the clicks on its name, and poachers take the other 34%, at
+4.8% click-through and ₹6.3 a click. **So defending your name IS the cheaper,
+higher-click traffic in play, as the briefing says.** The advantage comes from
+thin competition and the owner's higher bid, not from searchers preferring the
+brand they typed.
+
+**Against benchmarks (weak ones, stated as such).**
+- The only measured brand/non-brand split found is 53 B2B-software accounts,
+  July 2025–June 2026 (PipeRocket): brand 22.21% click-through against 3.60%,
+  **about 6×**, and $3.12 a click against $13.75, **about 0.23×**.
+- Agency guidance agrees on the direction: brand 10–20%+, non-brand 2–5%.
+- No apparel or Indian brand split was found.
+
+So the direction is right and the size is probably understated: 1.5× where the
+evidence suggests several times, and 0.59× where it suggests about a quarter.
+
+**Two things the measurement found that nothing recorded.**
+1. **Five of the six rival characters never bid on their own name.** Across the
+   648 owner/brand pairs, the owner never appeared on its own name in 486 (75%).
+   Only the player, `brandDefender` and sometimes `cautious` defend. So the market
+   shows a learner rivals who leave their names to `brandDefender`. Real brands
+   of any size usually defend.
+2. **A poacher pays no quality penalty.** Real ones typically do: lower
+   relevance, lower expected click-through. Here, a poacher bidding what the
+   owner bids would get the owner's click-through.
+
+**Options, none taken:**
+- **(a) Leave it.** The lesson "defend your name, it is cheap" already lands.
+- **(b) Model searcher preference.** An owner advantage on relevance or
+  click-through on its own brand search, and a poacher penalty. That is an
+  engine change; it moves calibration and needs a sourced size, and the evidence
+  here is B2B software.
+- **(c) Have more rival characters defend their names.** That is a policy change
+  (C7) with no market physics.
+
+Decide after stranger playtests show whether brand behaviour is noticed at all.
+
+**Sources:**
+- PipeRocket, B2B software benchmarks: https://piperocket.digital/research/google-ads-benchmarks/
+- ClickMinded, direction only: https://www.clickminded.com/google-ads-benchmarks/
+
 ---
 
 ## B. Auction and pricing
@@ -3904,6 +3969,99 @@ towns. That is arithmetic from `round.js` rather than an observation in play,
 and it contradicts I28's measured *"the send-back rate is flat"* — which was
 measured on an earlier COD table. The evidence says the gradient belongs on
 refusals. Not touched here: F14 was already four constants.
+
+### F15. The market is profitable for almost everyone, and the reason is click-through and conversion — `OPEN` (2026-09-12)
+
+**The question.** The SLC review (9A-3) asked whether the market is too
+profitable to teach that most traffic is marginal. Nothing had checked
+absolute levels: calibration invariants I1–I5 test balance and budget binding,
+not whether a rupee of ads returns what it would in life.
+
+**The harness, recorded so it can be re-run:**
+- `startGame` on `content/querySet.js`, seeds 1–12, the player
+  (`BRAND_IDENTITIES[0]`) in each of the six cells, so 72 markets;
+- the agency writer;
+- the six highest-volume searches of the player's cell on PHRASE at 0.7 ×
+  `realisedBreakEvenCpcPaise` (F14's harness), plus its own brand search on
+  EXACT at 1.2×;
+- rivals on `controllerFor(policyId)`, asserted live;
+- `playGame` in `mode: 'expected'`;
+- economics over weeks 1–7 only (fully settled, returns included), from
+  `gameTotals(...).weeks`; per-search figures summed from each report's
+  `breakdown.byQuery`;
+- 3m16s on this machine.
+
+**Measured, medians over settled weeks:**
+
+| | click-through | cost per click | conversion | gross ROAS | net ROAS | profit per ₹ spent | returned |
+|---|---|---|---|---|---|---|---|
+| player, all cells (72) | 8.1% | ₹19.9 | 5.3% | 7.95 | 4.51 | 1.07 | 43% |
+| all rivals (576) | 5.4% | ₹10.5 | 4.6% | 9.87 | 6.00 | 1.74 | 41% |
+| rival `spender` | 7.6% | ₹16.8 | 3.3% | 4.56 | 2.72 | 0.27 | 40% |
+| rival `cautious` | 3.6% | ₹6.6 | 5.2% | 17.13 | 10.20 | 3.68 | 42% |
+
+By cell, the player's profit per rupee ran from 0.56 (`mid|performance`) to
+2.18 (`premium|lifestyle`). **8 of 648 advertiser-games lost money over the
+settled weeks, and the player lost in 0 of 72.**
+
+**Against benchmarks (their quality stated, because none is Indian search
+apparel data from a named dataset):**
+
+| | sim | benchmark | source and quality |
+|---|---|---|---|
+| cost per click | ₹10–20 | ₹8–40 on category keywords, Indian D2C | Balistro: agency's own campaigns 2024–26, no dataset cited |
+| click-through | 5.4–8.1% | 3.2% apparel search | PPC Chief: global, mostly US; own 200+ accounts plus WordStream |
+| conversion | 4.6–5.3% | 3.8% apparel search | PPC Chief, as above |
+| gross ROAS | 7.9–9.9 | 4.2× apparel, all campaign types; 4.5–8× Indian D2C search | PPC Chief; Balistro |
+| returns | 41–43% | 25–40% fashion (constants.js, DOCUMENTED) | GoKwik, ClickPost |
+
+**So cost per click is realistic, and returns sit at the top of their sourced
+band, where F14 put them.** The excess is in **click-through (about 2×)** and
+**conversion (about 1.5×)**, which multiply into gross ROAS at or above the top
+of the Indian range.
+
+**Why, and which parts are recorded choices:**
+- **Click-through: B6.** The results page holds only ads, so four ads share
+  attention no organic results, shopping units or AI answers compete for. That
+  simplification alone raises ad click-through. It was recorded as WONTFIX, but
+  its effect on economics was never measured until now.
+- **Conversion: `convRateBase`.** It is INVENTED, and HANDOVER notes that on an
+  advertiser's own territory the affinity product runs near 2.0, which roughly
+  doubles it.
+- **No lifetime value (F4).** Real D2C often loses money on the first order and
+  earns it back later. Here the first order has to carry everything, and it does
+  so easily.
+
+**What it costs the lesson.** When 99% of accounts profit, "most traffic is
+marginal" and "bid to break-even" cannot be felt. The careless player still
+loses (the SLC review's value · performance game, E9's sixty-keyword table), so
+consequences exist. But the band of "fine" is very wide.
+
+**"Winning is easy" does NOT follow, and the review is corrected on it.** The
+sensible harness player finished between 1st and 8th of 9, **median 6th**:
+1st once, 2nd twice, 3rd five times. The market is generous to everyone rather
+than easy to beat. The two recorded first places came from particular choices
+(cells F13 favours, low bids), not from the market handing out wins.
+
+**Options, none taken:**
+- **(a) Wait for stranger playtests.** If strangers can lose by ordinary
+  mistakes, the generosity may be tolerable.
+- **(b) Lower `convRateBase` toward the evidence.** It is INVENTED, but it feeds
+  break-even, every rival's bid and invariants I1–I4, so it means a full
+  calibration pass measured on all five CALIBRATE constants.
+- **(c) Revisit B6's effect on click-through**, for example a position-1
+  click-through ceiling that leaves room for the organic results the page does
+  not show.
+- **(d) Say it on screen:** the simulated market is kinder than a real one,
+  and why.
+
+(a) first, then (d) at least. (b) and (c) only with better data than agency
+blogs.
+
+**Sources:**
+- Balistro, Indian D2C performance channels: https://www.balistro.com/blog/performance-marketing-channels-ranked-d2c-india
+- PPC Chief, apparel and fashion benchmarks: https://ppcchief.com/google-ads-benchmarks/apparel-fashion
+- WordStream 2025 benchmarks, cited by both, not fetchable (403): https://www.wordstream.com/blog/2025-google-ads-benchmarks
 
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 

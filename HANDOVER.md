@@ -29,8 +29,20 @@ still resting on a guess.
   from their words. Exact-match accounts are unchanged to the rupee. Broad
   accounts now behave like a rival's: narrower for short lifestyle keywords,
   slightly wider for a sixty-keyword spray. **Stage A is complete.**
-- **Next, by the review's route, is stage B:** measure brand ownership and the
-  absolute economics, then three stranger playtests.
+- **Stage B's measurements are done: DECISIONS A9 and F15** (72 markets, 12
+  seeds × 6 cells, with the harness recorded in F15). Both entries are OPEN, and
+  no constant moved.
+  - **Brand (A9).** Defending your name IS cheaper traffic in play: 0.59× the
+    generic cost per click at 1.52× the click-through. But the advantage is
+    emergent, not modelled, and five of six rival characters never defend their
+    own names.
+  - **Economics (F15).** Cost per click is realistic; click-through (about 2×)
+    and conversion (about 1.5×) run high against benchmarks, and 640 of 648
+    advertiser-games profit.
+  - **The review's "winning is easy" is withdrawn.** A sensible player finishes
+    median 6th of 9.
+- **Stage B's other half needs the owner:** add three people who have never
+  seen the game to the Access list (see *Deployment*), and record their sessions.
 - **Decided with the owner:** the explanations will move into an optional field
   guide inside the game, after stage A.
 
