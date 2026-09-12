@@ -1484,3 +1484,62 @@ button.guide-next:hover { filter: none; color: #a9c1fa; }
   }
   /* The mark on a card keeps its fade: there is no movement in it. */
 }
+
+/* --- the debrief and the reveal (plans/2026-09-13-debrief.md) ------------ */
+
+.debrief-part + .debrief-part { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.debrief-head { margin: 0 0 0.7rem; font-size: 0.95rem; font-weight: 650; color: var(--ink); }
+
+.moments { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 0.9rem; }
+.moment {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.moment-week { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.moment-lines { margin: 0; padding-left: 1.1rem; font-size: 0.85rem; }
+.moment .note { margin-top: 0.2rem; }
+button.replay { align-self: flex-start; }
+.whatif-result p { margin: 0.35rem 0 0; font-size: 0.85rem; line-height: 1.5; }
+.whatif-window { font-weight: 600; }
+.budget-result p { margin: 0.5rem 0 0; font-size: 0.88rem; line-height: 1.5; }
+
+.lesson-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1rem 1.5rem; }
+.lesson-group-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+.lesson { padding: 0.55rem 0; border-top: 1px solid var(--line); }
+.lesson-title { font-weight: 600; font-size: 0.88rem; }
+.lesson p { margin: 0.2rem 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--ink); opacity: 0.92; }
+
+.reveal-grid { margin-top: 0.8rem; }
+.guess { display: flex; flex-direction: column; gap: 0.5rem; }
+/* The same grid the player chose from at round 0: price across, purpose down. */
+.guess-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.3rem; }
+button.guess-cell {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.3rem;
+}
+button.guess-cell:hover { color: var(--ink); border-color: var(--muted); filter: none; }
+button.guess-cell[aria-pressed="true"] { color: #0f1115; background: var(--accent); border-color: var(--accent); }
+button.guess-cell:disabled { opacity: 0.55; cursor: default; }
+button.guess-cell[aria-pressed="true"]:disabled { opacity: 0.85; }
+.guess-result { margin: 0; font-size: 0.8rem; line-height: 1.4; }
+.result-exact { color: var(--good); }
+.result-price, .result-purpose { color: var(--warn); }
+.result-wrong { color: var(--bad); }
+.result-skipped { color: var(--muted); }
+.reveal-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
+.reveal-summary p { margin: 0.6rem 0 0; font-size: 0.9rem; }
+
+@media (max-width: 620px) {
+  button.guess-cell, .reveal-actions button, button.replay { min-height: 44px; }
+}

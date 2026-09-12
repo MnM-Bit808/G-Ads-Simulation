@@ -40,7 +40,7 @@ export const DEBRIEF = Object.freeze({
   spend: line('label', 'Spend'),
   share: line('label', 'Impression share'),
   alsoChanged: line('reading', ({ newMonth, capitalLanded }) => {
-    const also = ['rivals’ bids'];
+    const also = ['rivals moved their bids'];
     if (newMonth) also.push('a new month’s budget began');
     if (capitalLanded) also.push('capital landed');
     return `Other things changed that week too: ${listed(also)}. This shows what changed, not what caused it.`;
@@ -146,6 +146,8 @@ export const DEBRIEF = Object.freeze({
   score: line('reading', ({ exact, half, of }) =>
     `You read ${exact} of ${of} exactly, and ${half} more half right.`),
   shown: line('reading', 'Here is where each of them really sat.'),
+  cellsHidden: line('reading',
+    'Where each of them sat stays hidden here until you have answered the card above.'),
   cellmates: line('reading', ({ names }) => (names.length === 0
     ? 'Nobody sat in your cell.'
     : `${listed(names)} sat in your cell, so ${names.length === 1 ? 'it' : 'they'} bid on the same kind of searches you did.`)),

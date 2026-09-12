@@ -27,11 +27,13 @@
  */
 
 import { el, add, table, figure, rupees, whole, ratio, pct, scrollX } from './dom.js';
+import { renderDebrief, renderReveal } from './debrief/render.js';
+import { DEBRIEF } from './words/debrief.js';
 import {
   CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE, DAYPART_BLOCKS,
 } from '../engine/constants.js';
 
-const STRATEGY_NAMES = {
+export const STRATEGY_NAMES = {
   manual: 'Manual CPC',
   maxClicks: 'Maximise clicks',
   targetCpa: 'Target CPA',
@@ -345,12 +347,26 @@ function diffKeywords(before, after) {
  * @param {object[]} ctx.history
  * @param {string} ctx.playerId
  * @param {object} ctx.opening the account at the end of round 0
+ * @param {object} [ctx.initial] the state before week 1: the debrief replays
+ *   from it and the reveal reads the rivals' ads from it
+ * @param {Function} [ctx.openGuide] opens a field guide chapter from a "why?"
  * @returns {DocumentFragment}
  */
 export function renderEnding(ctx) {
   const frag = document.createDocumentFragment();
   const totals = gameTotals(ctx.history, ctx.playerId);
-  add(frag, headlineCard(ctx, totals), standingsCard(ctx),
+
+  // The standings show where every rival sat, which is the reveal's answer, so
+  // they hold that column back until the reveal is answered or skipped. With no
+  // starting state there is no reveal, and nothing to hold back for.
+  let standings = standingsCard(ctx, { showCells: !ctx.initial });
+  const reveal = renderReveal(ctx, () => {
+    const shown = standingsCard(ctx, { showCells: true });
+    standings.replaceWith(shown);
+    standings = shown;
+  });
+
+  add(frag, headlineCard(ctx, totals), renderDebrief(ctx), reveal, standings,
     weeksCard(ctx, totals), accountCard(ctx), decisionsCard(ctx));
   // Last, deliberately. It is the only control here that destroys something,
   // and it should be read after the summary rather than met before it.
@@ -428,12 +444,13 @@ const card = (title, subtitle, span = 'span-4') => {
  * player who took it for a normal report would leave believing they can find
  * out what a competitor earns. They cannot, ever.
  */
-function standingsCard(ctx) {
+function standingsCard(ctx, { showCells = true } = {}) {
   const rows = finalStandings(ctx.state);
   const node = card('Everyone, with the books open',
     'what the simulator knows and a real account never tells you');
 
   if (rows.length === 0) return node;
+  if (!showCells) node.append(el('p', 'muted', DEBRIEF.cellsHidden()));
 
   node.append(el('p', 'note',
     'For twelve weeks you could read six Auction Insights metrics about a rival '
@@ -450,7 +467,7 @@ function standingsCard(ctx) {
   // matched it, and the columns huddled in the left two thirds of the card.
   const wrap = el('table');
   table(wrap, [
-    '#', 'Brand', 'Where they sat',
+    '#', 'Brand', ...(showCells ? ['Where they sat'] : []),
     { label: 'Spend', num: true }, { label: 'Conv', num: true },
     { label: 'CPA', num: true }, { label: 'Net ROAS', num: true },
     { label: 'Gross profit', num: true },
@@ -467,7 +484,7 @@ function standingsCard(ctx) {
       cells: [
         String(r.rank),
         r.isYou ? `${r.name} (you)` : r.name,
-        r.cell.replace('|', ' · '),
+        ...(showCells ? [r.cell.replace('|', ' · ')] : []),
         rupees(r.costPaise),
         r.conversions.toFixed(1),
         r.cpaPaise == null ? '—' : rupees(r.cpaPaise),
@@ -498,11 +515,13 @@ function standingsCard(ctx) {
       + 'inside for twelve weeks, and this is the first screen that says so.',
     ));
   }
-  note.append(document.createTextNode(
-    ' The position column is the one nothing has ever told you: every rival’s cell '
-    + 'was inferable only from the eight ads you read at round 0, so this is where '
-    + 'you find out whether you read them right.',
-  ));
+  if (showCells) {
+    note.append(document.createTextNode(
+      ' The position column is the one nothing has ever told you: every rival’s cell '
+      + 'was inferable only from the eight ads you read at round 0, so this is where '
+      + 'you find out whether you read them right.',
+    ));
+  }
   node.append(note);
   return node;
 }

@@ -820,7 +820,7 @@ function researchList(querySet) {
  *   and optional `name`; `placeholder` to draw empty slots as prompts
  * @returns {HTMLElement}
  */
-function serpBlock({ domain, headlines = [], descriptions = [], name = null, placeholder = false }) {
+export function serpBlock({ domain, headlines = [], descriptions = [], name = null, placeholder = false }) {
   const node = el('article', 'serp');
 
   const tag = el('div', 'serp-tag');

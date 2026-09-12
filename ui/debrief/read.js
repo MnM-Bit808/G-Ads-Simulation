@@ -160,15 +160,20 @@ export function windowDifference(actual, without, playerId, { from, to }) {
  *   each week `{round, clicks, profitIfFundedPaise}`
  */
 export function budgetWeeks(history, playerId) {
+  // What the screen would round to nothing counts as nothing: a week imagining
+  // a third of a click did not run out, and thirty paise did not "pay for
+  // itself". Found playing, where exactly that read "0 more clicks and ₹0 kept".
+  const WHOLE_CLICK = 0.5;
+  const WHOLE_RUPEE_PAISE = 50;
   const ranOut = [];
   for (const report of history ?? []) {
     const missed = report.byAdvertiser?.[playerId]?.missedToBudget;
-    if (missed && missed.clicks > 0) {
+    if (missed && missed.clicks >= WHOLE_CLICK) {
       ranOut.push({ round: report.round, clicks: missed.clicks, profitIfFundedPaise: missed.profitIfFundedPaise });
     }
   }
-  const paidFor = ranOut.filter((w) => w.profitIfFundedPaise > 0);
-  const didNotPay = ranOut.filter((w) => w.profitIfFundedPaise <= 0);
+  const paidFor = ranOut.filter((w) => w.profitIfFundedPaise >= WHOLE_RUPEE_PAISE);
+  const didNotPay = ranOut.filter((w) => w.profitIfFundedPaise < WHOLE_RUPEE_PAISE);
   const best = paidFor.reduce((top, w) => (!top || w.profitIfFundedPaise > top.profitIfFundedPaise ? w : top), null);
   return { played: (history ?? []).length, ranOut: ranOut.length, paidFor, didNotPay, best };
 }
@@ -242,6 +247,7 @@ export function lessons({ history, decisionLog, playerId, opening, state }) {
     id: 'numbersMove',
     met: Boolean(first),
     figures: first ? {
+      round: first.round,
       firstReportedPaise: rowOf(first).money.grossProfitAsFirstReportedPaise,
       nowPaise: rowOf(first).money.grossProfitPaise,
     } : null,

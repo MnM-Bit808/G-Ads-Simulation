@@ -162,6 +162,20 @@ describe('the budget weeks', () => {
     expect(read.best).toEqual({ round: 5, clicks: 500, profitIfFundedPaise: 90_000 });
   });
 
+  test('what rounds to nothing on screen counts as nothing', () => {
+    // Found playing: a week with 0.3 extra clicks and 30 paise of profit read
+    // "0 more clicks and ₹0 kept" as the week more money would have paid most.
+    const history = [
+      week(1, { missed: missed(0.3, 5000) }),
+      week(2, { missed: missed(40, 30) }),
+      week(3, { missed: missed(40, 150) }),
+    ];
+    const read = budgetWeeks(history, P);
+    expect(read.ranOut).toBe(2);
+    expect(read.paidFor.map((w) => w.round)).toEqual([3]);
+    expect(read.didNotPay.map((w) => w.round)).toEqual([2]);
+  });
+
   test('it is never a total: the weeks spend the same remaining month', () => {
     const read = budgetWeeks([week(1, { missed: missed(300, 50_000) })], P);
     expect(Object.keys(read).sort()).toEqual(['best', 'didNotPay', 'paidFor', 'played', 'ranOut']);
@@ -239,7 +253,7 @@ describe('the six lessons', () => {
 
   test('numbers keep moving: week 1 as first reported against as it stands', () => {
     const { numbersMove } = lessonsFor({ history: [fullWeek(1, { gross: 90_000, firstGross: 40_000 }), fullWeek(2)] });
-    expect(numbersMove).toMatchObject({ met: true, figures: { firstReportedPaise: 40_000, nowPaise: 90_000 } });
+    expect(numbersMove).toMatchObject({ met: true, figures: { round: 1, firstReportedPaise: 40_000, nowPaise: 90_000 } });
   });
 
   test('rank or budget: met at 10%, naming the worst week and which kind of loss', () => {
@@ -473,7 +487,8 @@ describe('on a real played game', { timeout: 60_000 }, () => {
   test('the budget weeks are exactly the weeks the game reported running out', async () => {
     const { state } = await spendingGame();
     const read = budgetWeeks(state.history, PLAYER);
-    const reported = state.history.filter((r) => (r.byAdvertiser[PLAYER].missedToBudget?.clicks ?? 0) > 0);
+    // Ran out: the imagined extra clicks round to at least one.
+    const reported = state.history.filter((r) => (r.byAdvertiser[PLAYER].missedToBudget?.clicks ?? 0) >= 0.5);
     // The premise: this game's budget does run out, or the test proves nothing.
     expect(reported.length).toBeGreaterThan(0);
     expect(read.ranOut).toBe(reported.length);

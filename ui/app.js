@@ -331,6 +331,10 @@ function render() {
       history: game.state.history,
       playerId: game.playerId,
       opening: game.opening,
+      // The debrief replays the game from here, and the reveal reads the
+      // rivals' round-0 ads and positions from it.
+      initial: game.initial,
+      openGuide: guide.open,
       onRestart: restart,
     }));
     // A playtester's questions come after the books are open and before the
