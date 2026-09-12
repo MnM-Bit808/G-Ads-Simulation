@@ -354,6 +354,80 @@ requirements, from spec section 5:
   `review-animations` passes on the diff;
 - verified by playing to week 7 and opening every link by mouse and by keyboard.
 
+### Task 4 addendum: the side drawer (planned 2026-09-12, after direction A was chosen)
+
+**Scope.** The drawer, its header button, and the returns card's three "why?"
+links. No other card changes: the other cards move into the content model in C4.
+Nothing leaves the returns card, because none of its sentences is a concept; the
+chapters add depth beside it.
+
+**Files:**
+- Create `ui/guide/drawer.js`: `guideView(id, figures)` (pure) and
+  `createGuide({ figures, root })` (the DOM).
+- Modify `ui/dashboard.js`: `renderDashboard(game, onDecisionChange, { openGuide })`,
+  and `renderReturns` appends a "why?" button to the Paid at door label, the
+  legend and the counted-weeks sentence, each opening its entry's `why`.
+- Modify `ui/app.js`: create the guide once and append it to `document.body`,
+  outside `#app`, so a re-render never removes it; pass `openGuide` to the
+  dashboard; wire the header button.
+- Modify `ui/index.html`: a `Field guide` ghost button in the header, hidden until a
+  game exists.
+- Modify `ui/style.css`: the drawer, the "why?" button, the phone layout under
+  620px, the motion, and `.guide[hidden] { display: none; }`. The page has no
+  general `[hidden]` rule, so a drawer styled `display: flex` would otherwise stay
+  on screen when closed.
+- Create `tests/drawer.test.js`; add `guide/drawer.js` to `LOADABLE` in
+  `tests/ui.test.js`.
+
+**The pure part, tested first:** `guideView(id, figures)` returns
+`{ id, title, real, sources, game, yourAccount, next }`, with `next` as
+`{ id, title }` from `CONTENTS` order, or `null` for the last chapter. Tests:
+- every chapter's view renders with `guideFigures()` and no `undefined`;
+- `next` follows the contents order, and the last chapter has none;
+- an unknown id throws, rather than opening an empty drawer;
+- sources come through as label and link, and the view carries no DECISIONS
+  citation, because players see sources and never ledger ids (spec section 9).
+
+**The DOM part, checked by playing** (the suite has no browser; `app.js` is
+checked the same way):
+- The drawer is an `aside` with `role="dialog"`, `aria-modal="false"` (the
+  dashboard stays usable beside it) and `aria-labelledby` pointing at its `h2`,
+  which is the chapter title. It has the class `card`, so `ui/recorder.js` times
+  it and names clicks inside it by chapter.
+- Opening focuses the `h2` (tabindex -1). Esc or the close button closes it, and
+  focus returns to whatever opened it. Contents lists `CONTENTS` in order.
+- "Show me on the card" closes the drawer, scrolls `[data-slot=<yourAccount>]`
+  into view, and adds a `guide-marked` outline, removed on the next pointer or key
+  press.
+- "Why?" is a `<button>` styled as a link, because it performs an action rather
+  than going to a page.
+- Sources open in a new tab (`target="_blank" rel="noopener"`).
+- Below 620px wide, the drawer is full screen with the pinned bottom bar from the
+  phone mock-up; every control is at least 44px tall there.
+
+**Motion, the only motion in this task:**
+- enter: `transform: translateX(100%)` to `none`, opacity 0 to 1, 220ms,
+  `cubic-bezier(0.23, 1, 0.32, 1)`, using `@starting-style` and
+  `transition-behavior: allow-discrete`, so there is no library and no timer;
+- exit: 150ms, `ease-in`;
+- reduced motion: opacity only, 150ms;
+- the `guide-marked` outline fades out over 200ms and does not pulse.
+- `review-animations` is run on the diff before committing; anything it flags is
+  fixed or argued.
+
+**Verification, by playing on the dev server:**
+1. Play to week 7 and open all three "why?" links by mouse.
+2. Do the same by keyboard only: Tab to the link, Enter, then Esc returns focus.
+3. Open the contents from the header, and use "Next" through all three chapters.
+4. Use "Show me on the card".
+5. Check the phone preset.
+6. Check the console for errors, and that a closed drawer takes no clicks or card
+   time in the playtest recorder.
+7. Take screenshots of desktop and phone.
+
+**Commits, local only:** the pure view with its tests; then the drawer, links and
+styles together, since none of them works without the others.
+
 ### Task 5: documentation
 
 - [ ] HANDOVER *Start here*: what C1 and C2 built and where the guide is.
