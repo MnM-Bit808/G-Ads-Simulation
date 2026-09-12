@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { line, KINDS } from '../ui/words/line.js';
 import { RETURNS } from '../ui/words/returns.js';
 import { DEBRIEF } from '../ui/words/debrief.js';
+import { CAPITAL } from '../ui/words/capital.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -125,6 +126,28 @@ describe('the debrief', () => {
     expect(DEBRIEF.cellmates({ names: ['Aster', 'Birch', 'Cedar'] })).toMatch(/^Aster, Birch and Cedar sat in your cell, so they/);
     expect(DEBRIEF.cellmates({ names: ['Aster'] })).toMatch(/^Aster sat in your cell, so it/);
     expect(DEBRIEF.cellmates({ names: [] })).toBe('Nobody sat in your cell.');
+  });
+});
+
+describe('the capital card (D12)', () => {
+  const FIGURES = { spent: '₹1,62,000', budget: '₹2,88,000', lost: '38%' };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(CAPITAL)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(CAPITAL)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('it reads the figure, and does not tell the player what to do with it', () => {
+    // The market card's rule (ui/chart.js, readingOf): say where to look. The
+    // card cannot see what capital would earn this player, so it cannot advise.
+    for (const [name, entry] of Object.entries(CAPITAL)) {
+      expect(entry(FIGURES), name).not.toMatch(/\byou should\b|\bwe recommend\b|\binvest now\b/i);
+    }
   });
 });
 

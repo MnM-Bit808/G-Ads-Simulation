@@ -914,6 +914,16 @@ moving it is an engine change.
 (a) and (d) first. (b) and (c) change what the game claims, and each needs its
 own entry before it touches a constant.
 
+**(a) and (d) taken, 2026-09-13.** The window stays at week 5; route B, a market
+event, was then measured twice and rejected (F16). For (d), the week-5 capital
+card now reads the month just played, from the player's own report: what was
+spent, of what, and the share of impressions lost to budget, weighted by each
+week's eligible auctions (`lastMonthBudget` in `ui/decisions.js`). It then says
+that the choice turns on that figure, and why, without advising: the card
+cannot see what capital would earn this player, the same reason the market
+card points at the split and the bids rather than prescribing (`ui/chart.js`,
+`readingOf`). The words are `ui/words/capital.js`.
+
 ---
 
 ## E. Queries, keywords and matching

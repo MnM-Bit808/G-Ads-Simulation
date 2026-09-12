@@ -19,7 +19,7 @@ import {
   addNegative, dropNegative, blocksTerm,
   addKeyword, updateKeyword, previewNegative,
   setStrategy, setStrategyParam, willTriggerLearning, STRATEGY_PARAM,
-  setCapex, setPosition, monthBudgetAfter,
+  setCapex, setPosition, monthBudgetAfter, lastMonthBudget,
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
   removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
@@ -683,6 +683,54 @@ describe('the month the two of them leave you', () => {
     const to = allCells().map(parseCell).find((c) => isOneStep(from, c));
     return cellKey(to.price, to.purpose);
   }
+});
+
+describe('the month just finished, read beside the capital choice (D12)', () => {
+  // D12 measured that the second allocation is spend-or-invest, and that the
+  // player's own share lost to budget is what decides it. The card reads that
+  // figure for the month just played, from the player's own report.
+  const week = (round, { eligible, lost, spent, budget = 16800000 }) => ({
+    round,
+    byAdvertiser: {
+      [PLAYER_ID]: {
+        traffic: { eligibleAuctions: eligible },
+        share: { lostToBudget: lost },
+        budget: { monthSpentPaise: spent, monthlyBudgetPaise: budget },
+      },
+    },
+  });
+  const month = (first, budget) => [0, 1, 2, 3].map((i) => week(first + i, {
+    eligible: [100, 300, 100, 500][i],
+    lost: [0.5, 0.1, 0, 0.2][i],
+    spent: [50, 100, 150, 200][i] + first,
+    budget,
+  }));
+
+  test('each week counts by its eligible auctions, and the spend is the month total', () => {
+    const read = lastMonthBudget(month(1), PLAYER_ID, 5);
+    expect(read).toMatchObject({ spentPaise: 201, budgetPaise: 16800000 });
+    // (0.5 x 100 + 0.1 x 300 + 0 x 100 + 0.2 x 500) / 1000
+    expect(read.lostToBudget).toBeCloseTo(0.18, 12);
+  });
+
+  test('it reads the month before the round being decided, and no other', () => {
+    const history = [...month(1, 28800000), ...month(5, 16800000)];
+    const read = lastMonthBudget(history, PLAYER_ID, 9);
+    expect(read.budgetPaise).toBe(16800000);
+    expect(read.spentPaise).toBe(205);
+    expect(lastMonthBudget(history, PLAYER_ID, 5).budgetPaise).toBe(28800000);
+  });
+
+  test('there is nothing to read in the first month, or without a report', () => {
+    expect(lastMonthBudget(month(1), PLAYER_ID, 1)).toBeNull();
+    expect(lastMonthBudget([], PLAYER_ID, 5)).toBeNull();
+    expect(lastMonthBudget(month(1), 'nobody', 5)).toBeNull();
+  });
+
+  test('a month with no eligible auctions lost nothing to budget', () => {
+    const quiet = [1, 2, 3, 4].map((r) => week(r, { eligible: 0, lost: 0, spent: 0 }));
+    expect(lastMonthBudget(quiet, PLAYER_ID, 5).lostToBudget).toBe(0);
+  });
 });
 
 describe('the weekly split (13.4)', () => {

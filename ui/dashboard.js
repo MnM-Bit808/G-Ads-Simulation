@@ -24,7 +24,7 @@ import { getPublicView } from '../engine/insights.js';
 import { briefing } from '../setup.js';
 import {
   renderDecisions, addNegative, blocksTerm, effectiveGrades, termsOutlook,
-  locationRows, locationOutlook, setLocation,
+  locationRows, locationOutlook, setLocation, lastMonthBudget,
 } from './decisions.js';
 import { rankOf } from './ending.js';
 import { renderTrends } from './chart.js';
@@ -1095,6 +1095,9 @@ export function renderDashboard(game, onDecisionChange, { openGuide } = {}) {
     // What each week of this month actually spent, so the split card can show
     // it beside what that week was planned. Addition of report figures.
     spentByWeek: spentByWeekOfMonth(game),
+    // The month just played, which the capital card reads its choice against
+    // (D12). The player's own report, so nothing R3 withholds.
+    lastMonth: lastMonthBudget(game.state.history, game.playerId, game.state.round),
     terms: null,
     byKeyword: null,
     /** Both breakdowns follow whichever range the report is showing. */

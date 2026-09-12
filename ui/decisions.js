@@ -38,6 +38,7 @@ import { refusalRateFor } from '../engine/locations.js';
 // Derived from the hour curves rather than declared, so it lives with them.
 import { HOURS_PER_DAY } from '../engine/querySet.js';
 import { featureAt, pageShape, capexChoices } from './landing-page.js';
+import { CAPITAL } from './words/capital.js';
 import { LOCATIONS } from '../content/locations.js';
 import { moneyBlock } from '../engine/report.js';
 import {
@@ -548,6 +549,43 @@ export function monthBudgetAfter(draft) {
   let delta = draft.capexOpen ? CAPEX_ALLOCATION_PAISE - capexSpent(draft) : 0;
   if (draft.repositionOpen && movedPosition(draft)) delta -= REPOSITION_COST_PAISE;
   return Math.max(0, draft.monthlyBudgetPaise + delta);
+}
+
+/**
+ * The month just played, read beside the capital choice (DECISIONS D12).
+ *
+ * D12 measured that whether the second allocation does more as advertising or
+ * as capital turns on one figure: the share of impressions the player lost to
+ * budget. So this reads it for the four weeks before the month being decided,
+ * with each week counted by its eligible auctions, so a quiet week weighs less
+ * than a busy one. The spend and the month's pot come from the month's last
+ * report, which carries the month's running totals.
+ *
+ * @param {object[]} history `state.history`
+ * @param {string} playerId
+ * @param {number} round the round being decided
+ * @returns {{spentPaise: number, budgetPaise: number, lostToBudget: number} | null}
+ *   null in the first month, or when the player has no report for that month
+ */
+export function lastMonthBudget(history, playerId, round) {
+  const monthStart = round - ((round - 1) % ROUNDS_PER_MONTH);
+  const from = monthStart - ROUNDS_PER_MONTH;
+  if (from < 1) return null;
+  const rows = (history ?? [])
+    .filter((h) => h.round >= from && h.round < monthStart)
+    .sort((a, b) => a.round - b.round)
+    .map((h) => h.byAdvertiser?.[playerId])
+    .filter(Boolean);
+  if (rows.length === 0) return null;
+
+  const eligible = rows.reduce((a, r) => a + (r.traffic?.eligibleAuctions ?? 0), 0);
+  const lost = rows.reduce((a, r) => a + (r.share?.lostToBudget ?? 0) * (r.traffic?.eligibleAuctions ?? 0), 0);
+  const last = rows[rows.length - 1].budget ?? {};
+  return {
+    spentPaise: last.monthSpentPaise ?? 0,
+    budgetPaise: last.monthlyBudgetPaise ?? 0,
+    lostToBudget: eligible > 0 ? lost / eligible : 0,
+  };
 }
 
 const capexSpent = (draft) => Object.values(draft.capex).reduce((a, b) => a + b, 0);
@@ -1687,6 +1725,9 @@ function capitalSection(ctx, refresh) {
   preview.append(sheet);
   box.append(preview);
 
+  // D12: the one figure this choice turns on, from the month just played.
+  if (ctx.lastMonth) box.append(capitalReading(ctx.lastMonth));
+
   box.append(el('p', 'note',
     `Anything you do not commit joins this month's advertising budget instead. `
     + `What you do commit goes live in week ${draft.round + CAPEX_DELAY_ROUNDS}, which leaves `
@@ -1696,6 +1737,27 @@ function capitalSection(ctx, refresh) {
     + 'you add here lands on top of what is already built, which is why the '
     + 'chips name the rung they would take you to rather than the money.'));
   return box;
+}
+
+/**
+ * Under half a percent prints as "0%", and "you lost 0% to budget" reads worse
+ * than saying the budget never ran out, which is what it means. A display
+ * threshold, kept in the view (DECISIONS I6).
+ */
+const NEVER_RAN_OUT = 0.005;
+
+function capitalReading(month) {
+  const node = el('p', 'note capital-read');
+  const figures = {
+    spent: rupees(month.spentPaise),
+    budget: rupees(month.budgetPaise),
+    lost: pct(month.lostToBudget),
+  };
+  node.append(el('strong', null, month.lostToBudget < NEVER_RAN_OUT
+    ? CAPITAL.lastMonthNeverRanOut(figures)
+    : CAPITAL.lastMonth(figures)));
+  node.append(document.createTextNode(` ${CAPITAL.turnsOn()}`));
+  return node;
 }
 
 function positionSection(ctx, refresh) {
