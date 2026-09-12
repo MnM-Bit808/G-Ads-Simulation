@@ -64,7 +64,7 @@ from the hidden affinity numbers.
 |---|---|---|---|
 | commercial, training-leaning | 60 | 43.5% | `resolution` |
 | commercial, lifestyle-leaning | 60 | 40.5% | `steady` |
-| informational ("what to wear to the gym", "how to choose sports bra size") | 12 | 4.0% | `resolution` |
+| informational ("what to wear to the gym", "how to choose sports bra size") | 12 | 4.0% | 5 `resolution`, the rest `steady` |
 | irrelevant ("free workout plan", "gym near me", "how to lose belly fat") | 10 | 6.0% | `resolution` |
 | brand | 9 | 6.0% | `steady` |
 
@@ -78,10 +78,14 @@ calibrated constant stays valid for those weeks; weeks 9–12 carry the measured
 lifts. Tagged `ESTIMATED`, with a DECISIONS entry and the Trends files beside
 it.
 
-**Engine.** `searches()` in `engine/querySet.js` takes the round and multiplies
-by that week's value from the query's profile. `WEEKLY_VOLUME` stays the
-baseline week. The engine stays pure: the lift depends on the round number and
-nothing else.
+**Engine.** A new `seasonFactor(query, round)` in `engine/querySet.js` returns
+that week's value from the query's profile, and `runRound` multiplies each
+query's hourly volume by it, at the one place volume enters an auction.
+`searches()` keeps meaning an ordinary week, so its 30-odd tests and the
+conservation check stand unchanged. *(Refined while planning: the design first
+had `searches()` take the round; the effect is the same.)* `WEEKLY_VOLUME` stays
+the baseline week. The engine stays pure: the lift depends on the round number
+and nothing else.
 
 **What does not change:** conversion, order value, returns, break-even, budgets
 and every budget rule. The total money in the market stays constant (D5), so
@@ -106,8 +110,11 @@ every disclosure carries a "why?".
 3. **A January card, from week 5 to the end.**
    - *Weeks 5–8, the forecast*, read from the player's own account: training
      searches usually run about +X% in weeks 9–11 (five Januaries of Google
-     Trends); N of your keywords are training searches; about M more searches a
-     week. Then the lever that makes weeks 5–8 matter: **your January budget is
+     Trends); N of the searches your ads showed on last week are training
+     searches, which brought you M impressions. *(Refined while planning: the
+     report records impressions per search, not searches, so the card reads
+     what the player's own report can show.)* Then the lever that makes weeks
+     5–8 matter: **your January budget is
      set by where you rank at week 8.** It names the other levers without
      prescribing: bids on those keywords, month 3's weekly split, and for broad
      accounts the junk that rises too.
@@ -156,8 +163,10 @@ repositions or buys capital for January.
 
 **The owner exports Google Trends CSVs**: India, the past five years, weekly.
 The term list is written into the implementation plan and covers three groups,
-training searches, lifestyle searches and the January junk, with **one anchor
-term shared by every file** so files can be compared. They go in
+training searches, lifestyle searches and the January junk, **one term per
+file**, so each series uses Trends' whole 0–100 scale; the method only ever
+compares a term with itself, so files never need comparing. *(Refined while
+planning: the design first had a shared anchor term.)* They go in
 `sources/trends/`, which is never published: `tests/build.test.js` holds
 `dist/` to exactly the files the game loads.
 
@@ -206,8 +215,9 @@ playtests run from the `playtest-1` tag and are unaffected.
 **Order:**
 1. the Trends files and the DECISIONS entry (the owner exports; nothing else
    can start its numbers without them)
-2. the spec: a seasonality section, the section-20 line removed, the seventh
-   lesson, a changelog entry
+2. the spec: a seasonality section, the section-20 line removed, a changelog
+   entry. *(The seventh lesson is not a spec change after all: each debrief
+   lesson cites a DECISIONS entry, and this one cites the new one.)*
 3. the content field and its validation
 4. the engine and `SEASON_PROFILES`
 5. the public view
