@@ -2311,8 +2311,8 @@ function negativesCard(ctx, refresh) {
   node.append(verdict);
 
   if (draft.negatives.length > 0) {
-    const list = el('table', 'mini');
-    table(list, ['Blocked', 'Type', { label: 'Searches it blocks', num: true }, ''],
+    const list = el('table', 'mini negatives');
+    table(list, ['Blocked', 'Type', { label: 'Searches\nit blocks', num: true }, ''],
       draft.negatives.map((negative, index) => {
         const preview = previewNegative(negative, { queries: ctx.queries, terms: ctx.terms });
         const remove = el('button', 'add');
@@ -2321,7 +2321,11 @@ function negativesCard(ctx, refresh) {
         remove.addEventListener('click', () => { dropNegative(draft, index); refresh(); });
         return { cells: [negative.text, negative.matchType, whole(preview.blocked.length), remove] };
       }));
-    node.append(list);
+    // Missed by the six-table fix, which measured a game with no negatives.
+    // The two-line header is what makes it fit a 375px phone, with the remove
+    // button in view; the wrapper is for a long phrase negative, which can
+    // still widen it past the card.
+    node.append(scrollX(list));
   } else {
     node.append(el('p', 'muted',
       'Nothing blocked. Use the block button on a search term above, or write '

@@ -221,6 +221,9 @@ td + td, th + th { padding-left: 0.9rem; }
  * at a 1024px window; the two money headers on two lines bring it to 935px.
  */
 table[data-slot="places-table"] th { white-space: pre-line; vertical-align: bottom; }
+/* The same for the negatives list: "Searches it blocks" on one line was the
+   widest thing in it, and 41px too wide for its card on a 375px phone. */
+table.negatives th { white-space: pre-line; vertical-align: bottom; }
 .scroll thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
 .terms td:first-child { width: 40%; }
 .wasted td { color: var(--bad); }
