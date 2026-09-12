@@ -1,0 +1,21 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "Chosen: A · Side drawer" },
+    { "id": "page-2", "name": "Directions not taken" }
+  ],
+  "artboards": [
+    { "file": "Card.dc.html", "title": "The returns card at week 6, with its why? links", "x": 0, "y": 0, "w": 772, "h": 580, "page": "page-1" },
+    { "file": "Main.dc.html", "title": "A · Side drawer, desktop", "x": 0, "y": 720, "w": 1440, "h": 900, "page": "page-1" },
+    { "file": "Phone.dc.html", "title": "A · Side drawer, phone", "x": 1540, "y": 720, "w": 390, "h": 844, "page": "page-1" },
+    { "file": "InCard.dc.html", "title": "B · Unfolds in the card", "x": 0, "y": 0, "w": 1440, "h": 900, "page": "page-2" },
+    { "file": "GuidePage.dc.html", "title": "C · Guide page", "x": 1540, "y": 0, "w": 1440, "h": 900, "page": "page-2" }
+  ],
+  "annotations": [
+    { "id": "brief", "page": "page-1", "x": 860, "y": 0, "w": 560, "text": "Chosen by the owner, 2026-09-12: A, the side drawer. Drawn on the returns card at week 6 of a real replayed game (Vella & Co., mid · lifestyle, eight keywords), with colours, type and spacing lifted from ui/style.css.\n\nThe chapter shown is the approved 'Refused at the door, or sent back', opened from the why? beside the card's legend. The other two directions are on the second page." },
+    { "id": "note-a", "page": "page-1", "x": 0, "y": 1680, "w": 620, "text": "A · Side drawer\n\nFor: you keep your place and read the chapter beside the card it explains; the returns bars stay in view on the left. The Field guide button in the header opens the same drawer at its contents, so browsing needs no separate page.\n\nCost: while open it covers the right-hand column, and on a phone it has to take the whole screen." },
+    { "id": "note-phone", "page": "page-1", "x": 2010, "y": 720, "w": 420, "text": "On a phone the drawer takes the whole screen, so the card it explains is out of sight. That is why its two ways out sit in a bar pinned to the bottom: back to the card, or on to the next chapter. Every control is at least 44px tall. The chapter scrolls under the bar." },
+    { "id": "note-b", "page": "page-2", "x": 0, "y": 960, "w": 620, "text": "B · Unfolds in the card\n\nFor: no navigation at all. The explanation appears exactly where the question was asked.\n\nCost: the card grows by roughly 440px, pushing its own note below the fold and leaving the neighbouring card stranded, which is the tall-card problem the review measured. There is also nowhere to browse the other chapters." },
+    { "id": "note-c", "page": "page-2", "x": 1540, "y": 960, "w": 620, "text": "C · Guide page\n\nFor: a calm place to read and browse every chapter, with room for longer text and a contents list.\n\nCost: you leave the game to read it, so the card it explains is out of sight, and 'Back to your account' has to put you back exactly where you were." }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}

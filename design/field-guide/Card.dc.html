@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #0f1115; color: #e6e9ef; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    a { color: #7aa2f7; text-decoration: none; } a:hover { color: #a9c1fa; }
+    .h2 { margin: 0 0 12px; font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8b93a4; }
+    .h2sub { text-transform: none; letter-spacing: 0; font-weight: 400; margin-left: 8px; }
+    .flabel { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #8b93a4; }
+    .fval { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; font-size: 18.4px; line-height: 1.25; margin-top: 2px; }
+    .fsub { font-size: 11.8px; color: #8b93a4; font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; }
+    .arow { display: grid; grid-template-columns: 67px 1fr 86px; align-items: center; gap: 9px; }
+    .ak { font-size: 11.8px; color: #8b93a4; }
+    .atrack { height: 11px; display: flex; background: #1e222b; border-radius: 5px; overflow: hidden; }
+    .av { font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; font-size: 11.8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px; }
+    .note { margin: 9px 0 0; font-size: 12.5px; line-height: 1.45; color: #8b93a4; border-top: 1px solid #2a2f3a; padding-top: 10px; }
+    .why { font-size: 11.5px; font-weight: 600; letter-spacing: 0; text-transform: none; color: #7aa2f7; margin-left: 6px; border-bottom: 1px dotted rgba(122, 162, 247, 0.6); }
+    .sw { width: 11px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+  </style>
+</helmet>
+<div style="width: 772px; height: 580px; padding: 40px; box-sizing: border-box; background: #0f1115;">
+  <article style="width: 692px; background: #171a21; border: 1px solid #2a2f3a; border-radius: 10px; padding: 14px 16px 16px; box-sizing: border-box;">
+    <h2 class="h2">What came back<span class="h2sub">and what it cost to carry</span></h2>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px 14px; margin-bottom: 3px;">
+      <div><div class="flabel">Came back</div><div class="fval">48.0%</div><div class="fsub">46 of 96 orders</div></div>
+      <div><div class="flabel">Refused</div><div class="fval" style="color: #f07178;">19.6%</div><div class="fsub">19 never delivered</div></div>
+      <div><div class="flabel">Sent back</div><div class="fval">28.3%</div><div class="fsub">27 after delivery</div></div>
+      <div><div class="flabel">Freight paid</div><div class="fval">₹15,606</div><div class="fsub">₹200 a parcel, every week</div></div>
+      <div><div class="flabel">Paid at door<a class="why" href="#">why?</a></div><div class="fval">75%</div><div class="fsub">across where you actually advertise</div></div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 5px; margin: 9px 0 8px;">
+      <div class="arow"><div class="ak">Week 1</div><div class="atrack"><div style="width: 29.56%; background: #f07178;"></div><div style="width: 42.67%; background: #e0af68; opacity: 0.55;"></div></div><div class="av"><span>48%</span></div></div>
+      <div class="arow" style="opacity: 0.45;"><div class="ak">Week 2</div><div class="atrack"><div style="width: 40.96%; background: #f07178;"></div><div style="width: 59.04%; background: #e0af68; opacity: 0.55;"></div></div><div class="av"><span>46%</span><span style="color: #8b93a4;">still in</span></div></div>
+      <div class="arow" style="opacity: 0.45;"><div class="ak">Week 3</div><div class="atrack"><div style="width: 32.96%; background: #f07178;"></div><div style="width: 47.77%; background: #e0af68; opacity: 0.55;"></div></div><div class="av"><span>39%</span><span style="color: #8b93a4;">still in</span></div></div>
+      <div class="arow" style="opacity: 0.45;"><div class="ak">Week 4</div><div class="atrack"><div style="width: 19.03%; background: #f07178;"></div><div style="width: 27.48%; background: #e0af68; opacity: 0.55;"></div></div><div class="av"><span>28%</span><span style="color: #8b93a4;">still in</span></div></div>
+      <div class="arow" style="opacity: 0.45;"><div class="ak">Week 5</div><div class="atrack"></div><div class="av"><span>0%</span><span style="color: #8b93a4;">still in</span></div></div>
+      <div class="arow" style="opacity: 0.45;"><div class="ak">Week 6</div><div class="atrack"></div><div class="av"><span>0%</span><span style="color: #8b93a4;">still in</span></div></div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11.2px; color: #8b93a4;">
+      <span class="sw" style="background: #f07178;"></span><span style="margin-right: 11px;">refused at the door</span>
+      <span class="sw" style="background: #e0af68; opacity: 0.55;"></span><span>sent back after delivery</span>
+      <a class="why" href="#">why?</a>
+    </div>
+    <p class="note"><strong>Every refusal costs you about ₹1,580</strong> — ₹200 of freight both ways, and ₹1,380 of margin on a sale that never happened. <strong>Three things move it, and two of them this week.</strong> Bid less where cash on delivery is commonest — the location card is the same decision seen from the other side, and it is open every round. Block a search that comes back worse than the rest of your account; the search terms card marks them and the button is on the row. Capital is the third and it is shut — it opens only before week 1 and before week 5, so the first two are what you have now. Only weeks 1 to 1 are counted above; the rest are still arriving and will read better than they are.<a class="why" href="#">why?</a></p>
+  </article>
+</div>
+</x-dc>
+</body>
+</html>

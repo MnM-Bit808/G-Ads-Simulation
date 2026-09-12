@@ -28,6 +28,17 @@ break-even sums, the eight rival ads from `content/adCopy.js`. That is deliberat
 a mock with invented figures designs a screen that has never held a real number,
 and this project has twice found a layout problem only once real text went in.
 
+## `field-guide/`: how the field guide opens (stage C2)
+
+A second canvas, https://claude.ai/code/artifact/a398dc9f-91bf-4135-ac4a-0b340357c3d3,
+drawn on the returns card at week 6 of a real replayed game with the approved
+chapter "Refused at the door, or sent back". Page 1 is the direction the owner
+chose on 2026-09-12, **A · the side drawer** (`Main.dc.html` desktop,
+`Phone.dc.html` phone, `Card.dc.html` the card with its "why?" links). Page 2
+keeps B (`InCard.dc.html`, unfolds in the card) and C (`GuidePage.dc.html`, a
+separate page), with the cost that ruled each out.
+`plans/2026-09-12-content-model-and-field-guide.md` records the choice.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

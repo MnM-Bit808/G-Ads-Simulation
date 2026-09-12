@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #0f1115; color: #e6e9ef; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    a { color: #7aa2f7; text-decoration: none; } a:hover { color: #a9c1fa; }
+    .h2 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8b93a4; }
+    .ghost { font: inherit; font-size: 14px; font-weight: 600; color: #8b93a4; background: transparent; border: 1px solid #2a2f3a; border-radius: 6px; padding: 0 14px; min-height: 44px; display: flex; align-items: center; gap: 8px; }
+    .read { margin: 0; font-size: 15px; line-height: 1.62; color: #e6e9ef; text-wrap: pretty; }
+  </style>
+</helmet>
+<div role="dialog" aria-label="Refused at the door, or sent back" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #171a21; display: flex; flex-direction: column;">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px 8px 20px; border-bottom: 1px solid #2a2f3a; min-height: 60px; box-sizing: border-box;">
+    <span class="h2">Field guide</span>
+    <div style="display: flex; align-items: center; gap: 4px;">
+      <button class="ghost" type="button" aria-label="Contents" style="border: 0; padding: 0 12px;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 4h8"></path><path d="M5 8h8"></path><path d="M5 12h8"></path><path d="M2.5 4h.01"></path><path d="M2.5 8h.01"></path><path d="M2.5 12h.01"></path></svg></button>
+      <button class="ghost" type="button" aria-label="Close" style="border: 0; padding: 0 12px;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 4l8 8"></path><path d="M12 4l-8 8"></path></svg></button>
+    </div>
+  </div>
+
+  <div style="flex: 1; min-height: 0; overflow: hidden; padding: 20px 20px 0; display: flex; flex-direction: column; gap: 18px;">
+    <h3 style="margin: 0; font-size: 22px; line-height: 1.3; font-weight: 650;">Refused at the door, or sent back</h3>
+
+    <section style="display: flex; flex-direction: column; gap: 8px;">
+      <span class="h2">In real Google Ads</span>
+      <p class="read">An order can come back in two ways. A parcel that is not delivered, for instance because it was refused at the door, goes back to the seller; Indian e-commerce calls this RTO, return to origin, and there was never a sale. A delivered order can also be sent back later, and clothing is the most-returned category, at roughly 25–40%. Google Ads counts the purchase when it happens and learns of neither unless you upload an adjustment that retracts or restates it. Until then, the return on ad spend it shows you is before returns.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; color: #8b93a4;"><span>Sources:</span><a href="#">Pragma, on RTO charges</a><a href="#">Google Ads Help, conversion adjustments</a></div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 8px;">
+      <span class="h2">In this game</span>
+      <p class="read">Here the returns card is your shop’s own books, which Google Ads would show only if you uploaded them. Every order can be refused at the door, 20.9% of the time when paid in cash and 5.8% when prepaid, and 30% of delivered orders are sent back. Each refused parcel also costs ₹200 in freight. The two halves have different fixes: a size guide reaches only send-backs, while order confirmation and a prepaid discount reach only refusals. The refusal rates come from one named study; newer reports put cash refusals higher.</p>
+    </section>
+  </div>
+
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 16px 14px; border-top: 1px solid #2a2f3a; background: #171a21; box-shadow: 0 -16px 24px rgba(15, 17, 21, 0.9);">
+    <button class="ghost" type="button"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5L5.5 8l4.5 4.5"></path></svg>Show me on the card</button>
+    <a href="#" style="font-size: 14px; min-height: 44px; display: flex; align-items: center; gap: 6px;">Next chapter<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5L10.5 8 6 12.5"></path></svg></a>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

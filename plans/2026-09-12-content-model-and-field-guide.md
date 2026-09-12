@@ -353,3 +353,30 @@ files are read.
 | nobody opens the guide | it is optional by design; the recorder will measure it in the next playtest |
 | the drawer covers what it explains on a small screen | the phone-width mock-up, before code |
 | the move changes a sentence by accident | the word-for-word comparison on a replayed save |
+
+## 9. Decided: the side drawer (2026-09-12)
+
+**The owner chose direction A** from the mock-ups
+(https://claude.ai/code/artifact/a398dc9f-91bf-4135-ac4a-0b340357c3d3; working
+files in `design/field-guide/`). All three were drawn on the returns card at week
+6 of a replayed game (Vella & Co., mid · lifestyle, eight keywords) with the
+approved chapter "Refused at the door, or sent back".
+
+| | direction | ruled in or out by |
+|---|---|---|
+| **A** | side drawer, with a "Field guide" button in the header opening it at the contents | **chosen**: the chapter reads beside the card it explains |
+| B | unfolds in the card | the card grows by about 440px and pushes its own note below the fold, the tall-card problem the review measured; nowhere to browse |
+| C | a separate guide page | the card it explains is out of sight while reading it |
+
+**What the mock-ups settled that this document had left open:**
+- The drawer is 500px wide on a desktop and covers the right-hand column; the
+  dashboard behind it is not dimmed, because reading beside the card is the point.
+- On a phone it takes the whole screen, and its two ways out, "Show me on the
+  card" and the next chapter, sit in a bar pinned to the bottom, every control at
+  least 44px tall.
+- "Next" follows the contents order, not a chapter's `related` list.
+- **The guide shows players its sources, never the DECISIONS citations.** Those
+  stay in the code and the tests, where they keep the chapters honest; to a player
+  "I28" means nothing.
+- The chapter title is the dialog's `h2`, so the playtest recorder names the drawer
+  by its chapter.

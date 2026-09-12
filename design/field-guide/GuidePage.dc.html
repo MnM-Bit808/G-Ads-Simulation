@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    body { margin: 0; background: #0f1115; color: #e6e9ef; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    a { color: #7aa2f7; text-decoration: none; } a:hover { color: #a9c1fa; }
+    .h2 { margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8b93a4; }
+    .ghost { font: inherit; font-size: 13px; font-weight: 600; color: #8b93a4; background: transparent; border: 1px solid #2a2f3a; border-radius: 6px; padding: 5px 12px; display: flex; align-items: center; gap: 7px; }
+    .primary { font: inherit; font-weight: 600; color: #0f1115; background: #7aa2f7; border: 0; border-radius: 6px; padding: 7px 15px; display: flex; align-items: center; gap: 7px; }
+    .read { margin: 0; font-size: 15px; line-height: 1.65; color: #e6e9ef; text-wrap: pretty; }
+    .toc { display: block; padding: 9px 12px; border-radius: 6px; font-size: 13.5px; line-height: 1.4; color: #8b93a4; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; position: relative; overflow: hidden; background: #0f1115; display: flex; flex-direction: column;">
+
+  <header style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; background: #171a21; border-bottom: 1px solid #2a2f3a; height: 49px; box-sizing: border-box;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <button class="ghost" type="button"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5L5.5 8l4.5 4.5"></path></svg>Back to your account</button>
+      <span style="font-size: 13.6px; color: #8b93a4;">Vella &amp; Co. · week 6</span>
+    </div>
+    <strong style="font-size: 15px;">Field guide</strong>
+    <span style="color: #8b93a4; width: 220px; text-align: right;">week 6 of 12 · saved</span>
+  </header>
+
+  <div style="display: flex; flex: 1; min-height: 0;">
+    <nav aria-label="Contents" style="width: 300px; flex-shrink: 0; background: #171a21; border-right: 1px solid #2a2f3a; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+      <span class="h2" style="padding: 0 12px;">Contents</span>
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <a class="toc" href="#">Why this week’s numbers keep moving</a>
+        <a class="toc" href="#" style="background: #1e222b; color: #e6e9ef; font-weight: 600;">Refused at the door, or sent back</a>
+        <a class="toc" href="#">Cash on delivery, and where you advertise</a>
+      </div>
+    </nav>
+
+    <main style="flex: 1; padding: 40px 0 0 96px; box-sizing: border-box;">
+      <article style="max-width: 660px; display: flex; flex-direction: column; gap: 22px;">
+        <h1 style="margin: 0; font-size: 28px; line-height: 1.25; font-weight: 650; letter-spacing: -0.01em;">Refused at the door, or sent back</h1>
+
+        <section style="display: flex; flex-direction: column; gap: 8px;">
+          <span class="h2">In real Google Ads</span>
+          <p class="read">An order can come back in two ways. A parcel that is not delivered, for instance because it was refused at the door, goes back to the seller; Indian e-commerce calls this RTO, return to origin, and there was never a sale. A delivered order can also be sent back later, and clothing is the most-returned category, at roughly 25–40%. Google Ads counts the purchase when it happens and learns of neither unless you upload an adjustment that retracts or restates it. Until then, the return on ad spend it shows you is before returns.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: #8b93a4;"><span>Sources:</span><a href="#">Pragma, on RTO charges</a><a href="#">Google Ads Help, conversion adjustments</a></div>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 8px;">
+          <span class="h2">In this game</span>
+          <p class="read">Here the returns card is your shop’s own books, which Google Ads would show only if you uploaded them. Every order can be refused at the door, 20.9% of the time when paid in cash and 5.8% when prepaid, and 30% of delivered orders are sent back. Each refused parcel also costs ₹200 in freight. The two halves have different fixes: a size guide reaches only send-backs, while order confirmation and a prepaid discount reach only refusals. The refusal rates come from one named study; newer reports put cash refusals higher.</p>
+        </section>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid #2a2f3a; padding-top: 18px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span class="h2">In your account</span>
+            <span style="font-size: 13.5px; color: #8b93a4;">See it happening on the What came back card.</span>
+          </div>
+          <button class="primary" type="button">Open the card<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5L10.5 8 6 12.5"></path></svg></button>
+        </div>
+        <a href="#" style="font-size: 13.5px; display: flex; align-items: center; gap: 6px;">Next: Cash on delivery, and where you advertise<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5L10.5 8 6 12.5"></path></svg></a>
+      </article>
+    </main>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
