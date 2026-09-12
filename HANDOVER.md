@@ -66,7 +66,7 @@ Task 4 addendum is `…-plan.md` beside it.
   disclosure without a "why", and prose back in `renderReturns`. Every other
   card moves across when C3 or C4 rebuilds it, not in one sweep.
 - **C2, the field guide, is built as a side drawer** (direction A, chosen from
-  three mock-ups in `design/field-guide/`). Three chapters so far, in
+  three mock-ups in `design/field-guide/`). Four chapters so far, in
   `ui/guide/chapters.js`: each says how real Google Ads does it, from sources
   fetched while writing, then what this game does, citing DECISIONS.
   `tests/guide.test.js` checks every citation exists; it cannot check that a
@@ -77,10 +77,30 @@ Task 4 addendum is `…-plan.md` beside it.
   returns card. Also six tables wider than a phone, which widened the whole page
   to as much as 894px: **fixed** on the branch `phone-tables` (`f725dda`, cut
   from `main` so it can ship without stage C) and merged into `stage-c`.
-- **Next, decided 2026-09-13: stage D's debrief**, which needs no playtest data.
-  C3 (round 0 in steps) and C4 (a dashboard that reveals itself) still wait for
-  the playtest files: the recorder's card times say which cards strangers read,
-  which is what C4 needs.
+- **Stage D1, the debrief, is built** (2026-09-13, also on `stage-c`). The
+  design is `plans/2026-09-13-debrief.md` and the task list `…-plan.md` beside
+  it. The end screen now opens with two cards before the standings:
+  - **What your twelve weeks taught you** (`94867cf`). Up to five weeks the
+    player changed something, each with a before and after and a "What if I
+    hadn't?" button that replays the game without that one change
+    (`replayWithout` in `game.js`). A button that works out what more budget
+    would have done: it replays the whole game once with the budget
+    counterfactual on, which play never computes (DECISIONS G1, corrected in
+    `5449f67`). And the six spec lessons, split into what the player ran into
+    and what they did not try. The reading is `ui/debrief/read.js`, the drawing
+    `ui/debrief/render.js`, the words `ui/words/debrief.js`, and the two
+    "only a simulation knows this" lines open a fourth guide chapter.
+  - **Where did they sit?** The player places each rival from its ad, then
+    sees the truth. Until they answer or skip, the standings hide the "Where
+    they sat" column. The answers arrive one rival at a time (`376ffea`), and
+    the animation review's two fixes are in that commit's message.
+  - **Found while checking it on a phone:** the dashboard's negatives table
+    still pokes 4px past a 375px screen, so the page scrolls sideways a
+    little. Not fixed; it was not part of the debrief.
+- **Next:** stage D's other recommendations, or C3 (round 0 in steps) and C4
+  (a dashboard that reveals itself), which still wait for the playtest files:
+  the recorder's card times say which cards strangers read, which is what C4
+  needs. `stage-c` is not on `main` yet; it goes when the owner says.
 
 **The session before (2026-09-11 to 12) closed the three items that had been open
 longest**, in this order. Each has its full record in `DECISIONS.md`; the commit
@@ -1389,7 +1409,7 @@ F13's rejected volume option has to come back.
 
   **Deployment** unlocks the largest open item in this file. You cannot hand a
   playtester a localhost address. **The repository side is done** (2026-09-11):
-  a build that publishes exactly the files the game loads (48 now), gated on the full
+  a build that publishes exactly the files the game loads (51 now), gated on the full
   suite, live on Cloudflare and invite-only since 2026-09-12 — see
   *Deployment*. It did need a little code after all: a build script, a front
   page and a caching header, none of them in `engine/`.
@@ -1814,8 +1834,8 @@ backend will run anyway.
 
 **How it works, in one paragraph.** Nothing is compiled. `scripts/build-site.js`
 follows the imports from `ui/index.html` exactly as a browser does and copies the
-48 files it reaches into `dist/` — the page, its stylesheet and 46 modules, about
-900 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
+51 files it reaches into `dist/` — the page, its stylesheet and 49 modules, about
+960 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
 Docs, tests, the design canvas and `files.zip` are never published, and
 `tests/build.test.js` holds both halves: nothing missing (Node imports every
 module from the built copy, so the check does not trust the build's own reader)
