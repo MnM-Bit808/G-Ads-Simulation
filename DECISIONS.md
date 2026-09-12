@@ -626,8 +626,11 @@ economy. Candidate for v0.4.
 **Real:** conversion rate optimisation is continuous, uncertain, and frequently
 fails. A redesign can make things worse.
 
-**Sim:** two allocations of ₹1,00,000, three targets, an S-curve of guaranteed
-effects, live three rounds after commitment.
+**Sim:** two allocations of ₹1,20,000 (weeks 1 and 5), four targets, an
+S-curve of guaranteed effects, live three rounds after commitment. It was two of
+₹1,00,000 and three targets until I29 added order confirmation; photography
+climbs its own longer ladder since I30. D12 measures what the timing of the
+second allocation does.
 
 **Simplified heavily in the player's favour.** What it does buy honestly is the
 lesson the simulator otherwise could not teach at all: **the highest-return
@@ -635,8 +638,8 @@ marketing decision is often not a marketing decision.** A conversion lift improv
 every click you buy for the rest of the game; more budget buys more clicks once.
 
 **Why the curve is an S rather than diminishing.** With diminishing returns the
-first tranche on every target is the most efficient purchase, splitting three ways
-becomes strictly optimal, and the amount choice collapses to a solved puzzle. The S
+first tranche on every target is the most efficient purchase, splitting across
+every target becomes strictly optimal, and the amount choice collapses to a solved puzzle. The S
 makes splitting available and sometimes right, while spreading thin genuinely
 underperforms committing. It is also more honest: ₹25,000 of engineering produces a
 half-built fit tool that helps nobody.

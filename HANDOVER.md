@@ -98,10 +98,15 @@ Task 4 addendum is `…-plan.md` beside it.
     poked 4px past a 375px screen, missed by the six-table fix because that
     measured a game with no negatives. **Fixed** (`783d4b1`): a two-line
     header makes it fit, remove buttons in view.
-- **Next:** stage D's other recommendations, or C3 (round 0 in steps) and C4
-  (a dashboard that reveals itself), which still wait for the playtest files:
-  the recorder's card times say which cards strangers read, which is what C4
-  needs.
+- **Stage D's other recommendation (7, a decision for the back half) is
+  measured, not built: DECISIONS D12** (2026-09-13). Its cheap test, moving the
+  second capital window to week 7, keeps capital profitable but leaves the two
+  returns levers a quarter of their value, because no return from weeks 11–12
+  happens before the game ends. So the review's route B, an announced market
+  event true to the Indian calendar, is the one left.
+- **Next:** designing route B, or C3 (round 0 in steps) and C4 (a dashboard
+  that reveals itself), which still wait for the playtest files: the recorder's
+  card times say which cards strangers read, which is what C4 needs.
 
 **The session before (2026-09-11 to 12) closed the three items that had been open
 longest**, in this order. Each has its full record in `DECISIONS.md`; the commit
