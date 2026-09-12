@@ -752,6 +752,53 @@ back for the ranking window. With an automatic ÷4 the pot would be cosmetic.
 
 An honest departure, made for playability.
 
+### D11. Place and hour adjustments go further than Google's, and work under every strategy — `ACCEPTED, and told` (2026-09-12)
+
+**Found while writing the field guide's cash-on-delivery chapter**, and nothing in
+this ledger had recorded it. Google Ads Help, *About bid adjustments*
+(https://support.google.com/google-ads/answer/2732132), fetched 2026-09-12:
+
+| | Google Ads | this game |
+|---|---|---|
+| location adjustment | −90% to +900% | −100% to +900% |
+| ad schedule (hour) adjustment | −90% to +900% | −100% to +900% |
+| under Smart Bidding (Target CPA, Target ROAS, Maximise conversions) | not supported | applied |
+
+Google does allow −100%, but only for devices, where it opts you out. To stop
+showing in a place or at an hour, you exclude the place or leave the hour out of
+the ad schedule.
+
+**Where it comes from.** `setLocation` and `setDaypart` share one range,
+`DAYPART_RANGE` in `ui/decisions.js`, whose comment called it "what Google Ads
+allows". That was true of device adjustments, not of these two. And
+`effectiveBidPaise` (`engine/strategies.js`) multiplies every strategy's bid by
+both adjustments, `targetCpa`, `targetRoas` and `maxConv` included.
+
+**The two departures do different things, because the automated strategies are
+not symmetric.** They lean by hour from their own history (`estimatedConvRate`
+takes the hour) and do not read place at all:
+- **Hours: counted twice.** Under an automated strategy the player's hour
+  adjustment lands on top of the strategy's own hourly lean. Real Google Ads
+  refuses the adjustment for exactly this reason: Smart Bidding already sets bids
+  by time of day.
+- **Place: the only route in.** No automated strategy here learns place, so the
+  player's adjustment is the only way location reaches its bid. Real Smart
+  Bidding reads location for itself. Dropping the adjustment under automation
+  would leave these strategies blind to place, which is further from the real
+  thing, not closer.
+- **−100%** does what an exclusion does, in one control rather than two. The
+  difference is a label, not a mechanism.
+
+**Accepted as they are, decided by the owner 2026-09-12, and told on screen.**
+The field guide chapter *Cash on delivery, and where you advertise* states both
+location departures. The double-counted hour has no chapter yet: it must be said
+when the hours-of-the-day card moves into the content model (stage C4), and that
+chapter should cite this entry.
+
+**What would change the answer:** a playtest in which automated bidding plus an
+hour adjustment visibly overbids, or a player who carries "you can set −100%" to
+a real account and is surprised.
+
 ---
 
 ## E. Queries, keywords and matching

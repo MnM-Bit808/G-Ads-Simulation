@@ -725,7 +725,11 @@ export function qualitySummary(score, graded = null) {
 // Dayparting (13.4, H4)
 // ---------------------------------------------------------------------------
 
-/** What Google Ads allows, and what the engine's clamp can express. */
+/**
+ * The range an hour or a place may be adjusted by. NOT quite Google's: Google
+ * allows −90% to +900% here and −100% only for devices, so −100% is this game
+ * letting one control do an exclusion's job (DECISIONS D11).
+ */
 const DAYPART_RANGE = [-100, 900];
 
 /**
