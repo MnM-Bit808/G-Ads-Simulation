@@ -2021,7 +2021,9 @@ the Access list):
 active time for round 0, weeks 1-4, weeks 5-11 and the end screen (the groups
 of the one recorded human game, *What playing it as a learner found*), every
 screen in order, cards by time on screen, week compute times, rank and
-contribution replayed from their save, the weeks in the red, and their answers.
+contribution replayed from their save, the weeks in the red, the weeks they
+decided something (with how many of weeks 7–12, stage D's gate, and the week-5
+capital card marked when it was left alone), and their answers.
 
 **For the one played on a call,** use the same link and record the call
 yourself. Watching changes how people read, so its timings are not pooled with
