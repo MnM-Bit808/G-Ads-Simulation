@@ -28,6 +28,9 @@
  */
 
 import { businessFor } from './positions.js';
+import {
+  CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS, CAPEX_TIER_CURVE, CAPEX_PHOTOGRAPHY_CURVE,
+} from './constants.js';
 
 const RATES = ['impressionShare', 'overlapRate', 'positionAboveRate', 'outrankingShare'];
 
@@ -201,6 +204,19 @@ export function getSelfView(gameState, viewerId) {
     adGroups: structuredClone(self.adGroups),
     bidding: structuredClone(self.bidding),
     capex: structuredClone(self.capex),
+    // THE CAPITAL RULES, which every advertiser is told at round 0 (17.2). A
+    // policy imports nothing from engine/, so a rival can only decide its
+    // week-5 capital if they reach it here, and until they did no rival ever
+    // decided it: each one's second allocation simply disappeared (C8). Rules,
+    // not anyone's figures: which rounds, how much, where each ladder tops out.
+    capital: {
+      allocationRounds: [...(gameState.budgetSchedule?.capexAllocationRounds ?? [])],
+      allocationPaise: CAPEX_ALLOCATION_PAISE,
+      ceilingPaise: Object.fromEntries(CAPEX_TARGETS.map((target) => {
+        const curve = target === 'photography' ? CAPEX_PHOTOGRAPHY_CURVE : CAPEX_TIER_CURVE;
+        return [target, curve[curve.length - 1].paise];
+      })),
+    },
   };
 }
 

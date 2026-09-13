@@ -6,7 +6,10 @@ import {
   FORBIDDEN_IN_PUBLIC_VIEW, FORBIDDEN_IN_SELF_VIEW,
 } from '../engine/insights.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
-import { LOCATION_TIERS, RTO_FREIGHT_PAISE } from '../engine/constants.js';
+import {
+  LOCATION_TIERS, RTO_FREIGHT_PAISE, CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS,
+  CAPEX_TIER_CURVE, CAPEX_PHOTOGRAPHY_CURVE,
+} from '../engine/constants.js';
 import { codShareFor } from '../engine/locations.js';
 import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
@@ -408,6 +411,27 @@ describe('getSelfView: what an advertiser knows about itself (R3a)', () => {
 
   test('an unknown advertiser throws rather than returning an empty shell', () => {
     expect(() => getSelfView(STATE, 'ghost')).toThrow(/ghost/);
+  });
+
+  test('it carries the capital rules every advertiser is told at round 0 (C8)', () => {
+    // A policy imports nothing from engine/, so a rival can only decide its
+    // week-5 capital if the rules reach it here: which rounds, how much, and
+    // where each target's ladder tops out. They are the rules, not anyone's
+    // figures, and the player's round 0 card already shows all three.
+    expect(self.capital.allocationRounds).toEqual(STATE.budgetSchedule.capexAllocationRounds);
+    expect(self.capital.allocationPaise).toBe(CAPEX_ALLOCATION_PAISE);
+    const top = (curve) => curve[curve.length - 1].paise;
+    for (const target of CAPEX_TARGETS) {
+      expect(self.capital.ceilingPaise[target], target).toBe(
+        target === 'photography' ? top(CAPEX_PHOTOGRAPHY_CURVE) : top(CAPEX_TIER_CURVE),
+      );
+    }
+  });
+
+  test('and a rival cannot change the rules by editing its copy', () => {
+    const copy = getSelfView(STATE, PLAYER_ID);
+    copy.capital.allocationRounds.push(9);
+    expect(STATE.budgetSchedule.capexAllocationRounds).not.toContain(9);
   });
 });
 
