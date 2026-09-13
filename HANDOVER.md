@@ -104,7 +104,26 @@ Task 4 addendum is `…-plan.md` beside it.
   returns levers a quarter of their value, because no return from weeks 11–12
   happens before the game ends. So the review's route B, an announced market
   event true to the Indian calendar, is the one left.
-- **Next:** designing route B, or C3 (round 0 in steps) and C4 (a dashboard
+- **Route B was measured twice and not built: DECISIONS F16.** Google Trends
+  for India (the owner's exports, `sources/trends/`, read by
+  `scripts/season-lift.js`) shows no January surge in activewear searches;
+  January is one of training's quietest months. The festive season is a
+  gentle calendar season, and a 72-market check found it changes no decision.
+- **What was built instead, on the branch `back-half`:**
+  - **The capital card reads the month just played** at week 5: what was spent,
+    of what, and the share lost to budget, and says the choice turns on it
+    (D12, option d; `ui/words/capital.js`).
+  - **C8, found on the way and fixed:** every rival used to lose its second
+    ₹1,20,000, because no rival policy made a week-5 capital decision. Rivals now
+    decide by character from capital rules their self view carries, and
+    `startGame` no longer loses a harness player's round-0 money. Measured
+    before and after on `scripts/market-harness.js`, now committed: the player's
+    median rank (5th) and its 0-of-72 losses did not move, D12 kept its sign in
+    every cell, and F15 has an addendum.
+- **Open, and the owner's:** C8's fix moved the market's big shift from week 5
+  to week 9, so the week-9 line D12 declined at 1.51× an ordinary week now
+  clears its gate at 2.40×. That decision is reopened.
+- **Next:** that week-9 decision; then C3 (round 0 in steps) and C4 (a dashboard
   that reveals itself), which still wait for the playtest files: the recorder's
   card times say which cards strangers read, which is what C4 needs.
 

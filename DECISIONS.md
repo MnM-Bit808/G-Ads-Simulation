@@ -513,7 +513,7 @@ describing only one of them (F10, F11, G4 step 3, the purpose axis in
 whether 1.76x is the intended aggression is a design question about what the
 cautionary rival teaches rather than a defect. It is open in `HANDOVER.md`.
 
-### C8. Every rival loses its second capital allocation, and the player does not — `FOUND, not fixed` (2026-09-13)
+### C8. Every rival loses its second capital allocation, and the player does not — `FIXED` (2026-09-13)
 
 **Found while checking whether the week-9 reshuffle is visible (D12).** The
 step into week 5 moved rivals 3.60 times as much as an ordinary week, far more
@@ -557,6 +557,62 @@ player's month 1 was ₹1,93,000 where a real game gives ₹3,13,000. D12's and
 F16's comparisons stand, because both branches of every fork shared the same
 month 1, but their absolute figures describe a player poorer in month 1 than
 any real one. `startGame` should refuse a capital block without its fields.
+
+---
+
+**FIXED, in four steps, each its own commit** (`plans/2026-09-13-rival-capital-plan.md`):
+1. **The guard.** `startGame` builds the round-0 block from an allocation the
+   way the decision door does, and refuses a block missing a field
+   (`capitalBlock` in `setup.js`). The whole suite passed unchanged, the
+   writer-balance orderings included.
+2. **A committed harness**, `scripts/market-harness.js`, so the before and
+   after are measured one way. Its player is F15's, now with its round-0 money
+   and the week-5 decision the form always sends.
+3. **The rules reach the rivals.** The self view carries `capital`: the
+   allocation rounds, the allocation, each target's top rung. They are the rules
+   every advertiser is told at round 0, and a policy reads nothing else.
+4. **Every rival decides, by character, decided with the owner:** `disciplined`
+   invests when last week lost under 10% of its impressions to budget and keeps
+   the money as ads otherwise (D12's finding, as the capital card now puts it to
+   the player); `spender` always keeps it as ads; `cautious` always invests;
+   `automator`, `grossOptimiser` and `brandDefender` repeat what they did at
+   round 0. Investing follows the round-0 tilt, primary target to its top rung,
+   then the secondary, and what no ladder can take becomes ad budget. Each
+   policy's bids and campaign are untouched: the rule acts only in a capital
+   round.
+
+**Measured, before and after** (the harness, 72 markets):
+
+| | before | after |
+|---|---|---|
+| rivals' month-2 budgets | ₹1,68,000, all 576 | median ₹2,48,000 (₹1,68,000–2,88,000) |
+| player's month-2 budget | ₹2,88,000 | ₹2,88,000 |
+| rivals, weeks 1–7: cost per click · profit per ₹ | ₹11.4 · 1.48 | ₹11.7 · 1.39 |
+| player, weeks 1–7: cost per click · profit per ₹ | ₹19.6 · 1.05 | ₹19.6 · 1.05 |
+| player's final net profit, median | ₹6,70,001 | ₹6,57,635 |
+| player loses money | 0 of 72 | 0 of 72 |
+| player's final rank, median | 5th | 5th |
+| rivals' largest move into week 5, against an ordinary week | 3.53× | 2.23× |
+| the same into week 9 | 1.48× | **2.40×** |
+
+**The gates, agreed with the owner, all held:** calibration is unchanged (its
+balanced game runs `runRound` with no policies, and its solo month ends before
+week 5); the player's median rank did not move; it loses money in no market;
+and D12's comparison keeps its sign in every cell (best investment against
+keeping it: value · performance +₹31,104, value · lifestyle +₹40,295,
+mid · performance −₹32,406, mid · lifestyle −₹44,268, premium · performance
++₹9,134, premium · lifestyle +₹47,209).
+
+**What it changed that nobody asked it to.** The market's big shift moved from
+week 5 to week 9: rivals now carry their second allocation through month 2 and
+fall back to their rank-based month-3 budgets at week 9. **So the week-9 check
+D12 records, which gave no line at 1.51×, now clears its own gate of double at
+2.40×.** That decision was taken on the defective market and is reopened; it
+is the owner's to retake.
+
+Played on the dev server into week 5, the two `spender` rivals, which keep their
+allocation as ads, rose in the player's Auction Insights: one from 97% overlap
+and 53% above the player to 100% and 88%, the other from 28% overlap to 49%.
 
 ## D. Budget, bidding and capital
 
@@ -978,6 +1034,13 @@ The agreed gate was double. The rivals do move the way the ranking says (the
 week-8 leader gains a median 5.3 points, ninth place loses 2.5), but not visibly
 above ordinary week-to-week movement, so the screen stays quiet about it. The
 step into week 5 was 3.60 times ordinary, which is C8.
+
+**Reopened by C8's fix.** With every rival keeping its second allocation, the
+step into week 9 measures 2.40 times ordinary, over the gate. The "no line"
+above was decided on the defective market. **And D12's comparisons were re-run
+on the committed harness**, whose player has its round-0 money: before C8's fix
+and after it, the best investment against keeping the money keeps its sign in
+every cell, so the capital card's premise stands (C8 has the figures).
 
 ---
 
@@ -4310,6 +4373,26 @@ blogs.
 - Balistro, Indian D2C performance channels: https://www.balistro.com/blog/performance-marketing-channels-ranked-d2c-india
 - PPC Chief, apparel and fashion benchmarks: https://ppcchief.com/google-ads-benchmarks/apparel-fashion
 - WordStream 2025 benchmarks, cited by both, not fetchable (403): https://www.wordstream.com/blog/2025-google-ads-benchmarks
+
+#### Addendum: re-measured on a real player, with every rival's money (2026-09-13)
+
+The harness above handed the player's round-0 capital to `startGame` in a shape
+that lost it, and sent no capital decision at week 5, so its player ran months
+1 and 2 poorer than any real one; and every rival lost its second allocation
+(C8). Re-run on the committed harness (`scripts/market-harness.js market`),
+which fixes the first, and after C8's fix, which fixes the second:
+
+| settled weeks 1–7 | click-through | cost per click | conversion | gross ROAS | net ROAS | profit per ₹ spent | returned |
+|---|---|---|---|---|---|---|---|
+| player, all cells (72) | 8.2% | ₹19.6 | 5.0% | 7.81 | 4.36 | 1.05 | 42% |
+| all rivals (576) | 5.5% | ₹11.7 | 4.9% | 8.63 | 5.04 | 1.39 | 41% |
+
+**The finding stands.** The player still loses money in 0 of 72 markets, and
+click-through still runs about twice the apparel benchmark. C8 was not why the
+market is generous to the player: its own figures barely moved, while the
+rivals' profit per rupee fell from 1.48 to 1.39 as they spent their second
+allocation. **One correction:** with its round-0 money, the sensible player
+finishes a median **5th** of 9, not 6th (1st once, never below 7th).
 
 ### F16. India has no January surge in activewear searches, so the January event is not built — `WONTFIX`, measured (2026-09-13)
 
