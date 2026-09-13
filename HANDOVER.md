@@ -47,17 +47,18 @@ still resting on a guess.
   back. `scripts/read-playtest.js` turns each file into the baseline table
   (`dd25053`). Decided with the owner: two strangers play alone with the
   recorder, and one plays on a video call with it running too. *Deployment →
-  Running a playtest* has the steps. **Postponed on 2026-09-13**: the owner
-  cannot run them yet. The baseline is tagged (`playtest-1` = `f725dda`), `main`
-  is not frozen, and the playtest will run from a preview site built from the
-  tag.
+  Running a playtest* has the steps. **Postponed on 2026-09-13**, then
+  **re-planned the same day to run on the live site** rather than the
+  `playtest-1` tag: stage D's gate needs the debrief in the game. Tag the live
+  version (`playtest-2`) the day the invites go out; *Running a playtest* has
+  the steps and the invite.
 - **Decided with the owner:** the explanations will move into an optional field
   guide inside the game, after stage A.
 
 **Stage C has begun, and is on `main`** (begun 2026-09-12 on the branch
 `stage-c`, merged and deployed 2026-09-13 as `dfa9bee`). It was held off `main`
-so the version strangers play would not change under them; the playtests are
-postponed and will run from the `playtest-1` tag instead. The design is
+so the version strangers play would not change under them; the playtests now
+run on the live site instead (*Running a playtest*). The design is
 `plans/2026-09-12-content-model-and-field-guide.md`, and the task list with its
 Task 4 addendum is `…-plan.md` beside it.
 - **C1, the content model, is piloted on the returns card.** Its sentences live
@@ -1969,27 +1970,52 @@ them and what confused them, then offers the same file. They send it back by
 email or WhatsApp. It is about 280 KB and holds their save, so their whole game
 can be replayed.
 
-**POSTPONED (2026-09-13).** The owner cannot run the playtests yet. The version
-they are meant to measure is already tagged: **`playtest-1` = `f725dda`**, the
-game before stage C, with the phone-tables fix. `main` is NOT frozen and moves
-on; the playtest runs from a copy of the tag instead.
+**RUN ON THE LIVE SITE, decided with the owner 2026-09-13.** The plan was the
+`playtest-1` tag (`f725dda`), the game before stage C, as a "before". Since then
+the field guide, the debrief, the capital card, C8, the week-9 line and more
+have gone live, and stage D's gate, strangers stating three lessons in their own
+words, can only be tested with the debrief in the game. Stage C's gates are
+absolute (round 0 under 10 active minutes, weeks 5–12 over 72 seconds), not a
+comparison, so the live game measures them as well. `playtest-1` stays, for a
+before-and-after later if one is wanted.
 
-**When the playtests happen:**
-1. Put the tagged version up as its own site. Cloudflare builds every branch as a
-   preview behind the same sign-in, so a branch made from the tag is enough:
+**When the invites go out:**
+1. **Tag the live version the same day,** so the files can be read on the engine
+   they were played on:
 
    ```
-   git push origin playtest-1:refs/heads/playtest-1-site
+   git tag playtest-2
+   git push origin playtest-2
    ```
 
-   Its address is on the Worker's **Deployments** tab. Check it asks for the
-   sign-in code before sending it to anyone.
-2. Add each address to the Access list (*Invite-only* below). The same list covers
-   the preview.
-3. Send that preview's `/ui/?playtest=1` link, not the main site's.
-4. **Read the files on the tag.** A save replays exactly only on the engine it
-   was played on. The reader says so when it does not (`THE REPLAY DOES NOT
-   MATCH`), and the fix is `git checkout playtest-1` and reading it again.
+   Then keep engine changes off `main` until the files are back. Words and
+   docs are safe; anything that moves a number in a played week is not.
+2. Add each tester's address to the Access list (*Invite-only* below).
+3. Send `https://g-ads-simulation.manikhorocks.workers.dev/ui/?playtest=1` with
+   the message below.
+4. **Read the files on the tag if `main` has moved.** A save replays exactly only
+   on the engine it was played on. The reader says so when it does not (`THE
+   REPLAY DOES NOT MATCH`), and the fix is `git checkout playtest-2` and reading
+   it again.
+
+**The invite** (fill in the name and address; the address must be the one on
+the Access list):
+
+> Hi *name*, I've built a small game that simulates running Google search ads
+> for an Indian activewear brand, and I'd love you to play one game of it. It
+> takes about 45 minutes, and you can stop whenever you like.
+>
+> 1. Open https://g-ads-simulation.manikhorocks.workers.dev/ui/?playtest=1
+> 2. It asks for your email: use *address*, and type in the code it emails you.
+> 3. Play it the way you would on your own. There is no right answer, and you
+>    don't need to read everything.
+> 4. When you finish, or if you give up partway, press **Send playtest file** at
+>    the top, save the file, and send it back to me here. At the end it asks
+>    what the game taught you and what confused you; a few words is plenty.
+>
+> The file holds how long you spent on each screen, what you clicked, your
+> browser and screen size, and your game, so I can replay it. It never records
+> what you type, apart from your answers to those two questions. Thank you!
 
 **Reading the files:** `node scripts/read-playtest.js playtest-*.json`. It gives
 active time for round 0, weeks 1-4, weeks 5-11 and the end screen (the groups
