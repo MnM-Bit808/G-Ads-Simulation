@@ -204,6 +204,7 @@ describe('every interface module at least loads', () => {
     'words/debrief.js': () => import('../ui/words/debrief.js'),
     'words/capital.js': () => import('../ui/words/capital.js'),
     'words/market.js': () => import('../ui/words/market.js'),
+    'words/form.js': () => import('../ui/words/form.js'),
     'guide/chapters.js': () => import('../ui/guide/chapters.js'),
     'guide/figures.js': () => import('../ui/guide/figures.js'),
     'guide/drawer.js': () => import('../ui/guide/drawer.js'),

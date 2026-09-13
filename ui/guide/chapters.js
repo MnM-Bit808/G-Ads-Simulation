@@ -329,12 +329,32 @@ export const CHAPTERS = Object.freeze({
       + 'than until enough conversions arrive.',
     cites: ['D2', '§12.3'],
     yourAccount: 'bidding',
-    related: ['attributionLag'],
+    related: ['attributionLag', 'hours'],
+  }),
+
+  hours: chapter({
+    title: 'Bidding by the hour',
+    real: () => 'Google Ads lets you raise or lower your bids by day and hour through the ad '
+      + 'schedule, from −90% to +900%. Your ads follow the days and times the schedule sets, '
+      + 'so to stop showing at an hour you leave it out. With Smart Bidding strategies such as '
+      + 'Target CPA, Target ROAS and Maximise conversions, schedule adjustments are not used at '
+      + 'all: Smart Bidding already sets each bid from performance by time of day.',
+    realSources: [GOOGLE.bidAdjustments, GOOGLE.smartBidding],
+    game: () => 'Here searches peak at one time of day and buying at another, which is what '
+      + 'makes an hour adjustment pay: it can move money toward the hours that convert rather '
+      + 'than the hours that are busy. It departs twice. The lowest setting takes you out of an '
+      + 'hour altogether, where Google’s lowest still leaves you in it. And the adjustment '
+      + 'works under every strategy: under the ones that predict conversions it lands on top '
+      + 'of the strategy’s own lean by hour, so the hour counts twice, which Google does not '
+      + 'allow.',
+    cites: ['D11', 'H4', 'D2'],
+    yourAccount: 'hours',
+    related: ['smartBidding'],
   }),
 });
 
 /** The guide's contents list, in reading order. */
 export const CONTENTS = Object.freeze([
   'attributionLag', 'returnsSplit', 'cashOnDelivery', 'rankOrBudget', 'broadMatch',
-  'ownName', 'smartBidding', 'counterfactuals', 'kindMarket',
+  'ownName', 'smartBidding', 'hours', 'counterfactuals', 'kindMarket',
 ]);

@@ -899,6 +899,16 @@ location departures. The double-counted hour has no chapter yet: it must be said
 when the hours-of-the-day card moves into the content model (stage C4), and that
 chapter should cite this entry.
 
+**The hours half told, 2026-09-13, without waiting for C4.** While the chosen
+strategy predicts conversions, the *Hours of the day* card now says that the
+adjustment lands on top of the strategy's own reading of the hour and counts
+twice, and that Google Ads does not allow it with those strategies
+(`ui/words/form.js`, `hourAdjustmentStacks` in `ui/decisions.js`). Its "why?"
+opens a new chapter, *Bidding by the hour*, written from Google's bid
+adjustments and Smart Bidding pages re-read that day (schedule adjustments
+−90% to +900%, "not used" under Smart Bidding, which already bids by time of
+day), citing this entry, H4 and D2.
+
 **What would change the answer:** a playtest in which automated bidding plus an
 hour adjustment visibly overbids, or a player who carries "you can set −100%" to
 a real account and is surprised.

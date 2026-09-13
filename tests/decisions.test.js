@@ -19,7 +19,7 @@ import {
   addNegative, dropNegative, blocksTerm,
   addKeyword, updateKeyword, previewNegative,
   setStrategy, setStrategyParam, willTriggerLearning, STRATEGY_PARAM,
-  setCapex, setPosition, monthBudgetAfter, lastMonthBudget,
+  setCapex, setPosition, monthBudgetAfter, lastMonthBudget, hourAdjustmentStacks,
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
   removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
@@ -730,6 +730,22 @@ describe('the month just finished, read beside the capital choice (D12)', () => 
   test('a month with no eligible auctions lost nothing to budget', () => {
     const quiet = [1, 2, 3, 4].map((r) => week(r, { eligible: 0, lost: 0, spent: 0 }));
     expect(lastMonthBudget(quiet, PLAYER_ID, 5).lostToBudget).toBe(0);
+  });
+});
+
+describe('an hour adjustment counts twice under the strategies that predict conversions (D11)', () => {
+  // They lean by hour from their own history, and the player's adjustment is
+  // multiplied in on top. The hours card says so only while it is true.
+  test('it stacks exactly where the strategy predicts conversions', () => {
+    for (const [id, strategy] of Object.entries(STRATEGIES)) {
+      expect(hourAdjustmentStacks(id), id).toBe(strategy.predictsConversions === true);
+    }
+    expect(hourAdjustmentStacks('manual')).toBe(false);
+    expect(hourAdjustmentStacks('targetCpa')).toBe(true);
+  });
+
+  test('and an unknown strategy is not said to stack', () => {
+    expect(hourAdjustmentStacks('nonsense')).toBe(false);
   });
 });
 

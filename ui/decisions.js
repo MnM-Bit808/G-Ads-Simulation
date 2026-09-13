@@ -39,6 +39,8 @@ import { refusalRateFor } from '../engine/locations.js';
 import { HOURS_PER_DAY } from '../engine/querySet.js';
 import { featureAt, pageShape, capexChoices } from './landing-page.js';
 import { CAPITAL } from './words/capital.js';
+import { FORM } from './words/form.js';
+import { whyButton } from './guide/drawer.js';
 import { LOCATIONS } from '../content/locations.js';
 import { moneyBlock } from '../engine/report.js';
 import {
@@ -2280,6 +2282,8 @@ function daypartCard(ctx, refresh) {
   // 426px wide against 463px at half. The six blocks stack rather than reflow,
   // so the width was never doing much for it.
   const node = card('Hours of the day', 'when you bid more, and when you bid less', 'span-2');
+  // Where the guide's "Bidding by the hour" shows the player (see biddingCard).
+  node.dataset.slot = 'hours';
   const rows = daypartRows(draft);
   const overall = observedRateOverall(draft);
   const best = Math.max(...rows.map((r) => r.rate ?? 0));
@@ -2337,7 +2341,30 @@ function daypartCard(ctx, refresh) {
     + 'bidding harder in the morning leaves less for the evening. −100% bids the '
     + 'minimum, which in practice drops you under the reserve and out of the '
     + 'auction.'));
+
+  // D11, the half that was still owed: said only while it is true.
+  if (hourAdjustmentStacks(draft.strategy)) {
+    const told = el('p', 'note');
+    told.append(document.createTextNode(FORM.hoursTwice()));
+    const why = whyButton(FORM.hoursTwice, ctx.openGuide);
+    if (why) told.append(why);
+    node.append(told);
+  }
   return node;
+}
+
+/**
+ * Does an hour adjustment land on top of this strategy's own reading of the
+ * hour? (DECISIONS D11.) The strategies that predict conversions lean by hour
+ * from their own history, and `effectiveBidPaise` multiplies the player's hour
+ * adjustment in as well, so under them the hour counts twice. Real Google Ads
+ * does not use schedule adjustments with those strategies at all.
+ *
+ * @param {string} strategy
+ * @returns {boolean}
+ */
+export function hourAdjustmentStacks(strategy) {
+  return STRATEGIES[strategy]?.predictsConversions === true;
 }
 
 // --- negatives -------------------------------------------------------------

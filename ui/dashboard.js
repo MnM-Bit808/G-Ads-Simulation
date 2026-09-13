@@ -1140,6 +1140,8 @@ export function renderDashboard(game, onDecisionChange, { openGuide } = {}) {
     // The month just played, which the capital card reads its choice against
     // (D12). The player's own report, so nothing R3 withholds.
     lastMonth: lastMonthBudget(game.state.history, game.playerId, game.state.round),
+    // So a card on the form can carry a "why?" into the field guide.
+    openGuide,
     terms: null,
     byKeyword: null,
     /** Both breakdowns follow whichever range the report is showing. */

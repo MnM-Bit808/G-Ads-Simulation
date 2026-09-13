@@ -23,6 +23,7 @@ import { RETURNS } from '../ui/words/returns.js';
 import { DEBRIEF } from '../ui/words/debrief.js';
 import { CAPITAL } from '../ui/words/capital.js';
 import { MARKET } from '../ui/words/market.js';
+import { FORM } from '../ui/words/form.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -172,6 +173,26 @@ describe('the week the market re-splits (D12, C8)', () => {
   test('the movers read as a list, each with where it started and ended', () => {
     expect(MARKET.moved({ movers: FIGURES.movers }))
       .toBe('Moved most in your auctions this week: Torvi, from 28% to 49% of them; Satva, from 30% to 12% of them.');
+  });
+});
+
+describe('the decision form', () => {
+  const FIGURES = { searches: '14', matchType: 'broad' };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(FORM)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of Object.entries(FORM)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(FORM)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
   });
 });
 
