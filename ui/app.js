@@ -36,6 +36,7 @@ import {
 } from './recorder.js';
 import { createGuide } from './guide/drawer.js';
 import { guideFigures } from './guide/figures.js';
+import { lookMode } from './look.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -74,6 +75,13 @@ const storage = (() => {
     return null;
   }
 })();
+
+/**
+ * The Studio makeover, on the link only (plans/2026-09-13-studio-makeover.md).
+ * `body.studio` is all it sets here; ui/studio.css scopes every rule under it.
+ */
+const look = lookMode(window.location.search, storage);
+if (look === 'studio') document.body.classList.add('studio');
 
 /**
  * The playtest recorder, on the invite link only (stage B). Null for everyone

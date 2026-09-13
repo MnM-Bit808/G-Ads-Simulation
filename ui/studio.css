@@ -1,0 +1,76 @@
+/*
+ * The Studio makeover's look (plans/2026-09-13-studio-makeover.md, section 3):
+ * Studio drop's cards and type in the Red signal palette. Every rule is under
+ * body.studio, so a visit without ?look=studio never sees any of it.
+ */
+
+body.studio {
+  --studio-page: #0D0C0E;
+  --studio-rail: #060507;
+  --studio-sidebar: #131215;
+  --studio-card: #17161A;
+  --studio-raised: #221F25;
+  --studio-line: #2A272D;
+  --studio-line-strong: #3A363E;
+  --studio-text: #EDE8E3;
+  --studio-soft: #CFC9C3;
+  --studio-muted: #A19A94;
+  --studio-faint: #8A847E;
+  --studio-red: #D7262F;
+  --studio-red-text: #FF6166;
+  --studio-on-red: #FFF5F4;
+  --studio-amber: #F2A53A;
+  --studio-mint: #9FD3B5;
+  --studio-panel: #1A0C0F;
+  --studio-panel-edge: #4A1A1F;
+  --studio-display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif;
+  --studio-body: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --studio-ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* Today's cards read these names. Restating them re-themes every card that
+     has not been rebuilt yet, with no change to style.css. Losses are amber:
+     red is the player's colour in Red signal, so it cannot also mean "bad". */
+  --bg: var(--studio-page);
+  --panel: var(--studio-card);
+  --panel-2: var(--studio-raised);
+  --line: var(--studio-line);
+  --ink: var(--studio-text);
+  --muted: var(--studio-muted);
+  --accent: var(--studio-red);
+  --good: var(--studio-mint);
+  --warn: var(--studio-amber);
+  --bad: var(--studio-amber);
+
+  background: var(--studio-page);
+  color: var(--studio-text);
+  font-family: var(--studio-body);
+}
+
+/* style.css writes near-black text on every filled button, which on red falls
+   under 4.5:1. Link-like buttons keep a light colour of their own. */
+body.studio button { color: var(--studio-on-red); }
+body.studio button.ghost,
+body.studio button.guess-cell { color: var(--studio-text); }
+body.studio button.add,
+body.studio button.why,
+body.studio button.guide-next { color: var(--studio-red-text); }
+body.studio button.add.danger { color: var(--studio-amber); }
+body.studio button.guess-cell[aria-pressed="true"] { color: var(--studio-on-red); }
+body.studio button:focus-visible,
+body.studio input:focus-visible { outline: 2px solid var(--studio-red-text); outline-offset: 2px; }
+
+/* style.css also uses the accent as a TEXT colour, and red at text size falls
+   under 4.5:1 on these cards (3.6:1, measured). The small-text red carries it
+   instead: every selector below is one style.css colours with the accent. */
+body.studio :is(.serp-head, .chip.on strong, .capex-summary strong, .page-strip,
+  .writer-price, .planner summary, .strategy.on .strategy-name, .capex-already,
+  .cell.on .cell-here, .month-after strong, .rank-line strong, .guide-sources a) {
+  color: var(--studio-red-text);
+}
+
+/* A chosen option's tint, the player's own row and the why links are blue in
+   style.css, written as colours rather than the accent; they follow it here. */
+body.studio :is(.chip.on, .cell.on, .strategy.on, .writer-row.on .writer-pick) { background: rgba(215, 38, 47, 0.14); }
+body.studio tr.you td { background: rgba(215, 38, 47, 0.12); }
+body.studio button.why { border-bottom-color: rgba(255, 97, 102, 0.6); }
+body.studio :is(button.why, button.guide-next, .guide-sources a):hover { color: #FF8A8E; }

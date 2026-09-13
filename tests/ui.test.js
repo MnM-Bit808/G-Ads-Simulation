@@ -189,6 +189,7 @@ describe('every interface module at least loads', () => {
   // makes sure this map never falls behind the directory.
   const LOADABLE = {
     'dom.js': () => import('../ui/dom.js'),
+    'look.js': () => import('../ui/look.js'),
     'chart.js': () => import('../ui/chart.js'),
     'dashboard.js': () => import('../ui/dashboard.js'),
     'decisions.js': () => import('../ui/decisions.js'),
