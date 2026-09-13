@@ -95,34 +95,43 @@ desktop app switches conversations. It replaces the single long scroll.
 Round 0 moves into the same layout later, with the section list as its steps
 (section 7).
 
-## 3. The look: Studio drop
+## 3. The look: Studio drop, in Red signal
 
-Chosen from three looks drawn on one real screen (section 9). Warm cream, deep
-green-black ink, one terracotta accent: the brand's own product-drop page more
-than a dashboard.
+Studio drop's cards, type and layout were chosen from three looks drawn on one
+real screen (section 9). Its colours were then changed by the owner, after
+trying three palettes on the working mock-up, to **Red signal**: near-black,
+blood red and cold grey, after a film the owner named. Colours only: no logo,
+symbol or name from the film appears anywhere in the game.
 
-**Colours.** One committed light look; no dark mode.
+**Colours.** One committed dark look; no light mode. The cream palette stays in
+the mock-up as a record, not as an option.
 
 | Name | Value | Use |
 |---|---|---|
-| cream | `#F1ECE2` | the page |
-| card | `#FBF8F3` | cards, panels |
-| sidebar | `#E8E1D4` | the section list |
-| ink | `#1E2622` | text, icon strip, the main button |
-| muted | `#5C605A` | secondary text |
-| terracotta | `#C45A35` | the one accent: slider fills, a changed card's outline |
-| terracotta, small text | `#A8472A` | accent text under 18px |
-| forest | `#2F6B4F` | money made |
-| brick | `#9E2B25` | money lost |
+| night | `#0D0C0E` | the page |
+| rail | `#060507` | the icon strip |
+| sidebar | `#131215` | the section list |
+| card | `#17161A` | cards, panels |
+| raised | `#221F25` | chips, the QS pill, tray lines |
+| line | `#2A272D`, `#3A363E` | card edges; stronger edges and dashes |
+| bone | `#EDE8E3` | text |
+| muted | `#A19A94` | secondary text |
+| faint | `#8A847E` | small labels |
+| red | `#D7262F` | the one accent: slider fills, a changed card, the Running switch, the chosen pill, the Run button |
+| red, small text | `#FF6166` | red text under 18px ("was ₹33") |
+| amber | `#F2A53A` | warnings, and money lost (with a minus sign) |
+| mint | `#9FD3B5` | "above average", and money made |
+| panel | `#1A0C0F`, edge `#4A1A1F` | the reading panel |
 
-**Two values moved from the mock-up, for contrast.** The mock's muted grey
-`#6F736D` measures 4.1:1 on cream, under the 4.5:1 small text needs; `#5C605A`
-measures 5.4:1. Terracotta `#C45A35` measures 3.7:1, which is fine for fills and
-large type but not for small text, hence the deeper `#A8472A` (5.0:1).
+**Every text colour was measured against its background**, 24 pairs in all, and
+passes 4.5:1. The lowest are white on red (the Run button, the chosen pill, the
+change count) at 4.66:1.
 
-**One colour rule.** Terracotta means *you and your changes*. It never means
-"bad": a loss is brick red **and** carries a minus sign. No meaning is carried
-by colour alone.
+**One colour rule, and what choosing Red signal cost.** Red means *you and your
+changes*. So red cannot also mean "bad": a warning is amber, and a loss is amber
+**and** carries a minus sign and a label. No meaning is carried by colour alone.
+This was the known cost of Red signal over *Streetlight*, which kept red for
+danger; the owner chose the drama knowingly.
 
 **Type.** *Bricolage Grotesque* for titles and large numbers; *Instrument Sans*
 for everything else. Tabular figures, so columns of numbers line up. Nothing
@@ -141,7 +150,7 @@ live game then calls no outside server, and the dev server works offline.
 - the dark reading panel: big figures and at most two sentences;
 - sidebar items, with a lock and a dot;
 - the tray;
-- two buttons: the ink pill for the one main action, an outline for the rest.
+- two buttons: the red pill for the one main action, an outline for the rest.
 
 **Alive through response, not decoration.**
 
@@ -149,16 +158,34 @@ live game then calls no outside server, and the dev server works offline.
 - Dragging a bid outlines the card and drops a line into the tray.
 - A number the game revises visibly gives way to its new value.
 
-**Motion.**
+**Motion: six moments, and nothing else.** From a `find-animation-opportunities`
+sweep of this design (the re-run review section 13 asked for), approved by the
+owner and drawn into the mock-up (rows 1, 3, 5, 6; rows 2 and 4 belong to screens
+not drawn yet). All on the game's existing curve, `cubic-bezier(0.23, 1, 0.32, 1)`
+(the field guide's drawer and the end-screen reveal use it), transform and opacity
+only, entrances from `@starting-style`, no library.
 
-- Sections switch instantly.
-- Motion is used only where it explains something:
-  - a change landing in the tray, so you see where it went;
-  - a revised figure cross-fading to its new value (review section 13, row 2);
-  - a section unlocking, once.
-- Every motion is under 300ms, off under reduced motion, and passes
-  `/review-animations`.
-- No counting tickers: they show in-between numbers the engine never produced.
+| # | Where | Purpose | Motion |
+|---|---|---|---|
+| 1 | **The tray** | a change visibly goes somewhere | a new line enters from `opacity 0; translateY(8px)`, 200ms; lines are ordered by when the change was first made, so only the newest enters, and a line whose text updates mid-drag never re-enters; an undone line fades 150ms, then goes |
+| 2 | **Revised figures**, Your week | the revision *is* the lesson | the old value and the new crossfade on opacity, 250ms; never a counting ticker |
+| 3 | **A section unlocking** (Returns at week 6) | a new tool, made legible | the lock gives way to a dot entering from `scale(0.8)`, 200ms; on the first visit only, the section's cards enter from `opacity 0; scale(0.97)`, 200ms, 40ms apart, at most six |
+| 4 | **Round 0's steps** | where you are in the sequence | direction-aware: forward enters from `translateX(24px)`, back from `-24px`, with opacity, 250ms `cubic-bezier(0.77, 0, 0.175, 1)` |
+| 5 | **Run week** (and Apply, Add, Done) | feedback | `:active { transform: scale(0.97) }`, 160ms ease-out; on the compositor, so it finishes while the week computes on the main thread |
+| 6 | **Drawers and the ⋯ menu** | each comes from where it lives | drawers: the field guide's exact rule (`ui/style.css:1352`), in 220ms, out 150ms; the menu grows from its button, `transform-origin: top right`, `scale(0.97)`, 150ms |
+
+**Rejected, with the test each failed:** section and area switching (frequency:
+it is core navigation, so it is instant); the slider and the numbers beside it
+(function: they must track the finger); the spend bar drawing in and stats
+rolling up (function, and the honesty rule); the grid moving when Adjust several
+opens (purpose: that was a layout jump, fixed by layout, section 4); a new card
+animating in from the planner (purpose: it would play unseen behind the drawer);
+hover lift on cards (frequency).
+
+**Rules for every motion:** under 300ms; reduced motion keeps the fades and drops
+the movement, the press and the stagger; the pause switch's knob moves by
+`transform: translateX(14px)`, never by `left`; and each passes
+`/review-animations` before it ships.
 
 **The honesty rule for controls.** A control shows only what the game computes.
 The reach count is real (`keywordReach`, E8), so it is shown. "This bid would
@@ -217,7 +244,9 @@ changes.
    right: search the list or type your own; each keyword added becomes a card.
 5. **Adjust several at once:** tick cards, then set them all to ₹X, change them
    all by a percentage, or switch their match type. It is the direct answer to
-   "fiddly controls" (18 edits for one idea).
+   "fiddly controls" (18 edits for one idea). **While selecting, the tray becomes
+   the bulk bar**, so nothing above it moves: the first mock-up put the bar above
+   the cards and pushed the whole grid down 56px (the motion sweep, section 3).
 
 **Rules the cards need, decided here:**
 
@@ -384,7 +413,7 @@ Tester 1's file is read on `playtest-2`, the version they played.
 
 ## 8. What this does not do
 
-- No dark mode.
+- No light mode.
 - No animation of the week playing out (not chosen).
 - No forecasts a control cannot honestly make.
 - No change to the engine, its rules or its numbers.
