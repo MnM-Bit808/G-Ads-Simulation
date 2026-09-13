@@ -12,7 +12,50 @@ still resting on a guess.
 
 ## Start here
 
-**The newest session (2026-09-12) reviewed the product and began its stage A.**
+**Current state, end of 2026-09-13.** `main` is at the latest push and is the only
+branch; the game is live and invite-only; 1656 tests pass, 1 todo; the build
+publishes 54 files. Nothing is waiting on code. **The next step is the owner's:
+the stranger playtests** (*Deployment → Running a playtest* has the steps and the
+invite). Everything else below either waits on their files or on the owner's
+judgement.
+
+**What to do next, in order:**
+1. **Run the stranger playtests on the live site.** Owner: pick three people
+   (two alone, one on a video call), add their exact emails in Cloudflare
+   Access, send the invite. Session: on the day, `git tag playtest-2 && git push
+   origin playtest-2`, and keep engine changes off `main` until the files are
+   back. Read them with `node scripts/read-playtest.js <files>`.
+2. **Judge the playtests against the review's gates** (`reviews/slc-review.md`,
+   section 12): stage C, round 0 under 10 active minutes and weeks 5–12 over 72
+   seconds; stage D, three lessons stated in their own words and decisions in
+   weeks 7–12 (the reader now counts them).
+3. **Then C3 and C4**, designed from what the files show: C3 is round 0 in steps
+   (review recommendation 4; it re-opens I11, the writer decision); C4 is a
+   dashboard that shows only the cards with something to say (recommendation 5;
+   the recorder's card times decide what it hides). Each moves its cards'
+   prose into `ui/words/` as it goes.
+4. **Then stage E, game feel** (review section 13), only on the screens C
+   rebuilds.
+5. **Open, for the owner's judgement, none blocking:** A9 (whether a brand
+   owner's advantage on its own name should be modelled rather than emergent),
+   F15 options (b)/(c) (lower `convRateBase` or cap click-through, only with
+   better data than an industry page that contradicts itself), E8's formula
+   (how many tags decide how far broad reaches).
+
+**What the session of 2026-09-13 did**, each with its full record elsewhere:
+
+| | what | read |
+|---|---|---|
+| stage C | the content model (`ui/words/`), the field guide as a side drawer, now nine chapters | `plans/2026-09-12-content-model-and-field-guide.md`, D11 |
+| stage D1 | the debrief and the rival reveal on the end screen | `plans/2026-09-13-debrief.md`, G1 |
+| rec. 7 | the back half: moving the capital window measured and rejected; a calendar event (January, then the festive season) measured from Google Trends and rejected | D12, F16, `sources/trends/`, `scripts/season-lift.js` |
+| built instead | the week-5 capital card reads last month's budget; the week-9 market card shows the re-split | D12 |
+| C8 | every rival had been losing its second capital allocation; fixed, measured before and after | C8, `plans/2026-09-13-rival-capital-plan.md`, `scripts/market-harness.js` |
+| honesty | "this market is kinder than a real one" on the end screen; hour adjustments counting twice under automated bidding; how many searches a keyword reaches | F15 addendum, D11, E8 |
+| playtests | re-planned to run on the live site; the reader lists the weeks with a decision | *Running a playtest* |
+
+**Older detail, kept for its pointers.** The session of 2026-09-12 reviewed the
+product and began its stage A.
 - **`reviews/slc-review.md` is the product review.** It covers Simple, Lovable
   and Complete, with scores, a 45-minute verdict and a route of seven
   recommendations in five stages. Read its section 12 for the route.
@@ -36,11 +79,12 @@ still resting on a guess.
     generic cost per click at 1.52× the click-through. But the advantage is
     emergent, not modelled, and five of six rival characters never defend their
     own names.
-  - **Economics (F15).** Cost per click is realistic; click-through (about 2×)
-    and conversion (about 1.5×) run high against benchmarks, and 640 of 648
-    advertiser-games profit.
+  - **Economics (F15).** Cost per click is realistic; click-through and
+    conversion run at or above benchmarks (the "about 2×" was later qualified:
+    the benchmark page gives two figures, F15's addendum), and a sensible
+    player profits in every market measured.
   - **The review's "winning is easy" is withdrawn.** A sensible player finishes
-    median 6th of 9.
+    median 5th of 9 (6th before the harness was corrected, C8).
 - **Stage B's other half is ready to run, and needs the owner.** A playtest
   recorder is built (`ui/recorder.js`, `a25d637` and `82f29e5`). It is on only
   behind `?playtest=1`, and the player downloads a file at the end and sends it
@@ -74,8 +118,8 @@ Task 4 addendum is `…-plan.md` beside it.
   `tests/guide.test.js` checks every citation exists; it cannot check that a
   chapter agrees with what it cites (see CLAUDE.md's known traps).
 - **Found on the way:** DECISIONS D11 (place and hour adjustments go past
-  Google's limits and work under every strategy; the hours half is still owed
-  a disclosure in C4); and two dead or misleading capital sentences on the
+  Google's limits and work under every strategy; both halves are now told);
+  and two dead or misleading capital sentences on the
   returns card. Also six tables wider than a phone, which widened the whole page
   to as much as 894px: **fixed** on the branch `phone-tables` (`f725dda`, cut
   from `main` so it can ship without stage C) and merged into `stage-c`.
@@ -127,9 +171,11 @@ Task 4 addendum is `…-plan.md` beside it.
   26%. The market card shows last week beside this week, and in the week-9
   report says month 3's budgets were re-split by rank; Auction Insights names
   the rivals whose overlap moved most.
-- **Next:** C3 (round 0 in steps) and C4 (a dashboard that reveals itself),
-  which still wait for the playtest files: the recorder's card times say which
-  cards strangers read, which is what C4 needs. `back-half` is not on `main`.
+- **Also since:** "this market is kinder than a real one" on the end screen
+  (F15 addendum, which qualifies F15's "click-through about 2×"); four more
+  guide chapters so every debrief lesson opens one; the hours card's D11
+  disclosure and a *Bidding by the hour* chapter; each keyword's reach on its
+  match type (E8); and the playtest re-plan. All on `main` and live.
 
 **The session before (2026-09-11 to 12) closed the three items that had been open
 longest**, in this order. Each has its full record in `DECISIONS.md`; the commit
@@ -142,26 +188,24 @@ messages carry the reasoning in between.
 | **Deployment** | live on Cloudflare, tests gating every push, invite-only through Cloudflare Access | *Deployment* below |
 | **F13** | accepted rather than engineered away: lifestyle's broad keywords crowd activewear auctions, the round 0 briefing now says so, and a test pins the asymmetry | F13 *What was decided* |
 
-**Pending, and nobody's but the owner's:** a first playtester has not been added
-to the Access list yet (see *Deployment* for how — it is one edit).
+**Pending, and nobody's but the owner's:** no playtester has been added to the
+Access list yet (see *Deployment* for how — it is one edit).
 
-**What the next session is for.** The owner intends a fresh, analytical review of
-the whole product rather than another fix — judging it as something a stranger
-plays, not as an engine that passes its tests. Two things in this file are the
-best raw material for that and are easy to miss in its length: *What playing it
-as a learner found* (one full recorded game, engagement ending at week 4) and
+**Two things in this file are easy to miss in its length:** *What playing it as
+a learner found* (the one full recorded game, engagement ending at week 4) and
 *Still open* (what is known to be unfinished, and why).
 
-**Reading order for a new session:** `CLAUDE.md`, then this section and *Where we
-are*, then *Still open*, then *Deployment*. `DECISIONS.md` is a ledger to look
-things up in, not to read front to back — its entries are long because they
-carry their measurements.
+**Reading order for a new session:** `CLAUDE.md`, then this section, then
+*Deployment → Running a playtest*, then *Still open*. `DECISIONS.md` is a ledger
+to look things up in, not to read front to back — its entries are long because
+they carry their measurements. `reviews/slc-review.md` section 12 is the route
+the work follows.
 
 ---
 
 ## Where we are
 
-**Every build-order step is done, and the location mechanic with them.** 1466 tests, all passing, 1 todo (2026-09-12).
+**Every build-order step is done, and the location mechanic with them.** 1656 tests, all passing, 1 todo (2026-09-13).
 
 **THE GAME IS LIVE ON CLOUDFLARE, INVITE-ONLY** (2026-09-12), at
 `https://g-ads-simulation.manikhorocks.workers.dev`. Every push to `main` runs the

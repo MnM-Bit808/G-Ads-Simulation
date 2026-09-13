@@ -208,10 +208,31 @@ number in the simulation without ever throwing an error.
   ad landing, Quality Scores. Measured, its costs do not match a played game.
   Anything that restores a PLAYED game goes through `game.js`'s `replayLog`, as
   the save does.
+- **A decision the player's form always sends must be sent by every rival too.**
+  The engine turns uncommitted capital into ad budget only when a capital
+  decision is submitted. The form always sent one at week 5; no rival policy
+  did, so every rival's second ₹1,20,000 vanished for months with every test
+  green (C8). Any new decision window needs a rule in every policy in
+  `agents/policies.js`, and a test through `submitRound` that nobody's money
+  disappears.
+- **Measure a market-moving change with `scripts/market-harness.js`, before
+  and after.** Three throwaway harnesses each measured a player poorer than
+  any real one: the round-0 capital was handed to `startGame` in a shape that
+  lost it (now built properly, `capitalBlock` in `setup.js`), and the week-5
+  capital decision was never sent. The committed harness does both right;
+  `market` for F15's economics and the market's shape, `capital` for D12.
+- **Don't re-propose a calendar event without new data.** A January surge and a
+  festive season were both measured from Google Trends for India and rejected
+  (F16): January is one of training's quietest months, and the festive rise
+  changes no decision.
 - **The field guide cites DECISIONS, and a green test does not mean it
   agrees.** `ui/guide/chapters.js` says what the game does and cites the entries
   it rests on; `tests/guide.test.js` proves each cited entry exists, not that
   the chapter still matches it. When a DECISIONS entry changes, search
   `ui/guide/` for its ID and re-read every chapter that cites it. The chapters'
   "in real Google Ads" halves come from sources fetched when written; never
-  add a real-world claim from memory.
+  add a real-world claim from memory, and read a benchmark's context before
+  quoting it (the apparel page F15 cited gives search click-through as 3.2% and
+  6.8%). A chapter's `yourAccount` must be a slot that exists once the page is
+  drawn: the decision form replaces the page's `decisions` placeholder, so its
+  cards set their own `dataset.slot`, and the guide test checks both.
