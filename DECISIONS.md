@@ -513,6 +513,51 @@ describing only one of them (F10, F11, G4 step 3, the purpose axis in
 whether 1.76x is the intended aggression is a design question about what the
 cautionary rival teaches rather than a defect. It is open in `HANDOVER.md`.
 
+### C8. Every rival loses its second capital allocation, and the player does not — `FOUND, not fixed` (2026-09-13)
+
+**Found while checking whether the week-9 reshuffle is visible (D12).** The
+step into week 5 moved rivals 3.60 times as much as an ordinary week, far more
+than week 9 did, and this is why.
+
+**What happens.** At a capital round the engine converts whatever capital was
+left uncommitted into that month's ad budget, but only when the advertiser
+submits a capital decision (`game.js`, `applyCapex`; `engine/round.js`,
+`applyBudgetAdjustments`). The player's form always submits one at week 5, and
+the comment above it says why: "or ₹1,00,000 simply disappears". No rival
+policy ever does (`agents/policies.js`: "It does not touch capex or
+repositioning"). So each rival's second ₹1,20,000 disappears: never invested,
+never advertised.
+
+**Measured, seed 1**, each advertiser's month budget as its report carries it:
+rivals that kept their round-0 capital run ₹2,88,000–3,28,000 in month 1 and
+**₹1,68,000** in month 2; rivals that invested it run ₹1,93,000–2,08,000, then
+₹1,68,000; the player, committing nothing at week 5, runs **₹2,88,000** in month
+2. So in month 2 the player has up to ₹1,20,000 more than any rival.
+
+**Why it matters.** Hard rule 6 is "one advertiser type, no privileged player
+path anywhere". There is no player-only code here, but there is a player-only
+outcome: month 2's market is softer for the player than the rules say, every
+game. It is also why rivals' presence collapses at week 5, and plausibly part of
+why F15 found the market so generous to the player (a sensible player profits
+in 72 of 72 markets).
+
+**Not fixed yet, because fixing it moves the market.** The obvious repair is for
+every rival policy to submit a capital decision at week 5, committing by its
+character (as `rivalCapex` does at round 0) or nothing, so the rest becomes ad
+budget. That adds up to ₹9,60,000 to month 2 across the eight rivals, so it
+needs the calibration invariants re-measured and read, F15's economics re-run,
+and D12's findings re-checked, before and after, like F14.
+
+**And a harness trap found beside it.** `startGame`'s `player.capex` expects a
+capital block (`committed`, `pending`, `remainingUnallocatedPaise`). Given a
+flat list of targets, as D12's, F15's and F16's throwaway harnesses did and
+`tests/writerBalance.test.js` still does, `remainingUnallocatedPaise` reads as
+missing and the player's round-0 ₹1,20,000 silently disappears too: the harness
+player's month 1 was ₹1,93,000 where a real game gives ₹3,13,000. D12's and
+F16's comparisons stand, because both branches of every fork shared the same
+month 1, but their absolute figures describe a player poorer in month 1 than
+any real one. `startGame` should refuse a capital block without its fields.
+
 ## D. Budget, bidding and capital
 
 ### D1. Budget model was outdated — `FIXED v0.3`
@@ -923,6 +968,16 @@ that the choice turns on that figure, and why, without advising: the card
 cannot see what capital would earn this player, the same reason the market
 card points at the split and the bids rather than prescribing (`ui/chart.js`,
 `readingOf`). The words are `ui/words/capital.js`.
+
+**The week-9 reshuffle was checked for a line too, and gets none.** Month 3's
+money is split by the week-8 rank, so the market does change at week 9. Read
+from the player's own Auction Insights over 72 full games (F15's player), the
+largest rival change into week 9 is a median 10.8 points of impression share
+against 5.9 in an ordinary week: 1.51 times, and at least double in 26 of 72.
+The agreed gate was double. The rivals do move the way the ranking says (the
+week-8 leader gains a median 5.3 points, ninth place loses 2.5), but not visibly
+above ordinary week-to-week movement, so the screen stays quiet about it. The
+step into week 5 was 3.60 times ordinary, which is C8.
 
 ---
 
