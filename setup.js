@@ -637,6 +637,65 @@ export function startGame({ rootSeed, playerBrandId, player, querySet }) {
  * degradations (8.4, 9.5), not oversights: broad match is inert until something
  * tags the keyword, and an unevaluated ad performs like an unevaluated ad.
  */
+/**
+ * The player's round-0 capital, as a block the engine can run on (DECISIONS C8).
+ *
+ * TWO SHAPES COME IN, AND ONE USED TO BE LOST. `ui/round-zero.js` builds the
+ * block itself: `{ committed, pending, remainingUnallocatedPaise }`. Harnesses
+ * and tests wrote what a capital DECISION looks like instead - `{ photography:
+ * 5000000 }` - and that was read as a block whose `remainingUnallocatedPaise`
+ * was missing, so the player's round-0 ₹1,20,000 vanished without a word: never
+ * committed, never rolled into month 1. Three measurements (D12, F15, F16) ran on
+ * that poorer player before it was found.
+ *
+ * So an allocation is built into a block the way the round-1 decision door
+ * builds one, and a block missing a field is refused rather than read as zero.
+ * A block is recognised by its `committed` key.
+ *
+ * @param {object} [capex] a block, an allocation of paise per target, or nothing
+ * @returns {{committed: object, pending: object[], remainingUnallocatedPaise: number}}
+ */
+function capitalBlock(capex) {
+  if (capex === undefined || capex === null) {
+    return {
+      committed: Object.fromEntries(CAPEX_TARGETS.map((t) => [t, 0])),
+      pending: [],
+      remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE,
+    };
+  }
+
+  if ('committed' in capex) {
+    if (!Array.isArray(capex.pending)) {
+      throw new RangeError('a capital block needs a pending list, even an empty one');
+    }
+    const left = capex.remainingUnallocatedPaise;
+    if (!Number.isSafeInteger(left) || left < 0 || left > CAPEX_ALLOCATION_PAISE) {
+      throw new RangeError(
+        `a capital block needs remainingUnallocatedPaise, integer paise 0..${CAPEX_ALLOCATION_PAISE}, got ${String(left)}`,
+      );
+    }
+    return capex;
+  }
+
+  const committed = Object.fromEntries(CAPEX_TARGETS.map((t) => [t, 0]));
+  const pending = [];
+  let spent = 0;
+  for (const [target, paise] of Object.entries(capex)) {
+    if (!CAPEX_TARGETS.includes(target)) throw new RangeError(`unknown capex target "${target}"`);
+    if (!Number.isSafeInteger(paise) || paise < 0) {
+      throw new RangeError(`capex for ${target} must be non-negative integer paise, got ${String(paise)}`);
+    }
+    if (paise === 0) continue;
+    committed[target] = paise;
+    pending.push({ target, paise, liveAtRound: 1 + CAPEX_DELAY_ROUNDS });
+    spent += paise;
+  }
+  if (spent > CAPEX_ALLOCATION_PAISE) {
+    throw new RangeError(`capex allocation of ${spent} paise exceeds the ${CAPEX_ALLOCATION_PAISE} available`);
+  }
+  return { committed, pending, remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE - spent };
+}
+
 function buildPlayer(identity, choices, querySet) {
   const { position: raw, capex, keywords, ad, weeklySplitPaise } = choices;
   const position = { ...parseCell(cellKey(raw.price, raw.purpose)), setAtRound: 0, repositionedAtRound: null };
@@ -683,8 +742,8 @@ function buildPlayer(identity, choices, querySet) {
   // allocation round to arrive at: the writer is chosen at round 0, so the
   // money is in the budget from round 1 and nothing downstream adds it again.
   const monthBase = MONTHLY_BUDGET_PAISE + creative.unspentPaise;
-  const capexBlock = capex ?? { remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE };
-  const monthCeiling = monthBase + (capexBlock.remainingUnallocatedPaise ?? 0);
+  const capexBlock = capitalBlock(capex);
+  const monthCeiling = monthBase + capexBlock.remainingUnallocatedPaise;
 
   const split = weeklySplitPaise
     ?? allocate(monthBase, new Array(ROUNDS_PER_MONTH).fill(1));
@@ -699,11 +758,7 @@ function buildPlayer(identity, choices, querySet) {
     policyId: null,
     active: true,
     position,
-    capex: capex ?? {
-      committed: Object.fromEntries(CAPEX_TARGETS.map((t) => [t, 0])),
-      pending: [],
-      remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE,
-    },
+    capex: capexBlock,
     campaign: {
       monthlyBudgetPaise: monthBase,
       monthSpentPaise: 0,

@@ -661,6 +661,55 @@ describe('startGame produces a game that runs (spec 17)', () => {
   });
 });
 
+describe('the round-0 capital a caller hands startGame (DECISIONS C8)', () => {
+  // THE TRAP THIS CLOSES. `player.capex` was read as a capital BLOCK. Three
+  // throwaway harnesses and several tests handed it an ALLOCATION instead - the
+  // shape a week-5 capital decision takes - and `remainingUnallocatedPaise`
+  // read as missing, so the player's round-0 ₹1,20,000 vanished without a word.
+  // Now an allocation is built into a block the way the decision door builds
+  // one, and a block that is missing a field is refused rather than read as 0.
+  const withCapex = (capex) => start({ player: choices({ capex, writerTier: 'agency' }) });
+  const month1 = (state) => submitRound(state, {}, { mode: 'expected' })
+    .report.byAdvertiser[PLAYER_BRAND].budget.monthlyBudgetPaise;
+  const agencyLeftover = CREATIVE_ALLOCATION_PAISE - writerTier('agency').pricePaise;
+
+  test('an allocation of nothing keeps the whole allocation for month 1', () => {
+    const state = withCapex({ photography: 0, sizeGuide: 0, landingPage: 0 });
+    expect(state.advertisers[0].capex.remainingUnallocatedPaise).toBe(CAPEX_ALLOCATION_PAISE);
+    expect(month1(state)).toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE + agencyLeftover);
+  });
+
+  test('an allocation is committed, and lands when the decision door would land it', () => {
+    const { capex } = withCapex({ landingPage: 8000000 }).advertisers[0];
+    expect(capex.committed.landingPage).toBe(8000000);
+    expect(capex.pending).toEqual([{ target: 'landingPage', paise: 8000000, liveAtRound: 4 }]);
+    expect(capex.remainingUnallocatedPaise).toBe(CAPEX_ALLOCATION_PAISE - 8000000);
+  });
+
+  test('a block, as round 0 builds one, is taken as given', () => {
+    const block = {
+      committed: { sizeGuide: 0, photography: 7000000, landingPage: 0 },
+      pending: [{ target: 'photography', paise: 7000000, liveAtRound: 4 }],
+      remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE - 7000000,
+    };
+    expect(withCapex(block).advertisers[0].capex).toEqual(block);
+  });
+
+  test('a block missing a field is refused, not read as zero', () => {
+    expect(() => withCapex({ committed: { photography: 0 }, pending: [] }))
+      .toThrow(/remainingUnallocatedPaise/);
+    expect(() => withCapex({ committed: { photography: 0 }, remainingUnallocatedPaise: 0 }))
+      .toThrow(/pending/);
+  });
+
+  test('an allocation it cannot honour is refused', () => {
+    expect(() => withCapex({ billboards: 1 })).toThrow(/unknown capex target/);
+    expect(() => withCapex({ photography: CAPEX_ALLOCATION_PAISE + 1 })).toThrow(/exceeds/);
+    expect(() => withCapex({ photography: -1 })).toThrow(/non-negative integer/);
+    expect(() => withCapex({ photography: 1.5 })).toThrow(/non-negative integer/);
+  });
+});
+
 describe('round 0 may be redone once, up to round 3 (spec 17.3)', () => {
   test('the rewind keeps the market and changes only the player', () => {
     const before = start();
