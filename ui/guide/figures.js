@@ -14,6 +14,7 @@ import { ARRIVAL_SHAPE, SETTLES_AFTER_ROUNDS } from '../dashboard.js';
 import { pct, rupees } from '../dom.js';
 import {
   RTO_RATE_COD, RTO_RATE_PREPAID, POST_DELIVERY_RETURN_RATE, RTO_FREIGHT_PAISE,
+  LEARNING_ROUNDS, LEARNING_ERROR_MULTIPLIER, BRAND_OWNER_MULTIPLIER, BRAND_POACHER_MULTIPLIER,
 } from '../../engine/constants.js';
 
 /**
@@ -27,5 +28,9 @@ export function guideFigures() {
     rtoPrepaid: pct(RTO_RATE_PREPAID, 1),
     postDelivery: pct(POST_DELIVERY_RETURN_RATE),
     freight: rupees(RTO_FREIGHT_PAISE),
+    learningWeeks: String(LEARNING_ROUNDS),
+    learningError: `${LEARNING_ERROR_MULTIPLIER} times`,
+    ownerConv: `${BRAND_OWNER_MULTIPLIER} times`,
+    poacherConv: `${BRAND_POACHER_MULTIPLIER} times`,
   });
 }

@@ -88,6 +88,30 @@ const GOOGLE = {
     label: 'Google Ads Help: Estimate your results with bid, budget and target simulators',
     url: 'https://support.google.com/google-ads/answer/2470105',
   },
+  matchTypes: {
+    label: 'Google Ads Help: About keyword matching options',
+    url: 'https://support.google.com/google-ads/answer/7478529',
+  },
+  searchTerms: {
+    label: 'Google Ads Help: About the search terms report',
+    url: 'https://support.google.com/google-ads/answer/2472708',
+  },
+  negatives: {
+    label: 'Google Ads Help: About negative keywords',
+    url: 'https://support.google.com/google-ads/answer/2453972',
+  },
+  trademarks: {
+    label: 'Google Ads policy: Trademarks',
+    url: 'https://support.google.com/adspolicy/answer/6118',
+  },
+  smartBidding: {
+    label: 'Google Ads Help: About Smart Bidding',
+    url: 'https://support.google.com/google-ads/answer/7065882',
+  },
+  learning: {
+    label: 'Google Ads Help: Duration of the learning period for campaigns',
+    url: 'https://support.google.com/google-ads/answer/13020501',
+  },
 };
 
 const INDIA = {
@@ -224,9 +248,93 @@ export const CHAPTERS = Object.freeze({
     cites: ['F15', 'B6', 'F4'],
     yourAccount: 'headline',
   }),
+
+  rankOrBudget: chapter({
+    title: 'Lost to rank, or lost to budget',
+    real: () => 'Google Ads splits the searches your ad missed in two. Search lost impression '
+      + 'share to budget is the share it missed because your budget ran short; lost to rank is '
+      + 'the share it missed because its Ad Rank was too low in the auction. Both rest on an '
+      + 'estimate: impression share divides the impressions you got by the estimated number you '
+      + 'were eligible for. Google presents the figure as telling you whether your ads might '
+      + 'reach more people with a higher bid or a bigger budget.',
+    realSources: [GOOGLE.impressionShareData, GOOGLE.impressionShare],
+    game: () => 'The share card splits every week the same way, but exactly, because this game '
+      + 'counts every auction you could have entered. The two point at different fixes. Lost to '
+      + 'budget means the money ran out first: more money helps, and so do cheaper clicks, while '
+      + 'a higher bid makes each click dearer and the money runs out sooner. Lost to rank means '
+      + 'your ad rank, your bid weighed by your ad’s quality, was too low: a better ad or a '
+      + 'higher bid helps, and more money does not.',
+    cites: ['H3', 'G2'],
+    yourAccount: 'share',
+    related: ['counterfactuals'],
+  }),
+
+  broadMatch: chapter({
+    title: 'How far broad match wanders',
+    real: () => 'Exact match reaches searches with the same meaning or intent as your keyword, '
+      + 'phrase match those that include its meaning, and broad match searches related to it, '
+      + 'which can include ones that do not carry its meaning at all. Google says it is critical '
+      + 'to use Smart Bidding with broad match. The search terms report shows the searches your '
+      + 'ad actually appeared on, and a term that is not yours becomes a negative keyword. '
+      + 'Negatives do not match close variants, so plurals and synonyms have to be added '
+      + 'separately.',
+    realSources: [GOOGLE.matchTypes, GOOGLE.searchTerms, GOOGLE.negatives],
+    game: () => 'Here exact and phrase match are word matches, and broad match reaches a search '
+      + 'when enough of the concept tags the two were given from their words are shared. A '
+      + 'distant search costs twice: it rarely buys, and a poorer fit lowers your ad rank on it. '
+      + 'Broadening also lowers impression share while raising impressions, because it adds '
+      + 'searches faster than it wins them. Negatives are plain word matches, never tags. Where '
+      + 'it departs: how far broad reaches depends on how a keyword was tagged, and broad works '
+      + 'under any strategy.',
+    cites: ['E8', 'E9', 'H5', 'H6', '§8.2'],
+    yourAccount: 'terms',
+  }),
+
+  ownName: chapter({
+    title: 'Defending your own name',
+    real: () => 'Google’s trademark policy does not restrict using a trademark as a keyword, so '
+      + 'a rival may bid on your brand’s name and appear when people search for it. What the '
+      + 'policy restricts is the ad itself: a direct competitor using your trademark in its ad '
+      + 'text, or any ad using it in a confusing or misleading way, subject to local trademark '
+      + 'law. So your own name is an auction like any other, and one you can lose.',
+    realSources: [GOOGLE.trademarks],
+    needs: ['ownerConv', 'poacherConv'],
+    game: ({ ownerConv, poacherConv }) => 'Every brand here has its own search, and any '
+      + 'advertiser may bid on it. Someone searching your name buys from you at '
+      + `${ownerConv} the usual rate, and from a rival that poaches it at ${poacherConv} that `
+      + 'rate. Nothing else knows whose name it is: the searcher is no likelier to click your '
+      + 'ad than a rival’s with the same grades. Defending it is cheap here because few rivals '
+      + 'contest it and the owner can afford to bid higher, not because searchers prefer the '
+      + 'name they typed.',
+    cites: ['A9', '§12.1'],
+    yourAccount: 'insights',
+  }),
+
+  smartBidding: chapter({
+    title: 'Smart bidding has to learn',
+    real: () => 'Smart Bidding, which covers Target CPA, Target ROAS, Maximise conversions and '
+      + 'Maximise conversion value, sets a bid for every auction from signals such as the '
+      + 'device, the place, the time and the search itself. After a new strategy or a changed '
+      + 'setting it shows as learning, and Google says it can take up to around 50 conversions '
+      + 'or 3 conversion cycles to calibrate. It suggests judging results over a month or '
+      + 'longer, with at least 30 conversions.',
+    realSources: [GOOGLE.smartBidding, GOOGLE.learning],
+    needs: ['learningWeeks', 'learningError'],
+    game: ({ learningWeeks, learningError }) => 'Here the strategies that predict conversions '
+      + 'estimate each click’s chance of a sale from your own conversions that have already '
+      + 'landed, never from the truth, so they start out wrong and improve with volume. '
+      + `Switching strategy, changing its target or moving position starts a learning period of ${learningWeeks} `
+      + `weeks in which their predictions go wrong ${learningError} as much. Bid, keyword and `
+      + 'budget changes do not. Where it departs: learning lasts a fixed number of weeks rather '
+      + 'than until enough conversions arrive.',
+    cites: ['D2', '§12.3'],
+    yourAccount: 'bidding',
+    related: ['attributionLag'],
+  }),
 });
 
 /** The guide's contents list, in reading order. */
 export const CONTENTS = Object.freeze([
-  'attributionLag', 'returnsSplit', 'cashOnDelivery', 'counterfactuals', 'kindMarket',
+  'attributionLag', 'returnsSplit', 'cashOnDelivery', 'rankOrBudget', 'broadMatch',
+  'ownName', 'smartBidding', 'counterfactuals', 'kindMarket',
 ]);

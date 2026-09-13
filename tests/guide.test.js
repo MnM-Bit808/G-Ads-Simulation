@@ -28,6 +28,7 @@ const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.m
 const DECISIONS = read('DECISIONS.md');
 const SPEC = read('ENGINE_SPEC_v0.3.md');
 const INDEX = read('ui/index.html');
+const DECISIONS_FORM = read('ui/decisions.js');
 const FIGURES = guideFigures();
 const wordCount = (text) => text.trim().split(/\s+/).filter(Boolean).length;
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -128,7 +129,13 @@ describe('the chapters', () => {
   });
 
   test.each(entries)('%s: "in your account" points at a card that exists', (_, c) => {
-    expect(INDEX).toContain(`data-slot="${c.yourAccount}"`);
+    // On the page itself, or on one of the decision form's cards, which the form
+    // draws in place of the page's own `decisions` slot. Pointing at that slot
+    // would leave a button that does nothing: it is gone once the form draws.
+    expect(c.yourAccount).not.toBe('decisions');
+    const onPage = INDEX.includes(`data-slot="${c.yourAccount}"`);
+    const onForm = DECISIONS_FORM.includes(`dataset.slot = '${c.yourAccount}'`);
+    expect(onPage || onForm, c.yourAccount).toBe(true);
   });
 
   test.each(entries)('%s: related chapters exist', (_, c) => {

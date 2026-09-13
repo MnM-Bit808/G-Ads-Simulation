@@ -1837,6 +1837,10 @@ function positionSection(ctx, refresh) {
 function biddingCard(ctx, refresh) {
   const draft = ctx.draft;
   const node = card('Bidding', 'how your bid is decided, every hour');
+  // Where the guide's "Smart bidding has to learn" shows the player. The form
+  // replaces the dashboard's own `decisions` slot when it draws, so its cards
+  // carry their own.
+  node.dataset.slot = 'bidding';
   const learningLeft = draft.bidding?.learningRoundsRemaining ?? 0;
 
   if (learningLeft > 0) {

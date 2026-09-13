@@ -104,17 +104,22 @@ export const DEBRIEF = Object.freeze({
 
   rankOrBudgetTitle: line('label', 'Rank or budget'),
   rankOrBudgetBudget: line('reading', ({ round, share }) =>
-    `Your worst week, week ${round}, lost ${share} of its impressions to budget. The fix for that is more money, or cheaper clicks through lower bids, not a higher bid.`),
+    `Your worst week, week ${round}, lost ${share} of its impressions to budget. The fix for that is more money, or cheaper clicks through lower bids, not a higher bid.`,
+  { why: 'rankOrBudget' }),
   rankOrBudgetRank: line('reading', ({ round, share }) =>
-    `Your worst week, week ${round}, lost ${share} of its impressions to rank. The fix for that is a better ad or a higher bid, not more money.`),
+    `Your worst week, week ${round}, lost ${share} of its impressions to rank. The fix for that is a better ad or a higher bid, not more money.`,
+  { why: 'rankOrBudget' }),
   rankOrBudgetNot: line('reading', ({ threshold }) =>
-    `No week lost as much as ${threshold} of its impressions to budget or to rank, so neither limit really bit.`),
+    `No week lost as much as ${threshold} of its impressions to budget or to rank, so neither limit really bit.`,
+  { why: 'rankOrBudget' }),
 
   broadMatchTitle: line('label', 'Broad match wanders'),
   broadMatch: line('reading', ({ terms, negatives }) =>
-    `Your keywords bought clicks on ${terms} searches that no keyword of yours spelled out, and you blocked ${negatives}.`),
+    `Your keywords bought clicks on ${terms} searches that no keyword of yours spelled out, and you blocked ${negatives}.`,
+  { why: 'broadMatch' }),
   broadMatchNot: line('reading',
-    'You never ran a broad keyword, so every search you bought was close to one you wrote. Next game, try one broad keyword and watch the search terms report.'),
+    'You never ran a broad keyword, so every search you bought was close to one you wrote. Next game, try one broad keyword and watch the search terms report.',
+    { why: 'broadMatch' }),
 
   returnsTitle: line('label', 'Returns: gross against kept'),
   returns: line('reading', ({ share, rank, grossRank }) =>
@@ -124,16 +129,20 @@ export const DEBRIEF = Object.freeze({
 
   ownNameTitle: line('label', 'Defending your name'),
   ownName: line('reading', ({ own, other }) =>
-    `A click on your own name cost ${own}, against ${other} for everything else.`),
-  ownNameNoClicks: line('reading', 'You bid on your own name, but it bought no clicks.'),
+    `A click on your own name cost ${own}, against ${other} for everything else.`,
+  { why: 'ownName' }),
+  ownNameNoClicks: line('reading', 'You bid on your own name, but it bought no clicks.', { why: 'ownName' }),
   ownNameNot: line('reading',
-    'You never bid on your own name, so any rival could buy it. Next game, try defending it and compare what it costs.'),
+    'You never bid on your own name, so any rival could buy it. Next game, try defending it and compare what it costs.',
+    { why: 'ownName' }),
 
   smartBiddingTitle: line('label', 'Smart bidding learns'),
   smartBidding: line('reading', ({ strategy, round, learning }) =>
-    `You switched to ${strategy} in week ${round}; for its first ${learning} weeks it was learning, and bid less precisely while it did.`),
+    `You switched to ${strategy} in week ${round}; for its first ${learning} weeks it was learning, and bid less precisely while it did.`,
+  { why: 'smartBidding' }),
   smartBiddingNot: line('reading',
-    'You never switched to a strategy that predicts conversions. Next game, try one and watch its learning weeks.'),
+    'You never switched to a strategy that predicts conversions. Next game, try one and watch its learning weeks.',
+    { why: 'smartBidding' }),
 
   // --- the reveal ----------------------------------------------------------
   revealTitle: line('label', 'Where did they sit?'),

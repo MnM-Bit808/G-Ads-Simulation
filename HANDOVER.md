@@ -66,8 +66,9 @@ Task 4 addendum is `…-plan.md` beside it.
   disclosure without a "why", and prose back in `renderReturns`. Every other
   card moves across when C3 or C4 rebuilds it, not in one sweep.
 - **C2, the field guide, is built as a side drawer** (direction A, chosen from
-  three mock-ups in `design/field-guide/`). Four chapters so far, in
-  `ui/guide/chapters.js`: each says how real Google Ads does it, from sources
+  three mock-ups in `design/field-guide/`). Nine chapters, in
+  `ui/guide/chapters.js`, and every debrief lesson now opens one: each says how
+  real Google Ads does it, from sources
   fetched while writing, then what this game does, citing DECISIONS.
   `tests/guide.test.js` checks every citation exists; it cannot check that a
   chapter agrees with what it cites (see CLAUDE.md's known traps).
