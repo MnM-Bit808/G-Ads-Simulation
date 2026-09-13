@@ -117,6 +117,7 @@ export async function outcome(file) {
     costPaise: me.costPaise,
     netProfitPaise: me.netProfitPaise,
     weeksInTheRed: weeksInTheRed(state.history, saved.playerId),
+    decisions: decisionWeeks(saved.decisionLog, saved.playerId),
   };
 }
 
@@ -133,6 +134,32 @@ export function weeksInTheRed(history, playerId) {
   return gameTotals(history, playerId).weeks
     .filter((week) => week.netProfitPaise < 0)
     .map((week) => week.round);
+}
+
+/**
+ * The weeks the player decided something, read from the save's log.
+ *
+ * Stage D's gate is that weeks 7-12 carry decisions (reviews/slc-review.md,
+ * section 12), and the one recorded human game decided nothing after week 4.
+ * The form sends the week-5 capital card whether or not it was touched
+ * (`toDecision` in ui/decisions.js), so a week whose only decision is that card
+ * with every amount zero is marked as left alone, not counted as a choice.
+ *
+ * @param {object[]} decisionLog
+ * @param {string} playerId
+ * @returns {{round: number, leftAlone: boolean}[]} in round order
+ */
+export function decisionWeeks(decisionLog, playerId) {
+  return (decisionLog ?? [])
+    .filter((entry) => entry.advertiserId === playerId)
+    .sort((a, b) => a.round - b.round)
+    .map((entry) => ({ round: entry.round, leftAlone: capitalLeftAlone(entry.decision) }));
+}
+
+function capitalLeftAlone(decision) {
+  const keys = Object.keys(decision ?? {});
+  return keys.length === 1 && keys[0] === 'capex'
+    && Object.values(decision.capex ?? {}).every((paise) => paise === 0);
 }
 
 /** `rupees` prints a loss as "₹-1,56,785"; this reads it as a loss. */
@@ -194,6 +221,12 @@ export async function report(file) {
     lines.push(`  rank ${result.rank} of ${result.of} on contribution (gross rank ${result.grossRank})`);
     lines.push(`  contribution ${money(result.netProfitPaise)} on ${money(result.costPaise)} of spend`);
     lines.push(`  weeks in the red: ${result.weeksInTheRed.length ? result.weeksInTheRed.join(', ') : 'none'}`);
+    const chose = result.decisions.filter((d) => !d.leftAlone);
+    lines.push(`  weeks with a decision: ${result.decisions.length
+      ? result.decisions.map((d) => (d.leftAlone ? `${d.round} (capital left alone)` : String(d.round))).join(', ')
+      : 'none'}`);
+    const lateWeeks = Math.max(0, Math.min(result.weeksPlayed, 12) - 6);
+    lines.push(`  weeks 7-12 with a decision: ${chose.filter((d) => d.round >= 7).length} of ${lateWeeks} played`);
     lines.push(result.exact
       ? '  the replay matches what they saw'
       : '  THE REPLAY DOES NOT MATCH what they saw: read it again on the tag they played');

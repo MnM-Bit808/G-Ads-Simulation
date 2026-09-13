@@ -13,7 +13,7 @@
 
 import { describe, test, expect } from 'vitest';
 import {
-  phaseGroups, cardTotals, computeTimes, outcome, report, weeksInTheRed,
+  phaseGroups, cardTotals, computeTimes, outcome, report, weeksInTheRed, decisionWeeks,
 } from '../scripts/read-playtest.js';
 import { createRecorder, playtestFile } from '../ui/recorder.js';
 import { makeSave, fingerprintOf } from '../ui/save.js';
@@ -171,6 +171,12 @@ describe('how the game came out, replayed from the save', { timeout: 60_000 }, (
     expect(result.grossRank).toBe(played.grossRank);
     expect(result.netProfitPaise).toBe(played.netProfitPaise);
     expect(result.weeksInTheRed).toEqual(red);
+
+    // This player never decided anything, and never reached week 7.
+    expect(result.decisions).toEqual([]);
+    const text = await report(recordedFile(save));
+    expect(text).toMatch(/weeks with a decision: none/);
+    expect(text).toMatch(/weeks 7-12 with a decision: 0 of 0 played/);
   });
 
   test('a week that lost money after returns is in the red; one that made money is not', () => {
@@ -197,6 +203,34 @@ describe('how the game came out, replayed from the save', { timeout: 60_000 }, (
 
   test('a player who stopped in round 0 has no outcome to replay', async () => {
     expect(await outcome(recordedFile(null))).toBeNull();
+  });
+});
+
+describe('the weeks the player decided something (stage D: weeks 7-12 carry decisions)', () => {
+  // The form sends the week-5 capital card whether or not it was touched, so a
+  // week whose only decision is that card, all zeros, is marked as left alone
+  // rather than counted as a choice.
+  const untouched = { capex: { photography: 0, sizeGuide: 0, landingPage: 0, orderConfirmation: 0 } };
+  const log = [
+    { round: 2, advertiserId: 'me', decision: { campaign: { negatives: [{ text: 'free', matchType: 'broad' }] } } },
+    { round: 2, advertiserId: 'rival', decision: { campaign: { strategy: 'manual' } } },
+    { round: 5, advertiserId: 'me', decision: untouched },
+    { round: 8, advertiserId: 'me', decision: { ...untouched, capex: { ...untouched.capex, landingPage: 8000000 } } },
+    { round: 9, advertiserId: 'me', decision: { adGroups: [] } },
+  ];
+
+  test('only the player\'s own, in order, with the untouched capital card marked', () => {
+    expect(decisionWeeks(log, 'me')).toEqual([
+      { round: 2, leftAlone: false },
+      { round: 5, leftAlone: true },
+      { round: 8, leftAlone: false },
+      { round: 9, leftAlone: false },
+    ]);
+  });
+
+  test('and nothing for a player who never decided', () => {
+    expect(decisionWeeks(log, 'nobody')).toEqual([]);
+    expect(decisionWeeks(undefined, 'me')).toEqual([]);
   });
 });
 
