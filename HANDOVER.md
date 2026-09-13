@@ -120,12 +120,14 @@ Task 4 addendum is `…-plan.md` beside it.
     before and after on `scripts/market-harness.js`, now committed: the player's
     median rank (5th) and its 0-of-72 losses did not move, D12 kept its sign in
     every cell, and F15 has an addendum.
-- **Open, and the owner's:** C8's fix moved the market's big shift from week 5
-  to week 9, so the week-9 line D12 declined at 1.51× an ordinary week now
-  clears its gate at 2.40×. That decision is reopened.
-- **Next:** that week-9 decision; then C3 (round 0 in steps) and C4 (a dashboard
-  that reveals itself), which still wait for the playtest files: the recorder's
-  card times say which cards strangers read, which is what C4 needs.
+- **The week-9 line, reopened by C8 and then built** (D12): C8's fix moved the
+  market's big shift to week 9, where total market spend now drops a median
+  26%. The market card shows last week beside this week, and in the week-9
+  report says month 3's budgets were re-split by rank; Auction Insights names
+  the rivals whose overlap moved most.
+- **Next:** C3 (round 0 in steps) and C4 (a dashboard that reveals itself),
+  which still wait for the playtest files: the recorder's card times say which
+  cards strangers read, which is what C4 needs. `back-half` is not on `main`.
 
 **The session before (2026-09-11 to 12) closed the three items that had been open
 longest**, in this order. Each has its full record in `DECISIONS.md`; the commit
