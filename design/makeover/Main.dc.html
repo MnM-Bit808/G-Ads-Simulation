@@ -24,11 +24,40 @@
     .field { font: inherit; font-size: 14px; border-radius: 10px; padding: 0 12px; height: 38px; box-sizing: border-box; outline: none; border-width: 1px; border-style: solid; }
     .field:focus { box-shadow: 0 0 0 3px rgba(127, 127, 127, 0.3); }
     .field::placeholder { color: rgba(127, 127, 127, 0.95); }
-    .chip { animation: land 220ms cubic-bezier(0.23, 1, 0.32, 1); }
-    .drawer { animation: slidein 240ms cubic-bezier(0.23, 1, 0.32, 1); }
-    @keyframes land { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
-    @keyframes slidein { from { transform: translateX(32px); opacity: 0; } to { transform: none; opacity: 1; } }
-    @media (prefers-reduced-motion: reduce) { .chip, .drawer { animation: none; } }
+    /* The motions the sweep kept (plans/2026-09-13-studio-makeover.md, section 3),
+       on the game's own curve, transform and opacity only. Entrances come from
+       @starting-style, so an element animates when it first appears and never
+       again while it stays. */
+    .trayline, .toast { transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1), transform 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .trayline.leaving { opacity: 0; transition-duration: 150ms; }
+    .pop { transform-origin: top right; transition: opacity 150ms cubic-bezier(0.23, 1, 0.32, 1), transform 150ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .drawer { transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1), transform 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .drawer.closing { opacity: 0; transform: translateX(100%); transition-duration: 150ms; }
+    .overlay { transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .overlay.closing { opacity: 0; transition-duration: 150ms; }
+    .unlockdot, .firstin { transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1), transform 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .press { transition: transform 160ms ease-out; }
+    .press:active { transform: scale(0.97); }
+    .knob { transition: transform 150ms cubic-bezier(0.23, 1, 0.32, 1); }
+    @starting-style {
+      .trayline, .toast { opacity: 0; transform: translateY(8px); }
+      .pop { opacity: 0; transform: scale(0.97); }
+      .drawer { opacity: 0; transform: translateX(100%); }
+      .overlay { opacity: 0; }
+      .unlockdot { opacity: 0; transform: scale(0.8); }
+      .firstin { opacity: 0; transform: scale(0.97); }
+    }
+    /* Reduced motion keeps every fade, which moves nothing, and drops the
+       movement, the press and the stagger. */
+    @media (prefers-reduced-motion: reduce) {
+      .press:active { transform: none; }
+      .knob { transition: none; }
+      .drawer.closing { transform: none; }
+      .firstin { transition-delay: 0ms !important; }
+      @starting-style {
+        .trayline, .toast, .pop, .drawer, .unlockdot, .firstin { transform: none; }
+      }
+    }
   </style>
 </helmet>
 <div style="position: relative; width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: {{T.page}}; color: {{T.text}}; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
@@ -59,6 +88,9 @@
         <div style="flex-grow: 1;">{{s.label}}</div>
         <sc-if value="{{s.hasLock}}" hint-placeholder-val="{{false}}">
           <div style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid {{T.lineStrong}}; color: {{T.faint}};">{{s.lock}}</div>
+        </sc-if>
+        <sc-if value="{{s.hasDot}}" hint-placeholder-val="{{false}}">
+          <div class="unlockdot" title="Something new here" style="width: 8px; height: 8px; border-radius: 50%; background: {{T.accent}};"></div>
         </sc-if>
       </div>
     </sc-for>
@@ -138,33 +170,6 @@
           </div>
         </div>
 
-        <sc-if value="{{selecting}}" hint-placeholder-val="{{false}}">
-          <div style="display: flex; align-items: center; gap: 14px; min-height: 40px; padding: 8px 10px 8px 18px; border-radius: 16px; background: {{T.bulkBg}}; color: {{T.bulkFg}}; border: 1px solid {{T.bulkBorder}}; flex-wrap: wrap;">
-            <div style="font-size: 14px; font-weight: 700; min-width: 92px;">{{selectedLabel}}</div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <div style="font-size: 13px; color: {{T.bulkMuted}};">Set bid ₹</div>
-              <input class="field num" style="width: 64px; height: 32px; background: {{T.bulkInputBg}}; color: {{T.bulkFg}}; border-color: {{T.bulkInputBorder}};" value="{{bulkBid}}" onChange="{{onBulkBid}}">
-              <div class="tap" onClick="{{applySetBid}}" style="padding: 6px 12px; border-radius: 999px; background: {{T.bulkBtnBg}}; color: {{T.bulkBtnFg}}; font-size: 13px; font-weight: 700;">Apply</div>
-            </div>
-            <div style="width: 1px; height: 22px; background: {{T.bulkInputBorder}};"></div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <div style="font-size: 13px; color: {{T.bulkMuted}};">Change by</div>
-              <input class="field num" style="width: 60px; height: 32px; background: {{T.bulkInputBg}}; color: {{T.bulkFg}}; border-color: {{T.bulkInputBorder}};" value="{{bulkPct}}" onChange="{{onBulkPct}}">
-              <div style="font-size: 13px; color: {{T.bulkMuted}};">%</div>
-              <div class="tap" onClick="{{applyPct}}" style="padding: 6px 12px; border-radius: 999px; background: {{T.bulkBtnBg}}; color: {{T.bulkBtnFg}}; font-size: 13px; font-weight: 700;">Apply</div>
-            </div>
-            <div style="width: 1px; height: 22px; background: {{T.bulkInputBorder}};"></div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <div style="font-size: 13px; color: {{T.bulkMuted}};">Match</div>
-              <sc-for list="{{bulkMatches}}" as="m" hint-placeholder-count="3">
-                <div class="tap hov" onClick="{{m.pick}}" style="padding: 5px 10px; border-radius: 999px; border: 1px solid {{T.bulkPillBorder}}; font-size: 12px; font-weight: 600;">{{m.label}}</div>
-              </sc-for>
-            </div>
-            <div style="flex-grow: 1;"></div>
-            <div class="tap hov" onClick="{{stopSelecting}}" style="padding: 7px 14px; border-radius: 999px; border: 1px solid {{T.bulkPillBorder}}; font-size: 13px; font-weight: 700;">Done</div>
-          </div>
-        </sc-if>
-
         <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
           <sc-for list="{{cards}}" as="c" hint-placeholder-count="7">
             <div style="position: relative; background: {{c.bg}}; border-radius: 20px; border: 1px solid {{c.borderColor}}; box-shadow: 0 0 0 1px {{c.ring}}; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; min-width: 0; transition: border-color 150ms ease, box-shadow 150ms ease;">
@@ -177,7 +182,7 @@
                   </sc-if>
                   <div class="tap" onClick="{{c.toggleActive}}" title="{{c.switchTitle}}" style="display: flex; align-items: center; gap: 6px;">
                     <div style="position: relative; width: 34px; height: 20px; flex-shrink: 0; border-radius: 999px; background: {{c.switchBg}}; transition: background 150ms ease;">
-                      <div style="position: absolute; top: 2px; left: {{c.knobLeft}}; width: 16px; height: 16px; border-radius: 50%; background: {{T.knob}}; transition: left 150ms ease;"></div>
+                      <div class="knob" style="position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: {{T.knob}}; transform: translateX({{c.knobX}});"></div>
                     </div>
                     <div style="font-size: 12px; font-weight: 600; color: {{c.switchText}}; white-space: nowrap;">{{c.switchLabel}}</div>
                   </div>
@@ -190,7 +195,7 @@
                 </div>
               </div>
               <sc-if value="{{c.menuOpen}}" hint-placeholder-val="{{false}}">
-                <div style="position: absolute; top: 44px; right: 12px; z-index: 5; background: {{T.menuBg}}; border: 1px solid {{T.menuBorder}}; border-radius: 12px; box-shadow: 0 8px 24px {{T.shadow}}; padding: 6px; display: flex; flex-direction: column; min-width: 170px;">
+                <div class="pop" style="position: absolute; top: 44px; right: 12px; z-index: 5; background: {{T.menuBg}}; border: 1px solid {{T.menuBorder}}; border-radius: 12px; box-shadow: 0 8px 24px {{T.shadow}}; padding: 6px; display: flex; flex-direction: column; min-width: 170px;">
                   <div class="tap hov" onClick="{{c.remove}}" style="padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; color: {{T.danger}};">Remove keyword</div>
                   <div class="tap hov" onClick="{{c.toggleMenu}}" style="padding: 8px 10px; border-radius: 8px; font-size: 13px; color: {{T.muted}};">Cancel</div>
                 </div>
@@ -272,21 +277,67 @@
       <div style="flex-grow: 1; min-height: 0; padding: 40px; display: flex; flex-direction: column; gap: 18px;">
         <div class="display" style="font-weight: 800; font-size: 52px; line-height: 0.95; letter-spacing: -0.025em;">{{placeholder.title}}</div>
         <div style="max-width: 620px; background: {{T.card}}; border: 1px dashed {{T.lineStrong}}; border-radius: 20px; padding: 22px 24px; font-size: 15px; line-height: 1.55; color: {{T.textSoft}};">{{placeholder.body}}</div>
+        <sc-if value="{{canPreviewUnlock}}" hint-placeholder-val="{{false}}">
+          <div class="tap press" onClick="{{previewUnlock}}" style="align-self: flex-start; padding: 10px 18px; border-radius: 999px; border: 1px solid {{T.lineStrong}}; font-size: 14px; font-weight: 700;">Preview the week-6 unlock →</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showReturns}}" hint-placeholder-val="{{false}}">
+      <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 22px 40px 28px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Returns</div>
+          <div style="font-size: 14px; color: {{T.muted}};">Open from week 6 · how a newly opened section arrives, the first time only</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 900px;">
+          <sc-for list="{{returnsCards}}" as="r" hint-placeholder-count="2">
+            <div class="{{r.cls}}" style="transition-delay: {{r.delay}}ms; background: {{T.card}}; border: 1px solid {{T.line}}; border-radius: 20px; padding: 22px 24px; min-height: 200px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;">
+              <div class="display" style="font-weight: 700; font-size: 22px;">{{r.title}}</div>
+              <div style="font-size: 14px; line-height: 1.5; color: {{T.muted}};">{{r.body}}</div>
+            </div>
+          </sc-for>
+        </div>
       </div>
     </sc-if>
 
     <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
-      <div class="chip" style="position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%); z-index: 8; background: {{T.toastBg}}; color: {{T.toastFg}}; padding: 10px 16px; border-radius: 12px; font-size: 13px; max-width: 560px; box-shadow: 0 8px 24px {{T.shadow}};">{{toast}}</div>
+      <div class="toast" style="position: absolute; left: 50%; bottom: 92px; translate: -50% 0; z-index: 8; background: {{T.toastBg}}; color: {{T.toastFg}}; padding: 10px 16px; border-radius: 12px; font-size: 13px; max-width: 560px; box-shadow: 0 8px 24px {{T.shadow}};">{{toast}}</div>
     </sc-if>
 
-    <div style="height: 76px; flex-shrink: 0; background: {{T.trayBg}}; border-top: 1px solid {{T.sidebarBorder}}; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
-      <sc-if value="{{hasChanges}}" hint-placeholder-val="{{false}}">
+    <div style="height: 76px; flex-shrink: 0; background: {{trayBg}}; border-top: 1px solid {{trayLine}}; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <sc-if value="{{selecting}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; align-items: center; gap: 14px; flex-grow: 1; min-width: 0; color: {{T.bulkFg}};">
+          <div style="font-size: 14px; font-weight: 700; min-width: 92px; white-space: nowrap;">{{selectedLabel}}</div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="font-size: 13px; color: {{T.bulkMuted}}; white-space: nowrap;">Set bid ₹</div>
+            <input class="field num" style="width: 64px; height: 34px; background: {{T.bulkInputBg}}; color: {{T.bulkFg}}; border-color: {{T.bulkInputBorder}};" value="{{bulkBid}}" onChange="{{onBulkBid}}">
+            <div class="tap press" onClick="{{applySetBid}}" style="padding: 7px 14px; border-radius: 999px; background: {{T.bulkBtnBg}}; color: {{T.bulkBtnFg}}; font-size: 13px; font-weight: 700;">Apply</div>
+          </div>
+          <div style="width: 1px; height: 24px; background: {{T.bulkInputBorder}};"></div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="font-size: 13px; color: {{T.bulkMuted}}; white-space: nowrap;">Change by</div>
+            <input class="field num" style="width: 60px; height: 34px; background: {{T.bulkInputBg}}; color: {{T.bulkFg}}; border-color: {{T.bulkInputBorder}};" value="{{bulkPct}}" onChange="{{onBulkPct}}">
+            <div style="font-size: 13px; color: {{T.bulkMuted}};">%</div>
+            <div class="tap press" onClick="{{applyPct}}" style="padding: 7px 14px; border-radius: 999px; background: {{T.bulkBtnBg}}; color: {{T.bulkBtnFg}}; font-size: 13px; font-weight: 700;">Apply</div>
+          </div>
+          <div style="width: 1px; height: 24px; background: {{T.bulkInputBorder}};"></div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="font-size: 13px; color: {{T.bulkMuted}};">Match</div>
+            <sc-for list="{{bulkMatches}}" as="m" hint-placeholder-count="3">
+              <div class="tap hov" onClick="{{m.pick}}" style="padding: 6px 11px; border-radius: 999px; border: 1px solid {{T.bulkPillBorder}}; font-size: 12px; font-weight: 600;">{{m.label}}</div>
+            </sc-for>
+          </div>
+          <div style="flex-grow: 1;"></div>
+          <div class="tap hov press" onClick="{{stopSelecting}}" style="padding: 9px 18px; border-radius: 999px; border: 1px solid {{T.bulkPillBorder}}; font-size: 14px; font-weight: 700;">Done</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{trayShowsChanges}}" hint-placeholder-val="{{false}}">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex-grow: 1;">
           <div style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: {{T.countBg}}; color: {{T.onAccent}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">{{changeCount}}</div>
           <div style="font-size: 15px; font-weight: 600; white-space: nowrap;">{{changeWord}}</div>
           <div style="display: flex; gap: 8px; overflow-x: auto; min-width: 0; padding: 4px 0;">
             <sc-for list="{{trayLines}}" as="t" hint-placeholder-count="2">
-              <div class="chip" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 999px; background: {{T.raised}}; font-size: 13px; white-space: nowrap;">
+              <div class="trayline {{t.cls}}" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 999px; background: {{T.raised}}; font-size: 13px; white-space: nowrap;">
                 <div>{{t.text}}</div>
                 <div class="tap" onClick="{{t.undo}}" title="Undo this change" style="width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: {{T.muted}}; background: {{T.undoBg}};">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
@@ -296,19 +347,21 @@
           </div>
         </div>
       </sc-if>
-      <sc-if value="{{noChanges}}" hint-placeholder-val="{{true}}">
+      <sc-if value="{{trayEmpty}}" hint-placeholder-val="{{true}}">
         <div style="font-size: 14px; color: {{T.muted}};">No changes yet. Anything you change, in any section, lands here.</div>
       </sc-if>
-      <div class="display tap" onClick="{{runWeek}}" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: {{T.runBg}}; color: {{T.runFg}}; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
-        <div>Run week 5</div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-      </div>
+      <sc-if value="{{notSelecting}}" hint-placeholder-val="{{true}}">
+        <div class="display tap press" onClick="{{runWeek}}" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: {{T.runBg}}; color: {{T.runFg}}; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+          <div>Run week 5</div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+        </div>
+      </sc-if>
     </div>
   </div>
 
   <sc-if value="{{plannerOpen}}" hint-placeholder-val="{{false}}">
-    <div onClick="{{closePlanner}}" style="position: absolute; inset: 0; z-index: 20; background: {{T.overlay}};"></div>
-    <div class="drawer" style="position: absolute; top: 0; right: 0; bottom: 0; width: 480px; z-index: 21; background: {{T.drawerBg}}; border-left: 1px solid {{T.sidebarBorder}}; box-shadow: -12px 0 32px {{T.shadow}}; display: flex; flex-direction: column;">
+    <div class="overlay {{drawerCls}}" onClick="{{closePlanner}}" style="position: absolute; inset: 0; z-index: 20; background: {{T.overlay}};"></div>
+    <div class="drawer {{drawerCls}}" style="position: absolute; top: 0; right: 0; bottom: 0; width: 480px; z-index: 21; background: {{T.drawerBg}}; border-left: 1px solid {{T.sidebarBorder}}; box-shadow: -12px 0 32px {{T.shadow}}; display: flex; flex-direction: column;">
       <div style="padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid {{T.line}};">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div class="display" style="font-weight: 800; font-size: 26px;">Add keywords</div>
@@ -344,7 +397,7 @@
             </div>
             <div class="num" style="text-align: right; font-size: 13px;">{{p.weekly}}</div>
             <div class="num" style="text-align: right; font-size: 13px; color: {{T.muted}};">{{p.reach}}</div>
-            <div class="tap" onClick="{{p.add}}" style="justify-self: end; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: {{p.btnBg}}; color: {{p.btnFg}}; border: 1px solid {{p.btnLine}};">{{p.btnLabel}}</div>
+            <div class="tap press" onClick="{{p.add}}" style="justify-self: end; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: {{p.btnBg}}; color: {{p.btnFg}}; border: 1px solid {{p.btnLine}};">{{p.btnLabel}}</div>
           </div>
         </sc-for>
       </div>
@@ -353,7 +406,7 @@
   </sc-if>
 </div>
 </x-dc>
-<script data-dc-script data-props='{"theme":{"editor":"enum","options":["Studio drop","Red signal","Streetlight"],"default":"Studio drop"},"$preview":{"width":1440,"height":900}}'>
+<script data-dc-script data-props='{"theme":{"editor":"enum","options":["Red signal","Studio drop","Streetlight"],"default":"Red signal"},"$preview":{"width":1440,"height":900}}'>
 const DATA = {"reading":{"lostToBudget":50,"lostToRank":0},"keywords":[{"id":"kw_1","text":"gym leggings","tags":["leggings","gym"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":16,"broad":68},"all":{"clicks":9845,"cost":203202,"cpc":20.6,"conv":352.3},"week":{"clicks":2257,"cost":55744,"cpc":24.7,"conv":53.9},"qs":{"score":8,"expectedCtr":"above","adRelevance":"average","landingPage":"average"}},{"id":"kw_2","text":"workout leggings","tags":["leggings","training"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":1,"broad":63},"all":{"clicks":944,"cost":18957,"cpc":20.1,"conv":37.2},"week":{"clicks":194,"cost":4697,"cpc":24.2,"conv":5.1},"qs":{"score":8,"expectedCtr":"above","adRelevance":"average","landingPage":"average"}},{"id":"kw_3","text":"sports bra high impact","tags":["sports-bra","training","women"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":2,"broad":6},"all":{"clicks":836,"cost":16585,"cpc":19.8,"conv":30.4},"week":{"clicks":202,"cost":5322,"cpc":26.4,"conv":5.1},"qs":{"score":6,"expectedCtr":"average","adRelevance":"average","landingPage":"average"}},{"id":"kw_4","text":"gym tights for women","tags":["leggings","gym","women"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":1,"broad":30},"all":{"clicks":562,"cost":13787,"cpc":24.5,"conv":30.9},"week":{"clicks":137,"cost":3514,"cpc":25.6,"conv":5.2},"qs":{"score":6,"expectedCtr":"average","adRelevance":"average","landingPage":"average"}},{"id":"kw_5","text":"running leggings women","tags":["leggings","running","women"],"match":"broad","bid":24,"reach":{"exact":1,"phrase":1,"broad":12},"all":{"clicks":2013,"cost":31028,"cpc":15.4,"conv":72.3},"week":{"clicks":445,"cost":6459,"cpc":14.5,"conv":10.6},"qs":{"score":6,"expectedCtr":"average","adRelevance":"average","landingPage":"average"}},{"id":"kw_6","text":"high waisted gym leggings","tags":["leggings","high-waisted","gym"],"match":"broad","bid":24,"reach":{"exact":1,"phrase":1,"broad":19},"all":{"clicks":715,"cost":8905,"cpc":12.5,"conv":22.7},"week":{"clicks":136,"cost":1453,"cpc":10.7,"conv":2.8},"qs":null},{"id":"kw_7","text":"vella leggings","tags":["brand-term","india"],"match":"exact","bid":57,"reach":{"exact":1,"phrase":1,"broad":18},"all":{"clicks":687,"cost":4070,"cpc":5.9,"conv":46.2},"week":{"clicks":135,"cost":1060,"cpc":7.8,"conv":5.9},"qs":{"score":10,"expectedCtr":"above","adRelevance":"above","landingPage":"above"}}],"planner":[{"text":"cheap gym leggings","weekly":10105,"intent":"commercial","tags":["leggings","gym","cheap","women"],"reach":{"exact":1,"phrase":1,"broad":31}},{"text":"gym wear sale","weekly":9202,"intent":"commercial","tags":["gym","sale"],"reach":{"exact":1,"phrase":1,"broad":40}},{"text":"cheap athleisure","weekly":9116,"intent":"commercial","tags":["casual","cheap","women"],"reach":{"exact":1,"phrase":1,"broad":8}},{"text":"co ord set sale","weekly":8299,"intent":"commercial","tags":["co-ord-set","sale"],"reach":{"exact":1,"phrase":1,"broad":23}},{"text":"budget gym wear women","weekly":8256,"intent":"commercial","tags":["gym","budget","women"],"reach":{"exact":1,"phrase":1,"broad":12}},{"text":"budget loungewear","weekly":7482,"intent":"commercial","tags":["lounge","budget","women"],"reach":{"exact":1,"phrase":1,"broad":8}},{"text":"leggings combo pack","weekly":7439,"intent":"commercial","tags":["leggings","combo"],"reach":{"exact":1,"phrase":1,"broad":53}},{"text":"sports bra combo pack","weekly":7353,"intent":"commercial","tags":["sports-bra","combo","budget"],"reach":{"exact":1,"phrase":1,"broad":2}},{"text":"gym leggings under 999","weekly":6450,"intent":"commercial","tags":["leggings","gym","budget"],"reach":{"exact":1,"phrase":1,"broad":22}},{"text":"co ord set under 999","weekly":5805,"intent":"commercial","tags":["co-ord-set","budget"],"reach":{"exact":1,"phrase":1,"broad":37}},{"text":"loungewear set under 799","weekly":5805,"intent":"commercial","tags":["lounge","co-ord-set","budget"],"reach":{"exact":1,"phrase":1,"broad":10}},{"text":"gym leggings","weekly":5590,"intent":"commercial","tags":["leggings","gym"],"reach":{"exact":1,"phrase":16,"broad":68}},{"text":"sports bra under 500","weekly":5504,"intent":"commercial","tags":["sports-bra","budget"],"reach":{"exact":1,"phrase":1,"broad":27}},{"text":"leggings under 499","weekly":5504,"intent":"commercial","tags":["leggings","budget"],"reach":{"exact":1,"phrase":1,"broad":66}},{"text":"athleisure leggings","weekly":5246,"intent":"commercial","tags":["leggings","casual"],"reach":{"exact":1,"phrase":1,"broad":63}},{"text":"workout leggings","weekly":5117,"intent":"commercial","tags":["leggings","training"],"reach":{"exact":1,"phrase":1,"broad":63}},{"text":"joggers under 599","weekly":4988,"intent":"commercial","tags":["joggers","budget"],"reach":{"exact":1,"phrase":1,"broad":29}},{"text":"lounge pants under 499","weekly":4988,"intent":"commercial","tags":["pants","lounge","budget"],"reach":{"exact":1,"phrase":1,"broad":9}},{"text":"co ord set","weekly":4816,"intent":"commercial","tags":["co-ord-set"],"reach":{"exact":1,"phrase":9,"broad":19}},{"text":"pack of 2 gym leggings","weekly":4601,"intent":"commercial","tags":["leggings","gym","combo"],"reach":{"exact":1,"phrase":1,"broad":23}},{"text":"workout tshirt under 300","weekly":4601,"intent":"commercial","tags":["tshirt","training","budget"],"reach":{"exact":1,"phrase":1,"broad":3}},{"text":"gym leggings offer today","weekly":4601,"intent":"commercial","tags":["leggings","gym","sale"],"reach":{"exact":1,"phrase":1,"broad":20}},{"text":"sports bra high impact","weekly":4171,"intent":"commercial","tags":["sports-bra","training","women"],"reach":{"exact":1,"phrase":2,"broad":6}},{"text":"oversized tshirt under 399","weekly":4128,"intent":"commercial","tags":["tshirt","oversized","budget"],"reach":{"exact":1,"phrase":1,"broad":3}},{"text":"matching set sale women","weekly":4128,"intent":"commercial","tags":["co-ord-set","sale","women"],"reach":{"exact":1,"phrase":1,"broad":9}},{"text":"everyday leggings pack of 3","weekly":4128,"intent":"commercial","tags":["leggings","everyday","combo"],"reach":{"exact":1,"phrase":1,"broad":7}},{"text":"seamless leggings","weekly":4042,"intent":"commercial","tags":["leggings","seamless"],"reach":{"exact":1,"phrase":1,"broad":52}},{"text":"everyday leggings","weekly":3956,"intent":"commercial","tags":["leggings","everyday"],"reach":{"exact":1,"phrase":2,"broad":52}},{"text":"joggers for women","weekly":3956,"intent":"commercial","tags":["joggers","casual","women"],"reach":{"exact":1,"phrase":1,"broad":11}},{"text":"free workout plan","weekly":3956,"intent":"irrelevant","tags":["training","free"],"reach":{"exact":1,"phrase":1,"broad":17}},{"text":"premium athleisure","weekly":3784,"intent":"commercial","tags":["casual","premium"],"reach":{"exact":1,"phrase":1,"broad":22}},{"text":"gym tights for women","weekly":3741,"intent":"commercial","tags":["leggings","gym","women"],"reach":{"exact":1,"phrase":1,"broad":30}},{"text":"best gym leggings under 1000","weekly":3698,"intent":"commercial","tags":["leggings","gym","budget","compare"],"reach":{"exact":1,"phrase":1,"broad":26}},{"text":"running shorts under 400","weekly":3698,"intent":"commercial","tags":["shorts","running","budget"],"reach":{"exact":1,"phrase":1,"broad":2}},{"text":"gym wear clearance sale","weekly":3698,"intent":"commercial","tags":["gym","sale","discount"],"reach":{"exact":1,"phrase":1,"broad":4}},{"text":"compression leggings","weekly":3698,"intent":"commercial","tags":["leggings","compression"],"reach":{"exact":1,"phrase":2,"broad":50}},{"text":"yoga pants under 600","weekly":3655,"intent":"commercial","tags":["pants","yoga","budget"],"reach":{"exact":1,"phrase":1,"broad":3}},{"text":"gym near me","weekly":3569,"intent":"irrelevant","tags":["gym","research"],"reach":{"exact":1,"phrase":1,"broad":41}},{"text":"designer leggings","weekly":3483,"intent":"commercial","tags":["leggings","luxury"],"reach":{"exact":1,"phrase":1,"broad":54}},{"text":"squat proof leggings","weekly":3354,"intent":"commercial","tags":["leggings","squat-proof","gym"],"reach":{"exact":1,"phrase":2,"broad":20}},{"text":"flared leggings under 699","weekly":3311,"intent":"commercial","tags":["leggings","flared","budget"],"reach":{"exact":1,"phrase":1,"broad":6}},{"text":"joggers combo women","weekly":3311,"intent":"commercial","tags":["joggers","combo","women"],"reach":{"exact":1,"phrase":1,"broad":10}},{"text":"crop top under 299","weekly":3311,"intent":"commercial","tags":["tank","cropped","budget"],"reach":{"exact":1,"phrase":1,"broad":1}},{"text":"athleisure clearance sale","weekly":3311,"intent":"commercial","tags":["casual","sale","discount"],"reach":{"exact":1,"phrase":1,"broad":2}},{"text":"best co ord set under 1000","weekly":3311,"intent":"commercial","tags":["co-ord-set","budget","compare"],"reach":{"exact":1,"phrase":1,"broad":4}},{"text":"running leggings women","weekly":3268,"intent":"commercial","tags":["leggings","running","women"],"reach":{"exact":1,"phrase":1,"broad":12}},{"text":"high waisted gym leggings","weekly":3268,"intent":"commercial","tags":["leggings","high-waisted","gym"],"reach":{"exact":1,"phrase":1,"broad":19}},{"text":"how to lose belly fat","weekly":3182,"intent":"irrelevant","tags":["training","how-to"],"reach":{"exact":1,"phrase":1,"broad":23}},{"text":"luxury loungewear","weekly":3139,"intent":"commercial","tags":["lounge","luxury"],"reach":{"exact":1,"phrase":1,"broad":17}},{"text":"lounge pants women","weekly":3053,"intent":"commercial","tags":["pants","lounge","women"],"reach":{"exact":1,"phrase":1,"broad":9}},{"text":"vella leggings","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"kestrel gym wear","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"marlow co ord set","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"satva leggings review","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"halcyon activewear","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"lumen sports bra","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"nira joggers","weekly":2838,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"torvi leggings","weekly":2838,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"auren athleisure","weekly":2838,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"training shorts women","weekly":2795,"intent":"commercial","tags":["shorts","training","women"],"reach":{"exact":1,"phrase":1,"broad":6}}]};
 
 /*
@@ -489,7 +542,18 @@ class Component extends DCLogic {
       selecting: false, selected: {}, bulkBid: '25', bulkPct: '-20',
       plannerOpen: false, plannerTerm: '', plannerMatch: 'phrase', plannerBid: '30',
       qsOpen: null, menuOpen: null, editing: null, editValue: '', toast: '', nextId: 1,
+      leaving: {}, drawerClosing: false, unlocked: {}, seen: {}, justOpened: null,
     };
+    // The order tray lines first appeared in. Oldest first, so a new change
+    // always lands at the end, and is the only line that enters.
+    this.lineOrder = [];
+  }
+
+  /** Close the planner the way it came, then take it off the page. */
+  closeDrawer() {
+    if (this.state.drawerClosing) return;
+    this.setState({ drawerClosing: true });
+    setTimeout(() => this.setState({ plannerOpen: false, drawerClosing: false }), 150);
   }
 
   patch(id, change) {
@@ -534,7 +598,7 @@ class Component extends DCLogic {
 
   renderVals() {
     const s = this.state;
-    const T = THEMES[this.props.theme] ?? THEMES['Studio drop'];
+    const T = THEMES[this.props.theme] ?? THEMES['Red signal'];
     const live = s.kws.filter((k) => !k.removed);
 
     const areas = AREAS.map((a) => {
@@ -549,7 +613,9 @@ class Component extends DCLogic {
     const sectionList = SECTIONS[s.area];
     const sections = sectionList.map((x) => {
       const on = x.key === s.section;
-      const locked = x.lockedUntil != null;
+      const unlocked = Boolean(s.unlocked[x.key]);
+      const locked = x.lockedUntil != null && !unlocked;
+      const fresh = unlocked && !s.seen[x.key];
       return {
         label: x.label, paths: x.icon,
         weight: on ? 700 : 500,
@@ -558,11 +624,26 @@ class Component extends DCLogic {
         stroke: on ? T.accent : 'currentColor',
         shadow: on ? T.sectionShadow : 'none',
         hasLock: locked, lock: locked ? `week ${x.lockedUntil}` : '',
-        pick: () => this.setState({ section: x.key, toast: '' }),
+        hasDot: fresh,
+        // The first visit after an unlock is the one its cards arrive on.
+        pick: () => this.setState((st) => ({
+          section: x.key, toast: '',
+          justOpened: fresh ? x.key : null,
+          seen: fresh ? { ...st.seen, [x.key]: true } : st.seen,
+        })),
       };
     });
     const current = sectionList.find((x) => x.key === s.section) ?? sectionList[0];
     const showKeywords = s.area === 'brand' && current.key === 'keywords';
+    const showReturns = s.area === 'brand' && current.key === 'returns' && Boolean(s.unlocked.returns);
+    const returnsCards = [
+      ['What came back', 'Built after the pilot. Today’s What came back card moves here: refused at the door against sent back, and what each cost to carry.'],
+      ['Prepaid discount', 'Built after the pilot. Today’s Prepaid discount card moves here: money off, to keep the parcel out of the wrong hands.'],
+    ].map(([title, text], i) => ({
+      title, body: text,
+      cls: s.justOpened === 'returns' ? 'firstin' : '',
+      delay: s.justOpened === 'returns' ? i * 40 : 0,
+    }));
     let body = '';
     if (current.holds) body = `Built after the pilot. Until then this section holds today’s cards: ${current.holds}.`;
     else if (current.soon) body = `Designed after the pilot. ${current.soon}`;
@@ -605,7 +686,7 @@ class Component extends DCLogic {
         qsParts: k.qs ? [['Expected click-through', k.qs.expectedCtr], ['Ad relevance', k.qs.adRelevance], ['Landing page', k.qs.landingPage]]
           .map(([label, r]) => ({ label, rating: RATING_WORD[r], color: T[r] })) : [],
         qsNote: k.qs ? 'Each part is compared with everyone who showed on the same searches.' : 'Not enough of its own data to score yet.',
-        switchBg: paused ? T.switchOff : T.switchOn, knobLeft: paused ? '2px' : '16px',
+        switchBg: paused ? T.switchOff : T.switchOn, knobX: paused ? '0px' : '14px',
         switchLabel: paused ? 'Paused' : 'Running', switchText: paused ? T.muted : T.switchOnText,
         switchTitle: paused ? 'Paused: tap to enter auctions again' : 'Running: tap to pause',
         toggleActive: () => this.patch(k.id, { active: !k.active }),
@@ -661,21 +742,39 @@ class Component extends DCLogic {
     const selectedCount = live.filter((k) => s.selected[k.id]).length;
     const bulkMatches = MATCHES.map((m) => ({ label: LABEL[m], pick: () => this.forEachSelected((k) => ({ ...k, match: m })) }));
 
-    const trayLines = [];
+    const raw = [];
     for (const k of s.kws) {
       const b = s.base[k.id];
       if (k.added) {
-        trayLines.push({ text: `Added: ${k.text} · ${k.match} · ₹${k.bid}`, undo: () => this.setState((st) => ({ kws: st.kws.filter((x) => x.id !== k.id), toast: '' })) });
+        raw.push({ id: `${k.id}:add`, text: `Added: ${k.text} · ${k.match} · ₹${k.bid}`, undo: () => this.setState((st) => ({ kws: st.kws.filter((x) => x.id !== k.id), toast: '' })) });
         continue;
       }
       if (k.removed) {
-        trayLines.push({ text: `Removed: ${k.text}`, undo: () => this.patch(k.id, { removed: false }) });
+        raw.push({ id: `${k.id}:remove`, text: `Removed: ${k.text}`, undo: () => this.patch(k.id, { removed: false }) });
         continue;
       }
-      if (k.bid !== b.bid) trayLines.push({ text: `${k.text} · bid ₹${b.bid} → ₹${k.bid}`, undo: () => this.patch(k.id, { bid: b.bid }) });
-      if (k.match !== b.match) trayLines.push({ text: `${k.text} · ${b.match} → ${k.match}`, undo: () => this.patch(k.id, { match: b.match }) });
-      if (k.active !== b.active) trayLines.push({ text: `${k.active ? 'Resumed' : 'Paused'}: ${k.text}`, undo: () => this.patch(k.id, { active: b.active }) });
+      if (k.bid !== b.bid) raw.push({ id: `${k.id}:bid`, text: `${k.text} · bid ₹${b.bid} → ₹${k.bid}`, undo: () => this.patch(k.id, { bid: b.bid }) });
+      if (k.match !== b.match) raw.push({ id: `${k.id}:match`, text: `${k.text} · ${b.match} → ${k.match}`, undo: () => this.patch(k.id, { match: b.match }) });
+      if (k.active !== b.active) raw.push({ id: `${k.id}:active`, text: `${k.active ? 'Resumed' : 'Paused'}: ${k.text}`, undo: () => this.patch(k.id, { active: b.active }) });
     }
+    this.lineOrder = this.lineOrder.filter((id) => raw.some((l) => l.id === id));
+    for (const l of raw) if (!this.lineOrder.includes(l.id)) this.lineOrder.push(l.id);
+    // A line keeps its place while its text changes (₹33 → ₹25 → ₹20 mid-drag),
+    // so it enters once. An undone line fades for 150ms before it goes.
+    const trayLines = [...raw]
+      .sort((a, b) => this.lineOrder.indexOf(a.id) - this.lineOrder.indexOf(b.id))
+      .map((l) => ({
+        text: l.text,
+        cls: s.leaving[l.id] ? 'leaving' : '',
+        undo: () => {
+          if (this.state.leaving[l.id]) return;
+          this.setState((st) => ({ leaving: { ...st.leaving, [l.id]: true } }));
+          setTimeout(() => {
+            l.undo();
+            this.setState((st) => { const leaving = { ...st.leaving }; delete leaving[l.id]; return { leaving }; });
+          }, 150);
+        },
+      }));
 
     const term = norm(s.plannerTerm);
     const held = new Set(live.map((k) => norm(k.text)));
@@ -697,7 +796,16 @@ class Component extends DCLogic {
     return {
       T,
       areas, sections, areaTitle: areaInfo.title,
-      showKeywords, showPlaceholder: !showKeywords, placeholder: { title: current.label, body },
+      showKeywords, showReturns, returnsCards,
+      showPlaceholder: !showKeywords && !showReturns, placeholder: { title: current.label, body },
+      canPreviewUnlock: s.area === 'brand' && current.key === 'returns' && !s.unlocked.returns,
+      previewUnlock: () => this.setState((st) => ({
+        unlocked: { ...st.unlocked, returns: true }, section: 'keywords',
+        toast: 'A mock-up of week 6: Returns has opened. Its dot says there is something new there; open it.',
+      })),
+      trayBg: s.selecting ? T.bulkBg : T.trayBg,
+      trayLine: s.selecting ? T.accent : T.sidebarBorder,
+      drawerCls: s.drawerClosing ? 'closing' : '',
       countLabel: plural(live.length, 'keyword', 'keywords'),
       rangeLabel: s.range === 'week' ? 'week 4' : 'weeks 1–4',
       lostToBudget: `${DATA.reading.lostToBudget}%`, rankLine, spend, spendLegend,
@@ -729,6 +837,7 @@ class Component extends DCLogic {
       bulkMatches,
       dots: Array.from({ length: 12 }, (_, i) => (i < 4 ? { bg: T.dotOn, line: T.dotOn } : { bg: 'transparent', line: T.dotOff })),
       trayLines, hasChanges: trayLines.length > 0, noChanges: trayLines.length === 0,
+      trayShowsChanges: !s.selecting && trayLines.length > 0, trayEmpty: !s.selecting && trayLines.length === 0,
       changeCount: String(trayLines.length), changeWord: trayLines.length === 1 ? 'change waiting' : 'changes waiting',
       runWeek: () => this.setState({
         toast: trayLines.length
@@ -738,7 +847,7 @@ class Component extends DCLogic {
       hasToast: s.toast.length > 0, toast: s.toast,
       plannerOpen: s.plannerOpen,
       openPlanner: () => this.setState({ plannerOpen: true, toast: '' }),
-      closePlanner: () => this.setState({ plannerOpen: false }),
+      closePlanner: () => this.closeDrawer(),
       plannerTerm: s.plannerTerm, plannerBid: s.plannerBid,
       onPlannerTerm: (e) => this.setState({ plannerTerm: e.target.value }),
       onPlannerBid: (e) => this.setState({ plannerBid: e.target.value }),
