@@ -1,0 +1,647 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; background: #F1ECE2; }
+    a { color: #1E2622; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: #000000; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .tap { cursor: pointer; user-select: none; }
+    .hov:hover { background: #EFE9DE; }
+    .link { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .kslider:focus-within .kthumb { box-shadow: 0 0 0 5px rgba(196, 90, 53, 0.25); }
+    .kinput { -webkit-appearance: none; appearance: none; background: transparent; }
+    .kinput::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; }
+    .kinput::-moz-range-thumb { width: 16px; height: 16px; border: 0; }
+    .field { font: inherit; font-size: 14px; color: #1E2622; background: #FBF8F3; border: 1px solid #D6CDBD; border-radius: 10px; padding: 0 12px; height: 38px; box-sizing: border-box; outline: none; }
+    .field:focus { border-color: #1E2622; box-shadow: 0 0 0 3px rgba(30, 38, 34, 0.12); }
+    .chip { animation: land 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .drawer { animation: slidein 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+    @keyframes land { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes slidein { from { transform: translateX(32px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .chip, .drawer { animation: none; } }
+  </style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #F1ECE2; color: #1E2622; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+
+  <div style="background: #1E2622; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #C45A35; color: #FFF8F2; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <sc-for list="{{areas}}" as="a" hint-placeholder-count="4">
+      <div class="tap" onClick="{{a.pick}}" title="{{a.label}}" style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: {{a.bg}}; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{a.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <sc-for list="{{a.paths}}" as="p" hint-placeholder-count="2"><path d="{{p}}"></path></sc-for>
+        </svg>
+        <div style="font-size: 10px; font-weight: 600; color: {{a.fg}};">{{a.label}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="background: #E8E1D4; border-right: 1px solid #DDD5C7; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #5C605A;">Mid-price · Performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #7A7D76;">{{areaTitle}}</div>
+    <sc-for list="{{sections}}" as="s" hint-placeholder-count="7">
+      <div class="tap" onClick="{{s.pick}}" style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: {{s.weight}}; background: {{s.bg}}; color: {{s.fg}}; box-shadow: {{s.shadow}};">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{s.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <sc-for list="{{s.paths}}" as="p" hint-placeholder-count="2"><path d="{{p}}"></path></sc-for>
+        </svg>
+        <div style="flex-grow: 1;">{{s.label}}</div>
+        <sc-if value="{{s.hasLock}}" hint-placeholder-val="{{false}}">
+          <div style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid #CFC6B6; color: #7A7D76;">{{s.lock}}</div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #DDD5C7;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div class="display" style="font-weight: 700; font-size: 20px;">Week 4 <span style="font-weight: 400; color: #7A7D76;">of 12</span></div>
+        <div style="display: flex; gap: 6px;">
+          <sc-for list="{{dots}}" as="d" hint-placeholder-count="12">
+            <div style="width: 9px; height: 9px; border-radius: 50%; background: {{d.bg}}; border: 1.5px solid {{d.line}}; box-sizing: border-box;"></div>
+          </sc-for>
+        </div>
+        <div style="font-size: 12px; color: #7A7D76;">saved</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 13px; color: #5C605A;">Month 1</div>
+        <div style="width: 160px; height: 6px; border-radius: 3px; background: #DDD5C7; overflow: hidden;"><div style="width: 95%; height: 100%; background: #1E2622;"></div></div>
+        <div class="num" style="font-size: 14px; font-weight: 700;">₹2,96,535 <span style="font-weight: 400; color: #5C605A;">of ₹3,13,000 spent</span></div>
+      </div>
+    </div>
+
+    <sc-if value="{{showKeywords}}" hint-placeholder-val="{{true}}">
+      <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 22px 40px 28px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: stretch; justify-content: space-between; gap: 24px;">
+          <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 8px;">
+            <div class="display" style="font-weight: 800; font-size: 52px; line-height: 0.95; letter-spacing: -0.025em;">Your keywords</div>
+            <div style="font-size: 14px; color: #5C605A;">{{countLabel}} · {{rangeLabel}} · <span class="link" onClick="{{whyNumbers}}">why these numbers?</span></div>
+          </div>
+          <div style="background: #1E2622; color: #F1ECE2; border-radius: 20px; padding: 14px 22px; display: flex; align-items: center; gap: 22px; max-width: 640px;">
+            <div style="display: flex; flex-direction: column;">
+              <div class="display num" style="font-weight: 800; font-size: 40px; line-height: 1; color: #F0A283;">{{lostToBudget}}</div>
+              <div style="font-size: 12px; color: #B9BFB9;">lost to budget</div>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+              <div class="display num" style="font-weight: 800; font-size: 40px; line-height: 1;">{{lostToRank}}</div>
+              <div style="font-size: 12px; color: #B9BFB9;">lost to rank</div>
+            </div>
+            <div style="font-size: 14px; line-height: 1.45; color: #DCE0DA; text-wrap: pretty; max-width: 290px;">Half of week 4’s auctions went unbought because the money ran out. None were lost because your ad ranked too low.</div>
+          </div>
+        </div>
+
+        <sc-if value="{{notSelecting}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; align-items: center; justify-content: space-between; height: 40px;">
+            <div style="display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: #E6DED0;">
+              <sc-for list="{{ranges}}" as="r" hint-placeholder-count="2">
+                <div class="tap" onClick="{{r.pick}}" style="padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; background: {{r.bg}}; color: {{r.fg}};">{{r.label}}</div>
+              </sc-for>
+            </div>
+            <div class="tap hov" onClick="{{startSelecting}}" style="height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid #CFC6B6; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h4v4H4zM4 15h4v4H4zM12 7h8M12 17h8"></path></svg>
+              <div>Adjust several</div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{selecting}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; align-items: center; gap: 14px; min-height: 40px; padding: 8px 10px 8px 18px; border-radius: 16px; background: #1E2622; color: #F1ECE2; flex-wrap: wrap;">
+            <div style="font-size: 14px; font-weight: 700; min-width: 92px;">{{selectedLabel}}</div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="font-size: 13px; color: #B9BFB9;">Set bid ₹</div>
+              <input class="field num" style="width: 64px; height: 32px; background: #2A332E; color: #F1ECE2; border-color: #3C4741;" value="{{bulkBid}}" onChange="{{onBulkBid}}">
+              <div class="tap" onClick="{{applySetBid}}" style="padding: 6px 12px; border-radius: 999px; background: #F1ECE2; color: #1E2622; font-size: 13px; font-weight: 700;">Apply</div>
+            </div>
+            <div style="width: 1px; height: 22px; background: #3C4741;"></div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="font-size: 13px; color: #B9BFB9;">Change by</div>
+              <input class="field num" style="width: 60px; height: 32px; background: #2A332E; color: #F1ECE2; border-color: #3C4741;" value="{{bulkPct}}" onChange="{{onBulkPct}}">
+              <div style="font-size: 13px; color: #B9BFB9;">%</div>
+              <div class="tap" onClick="{{applyPct}}" style="padding: 6px 12px; border-radius: 999px; background: #F1ECE2; color: #1E2622; font-size: 13px; font-weight: 700;">Apply</div>
+            </div>
+            <div style="width: 1px; height: 22px; background: #3C4741;"></div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <div style="font-size: 13px; color: #B9BFB9;">Match</div>
+              <sc-for list="{{bulkMatches}}" as="m" hint-placeholder-count="3">
+                <div class="tap" onClick="{{m.pick}}" style="padding: 5px 10px; border-radius: 999px; border: 1px solid #56625B; font-size: 12px; font-weight: 600;">{{m.label}}</div>
+              </sc-for>
+            </div>
+            <div style="flex-grow: 1;"></div>
+            <div class="tap" onClick="{{stopSelecting}}" style="padding: 7px 14px; border-radius: 999px; border: 1px solid #56625B; font-size: 13px; font-weight: 700;">Done</div>
+          </div>
+        </sc-if>
+
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
+          <sc-for list="{{cards}}" as="c" hint-placeholder-count="7">
+            <div style="position: relative; background: {{c.bg}}; border-radius: 20px; border: 1px solid {{c.borderColor}}; box-shadow: 0 0 0 1px {{c.ring}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; height: 296px; transition: border-color 150ms ease, box-shadow 150ms ease;">
+              <div style="display: flex; align-items: center; justify-content: space-between; height: 26px;">
+                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                  <sc-if value="{{c.selecting}}" hint-placeholder-val="{{false}}">
+                    <div class="tap" onClick="{{c.toggleSelect}}" style="width: 20px; height: 20px; border-radius: 6px; border: 2px solid {{c.checkLine}}; background: {{c.checkBg}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FBF8F3" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+                    </div>
+                  </sc-if>
+                  <div style="font-size: 12px; font-weight: 600; color: {{c.tagColor}}; white-space: nowrap;">{{c.tag}}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <div class="tap" onClick="{{c.toggleQs}}" title="Quality Score: tap for its three parts" style="padding: 3px 9px; border-radius: 999px; background: {{c.qsBg}}; color: {{c.qsFg}}; font-size: 12px; font-weight: 700;">QS {{c.qsLabel}}</div>
+                  <div class="tap" onClick="{{c.toggleActive}}" title="{{c.switchTitle}}" style="position: relative; width: 34px; height: 20px; border-radius: 999px; background: {{c.switchBg}}; transition: background 150ms ease;">
+                    <div style="position: absolute; top: 2px; left: {{c.knobLeft}}; width: 16px; height: 16px; border-radius: 50%; background: #FBF8F3; transition: left 150ms ease;"></div>
+                  </div>
+                  <div class="tap hov" onClick="{{c.toggleMenu}}" title="More" style="width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #5C605A;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg>
+                  </div>
+                </div>
+              </div>
+              <sc-if value="{{c.menuOpen}}" hint-placeholder-val="{{false}}">
+                <div style="position: absolute; top: 44px; right: 12px; z-index: 5; background: #FBF8F3; border: 1px solid #DDD5C7; border-radius: 12px; box-shadow: 0 8px 24px rgba(30, 38, 34, 0.14); padding: 6px; display: flex; flex-direction: column; min-width: 170px;">
+                  <div class="tap hov" onClick="{{c.remove}}" style="padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #9E2B25;">Remove keyword</div>
+                  <div class="tap hov" onClick="{{c.toggleMenu}}" style="padding: 8px 10px; border-radius: 8px; font-size: 13px; color: #5C605A;">Cancel</div>
+                </div>
+              </sc-if>
+              <div class="display" style="font-weight: 700; font-size: 19px; line-height: 1.15; letter-spacing: -0.01em; height: 44px; color: {{c.textColor}};">{{c.text}}</div>
+
+              <sc-if value="{{c.qsOpen}}" hint-placeholder-val="{{false}}">
+                <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1;">
+                  <div style="font-size: 13px; font-weight: 700;">Quality Score {{c.qsLabel}}</div>
+                  <sc-for list="{{c.qsParts}}" as="q" hint-placeholder-count="3">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #EAE2D4;">
+                      <div style="font-size: 13px; color: #3B433E;">{{q.label}}</div>
+                      <div style="font-size: 12px; font-weight: 700; color: {{q.color}}; white-space: nowrap;">{{q.rating}}</div>
+                    </div>
+                  </sc-for>
+                  <div style="font-size: 12px; line-height: 1.45; color: #5C605A;">{{c.qsNote}} <span class="link" onClick="{{whyQuality}}">why?</span></div>
+                  <div class="tap" onClick="{{c.toggleQs}}" style="margin-top: auto; align-self: flex-start; font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px;">Back to the keyword</div>
+                </div>
+              </sc-if>
+
+              <sc-if value="{{c.qsClosed}}" hint-placeholder-val="{{true}}">
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                  <div style="display: flex; gap: 4px;">
+                    <sc-for list="{{c.pills}}" as="m" hint-placeholder-count="3">
+                      <div class="tap" onClick="{{m.pick}}" style="padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.line}}; transition: background 120ms ease, color 120ms ease;">{{m.label}}</div>
+                    </sc-for>
+                  </div>
+                  <div style="font-size: 12px; color: #5C605A;">{{c.reachLabel}}</div>
+                  <sc-if value="{{c.showTags}}" hint-placeholder-val="{{false}}">
+                    <div style="font-size: 12px; color: {{c.tagsColor}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.tagsLine}}</div>
+                  </sc-if>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; height: 28px;">
+                    <div style="font-size: 12px; color: #5C605A;">Bid</div>
+                    <sc-if value="{{c.editing}}" hint-placeholder-val="{{false}}">
+                      <input class="field num" style="width: 84px; height: 30px; text-align: right; font-weight: 700;" value="{{c.editValue}}" autoFocus="{{true}}" onChange="{{c.onEdit}}" onKeyDown="{{c.onEditKey}}" onBlur="{{c.commitEdit}}">
+                    </sc-if>
+                    <sc-if value="{{c.notEditing}}" hint-placeholder-val="{{true}}">
+                      <div class="display num tap" onClick="{{c.startEdit}}" title="Tap to type an exact bid" style="font-weight: 800; font-size: 22px; border-bottom: 1px dashed #CFC6B6;">₹{{c.bid}}</div>
+                    </sc-if>
+                  </div>
+                  <div class="kslider" style="position: relative; height: 16px;">
+                    <div style="position: absolute; left: 0; right: 0; top: 6px; height: 4px; border-radius: 2px; background: #E4DCCD;"></div>
+                    <div style="position: absolute; left: 0; top: 6px; height: 4px; border-radius: 2px; background: {{c.fill}}; width: {{c.pct}}%;"></div>
+                    <sc-if value="{{c.hasWas}}" hint-placeholder-val="{{false}}">
+                      <div style="position: absolute; top: 2px; left: calc({{c.wasPct}}% - 6px); width: 12px; height: 12px; border-radius: 50%; border: 2px dashed #8A8C85; box-sizing: border-box; background: #FBF8F3;"></div>
+                    </sc-if>
+                    <div class="kthumb" style="position: absolute; top: 0; left: calc({{c.pct}}% - 8px); width: 16px; height: 16px; border-radius: 50%; background: #FBF8F3; border: 3px solid {{c.fill}}; box-sizing: border-box; transition: box-shadow 120ms ease;"></div>
+                    <input class="kinput" type="range" min="1" max="{{c.max}}" step="1" value="{{c.bid}}" onChange="{{c.onSlide}}" aria-label="{{c.sliderLabel}}" style="position: absolute; left: -8px; top: -8px; width: calc(100% + 16px); height: 32px; margin: 0; opacity: 0; cursor: pointer;">
+                  </div>
+                  <div style="font-size: 12px; color: #5C605A;">{{c.paidLine}}</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding-top: 10px; border-top: 1px solid #EAE2D4; margin-top: auto;">
+                  <div style="display: flex; flex-direction: column;"><div class="num" style="font-weight: 700; font-size: 16px;">{{c.clicks}}</div><div style="font-size: 12px; color: #5C605A;">clicks</div></div>
+                  <div style="display: flex; flex-direction: column;"><div class="num" style="font-weight: 700; font-size: 16px;">{{c.cost}}</div><div style="font-size: 12px; color: #5C605A;">cost</div></div>
+                  <div style="display: flex; flex-direction: column;"><div class="num" style="font-weight: 700; font-size: 16px;">{{c.conv}}</div><div style="font-size: 12px; color: #5C605A;">conv.</div></div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+          <div class="tap hov" onClick="{{openPlanner}}" style="border-radius: 20px; border: 2px dashed #CFC6B6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #5C605A; height: 296px; box-sizing: border-box;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: #E8E1D4; display: flex; align-items: center; justify-content: center; color: #1E2622;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+            </div>
+            <div class="display" style="font-weight: 700; font-size: 16px; color: #1E2622;">Add a keyword</div>
+            <div style="font-size: 12px;">from the planner, or your own words</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{showPlaceholder}}" hint-placeholder-val="{{false}}">
+      <div style="flex-grow: 1; min-height: 0; padding: 40px; display: flex; flex-direction: column; gap: 18px;">
+        <div class="display" style="font-weight: 800; font-size: 52px; line-height: 0.95; letter-spacing: -0.025em;">{{placeholder.title}}</div>
+        <div style="max-width: 620px; background: #FBF8F3; border: 1px dashed #CFC6B6; border-radius: 20px; padding: 22px 24px; font-size: 15px; line-height: 1.55; color: #3B433E;">{{placeholder.body}}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
+      <div class="chip" style="position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%); z-index: 8; background: #1E2622; color: #F1ECE2; padding: 10px 16px; border-radius: 12px; font-size: 13px; max-width: 560px; box-shadow: 0 8px 24px rgba(30, 38, 34, 0.2);">{{toast}}</div>
+    </sc-if>
+
+    <div style="height: 76px; flex-shrink: 0; background: #FBF8F3; border-top: 1px solid #DDD5C7; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <sc-if value="{{hasChanges}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex-grow: 1;">
+          <div style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #C45A35; color: #FFF8F2; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">{{changeCount}}</div>
+          <div style="font-size: 15px; font-weight: 600; white-space: nowrap;">{{changeWord}}</div>
+          <div style="display: flex; gap: 8px; overflow-x: auto; min-width: 0; padding: 4px 0;">
+            <sc-for list="{{trayLines}}" as="t" hint-placeholder-count="2">
+              <div class="chip" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 999px; background: #EFE9DE; font-size: 13px; white-space: nowrap;">
+                <div>{{t.text}}</div>
+                <div class="tap" onClick="{{t.undo}}" title="Undo this change" style="width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #5C605A; background: #E4DCCD;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{noChanges}}" hint-placeholder-val="{{true}}">
+        <div style="font-size: 14px; color: #5C605A;">No changes yet. Anything you change, in any section, lands here.</div>
+      </sc-if>
+      <div class="display tap" onClick="{{runWeek}}" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #1E2622; color: #F1ECE2; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <div>Run week 5</div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{plannerOpen}}" hint-placeholder-val="{{false}}">
+    <div onClick="{{closePlanner}}" style="position: absolute; inset: 0; z-index: 20; background: rgba(30, 38, 34, 0.28);"></div>
+    <div class="drawer" style="position: absolute; top: 0; right: 0; bottom: 0; width: 480px; z-index: 21; background: #FBF8F3; box-shadow: -12px 0 32px rgba(30, 38, 34, 0.18); display: flex; flex-direction: column;">
+      <div style="padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid #E4DCCD;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div class="display" style="font-weight: 800; font-size: 26px;">Add keywords</div>
+          <div class="tap hov" onClick="{{closePlanner}}" title="Close" style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </div>
+        </div>
+        <input class="field" placeholder="search the planner, or type your own" value="{{plannerTerm}}" onChange="{{onPlannerTerm}}">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; gap: 4px;">
+            <sc-for list="{{plannerPills}}" as="m" hint-placeholder-count="3">
+              <div class="tap" onClick="{{m.pick}}" style="padding: 5px 11px; border-radius: 999px; font-size: 13px; font-weight: 600; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.line}};">{{m.label}}</div>
+            </sc-for>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="font-size: 13px; color: #5C605A;">Bid ₹</div>
+            <input class="field num" style="width: 72px;" value="{{plannerBid}}" onChange="{{onPlannerBid}}">
+          </div>
+        </div>
+        <sc-if value="{{canAddOwn}}" hint-placeholder-val="{{false}}">
+          <div class="tap" onClick="{{addOwn}}" style="align-self: flex-start; padding: 7px 14px; border-radius: 999px; background: #1E2622; color: #F1ECE2; font-size: 13px; font-weight: 700;">Add “{{ownText}}” as your own</div>
+        </sc-if>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 76px 64px 70px; gap: 10px; padding: 10px 24px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #7A7D76;">
+        <div>Search</div><div style="text-align: right;">A week</div><div style="text-align: right;">Reach</div><div></div>
+      </div>
+      <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 0 24px 24px;">
+        <sc-for list="{{plannerRows}}" as="p" hint-placeholder-count="10">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 76px 64px 70px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid #EFE7DA;">
+            <div style="display: flex; flex-direction: column; min-width: 0;">
+              <div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{p.text}}</div>
+              <div style="font-size: 12px; color: #7A7D76;">{{p.intent}}</div>
+            </div>
+            <div class="num" style="text-align: right; font-size: 13px;">{{p.weekly}}</div>
+            <div class="num" style="text-align: right; font-size: 13px; color: #5C605A;">{{p.reach}}</div>
+            <div class="tap" onClick="{{p.add}}" style="justify-self: end; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: {{p.btnBg}}; color: {{p.btnFg}}; border: 1px solid {{p.btnLine}};">{{p.btnLabel}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding: 14px 24px; border-top: 1px solid #E4DCCD; font-size: 12px; line-height: 1.45; color: #5C605A;">How often a search is made is public research. What it is worth to you is learned by running it.</div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+const DATA = {"reading":{"lostToBudget":50,"lostToRank":0},"keywords":[{"id":"kw_1","text":"gym leggings","tags":["leggings","gym"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":16,"broad":68},"all":{"clicks":9845,"cost":203202,"cpc":20.6,"conv":352.3},"week":{"clicks":2257,"cost":55744,"cpc":24.7,"conv":53.9},"qs":{"score":8,"expectedCtr":"above","adRelevance":"average","landingPage":"average"}},{"id":"kw_2","text":"workout leggings","tags":["leggings","training"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":1,"broad":63},"all":{"clicks":944,"cost":18957,"cpc":20.1,"conv":37.2},"week":{"clicks":194,"cost":4697,"cpc":24.2,"conv":5.1},"qs":{"score":8,"expectedCtr":"above","adRelevance":"average","landingPage":"average"}},{"id":"kw_3","text":"sports bra high impact","tags":["sports-bra","training","women"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":2,"broad":6},"all":{"clicks":836,"cost":16585,"cpc":19.8,"conv":30.4},"week":{"clicks":202,"cost":5322,"cpc":26.4,"conv":5.1},"qs":{"score":6,"expectedCtr":"average","adRelevance":"average","landingPage":"average"}},{"id":"kw_4","text":"gym tights for women","tags":["leggings","gym","women"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":1,"broad":30},"all":{"clicks":562,"cost":13787,"cpc":24.5,"conv":30.9},"week":{"clicks":137,"cost":3514,"cpc":25.6,"conv":5.2},"qs":{"score":6,"expectedCtr":"average","adRelevance":"average","landingPage":"average"}},{"id":"kw_5","text":"running leggings women","tags":["leggings","running","women"],"match":"broad","bid":24,"reach":{"exact":1,"phrase":1,"broad":12},"all":{"clicks":2013,"cost":31028,"cpc":15.4,"conv":72.3},"week":{"clicks":445,"cost":6459,"cpc":14.5,"conv":10.6},"qs":{"score":6,"expectedCtr":"average","adRelevance":"average","landingPage":"average"}},{"id":"kw_6","text":"high waisted gym leggings","tags":["leggings","high-waisted","gym"],"match":"broad","bid":24,"reach":{"exact":1,"phrase":1,"broad":19},"all":{"clicks":715,"cost":8905,"cpc":12.5,"conv":22.7},"week":{"clicks":136,"cost":1453,"cpc":10.7,"conv":2.8},"qs":null},{"id":"kw_7","text":"vella leggings","tags":["brand-term","india"],"match":"exact","bid":57,"reach":{"exact":1,"phrase":1,"broad":18},"all":{"clicks":687,"cost":4070,"cpc":5.9,"conv":46.2},"week":{"clicks":135,"cost":1060,"cpc":7.8,"conv":5.9},"qs":{"score":10,"expectedCtr":"above","adRelevance":"above","landingPage":"above"}}],"planner":[{"text":"cheap gym leggings","weekly":10105,"intent":"commercial","tags":["leggings","gym","cheap","women"],"reach":{"exact":1,"phrase":1,"broad":31}},{"text":"gym wear sale","weekly":9202,"intent":"commercial","tags":["gym","sale"],"reach":{"exact":1,"phrase":1,"broad":40}},{"text":"cheap athleisure","weekly":9116,"intent":"commercial","tags":["casual","cheap","women"],"reach":{"exact":1,"phrase":1,"broad":8}},{"text":"co ord set sale","weekly":8299,"intent":"commercial","tags":["co-ord-set","sale"],"reach":{"exact":1,"phrase":1,"broad":23}},{"text":"budget gym wear women","weekly":8256,"intent":"commercial","tags":["gym","budget","women"],"reach":{"exact":1,"phrase":1,"broad":12}},{"text":"budget loungewear","weekly":7482,"intent":"commercial","tags":["lounge","budget","women"],"reach":{"exact":1,"phrase":1,"broad":8}},{"text":"leggings combo pack","weekly":7439,"intent":"commercial","tags":["leggings","combo"],"reach":{"exact":1,"phrase":1,"broad":53}},{"text":"sports bra combo pack","weekly":7353,"intent":"commercial","tags":["sports-bra","combo","budget"],"reach":{"exact":1,"phrase":1,"broad":2}},{"text":"gym leggings under 999","weekly":6450,"intent":"commercial","tags":["leggings","gym","budget"],"reach":{"exact":1,"phrase":1,"broad":22}},{"text":"co ord set under 999","weekly":5805,"intent":"commercial","tags":["co-ord-set","budget"],"reach":{"exact":1,"phrase":1,"broad":37}},{"text":"loungewear set under 799","weekly":5805,"intent":"commercial","tags":["lounge","co-ord-set","budget"],"reach":{"exact":1,"phrase":1,"broad":10}},{"text":"gym leggings","weekly":5590,"intent":"commercial","tags":["leggings","gym"],"reach":{"exact":1,"phrase":16,"broad":68}},{"text":"sports bra under 500","weekly":5504,"intent":"commercial","tags":["sports-bra","budget"],"reach":{"exact":1,"phrase":1,"broad":27}},{"text":"leggings under 499","weekly":5504,"intent":"commercial","tags":["leggings","budget"],"reach":{"exact":1,"phrase":1,"broad":66}},{"text":"athleisure leggings","weekly":5246,"intent":"commercial","tags":["leggings","casual"],"reach":{"exact":1,"phrase":1,"broad":63}},{"text":"workout leggings","weekly":5117,"intent":"commercial","tags":["leggings","training"],"reach":{"exact":1,"phrase":1,"broad":63}},{"text":"joggers under 599","weekly":4988,"intent":"commercial","tags":["joggers","budget"],"reach":{"exact":1,"phrase":1,"broad":29}},{"text":"lounge pants under 499","weekly":4988,"intent":"commercial","tags":["pants","lounge","budget"],"reach":{"exact":1,"phrase":1,"broad":9}},{"text":"co ord set","weekly":4816,"intent":"commercial","tags":["co-ord-set"],"reach":{"exact":1,"phrase":9,"broad":19}},{"text":"pack of 2 gym leggings","weekly":4601,"intent":"commercial","tags":["leggings","gym","combo"],"reach":{"exact":1,"phrase":1,"broad":23}},{"text":"workout tshirt under 300","weekly":4601,"intent":"commercial","tags":["tshirt","training","budget"],"reach":{"exact":1,"phrase":1,"broad":3}},{"text":"gym leggings offer today","weekly":4601,"intent":"commercial","tags":["leggings","gym","sale"],"reach":{"exact":1,"phrase":1,"broad":20}},{"text":"sports bra high impact","weekly":4171,"intent":"commercial","tags":["sports-bra","training","women"],"reach":{"exact":1,"phrase":2,"broad":6}},{"text":"oversized tshirt under 399","weekly":4128,"intent":"commercial","tags":["tshirt","oversized","budget"],"reach":{"exact":1,"phrase":1,"broad":3}},{"text":"matching set sale women","weekly":4128,"intent":"commercial","tags":["co-ord-set","sale","women"],"reach":{"exact":1,"phrase":1,"broad":9}},{"text":"everyday leggings pack of 3","weekly":4128,"intent":"commercial","tags":["leggings","everyday","combo"],"reach":{"exact":1,"phrase":1,"broad":7}},{"text":"seamless leggings","weekly":4042,"intent":"commercial","tags":["leggings","seamless"],"reach":{"exact":1,"phrase":1,"broad":52}},{"text":"everyday leggings","weekly":3956,"intent":"commercial","tags":["leggings","everyday"],"reach":{"exact":1,"phrase":2,"broad":52}},{"text":"joggers for women","weekly":3956,"intent":"commercial","tags":["joggers","casual","women"],"reach":{"exact":1,"phrase":1,"broad":11}},{"text":"free workout plan","weekly":3956,"intent":"irrelevant","tags":["training","free"],"reach":{"exact":1,"phrase":1,"broad":17}},{"text":"premium athleisure","weekly":3784,"intent":"commercial","tags":["casual","premium"],"reach":{"exact":1,"phrase":1,"broad":22}},{"text":"gym tights for women","weekly":3741,"intent":"commercial","tags":["leggings","gym","women"],"reach":{"exact":1,"phrase":1,"broad":30}},{"text":"best gym leggings under 1000","weekly":3698,"intent":"commercial","tags":["leggings","gym","budget","compare"],"reach":{"exact":1,"phrase":1,"broad":26}},{"text":"running shorts under 400","weekly":3698,"intent":"commercial","tags":["shorts","running","budget"],"reach":{"exact":1,"phrase":1,"broad":2}},{"text":"gym wear clearance sale","weekly":3698,"intent":"commercial","tags":["gym","sale","discount"],"reach":{"exact":1,"phrase":1,"broad":4}},{"text":"compression leggings","weekly":3698,"intent":"commercial","tags":["leggings","compression"],"reach":{"exact":1,"phrase":2,"broad":50}},{"text":"yoga pants under 600","weekly":3655,"intent":"commercial","tags":["pants","yoga","budget"],"reach":{"exact":1,"phrase":1,"broad":3}},{"text":"gym near me","weekly":3569,"intent":"irrelevant","tags":["gym","research"],"reach":{"exact":1,"phrase":1,"broad":41}},{"text":"designer leggings","weekly":3483,"intent":"commercial","tags":["leggings","luxury"],"reach":{"exact":1,"phrase":1,"broad":54}},{"text":"squat proof leggings","weekly":3354,"intent":"commercial","tags":["leggings","squat-proof","gym"],"reach":{"exact":1,"phrase":2,"broad":20}},{"text":"flared leggings under 699","weekly":3311,"intent":"commercial","tags":["leggings","flared","budget"],"reach":{"exact":1,"phrase":1,"broad":6}},{"text":"joggers combo women","weekly":3311,"intent":"commercial","tags":["joggers","combo","women"],"reach":{"exact":1,"phrase":1,"broad":10}},{"text":"crop top under 299","weekly":3311,"intent":"commercial","tags":["tank","cropped","budget"],"reach":{"exact":1,"phrase":1,"broad":1}},{"text":"athleisure clearance sale","weekly":3311,"intent":"commercial","tags":["casual","sale","discount"],"reach":{"exact":1,"phrase":1,"broad":2}},{"text":"best co ord set under 1000","weekly":3311,"intent":"commercial","tags":["co-ord-set","budget","compare"],"reach":{"exact":1,"phrase":1,"broad":4}},{"text":"running leggings women","weekly":3268,"intent":"commercial","tags":["leggings","running","women"],"reach":{"exact":1,"phrase":1,"broad":12}},{"text":"high waisted gym leggings","weekly":3268,"intent":"commercial","tags":["leggings","high-waisted","gym"],"reach":{"exact":1,"phrase":1,"broad":19}},{"text":"how to lose belly fat","weekly":3182,"intent":"irrelevant","tags":["training","how-to"],"reach":{"exact":1,"phrase":1,"broad":23}},{"text":"luxury loungewear","weekly":3139,"intent":"commercial","tags":["lounge","luxury"],"reach":{"exact":1,"phrase":1,"broad":17}},{"text":"lounge pants women","weekly":3053,"intent":"commercial","tags":["pants","lounge","women"],"reach":{"exact":1,"phrase":1,"broad":9}},{"text":"vella leggings","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"kestrel gym wear","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"marlow co ord set","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"satva leggings review","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"halcyon activewear","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"lumen sports bra","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"nira joggers","weekly":2838,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"torvi leggings","weekly":2838,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"auren athleisure","weekly":2838,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"training shorts women","weekly":2795,"intent":"commercial","tags":["shorts","training","women"],"reach":{"exact":1,"phrase":1,"broad":6}}]};
+
+const INK = '#1E2622';
+const MUTED = '#5C605A';
+const FAINT = '#8A8C85';
+const ACCENT = '#C45A35';
+const ACCENT_TEXT = '#A8472A';
+const LINE = '#E4DCCD';
+const CARD = '#FBF8F3';
+const MATCHES = ['exact', 'phrase', 'broad'];
+const LABEL = { exact: 'Exact', phrase: 'Phrase', broad: 'Broad' };
+const RATING = { above: ['above average', '#2F6B4F'], average: ['average', '#5C605A'], below: ['below average', '#9E2B25'] };
+const inr = (n) => Math.round(n).toLocaleString('en-IN');
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const norm = (t) => String(t).trim().toLowerCase().replace(/\s+/g, ' ');
+
+const ICON = {
+  bag: ['M6 7h12l-1 13H7L6 7z', 'M9 7a3 3 0 0 1 6 0'],
+  users: ['M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0', 'M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6', 'M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0', 'M16 14.2c2.9.4 5 2.8 5 5.8'],
+  book: ['M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z', 'M4 19a2 2 0 0 1 2-2h13'],
+  trophy: ['M8 4h8v5a4 4 0 0 1-8 0V4z', 'M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4', 'M12 13v4M9 20h6'],
+  bars: ['M5 20V11M11 20V5M17 20v-6M3 20h18'],
+  tag: ['M3 12V4h8l10 10-8 8L3 12z', 'M6 7.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0'],
+  search: ['M5 11a6 6 0 1 0 12 0a6 6 0 1 0 -12 0', 'M20 20l-4.5-4.5'],
+  megaphone: ['M3 10v4h4l6 4V6L7 10H3z', 'M16.5 9a4 4 0 0 1 0 6'],
+  wallet: ['M5 6h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z', 'M3 10h18M16 14.5h2'],
+  pin: ['M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z', 'M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0'],
+  box: ['M4 8l8-4 8 4v8l-8 4-8-4V8z', 'M4 8l8 4 8-4M12 12v8'],
+  swap: ['M7 7h12l-3-3', 'M17 17H5l3 3'],
+};
+
+const AREAS = [
+  { key: 'brand', label: 'Brand', icon: ICON.bag, title: 'Your brand' },
+  { key: 'market', label: 'Market', icon: ICON.users, title: 'The market' },
+  { key: 'guide', label: 'Guide', icon: ICON.book, title: 'Field guide' },
+  { key: 'results', label: 'Results', icon: ICON.trophy, title: 'Results' },
+];
+
+const SECTIONS = {
+  brand: [
+    { key: 'week', label: 'Your week', icon: ICON.bars, holds: 'The week, Where the impressions went, and Changed since you looked' },
+    { key: 'keywords', label: 'Your keywords', icon: ICON.tag },
+    { key: 'typed', label: 'What people typed', icon: ICON.search, holds: 'Search terms and Negatives' },
+    { key: 'ad', label: 'Your ad', icon: ICON.megaphone, holds: 'your ad and its grades' },
+    { key: 'money', label: 'Your money', icon: ICON.wallet, holds: 'Budget, This month’s budget, Bidding and What week 8 decides, and at week 5 the capital and repositioning card' },
+    { key: 'where', label: 'Where and when', icon: ICON.pin, holds: 'Where you advertise and Hours of the day' },
+    { key: 'returns', label: 'Returns', icon: ICON.box, lockedUntil: 6, lockNote: 'Opens at week 6. Before then there is no honest reading of what came back.' },
+  ],
+  market: [
+    { key: 'rivals', label: 'Rivals', icon: ICON.users, soon: 'Rivals as players: their names and ads, and how the market is moving.' },
+    { key: 'meet', label: 'Who you meet', icon: ICON.swap, soon: 'How often you meet each rival, and who ranks above you, from your own auction insights.' },
+  ],
+  guide: [
+    { key: 'chapters', label: 'All chapters', icon: ICON.book, soon: 'The field guide as a page of its own. Today it opens as a drawer from any “why?”.' },
+  ],
+  results: [
+    { key: 'end', label: 'After week 12', icon: ICON.trophy, lockedUntil: 12, lockNote: 'Opens after week 12, with the debrief and the rival reveal.' },
+  ],
+};
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    const kws = DATA.keywords.map((k) => ({ ...k, active: true, removed: false, added: false }));
+    const base = {};
+    for (const k of kws) base[k.id] = { match: k.match, bid: k.bid, active: true };
+    const top = Math.max(...kws.map((k) => k.bid));
+    this.state = {
+      area: 'brand', section: 'keywords', range: 'all', kws, base,
+      sliderMax: Math.max(100, Math.ceil((1.5 * top) / 10) * 10),
+      selecting: false, selected: {}, bulkBid: '25', bulkPct: '-20',
+      plannerOpen: false, plannerTerm: '', plannerMatch: 'phrase', plannerBid: '30',
+      qsOpen: null, menuOpen: null, editing: null, editValue: '', toast: '', nextId: 1,
+    };
+  }
+
+  patch(id, change) {
+    this.setState((s) => ({ kws: s.kws.map((k) => (k.id === id ? { ...k, ...change } : k)), toast: '' }));
+  }
+
+  setBid(id, value) {
+    const bid = Math.max(1, Math.round(Number(value)));
+    if (!Number.isFinite(bid)) return;
+    this.setState((s) => ({
+      kws: s.kws.map((k) => (k.id === id ? { ...k, bid } : k)),
+      sliderMax: Math.max(s.sliderMax, Math.ceil(bid / 10) * 10),
+      toast: '',
+    }));
+  }
+
+  commitEdit(id) {
+    const value = parseInt(this.state.editValue, 10);
+    if (Number.isFinite(value) && value >= 1) this.setBid(id, value);
+    this.setState({ editing: null, editValue: '' });
+  }
+
+  forEachSelected(fn) {
+    this.setState((s) => {
+      const kws = s.kws.map((k) => (s.selected[k.id] && !k.removed ? fn(k) : k));
+      const top = Math.max(...kws.map((k) => k.bid));
+      return { kws, sliderMax: Math.max(s.sliderMax, Math.ceil(top / 10) * 10), toast: '' };
+    });
+  }
+
+  addFromPlanner(row) {
+    this.setState((s) => {
+      if (s.kws.some((k) => !k.removed && norm(k.text) === norm(row.text))) return null;
+      const bid = Math.max(1, parseInt(s.plannerBid, 10) || 30);
+      const kw = {
+        id: `new_${s.nextId}`, text: row.text, tags: row.tags, match: s.plannerMatch, bid,
+        reach: row.reach, all: null, week: null, qs: null, active: true, removed: false, added: true,
+      };
+      return { kws: [...s.kws, kw], nextId: s.nextId + 1, sliderMax: Math.max(s.sliderMax, Math.ceil(bid / 10) * 10), toast: '' };
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const live = s.kws.filter((k) => !k.removed);
+
+    const areas = AREAS.map((a) => {
+      const on = a.key === s.area;
+      return {
+        label: a.label, paths: a.icon,
+        bg: on ? '#313B35' : 'transparent', stroke: on ? '#F1ECE2' : '#96A098', fg: on ? '#F1ECE2' : '#96A098',
+        pick: () => this.setState({ area: a.key, section: SECTIONS[a.key][a.key === 'brand' ? 1 : 0].key, toast: '' }),
+      };
+    });
+    const areaInfo = AREAS.find((a) => a.key === s.area);
+    const sectionList = SECTIONS[s.area];
+    const sections = sectionList.map((x) => {
+      const on = x.key === s.section;
+      const locked = x.lockedUntil != null;
+      return {
+        label: x.label, paths: x.icon,
+        weight: on ? 700 : 500,
+        bg: on ? CARD : 'transparent',
+        fg: locked ? '#A09A8E' : on ? INK : '#3B433E',
+        stroke: on ? ACCENT : 'currentColor',
+        shadow: on ? '0 1px 2px rgba(30, 38, 34, 0.08)' : 'none',
+        hasLock: locked, lock: locked ? `week ${x.lockedUntil}` : '',
+        pick: () => this.setState({ section: x.key, toast: '' }),
+      };
+    });
+    const current = sectionList.find((x) => x.key === s.section) ?? sectionList[0];
+    const showKeywords = s.area === 'brand' && current.key === 'keywords';
+    let body = '';
+    if (current.holds) body = `Built after the pilot. Until then this section holds today’s cards: ${current.holds}.`;
+    else if (current.soon) body = `Designed after the pilot. ${current.soon}`;
+    else if (current.lockNote) body = current.lockNote;
+
+    const ranges = [['week', 'This week'], ['all', 'All weeks']].map(([key, label]) => ({
+      label, bg: s.range === key ? INK : 'transparent', fg: s.range === key ? '#F1ECE2' : MUTED,
+      pick: () => this.setState({ range: key, toast: '' }),
+    }));
+
+    const cards = live.map((k) => {
+      const b = s.base[k.id];
+      const stats = k.added ? null : (s.range === 'week' ? k.week : k.all);
+      const bidChanged = !k.added && k.bid !== b.bid;
+      const matchChanged = !k.added && k.match !== b.match;
+      const changed = bidChanged || matchChanged;
+      const paused = !k.active;
+      const selected = Boolean(s.selected[k.id]);
+      let tag = '';
+      if (k.added) tag = 'New · no data yet';
+      else if (paused) tag = 'Paused';
+      else if (bidChanged) tag = `Changed · was ₹${b.bid}`;
+      else if (matchChanged) tag = `Changed · was ${b.match}`;
+      const ring = selected ? INK : (changed || k.added ? ACCENT : 'transparent');
+      const reachN = k.reach ? k.reach[k.match] : null;
+      const pctOf = (v) => Math.round((((v - 1) / (s.sliderMax - 1)) * 100) * 10) / 10;
+      return {
+        text: k.text, bid: k.bid, max: s.sliderMax,
+        bg: paused ? '#F4F0E8' : CARD,
+        borderColor: selected ? INK : (changed || k.added ? ACCENT : LINE),
+        ring,
+        textColor: paused ? FAINT : INK,
+        tag, tagColor: paused ? MUTED : ACCENT_TEXT,
+        selecting: s.selecting,
+        checkLine: selected ? INK : '#CFC6B6', checkBg: selected ? INK : 'transparent',
+        toggleSelect: () => this.setState((st) => ({ selected: { ...st.selected, [k.id]: !st.selected[k.id] } })),
+        qsLabel: k.qs ? String(k.qs.score) : '—',
+        qsBg: s.qsOpen === k.id ? INK : '#EFE9DE', qsFg: s.qsOpen === k.id ? '#F1ECE2' : INK,
+        toggleQs: () => this.setState((st) => ({ qsOpen: st.qsOpen === k.id ? null : k.id, menuOpen: null, toast: '' })),
+        qsOpen: s.qsOpen === k.id, qsClosed: s.qsOpen !== k.id,
+        qsParts: k.qs ? [['Expected click-through', k.qs.expectedCtr], ['Ad relevance', k.qs.adRelevance], ['Landing page', k.qs.landingPage]]
+          .map(([label, r]) => ({ label, rating: RATING[r][0], color: RATING[r][1] })) : [],
+        qsNote: k.qs ? 'Each part is compared with everyone who showed on the same searches.' : 'Not enough of its own data to score yet.',
+        switchBg: paused ? '#CFC6B6' : '#2F6B4F', knobLeft: paused ? '2px' : '16px',
+        switchTitle: paused ? 'Paused: tap to enter auctions again' : 'Running: tap to pause',
+        toggleActive: () => this.patch(k.id, { active: !k.active }),
+        menuOpen: s.menuOpen === k.id,
+        toggleMenu: () => this.setState((st) => ({ menuOpen: st.menuOpen === k.id ? null : k.id, toast: '' })),
+        remove: () => this.setState((st) => ({
+          kws: k.added ? st.kws.filter((x) => x.id !== k.id) : st.kws.map((x) => (x.id === k.id ? { ...x, removed: true } : x)),
+          menuOpen: null, toast: '',
+        })),
+        pills: MATCHES.map((m) => ({
+          label: LABEL[m],
+          bg: k.match === m ? INK : 'transparent', fg: k.match === m ? '#F1ECE2' : MUTED, line: k.match === m ? INK : '#DDD5C7',
+          pick: () => this.patch(k.id, { match: m }),
+        })),
+        reachLabel: reachN == null ? 'reach is counted when the game adds it' : `reaches ${plural(reachN, 'search', 'searches')}`,
+        showTags: k.match === 'broad',
+        tagsLine: k.tags == null ? 'its tags are read from its words in the game'
+          : k.tags.length ? `matches on: ${k.tags.join(' · ')}` : 'no tags: broad finds nothing',
+        tagsColor: k.tags == null || k.tags.length ? MUTED : '#9E2B25',
+        editing: s.editing === k.id, notEditing: s.editing !== k.id, editValue: s.editValue,
+        startEdit: () => this.setState({ editing: k.id, editValue: String(k.bid), toast: '' }),
+        onEdit: (e) => this.setState({ editValue: e.target.value }),
+        onEditKey: (e) => {
+          if (e.key === 'Enter') this.commitEdit(k.id);
+          if (e.key === 'Escape') this.setState({ editing: null, editValue: '' });
+        },
+        commitEdit: () => this.commitEdit(k.id),
+        onSlide: (e) => this.setBid(k.id, e.target.value),
+        sliderLabel: `Bid for ${k.text}, in rupees`,
+        pct: pctOf(k.bid), hasWas: bidChanged, wasPct: pctOf(b ? b.bid : k.bid),
+        fill: paused ? '#B8B2A6' : ACCENT,
+        paidLine: stats && stats.cpc != null ? `paid ₹${stats.cpc} a click on average` : 'no clicks yet',
+        clicks: stats ? inr(stats.clicks) : '—',
+        cost: stats ? `₹${inr(stats.cost)}` : '—',
+        conv: stats ? String(stats.conv) : '—',
+      };
+    });
+
+    const selectedCount = live.filter((k) => s.selected[k.id]).length;
+    const bulkMatches = MATCHES.map((m) => ({ label: LABEL[m], pick: () => this.forEachSelected((k) => ({ ...k, match: m })) }));
+
+    const trayLines = [];
+    for (const k of s.kws) {
+      const b = s.base[k.id];
+      if (k.added) {
+        trayLines.push({ text: `Added: ${k.text} · ${k.match} · ₹${k.bid}`, undo: () => this.setState((st) => ({ kws: st.kws.filter((x) => x.id !== k.id), toast: '' })) });
+        continue;
+      }
+      if (k.removed) {
+        trayLines.push({ text: `Removed: ${k.text}`, undo: () => this.patch(k.id, { removed: false }) });
+        continue;
+      }
+      if (k.bid !== b.bid) trayLines.push({ text: `${k.text} · bid ₹${b.bid} → ₹${k.bid}`, undo: () => this.patch(k.id, { bid: b.bid }) });
+      if (k.match !== b.match) trayLines.push({ text: `${k.text} · ${b.match} → ${k.match}`, undo: () => this.patch(k.id, { match: b.match }) });
+      if (k.active !== b.active) trayLines.push({ text: `${k.active ? 'Resumed' : 'Paused'}: ${k.text}`, undo: () => this.patch(k.id, { active: b.active }) });
+    }
+
+    const term = norm(s.plannerTerm);
+    const held = new Set(live.map((k) => norm(k.text)));
+    const plannerRows = DATA.planner
+      .filter((p) => !term || p.text.includes(term))
+      .slice(0, 40)
+      .map((p) => {
+        const inAccount = held.has(norm(p.text));
+        return {
+          text: p.text, intent: p.intent, weekly: inr(p.weekly), reach: String(p.reach[s.plannerMatch]),
+          btnLabel: inAccount ? 'in account' : 'Add',
+          btnBg: inAccount ? 'transparent' : INK, btnFg: inAccount ? FAINT : '#F1ECE2', btnLine: inAccount ? '#DDD5C7' : INK,
+          add: () => { if (!inAccount) this.addFromPlanner(p); },
+        };
+      });
+    const ownText = s.plannerTerm.trim();
+    const canAddOwn = ownText.length > 0 && !DATA.planner.some((p) => norm(p.text) === term) && !held.has(term);
+
+    return {
+      areas, sections, areaTitle: areaInfo.title,
+      showKeywords, showPlaceholder: !showKeywords, placeholder: { title: current.label, body },
+      countLabel: plural(live.length, 'keyword', 'keywords'),
+      rangeLabel: s.range === 'week' ? 'week 4' : 'weeks 1–4',
+      lostToBudget: `${DATA.reading.lostToBudget}%`, lostToRank: `${DATA.reading.lostToRank}%`,
+      whyNumbers: () => this.setState({ toast: 'In the game, this opens the field guide at the chapter these numbers come from.' }),
+      whyQuality: () => this.setState({ toast: 'In the game, this opens the field guide at Quality Score.' }),
+      ranges, cards,
+      selecting: s.selecting, notSelecting: !s.selecting,
+      selectedLabel: `${selectedCount} selected`,
+      startSelecting: () => this.setState({ selecting: true, selected: {}, qsOpen: null, menuOpen: null, toast: '' }),
+      stopSelecting: () => this.setState({ selecting: false, selected: {} }),
+      bulkBid: s.bulkBid, bulkPct: s.bulkPct,
+      onBulkBid: (e) => this.setState({ bulkBid: e.target.value }),
+      onBulkPct: (e) => this.setState({ bulkPct: e.target.value }),
+      applySetBid: () => {
+        const v = parseInt(s.bulkBid, 10);
+        if (Number.isFinite(v) && v >= 1) this.forEachSelected((k) => ({ ...k, bid: v }));
+        else this.setState({ toast: 'A bid is a whole number of rupees, ₹1 or more.' });
+      },
+      applyPct: () => {
+        const p = Number(s.bulkPct);
+        if (Number.isFinite(p)) this.forEachSelected((k) => ({ ...k, bid: Math.max(1, Math.round(k.bid * (1 + p / 100))) }));
+        else this.setState({ toast: 'Type a percentage, like -20 or 15.' });
+      },
+      bulkMatches,
+      dots: Array.from({ length: 12 }, (_, i) => (i < 4 ? { bg: INK, line: INK } : { bg: 'transparent', line: '#CFC6B6' })),
+      trayLines, hasChanges: trayLines.length > 0, noChanges: trayLines.length === 0,
+      changeCount: String(trayLines.length), changeWord: trayLines.length === 1 ? 'change waiting' : 'changes waiting',
+      runWeek: () => this.setState({
+        toast: trayLines.length
+          ? `A mock-up: in the game this runs week 5 with ${plural(trayLines.length, 'change', 'changes')}.`
+          : 'A mock-up: in the game this runs week 5 as the account stands.',
+      }),
+      hasToast: s.toast.length > 0, toast: s.toast,
+      plannerOpen: s.plannerOpen,
+      openPlanner: () => this.setState({ plannerOpen: true, toast: '' }),
+      closePlanner: () => this.setState({ plannerOpen: false }),
+      plannerTerm: s.plannerTerm, plannerBid: s.plannerBid,
+      onPlannerTerm: (e) => this.setState({ plannerTerm: e.target.value }),
+      onPlannerBid: (e) => this.setState({ plannerBid: e.target.value }),
+      plannerPills: MATCHES.map((m) => ({
+        label: LABEL[m],
+        bg: s.plannerMatch === m ? INK : 'transparent', fg: s.plannerMatch === m ? '#F1ECE2' : MUTED, line: s.plannerMatch === m ? INK : '#DDD5C7',
+        pick: () => this.setState({ plannerMatch: m }),
+      })),
+      plannerRows,
+      canAddOwn, ownText,
+      addOwn: () => {
+        this.addFromPlanner({ text: ownText, tags: null, reach: null });
+        this.setState({ plannerTerm: '' });
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

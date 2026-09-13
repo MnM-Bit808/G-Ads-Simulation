@@ -39,6 +39,25 @@ keeps B (`InCard.dc.html`, unfolds in the card) and C (`GuidePage.dc.html`, a
 separate page), with the cost that ruled each out.
 `plans/2026-09-12-content-model-and-field-guide.md` records the choice.
 
+## `makeover/`: the Studio makeover's look (2026-09-13)
+
+A third canvas, https://claude.ai/code/artifact/d881fe56-251c-4ded-9173-b8616924bbc4,
+drawn on one real screen: *Your keywords* after week 4, inside the sidebar layout
+of `plans/2026-09-13-studio-makeover.md`.
+
+- **Page 1** is `Main.dc.html`: that section as designed in the plan's section 4,
+  in the chosen look, with working controls, for the owner to try before any code
+  is written.
+- **Page 2** keeps the three looks it was chosen from, each with its case and its
+  cost in a note above it: `TrackDay.dc.html` (A · Track day),
+  `NightSession.dc.html` (B · Night session), `StudioDrop.dc.html` (C · Studio
+  drop). **The owner chose C.**
+
+Its numbers come from one game played to week 4 with the engine (seed 1, Vella &
+Co. at mid-price performance, four phrase keywords, two broad and the brand on
+exact), added up over weeks 1–4 as the keyword card does. The one invented detail
+is a pending bid change, drawn to show the tray.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

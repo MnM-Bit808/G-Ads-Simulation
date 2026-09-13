@@ -1,0 +1,55 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "Your keywords" },
+    { "id": "page-2", "name": "The three looks" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Your keywords · Studio drop", "page": "page-1", "is_interactive": true, "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "TrackDay.dc.html", "title": "A · Track day", "page": "page-2", "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "NightSession.dc.html", "title": "B · Night session", "page": "page-2", "x": 1560, "y": 0, "w": 1440, "h": 900 },
+    { "file": "StudioDrop.dc.html", "title": "C · Studio drop", "page": "page-2", "x": 3120, "y": 0, "w": 1440, "h": 900 }
+  ],
+  "annotations": [
+    {
+      "id": "try-it",
+      "page": "page-1",
+      "x": 0,
+      "y": -300,
+      "w": 1300,
+      "text": "Try it. This is Your keywords as the plan designs it (plans/2026-09-13-studio-makeover.md, section 4), in the chosen look, with working controls. Drag a bid, or tap its number and type one. Flip a match type and watch its reach. Tap QS. Pause with the switch; remove from the ⋯ menu. Add from the planner, or type your own. Tick several with Adjust several. Undo anything from the tray at the bottom. Switch between This week and All weeks.\nEvery number is from one real game at week 4: seed 1, Vella & Co., mid-price performance. The planner here holds the 60 most-searched of the game's 151 searches. The other sections, and the Market, Guide and Results icons, only say what they will hold. Your changes reset when the page reloads."
+    },
+    {
+      "id": "brief",
+      "page": "page-2",
+      "x": 0,
+      "y": -470,
+      "w": 1300,
+      "text": "One real screen, three looks. The screen is 'Your keywords' after week 4 of a real game: Vella & Co., mid-price performance, seed 1. Every number is the engine's own (weeks 1–4 added up, as today's keywords card does). The one invented thing is a player's change: gym leggings' bid dragged from ₹33 to ₹25, to show where changes wait before you run the week.\nThe sidebar, the sections and the content are the same in all three. Only the look and the way the keywords are laid out differ, and the two can be mixed: B's colours with C's cards, say.\nThese are pictures: the controls are drawn, not wired. The colour chip above each board swaps its accent. The owner chose C."
+    },
+    {
+      "id": "track-day",
+      "page": "page-2",
+      "x": 0,
+      "y": -250,
+      "w": 1100,
+      "text": "A · Track day. Light and bold, like a race-day stat sheet. Each keyword is a lane, and its bid is a slider on the track.\nFor: the biggest break from today's dark dashboard; dark numbers on a light ground read fastest; one loud colour does the shouting.\nAgainst: the calmest of the three. Its energy is all type and one colour, so used timidly it slides back into 'a table'."
+    },
+    {
+      "id": "night-session",
+      "page": "page-2",
+      "x": 1560,
+      "y": -250,
+      "w": 1100,
+      "text": "B · Night session. Dark and dramatic, like a match broadcast or a fantasy-league table. Keywords are ranked, and the bid is a power bar.\nFor: the most game-like of the three, and the most 'alive'.\nAgainst: nearest to today's dark look, and long tables tire the eye on dark. Ranking by conversions rewards volume, which is not profit, and the game itself teaches that; we would rank by something truer, or not rank. The power bar moves in ₹5 steps, so a precise bid needs a second control."
+    },
+    {
+      "id": "studio-drop",
+      "page": "page-2",
+      "x": 3120,
+      "y": -250,
+      "w": 1100,
+      "text": "C · Studio drop, chosen. Warm and premium, like the brand's own product-drop page. Each keyword is a card with its own bid slider.\nFor: it feels like running a D2C label; cards suit touch screens and phones; a changed card announces itself.\nAgainst: fewer keywords fit at once (7 here, 20 would scroll), and comparing one number across eight cards is slower than reading down a column."
+    }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}

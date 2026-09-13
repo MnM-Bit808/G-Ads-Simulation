@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wdth,wght@50..125,100..900&display=swap">
+  <style>
+    body { margin: 0; background: #121110; }
+    a { color: #F4EFE8; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: #FFFFFF; }
+    .num { font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #121110; color: #F4EFE8; font-family: 'Saira', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+
+  <div style="background: #0A0908; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0; border-right: 1px solid #22201D;">
+    <div style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid {{accent}}; color: {{accent}}; display: flex; align-items: center; justify-content: center; font-weight: 900; font-style: italic; font-stretch: 70%; font-size: 18px; margin-bottom: 18px;">V&amp;</div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 12px; background: #221D1A; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg>
+      <div style="font-size: 10px; font-weight: 700; color: #F4EFE8; letter-spacing: 0.06em; text-transform: uppercase;">Brand</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8C847C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><circle cx="17" cy="9" r="2.5"></circle><path d="M16 14.2c2.9.4 5 2.8 5 5.8"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8C847C; letter-spacing: 0.06em; text-transform: uppercase;">Market</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8C847C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8C847C; letter-spacing: 0.06em; text-transform: uppercase;">Guide</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4A4540" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #4A4540; letter-spacing: 0.06em; text-transform: uppercase;">Results</div>
+    </div>
+  </div>
+
+  <div style="background: #181614; border-right: 1px solid #2C2825; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div style="font-weight: 800; font-style: italic; font-stretch: 75%; font-size: 24px; text-transform: uppercase;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #9A928A;">Mid-price · Performance</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; color: #C9C1B8;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M11 20V5M17 20v-6M3 20h18"></path></svg>
+      <div>Your week</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; background: #2A221D; color: #F4EFE8;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8L3 12z"></path><circle cx="7.5" cy="7.5" r="1.5"></circle></svg>
+      <div style="flex-grow: 1;">Your keywords</div>
+      <div style="font-size: 11px; font-weight: 800; color: {{accent}};">7</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; color: #C9C1B8;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4.5-4.5"></path></svg>
+      <div>What people typed</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; color: #C9C1B8;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4h4l6 4V6L7 10H3z"></path><path d="M16.5 9a4 4 0 0 1 0 6"></path></svg>
+      <div>Your ad</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; color: #C9C1B8;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"></rect><path d="M3 10h18M16 14.5h2"></path></svg>
+      <div>Your money</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; color: #C9C1B8;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+      <div>Your places</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 8px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; color: #5E5750;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4V8z"></path><path d="M4 8l8 4 8-4M12 12v8"></path></svg>
+      <div style="flex-grow: 1;">Returns</div>
+      <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">wk 6</div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; min-width: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #2C2825;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <div style="font-size: 12px; font-weight: 800; letter-spacing: 0.12em; color: #9A928A; text-transform: uppercase;">Week</div>
+        <div class="num" style="font-weight: 900; font-style: italic; font-stretch: 70%; font-size: 36px; line-height: 1; color: {{accent}};">04</div>
+        <div class="num" style="font-weight: 700; font-style: italic; font-stretch: 70%; font-size: 20px; color: #5E5750;">/ 12</div>
+        <div style="margin-left: 10px; padding: 3px 10px; border-radius: 4px; border: 1px solid #3A3430; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #C9C1B8;">Month 1 · final week</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="display: flex; gap: 3px;">
+          <sc-for list="{{meter}}" as="m" hint-placeholder-count="20">
+            <div style="width: 7px; height: 18px; border-radius: 1px; background: {{m.bg}}; transform: skewX(-12deg);"></div>
+          </sc-for>
+        </div>
+        <div class="num" style="font-size: 15px; font-weight: 800; font-style: italic;">₹2,96,535 <span style="font-weight: 500; color: #9A928A;">/ ₹3,13,000</span></div>
+      </div>
+    </div>
+
+    <div style="padding: 26px 40px 0; display: flex; flex-direction: column; gap: 20px; flex-grow: 1; min-height: 0;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-weight: 900; font-style: italic; font-stretch: 68%; font-size: 64px; line-height: 0.92; text-transform: uppercase;">Your keywords</div>
+          <div style="font-size: 14px; color: #9A928A;">Ranked by conversions · weeks 1–4 · <a href="#">why these numbers?</a></div>
+        </div>
+        <div style="height: 44px; padding: 0 20px; border: 2px solid {{accent}}; color: {{accent}}; border-radius: 6px; display: flex; align-items: center; gap: 8px; font-weight: 800; font-style: italic; font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; transform: skewX(-8deg);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+          <div>Add keyword</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 230px 230px minmax(0, 1fr); gap: 12px;">
+        <div style="background: #1E1B19; border: 1px solid #2C2825; border-radius: 10px; padding: 12px 18px; display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #9A928A;">Lost to budget</div>
+          <div class="num" style="font-weight: 900; font-style: italic; font-stretch: 70%; font-size: 48px; line-height: 1; color: {{accent}};">50%</div>
+        </div>
+        <div style="background: #1E1B19; border: 1px solid #2C2825; border-radius: 10px; padding: 12px 18px; display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: #9A928A;">Lost to rank</div>
+          <div class="num" style="font-weight: 900; font-style: italic; font-stretch: 70%; font-size: 48px; line-height: 1; color: #F4EFE8;">0%</div>
+        </div>
+        <div style="display: flex; align-items: center; padding: 0 16px; font-size: 16px; line-height: 1.45; color: #C9C1B8; max-width: 470px; text-wrap: pretty;">Half of week 4’s auctions went unbought because the money ran out. None were lost because your ad ranked too low.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: grid; grid-template-columns: 44px 200px 170px minmax(0, 1fr) 64px 72px 64px 46px 24px; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid #3A3430; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #9A928A;">
+          <div>#</div><div>Keyword</div><div>Match</div><div>Bid</div>
+          <div style="text-align: right;">Clicks</div><div style="text-align: right;">Per click</div><div style="text-align: right;">Conv.</div><div style="text-align: center;">QS</div><div></div>
+        </div>
+        <sc-for list="{{rows}}" as="item" hint-placeholder-count="7">
+          <div style="display: grid; grid-template-columns: 44px 200px 170px minmax(0, 1fr) 64px 72px 64px 46px 24px; gap: 12px; align-items: center; height: 60px; border-bottom: 1px solid #221F1C;">
+            <div class="num" style="font-weight: 900; font-style: italic; font-stretch: 70%; font-size: 28px; color: {{item.rankColor}};">{{item.n}}</div>
+            <div style="font-size: 16px; font-weight: 700; font-stretch: 82%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{item.text}}</div>
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <div style="display: flex; gap: 4px;">
+                <div style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: {{item.exBg}}; color: {{item.exFg}};">Exact</div>
+                <div style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: {{item.phBg}}; color: {{item.phFg}};">Phrase</div>
+                <div style="padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; background: {{item.brBg}}; color: {{item.brFg}};">Broad</div>
+              </div>
+              <div style="font-size: 11px; color: #8C847C;">{{item.reach}}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; gap: 3px; flex-grow: 1;">
+                <sc-for list="{{item.segs}}" as="s" hint-placeholder-count="16">
+                  <div style="flex-grow: 1; height: 20px; border-radius: 2px; background: {{s.bg}}; border: 1.5px solid {{s.line}}; box-sizing: border-box; transform: skewX(-12deg);"></div>
+                </sc-for>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: flex-end; width: 50px;">
+                <div class="num" style="font-weight: 900; font-style: italic; font-stretch: 70%; font-size: 24px; line-height: 1;">{{item.bidLabel}}</div>
+                <sc-if value="{{item.hasWas}}" hint-placeholder-val="{{false}}">
+                  <div style="font-size: 10px; font-weight: 700; color: {{accent}};">was ₹33</div>
+                </sc-if>
+              </div>
+            </div>
+            <div class="num" style="text-align: right; font-weight: 800; font-style: italic; font-stretch: 80%; font-size: 20px;">{{item.clicks}}</div>
+            <div class="num" style="text-align: right; font-weight: 800; font-style: italic; font-stretch: 80%; font-size: 20px;">{{item.cpc}}</div>
+            <div class="num" style="text-align: right; font-weight: 800; font-style: italic; font-stretch: 80%; font-size: 20px; color: {{item.convColor}};">{{item.conv}}</div>
+            <div style="display: flex; justify-content: center;"><div style="width: 32px; height: 32px; border-radius: 6px; background: #221F1C; border: 1px solid #3A3430; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px;">{{item.qs}}</div></div>
+            <div style="display: flex; justify-content: center; color: #5E5750;"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="height: 76px; flex-shrink: 0; background: #0A0908; border-top: 2px solid {{accent}}; display: flex; align-items: center; justify-content: space-between; padding: 0 24px 0 40px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="font-weight: 800; font-style: italic; font-size: 17px; text-transform: uppercase; letter-spacing: 0.05em;">1 change waiting</div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 6px; background: #1E1B19; border: 1px solid #2C2825; font-size: 13px; color: #C9C1B8;">gym leggings · bid ₹33 → <span style="color: {{accent}}; font-weight: 800;">₹25</span></div>
+      </div>
+      <div style="height: 52px; padding: 0 30px; border-radius: 6px; background: {{accent}}; color: #1A0E08; display: flex; align-items: center; gap: 12px; font-weight: 900; font-style: italic; font-stretch: 75%; font-size: 23px; text-transform: uppercase; letter-spacing: 0.03em; transform: skewX(-8deg);">
+        <div>Run week 5</div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l12 8-12 8V4z"></path></svg>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#FF6B35","options":["#FF6B35","#FFC53D","#3DDC97","#FF3D7F"]},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#FF6B35';
+    const raw = [
+      { n: '01', text: 'gym leggings', match: 'phrase', reach: 16, bid: 25, was: 33, clicks: '9,845', cpc: '₹20.6', conv: '352.3', qs: '8' },
+      { n: '02', text: 'running leggings women', match: 'broad', reach: 12, bid: 24, clicks: '2,013', cpc: '₹15.4', conv: '72.3', qs: '6' },
+      { n: '03', text: 'vella leggings', match: 'exact', reach: 1, bid: 57, clicks: '687', cpc: '₹5.9', conv: '46.2', qs: '10' },
+      { n: '04', text: 'workout leggings', match: 'phrase', reach: 1, bid: 33, clicks: '944', cpc: '₹20.1', conv: '37.2', qs: '8' },
+      { n: '05', text: 'gym tights for women', match: 'phrase', reach: 1, bid: 33, clicks: '562', cpc: '₹24.5', conv: '30.9', qs: '6' },
+      { n: '06', text: 'sports bra high impact', match: 'phrase', reach: 2, bid: 33, clicks: '836', cpc: '₹19.8', conv: '30.4', qs: '6' },
+      { n: '07', text: 'high waisted gym leggings', match: 'broad', reach: 19, bid: 24, clicks: '715', cpc: '₹12.5', conv: '22.7', qs: '—' },
+    ];
+    const on = (m, want) => (m === want ? [accent, '#1A0E08'] : ['#221F1C', '#8C847C']);
+    const STEP = 5;
+    const rows = raw.map((r, i) => {
+      const [exBg, exFg] = on(r.match, 'exact');
+      const [phBg, phFg] = on(r.match, 'phrase');
+      const [brBg, brFg] = on(r.match, 'broad');
+      const filled = Math.round(r.bid / STEP);
+      const was = r.was != null ? Math.round(r.was / STEP) : 0;
+      const segs = Array.from({ length: 16 }, (_, k) => {
+        if (k < filled) return { bg: '#F4EFE8', line: '#F4EFE8' };
+        if (k < was) return { bg: 'transparent', line: accent };
+        return { bg: '#221F1C', line: '#221F1C' };
+      });
+      return {
+        ...r, exBg, exFg, phBg, phFg, brBg, brFg, segs,
+        reach: `reaches ${r.reach} ${r.reach === 1 ? 'search' : 'searches'}`,
+        hasWas: r.was != null,
+        bidLabel: `₹${r.bid}`,
+        rankColor: i === 0 ? accent : '#5E5750',
+        convColor: i === 0 ? accent : '#F4EFE8',
+      };
+    });
+    const meter = Array.from({ length: 20 }, (_, i) => ({ bg: i < 19 ? accent : '#2C2825' }));
+    return { accent, rows, meter };
+  }
+}
+</script>
+</body>
+</html>
