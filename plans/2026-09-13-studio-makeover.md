@@ -176,9 +176,27 @@ changes.
 1. **Header:** title, keyword count, and a *This week / All weeks* switch. It is
    `game.view.termsRange`, the one the search terms use, and every number in the
    section follows it.
-2. **The reading panel:** lost to budget and lost to rank, as two large figures,
-   and at most two sentences. Its words come from the logic behind today's advice
-   line, so the two cannot disagree.
+2. **The reading panel says what held the week back, where the money went, and
+   which levers act on it.** Revised with the owner after the first mock-up: two
+   bare figures ("50% lost to budget, 0% lost to rank") stated a problem and gave
+   no way forward.
+   - **What held it back**, from `marketOutlook` (`ui/chart.js`), the same
+     classification today's market card uses: budget, rank, both, or saturated.
+     The mock-up draws budget: "Your money ran out first. 50% of the auctions you
+     could enter went unbought. None were lost to rank, so a higher bid would only
+     run the money out sooner."
+   - **Where the week's money went:** the week's cost by keyword as one bar, with
+     the three largest named (gym leggings took 71% of week 4). Cost is final the
+     week it is spent, unlike conversions, so it is the one split safe to show.
+   - **The levers, as buttons into the controls.** Budget: *Stretch it* opens
+     Adjust several ("cheaper clicks make it last; a lower bid can buy them") and
+     *Add to it* opens Your money. Rank: a better ad (Your ad) or a higher bid.
+     Saturated: more searches (Add a keyword, or a broader match).
+   - **It names levers, never a verdict.** It does not say "lower your bids": the
+     game cannot see whether the extra clicks would be worth buying, which the
+     conversions show a week or more later. That is the stance of today's market
+     card (`readingOf`, `ui/chart.js`), in the words of the guide's *Lost to rank,
+     or lost to budget* chapter (H3).
 3. **One card per keyword:**
    - **match pills**, with "reaches N searches" under them;
    - **tags only on broad**: "matches on: leggings · running · women", because
@@ -190,9 +208,11 @@ changes.
    - **clicks, cost, conversions;**
    - **the QS pill**, which opens its three parts in the card when tapped. The
      note on what Quality Score is and is not moves to the guide behind "why?";
-   - **an on/off switch** to pause; **remove** in the card's ⋯ menu;
-   - **a changed card** takes the terracotta outline and "was ₹33", and its
-     change is in the tray with an undo.
+   - **an on/off switch labelled Running or Paused**, top left; **remove** in the
+     card's ⋯ menu;
+   - **a changed card** takes the terracotta outline, and "was ₹33" sits beside
+     the bid it belongs to ("was phrase" beside the reach); the change is in the
+     tray with an undo.
 4. **An "Add a keyword" card** opens the keyword planner as a panel from the
    right: search the list or type your own; each keyword added becomes a card.
 5. **Adjust several at once:** tick cards, then set them all to ₹X, change them
@@ -209,6 +229,13 @@ changes.
   ₹1. A keyword the change would push outside what `updateKeyword` accepts is left
   alone, and the tray says which.
 - **A keyword added this week** shows "new, no data yet" in place of its numbers.
+- **No fixed card heights.** The first mock-up gave every card one height, and a
+  broad card's extra tags line pushed its numbers out of the bottom; "₹2,03,202"
+  was also wider than its column, and a "Changed" label wider than the card's top
+  row. So cards size to their content, each row takes its tallest card's height,
+  a line that comes and goes (the tags on broad) keeps its space so flipping a
+  match type never makes a card jump, and the widest real values (six-figure
+  costs, the longest planner search) are checked on screen, not assumed.
 
 **Reading load.** Beyond keyword names and numbers, the section carries **about
 120 words at most**, measured in the browser at the end of the pilot the way the
