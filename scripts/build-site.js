@@ -40,6 +40,10 @@ const ENTRY = 'ui/index.html';
 const STATIC_IMPORT = /(?:^|[;\s])(?:import|export)\s[^'"]*?from\s*['"]([^'"]+)['"]|(?:^|[;\s])import\s*['"]([^'"]+)['"]/g;
 const DYNAMIC_IMPORT = /\bimport\s*\(/;
 const HTML_REF = /(?:src|href)="([^"]+)"/g;
+// A stylesheet's own references: the Studio look's fonts. A `data:` URI is
+// inline and an absolute address is somebody else's, so neither is a file to copy.
+const CSS_URL = /url\(\s*['"]?([^'")]+?)['"]?\s*\)/g;
+const NOT_A_FILE = /^(data:|https?:|\/\/)/;
 
 const posix = (path) => path.split(sep).join('/');
 
@@ -65,6 +69,13 @@ export function siteFiles(root) {
       throw new Error(`${from} loads ${path}, which does not exist`);
     }
     found.add(path);
+    if (absolute.endsWith('.css')) {
+      for (const match of readFileSync(absolute, 'utf8').matchAll(CSS_URL)) {
+        const target = match[1].trim();
+        if (!NOT_A_FILE.test(target)) visit(resolve(dirname(absolute), target), path);
+      }
+      return;
+    }
     if (!absolute.endsWith('.js')) return;
 
     const source = readFileSync(absolute, 'utf8');
