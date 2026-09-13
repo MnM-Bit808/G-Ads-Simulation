@@ -83,37 +83,59 @@
 
     <sc-if value="{{showKeywords}}" hint-placeholder-val="{{true}}">
       <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 22px 40px 28px; display: flex; flex-direction: column; gap: 16px;">
-        <div style="display: flex; align-items: stretch; justify-content: space-between; gap: 24px;">
-          <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 8px;">
-            <div class="display" style="font-weight: 800; font-size: 52px; line-height: 0.95; letter-spacing: -0.025em;">Your keywords</div>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Your keywords</div>
             <div style="font-size: 14px; color: #5C605A;">{{countLabel}} · {{rangeLabel}} · <span class="link" onClick="{{whyNumbers}}">why these numbers?</span></div>
           </div>
-          <div style="background: #1E2622; color: #F1ECE2; border-radius: 20px; padding: 14px 22px; display: flex; align-items: center; gap: 22px; max-width: 640px;">
-            <div style="display: flex; flex-direction: column;">
-              <div class="display num" style="font-weight: 800; font-size: 40px; line-height: 1; color: #F0A283;">{{lostToBudget}}</div>
-              <div style="font-size: 12px; color: #B9BFB9;">lost to budget</div>
+          <sc-if value="{{notSelecting}}" hint-placeholder-val="{{true}}">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: #E6DED0;">
+                <sc-for list="{{ranges}}" as="r" hint-placeholder-count="2">
+                  <div class="tap" onClick="{{r.pick}}" style="padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; background: {{r.bg}}; color: {{r.fg}};">{{r.label}}</div>
+                </sc-for>
+              </div>
+              <div class="tap hov" onClick="{{startSelecting}}" style="height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid #CFC6B6; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; white-space: nowrap;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h4v4H4zM4 15h4v4H4zM12 7h8M12 17h8"></path></svg>
+                <div>Adjust several</div>
+              </div>
             </div>
-            <div style="display: flex; flex-direction: column;">
-              <div class="display num" style="font-weight: 800; font-size: 40px; line-height: 1;">{{lostToRank}}</div>
-              <div style="font-size: 12px; color: #B9BFB9;">lost to rank</div>
-            </div>
-            <div style="font-size: 14px; line-height: 1.45; color: #DCE0DA; text-wrap: pretty; max-width: 290px;">Half of week 4’s auctions went unbought because the money ran out. None were lost because your ad ranked too low.</div>
-          </div>
+          </sc-if>
         </div>
 
-        <sc-if value="{{notSelecting}}" hint-placeholder-val="{{true}}">
-          <div style="display: flex; align-items: center; justify-content: space-between; height: 40px;">
-            <div style="display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: #E6DED0;">
-              <sc-for list="{{ranges}}" as="r" hint-placeholder-count="2">
-                <div class="tap" onClick="{{r.pick}}" style="padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; background: {{r.bg}}; color: {{r.fg}};">{{r.label}}</div>
+        <div style="background: #1E2622; color: #F1ECE2; border-radius: 20px; padding: 16px 22px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.95fr); gap: 28px; align-items: center;">
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #B9BFB9;">Week 4</div>
+            <div class="display" style="font-weight: 800; font-size: 24px; line-height: 1.1;">Your money ran out first</div>
+            <div style="font-size: 13px; line-height: 1.45; color: #DCE0DA; text-wrap: pretty;"><span class="num" style="color: #F0A283; font-weight: 700;">{{lostToBudget}}</span> of the auctions you could enter went unbought. {{rankLine}}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+            <div style="font-size: 12px; color: #B9BFB9;">Where week 4’s money went</div>
+            <div style="display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden;">
+              <sc-for list="{{spend}}" as="sp" hint-placeholder-count="7">
+                <div title="{{sp.title}}" style="flex-grow: {{sp.grow}}; flex-basis: 0; min-width: 2px; background: {{sp.color}};"></div>
               </sc-for>
             </div>
-            <div class="tap hov" onClick="{{startSelecting}}" style="height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid #CFC6B6; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h4v4H4zM4 15h4v4H4zM12 7h8M12 17h8"></path></svg>
-              <div>Adjust several</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px 14px;">
+              <sc-for list="{{spendLegend}}" as="lg" hint-placeholder-count="4">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #DCE0DA; white-space: nowrap;">
+                  <div style="width: 8px; height: 8px; border-radius: 2px; background: {{lg.color}};"></div>
+                  <div>{{lg.label}} <span class="num" style="font-weight: 700; color: #F1ECE2;">{{lg.share}}</span></div>
+                </div>
+              </sc-for>
             </div>
           </div>
-        </sc-if>
+          <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+            <div class="tap" onClick="{{stretch}}" style="padding: 8px 12px; border-radius: 12px; border: 1px solid #56625B; display: flex; flex-direction: column; gap: 1px;">
+              <div style="font-size: 13px; font-weight: 700;">Stretch it →</div>
+              <div style="font-size: 12px; color: #B9BFB9;">cheaper clicks make it last; a lower bid can buy them</div>
+            </div>
+            <div class="tap" onClick="{{addMoney}}" style="padding: 8px 12px; border-radius: 12px; border: 1px solid #56625B; display: flex; flex-direction: column; gap: 1px;">
+              <div style="font-size: 13px; font-weight: 700;">Add to it →</div>
+              <div style="font-size: 12px; color: #B9BFB9;">a bigger budget, in Your money</div>
+            </div>
+          </div>
+        </div>
         <sc-if value="{{selecting}}" hint-placeholder-val="{{false}}">
           <div style="display: flex; align-items: center; gap: 14px; min-height: 40px; padding: 8px 10px 8px 18px; border-radius: 16px; background: #1E2622; color: #F1ECE2; flex-wrap: wrap;">
             <div style="font-size: 14px; font-weight: 700; min-width: 92px;">{{selectedLabel}}</div>
@@ -143,7 +165,7 @@
 
         <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
           <sc-for list="{{cards}}" as="c" hint-placeholder-count="7">
-            <div style="position: relative; background: {{c.bg}}; border-radius: 20px; border: 1px solid {{c.borderColor}}; box-shadow: 0 0 0 1px {{c.ring}}; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; height: 296px; transition: border-color 150ms ease, box-shadow 150ms ease;">
+            <div style="position: relative; background: {{c.bg}}; border-radius: 20px; border: 1px solid {{c.borderColor}}; box-shadow: 0 0 0 1px {{c.ring}}; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; min-width: 0; transition: border-color 150ms ease, box-shadow 150ms ease;">
               <div style="display: flex; align-items: center; justify-content: space-between; height: 26px;">
                 <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
                   <sc-if value="{{c.selecting}}" hint-placeholder-val="{{false}}">
@@ -151,13 +173,15 @@
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FBF8F3" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
                     </div>
                   </sc-if>
-                  <div style="font-size: 12px; font-weight: 600; color: {{c.tagColor}}; white-space: nowrap;">{{c.tag}}</div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <div class="tap" onClick="{{c.toggleQs}}" title="Quality Score: tap for its three parts" style="padding: 3px 9px; border-radius: 999px; background: {{c.qsBg}}; color: {{c.qsFg}}; font-size: 12px; font-weight: 700;">QS {{c.qsLabel}}</div>
-                  <div class="tap" onClick="{{c.toggleActive}}" title="{{c.switchTitle}}" style="position: relative; width: 34px; height: 20px; border-radius: 999px; background: {{c.switchBg}}; transition: background 150ms ease;">
-                    <div style="position: absolute; top: 2px; left: {{c.knobLeft}}; width: 16px; height: 16px; border-radius: 50%; background: #FBF8F3; transition: left 150ms ease;"></div>
+                  <div class="tap" onClick="{{c.toggleActive}}" title="{{c.switchTitle}}" style="display: flex; align-items: center; gap: 6px;">
+                    <div style="position: relative; width: 34px; height: 20px; flex-shrink: 0; border-radius: 999px; background: {{c.switchBg}}; transition: background 150ms ease;">
+                      <div style="position: absolute; top: 2px; left: {{c.knobLeft}}; width: 16px; height: 16px; border-radius: 50%; background: #FBF8F3; transition: left 150ms ease;"></div>
+                    </div>
+                    <div style="font-size: 12px; font-weight: 600; color: {{c.switchText}}; white-space: nowrap;">{{c.switchLabel}}</div>
                   </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+                  <div class="tap" onClick="{{c.toggleQs}}" title="Quality Score: tap for its three parts" style="padding: 3px 9px; border-radius: 999px; background: {{c.qsBg}}; color: {{c.qsFg}}; font-size: 12px; font-weight: 700; white-space: nowrap;">QS {{c.qsLabel}}</div>
                   <div class="tap hov" onClick="{{c.toggleMenu}}" title="More" style="width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #5C605A;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg>
                   </div>
@@ -169,7 +193,7 @@
                   <div class="tap hov" onClick="{{c.toggleMenu}}" style="padding: 8px 10px; border-radius: 8px; font-size: 13px; color: #5C605A;">Cancel</div>
                 </div>
               </sc-if>
-              <div class="display" style="font-weight: 700; font-size: 19px; line-height: 1.15; letter-spacing: -0.01em; height: 44px; color: {{c.textColor}};">{{c.text}}</div>
+              <div class="display" style="font-weight: 700; font-size: 19px; line-height: 1.15; letter-spacing: -0.01em; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; color: {{c.textColor}};">{{c.text}}</div>
 
               <sc-if value="{{c.qsOpen}}" hint-placeholder-val="{{false}}">
                 <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1;">
@@ -186,26 +210,30 @@
               </sc-if>
 
               <sc-if value="{{c.qsClosed}}" hint-placeholder-val="{{true}}">
-                <div style="display: flex; flex-direction: column; gap: 5px;">
+               <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1; min-width: 0;">
+                <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
                   <div style="display: flex; gap: 4px;">
                     <sc-for list="{{c.pills}}" as="m" hint-placeholder-count="3">
-                      <div class="tap" onClick="{{m.pick}}" style="padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.line}}; transition: background 120ms ease, color 120ms ease;">{{m.label}}</div>
+                      <div class="tap" onClick="{{m.pick}}" style="padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.line}}; transition: background 120ms ease, color 120ms ease;">{{m.label}}</div>
                     </sc-for>
                   </div>
-                  <div style="font-size: 12px; color: #5C605A;">{{c.reachLabel}}</div>
-                  <sc-if value="{{c.showTags}}" hint-placeholder-val="{{false}}">
-                    <div style="font-size: 12px; color: {{c.tagsColor}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.tagsLine}}</div>
-                  </sc-if>
+                  <div style="height: 16px; font-size: 12px; line-height: 16px; color: #5C605A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.reachLabel}}<span style="color: #A8472A; font-weight: 600;">{{c.matchWas}}</span></div>
+                  <div title="{{c.tagsTitle}}" style="height: 16px; font-size: 12px; line-height: 16px; color: {{c.tagsColor}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.tagsLine}}</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
-                  <div style="display: flex; align-items: baseline; justify-content: space-between; height: 28px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; height: 30px;">
                     <div style="font-size: 12px; color: #5C605A;">Bid</div>
-                    <sc-if value="{{c.editing}}" hint-placeholder-val="{{false}}">
-                      <input class="field num" style="width: 84px; height: 30px; text-align: right; font-weight: 700;" value="{{c.editValue}}" autoFocus="{{true}}" onChange="{{c.onEdit}}" onKeyDown="{{c.onEditKey}}" onBlur="{{c.commitEdit}}">
-                    </sc-if>
-                    <sc-if value="{{c.notEditing}}" hint-placeholder-val="{{true}}">
-                      <div class="display num tap" onClick="{{c.startEdit}}" title="Tap to type an exact bid" style="font-weight: 800; font-size: 22px; border-bottom: 1px dashed #CFC6B6;">₹{{c.bid}}</div>
-                    </sc-if>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <sc-if value="{{c.hasWas}}" hint-placeholder-val="{{false}}">
+                        <div class="num" style="font-size: 12px; font-weight: 600; color: #A8472A; white-space: nowrap;">was ₹{{c.wasBid}}</div>
+                      </sc-if>
+                      <sc-if value="{{c.editing}}" hint-placeholder-val="{{false}}">
+                        <input class="field num" style="width: 84px; height: 30px; text-align: right; font-weight: 700;" value="{{c.editValue}}" autoFocus="{{true}}" onChange="{{c.onEdit}}" onKeyDown="{{c.onEditKey}}" onBlur="{{c.commitEdit}}">
+                      </sc-if>
+                      <sc-if value="{{c.notEditing}}" hint-placeholder-val="{{true}}">
+                        <div class="display num tap" onClick="{{c.startEdit}}" title="Tap to type an exact bid" style="font-weight: 800; font-size: 22px; line-height: 28px; border-bottom: 1px dashed #CFC6B6; white-space: nowrap;">₹{{c.bid}}</div>
+                      </sc-if>
+                    </div>
                   </div>
                   <div class="kslider" style="position: relative; height: 16px;">
                     <div style="position: absolute; left: 0; right: 0; top: 6px; height: 4px; border-radius: 2px; background: #E4DCCD;"></div>
@@ -216,17 +244,18 @@
                     <div class="kthumb" style="position: absolute; top: 0; left: calc({{c.pct}}% - 8px); width: 16px; height: 16px; border-radius: 50%; background: #FBF8F3; border: 3px solid {{c.fill}}; box-sizing: border-box; transition: box-shadow 120ms ease;"></div>
                     <input class="kinput" type="range" min="1" max="{{c.max}}" step="1" value="{{c.bid}}" onChange="{{c.onSlide}}" aria-label="{{c.sliderLabel}}" style="position: absolute; left: -8px; top: -8px; width: calc(100% + 16px); height: 32px; margin: 0; opacity: 0; cursor: pointer;">
                   </div>
-                  <div style="font-size: 12px; color: #5C605A;">{{c.paidLine}}</div>
+                  <div style="font-size: 12px; color: #5C605A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.paidLine}}</div>
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding-top: 10px; border-top: 1px solid #EAE2D4; margin-top: auto;">
-                  <div style="display: flex; flex-direction: column;"><div class="num" style="font-weight: 700; font-size: 16px;">{{c.clicks}}</div><div style="font-size: 12px; color: #5C605A;">clicks</div></div>
-                  <div style="display: flex; flex-direction: column;"><div class="num" style="font-weight: 700; font-size: 16px;">{{c.cost}}</div><div style="font-size: 12px; color: #5C605A;">cost</div></div>
-                  <div style="display: flex; flex-direction: column;"><div class="num" style="font-weight: 700; font-size: 16px;">{{c.conv}}</div><div style="font-size: 12px; color: #5C605A;">conv.</div></div>
+                <div style="display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 8px; padding-top: 10px; border-top: 1px solid #EAE2D4; margin-top: auto;">
+                  <div style="display: flex; flex-direction: column; min-width: 0;"><div class="num" style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{c.clicks}}</div><div style="font-size: 12px; color: #5C605A;">clicks</div></div>
+                  <div style="display: flex; flex-direction: column; min-width: 0;"><div class="num" style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{c.cost}}</div><div style="font-size: 12px; color: #5C605A;">cost</div></div>
+                  <div style="display: flex; flex-direction: column; min-width: 0;"><div class="num" style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{c.conv}}</div><div style="font-size: 12px; color: #5C605A;">conv.</div></div>
                 </div>
+               </div>
               </sc-if>
             </div>
           </sc-for>
-          <div class="tap hov" onClick="{{openPlanner}}" style="border-radius: 20px; border: 2px dashed #CFC6B6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #5C605A; height: 296px; box-sizing: border-box;">
+          <div class="tap hov" onClick="{{openPlanner}}" style="border-radius: 20px; border: 2px dashed #CFC6B6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #5C605A; min-height: 280px; box-sizing: border-box;">
             <div style="width: 44px; height: 44px; border-radius: 50%; background: #E8E1D4; display: flex; align-items: center; justify-content: center; color: #1E2622;">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
             </div>
@@ -487,11 +516,11 @@ class Component extends DCLogic {
       const changed = bidChanged || matchChanged;
       const paused = !k.active;
       const selected = Boolean(s.selected[k.id]);
-      let tag = '';
-      if (k.added) tag = 'New · no data yet';
-      else if (paused) tag = 'Paused';
-      else if (bidChanged) tag = `Changed · was ₹${b.bid}`;
-      else if (matchChanged) tag = `Changed · was ${b.match}`;
+      let tagsLine = '';
+      if (k.match === 'broad') {
+        tagsLine = k.tags == null ? 'tags are read from its words in the game'
+          : k.tags.length ? `tags: ${k.tags.join(' · ')}` : 'no tags: broad finds nothing';
+      }
       const ring = selected ? INK : (changed || k.added ? ACCENT : 'transparent');
       const reachN = k.reach ? k.reach[k.match] : null;
       const pctOf = (v) => Math.round((((v - 1) / (s.sliderMax - 1)) * 100) * 10) / 10;
@@ -501,7 +530,6 @@ class Component extends DCLogic {
         borderColor: selected ? INK : (changed || k.added ? ACCENT : LINE),
         ring,
         textColor: paused ? FAINT : INK,
-        tag, tagColor: paused ? MUTED : ACCENT_TEXT,
         selecting: s.selecting,
         checkLine: selected ? INK : '#CFC6B6', checkBg: selected ? INK : 'transparent',
         toggleSelect: () => this.setState((st) => ({ selected: { ...st.selected, [k.id]: !st.selected[k.id] } })),
@@ -513,6 +541,7 @@ class Component extends DCLogic {
           .map(([label, r]) => ({ label, rating: RATING[r][0], color: RATING[r][1] })) : [],
         qsNote: k.qs ? 'Each part is compared with everyone who showed on the same searches.' : 'Not enough of its own data to score yet.',
         switchBg: paused ? '#CFC6B6' : '#2F6B4F', knobLeft: paused ? '2px' : '16px',
+        switchLabel: paused ? 'Paused' : 'Running', switchText: paused ? MUTED : '#2F6B4F',
         switchTitle: paused ? 'Paused: tap to enter auctions again' : 'Running: tap to pause',
         toggleActive: () => this.patch(k.id, { active: !k.active }),
         menuOpen: s.menuOpen === k.id,
@@ -527,9 +556,8 @@ class Component extends DCLogic {
           pick: () => this.patch(k.id, { match: m }),
         })),
         reachLabel: reachN == null ? 'reach is counted when the game adds it' : `reaches ${plural(reachN, 'search', 'searches')}`,
-        showTags: k.match === 'broad',
-        tagsLine: k.tags == null ? 'its tags are read from its words in the game'
-          : k.tags.length ? `matches on: ${k.tags.join(' · ')}` : 'no tags: broad finds nothing',
+        matchWas: matchChanged ? ` · was ${b.match}` : '',
+        tagsLine, tagsTitle: tagsLine,
         tagsColor: k.tags == null || k.tags.length ? MUTED : '#9E2B25',
         editing: s.editing === k.id, notEditing: s.editing !== k.id, editValue: s.editValue,
         startEdit: () => this.setState({ editing: k.id, editValue: String(k.bid), toast: '' }),
@@ -541,14 +569,30 @@ class Component extends DCLogic {
         commitEdit: () => this.commitEdit(k.id),
         onSlide: (e) => this.setBid(k.id, e.target.value),
         sliderLabel: `Bid for ${k.text}, in rupees`,
-        pct: pctOf(k.bid), hasWas: bidChanged, wasPct: pctOf(b ? b.bid : k.bid),
+        pct: pctOf(k.bid), hasWas: bidChanged, wasPct: pctOf(b ? b.bid : k.bid), wasBid: b ? b.bid : k.bid,
         fill: paused ? '#B8B2A6' : ACCENT,
-        paidLine: stats && stats.cpc != null ? `paid ₹${stats.cpc} a click on average` : 'no clicks yet',
+        paidLine: k.added ? 'new this week: no clicks yet'
+          : stats && stats.cpc != null ? `paid ₹${stats.cpc} a click on average` : 'no clicks yet',
         clicks: stats ? inr(stats.clicks) : '—',
         cost: stats ? `₹${inr(stats.cost)}` : '—',
         conv: stats ? String(stats.conv) : '—',
       };
     });
+
+    // Week 4's spend by keyword. Cost is final the week it is spent, unlike
+    // conversions, which keep arriving, so this is the one split safe to show.
+    const SHADES = ['#F0A283', '#DCE0DA', '#B9BFB9', '#96A098', '#7C877F', '#65706A', '#56625B'];
+    const weekCosts = DATA.keywords.map((k) => ({ text: k.text, cost: k.week.cost })).sort((a, b) => b.cost - a.cost);
+    const weekTotal = weekCosts.reduce((sum, x) => sum + x.cost, 0);
+    const shareOf = (cost) => `${Math.round((100 * cost) / weekTotal)}%`;
+    const spend = weekCosts.map((x, i) => ({ grow: x.cost, color: SHADES[i], title: `${x.text}: ₹${inr(x.cost)}, ${shareOf(x.cost)}` }));
+    const rest = weekCosts.slice(3);
+    const spendLegend = [
+      ...weekCosts.slice(0, 3).map((x, i) => ({ label: x.text, share: shareOf(x.cost), color: SHADES[i] })),
+      { label: `${rest.length} others`, share: shareOf(rest.reduce((sum, x) => sum + x.cost, 0)), color: SHADES[4] },
+    ];
+    const lr = DATA.reading.lostToRank;
+    const rankLine = `${lr === 0 ? 'None were' : `${lr}% were`} lost to rank, so a higher bid would only run the money out sooner.`;
 
     const selectedCount = live.filter((k) => s.selected[k.id]).length;
     const bulkMatches = MATCHES.map((m) => ({ label: LABEL[m], pick: () => this.forEachSelected((k) => ({ ...k, match: m })) }));
@@ -591,7 +635,12 @@ class Component extends DCLogic {
       showKeywords, showPlaceholder: !showKeywords, placeholder: { title: current.label, body },
       countLabel: plural(live.length, 'keyword', 'keywords'),
       rangeLabel: s.range === 'week' ? 'week 4' : 'weeks 1–4',
-      lostToBudget: `${DATA.reading.lostToBudget}%`, lostToRank: `${DATA.reading.lostToRank}%`,
+      lostToBudget: `${DATA.reading.lostToBudget}%`, rankLine, spend, spendLegend,
+      stretch: () => this.setState({
+        selecting: true, selected: {}, qsOpen: null, menuOpen: null,
+        toast: 'Tick the keywords to make cheaper, then change their bids by a percentage.',
+      }),
+      addMoney: () => this.setState({ area: 'brand', section: 'money', toast: '' }),
       whyNumbers: () => this.setState({ toast: 'In the game, this opens the field guide at the chapter these numbers come from.' }),
       whyQuality: () => this.setState({ toast: 'In the game, this opens the field guide at Quality Score.' }),
       ranges, cards,
