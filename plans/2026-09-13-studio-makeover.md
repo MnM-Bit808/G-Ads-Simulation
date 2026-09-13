@@ -202,8 +202,9 @@ changes.
 **Rules the cards need, decided here:**
 
 - **The slider's range** runs from ₹1 to the larger of ₹100 and 1.5× the highest
-  bid in the account, rounded up to the next ₹10. So it never pins a bid against
-  its end, and it moves when bids do.
+  bid **at the start of the week**, rounded up to the next ₹10. It is fixed for the
+  week so that it never rescales under a finger mid-drag; a typed or bulk-set bid
+  above the end extends it to fit (found building the mock-up, section 9).
 - **"Change by a percentage"** rounds each result to the whole rupee, never below
   ₹1. A keyword the change would push outside what `updateKeyword` accepts is left
   alone, and the tray says which.
