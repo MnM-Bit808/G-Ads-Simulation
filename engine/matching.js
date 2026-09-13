@@ -265,6 +265,28 @@ export function findMatches(query, adGroups) {
   return hits;
 }
 
+/**
+ * How many searches in the set this keyword matches, on its own match type,
+ * before any negative.
+ *
+ * What the keyword form shows beside the match type (the SLC review's first
+ * recommendation, DECISIONS E8): how far broad reaches depends on how the
+ * keyword was tagged, so a player choosing "broad" could not see what it would
+ * buy. It returns a count and nothing about which searches or their tags, the
+ * way Keyword Planner forecasts a keyword without showing Google's workings.
+ *
+ * @param {{text: string, matchType: string, tags?: string[]}} keyword
+ * @param {{queries: object[]}} querySet
+ * @returns {number} searches matched
+ */
+export function keywordReach(keyword, querySet) {
+  let count = 0;
+  for (const query of querySet?.queries ?? []) {
+    if (matchesKeyword(query, keyword)) count += 1;
+  }
+  return count;
+}
+
 function compareKeywords(a, b) {
   const spec = MATCH_SPECIFICITY[b.matchType] - MATCH_SPECIFICITY[a.matchType];
   if (spec !== 0) return spec;

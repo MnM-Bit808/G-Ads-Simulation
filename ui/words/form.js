@@ -15,4 +15,9 @@ export const FORM = Object.freeze({
     + 'top of the strategy’s own reading of the hour, so the hour counts twice; Google Ads '
     + 'does not allow hour adjustments with the strategies that predict conversions.',
     { why: 'hours' }),
+
+  // Beside the match type: how many searches this keyword matches on it, before
+  // negatives (the SLC review's first recommendation, E8). The negatives card's
+  // "blocks" count, the other way round.
+  reach: line('label', ({ count }) => `reaches ${count} ${count === 1 ? 'search' : 'searches'}`),
 });

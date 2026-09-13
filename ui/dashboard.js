@@ -21,6 +21,7 @@
 
 import { el, add, table, figure, rupees, whole, pct, ratio } from './dom.js';
 import { getPublicView } from '../engine/insights.js';
+import { keywordReach } from '../engine/matching.js';
 import { briefing } from '../setup.js';
 import {
   renderDecisions, addNegative, blocksTerm, effectiveGrades, termsOutlook,
@@ -1142,6 +1143,10 @@ export function renderDashboard(game, onDecisionChange, { openGuide } = {}) {
     lastMonth: lastMonthBudget(game.state.history, game.playerId, game.state.round),
     // So a card on the form can carry a "why?" into the field guide.
     openGuide,
+    // How many searches a keyword matches, as a count only: the matching reads
+    // the full set's tags, which the view withholds, and hands back a number,
+    // as Keyword Planner forecasts a keyword without its workings (E8).
+    reach: (keyword) => keywordReach(keyword, game.state.querySet),
     terms: null,
     byKeyword: null,
     /** Both breakdowns follow whichever range the report is showing. */

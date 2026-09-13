@@ -36,6 +36,8 @@ import { cellKey, parseCell } from '../engine/positions.js';
 import { writerCopyFor, WRITER_COPY_VARIANTS } from '../content/writerCopy.js';
 import { validateAdCopy, namesARival, explainGrade } from '../agents/grader.js';
 import { heuristicTags, tagKeywordOffline } from '../agents/keywordTagger.js';
+import { keywordReach } from '../engine/matching.js';
+import { FORM } from './words/form.js';
 import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS, MONTHLY_BUDGET_PAISE,
   CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH,
@@ -1136,14 +1138,21 @@ function sectionKeywords(querySet, draft, rerender, live) {
         const tags = el('div', 'tag-row');
         // The tags the account will actually be given (setup.js), not the word
         // lookup's guess: "matching set women" runs as co-ord-set + women (E9).
-        for (const tag of tagKeywordOffline({ text: keyword.text }, querySet).tags) {
+        const given = tagKeywordOffline({ text: keyword.text }, querySet).tags;
+        for (const tag of given) {
           tags.append(el('span', 'tag', tag));
         }
+        // How far it reaches on the match type chosen, with those same tags, so
+        // "broad" shows what it would buy before the first week (E8).
+        const match = el('div', 'kw-match');
+        match.append(matchType, el('div', 'kw-reach', FORM.reach({
+          count: keywordReach({ text: keyword.text, matchType: keyword.matchType, tags: given }, querySet),
+        })));
         const remove = el('button', 'add');
         remove.type = 'button';
         remove.textContent = 'remove';
         remove.addEventListener('click', () => { draft.keywords.splice(i, 1); rerender(); });
-        return { cells: [keyword.text, matchType, bid, tags, remove] };
+        return { cells: [keyword.text, match, bid, tags, remove] };
       }));
     node.append(el('p', 'field-label', `Your keywords (${draft.keywords.length})`));
     node.append(scrollX(picked));

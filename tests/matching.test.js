@@ -3,15 +3,52 @@ import {
   normalise, tokenise, stem, variantTokens,
   matchesKeyword, isBlocked, blockedBy,
   findMatches, isEligible, selectAdGroup,
-  queryKeywordFit, tagOverlap, MATCH_SPECIFICITY,
+  queryKeywordFit, tagOverlap, MATCH_SPECIFICITY, keywordReach,
 } from '../engine/matching.js';
 import { BROAD_MATCH_MIN_OVERLAP, QUALITY_FACTOR_RANGES } from '../engine/constants.js';
+import { QUERY_SET } from '../content/querySet.js';
+import { tagKeywordOffline } from '../agents/keywordTagger.js';
 
 const q = (text, tags = []) => ({ id: 'q', text, tags });
 const kw = (text, matchType, tags = [], extra = {}) => ({
   id: 'kw', text, matchType, tags, bidPaise: 5000, active: true, ...extra,
 });
 const neg = (text, matchType) => ({ text, matchType });
+
+describe('how far a keyword reaches (the review\'s first recommendation, E8)', () => {
+  // How far broad goes depends on how a keyword was tagged, so a player choosing
+  // "broad" could not see what it would buy. The count is the engine's own
+  // matching, over every search in the set, before negatives.
+  const set = { queries: [
+    q('gym leggings', ['leggings', 'gym']),
+    q('gym leggings sale', ['leggings', 'gym', 'sale']),
+    q('yoga pants', ['pants', 'yoga']),
+  ] };
+
+  test('it counts the searches the keyword matches on its own match type', () => {
+    expect(keywordReach(kw('gym leggings', 'exact', ['leggings', 'gym']), set)).toBe(1);
+    expect(keywordReach(kw('gym leggings', 'phrase', ['leggings', 'gym']), set)).toBe(2);
+    expect(keywordReach(kw('leggings', 'broad', ['leggings']), set)).toBe(2);
+  });
+
+  test('an untagged keyword reaches nothing on broad, as it matches nothing', () => {
+    expect(keywordReach(kw('gym leggings', 'broad', []), set)).toBe(0);
+  });
+
+  test('on the real set, a planner keyword reaches further on broad than on phrase', () => {
+    // The tagger returns the tags, not the keyword: its text is the caller's.
+    const tagged = { text: 'gym leggings', ...tagKeywordOffline({ text: 'gym leggings' }, QUERY_SET) };
+    const on = (matchType) => keywordReach({ ...tagged, matchType }, QUERY_SET);
+    expect(on('exact')).toBeGreaterThanOrEqual(1);
+    expect(on('phrase')).toBeGreaterThanOrEqual(on('exact'));
+    expect(on('broad')).toBeGreaterThan(on('phrase'));
+  });
+
+  test('and a specific keyword reaches less on broad than a generic one (E8)', () => {
+    const reach = (text) => keywordReach({ text, ...tagKeywordOffline({ text }, QUERY_SET), matchType: 'broad' }, QUERY_SET);
+    expect(reach('seamless compression leggings')).toBeLessThan(reach('leggings'));
+  });
+});
 
 describe('normalise and tokenise', () => {
   test('lowercases, strips punctuation and collapses whitespace', () => {

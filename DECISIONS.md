@@ -1201,6 +1201,19 @@ and getting reach they cannot predict, the fix is to surface the tags in the
 interface rather than to change the formula. A player who can see that their
 keyword carries five tags can reason about it; one who cannot is guessing.
 
+**Surfaced, 2026-09-13, as the SLC review's first recommendation asked.** The
+keyword rows already showed each keyword's tags; they now also say how many
+searches it reaches on its chosen match type, before negatives, on the
+dashboard's keyword card and round 0's list alike (`keywordReach` in
+`engine/matching.js`, the engine's own matching over the whole set). Switching
+a keyword to broad shows what broad would buy before a week is spent on it.
+On the real set: "gym leggings" reaches 1 search on exact, 16 on phrase, 68 on
+broad; "seamless compression leggings", with three tags, reaches only 6 on
+broad against 50 for "leggings", which is this entry's point made visible. The
+figure is a count computed from tags the view withholds, and nothing else: no
+tag and no particular search reaches the screen, the way Keyword Planner
+forecasts a keyword without showing its workings.
+
 ### E9. A planner keyword is tagged as the search it names — `FIXED` (2026-09-12)
 
 **Found by the SLC review** (`reviews/slc-review.md` 9A-1), and nothing in this

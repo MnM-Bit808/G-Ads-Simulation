@@ -2544,6 +2544,11 @@ function keywordsCard(ctx, refresh) {
       value: keyword.matchType,
       onChange: (value) => { updateKeyword(draft, keyword.id, { matchType: value }); refresh(); },
     });
+    // How far it reaches on the match type chosen, so switching to broad shows
+    // what broad would buy before a week is spent on it (E8).
+    const match = el('div', 'kw-match');
+    match.append(matchType);
+    if (ctx.reach) match.append(el('div', 'kw-reach', FORM.reach({ count: ctx.reach(keyword) })));
 
     const bid = input({
       type: 'number',
@@ -2584,7 +2589,7 @@ function keywordsCard(ctx, refresh) {
     return {
       className: paused ? 'paused-row' : null,
       cells: [
-        label, matchType, bid,
+        label, match, bid,
         stats ? whole(stats.clicks) : '0',
         stats ? rupees(stats.costPaise) : '—',
         stats && stats.clicks > 0 ? rupees(stats.costPaise / stats.clicks) : '—',

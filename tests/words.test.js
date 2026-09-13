@@ -177,7 +177,12 @@ describe('the week the market re-splits (D12, C8)', () => {
 });
 
 describe('the decision form', () => {
-  const FIGURES = { searches: '14', matchType: 'broad' };
+  const FIGURES = { count: 14 };
+
+  test('a reach of one reads as one search, not one searches', () => {
+    expect(FORM.reach({ count: 1 })).toBe('reaches 1 search');
+    expect(FORM.reach({ count: 68 })).toBe('reaches 68 searches');
+  });
 
   test('every entry is a line of a kind the screen may carry', () => {
     for (const [name, entry] of Object.entries(FORM)) expect(KINDS, name).toContain(entry.kind);
