@@ -1,9 +1,17 @@
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { POLICIES, controllerFor, disciplined, affordableCpcPaise } from '../agents/policies.js';
+import {
+  POLICIES, controllerFor, disciplined, affordableCpcPaise,
+  capitalWindow, investment, DISCIPLINED_BUDGET_BOUND,
+} from '../agents/policies.js';
 import { playGame, playRound } from '../game.js';
 import { getSelfView, getPublicView } from '../engine/insights.js';
+import { advertiserReport } from '../engine/report.js';
+import { startGame } from '../setup.js';
+import { QUERY_SET } from '../content/querySet.js';
+import { BRAND_IDENTITIES } from '../content/brands.js';
+import { MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE } from '../engine/constants.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 
 const STATE = makeGameState();
@@ -221,6 +229,106 @@ describe('a market of policies plays a game', () => {
     const { finalState } = await playGame(STATE, everyone, { mode: 'expected', rounds: 4 });
     for (const a of finalState.advertisers) {
       expect(a.bidding.learningRoundsRemaining, a.id).toBe(0);
+    }
+  });
+});
+
+describe('week 5: every rival decides its second capital allocation (DECISIONS C8)', { timeout: 60_000 }, () => {
+  // No rival used to submit a capital decision at week 5, and the engine only
+  // turns uncommitted capital into ad budget when one is submitted, so each
+  // rival's second ₹1,20,000 disappeared. Each now decides, by character.
+  let atFive;
+  let self;
+  let report;
+  const view = () => getPublicView(atFive, PLAYER_ID);
+  const withLoss = (lostToBudget) => ({ ...report, share: { ...report.share, lostToBudget } });
+  const at = (round, over = {}) => ({ ...structuredClone(self), round, ...over });
+  const committedNothing = () => ({ ...self.capex, committed: { sizeGuide: 0, photography: 0, landingPage: 0, orderConfirmation: 0 } });
+
+  test('set up: a real week-5 self view and report', async () => {
+    ({ finalState: atFive } = await playGame(STATE, everyone, { mode: 'expected', rounds: 4 }));
+    self = getSelfView(atFive, PLAYER_ID);
+    report = advertiserReport(atFive.history.at(-1), PLAYER_ID);
+    expect(self.round).toBe(5);
+    expect(capitalWindow(self)).toBe(true);
+  });
+
+  test('nothing changes outside the window', () => {
+    for (const round of [1, 2, 4, 6, 9]) {
+      expect(capitalWindow(at(round)), `round ${round}`).toBe(false);
+      for (const [id, policy] of Object.entries(POLICIES)) {
+        const decision = policy(at(round), withLoss(0), view());
+        expect(decision?.capex, `${id} at round ${round}`).toBeUndefined();
+      }
+    }
+  });
+
+  test('an investment tops up by the tilt, and never passes a ceiling or the allocation', () => {
+    const nothing = committedNothing();
+    const mid = investment(at(5, { position: { ...self.position, price: 'mid' }, capex: nothing }));
+    expect(mid).toEqual({ landingPage: 8000000, orderConfirmation: 4000000 });
+    const value = investment(at(5, { position: { ...self.position, price: 'value' }, capex: nothing }));
+    expect(value).toEqual({ sizeGuide: 8000000, orderConfirmation: 4000000 });
+    const premium = investment(at(5, { position: { ...self.position, price: 'premium' }, capex: nothing }));
+    expect(premium).toEqual({ photography: CAPEX_ALLOCATION_PAISE });
+
+    // Already part-built: it finishes the primary, then the secondary, and what
+    // no ladder can take is left to become ad money.
+    const built = investment(at(5, {
+      position: { ...self.position, price: 'mid' },
+      capex: { ...nothing, committed: { ...nothing.committed, landingPage: 8000000, orderConfirmation: 4000000 } },
+    }));
+    expect(built).toEqual({ orderConfirmation: 4000000 });
+
+    for (const price of ['value', 'mid', 'premium']) {
+      const out = investment(at(5, { position: { ...self.position, price }, capex: nothing }));
+      expect(Object.values(out).reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(self.capital.allocationPaise);
+      for (const [target, paise] of Object.entries(out)) {
+        expect(paise, `${price} ${target}`).toBeLessThanOrEqual(self.capital.ceilingPaise[target]);
+      }
+    }
+  });
+
+  test('each character decides by its own reading', () => {
+    const invested = at(5, { capex: { ...self.capex, committed: { ...committedNothing().committed, landingPage: 2500000 } } });
+    const fresh = at(5, { capex: committedNothing() });
+
+    expect(POLICIES.spender(fresh, withLoss(0), view()).capex).toEqual({});
+    expect(POLICIES.cautious(fresh, withLoss(0.5), view()).capex).toEqual(investment(fresh));
+
+    // D12's finding, as the capital card now puts it to the player.
+    expect(POLICIES.disciplined(fresh, withLoss(DISCIPLINED_BUDGET_BOUND / 2), view()).capex)
+      .toEqual(investment(fresh));
+    expect(POLICIES.disciplined(fresh, withLoss(0.3), view()).capex).toEqual({});
+
+    // Habit: what it did at round 0.
+    for (const id of ['automator', 'grossOptimiser', 'brandDefender']) {
+      expect(POLICIES[id](invested, withLoss(0), view()).capex, id).toEqual(investment(invested));
+      expect(POLICIES[id](fresh, withLoss(0), view()).capex, id).toEqual({});
+    }
+  });
+
+  test('through the door, no rival loses its allocation any more', async () => {
+    let state = startGame({
+      rootSeed: 1,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: { price: 'mid', purpose: 'performance' },
+        keywords: [{ text: 'gym leggings', matchType: 'phrase', bidPaise: 1500 }],
+        ad: { headlines: ['Gym Leggings', 'Free Delivery', 'Sizes XS To XXL'], descriptions: ['For every session.', 'Easy returns.'], landingPageDescription: 'A plain product page.' },
+      },
+    });
+    const controllers = Object.fromEntries(state.advertisers.map((a) => [a.id, a.policyId ? controllerFor(a.policyId) : () => null]));
+    while (state.round <= 5) state = (await playRound(state, controllers, { mode: 'expected' })).nextGameState;
+
+    const week5 = state.history.find((h) => h.round === 5);
+    for (const a of state.advertisers.filter((x) => x.policyId)) {
+      const entry = state.decisionLog.find((e) => e.round === 5 && e.advertiserId === a.id);
+      const invested = Object.values(entry.decision.capex ?? {}).reduce((x, y) => x + y, 0);
+      expect(entry.decision.capex, `${a.id} made no capital decision`).toBeDefined();
+      expect(week5.byAdvertiser[a.id].budget.monthlyBudgetPaise, a.id)
+        .toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE - invested);
     }
   });
 });

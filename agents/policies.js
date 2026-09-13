@@ -278,7 +278,7 @@ export function locationTilt(self, report, lean = LOCATION_LEAN, { net = true } 
   });
 }
 
-export function disciplined(self, report, view) {
+function disciplinedAccount(self, report, view) {
   const affordable = affordableCpcPaise(self, report);
 
   // Round 1: no evidence yet, so open at the margin of safety and wait.
@@ -455,7 +455,7 @@ function wastefulQueries(report, view, existing) {
  * nothing on broad (8.4), so broadening one would silently remove it from the
  * auction — which would make this rival quieter, not louder.
  */
-export function spender(self, report) {
+function spenderAccount(self, report) {
   const affordable = affordableCpcPaise(self, report);
   // Leans harder than anyone on the same reading everybody else gets. It is not
   // better informed, it is less patient.
@@ -501,7 +501,7 @@ export function spender(self, report) {
  * It is also the account where attribution lag hurts least, because it barely
  * spends — which is a genuinely misleading lesson, and is meant to be.
  */
-export function cautious(self, report) {
+function cautiousAccount(self, report) {
   const affordable = affordableCpcPaise(self, report);
   const target = Math.round(affordable * CAUTIOUS_MARGIN_OF_SAFETY);
 
@@ -558,7 +558,7 @@ export function cautious(self, report) {
  * Re-sending them every round would trigger a learning period every round
  * (12.3), which is a caricature rather than a lesson.
  */
-export function automator(self, report) {
+function automatorAccount(self, report) {
   const affordable = affordableCpcPaise(self, report);
 
   if (!report) {
@@ -624,7 +624,7 @@ function paramsFor(strategy, self, affordable, report) {
  * wrong number. A rival that were both sloppy AND gross-optimising would
  * confound the two lessons.
  */
-export function grossOptimiser(self, report, view) {
+function grossOptimiserAccount(self, report, view) {
   const affordable = grossAffordableCpcPaise(self);
   const target = Math.round(affordable * TARGET_MARGIN_OF_SAFETY);
 
@@ -710,7 +710,7 @@ export function grossAffordableCpcPaise(self) {
  * the nine and silently missed the one whose name has more than a word in it —
  * the kind of gap that hides until the roster changes.
  */
-export function brandDefender(self, report, view) {
+function brandDefenderAccount(self, report, view) {
   const affordable = affordableCpcPaise(self, report);
   const names = (view.advertisers ?? [])
     .map((a) => ({ id: a.id, token: brandToken(a.name) }))
@@ -792,6 +792,97 @@ function withBids(adGroups, bidFor) {
     })),
   }));
 }
+
+// ---------------------------------------------------------------------------
+// The second capital allocation (DECISIONS C8)
+// ---------------------------------------------------------------------------
+
+/**
+ * The share of its impressions lost to budget below which `disciplined` invests.
+ *
+ * D12 measured that the second allocation is spend-or-invest and that this
+ * share decides it: capital won in 0 of 12 markets where the budget was
+ * running out and 35 of 36 where it never did. Ten percent is where the
+ * debrief starts calling a loss material. A character's opinion (C7).
+ */
+export const DISCIPLINED_BUDGET_BOUND = 0.10;
+
+/** Which target a rival builds first, and second: the tilt `rivalCapex` uses at round 0. */
+const PRIMARY_TARGET = { value: 'sizeGuide', mid: 'landingPage', premium: 'photography' };
+const SECONDARY_TARGET = { value: 'orderConfirmation', mid: 'orderConfirmation', premium: 'landingPage' };
+
+/**
+ * Is this a round a capital decision can be made in, other than round 1?
+ *
+ * Round 1's allocation is the one round 0 decides, in `setup.js`. The rules
+ * arrive in the self view (`capital`), because this file reads nothing else.
+ *
+ * @param {object} self
+ * @returns {boolean}
+ */
+export function capitalWindow(self) {
+  return self.round > 1 && (self.capital?.allocationRounds ?? []).includes(self.round);
+}
+
+/**
+ * What a rival that invests commits: its primary target up to that target's
+ * top rung, then its secondary, never past a top rung and never past the
+ * allocation. Whatever no ladder can take is left uncommitted, so the engine
+ * rolls it into the month's ad budget.
+ *
+ * @param {object} self
+ * @returns {Object<string, number>} paise per target
+ */
+export function investment(self) {
+  const { allocationPaise = 0, ceilingPaise = {} } = self.capital ?? {};
+  const committed = self.capex?.committed ?? {};
+  const price = self.position?.price;
+  const out = {};
+  let left = allocationPaise;
+  for (const target of [PRIMARY_TARGET[price], SECONDARY_TARGET[price]]) {
+    if (!target) continue;
+    const room = Math.max(0, (ceilingPaise[target] ?? 0) - (committed[target] ?? 0));
+    const paise = Math.min(room, left);
+    if (paise > 0) {
+      out[target] = paise;
+      left -= paise;
+    }
+  }
+  return out;
+}
+
+/** Keep it as ad money: an empty decision, which the engine rolls into the month. */
+const keepAsAds = () => ({});
+
+/**
+ * Each character's week-5 choice. Every one of them submits SOMETHING, because
+ * the engine turns uncommitted capital into ad budget only when a capital
+ * decision is made; without one the allocation disappeared (C8).
+ */
+const readsItsBudget = (self, report) => (
+  (report?.share?.lostToBudget ?? 0) < DISCIPLINED_BUDGET_BOUND ? investment(self) : keepAsAds()
+);
+const habit = (self) => (
+  Object.values(self.capex?.committed ?? {}).reduce((a, b) => a + b, 0) > 0 ? investment(self) : keepAsAds()
+);
+
+/** A policy: its account rule, plus its capital rule in a capital round. */
+function withCapital(account, capital) {
+  return (self, report, view) => {
+    const decision = account(self, report, view);
+    if (!capitalWindow(self)) return decision;
+    return { ...(decision ?? {}), capex: capital(self, report) };
+  };
+}
+
+// The six characters. Their bids, keywords and campaigns are the functions
+// above, untouched; what is added is only the week-5 capital decision.
+export const disciplined = withCapital(disciplinedAccount, readsItsBudget);
+export const spender = withCapital(spenderAccount, keepAsAds);
+export const cautious = withCapital(cautiousAccount, (self) => investment(self));
+export const automator = withCapital(automatorAccount, habit);
+export const grossOptimiser = withCapital(grossOptimiserAccount, habit);
+export const brandDefender = withCapital(brandDefenderAccount, habit);
 
 // ---------------------------------------------------------------------------
 
