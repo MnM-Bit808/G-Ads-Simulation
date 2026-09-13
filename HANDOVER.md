@@ -12,14 +12,59 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, end of 2026-09-13.** `main` is at the latest push and is the only
-branch; the game is live and invite-only; 1656 tests pass, 1 todo; the build
-publishes 54 files. Nothing is waiting on code. **The next step is the owner's:
-the stranger playtests** (*Deployment → Running a playtest* has the steps and the
-invite). Everything else below either waits on their files or on the owner's
-judgement.
+**Current state, 2026-09-14: the Studio makeover, and round 0 next.** The owner
+has put the stranger playtests on hold and started a visual makeover instead.
+Their own sessions with two other people kept raising the same complaints: too
+much to read, fiddly click-and-edit controls, and a static look. "It needs to
+feel alive."
+
+- **Live site unchanged**, at `387baf1`.
+- **`main` is at `80d41e6`, not pushed.** It holds the makeover's design doc
+  (`plans/2026-09-13-studio-makeover.md`), the canvas sources
+  (`design/makeover/`, drawn at
+  https://claude.ai/code/artifact/d881fe56-251c-4ded-9173-b8616924bbc4) and the
+  11-task build plan (`plans/2026-09-13-studio-makeover-plan.md`).
+- **The branch `makeover` is two tasks in, and nothing on it is pushed.**
+  - Task 1 (`644d79b`): `?look=studio` switches to the new look and remembers
+    it. Today's cards take the Red signal colours through `ui/studio.css`
+    without a line of `style.css` changing.
+  - Task 2 (`f80d2ff`): the two typefaces, stored in `ui/fonts/` with their
+    licences, and a build that follows `url()` inside stylesheets.
+  - On `makeover`: 1664 tests pass, 1 todo, and the build publishes 62 files.
+    On `main` it is 54.
+- **The tag `playtest-2`** exists on this computer only.
 
 **What to do next, in order:**
+1. **Round 0, redesigned drastically in the Studio look.** The owner opened
+   it after Task 2 and called it horrid. `plans/next-session-prompt.md` sets out
+   the brainstorm:
+   - review recommendation 4's five steps, which re-open I11;
+   - whether round 0 lives in the shell or in a setup flow of its own;
+   - sequencing against plan Tasks 3–11;
+   - what happens to the India map.
+
+   Then a design doc, a task plan and the build on `makeover`.
+2. **Then the rest of the Studio plan**, Tasks 3–11, in the order agreed. Task
+   10 is a play-through, and the owner's verdict is its gate.
+3. **Then the playtests**, below, on whatever the makeover has become.
+4. **Still open for the owner, none blocking:** A9, F15 (b)/(c) and E8's formula
+   (item 5 below).
+
+**Decided about the makeover, not to re-open:**
+- a sidebar shell like Claude's app, not the real Google Ads layout;
+- Studio drop's cards and type;
+- the Red signal palette, where red means *you and your changes*, so warnings
+  and losses are amber with a minus sign;
+- six motions, none of them the week playing out.
+
+The design doc records each choice and what was rejected.
+
+**End of 2026-09-13, kept for its list.** `main` was at the latest push and was the
+only branch; the game is live and invite-only; 1656 tests passed, 1 todo; the
+build published 54 files. The next step was the owner's: the stranger playtests
+(*Deployment → Running a playtest* has the steps and the invite).
+
+**What was next, in order, before the makeover:**
 1. **Run the stranger playtests on the live site.** Owner: pick three people
    (two alone, one on a video call), add their exact emails in Cloudflare
    Access, send the invite. Session: on the day, `git tag playtest-2 && git push
