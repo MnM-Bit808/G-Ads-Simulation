@@ -211,6 +211,55 @@ export function marketOutlook(insights, playerId, names) {
 }
 
 /**
+ * The smallest change in a rival's overlap worth naming: five points of the
+ * player's auctions. Below it, a week-to-week wobble. A display threshold, kept
+ * in the view (DECISIONS I6).
+ */
+const MIN_MOVE = 0.05;
+const MOST_MOVERS = 3;
+
+/**
+ * The rivals whose presence in the player's auctions moved most since last week.
+ *
+ * Read at week 9, when month 3's budgets take effect (DECISIONS D12, C8): rivals
+ * then move 2.40 times an ordinary week. It says who moved and by how much, from
+ * the overlap rate Auction Insights shows, and never why a particular rival did:
+ * whose budget grew is private (R3).
+ *
+ * @param {object[]} insights one entry per round, keyed by advertiser id
+ * @param {string} playerId
+ * @param {Map<string, string>} names
+ * @returns {{id: string, name: string, from: number, to: number}[]} largest move
+ *   first, at most three, only moves of at least five points
+ */
+export function insightMovers(insights, playerId, names) {
+  const before = insights?.[insights.length - 2]?.[playerId]?.rivals;
+  const after = insights?.[insights.length - 1]?.[playerId]?.rivals;
+  if (!before || !after) return [];
+  return Object.keys(after)
+    .filter((id) => id in before)
+    .map((id) => ({ id, name: names?.get(id) ?? id, from: before[id].overlapRate, to: after[id].overlapRate }))
+    .filter((m) => Math.abs(m.to - m.from) >= MIN_MOVE)
+    .sort((a, b) => Math.abs(b.to - b.from) - Math.abs(a.to - a.from))
+    .slice(0, MOST_MOVERS);
+}
+
+/**
+ * The whole market's spend this week against last week, from the public market
+ * context (D8 put it on screen so money moving between months can be seen).
+ *
+ * @param {object[]} contexts `state.marketContext`, one entry per round
+ * @returns {{thisWeekPaise: number, lastWeekPaise: number} | null}
+ */
+export function marketChange(contexts) {
+  if (!contexts || contexts.length < 2) return null;
+  return {
+    thisWeekPaise: contexts[contexts.length - 1].totalMarketSpendPaise,
+    lastWeekPaise: contexts[contexts.length - 2].totalMarketSpendPaise,
+  };
+}
+
+/**
  * The market, read back in sentences, from what the player is allowed to know.
  *
  * Deliberately says WHERE TO LOOK rather than what to do. "Your split and your

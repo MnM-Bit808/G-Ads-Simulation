@@ -1037,7 +1037,21 @@ step into week 5 was 3.60 times ordinary, which is C8.
 
 **Reopened by C8's fix.** With every rival keeping its second allocation, the
 step into week 9 measures 2.40 times ordinary, over the gate. The "no line"
-above was decided on the defective market. **And D12's comparisons were re-run
+above was decided on the defective market.
+
+**And taken, with the owner (2026-09-13).** Total market spend drops a median
+26.2% into week 9 (13.3–31.5% over 24 games), against about 1% in an ordinary
+week and +2.7% into week 5, so week 9 is the one month change worth a line. The
+market card now shows last week beside this week, every week, and in the week-9
+report says month 3 began, that every budget was re-split by the week-8
+ranking, and what the market spent against last week: the rule is public (D4)
+and so is the market's spend (D8); nobody's rank or budget is named (R3). The
+Auction Insights card names up to three rivals whose overlap with the player
+moved at least five points, as observed, and never why. Overlap moves 2.17
+times ordinary into week 9, but at least five points in only 14 of 24 games,
+so in the rest the card says none moved much. Words: `ui/words/market.js`;
+readings `insightMovers` and `marketChange` in `ui/chart.js`. Played to week 9,
+it read: the whole market spent ₹3,18,830, against ₹4,43,294 last week. **And D12's comparisons were re-run
 on the committed harness**, whose player has its round-0 money: before C8's fix
 and after it, the best investment against keeping the money keeps its sign in
 every cell, so the capital card's premise stands (C8 has the figures).

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { seriesFor, CHART_METRICS, marketOutlook } from '../ui/chart.js';
+import { seriesFor, CHART_METRICS, marketOutlook, insightMovers, marketChange } from '../ui/chart.js';
 import { FORBIDDEN_IN_PUBLIC_VIEW } from '../engine/insights.js';
 
 /**
@@ -206,5 +206,38 @@ describe('the chart reads the market back to you (I13)', () => {
       expect(Object.keys(out), field).not.toContain(field);
       expect(Object.keys(out.meetMost), field).not.toContain(field);
     }
+  });
+});
+
+describe('the week the market re-splits (D12, C8)', () => {
+  // After C8's fix, rivals carry their second allocation through month 2 and
+  // fall back to rank-based budgets at week 9: the whole market spends a median
+  // 26% less that week, and rivals move 2.40 times an ordinary week in the
+  // player's Auction Insights. These read both from public figures only.
+  const week = (overlaps) => ({ me: { self: {}, rivals: Object.fromEntries(Object.entries(overlaps).map(([id, o]) => [id, { overlapRate: o }])) } });
+  const names = new Map([['a', 'Aster'], ['b', 'Birch'], ['c', 'Cedar'], ['d', 'Dune']]);
+
+  test('the rivals whose overlap moved most, largest first, and only real moves', () => {
+    const insights = [week({ a: 0.28, b: 0.30, c: 0.50, d: 0.10 }), week({ a: 0.49, b: 0.12, c: 0.52, d: 0.16 })];
+    expect(insightMovers(insights, 'me', names)).toEqual([
+      { id: 'a', name: 'Aster', from: 0.28, to: 0.49 },
+      { id: 'b', name: 'Birch', from: 0.30, to: 0.12 },
+      { id: 'd', name: 'Dune', from: 0.10, to: 0.16 },
+    ]);
+  });
+
+  test('never more than three, and nothing when nobody moved', () => {
+    const many = [week({ a: 0, b: 0, c: 0, d: 0 }), week({ a: 0.4, b: 0.3, c: 0.2, d: 0.1 })];
+    expect(insightMovers(many, 'me', names).map((m) => m.id)).toEqual(['a', 'b', 'c']);
+    const still = [week({ a: 0.3, b: 0.3 }), week({ a: 0.32, b: 0.29 })];
+    expect(insightMovers(still, 'me', names)).toEqual([]);
+    expect(insightMovers([week({ a: 0.3 })], 'me', names)).toEqual([]);
+  });
+
+  test('total market spend, this week against last', () => {
+    expect(marketChange([{ totalMarketSpendPaise: 100 }, { totalMarketSpendPaise: 74 }]))
+      .toEqual({ thisWeekPaise: 74, lastWeekPaise: 100 });
+    expect(marketChange([{ totalMarketSpendPaise: 100 }])).toBeNull();
+    expect(marketChange([])).toBeNull();
   });
 });

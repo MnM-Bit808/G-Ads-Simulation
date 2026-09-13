@@ -22,6 +22,7 @@ import { line, KINDS } from '../ui/words/line.js';
 import { RETURNS } from '../ui/words/returns.js';
 import { DEBRIEF } from '../ui/words/debrief.js';
 import { CAPITAL } from '../ui/words/capital.js';
+import { MARKET } from '../ui/words/market.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -148,6 +149,29 @@ describe('the capital card (D12)', () => {
     for (const [name, entry] of Object.entries(CAPITAL)) {
       expect(entry(FIGURES), name).not.toMatch(/\byou should\b|\bwe recommend\b|\binvest now\b/i);
     }
+  });
+});
+
+describe('the week the market re-splits (D12, C8)', () => {
+  const FIGURES = {
+    month: 3, snapshot: 8, spent: '₹14,80,000', before: '₹20,10,000',
+    movers: ['Torvi, from 28% to 49% of them', 'Satva, from 30% to 12% of them'],
+    name: 'Torvi', from: '28%', to: '49%',
+  };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(MARKET)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(MARKET)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('the movers read as a list, each with where it started and ended', () => {
+    expect(MARKET.moved({ movers: FIGURES.movers }))
+      .toBe('Moved most in your auctions this week: Torvi, from 28% to 49% of them; Satva, from 30% to 12% of them.');
   });
 });
 

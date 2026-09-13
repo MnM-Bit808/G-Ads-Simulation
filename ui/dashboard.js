@@ -27,9 +27,10 @@ import {
   locationRows, locationOutlook, setLocation, lastMonthBudget,
 } from './decisions.js';
 import { rankOf } from './ending.js';
-import { renderTrends } from './chart.js';
+import { renderTrends, insightMovers, marketChange } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
 import { RETURNS } from './words/returns.js';
+import { MARKET } from './words/market.js';
 import { whyButton } from './guide/drawer.js';
 import { tagKeywordOffline } from '../agents/keywordTagger.js';
 import {
@@ -951,6 +952,28 @@ function renderInsights(root, game) {
       { label: 'Above you', num: true }, { label: 'You beat', num: true }],
     rows,
   );
+
+  // The week month 3's budgets take effect, rivals move 2.40 times an ordinary
+  // week (D12, C8). Say who moved and how far, and not why: whose budget grew
+  // is private (R3), and the market card has already said what took effect.
+  if (reSplitWeek(game)) {
+    const movers = insightMovers(game.insights, game.playerId, names);
+    root.querySelector('[data-slot="insights"]').append(el('p', 'note insight-movers', movers.length > 0
+      ? MARKET.moved({ movers: movers.map((m) => MARKET.mover({ name: m.name, from: pct(m.from), to: pct(m.to) })) })
+      : MARKET.nobodyMoved()));
+  }
+}
+
+/**
+ * Is the week just played the first week of the month the ranking re-split?
+ *
+ * Month 3's budgets are shared out by the week-8 rank and take effect in week 9.
+ * After C8's fix that is the week the market changes most: a median 26% less
+ * spent across the market, against about 1% in an ordinary week.
+ */
+function reSplitWeek(game) {
+  const snapshot = game.state.budgetSchedule?.rankSnapshotRound ?? RANK_SNAPSHOT_ROUND;
+  return game.reports[game.reports.length - 1]?.round === snapshot + 1;
 }
 
 /**
@@ -1021,16 +1044,35 @@ function renderBudget(root, row, game) {
 function renderMarket(root, game) {
   const context = game.state.marketContext[game.state.marketContext.length - 1];
   if (!context) return;
+  // Last week beside this week, so a shift in the market can be seen at all.
+  // The table used to show one week alone, and the week-9 re-split, the largest
+  // change the market makes, went by without a number moving next to another.
+  const previous = game.state.marketContext[game.state.marketContext.length - 2];
+  const before = (show) => (previous ? show(previous) : '—');
+  const searches = whole(game.state.querySet.weeklyVolume);
   table(
     root.querySelector('[data-slot="market-table"]'),
-    ['', { label: 'This week', num: true }],
+    ['', { label: MARKET.thisWeek(), num: true }, { label: MARKET.lastWeek(), num: true }],
     [
-      { cells: ['Total market spend', rupees(context.totalMarketSpendPaise)] },
-      { cells: ['Advertisers running', String(context.activeAdvertisers)] },
-      { cells: ['Median CPC', rupees(context.medianCpcPaise)] },
-      { cells: ['Searches this week', whole(game.state.querySet.weeklyVolume)] },
+      { cells: ['Total market spend', rupees(context.totalMarketSpendPaise), before((c) => rupees(c.totalMarketSpendPaise))] },
+      { cells: ['Advertisers running', String(context.activeAdvertisers), before((c) => String(c.activeAdvertisers))] },
+      { cells: ['Median CPC', rupees(context.medianCpcPaise), before((c) => rupees(c.medianCpcPaise))] },
+      { cells: ['Searches', searches, before(() => searches)] },
     ],
   );
+
+  // The one week the market's money is re-split (D12, C8): the rule is public,
+  // announced at round 1 (D4), and so is the market's total spend (D8).
+  const change = marketChange(game.state.marketContext);
+  if (reSplitWeek(game) && change) {
+    const round = game.reports[game.reports.length - 1].round;
+    root.querySelector('[data-slot="market"]').append(el('p', 'note market-month', MARKET.newMonth({
+      month: Math.ceil(round / ROUNDS_PER_MONTH),
+      snapshot: round - 1,
+      spent: rupees(change.thisWeekPaise),
+      before: rupees(change.lastWeekPaise),
+    })));
+  }
 }
 
 

@@ -6,7 +6,7 @@
 // detection change away from publishing the repository root, DECISIONS.md and
 // the tests included, while still reporting success.
 //
-// dist/ is what `npm run ci` builds: the 52 files the game loads, and nothing
+// dist/ is what `npm run ci` builds: the 53 files the game loads, and nothing
 // else (scripts/build-site.js). tests/build.test.js fails if this ever points
 // somewhere else, and if a `main` script appears — that would be a backend,
 // which has its own plan.
