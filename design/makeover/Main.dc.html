@@ -9,20 +9,21 @@
 <helmet>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
   <style>
-    body { margin: 0; background: #F1ECE2; }
-    a { color: #1E2622; text-decoration: underline; text-underline-offset: 3px; }
-    a:hover { color: #000000; }
+    body { margin: 0; }
+    a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: inherit; }
     .num { font-variant-numeric: tabular-nums; }
     .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
     .tap { cursor: pointer; user-select: none; }
-    .hov:hover { background: #EFE9DE; }
+    .hov:hover { background: rgba(127, 127, 127, 0.14); }
     .link { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-    .kslider:focus-within .kthumb { box-shadow: 0 0 0 5px rgba(196, 90, 53, 0.25); }
+    .kslider:focus-within .kthumb { box-shadow: 0 0 0 5px rgba(127, 127, 127, 0.35); }
     .kinput { -webkit-appearance: none; appearance: none; background: transparent; }
     .kinput::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; }
     .kinput::-moz-range-thumb { width: 16px; height: 16px; border: 0; }
-    .field { font: inherit; font-size: 14px; color: #1E2622; background: #FBF8F3; border: 1px solid #D6CDBD; border-radius: 10px; padding: 0 12px; height: 38px; box-sizing: border-box; outline: none; }
-    .field:focus { border-color: #1E2622; box-shadow: 0 0 0 3px rgba(30, 38, 34, 0.12); }
+    .field { font: inherit; font-size: 14px; border-radius: 10px; padding: 0 12px; height: 38px; box-sizing: border-box; outline: none; border-width: 1px; border-style: solid; }
+    .field:focus { box-shadow: 0 0 0 3px rgba(127, 127, 127, 0.3); }
+    .field::placeholder { color: rgba(127, 127, 127, 0.95); }
     .chip { animation: land 220ms cubic-bezier(0.23, 1, 0.32, 1); }
     .drawer { animation: slidein 240ms cubic-bezier(0.23, 1, 0.32, 1); }
     @keyframes land { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
@@ -30,10 +31,10 @@
     @media (prefers-reduced-motion: reduce) { .chip, .drawer { animation: none; } }
   </style>
 </helmet>
-<div style="position: relative; width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #F1ECE2; color: #1E2622; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+<div style="position: relative; width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: {{T.page}}; color: {{T.text}}; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
 
-  <div style="background: #1E2622; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
-    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #C45A35; color: #FFF8F2; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+  <div style="background: {{T.rail}}; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: {{T.logoBg}}; color: {{T.logoFg}}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
     <sc-for list="{{areas}}" as="a" hint-placeholder-count="4">
       <div class="tap" onClick="{{a.pick}}" title="{{a.label}}" style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: {{a.bg}}; display: flex; flex-direction: column; align-items: center; gap: 4px;">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{a.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -44,12 +45,12 @@
     </sc-for>
   </div>
 
-  <div style="background: #E8E1D4; border-right: 1px solid #DDD5C7; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+  <div style="background: {{T.sidebar}}; border-right: 1px solid {{T.sidebarBorder}}; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
     <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
       <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
-      <div style="font-size: 12px; color: #5C605A;">Mid-price · Performance</div>
+      <div style="font-size: 12px; color: {{T.muted}};">Mid-price · Performance</div>
     </div>
-    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #7A7D76;">{{areaTitle}}</div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: {{T.faint}};">{{areaTitle}}</div>
     <sc-for list="{{sections}}" as="s" hint-placeholder-count="7">
       <div class="tap" onClick="{{s.pick}}" style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: {{s.weight}}; background: {{s.bg}}; color: {{s.fg}}; box-shadow: {{s.shadow}};">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{s.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -57,27 +58,27 @@
         </svg>
         <div style="flex-grow: 1;">{{s.label}}</div>
         <sc-if value="{{s.hasLock}}" hint-placeholder-val="{{false}}">
-          <div style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid #CFC6B6; color: #7A7D76;">{{s.lock}}</div>
+          <div style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; border: 1px solid {{T.lineStrong}}; color: {{T.faint}};">{{s.lock}}</div>
         </sc-if>
       </div>
     </sc-for>
   </div>
 
   <div style="position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0;">
-    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #DDD5C7;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid {{T.sidebarBorder}};">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <div class="display" style="font-weight: 700; font-size: 20px;">Week 4 <span style="font-weight: 400; color: #7A7D76;">of 12</span></div>
+        <div class="display" style="font-weight: 700; font-size: 20px;">Week 4 <span style="font-weight: 400; color: {{T.faint}};">of 12</span></div>
         <div style="display: flex; gap: 6px;">
           <sc-for list="{{dots}}" as="d" hint-placeholder-count="12">
             <div style="width: 9px; height: 9px; border-radius: 50%; background: {{d.bg}}; border: 1.5px solid {{d.line}}; box-sizing: border-box;"></div>
           </sc-for>
         </div>
-        <div style="font-size: 12px; color: #7A7D76;">saved</div>
+        <div style="font-size: 12px; color: {{T.faint}};">saved</div>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="font-size: 13px; color: #5C605A;">Month 1</div>
-        <div style="width: 160px; height: 6px; border-radius: 3px; background: #DDD5C7; overflow: hidden;"><div style="width: 95%; height: 100%; background: #1E2622;"></div></div>
-        <div class="num" style="font-size: 14px; font-weight: 700;">₹2,96,535 <span style="font-weight: 400; color: #5C605A;">of ₹3,13,000 spent</span></div>
+        <div style="font-size: 13px; color: {{T.muted}};">Month 1</div>
+        <div style="width: 160px; height: 6px; border-radius: 3px; background: {{T.sliderTrack}}; overflow: hidden;"><div style="width: 95%; height: 100%; background: {{T.progressFill}};"></div></div>
+        <div class="num" style="font-size: 14px; font-weight: 700;">₹2,96,535 <span style="font-weight: 400; color: {{T.muted}};">of ₹3,13,000 spent</span></div>
       </div>
     </div>
 
@@ -86,16 +87,16 @@
         <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;">
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Your keywords</div>
-            <div style="font-size: 14px; color: #5C605A;">{{countLabel}} · {{rangeLabel}} · <span class="link" onClick="{{whyNumbers}}">why these numbers?</span></div>
+            <div style="font-size: 14px; color: {{T.muted}};">{{countLabel}} · {{rangeLabel}} · <span class="link" onClick="{{whyNumbers}}">why these numbers?</span></div>
           </div>
           <sc-if value="{{notSelecting}}" hint-placeholder-val="{{true}}">
             <div style="display: flex; align-items: center; gap: 10px;">
-              <div style="display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: #E6DED0;">
+              <div style="display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: {{T.toggleTrack}};">
                 <sc-for list="{{ranges}}" as="r" hint-placeholder-count="2">
                   <div class="tap" onClick="{{r.pick}}" style="padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; background: {{r.bg}}; color: {{r.fg}};">{{r.label}}</div>
                 </sc-for>
               </div>
-              <div class="tap hov" onClick="{{startSelecting}}" style="height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid #CFC6B6; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; white-space: nowrap;">
+              <div class="tap hov" onClick="{{startSelecting}}" style="height: 38px; padding: 0 16px; border-radius: 999px; border: 1px solid {{T.lineStrong}}; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; white-space: nowrap;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h4v4H4zM4 15h4v4H4zM12 7h8M12 17h8"></path></svg>
                 <div>Adjust several</div>
               </div>
@@ -103,14 +104,14 @@
           </sc-if>
         </div>
 
-        <div style="background: #1E2622; color: #F1ECE2; border-radius: 20px; padding: 16px 22px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.95fr); gap: 28px; align-items: center;">
+        <div style="background: {{T.panelBg}}; border: 1px solid {{T.panelBorder}}; color: {{T.panelStrong}}; border-radius: 20px; padding: 16px 22px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.95fr); gap: 28px; align-items: center;">
           <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
-            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #B9BFB9;">Week 4</div>
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: {{T.panelMuted}};">Week 4</div>
             <div class="display" style="font-weight: 800; font-size: 24px; line-height: 1.1;">Your money ran out first</div>
-            <div style="font-size: 13px; line-height: 1.45; color: #DCE0DA; text-wrap: pretty;"><span class="num" style="color: #F0A283; font-weight: 700;">{{lostToBudget}}</span> of the auctions you could enter went unbought. {{rankLine}}</div>
+            <div style="font-size: 13px; line-height: 1.45; color: {{T.panelText}}; text-wrap: pretty;"><span class="num" style="color: {{T.panelHot}}; font-weight: 700;">{{lostToBudget}}</span> of the auctions you could enter went unbought. {{rankLine}}</div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0;">
-            <div style="font-size: 12px; color: #B9BFB9;">Where week 4’s money went</div>
+            <div style="font-size: 12px; color: {{T.panelMuted}};">Where week 4’s money went</div>
             <div style="display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden;">
               <sc-for list="{{spend}}" as="sp" hint-placeholder-count="7">
                 <div title="{{sp.title}}" style="flex-grow: {{sp.grow}}; flex-basis: 0; min-width: 2px; background: {{sp.color}};"></div>
@@ -118,79 +119,80 @@
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 4px 14px;">
               <sc-for list="{{spendLegend}}" as="lg" hint-placeholder-count="4">
-                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #DCE0DA; white-space: nowrap;">
+                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: {{T.panelText}}; white-space: nowrap;">
                   <div style="width: 8px; height: 8px; border-radius: 2px; background: {{lg.color}};"></div>
-                  <div>{{lg.label}} <span class="num" style="font-weight: 700; color: #F1ECE2;">{{lg.share}}</span></div>
+                  <div>{{lg.label}} <span class="num" style="font-weight: 700; color: {{T.panelStrong}};">{{lg.share}}</span></div>
                 </div>
               </sc-for>
             </div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0;">
-            <div class="tap" onClick="{{stretch}}" style="padding: 8px 12px; border-radius: 12px; border: 1px solid #56625B; display: flex; flex-direction: column; gap: 1px;">
+            <div class="tap hov" onClick="{{stretch}}" style="padding: 8px 12px; border-radius: 12px; border: 1px solid {{T.panelBtnBorder}}; display: flex; flex-direction: column; gap: 1px;">
               <div style="font-size: 13px; font-weight: 700;">Stretch it →</div>
-              <div style="font-size: 12px; color: #B9BFB9;">cheaper clicks make it last; a lower bid can buy them</div>
+              <div style="font-size: 12px; color: {{T.panelMuted}};">cheaper clicks make it last; a lower bid can buy them</div>
             </div>
-            <div class="tap" onClick="{{addMoney}}" style="padding: 8px 12px; border-radius: 12px; border: 1px solid #56625B; display: flex; flex-direction: column; gap: 1px;">
+            <div class="tap hov" onClick="{{addMoney}}" style="padding: 8px 12px; border-radius: 12px; border: 1px solid {{T.panelBtnBorder}}; display: flex; flex-direction: column; gap: 1px;">
               <div style="font-size: 13px; font-weight: 700;">Add to it →</div>
-              <div style="font-size: 12px; color: #B9BFB9;">a bigger budget, in Your money</div>
+              <div style="font-size: 12px; color: {{T.panelMuted}};">a bigger budget, in Your money</div>
             </div>
           </div>
         </div>
+
         <sc-if value="{{selecting}}" hint-placeholder-val="{{false}}">
-          <div style="display: flex; align-items: center; gap: 14px; min-height: 40px; padding: 8px 10px 8px 18px; border-radius: 16px; background: #1E2622; color: #F1ECE2; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 14px; min-height: 40px; padding: 8px 10px 8px 18px; border-radius: 16px; background: {{T.bulkBg}}; color: {{T.bulkFg}}; border: 1px solid {{T.bulkBorder}}; flex-wrap: wrap;">
             <div style="font-size: 14px; font-weight: 700; min-width: 92px;">{{selectedLabel}}</div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <div style="font-size: 13px; color: #B9BFB9;">Set bid ₹</div>
-              <input class="field num" style="width: 64px; height: 32px; background: #2A332E; color: #F1ECE2; border-color: #3C4741;" value="{{bulkBid}}" onChange="{{onBulkBid}}">
-              <div class="tap" onClick="{{applySetBid}}" style="padding: 6px 12px; border-radius: 999px; background: #F1ECE2; color: #1E2622; font-size: 13px; font-weight: 700;">Apply</div>
+              <div style="font-size: 13px; color: {{T.bulkMuted}};">Set bid ₹</div>
+              <input class="field num" style="width: 64px; height: 32px; background: {{T.bulkInputBg}}; color: {{T.bulkFg}}; border-color: {{T.bulkInputBorder}};" value="{{bulkBid}}" onChange="{{onBulkBid}}">
+              <div class="tap" onClick="{{applySetBid}}" style="padding: 6px 12px; border-radius: 999px; background: {{T.bulkBtnBg}}; color: {{T.bulkBtnFg}}; font-size: 13px; font-weight: 700;">Apply</div>
             </div>
-            <div style="width: 1px; height: 22px; background: #3C4741;"></div>
+            <div style="width: 1px; height: 22px; background: {{T.bulkInputBorder}};"></div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <div style="font-size: 13px; color: #B9BFB9;">Change by</div>
-              <input class="field num" style="width: 60px; height: 32px; background: #2A332E; color: #F1ECE2; border-color: #3C4741;" value="{{bulkPct}}" onChange="{{onBulkPct}}">
-              <div style="font-size: 13px; color: #B9BFB9;">%</div>
-              <div class="tap" onClick="{{applyPct}}" style="padding: 6px 12px; border-radius: 999px; background: #F1ECE2; color: #1E2622; font-size: 13px; font-weight: 700;">Apply</div>
+              <div style="font-size: 13px; color: {{T.bulkMuted}};">Change by</div>
+              <input class="field num" style="width: 60px; height: 32px; background: {{T.bulkInputBg}}; color: {{T.bulkFg}}; border-color: {{T.bulkInputBorder}};" value="{{bulkPct}}" onChange="{{onBulkPct}}">
+              <div style="font-size: 13px; color: {{T.bulkMuted}};">%</div>
+              <div class="tap" onClick="{{applyPct}}" style="padding: 6px 12px; border-radius: 999px; background: {{T.bulkBtnBg}}; color: {{T.bulkBtnFg}}; font-size: 13px; font-weight: 700;">Apply</div>
             </div>
-            <div style="width: 1px; height: 22px; background: #3C4741;"></div>
+            <div style="width: 1px; height: 22px; background: {{T.bulkInputBorder}};"></div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <div style="font-size: 13px; color: #B9BFB9;">Match</div>
+              <div style="font-size: 13px; color: {{T.bulkMuted}};">Match</div>
               <sc-for list="{{bulkMatches}}" as="m" hint-placeholder-count="3">
-                <div class="tap" onClick="{{m.pick}}" style="padding: 5px 10px; border-radius: 999px; border: 1px solid #56625B; font-size: 12px; font-weight: 600;">{{m.label}}</div>
+                <div class="tap hov" onClick="{{m.pick}}" style="padding: 5px 10px; border-radius: 999px; border: 1px solid {{T.bulkPillBorder}}; font-size: 12px; font-weight: 600;">{{m.label}}</div>
               </sc-for>
             </div>
             <div style="flex-grow: 1;"></div>
-            <div class="tap" onClick="{{stopSelecting}}" style="padding: 7px 14px; border-radius: 999px; border: 1px solid #56625B; font-size: 13px; font-weight: 700;">Done</div>
+            <div class="tap hov" onClick="{{stopSelecting}}" style="padding: 7px 14px; border-radius: 999px; border: 1px solid {{T.bulkPillBorder}}; font-size: 13px; font-weight: 700;">Done</div>
           </div>
         </sc-if>
 
         <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
           <sc-for list="{{cards}}" as="c" hint-placeholder-count="7">
             <div style="position: relative; background: {{c.bg}}; border-radius: 20px; border: 1px solid {{c.borderColor}}; box-shadow: 0 0 0 1px {{c.ring}}; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; min-width: 0; transition: border-color 150ms ease, box-shadow 150ms ease;">
-              <div style="display: flex; align-items: center; justify-content: space-between; height: 26px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 26px;">
                 <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
                   <sc-if value="{{c.selecting}}" hint-placeholder-val="{{false}}">
                     <div class="tap" onClick="{{c.toggleSelect}}" style="width: 20px; height: 20px; border-radius: 6px; border: 2px solid {{c.checkLine}}; background: {{c.checkBg}}; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FBF8F3" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="{{T.card}}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
                     </div>
                   </sc-if>
                   <div class="tap" onClick="{{c.toggleActive}}" title="{{c.switchTitle}}" style="display: flex; align-items: center; gap: 6px;">
                     <div style="position: relative; width: 34px; height: 20px; flex-shrink: 0; border-radius: 999px; background: {{c.switchBg}}; transition: background 150ms ease;">
-                      <div style="position: absolute; top: 2px; left: {{c.knobLeft}}; width: 16px; height: 16px; border-radius: 50%; background: #FBF8F3; transition: left 150ms ease;"></div>
+                      <div style="position: absolute; top: 2px; left: {{c.knobLeft}}; width: 16px; height: 16px; border-radius: 50%; background: {{T.knob}}; transition: left 150ms ease;"></div>
                     </div>
                     <div style="font-size: 12px; font-weight: 600; color: {{c.switchText}}; white-space: nowrap;">{{c.switchLabel}}</div>
                   </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
                   <div class="tap" onClick="{{c.toggleQs}}" title="Quality Score: tap for its three parts" style="padding: 3px 9px; border-radius: 999px; background: {{c.qsBg}}; color: {{c.qsFg}}; font-size: 12px; font-weight: 700; white-space: nowrap;">QS {{c.qsLabel}}</div>
-                  <div class="tap hov" onClick="{{c.toggleMenu}}" title="More" style="width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #5C605A;">
+                  <div class="tap hov" onClick="{{c.toggleMenu}}" title="More" style="width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: {{T.muted}};">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg>
                   </div>
                 </div>
               </div>
               <sc-if value="{{c.menuOpen}}" hint-placeholder-val="{{false}}">
-                <div style="position: absolute; top: 44px; right: 12px; z-index: 5; background: #FBF8F3; border: 1px solid #DDD5C7; border-radius: 12px; box-shadow: 0 8px 24px rgba(30, 38, 34, 0.14); padding: 6px; display: flex; flex-direction: column; min-width: 170px;">
-                  <div class="tap hov" onClick="{{c.remove}}" style="padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #9E2B25;">Remove keyword</div>
-                  <div class="tap hov" onClick="{{c.toggleMenu}}" style="padding: 8px 10px; border-radius: 8px; font-size: 13px; color: #5C605A;">Cancel</div>
+                <div style="position: absolute; top: 44px; right: 12px; z-index: 5; background: {{T.menuBg}}; border: 1px solid {{T.menuBorder}}; border-radius: 12px; box-shadow: 0 8px 24px {{T.shadow}}; padding: 6px; display: flex; flex-direction: column; min-width: 170px;">
+                  <div class="tap hov" onClick="{{c.remove}}" style="padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; color: {{T.danger}};">Remove keyword</div>
+                  <div class="tap hov" onClick="{{c.toggleMenu}}" style="padding: 8px 10px; border-radius: 8px; font-size: 13px; color: {{T.muted}};">Cancel</div>
                 </div>
               </sc-if>
               <div class="display" style="font-weight: 700; font-size: 19px; line-height: 1.15; letter-spacing: -0.01em; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; color: {{c.textColor}};">{{c.text}}</div>
@@ -199,12 +201,12 @@
                 <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1;">
                   <div style="font-size: 13px; font-weight: 700;">Quality Score {{c.qsLabel}}</div>
                   <sc-for list="{{c.qsParts}}" as="q" hint-placeholder-count="3">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid #EAE2D4;">
-                      <div style="font-size: 13px; color: #3B433E;">{{q.label}}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid {{T.lineSoft}};">
+                      <div style="font-size: 13px; color: {{T.textSoft}};">{{q.label}}</div>
                       <div style="font-size: 12px; font-weight: 700; color: {{q.color}}; white-space: nowrap;">{{q.rating}}</div>
                     </div>
                   </sc-for>
-                  <div style="font-size: 12px; line-height: 1.45; color: #5C605A;">{{c.qsNote}} <span class="link" onClick="{{whyQuality}}">why?</span></div>
+                  <div style="font-size: 12px; line-height: 1.45; color: {{T.muted}};">{{c.qsNote}} <span class="link" onClick="{{whyQuality}}">why?</span></div>
                   <div class="tap" onClick="{{c.toggleQs}}" style="margin-top: auto; align-self: flex-start; font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px;">Back to the keyword</div>
                 </div>
               </sc-if>
@@ -217,49 +219,49 @@
                       <div class="tap" onClick="{{m.pick}}" style="padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.line}}; transition: background 120ms ease, color 120ms ease;">{{m.label}}</div>
                     </sc-for>
                   </div>
-                  <div style="height: 16px; font-size: 12px; line-height: 16px; color: #5C605A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.reachLabel}}<span style="color: #A8472A; font-weight: 600;">{{c.matchWas}}</span></div>
+                  <div style="height: 16px; font-size: 12px; line-height: 16px; color: {{T.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.reachLabel}}<span style="color: {{T.accentText}}; font-weight: 600;">{{c.matchWas}}</span></div>
                   <div title="{{c.tagsTitle}}" style="height: 16px; font-size: 12px; line-height: 16px; color: {{c.tagsColor}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.tagsLine}}</div>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
                   <div style="display: flex; align-items: center; justify-content: space-between; height: 30px;">
-                    <div style="font-size: 12px; color: #5C605A;">Bid</div>
+                    <div style="font-size: 12px; color: {{T.muted}};">Bid</div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                       <sc-if value="{{c.hasWas}}" hint-placeholder-val="{{false}}">
-                        <div class="num" style="font-size: 12px; font-weight: 600; color: #A8472A; white-space: nowrap;">was ₹{{c.wasBid}}</div>
+                        <div class="num" style="font-size: 12px; font-weight: 600; color: {{T.accentText}}; white-space: nowrap;">was ₹{{c.wasBid}}</div>
                       </sc-if>
                       <sc-if value="{{c.editing}}" hint-placeholder-val="{{false}}">
-                        <input class="field num" style="width: 84px; height: 30px; text-align: right; font-weight: 700;" value="{{c.editValue}}" autoFocus="{{true}}" onChange="{{c.onEdit}}" onKeyDown="{{c.onEditKey}}" onBlur="{{c.commitEdit}}">
+                        <input class="field num" style="width: 84px; height: 30px; text-align: right; font-weight: 700; background: {{T.fieldBg}}; color: {{T.text}}; border-color: {{T.fieldBorder}};" value="{{c.editValue}}" autoFocus="{{true}}" onChange="{{c.onEdit}}" onKeyDown="{{c.onEditKey}}" onBlur="{{c.commitEdit}}">
                       </sc-if>
                       <sc-if value="{{c.notEditing}}" hint-placeholder-val="{{true}}">
-                        <div class="display num tap" onClick="{{c.startEdit}}" title="Tap to type an exact bid" style="font-weight: 800; font-size: 22px; line-height: 28px; border-bottom: 1px dashed #CFC6B6; white-space: nowrap;">₹{{c.bid}}</div>
+                        <div class="display num tap" onClick="{{c.startEdit}}" title="Tap to type an exact bid" style="font-weight: 800; font-size: 22px; line-height: 28px; border-bottom: 1px dashed {{T.editUnderline}}; white-space: nowrap;">₹{{c.bid}}</div>
                       </sc-if>
                     </div>
                   </div>
                   <div class="kslider" style="position: relative; height: 16px;">
-                    <div style="position: absolute; left: 0; right: 0; top: 6px; height: 4px; border-radius: 2px; background: #E4DCCD;"></div>
+                    <div style="position: absolute; left: 0; right: 0; top: 6px; height: 4px; border-radius: 2px; background: {{T.sliderTrack}};"></div>
                     <div style="position: absolute; left: 0; top: 6px; height: 4px; border-radius: 2px; background: {{c.fill}}; width: {{c.pct}}%;"></div>
                     <sc-if value="{{c.hasWas}}" hint-placeholder-val="{{false}}">
-                      <div style="position: absolute; top: 2px; left: calc({{c.wasPct}}% - 6px); width: 12px; height: 12px; border-radius: 50%; border: 2px dashed #8A8C85; box-sizing: border-box; background: #FBF8F3;"></div>
+                      <div style="position: absolute; top: 2px; left: calc({{c.wasPct}}% - 6px); width: 12px; height: 12px; border-radius: 50%; border: 2px dashed {{T.wasRing}}; box-sizing: border-box; background: {{T.card}};"></div>
                     </sc-if>
-                    <div class="kthumb" style="position: absolute; top: 0; left: calc({{c.pct}}% - 8px); width: 16px; height: 16px; border-radius: 50%; background: #FBF8F3; border: 3px solid {{c.fill}}; box-sizing: border-box; transition: box-shadow 120ms ease;"></div>
+                    <div class="kthumb" style="position: absolute; top: 0; left: calc({{c.pct}}% - 8px); width: 16px; height: 16px; border-radius: 50%; background: {{T.card}}; border: 3px solid {{c.fill}}; box-sizing: border-box; transition: box-shadow 120ms ease;"></div>
                     <input class="kinput" type="range" min="1" max="{{c.max}}" step="1" value="{{c.bid}}" onChange="{{c.onSlide}}" aria-label="{{c.sliderLabel}}" style="position: absolute; left: -8px; top: -8px; width: calc(100% + 16px); height: 32px; margin: 0; opacity: 0; cursor: pointer;">
                   </div>
-                  <div style="font-size: 12px; color: #5C605A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.paidLine}}</div>
+                  <div style="font-size: 12px; color: {{T.muted}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.paidLine}}</div>
                 </div>
-                <div style="display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 8px; padding-top: 10px; border-top: 1px solid #EAE2D4; margin-top: auto;">
-                  <div style="display: flex; flex-direction: column; min-width: 0;"><div class="num" style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{c.clicks}}</div><div style="font-size: 12px; color: #5C605A;">clicks</div></div>
-                  <div style="display: flex; flex-direction: column; min-width: 0;"><div class="num" style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{c.cost}}</div><div style="font-size: 12px; color: #5C605A;">cost</div></div>
-                  <div style="display: flex; flex-direction: column; min-width: 0;"><div class="num" style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{c.conv}}</div><div style="font-size: 12px; color: #5C605A;">conv.</div></div>
+                <div style="display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 8px; padding-top: 10px; border-top: 1px solid {{T.lineSoft}}; margin-top: auto;">
+                  <div style="display: flex; flex-direction: column; min-width: 0;"><div class="num" style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{c.clicks}}</div><div style="font-size: 12px; color: {{T.muted}};">clicks</div></div>
+                  <div style="display: flex; flex-direction: column; min-width: 0;"><div class="num" style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{c.cost}}</div><div style="font-size: 12px; color: {{T.muted}};">cost</div></div>
+                  <div style="display: flex; flex-direction: column; min-width: 0;"><div class="num" style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{c.conv}}</div><div style="font-size: 12px; color: {{T.muted}};">conv.</div></div>
                 </div>
                </div>
               </sc-if>
             </div>
           </sc-for>
-          <div class="tap hov" onClick="{{openPlanner}}" style="border-radius: 20px; border: 2px dashed #CFC6B6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #5C605A; min-height: 280px; box-sizing: border-box;">
-            <div style="width: 44px; height: 44px; border-radius: 50%; background: #E8E1D4; display: flex; align-items: center; justify-content: center; color: #1E2622;">
+          <div class="tap hov" onClick="{{openPlanner}}" style="border-radius: 20px; border: 2px dashed {{T.lineStrong}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: {{T.muted}}; min-height: 280px; box-sizing: border-box;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: {{T.raised}}; display: flex; align-items: center; justify-content: center; color: {{T.text}};">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
             </div>
-            <div class="display" style="font-weight: 700; font-size: 16px; color: #1E2622;">Add a keyword</div>
+            <div class="display" style="font-weight: 700; font-size: 16px; color: {{T.text}};">Add a keyword</div>
             <div style="font-size: 12px;">from the planner, or your own words</div>
           </div>
         </div>
@@ -269,24 +271,24 @@
     <sc-if value="{{showPlaceholder}}" hint-placeholder-val="{{false}}">
       <div style="flex-grow: 1; min-height: 0; padding: 40px; display: flex; flex-direction: column; gap: 18px;">
         <div class="display" style="font-weight: 800; font-size: 52px; line-height: 0.95; letter-spacing: -0.025em;">{{placeholder.title}}</div>
-        <div style="max-width: 620px; background: #FBF8F3; border: 1px dashed #CFC6B6; border-radius: 20px; padding: 22px 24px; font-size: 15px; line-height: 1.55; color: #3B433E;">{{placeholder.body}}</div>
+        <div style="max-width: 620px; background: {{T.card}}; border: 1px dashed {{T.lineStrong}}; border-radius: 20px; padding: 22px 24px; font-size: 15px; line-height: 1.55; color: {{T.textSoft}};">{{placeholder.body}}</div>
       </div>
     </sc-if>
 
     <sc-if value="{{hasToast}}" hint-placeholder-val="{{false}}">
-      <div class="chip" style="position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%); z-index: 8; background: #1E2622; color: #F1ECE2; padding: 10px 16px; border-radius: 12px; font-size: 13px; max-width: 560px; box-shadow: 0 8px 24px rgba(30, 38, 34, 0.2);">{{toast}}</div>
+      <div class="chip" style="position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%); z-index: 8; background: {{T.toastBg}}; color: {{T.toastFg}}; padding: 10px 16px; border-radius: 12px; font-size: 13px; max-width: 560px; box-shadow: 0 8px 24px {{T.shadow}};">{{toast}}</div>
     </sc-if>
 
-    <div style="height: 76px; flex-shrink: 0; background: #FBF8F3; border-top: 1px solid #DDD5C7; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+    <div style="height: 76px; flex-shrink: 0; background: {{T.trayBg}}; border-top: 1px solid {{T.sidebarBorder}}; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
       <sc-if value="{{hasChanges}}" hint-placeholder-val="{{false}}">
         <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex-grow: 1;">
-          <div style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #C45A35; color: #FFF8F2; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">{{changeCount}}</div>
+          <div style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: {{T.countBg}}; color: {{T.onAccent}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">{{changeCount}}</div>
           <div style="font-size: 15px; font-weight: 600; white-space: nowrap;">{{changeWord}}</div>
           <div style="display: flex; gap: 8px; overflow-x: auto; min-width: 0; padding: 4px 0;">
             <sc-for list="{{trayLines}}" as="t" hint-placeholder-count="2">
-              <div class="chip" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 999px; background: #EFE9DE; font-size: 13px; white-space: nowrap;">
+              <div class="chip" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 999px; background: {{T.raised}}; font-size: 13px; white-space: nowrap;">
                 <div>{{t.text}}</div>
-                <div class="tap" onClick="{{t.undo}}" title="Undo this change" style="width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #5C605A; background: #E4DCCD;">
+                <div class="tap" onClick="{{t.undo}}" title="Undo this change" style="width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: {{T.muted}}; background: {{T.undoBg}};">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
                 </div>
               </div>
@@ -295,9 +297,9 @@
         </div>
       </sc-if>
       <sc-if value="{{noChanges}}" hint-placeholder-val="{{true}}">
-        <div style="font-size: 14px; color: #5C605A;">No changes yet. Anything you change, in any section, lands here.</div>
+        <div style="font-size: 14px; color: {{T.muted}};">No changes yet. Anything you change, in any section, lands here.</div>
       </sc-if>
-      <div class="display tap" onClick="{{runWeek}}" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #1E2622; color: #F1ECE2; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+      <div class="display tap" onClick="{{runWeek}}" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: {{T.runBg}}; color: {{T.runFg}}; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
         <div>Run week 5</div>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
       </div>
@@ -305,16 +307,16 @@
   </div>
 
   <sc-if value="{{plannerOpen}}" hint-placeholder-val="{{false}}">
-    <div onClick="{{closePlanner}}" style="position: absolute; inset: 0; z-index: 20; background: rgba(30, 38, 34, 0.28);"></div>
-    <div class="drawer" style="position: absolute; top: 0; right: 0; bottom: 0; width: 480px; z-index: 21; background: #FBF8F3; box-shadow: -12px 0 32px rgba(30, 38, 34, 0.18); display: flex; flex-direction: column;">
-      <div style="padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid #E4DCCD;">
+    <div onClick="{{closePlanner}}" style="position: absolute; inset: 0; z-index: 20; background: {{T.overlay}};"></div>
+    <div class="drawer" style="position: absolute; top: 0; right: 0; bottom: 0; width: 480px; z-index: 21; background: {{T.drawerBg}}; border-left: 1px solid {{T.sidebarBorder}}; box-shadow: -12px 0 32px {{T.shadow}}; display: flex; flex-direction: column;">
+      <div style="padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid {{T.line}};">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div class="display" style="font-weight: 800; font-size: 26px;">Add keywords</div>
           <div class="tap hov" onClick="{{closePlanner}}" title="Close" style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
           </div>
         </div>
-        <input class="field" placeholder="search the planner, or type your own" value="{{plannerTerm}}" onChange="{{onPlannerTerm}}">
+        <input class="field" placeholder="search the planner, or type your own" style="background: {{T.fieldBg}}; color: {{T.text}}; border-color: {{T.fieldBorder}};" value="{{plannerTerm}}" onChange="{{onPlannerTerm}}">
         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
           <div style="display: flex; gap: 4px;">
             <sc-for list="{{plannerPills}}" as="m" hint-placeholder-count="3">
@@ -322,48 +324,110 @@
             </sc-for>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="font-size: 13px; color: #5C605A;">Bid ₹</div>
-            <input class="field num" style="width: 72px;" value="{{plannerBid}}" onChange="{{onPlannerBid}}">
+            <div style="font-size: 13px; color: {{T.muted}};">Bid ₹</div>
+            <input class="field num" style="width: 72px; background: {{T.fieldBg}}; color: {{T.text}}; border-color: {{T.fieldBorder}};" value="{{plannerBid}}" onChange="{{onPlannerBid}}">
           </div>
         </div>
         <sc-if value="{{canAddOwn}}" hint-placeholder-val="{{false}}">
-          <div class="tap" onClick="{{addOwn}}" style="align-self: flex-start; padding: 7px 14px; border-radius: 999px; background: #1E2622; color: #F1ECE2; font-size: 13px; font-weight: 700;">Add “{{ownText}}” as your own</div>
+          <div class="tap" onClick="{{addOwn}}" style="align-self: flex-start; padding: 7px 14px; border-radius: 999px; background: {{T.pillOnBg}}; color: {{T.pillOnFg}}; font-size: 13px; font-weight: 700;">Add “{{ownText}}” as your own</div>
         </sc-if>
       </div>
-      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 76px 64px 70px; gap: 10px; padding: 10px 24px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #7A7D76;">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 76px 64px 70px; gap: 10px; padding: 10px 24px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: {{T.faint}};">
         <div>Search</div><div style="text-align: right;">A week</div><div style="text-align: right;">Reach</div><div></div>
       </div>
       <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 0 24px 24px;">
         <sc-for list="{{plannerRows}}" as="p" hint-placeholder-count="10">
-          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 76px 64px 70px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid #EFE7DA;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 76px 64px 70px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid {{T.lineSoft}};">
             <div style="display: flex; flex-direction: column; min-width: 0;">
               <div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{p.text}}</div>
-              <div style="font-size: 12px; color: #7A7D76;">{{p.intent}}</div>
+              <div style="font-size: 12px; color: {{T.faint}};">{{p.intent}}</div>
             </div>
             <div class="num" style="text-align: right; font-size: 13px;">{{p.weekly}}</div>
-            <div class="num" style="text-align: right; font-size: 13px; color: #5C605A;">{{p.reach}}</div>
+            <div class="num" style="text-align: right; font-size: 13px; color: {{T.muted}};">{{p.reach}}</div>
             <div class="tap" onClick="{{p.add}}" style="justify-self: end; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: {{p.btnBg}}; color: {{p.btnFg}}; border: 1px solid {{p.btnLine}};">{{p.btnLabel}}</div>
           </div>
         </sc-for>
       </div>
-      <div style="padding: 14px 24px; border-top: 1px solid #E4DCCD; font-size: 12px; line-height: 1.45; color: #5C605A;">How often a search is made is public research. What it is worth to you is learned by running it.</div>
+      <div style="padding: 14px 24px; border-top: 1px solid {{T.line}}; font-size: 12px; line-height: 1.45; color: {{T.muted}};">How often a search is made is public research. What it is worth to you is learned by running it.</div>
     </div>
   </sc-if>
 </div>
 </x-dc>
-<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+<script data-dc-script data-props='{"theme":{"editor":"enum","options":["Studio drop","Red signal","Streetlight"],"default":"Studio drop"},"$preview":{"width":1440,"height":900}}'>
 const DATA = {"reading":{"lostToBudget":50,"lostToRank":0},"keywords":[{"id":"kw_1","text":"gym leggings","tags":["leggings","gym"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":16,"broad":68},"all":{"clicks":9845,"cost":203202,"cpc":20.6,"conv":352.3},"week":{"clicks":2257,"cost":55744,"cpc":24.7,"conv":53.9},"qs":{"score":8,"expectedCtr":"above","adRelevance":"average","landingPage":"average"}},{"id":"kw_2","text":"workout leggings","tags":["leggings","training"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":1,"broad":63},"all":{"clicks":944,"cost":18957,"cpc":20.1,"conv":37.2},"week":{"clicks":194,"cost":4697,"cpc":24.2,"conv":5.1},"qs":{"score":8,"expectedCtr":"above","adRelevance":"average","landingPage":"average"}},{"id":"kw_3","text":"sports bra high impact","tags":["sports-bra","training","women"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":2,"broad":6},"all":{"clicks":836,"cost":16585,"cpc":19.8,"conv":30.4},"week":{"clicks":202,"cost":5322,"cpc":26.4,"conv":5.1},"qs":{"score":6,"expectedCtr":"average","adRelevance":"average","landingPage":"average"}},{"id":"kw_4","text":"gym tights for women","tags":["leggings","gym","women"],"match":"phrase","bid":33,"reach":{"exact":1,"phrase":1,"broad":30},"all":{"clicks":562,"cost":13787,"cpc":24.5,"conv":30.9},"week":{"clicks":137,"cost":3514,"cpc":25.6,"conv":5.2},"qs":{"score":6,"expectedCtr":"average","adRelevance":"average","landingPage":"average"}},{"id":"kw_5","text":"running leggings women","tags":["leggings","running","women"],"match":"broad","bid":24,"reach":{"exact":1,"phrase":1,"broad":12},"all":{"clicks":2013,"cost":31028,"cpc":15.4,"conv":72.3},"week":{"clicks":445,"cost":6459,"cpc":14.5,"conv":10.6},"qs":{"score":6,"expectedCtr":"average","adRelevance":"average","landingPage":"average"}},{"id":"kw_6","text":"high waisted gym leggings","tags":["leggings","high-waisted","gym"],"match":"broad","bid":24,"reach":{"exact":1,"phrase":1,"broad":19},"all":{"clicks":715,"cost":8905,"cpc":12.5,"conv":22.7},"week":{"clicks":136,"cost":1453,"cpc":10.7,"conv":2.8},"qs":null},{"id":"kw_7","text":"vella leggings","tags":["brand-term","india"],"match":"exact","bid":57,"reach":{"exact":1,"phrase":1,"broad":18},"all":{"clicks":687,"cost":4070,"cpc":5.9,"conv":46.2},"week":{"clicks":135,"cost":1060,"cpc":7.8,"conv":5.9},"qs":{"score":10,"expectedCtr":"above","adRelevance":"above","landingPage":"above"}}],"planner":[{"text":"cheap gym leggings","weekly":10105,"intent":"commercial","tags":["leggings","gym","cheap","women"],"reach":{"exact":1,"phrase":1,"broad":31}},{"text":"gym wear sale","weekly":9202,"intent":"commercial","tags":["gym","sale"],"reach":{"exact":1,"phrase":1,"broad":40}},{"text":"cheap athleisure","weekly":9116,"intent":"commercial","tags":["casual","cheap","women"],"reach":{"exact":1,"phrase":1,"broad":8}},{"text":"co ord set sale","weekly":8299,"intent":"commercial","tags":["co-ord-set","sale"],"reach":{"exact":1,"phrase":1,"broad":23}},{"text":"budget gym wear women","weekly":8256,"intent":"commercial","tags":["gym","budget","women"],"reach":{"exact":1,"phrase":1,"broad":12}},{"text":"budget loungewear","weekly":7482,"intent":"commercial","tags":["lounge","budget","women"],"reach":{"exact":1,"phrase":1,"broad":8}},{"text":"leggings combo pack","weekly":7439,"intent":"commercial","tags":["leggings","combo"],"reach":{"exact":1,"phrase":1,"broad":53}},{"text":"sports bra combo pack","weekly":7353,"intent":"commercial","tags":["sports-bra","combo","budget"],"reach":{"exact":1,"phrase":1,"broad":2}},{"text":"gym leggings under 999","weekly":6450,"intent":"commercial","tags":["leggings","gym","budget"],"reach":{"exact":1,"phrase":1,"broad":22}},{"text":"co ord set under 999","weekly":5805,"intent":"commercial","tags":["co-ord-set","budget"],"reach":{"exact":1,"phrase":1,"broad":37}},{"text":"loungewear set under 799","weekly":5805,"intent":"commercial","tags":["lounge","co-ord-set","budget"],"reach":{"exact":1,"phrase":1,"broad":10}},{"text":"gym leggings","weekly":5590,"intent":"commercial","tags":["leggings","gym"],"reach":{"exact":1,"phrase":16,"broad":68}},{"text":"sports bra under 500","weekly":5504,"intent":"commercial","tags":["sports-bra","budget"],"reach":{"exact":1,"phrase":1,"broad":27}},{"text":"leggings under 499","weekly":5504,"intent":"commercial","tags":["leggings","budget"],"reach":{"exact":1,"phrase":1,"broad":66}},{"text":"athleisure leggings","weekly":5246,"intent":"commercial","tags":["leggings","casual"],"reach":{"exact":1,"phrase":1,"broad":63}},{"text":"workout leggings","weekly":5117,"intent":"commercial","tags":["leggings","training"],"reach":{"exact":1,"phrase":1,"broad":63}},{"text":"joggers under 599","weekly":4988,"intent":"commercial","tags":["joggers","budget"],"reach":{"exact":1,"phrase":1,"broad":29}},{"text":"lounge pants under 499","weekly":4988,"intent":"commercial","tags":["pants","lounge","budget"],"reach":{"exact":1,"phrase":1,"broad":9}},{"text":"co ord set","weekly":4816,"intent":"commercial","tags":["co-ord-set"],"reach":{"exact":1,"phrase":9,"broad":19}},{"text":"pack of 2 gym leggings","weekly":4601,"intent":"commercial","tags":["leggings","gym","combo"],"reach":{"exact":1,"phrase":1,"broad":23}},{"text":"workout tshirt under 300","weekly":4601,"intent":"commercial","tags":["tshirt","training","budget"],"reach":{"exact":1,"phrase":1,"broad":3}},{"text":"gym leggings offer today","weekly":4601,"intent":"commercial","tags":["leggings","gym","sale"],"reach":{"exact":1,"phrase":1,"broad":20}},{"text":"sports bra high impact","weekly":4171,"intent":"commercial","tags":["sports-bra","training","women"],"reach":{"exact":1,"phrase":2,"broad":6}},{"text":"oversized tshirt under 399","weekly":4128,"intent":"commercial","tags":["tshirt","oversized","budget"],"reach":{"exact":1,"phrase":1,"broad":3}},{"text":"matching set sale women","weekly":4128,"intent":"commercial","tags":["co-ord-set","sale","women"],"reach":{"exact":1,"phrase":1,"broad":9}},{"text":"everyday leggings pack of 3","weekly":4128,"intent":"commercial","tags":["leggings","everyday","combo"],"reach":{"exact":1,"phrase":1,"broad":7}},{"text":"seamless leggings","weekly":4042,"intent":"commercial","tags":["leggings","seamless"],"reach":{"exact":1,"phrase":1,"broad":52}},{"text":"everyday leggings","weekly":3956,"intent":"commercial","tags":["leggings","everyday"],"reach":{"exact":1,"phrase":2,"broad":52}},{"text":"joggers for women","weekly":3956,"intent":"commercial","tags":["joggers","casual","women"],"reach":{"exact":1,"phrase":1,"broad":11}},{"text":"free workout plan","weekly":3956,"intent":"irrelevant","tags":["training","free"],"reach":{"exact":1,"phrase":1,"broad":17}},{"text":"premium athleisure","weekly":3784,"intent":"commercial","tags":["casual","premium"],"reach":{"exact":1,"phrase":1,"broad":22}},{"text":"gym tights for women","weekly":3741,"intent":"commercial","tags":["leggings","gym","women"],"reach":{"exact":1,"phrase":1,"broad":30}},{"text":"best gym leggings under 1000","weekly":3698,"intent":"commercial","tags":["leggings","gym","budget","compare"],"reach":{"exact":1,"phrase":1,"broad":26}},{"text":"running shorts under 400","weekly":3698,"intent":"commercial","tags":["shorts","running","budget"],"reach":{"exact":1,"phrase":1,"broad":2}},{"text":"gym wear clearance sale","weekly":3698,"intent":"commercial","tags":["gym","sale","discount"],"reach":{"exact":1,"phrase":1,"broad":4}},{"text":"compression leggings","weekly":3698,"intent":"commercial","tags":["leggings","compression"],"reach":{"exact":1,"phrase":2,"broad":50}},{"text":"yoga pants under 600","weekly":3655,"intent":"commercial","tags":["pants","yoga","budget"],"reach":{"exact":1,"phrase":1,"broad":3}},{"text":"gym near me","weekly":3569,"intent":"irrelevant","tags":["gym","research"],"reach":{"exact":1,"phrase":1,"broad":41}},{"text":"designer leggings","weekly":3483,"intent":"commercial","tags":["leggings","luxury"],"reach":{"exact":1,"phrase":1,"broad":54}},{"text":"squat proof leggings","weekly":3354,"intent":"commercial","tags":["leggings","squat-proof","gym"],"reach":{"exact":1,"phrase":2,"broad":20}},{"text":"flared leggings under 699","weekly":3311,"intent":"commercial","tags":["leggings","flared","budget"],"reach":{"exact":1,"phrase":1,"broad":6}},{"text":"joggers combo women","weekly":3311,"intent":"commercial","tags":["joggers","combo","women"],"reach":{"exact":1,"phrase":1,"broad":10}},{"text":"crop top under 299","weekly":3311,"intent":"commercial","tags":["tank","cropped","budget"],"reach":{"exact":1,"phrase":1,"broad":1}},{"text":"athleisure clearance sale","weekly":3311,"intent":"commercial","tags":["casual","sale","discount"],"reach":{"exact":1,"phrase":1,"broad":2}},{"text":"best co ord set under 1000","weekly":3311,"intent":"commercial","tags":["co-ord-set","budget","compare"],"reach":{"exact":1,"phrase":1,"broad":4}},{"text":"running leggings women","weekly":3268,"intent":"commercial","tags":["leggings","running","women"],"reach":{"exact":1,"phrase":1,"broad":12}},{"text":"high waisted gym leggings","weekly":3268,"intent":"commercial","tags":["leggings","high-waisted","gym"],"reach":{"exact":1,"phrase":1,"broad":19}},{"text":"how to lose belly fat","weekly":3182,"intent":"irrelevant","tags":["training","how-to"],"reach":{"exact":1,"phrase":1,"broad":23}},{"text":"luxury loungewear","weekly":3139,"intent":"commercial","tags":["lounge","luxury"],"reach":{"exact":1,"phrase":1,"broad":17}},{"text":"lounge pants women","weekly":3053,"intent":"commercial","tags":["pants","lounge","women"],"reach":{"exact":1,"phrase":1,"broad":9}},{"text":"vella leggings","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"kestrel gym wear","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"marlow co ord set","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"satva leggings review","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"halcyon activewear","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"lumen sports bra","weekly":2881,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"nira joggers","weekly":2838,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"torvi leggings","weekly":2838,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"auren athleisure","weekly":2838,"intent":"brand","tags":["brand-term","india"],"reach":{"exact":1,"phrase":1,"broad":18}},{"text":"training shorts women","weekly":2795,"intent":"commercial","tags":["shorts","training","women"],"reach":{"exact":1,"phrase":1,"broad":6}}]};
 
-const INK = '#1E2622';
-const MUTED = '#5C605A';
-const FAINT = '#8A8C85';
-const ACCENT = '#C45A35';
-const ACCENT_TEXT = '#A8472A';
-const LINE = '#E4DCCD';
-const CARD = '#FBF8F3';
+/*
+ * Three palettes over one layout. Each names the same roles, so a screen never
+ * picks a colour, only a role. The rule that decides the two dark ones: the
+ * accent means "you and your changes", and never "bad".
+ */
+const THEMES = {
+  'Studio drop': {
+    page: '#F1ECE2', rail: '#1E2622', railActive: '#313B35', railIcon: '#96A098', railIconOn: '#F1ECE2',
+    sidebar: '#E8E1D4', sidebarBorder: '#DDD5C7', sectionOn: '#FBF8F3', sectionText: '#3B433E', sectionTextOn: '#1E2622',
+    sectionLocked: '#A09A8E', sectionShadow: '0 1px 2px rgba(30, 38, 34, 0.08)',
+    card: '#FBF8F3', cardPaused: '#F4F0E8', line: '#E4DCCD', lineSoft: '#EAE2D4', lineStrong: '#CFC6B6', pillLine: '#DDD5C7',
+    text: '#1E2622', textSoft: '#3B433E', muted: '#5C605A', faint: '#5E615B', pausedText: '#8A8C85',
+    accent: '#C45A35', accentText: '#A8472A', onAccent: '#FFF8F2',
+    pillOnBg: '#1E2622', pillOnFg: '#F1ECE2', toggleTrack: '#E6DED0', raised: '#EFE9DE', undoBg: '#E4DCCD',
+    switchOn: '#2F6B4F', switchOff: '#CFC6B6', switchOnText: '#2F6B4F', knob: '#FBF8F3',
+    sliderTrack: '#E4DCCD', pausedFill: '#B8B2A6', wasRing: '#8A8C85', progressFill: '#1E2622', dotOn: '#1E2622', dotOff: '#CFC6B6',
+    panelBg: '#1E2622', panelBorder: '#1E2622', panelText: '#DCE0DA', panelMuted: '#B9BFB9', panelStrong: '#F1ECE2', panelHot: '#F0A283', panelBtnBorder: '#56625B',
+    spendShades: ['#F0A283', '#DCE0DA', '#B9BFB9', '#96A098', '#7C877F', '#65706A', '#56625B'],
+    bulkBg: '#1E2622', bulkBorder: '#1E2622', bulkFg: '#F1ECE2', bulkMuted: '#B9BFB9', bulkInputBg: '#2A332E', bulkInputBorder: '#3C4741',
+    bulkBtnBg: '#F1ECE2', bulkBtnFg: '#1E2622', bulkPillBorder: '#56625B',
+    danger: '#9E2B25', warn: '#9E2B25', trayBg: '#FBF8F3', runBg: '#1E2622', runFg: '#F1ECE2', logoBg: '#A8472A', logoFg: '#FFF8F2', countBg: '#A8472A',
+    fieldBg: '#FBF8F3', fieldBorder: '#D6CDBD', drawerBg: '#FBF8F3', overlay: 'rgba(30, 38, 34, 0.28)', shadow: 'rgba(30, 38, 34, 0.18)',
+    toastBg: '#1E2622', toastFg: '#F1ECE2', qsOnBg: '#1E2622', qsOnFg: '#F1ECE2', selectedRing: '#1E2622', menuBg: '#FBF8F3', menuBorder: '#DDD5C7',
+    editUnderline: '#CFC6B6', above: '#2F6B4F', average: '#5C605A', below: '#9E2B25',
+  },
+  // Red is your colour: sliders, changes, the switch, the main button. So a
+  // warning cannot be red here, and turns amber.
+  'Red signal': {
+    page: '#0D0C0E', rail: '#060507', railActive: '#2A1216', railIcon: '#8A8389', railIconOn: '#F3EEEA',
+    sidebar: '#131215', sidebarBorder: '#26232A', sectionOn: '#1F1C22', sectionText: '#CFC9C3', sectionTextOn: '#F3EEEA',
+    sectionLocked: '#6D6770', sectionShadow: '0 0 0 1px #2E2A33',
+    card: '#17161A', cardPaused: '#121114', line: '#2A272D', lineSoft: '#232026', lineStrong: '#3A363E', pillLine: '#3A363E',
+    text: '#EDE8E3', textSoft: '#CFC9C3', muted: '#A19A94', faint: '#8A847E', pausedText: '#6E6872',
+    accent: '#D7262F', accentText: '#FF6166', onAccent: '#FFF5F4',
+    pillOnBg: '#D7262F', pillOnFg: '#FFF5F4', toggleTrack: '#211E24', raised: '#221F25', undoBg: '#2E2A33',
+    switchOn: '#D7262F', switchOff: '#3A363E', switchOnText: '#FF6166', knob: '#F3EEEA',
+    sliderTrack: '#2E2A33', pausedFill: '#5A5560', wasRing: '#8A847E', progressFill: '#D7262F', dotOn: '#D7262F', dotOff: '#3A363E',
+    panelBg: '#1A0C0F', panelBorder: '#4A1A1F', panelText: '#D9D1CB', panelMuted: '#A8989A', panelStrong: '#F3EEEA', panelHot: '#FF6166', panelBtnBorder: '#5A262C',
+    spendShades: ['#D7262F', '#8F8589', '#6F676C', '#595257', '#4A444A', '#3D383E', '#332F35'],
+    bulkBg: '#1F1C22', bulkBorder: '#3A363E', bulkFg: '#EDE8E3', bulkMuted: '#A19A94', bulkInputBg: '#141216', bulkInputBorder: '#3A363E',
+    bulkBtnBg: '#D7262F', bulkBtnFg: '#FFF5F4', bulkPillBorder: '#4A454F',
+    danger: '#F2A53A', warn: '#F2A53A', trayBg: '#131215', runBg: '#D7262F', runFg: '#FFF5F4', logoBg: '#D7262F', logoFg: '#FFF5F4', countBg: '#D7262F',
+    fieldBg: '#141216', fieldBorder: '#3A363E', drawerBg: '#141216', overlay: 'rgba(0, 0, 0, 0.55)', shadow: 'rgba(0, 0, 0, 0.5)',
+    toastBg: '#F3EEEA', toastFg: '#0D0C0E', qsOnBg: '#EDE8E3', qsOnFg: '#0D0C0E', selectedRing: '#EDE8E3', menuBg: '#1F1C22', menuBorder: '#3A363E',
+    editUnderline: '#4A454F', above: '#9FD3B5', average: '#A19A94', below: '#F2A53A',
+  },
+  // Amber is your colour, as the sodium streetlight. Red is kept for the brand
+  // mark and for danger, where it means what a reader expects.
+  'Streetlight': {
+    page: '#0E0D0B', rail: '#080706', railActive: '#2A2213', railIcon: '#8C8378', railIconOn: '#F2B45A',
+    sidebar: '#15130F', sidebarBorder: '#28241E', sectionOn: '#221E18', sectionText: '#D2CAC0', sectionTextOn: '#EFE8DF',
+    sectionLocked: '#6E665C', sectionShadow: '0 0 0 1px #3D3832',
+    card: '#1A1815', cardPaused: '#14120F', line: '#2D2925', lineSoft: '#25221D', lineStrong: '#3D3832', pillLine: '#3D3832',
+    text: '#EFE8DF', textSoft: '#D2CAC0', muted: '#A59C91', faint: '#8C8378', pausedText: '#6E665C',
+    accent: '#E8A33D', accentText: '#F2B45A', onAccent: '#1A1208',
+    pillOnBg: '#EFE8DF', pillOnFg: '#15130F', toggleTrack: '#24211D', raised: '#24211D', undoBg: '#322D27',
+    switchOn: '#E8A33D', switchOff: '#3D3832', switchOnText: '#F2B45A', knob: '#EFE8DF',
+    sliderTrack: '#322D27', pausedFill: '#5C554C', wasRing: '#8C8378', progressFill: '#E8A33D', dotOn: '#E8A33D', dotOff: '#3D3832',
+    panelBg: '#1C170F', panelBorder: '#4A3A1E', panelText: '#DDD3C4', panelMuted: '#A89B86', panelStrong: '#F4ECDF', panelHot: '#F2B45A', panelBtnBorder: '#5A4826',
+    spendShades: ['#E8A33D', '#9C9285', '#7B7267', '#625B52', '#504A43', '#433E38', '#37332E'],
+    bulkBg: '#221E18', bulkBorder: '#3D3832', bulkFg: '#EFE8DF', bulkMuted: '#A59C91', bulkInputBg: '#15130F', bulkInputBorder: '#3D3832',
+    bulkBtnBg: '#E8A33D', bulkBtnFg: '#1A1208', bulkPillBorder: '#4A443C',
+    danger: '#FF6B6E', warn: '#FF6B6E', trayBg: '#15130F', runBg: '#E8A33D', runFg: '#1A1208', logoBg: '#C62A33', logoFg: '#FFF5F4', countBg: '#E8A33D',
+    fieldBg: '#15130F', fieldBorder: '#3D3832', drawerBg: '#15130F', overlay: 'rgba(0, 0, 0, 0.55)', shadow: 'rgba(0, 0, 0, 0.5)',
+    toastBg: '#EFE8DF', toastFg: '#0E0D0B', qsOnBg: '#EFE8DF', qsOnFg: '#15130F', selectedRing: '#EFE8DF', menuBg: '#221E18', menuBorder: '#3D3832',
+    editUnderline: '#4A443C', above: '#9FD3B5', average: '#A59C91', below: '#FF6B6E',
+  },
+};
+
 const MATCHES = ['exact', 'phrase', 'broad'];
 const LABEL = { exact: 'Exact', phrase: 'Phrase', broad: 'Broad' };
-const RATING = { above: ['above average', '#2F6B4F'], average: ['average', '#5C605A'], below: ['below average', '#9E2B25'] };
+const RATING_WORD = { above: 'above average', average: 'average', below: 'below average' };
 const inr = (n) => Math.round(n).toLocaleString('en-IN');
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const norm = (t) => String(t).trim().toLowerCase().replace(/\s+/g, ' ');
@@ -470,13 +534,14 @@ class Component extends DCLogic {
 
   renderVals() {
     const s = this.state;
+    const T = THEMES[this.props.theme] ?? THEMES['Studio drop'];
     const live = s.kws.filter((k) => !k.removed);
 
     const areas = AREAS.map((a) => {
       const on = a.key === s.area;
       return {
         label: a.label, paths: a.icon,
-        bg: on ? '#313B35' : 'transparent', stroke: on ? '#F1ECE2' : '#96A098', fg: on ? '#F1ECE2' : '#96A098',
+        bg: on ? T.railActive : 'transparent', stroke: on ? T.railIconOn : T.railIcon, fg: on ? T.railIconOn : T.railIcon,
         pick: () => this.setState({ area: a.key, section: SECTIONS[a.key][a.key === 'brand' ? 1 : 0].key, toast: '' }),
       };
     });
@@ -488,10 +553,10 @@ class Component extends DCLogic {
       return {
         label: x.label, paths: x.icon,
         weight: on ? 700 : 500,
-        bg: on ? CARD : 'transparent',
-        fg: locked ? '#A09A8E' : on ? INK : '#3B433E',
-        stroke: on ? ACCENT : 'currentColor',
-        shadow: on ? '0 1px 2px rgba(30, 38, 34, 0.08)' : 'none',
+        bg: on ? T.sectionOn : 'transparent',
+        fg: locked ? T.sectionLocked : on ? T.sectionTextOn : T.sectionText,
+        stroke: on ? T.accent : 'currentColor',
+        shadow: on ? T.sectionShadow : 'none',
         hasLock: locked, lock: locked ? `week ${x.lockedUntil}` : '',
         pick: () => this.setState({ section: x.key, toast: '' }),
       };
@@ -504,7 +569,7 @@ class Component extends DCLogic {
     else if (current.lockNote) body = current.lockNote;
 
     const ranges = [['week', 'This week'], ['all', 'All weeks']].map(([key, label]) => ({
-      label, bg: s.range === key ? INK : 'transparent', fg: s.range === key ? '#F1ECE2' : MUTED,
+      label, bg: s.range === key ? T.pillOnBg : 'transparent', fg: s.range === key ? T.pillOnFg : T.muted,
       pick: () => this.setState({ range: key, toast: '' }),
     }));
 
@@ -521,27 +586,27 @@ class Component extends DCLogic {
         tagsLine = k.tags == null ? 'tags are read from its words in the game'
           : k.tags.length ? `tags: ${k.tags.join(' · ')}` : 'no tags: broad finds nothing';
       }
-      const ring = selected ? INK : (changed || k.added ? ACCENT : 'transparent');
+      const ring = selected ? T.selectedRing : (changed || k.added ? T.accent : 'transparent');
       const reachN = k.reach ? k.reach[k.match] : null;
       const pctOf = (v) => Math.round((((v - 1) / (s.sliderMax - 1)) * 100) * 10) / 10;
       return {
         text: k.text, bid: k.bid, max: s.sliderMax,
-        bg: paused ? '#F4F0E8' : CARD,
-        borderColor: selected ? INK : (changed || k.added ? ACCENT : LINE),
+        bg: paused ? T.cardPaused : T.card,
+        borderColor: selected ? T.selectedRing : (changed || k.added ? T.accent : T.line),
         ring,
-        textColor: paused ? FAINT : INK,
+        textColor: paused ? T.pausedText : T.text,
         selecting: s.selecting,
-        checkLine: selected ? INK : '#CFC6B6', checkBg: selected ? INK : 'transparent',
+        checkLine: selected ? T.selectedRing : T.lineStrong, checkBg: selected ? T.selectedRing : 'transparent',
         toggleSelect: () => this.setState((st) => ({ selected: { ...st.selected, [k.id]: !st.selected[k.id] } })),
         qsLabel: k.qs ? String(k.qs.score) : '—',
-        qsBg: s.qsOpen === k.id ? INK : '#EFE9DE', qsFg: s.qsOpen === k.id ? '#F1ECE2' : INK,
+        qsBg: s.qsOpen === k.id ? T.qsOnBg : T.raised, qsFg: s.qsOpen === k.id ? T.qsOnFg : T.text,
         toggleQs: () => this.setState((st) => ({ qsOpen: st.qsOpen === k.id ? null : k.id, menuOpen: null, toast: '' })),
         qsOpen: s.qsOpen === k.id, qsClosed: s.qsOpen !== k.id,
         qsParts: k.qs ? [['Expected click-through', k.qs.expectedCtr], ['Ad relevance', k.qs.adRelevance], ['Landing page', k.qs.landingPage]]
-          .map(([label, r]) => ({ label, rating: RATING[r][0], color: RATING[r][1] })) : [],
+          .map(([label, r]) => ({ label, rating: RATING_WORD[r], color: T[r] })) : [],
         qsNote: k.qs ? 'Each part is compared with everyone who showed on the same searches.' : 'Not enough of its own data to score yet.',
-        switchBg: paused ? '#CFC6B6' : '#2F6B4F', knobLeft: paused ? '2px' : '16px',
-        switchLabel: paused ? 'Paused' : 'Running', switchText: paused ? MUTED : '#2F6B4F',
+        switchBg: paused ? T.switchOff : T.switchOn, knobLeft: paused ? '2px' : '16px',
+        switchLabel: paused ? 'Paused' : 'Running', switchText: paused ? T.muted : T.switchOnText,
         switchTitle: paused ? 'Paused: tap to enter auctions again' : 'Running: tap to pause',
         toggleActive: () => this.patch(k.id, { active: !k.active }),
         menuOpen: s.menuOpen === k.id,
@@ -552,13 +617,13 @@ class Component extends DCLogic {
         })),
         pills: MATCHES.map((m) => ({
           label: LABEL[m],
-          bg: k.match === m ? INK : 'transparent', fg: k.match === m ? '#F1ECE2' : MUTED, line: k.match === m ? INK : '#DDD5C7',
+          bg: k.match === m ? T.pillOnBg : 'transparent', fg: k.match === m ? T.pillOnFg : T.muted, line: k.match === m ? T.pillOnBg : T.pillLine,
           pick: () => this.patch(k.id, { match: m }),
         })),
         reachLabel: reachN == null ? 'reach is counted when the game adds it' : `reaches ${plural(reachN, 'search', 'searches')}`,
         matchWas: matchChanged ? ` · was ${b.match}` : '',
         tagsLine, tagsTitle: tagsLine,
-        tagsColor: k.tags == null || k.tags.length ? MUTED : '#9E2B25',
+        tagsColor: k.tags == null || k.tags.length ? T.muted : T.warn,
         editing: s.editing === k.id, notEditing: s.editing !== k.id, editValue: s.editValue,
         startEdit: () => this.setState({ editing: k.id, editValue: String(k.bid), toast: '' }),
         onEdit: (e) => this.setState({ editValue: e.target.value }),
@@ -570,7 +635,7 @@ class Component extends DCLogic {
         onSlide: (e) => this.setBid(k.id, e.target.value),
         sliderLabel: `Bid for ${k.text}, in rupees`,
         pct: pctOf(k.bid), hasWas: bidChanged, wasPct: pctOf(b ? b.bid : k.bid), wasBid: b ? b.bid : k.bid,
-        fill: paused ? '#B8B2A6' : ACCENT,
+        fill: paused ? T.pausedFill : T.accent,
         paidLine: k.added ? 'new this week: no clicks yet'
           : stats && stats.cpc != null ? `paid ₹${stats.cpc} a click on average` : 'no clicks yet',
         clicks: stats ? inr(stats.clicks) : '—',
@@ -581,15 +646,14 @@ class Component extends DCLogic {
 
     // Week 4's spend by keyword. Cost is final the week it is spent, unlike
     // conversions, which keep arriving, so this is the one split safe to show.
-    const SHADES = ['#F0A283', '#DCE0DA', '#B9BFB9', '#96A098', '#7C877F', '#65706A', '#56625B'];
     const weekCosts = DATA.keywords.map((k) => ({ text: k.text, cost: k.week.cost })).sort((a, b) => b.cost - a.cost);
     const weekTotal = weekCosts.reduce((sum, x) => sum + x.cost, 0);
     const shareOf = (cost) => `${Math.round((100 * cost) / weekTotal)}%`;
-    const spend = weekCosts.map((x, i) => ({ grow: x.cost, color: SHADES[i], title: `${x.text}: ₹${inr(x.cost)}, ${shareOf(x.cost)}` }));
+    const spend = weekCosts.map((x, i) => ({ grow: x.cost, color: T.spendShades[i], title: `${x.text}: ₹${inr(x.cost)}, ${shareOf(x.cost)}` }));
     const rest = weekCosts.slice(3);
     const spendLegend = [
-      ...weekCosts.slice(0, 3).map((x, i) => ({ label: x.text, share: shareOf(x.cost), color: SHADES[i] })),
-      { label: `${rest.length} others`, share: shareOf(rest.reduce((sum, x) => sum + x.cost, 0)), color: SHADES[4] },
+      ...weekCosts.slice(0, 3).map((x, i) => ({ label: x.text, share: shareOf(x.cost), color: T.spendShades[i] })),
+      { label: `${rest.length} others`, share: shareOf(rest.reduce((sum, x) => sum + x.cost, 0)), color: T.spendShades[4] },
     ];
     const lr = DATA.reading.lostToRank;
     const rankLine = `${lr === 0 ? 'None were' : `${lr}% were`} lost to rank, so a higher bid would only run the money out sooner.`;
@@ -623,7 +687,7 @@ class Component extends DCLogic {
         return {
           text: p.text, intent: p.intent, weekly: inr(p.weekly), reach: String(p.reach[s.plannerMatch]),
           btnLabel: inAccount ? 'in account' : 'Add',
-          btnBg: inAccount ? 'transparent' : INK, btnFg: inAccount ? FAINT : '#F1ECE2', btnLine: inAccount ? '#DDD5C7' : INK,
+          btnBg: inAccount ? 'transparent' : T.pillOnBg, btnFg: inAccount ? T.faint : T.pillOnFg, btnLine: inAccount ? T.pillLine : T.pillOnBg,
           add: () => { if (!inAccount) this.addFromPlanner(p); },
         };
       });
@@ -631,6 +695,7 @@ class Component extends DCLogic {
     const canAddOwn = ownText.length > 0 && !DATA.planner.some((p) => norm(p.text) === term) && !held.has(term);
 
     return {
+      T,
       areas, sections, areaTitle: areaInfo.title,
       showKeywords, showPlaceholder: !showKeywords, placeholder: { title: current.label, body },
       countLabel: plural(live.length, 'keyword', 'keywords'),
@@ -662,7 +727,7 @@ class Component extends DCLogic {
         else this.setState({ toast: 'Type a percentage, like -20 or 15.' });
       },
       bulkMatches,
-      dots: Array.from({ length: 12 }, (_, i) => (i < 4 ? { bg: INK, line: INK } : { bg: 'transparent', line: '#CFC6B6' })),
+      dots: Array.from({ length: 12 }, (_, i) => (i < 4 ? { bg: T.dotOn, line: T.dotOn } : { bg: 'transparent', line: T.dotOff })),
       trayLines, hasChanges: trayLines.length > 0, noChanges: trayLines.length === 0,
       changeCount: String(trayLines.length), changeWord: trayLines.length === 1 ? 'change waiting' : 'changes waiting',
       runWeek: () => this.setState({
@@ -679,7 +744,7 @@ class Component extends DCLogic {
       onPlannerBid: (e) => this.setState({ plannerBid: e.target.value }),
       plannerPills: MATCHES.map((m) => ({
         label: LABEL[m],
-        bg: s.plannerMatch === m ? INK : 'transparent', fg: s.plannerMatch === m ? '#F1ECE2' : MUTED, line: s.plannerMatch === m ? INK : '#DDD5C7',
+        bg: s.plannerMatch === m ? T.pillOnBg : 'transparent', fg: s.plannerMatch === m ? T.pillOnFg : T.muted, line: s.plannerMatch === m ? T.pillOnBg : T.pillLine,
         pick: () => this.setState({ plannerMatch: m }),
       })),
       plannerRows,

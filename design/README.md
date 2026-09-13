@@ -47,7 +47,13 @@ of `plans/2026-09-13-studio-makeover.md`.
 
 - **Page 1** is `Main.dc.html`: that section as designed in the plan's section 4,
   in the chosen look, with working controls, for the owner to try before any code
-  is written.
+  is written. Its colours come from one of three palettes that name the same
+  roles (its `theme` switch): the cream *Studio drop*, and two night palettes the
+  owner asked for after a reference film the owner named, colours only and no logo,
+  symbol or name from it. `RedSignal.dc.html` and `Streetlight.dc.html` are that
+  same component imported with the other two palettes, so the three sit side by
+  side. Every text colour in all three was measured against its background at
+  4.5:1 or better.
 - **Page 2** keeps the three looks it was chosen from, each with its case and its
   cost in a note above it: `TrackDay.dc.html` (A · Track day),
   `NightSession.dc.html` (B · Night session), `StudioDrop.dc.html` (C · Studio

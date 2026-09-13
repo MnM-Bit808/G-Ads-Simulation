@@ -4,7 +4,9 @@
     { "id": "page-2", "name": "The three looks" }
   ],
   "artboards": [
-    { "file": "Main.dc.html", "title": "Your keywords · Studio drop", "page": "page-1", "is_interactive": true, "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "Main.dc.html", "title": "Your keywords · Studio drop (cream)", "page": "page-1", "is_interactive": true, "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "RedSignal.dc.html", "title": "Your keywords · Red signal", "page": "page-1", "is_interactive": true, "x": 1560, "y": 0, "w": 1440, "h": 900 },
+    { "file": "Streetlight.dc.html", "title": "Your keywords · Streetlight", "page": "page-1", "is_interactive": true, "x": 3120, "y": 0, "w": 1440, "h": 900 },
     { "file": "TrackDay.dc.html", "title": "A · Track day", "page": "page-2", "x": 0, "y": 0, "w": 1440, "h": 900 },
     { "file": "NightSession.dc.html", "title": "B · Night session", "page": "page-2", "x": 1560, "y": 0, "w": 1440, "h": 900 },
     { "file": "StudioDrop.dc.html", "title": "C · Studio drop", "page": "page-2", "x": 3120, "y": 0, "w": 1440, "h": 900 }
@@ -14,9 +16,25 @@
       "id": "try-it",
       "page": "page-1",
       "x": 0,
-      "y": -300,
+      "y": -330,
       "w": 1300,
-      "text": "Try it. This is Your keywords as the plan designs it (plans/2026-09-13-studio-makeover.md, section 4), in the chosen look, with working controls. Drag a bid, or tap its number and type one. Flip a match type and watch its reach. Tap QS. Pause with the switch; remove from the ⋯ menu. Add from the planner, or type your own. Tick several with Adjust several. Undo anything from the tray at the bottom. Switch between This week and All weeks.\nEvery number is from one real game at week 4: seed 1, Vella & Co., mid-price performance. The planner here holds the 60 most-searched of the game's 151 searches. The other sections, and the Market, Guide and Results icons, only say what they will hold. Your changes reset when the page reloads."
+      "text": "Try it. Your keywords as the plan designs it (plans/2026-09-13-studio-makeover.md, section 4), with working controls. Drag a bid, or tap its number and type one. Flip a match type and watch its reach. Tap QS. Pause with the switch; remove from the ⋯ menu. Add from the planner, or type your own. Tick several with Adjust several, or press Stretch it. Undo anything from the tray at the bottom. Switch between This week and All weeks.\nEvery number is from one real game at week 4: seed 1, Vella & Co., mid-price performance. The planner here holds the 60 most-searched of the game's 151 searches. The other sections only say what they will hold. Changes reset when the page reloads.\nThe same screen in three palettes. Only the colours differ; the cards, type and layout are the same. The theme chip above the first board switches it too."
+    },
+    {
+      "id": "red-signal",
+      "page": "page-1",
+      "x": 1560,
+      "y": -250,
+      "w": 1100,
+      "text": "Red signal. The night palette of the owner's reference film: near-black, blood red, cold grey. Red is your colour: sliders, changes, the Running switch, the Run button.\nFor: the most dramatic, and the closest to the reference.\nAgainst: red is the colour a money game uses for loss and danger. Here the accent takes it, so warnings turn amber and a loss would need its minus sign and a label to read as one; and red on every control can read as alarm."
+    },
+    {
+      "id": "streetlight",
+      "page": "page-1",
+      "x": 3120,
+      "y": -250,
+      "w": 1100,
+      "text": "Streetlight. The same night, lit by sodium-amber streetlights. Amber is your colour; red appears only as the brand mark and for danger, where it means what a reader expects.\nFor: every colour keeps its usual meaning, and it is calmer to read for twelve weeks.\nAgainst: less of the reference's red.\nBoth dark palettes are colours only: no logo, symbol or name from the film appears, and none should. Every text colour in all three palettes was measured against its background and passes 4.5:1."
     },
     {
       "id": "brief",
