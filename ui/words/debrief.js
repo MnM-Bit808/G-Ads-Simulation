@@ -28,6 +28,13 @@ export const DEBRIEF = Object.freeze({
   title: line('label', 'What your twelve weeks taught you'),
   subtitle: line('label', 'read from your own game'),
 
+  // --- the result, set against a real market (F15) --------------------------
+  kinderMarket: line('disclosure',
+    'This market is kinder than a real one: its ads are clicked, and its clicks buy, at least '
+    + 'as often as published apparel benchmarks, so its returns sit at the top of the range '
+    + 'Indian brands report, and in every market measured a sensible player made money.',
+    { why: 'kindMarket' }),
+
   // --- the moments ---------------------------------------------------------
   momentsHead: line('label', 'The weeks you changed something'),
   noMoments: line('reading',

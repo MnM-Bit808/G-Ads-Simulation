@@ -103,6 +103,17 @@ const INDIA = {
     label: 'Unicommerce: India D2C Report 2026',
     url: 'https://unicommerce.com/india-d2c-report-2026-april/',
   },
+  balistro: {
+    label: 'Balistro: Performance marketing channels ranked for D2C in India (its own campaigns, 2024–26)',
+    url: 'https://www.balistro.com/blog/performance-marketing-channels-ranked-d2c-india',
+  },
+};
+
+const INDUSTRY = {
+  ppcChief: {
+    label: 'PPC Chief: Apparel and fashion Google Ads benchmarks (its own accounts, WordStream and Store Growers)',
+    url: 'https://ppcchief.com/google-ads-benchmarks/apparel-fashion',
+  },
 };
 
 export const CHAPTERS = Object.freeze({
@@ -192,7 +203,30 @@ export const CHAPTERS = Object.freeze({
     cites: ['G1', 'G1a'],
     yourAccount: 'budget',
   }),
+
+  kindMarket: chapter({
+    title: 'How kind this market is',
+    real: () => 'Published benchmarks for apparel search ads do not agree, even on one page. '
+      + 'One industry page gives apparel search ads a click-through rate of 3.2% and a '
+      + 'conversion rate of 3.8% in its table by campaign type, but 6.8% and 4.0% as its '
+      + 'headline averages, with a return on ad spend of 4.2×. An Indian agency reports ₹8–40 '
+      + 'a click on category searches for D2C brands, and returns of 4.5–8× on its own '
+      + 'campaigns. Neither is Indian search data from a named dataset, so treat every one of '
+      + 'these as a rough range rather than a fact.',
+    realSources: [INDUSTRY.ppcChief, INDIA.balistro],
+    game: () => 'Measured across many markets, ads here are clicked, and clicks buy, at least as '
+      + 'often as those benchmarks, and a player bidding sensibly earns returns at the top of the '
+      + 'Indian range and made money in every market measured. Three choices make it kinder '
+      + 'than a real market: the results page holds nothing but ads, so no organic results or '
+      + 'shopping units compete for the click; the base conversion rate is the game’s own '
+      + 'estimate; and there is no lifetime value, so the first order must carry everything, '
+      + 'and here it does so easily. A careless player can still lose money.',
+    cites: ['F15', 'B6', 'F4'],
+    yourAccount: 'headline',
+  }),
 });
 
 /** The guide's contents list, in reading order. */
-export const CONTENTS = Object.freeze(['attributionLag', 'returnsSplit', 'cashOnDelivery', 'counterfactuals']);
+export const CONTENTS = Object.freeze([
+  'attributionLag', 'returnsSplit', 'cashOnDelivery', 'counterfactuals', 'kindMarket',
+]);

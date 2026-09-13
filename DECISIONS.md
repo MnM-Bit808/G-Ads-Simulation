@@ -4401,12 +4401,34 @@ which fixes the first, and after C8's fix, which fixes the second:
 | player, all cells (72) | 8.2% | ₹19.6 | 5.0% | 7.81 | 4.36 | 1.05 | 42% |
 | all rivals (576) | 5.5% | ₹11.7 | 4.9% | 8.63 | 5.04 | 1.39 | 41% |
 
-**The finding stands.** The player still loses money in 0 of 72 markets, and
-click-through still runs about twice the apparel benchmark. C8 was not why the
-market is generous to the player: its own figures barely moved, while the
+**The finding stands.** The player still loses money in 0 of 72 markets. C8 was
+not why the market is generous to the player: its own figures barely moved, while the
 rivals' profit per rupee fell from 1.48 to 1.39 as they spent their second
 allocation. **One correction:** with its round-0 money, the sensible player
 finishes a median **5th** of 9, not 6th (1st once, never below 7th).
+
+#### Addendum: the benchmark disagrees with itself, and option (d) is taken (2026-09-13)
+
+**"Click-through about 2×" does not stand unqualified.** Re-read while writing
+the guide chapter this entry's option (d) called for, the PPC Chief page gives
+apparel search click-through twice over: **3.2%** (and conversion 3.8%) in its
+table by campaign type, the Search row this entry quoted, and **6.8%** (and
+4.0%) as its headline averages, which cite WordStream's 2026 study of search
+campaigns. Against 3.2% the game clicks 1.7–2.6 times as often; against 6.8%
+the player clicks about 1.2 times as often and the rivals less. Conversion is
+steadier: a quarter to a third above either figure. So the excess in
+click-through is uncertain by a factor of two, and the robust claim is the
+outcome: the player's gross ROAS (7.81) sits at the top of the Indian agency
+range (4.5–8×) and above the page's apparel 4.2×, and a sensible player made
+money in every market measured.
+
+**Option (d) taken.** The end screen's *Twelve weeks* card now says the market is
+kinder than a real one in those terms, clicks and conversions "at least as
+often as published benchmarks" rather than a ratio, with a "why?" to a new
+guide chapter, *How kind this market is*, which lays out the conflicting
+figures and the three choices behind the kindness (B6, the invented base
+conversion rate, F4). Options (b) and (c) still want better data than an
+internally inconsistent industry page.
 
 ### F16. India has no January surge in activewear searches, so the January event is not built — `WONTFIX`, measured (2026-09-13)
 

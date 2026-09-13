@@ -29,6 +29,7 @@
 import { el, add, table, figure, rupees, whole, ratio, pct, scrollX } from './dom.js';
 import { renderDebrief, renderReveal } from './debrief/render.js';
 import { DEBRIEF } from './words/debrief.js';
+import { whyButton } from './guide/drawer.js';
 import {
   CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE, DAYPART_BLOCKS,
 } from '../engine/constants.js';
@@ -549,6 +550,15 @@ function headlineCard(ctx, { all, settled }) {
         + 'settled, which is exactly why the ranking that decided month 3 was taken at '
         + 'week 8 rather than at the end.'
       : 'Every conversion has arrived, though returns may still be resolving.'));
+
+  // Where the player judges their profit, so it is where the market's kindness
+  // is said (F15): returns here sit at the top of the Indian range, and a
+  // sensible player made money in every market measured.
+  const kinder = el('p', 'note');
+  kinder.append(document.createTextNode(DEBRIEF.kinderMarket()));
+  const why = whyButton(DEBRIEF.kinderMarket, ctx.openGuide);
+  if (why) kinder.append(why);
+  node.append(kinder);
   return node;
 }
 
