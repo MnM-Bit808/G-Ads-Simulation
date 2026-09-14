@@ -319,7 +319,8 @@ describe('the new screens draw, and do not write', () => {
   // A "word" here must hold two letters in a row, so icon paths and class
   // lists are not counted.
   const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
-    'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js'];
+    'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
+    'ui/roundzero/keywords.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

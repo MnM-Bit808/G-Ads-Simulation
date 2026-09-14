@@ -3805,6 +3805,15 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   Commit: *Draw step 3: the shared keyword cards and the planner, before any
   data*.
 
+  *Found when built:* after a drag, tapping the bid figure opened its box on
+  the bid from before the drag, because `typeIn` held the value it was drawn
+  with and `show` changes only the figure's text; `typeIn` now takes the value
+  as a function, read when the box opens. After *Remove keyword* the step
+  redraws without the card or the menu that had focus, so focus goes to *Add a
+  keyword*. Keyboard: Tab reaches every control in reading order; the in-app
+  browser's key presses carry no character, so pressing a button with Enter or
+  Space could not be played there (a native button takes both).
+
 ---
 
 ### Task 12: step 4, your ad

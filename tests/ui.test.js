@@ -226,6 +226,7 @@ describe('every interface module at least loads', () => {
     'roundzero/studio.js': () => import('../ui/roundzero/studio.js'),
     'roundzero/market.js': () => import('../ui/roundzero/market.js'),
     'roundzero/position.js': () => import('../ui/roundzero/position.js'),
+    'roundzero/keywords.js': () => import('../ui/roundzero/keywords.js'),
     'words/roundZero.js': () => import('../ui/words/roundZero.js'),
   };
 

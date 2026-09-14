@@ -101,6 +101,10 @@ export const R0 = Object.freeze({
   you: line('label', 'You'),
   guessed: line('label', ({ name }) => `${name}?`),
   axisPrice: line('label', 'price'),
+
+  // Step 3, your keywords
+  keywordsIntro: line('reading', ({ n }) => `${n} ${n === 1 ? 'keyword' : 'keywords'} · the searches you `
+    + 'bid on, and how loosely each one matches', { why: 'broadMatch' }),
 });
 
 /** A price level's name, by the engine's key. */
