@@ -3103,6 +3103,13 @@ kit; `renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride
   with sixty keywords, now the tray alone and one refresh on release
   (`42fd67f`); round 0's drag worked out every card, 18ms, now one (`00308b3`).
 
+  *The gate passed, 2026-09-15:* the owner played it and said "Alive". Their
+  follow-ups, playing it in a desktop browser: the guide's contents numbered
+  (`9b89a14`); a section's cards at full width, one to a row, with one page
+  scroll and slim scrollbars (`0665225`); and, to come, the brand as a pick
+  from the nine, Your ad read-only, and Where and when's controls redrawn as
+  mock-ups first.
+
 ---
 
 ### Task 11: docs

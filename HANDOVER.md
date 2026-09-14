@@ -12,13 +12,14 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, 2026-09-14: round 0 is rebuilt in the Studio look, on the
-branch `makeover`.** The owner put the stranger playtests on hold for a visual
-makeover. Their own sessions with two other people kept raising the same
-complaints: too much to read, fiddly click-and-edit controls, and a static
+**Current state, 2026-09-15: the Studio pilot is built and the owner called it
+alive, on the branch `makeover`.** The owner put the stranger playtests on hold
+for a visual makeover. Their own sessions with two other people kept raising the
+same complaints: too much to read, fiddly click-and-edit controls, and a static
 look. "It needs to feel alive." Round 0 went first, after the owner opened it in
-the new look and called it horrid. They have since played all five new steps
-and said "it feels alive".
+the new look and called it horrid, and they then played its five new steps and
+said "it feels alive". The weekly *Your keywords* followed, the makeover pilot's
+own section; the owner played it on 2026-09-15 and said "Alive".
 
 - **Live site unchanged**, at `387baf1`.
 - **`main` is at `80d41e6`, not pushed.** It holds the makeover's design doc
@@ -42,7 +43,19 @@ and said "it feels alive".
   - What playing it measured: four accounts matched round 0; 781 words against
     2,648; every enabled text passes contrast; nothing is wider than a 375px
     phone. The record is the round 0 plan's Task 15.
-  - On `makeover`: 1842 tests pass, 1 todo, and the build publishes 80 files.
+  - Makeover Tasks 7–11 (`3ccd239` onward): the weekly *Your keywords*, drawn
+    with round 0's kit card and planner (`ui/keywords/`), with the reading
+    panel, *Adjust several* in the tray, and round 0's reserve warning on every
+    week's card; the motion (tray lines, a section's dot and first visit, the
+    switch); the play-through (the plan's Task 10). Building the warning found
+    round 0's floor figure wrong three ways, each fixed and tested against the
+    engine's own auction (`ui/reserve.js`, DECISIONS I17). Playing found and
+    fixed, among others, a prepaid discount the tray never listed and a bid
+    drag that redrew the whole form on every step.
+  - After the gate, for a desktop browser (the owner's call): a section's cards
+    at full width, one scroll, slim scrollbars, the guide's contents numbered.
+    The design doc's section 10 lists every departure.
+  - On `makeover`: 1894 tests pass, 1 todo, and the build publishes 83 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -62,20 +75,28 @@ landing 7. Step 5 shows what the engine does, so it follows any change. A
 change moves the market, so it is measured on `scripts/market-harness.js`
 before and after, against gates agreed first.
 
-**What to do next, in order:**
-1. **The rest of the Studio plan**, Tasks 7–11, read with the amendments at the
-   top of `plans/2026-09-13-studio-makeover-plan.md`: the weekly *Your
-   keywords* reuses round 0's card, planner and controls rather than drawing
-   its own. Task 10 is a play-through, and the owner's verdict is its gate.
-2. **The message project** (the round 0 design, section 11): angles that change
-   who clicks, images from week 9. It needs its own design doc, a spec change
-   and DECISIONS entries before any build.
-3. **Then the other sections**, *Where and when* with the map as a control, and
-   the switch-over (the round 0 design, section 9).
-4. **Then the playtests**, below, on whatever the makeover has become.
-5. **Still open for the owner, none blocking:** A9, F15 (b)/(c) and E8's formula
-   (item 5 below), and whether round 0's rival guesses carry into the end
-   reveal (the round 0 design, section 12).
+**What to do next, in the owner's order (2026-09-15):**
+1. **The brand as a pick from the nine,** in round 0's step 2, starting on the
+   one the seed draws. It reopens DECISIONS I35: the pick changes nothing in the
+   game, but it is the player's own. A typed name is not workable, because the
+   query set holds only the nine brands' own searches.
+2. **Your ad, read-only:** the ad as searchers see it, who wrote it, its grades
+   and the landing page. Rewriting an ad mid-game waits for the message project.
+3. **Where and when,** drawn first as mock-ups on the canvas: hours as bars to
+   drag, and places set on the India map, as the makeover design's section 7
+   planned. Then the rest of that section's list, one section at a time, and
+   the switch-over.
+4. **The message project** (the round 0 design, section 11): angles that change
+   who clicks, images from week 9. Its own design doc, a spec change and
+   DECISIONS entries come before any build.
+5. **Then the playtests**, below, on whatever the makeover has become.
+6. **Still open for the owner, none blocking:** from the pilot's play-through,
+   whether sixty keywords want the compact list view (a click redraws in 274ms,
+   and the section runs to twenty screens), whether to trim the cards' repeated
+   words (158 against about 120), and whether Redo round 0 should start from the
+   last choices rather than afresh, in both looks. Older: A9, F15 (b)/(c) and
+   E8's formula (item 5 below), and whether round 0's rival guesses carry into
+   the end reveal (the round 0 design, section 12).
 
 **Decided about the makeover, not to re-open:**
 - a sidebar shell like Claude's app, not the real Google Ads layout;
@@ -84,9 +105,10 @@ before and after, against gates agreed first.
   and losses are amber with a minus sign;
 - six motions, none of them the week playing out, plus the map's pulse as the
   one named exception;
-- round 0 inside the sidebar layout as five steps, the brand drawn rather than
-  picked, the freelancer as the writer a player arrives on, and capital in
-  plain view with nothing recommended.
+- round 0 inside the sidebar layout as five steps, the freelancer as the writer
+  a player arrives on, and capital in plain view with nothing recommended (the
+  brand, drawn at first, becomes a pick from the nine: the owner, 2026-09-15);
+- built for a desktop browser first, the phone kept working.
 
 The two design docs record each choice and what was rejected (round 0's in its
 section 2).

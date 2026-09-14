@@ -1,7 +1,9 @@
 # The Studio makeover
 
-*Design, 2026-09-13. Decided with the owner one part at a time. No code has
-been written against it.*
+*Design, 2026-09-13. Decided with the owner one part at a time. The pilot was
+built on `makeover` (`plans/2026-09-13-studio-makeover-plan.md`), and the owner
+played it and called it alive on 2026-09-15; where the build departs from this
+text, section 10 says so.*
 
 *It changes the route in `reviews/slc-review.md` section 12. The review's C3
 (round 0 as steps), C4 (a dashboard that reveals itself) and E (game feel) are
@@ -437,3 +439,60 @@ Vella & Co. at mid-price performance, with four phrase keywords, two broad, and
 the brand on exact; the figures are weeks 1–4 added up, as today's keyword card
 does. The one invented detail is the pending change (gym leggings ₹33 → ₹25),
 drawn to show where changes wait.
+
+## 10. Corrected by the build
+
+The plan's tasks carry the detail, in their *Found when built* notes and Task
+10's play record.
+
+- **Round 0 came first and built the kit (section 7).** Round 0 was redesigned
+  and rebuilt in this layout before the pilot section
+  (`plans/2026-09-14-round-zero-redesign.md`), and it built the keyword card,
+  the planner drawer and the controls in `ui/kit/`. Your keywords draws that
+  same card with its week's parts switched on (the running switch, "was", the
+  tick, the outlines), and the planner shares the classic planner's own state.
+- **Today's cards are filtered by section, never moved (section 5).** The
+  decision form redraws every card it owns into its own region, so a card moved
+  into a section would be drawn into nothing. The stylesheet shows a section's
+  cards by `data-slot`, and Your keywords, rebuilt, draws its own.
+- **The tray (section 2, behaviour 2)** replaces the *Next week* card, as
+  written; *This week only* stays a card in Your money. `ui/shell/tray.js`
+  holds only the lines' order, and the tray is drawn in `ui/shell/shell.js`
+  (section 5's table).
+- **The field guide gained a chapter,** *What the Quality Score is, and is
+  not*, which the card's QS "why?" opens (section 4, item 3).
+- **The planner kept *Add all*** (section 4, item 4), and a keyword added this
+  week reads "new: no clicks yet".
+- **A bid under the reserve is warned on every week's card,** as round 0's is
+  (the owner, 2026-09-14; DECISIONS I17), with the hour and place adjustments
+  the week will run, under manual bidding.
+- **Your ad (section 2's table)** had no weekly card to take over, and the
+  pilot's section said so. The owner chose on 2026-09-15 to build it
+  read-only: the ad as searchers see it, its writer, its grades and the landing
+  page.
+- **Motion (section 3).** The tray's entrance is the weekly tray's only, since
+  round 0's redraws its chips on every change; the strip scrolls to the line
+  just made. A section's first visit plays once and staggers top to bottom, and
+  its dot waits, on a phone, until the list behind the menu is seen. Row 2, the
+  revised figures, waits for Your week. `/review-animations` was not available,
+  and `improve-animations` reviewed the motion instead.
+- **A bid drag refreshes only the tray,** and the rest of the page once the
+  slider is let go: the whole refresh on every step cost 41ms with sixty
+  keywords.
+- **The reading load (section 4)** measured 158 words with seven keywords,
+  against about 120; 105 are the cards' repeated labels. Put to the owner.
+- **Sixty keywords (section 4's risk)** drag smoothly and the reading panel
+  folds the rest together, but a click that redraws the section took 274ms
+  and the section runs to twenty screens. The compact list view was put to the
+  owner, not built.
+- **Phone (section 2, behaviour 3)** as written, and the top bar drops its week
+  dots and saved note under 900px, which pushed its end off a 375px screen.
+- **Desktop, after the gate (2026-09-15).** Playing it in a desktop browser, the
+  owner asked for the window rather than the phone. A section's cards take its
+  full width, one to a row, where the classic page's four-column grid left most
+  at half width; a table's height is its own, so the page is the one scroll;
+  scrollbars are slim; the guide's contents are numbered.
+- **The gate (section 6) passed on 2026-09-15:** the owner played it and said
+  it is alive. Of section 7, the owner's next are the brand as a pick from the
+  nine in round 0 (reopening the round 0 design's drawn brand, DECISIONS I35),
+  Your ad, and Where and when, drawn first as mock-ups.
