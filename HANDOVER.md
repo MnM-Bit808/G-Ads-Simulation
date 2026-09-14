@@ -27,7 +27,9 @@ own section; the owner played it on 2026-09-15 and said "Alive".
   (`design/makeover/`, drawn at
   https://claude.ai/code/artifact/d881fe56-251c-4ded-9173-b8616924bbc4) and the
   11-task build plan (`plans/2026-09-13-studio-makeover-plan.md`).
-- **The branch `makeover` holds all of it, and nothing on it is pushed.**
+- **The branch `makeover` holds all of it.** The owner had it pushed on
+  2026-09-15, so Cloudflare builds it a preview behind the same sign-in;
+  `main` is still unpushed, and pushing it is what deploys.
   - Makeover Tasks 1–6: `?look=studio` and the Red signal colours, the two
     typefaces, the sidebar layout (sections, the tray's order and the shell,
     played through twelve weeks), and the Quality Score chapter.
