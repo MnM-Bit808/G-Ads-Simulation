@@ -23,7 +23,7 @@ import {
   LOCATION_AOV_MULTIPLIER, PRICE_TIERS,
 } from '../engine/constants.js';
 import { LOCATIONS, location, locationsInOrder } from '../content/locations.js';
-import { CITY_POINTS, MAP_VIEWBOX, LABEL_SIDE, labelPlace } from '../ui/india-map.js';
+import { CITY_POINTS, MAP_VIEWBOX, LABEL_SIDE, labelPlace, BACKDROP } from '../ui/india-map.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { homeCell } from '../engine/querySet.js';
 import {
@@ -248,6 +248,18 @@ describe('the cities round 0 names (plans/2026-09-14-round-zero-redesign.md)', (
       for (const name of Object.keys(CITY_POINTS)) {
         const box = nameBox(name, type);
         expect(box.x0 >= 0 && box.x1 <= width && box.y0 >= 0 && box.y1 <= height, `${map}: ${name}`).toBe(true);
+      }
+    }
+  });
+
+  test('no unnamed background dot crowds a named city', () => {
+    // The background was thinned to keep 0.9 of a degree (13 units) clear of
+    // the first eighteen, and nothing kept it clear of the fourteen added after:
+    // one of its dots was Udaipur itself. Twelve units leaves room for the
+    // eighteen having moved a little when they were re-derived.
+    for (const [name, [x, y]] of Object.entries(CITY_POINTS)) {
+      for (const [bx, by] of BACKDROP) {
+        expect(Math.hypot(bx - x, by - y), `${name} and the dot at ${bx}, ${by}`).toBeGreaterThanOrEqual(12);
       }
     }
   });

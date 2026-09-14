@@ -2578,12 +2578,16 @@ amends the makeover plan to say so.
 `ui/studio.css`, `tests/ui.test.js`, `tests/words.test.js` (the drawing guard).
 
 **Interfaces produced:**
-- `FASTEST_PULSE_S = 1.6`, `BACKDROP_GAP = 12`.
+- `FASTEST_PULSE_S = 1.6`.
 - `sharesFor(locations, weeklySearchesByTier, basis) → {[locationId]: share}`,
   `basis` one of `'all'|'value'|'mid'|'premium'`.
 - `pulsePeriods(shares, fastest) → {[locationId]: seconds|null}`.
-- `clearBackdrop(backdrop, points, gap) → [x, y][]`.
 - `drawIndia({ locations, shares, lit, onPick }) → SVGElement`.
+
+*Changed by Task 6:* this task once filtered the background dots near a named
+city as it drew them (`clearBackdrop`, `BACKDROP_GAP`). Task 6 removed those
+dots from `BACKDROP` itself and `tests/locations.test.js` holds it clear, so
+the filter would remove nothing and is gone.
 
 - [ ] **Step 1: Write the failing test,** `tests/indiaMap.test.js`:
 
@@ -2595,10 +2599,7 @@ amends the makeover plan to say so.
   import { describe, test, expect } from 'vitest';
   import { briefing } from '../setup.js';
   import { QUERY_SET } from '../content/querySet.js';
-  import { BACKDROP, CITY_POINTS } from '../ui/india-map.js';
-  import {
-    sharesFor, pulsePeriods, clearBackdrop, FASTEST_PULSE_S, BACKDROP_GAP,
-  } from '../ui/map/india.js';
+  import { sharesFor, pulsePeriods, FASTEST_PULSE_S } from '../ui/map/india.js';
 
   const brief = briefing(QUERY_SET);
   const shares = (basis) => sharesFor(brief.locations, brief.weeklySearchesByTier, basis);
@@ -2630,19 +2631,6 @@ amends the makeover plan to say so.
       expect(pulsePeriods({ a: 0.5, b: 0 }).b).toBeNull();
     });
   });
-
-  describe('the backdrop keeps clear of the named cities', () => {
-    test('a dot too near a city goes, one far enough stays', () => {
-      expect(clearBackdrop([[10, 10], [40, 40]], [[14, 13]], BACKDROP_GAP)).toEqual([[40, 40]]);
-    });
-
-    test('on the real map, every dot left is clear of every city', () => {
-      const cities = Object.values(CITY_POINTS);
-      for (const [x, y] of clearBackdrop(BACKDROP, cities)) {
-        for (const [cx, cy] of cities) expect(Math.hypot(x - cx, y - cy)).toBeGreaterThanOrEqual(BACKDROP_GAP);
-      }
-    });
-  });
   ```
 
 - [ ] **Step 2: Watch it fail:** `npx vitest run tests/indiaMap.test.js`.
@@ -2668,8 +2656,6 @@ amends the makeover plan to say so.
 
   /** The busiest kind of place rings once every this many seconds. */
   export const FASTEST_PULSE_S = 1.6;
-  /** Backdrop dots nearer than this to a named city are left out, so the city reads. */
-  export const BACKDROP_GAP = 12;
 
   const NS = 'http://www.w3.org/2000/svg';
 
@@ -2700,11 +2686,6 @@ amends the makeover plan to say so.
       .map(([id, share]) => [id, share > 0 ? (fastest * top) / share : null]));
   }
 
-  /** The backdrop without the dots that would crowd a named city. */
-  export function clearBackdrop(backdrop, points, gap = BACKDROP_GAP) {
-    return backdrop.filter(([x, y]) => points.every(([cx, cy]) => Math.hypot(x - cx, y - cy) >= gap));
-  }
-
   function make(tag, attrs = {}) {
     const node = document.createElementNS(NS, tag);
     for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
@@ -2723,9 +2704,8 @@ amends the makeover plan to say so.
     const svg = make('svg', { viewBox: MAP_VIEWBOX, class: 'r0-map', 'aria-hidden': 'true' });
     svg.append(make('path', { d: INDIA_PATH, class: 'r0-land' }));
 
-    const named = locations.flatMap((p) => p.examples.map((name) => CITY_POINTS[name]).filter(Boolean));
     const back = make('g', { class: 'r0-backdrop' });
-    for (const [x, y] of clearBackdrop(BACKDROP, named)) back.append(make('circle', { cx: x, cy: y, r: 1.6 }));
+    for (const [x, y] of BACKDROP) back.append(make('circle', { cx: x, cy: y, r: 1.6 }));
     svg.append(back);
 
     const periods = pulsePeriods(shares);
