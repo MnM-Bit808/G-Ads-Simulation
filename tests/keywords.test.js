@@ -5,6 +5,8 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { getSelfView } from '../engine/insights.js';
 import { MIN_BID_PAISE } from '../engine/constants.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -97,6 +99,26 @@ describe('a card per keyword', () => {
 
   test('no score reads as none, with nothing invented', () => {
     expect(cards(draft())[0].quality).toMatchObject({ value: null, ratings: [] });
+  });
+
+  test('a score carries each part\'s grade out of ten, the one the auctions use (I1)', () => {
+    const d = draft();
+    const score = { score: 6, expectedCtr: 'above', adRelevance: 'average', landingPage: 'average' };
+    const [card] = keywordCards({
+      draft: d, byKeyword: {}, quality: { [d.keywords[0].id]: score }, grades: effectiveGrades(d), reach, querySet: QUERY_SET,
+    });
+    for (const part of card.quality.ratings) expect(part.graded, part.key).toBe(effectiveGrades(d)[part.key]);
+  });
+
+  test('the card draws that grade beside the rating, as the classic table does (I1)', () => {
+    // Landing page grades 5 to 8 all read "average", so the rating alone hides
+    // what capital or a better page did (DECISIONS I1). The Studio card drew
+    // only the ratings until 2026-09-15.
+    const source = readFileSync(fileURLToPath(new URL('../ui/kit/card.js', import.meta.url)), 'utf8');
+    const start = source.indexOf('function qualityPanel(');
+    const panel = source.slice(start, source.indexOf('\n  function ', start + 1));
+    expect(panel).toMatch(/KEYWORDS\.qsPart\(/);
+    expect(panel).toMatch(/part\.graded/);
   });
 
 });

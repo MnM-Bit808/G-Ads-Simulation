@@ -34,6 +34,8 @@ export function sliderMaxPaise(keywords) {
 const MATCHES = ['exact', 'phrase', 'broad'];
 const MATCH_WORD = { exact: KEYWORDS.exact, phrase: KEYWORDS.phrase, broad: KEYWORDS.broad };
 const RATING_WORD = { above: KEYWORDS.above, average: KEYWORDS.average, below: KEYWORDS.below };
+/** Grades run from 1 to 10 (the grader's scale, agents/grader.js). */
+const GRADE_SCALE = 10;
 
 /**
  * @param {object} args
@@ -198,7 +200,11 @@ export function keywordCard({
     } else {
       const parts = el('dl', 'kqs-parts');
       for (const part of model.quality.ratings) {
-        parts.append(el('dt', null, part.label), el('dd', `rating-${part.rating}`, RATING_WORD[part.rating]()));
+        // The grade beside the rating (DECISIONS I1): landing page grades 5 to 8
+        // all read "average", so the rating alone hides what the page earned.
+        const rating = RATING_WORD[part.rating]();
+        const said = part.graded === null ? rating : KEYWORDS.qsPart({ value: part.graded, scale: GRADE_SCALE, rating });
+        parts.append(el('dt', null, part.label), el('dd', `rating-${part.rating}`, said));
       }
       const note = el('p', 'kqs-note', KEYWORDS.qsNote());
       add(note, whyButton(KEYWORDS.qsNote, openGuide));

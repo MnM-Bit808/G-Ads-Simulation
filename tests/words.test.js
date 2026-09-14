@@ -229,8 +229,12 @@ describe('the keyword card, the planner and Your keywords', () => {
     value: 7, list: 'leggings · gym', bid: '₹30', keyword: 'gym leggings', cpc: '₹12',
     impressions: '100', need: '₹16', n: 12, text: 'squat proof leggings',
     count: 7, range: 'weeks 1–4', week: 4, from: 1, to: 4, budget: '50%', rank: '0%', rankNone: true,
-    shown: '50%', match: 'phrase', reason: 'no such keyword',
+    shown: '50%', match: 'phrase', reason: 'no such keyword', scale: 10, rating: 'average',
   };
+
+  test('a Quality Score part reads as its grade out of ten, then its rating (I1)', () => {
+    expect(KEYWORDS.qsPart({ value: 7, scale: 10, rating: 'average' })).toBe('7/10 · average');
+  });
 
   test('the panel names levers, never a verdict', () => {
     for (const name of Object.keys(KEYWORDS).filter((k) => k.startsWith('said') || k.startsWith('lever'))) {

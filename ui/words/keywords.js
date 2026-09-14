@@ -70,6 +70,7 @@ export const KEYWORDS = Object.freeze({
   conv: line('label', 'conv.'),
   qs: line('label', ({ value }) => `QS ${value}`),
   qsTitle: line('label', ({ value }) => `Quality Score ${value}`),
+  qsPart: line('label', ({ value, scale, rating }) => `${value}/${scale} · ${rating}`),
   qsNote: line('reading', 'Each part is compared with everyone who showed on the same searches.',
     { why: 'qualityScore' }),
   qsNone: line('reading', ({ impressions }) => `No score yet: it needs ${impressions} impressions on its own search first.`,
