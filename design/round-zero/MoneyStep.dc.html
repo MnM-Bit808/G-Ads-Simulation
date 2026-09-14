@@ -1,0 +1,334 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: inherit; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .tap { cursor: pointer; user-select: none; }
+    .hov:hover { background: rgba(127, 127, 127, 0.14); }
+    .link { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .press { transition: transform 160ms ease-out; }
+    .press:active { transform: scale(0.97); }
+    @media (prefers-reduced-motion: reduce) { .press:active { transform: none; } }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <sc-for list="{{areas}}" as="a" hint-placeholder-count="4">
+      <div title="{{a.label}}" style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: {{a.bg}}; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{a.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <sc-for list="{{a.paths}}" as="p" hint-placeholder-count="2"><path d="{{p}}"></path></sc-for>
+        </svg>
+        <div style="font-size: 10px; font-weight: 600; color: {{a.fg}};">{{a.label}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">Mid-price · Performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Before week 1</div>
+    <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+      <div class="tap" style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: {{s.weight}}; background: {{s.bg}}; color: {{s.fg}}; box-shadow: {{s.shadow}};">
+        <div style="width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: {{s.dotBg}}; border: 1.5px solid {{s.dotLine}}; color: {{s.dotFg}}; font-size: 11px; font-weight: 700;">
+          <sc-if value="{{s.done}}" hint-placeholder-val="{{false}}">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+          </sc-if>
+          <sc-if value="{{s.notDone}}" hint-placeholder-val="{{true}}">
+            <div>{{s.n}}</div>
+          </sc-if>
+        </div>
+        <div style="flex-grow: 1;">{{s.label}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div class="display" style="font-weight: 700; font-size: 20px;">Round 0 <span style="font-weight: 400; color: #8A847E;">before the first auction</span></div>
+      <div style="font-size: 13px; color: #A19A94;">Step 5 of 5</div>
+    </div>
+
+    <div style="flex-grow: 1; min-height: 0; padding: 20px 40px 16px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div class="display" style="font-weight: 800; font-size: 44px; line-height: 0.95; letter-spacing: -0.025em;">Your money</div>
+        <div style="font-size: 14px; color: #A19A94;">Month 1's budget, and ₹1,20,000 of capital: build the site your clicks land on, or keep it as ad money. <span class="link">why?</span></div>
+      </div>
+
+      <div style="background: #1A0C0F; border: 1px solid #4A1A1F; border-radius: 20px; padding: 14px 20px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 28px; align-items: center;">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A8989A;">Month 1, to spend on clicks</div>
+          <div class="display num" style="font-weight: 800; font-size: 34px; line-height: 1.05; color: #F3EEEA;">{{month}}</div>
+          <div style="font-size: 12px; color: #A8989A;">over four weeks · unspent money is lost at the month's end</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+          <div style="display: flex; gap: 2px; height: 14px;">
+            <sc-for list="{{parts}}" as="p" hint-placeholder-count="3">
+              <div title="{{p.title}}" style="flex-grow: {{p.grow}}; flex-basis: 0; min-width: 0; background: {{p.bg}}; border-radius: {{p.radius}};"></div>
+            </sc-for>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px 18px;">
+            <sc-for list="{{parts}}" as="p" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #D9D1CB; white-space: nowrap;">
+                <div style="width: 10px; height: 10px; border-radius: 2px; background: {{p.bg}};"></div>
+                <div>{{p.label}} <span class="num" style="font-weight: 700; color: #F3EEEA;">{{p.amount}}</span></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: baseline; gap: 10px;">
+          <div class="display" style="font-weight: 700; font-size: 18px;">Capital</div>
+          <div style="font-size: 12px; color: #8A847E;">site work goes live at week 4 · until then the money is spent and the site unchanged</div>
+        </div>
+        <div style="font-size: 13px; color: #A19A94;"><span class="num" style="font-weight: 700; color: #EDE8E3;">{{left}}</span> not committed</div>
+      </div>
+      <div style="display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 10px 16px; border-radius: 14px; background: #17161A; border: 1px solid #2A272D;">
+        <div style="display: flex; flex-direction: column; gap: 1px;">
+          <div style="font-size: 13px; font-weight: 700;">Landing page grade</div>
+          <div style="font-size: 12px; color: #8A847E;">the third part of Quality Score · the ad's two are in step 4</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+          <div style="flex-grow: 1; height: 6px; border-radius: 3px; background: #2A272D; position: relative;">
+            <div style="position: absolute; left: 0; top: 0; bottom: 0; width: {{lpLaterPct}}%; border-radius: 3px; background: #4A454F;"></div>
+            <div style="position: absolute; left: 0; top: 0; bottom: 0; width: {{lpNowPct}}%; border-radius: 3px; background: #A19A94;"></div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 12px; white-space: nowrap;">
+          <div><span class="num display" style="font-weight: 800; font-size: 20px;">{{lpNow}}</span><span style="font-size: 12px; color: #8A847E;"> from week 1</span></div>
+          <sc-if value="{{lpRises}}" hint-placeholder-val="{{false}}">
+            <div><span class="num display" style="font-weight: 800; font-size: 20px;">{{lpLater}}</span><span style="font-size: 12px; color: #8A847E;"> from week 4</span></div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+        <sc-for list="{{targets}}" as="t" hint-placeholder-count="4">
+          <div style="background: #17161A; border: 1px solid {{t.line}}; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+                <div class="display" style="font-weight: 700; font-size: 16px;">{{t.label}}</div>
+                <div style="font-size: 12px; color: #8A847E; white-space: nowrap;">moves: {{t.moves}}</div>
+              </div>
+              <div style="font-size: 12px; line-height: 1.4; color: #A19A94;">{{t.why}}</div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+              <sc-for list="{{t.rungs}}" as="r" hint-placeholder-count="4">
+                <div class="{{r.cls}}" onClick="{{r.pick}}" title="{{r.title}}" style="padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background: {{r.bg}}; color: {{r.fg}}; border: 1px solid {{r.line}};">{{r.text}}</div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div class="tap hov" onClick="{{toggleAdvanced}}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 12px; border: 1px solid #2A272D;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate({{chevron}});"><path d="M9 6l6 6-6 6"></path></svg>
+          <div style="font-size: 13px; font-weight: 700;">Advanced</div>
+          <div style="font-size: 12px; color: #8A847E;">the weekly split: even, {{weekly}} a week</div>
+        </div>
+        <div style="font-size: 12px; color: #8A847E;">a decision Google does not offer <span class="link">why?</span></div>
+      </div>
+      <sc-if value="{{advanced}}" hint-placeholder-val="{{false}}">
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+          <sc-for list="{{weeks}}" as="w" hint-placeholder-count="4">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="font-size: 12px; color: #8A847E;">{{w.label}}</div>
+              <div style="height: 36px; border-radius: 10px; border: 1px solid #3A363E; background: #141216; display: flex; align-items: center; padding: 0 12px; font-size: 14px;"><span style="color: #A19A94;">₹</span><span class="num" style="font-weight: 700; margin-left: 2px;">{{w.amount}}</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
+        <sc-for list="{{checks}}" as="c" hint-placeholder-count="4">
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9FD3B5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+            <div>{{c.label}}</div>
+          </div>
+        </sc-for>
+        <div style="font-size: 12px; color: #8A847E; white-space: nowrap;">You can redo round 0 once, until the end of week 3.</div>
+      </div>
+      <div class="display tap press" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <div>Open the account and run week 1</div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+/*
+ * Round 0, step 5. Capital in plain view and neutral (the owner's choice):
+ * shown, never recommended, defaulting to kept. The month is built the way
+ * ui/round-zero.js's monthlyBudget builds it: the base month (₹1,68,000), plus
+ * what the writer did not cost, plus whatever capital is not committed. The
+ * rungs and their prices are ui/landing-page.js's PAGE_FEATURES; each target's
+ * line is round 0's own (CAPEX_TARGETS in ui/round-zero.js). Photography's top
+ * rung costs more than the ₹1,20,000 on offer, so it cannot be bought here.
+ * The writer is the freelance copywriter chosen in step 4.
+ */
+const BASE_PAISE = 16800000;
+const CAPEX_PAISE = 12000000;
+const WRITER_LEFT_PAISE = 4000000;
+// `moves` says what each target changes, so the one target with a number on
+// screen (the page, through the landing page grade) does not look like the only
+// one that pays: photography, whose effect has no number here, measured best in
+// the one cell HANDOVER tested (What capital is actually worth).
+const TARGETS = [
+  { key: 'landingPage', label: 'The page itself', moves: 'the landing page grade', why: 'Better quality, so a cheaper click. Worth most in the middle.',
+    rungs: [[0, 'plain'], [2500000, 'faster'], [5500000, 'reviews'], [8000000, 'built around the search']] },
+  { key: 'sizeGuide', label: 'Size guide', moves: 'parcels sent back', why: 'Fewer parcels sent back after delivery. Worth most at the cheap end, and to anything sold on how it looks.',
+    rungs: [[0, 'none'], [2500000, 'a chart'], [5500000, 'measured'], [8000000, 'fit finder']] },
+  { key: 'photography', label: 'Photography', moves: 'how many visitors buy', why: 'More of your visitors buy. Worth most where the decision is considered.',
+    rungs: [[0, 'none'], [5000000, 'product shots'], [11000000, 'on real bodies'], [16000000, 'video']] },
+  { key: 'orderConfirmation', label: 'Order confirmation', moves: 'parcels refused', why: 'Fewer parcels refused at the door. Worth most where cash on delivery is commonest, which is the cheap end and the small towns.',
+    rungs: [[0, 'none'], [2500000, 'an SMS'], [5500000, 'WhatsApp confirm'], [8000000, 'confirm and verify']] },
+];
+
+/*
+ * The landing page grade for this mix, as the engine computes it today, taken
+ * from the game's own code for every affordable round-0 mix: the grader reads
+ * the page the capital describes (ui/landing-page.js composeDescription, then
+ * agents/grader.js), which applies from week 1; the page's own capital adds
+ * points once the site work goes live at week 4 (engine/positions.js
+ * landingPageBonus), capped at 10. Whether the description should count
+ * before the site is live is being checked separately.
+ */
+function landingGrade(capex) {
+  const page = capex.landingPage;
+  const size = capex.sizeGuide > 0;
+  const photo = capex.photography > 0;
+  let now = 5;
+  if (page === 0) now = size ? 7 : (photo ? 6 : 5);
+  else if (page === 2500000) now = size ? 7 : 6;
+  else now = size ? 8 : 7;
+  let bonus = 0;
+  if (page === 5500000) bonus = 2;
+  if (page === 8000000) bonus = 3;
+  return { now, later: Math.min(10, now + bonus) };
+}
+const STEPS = ['The market', 'Where you sit', 'Your keywords', 'Your ad', 'Your money'];
+const CURRENT = 4;
+const ICON = {
+  bag: ['M6 7h12l-1 13H7L6 7z', 'M9 7a3 3 0 0 1 6 0'],
+  users: ['M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0', 'M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6', 'M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0', 'M16 14.2c2.9.4 5 2.8 5 5.8'],
+  book: ['M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z', 'M4 19a2 2 0 0 1 2-2h13'],
+  trophy: ['M8 4h8v5a4 4 0 0 1-8 0V4z', 'M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4', 'M12 13v4M9 20h6'],
+};
+const rupees = (paise) => `₹${Math.round(paise / 100).toLocaleString('en-IN')}`;
+const plainRupees = (paise) => Math.round(paise / 100).toLocaleString('en-IN');
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = { capex: { landingPage: 0, sizeGuide: 0, photography: 0, orderConfirmation: 0 }, advanced: false };
+  }
+
+  renderVals() {
+    const areas = [
+      { label: 'Brand', paths: ICON.bag, on: true },
+      { label: 'Market', paths: ICON.users },
+      { label: 'Guide', paths: ICON.book },
+      { label: 'Results', paths: ICON.trophy, locked: true },
+    ].map((a) => ({
+      ...a,
+      bg: a.on ? '#2A1216' : 'transparent',
+      stroke: a.on ? '#F3EEEA' : (a.locked ? '#4A454F' : '#8A8389'),
+      fg: a.on ? '#F3EEEA' : (a.locked ? '#4A454F' : '#8A8389'),
+    }));
+    const steps = STEPS.map((label, i) => {
+      const done = i < CURRENT;
+      const on = i === CURRENT;
+      return {
+        label, n: String(i + 1), done, notDone: !done,
+        bg: on ? '#1F1C22' : 'transparent',
+        shadow: on ? '0 0 0 1px #2E2A33' : 'none',
+        fg: on ? '#F3EEEA' : '#CFC9C3',
+        weight: on ? 700 : 500,
+        dotBg: on ? '#D7262F' : (done ? '#EDE8E3' : 'transparent'),
+        dotLine: on ? '#D7262F' : (done ? '#EDE8E3' : '#4A454F'),
+        dotFg: on ? '#FFF5F4' : (done ? '#0D0C0E' : '#A19A94'),
+      };
+    });
+
+    const capex = this.state.capex;
+    const committed = Object.values(capex).reduce((a, b) => a + b, 0);
+    const left = CAPEX_PAISE - committed;
+    const monthPaise = BASE_PAISE + WRITER_LEFT_PAISE + left;
+    const parts = [
+      { label: 'the month', paise: BASE_PAISE, bg: '#D9D3CD' },
+      { label: 'left from the writer', paise: WRITER_LEFT_PAISE, bg: '#9E9599' },
+      { label: 'capital kept', paise: left, bg: '#5A545B' },
+    ].filter((p) => p.paise > 0).map((p, i, all) => ({
+      ...p,
+      grow: p.paise,
+      amount: rupees(p.paise),
+      title: `${p.label}: ${rupees(p.paise)}`,
+      radius: all.length === 1 ? '4px' : (i === 0 ? '4px 0 0 4px' : (i === all.length - 1 ? '0 4px 4px 0' : '0')),
+    }));
+
+    const lp = landingGrade(capex);
+    const targets = TARGETS.map((t) => ({
+      label: t.label,
+      why: t.why,
+      moves: t.moves,
+      line: capex[t.key] > 0 ? '#D7262F' : '#2A272D',
+      rungs: t.rungs.map(([paise, label]) => {
+        const on = capex[t.key] === paise;
+        const affordable = paise <= capex[t.key] + left;
+        return {
+          text: paise === 0 ? label : `${label} · ${rupees(paise)}`,
+          title: affordable ? '' : 'more than the capital left',
+          cls: affordable ? 'tap' : '',
+          bg: on ? '#D7262F' : 'transparent',
+          fg: on ? '#FFF5F4' : (affordable ? '#CFC9C3' : '#6D6770'),
+          line: on ? '#D7262F' : (affordable ? '#3A363E' : '#2A272D'),
+          pick: () => { if (affordable) this.setState({ capex: { ...capex, [t.key]: paise } }); },
+        };
+      }),
+    }));
+
+    const each = Math.floor(monthPaise / 4);
+    return {
+      areas,
+      steps,
+      month: rupees(monthPaise),
+      parts,
+      left: rupees(left),
+      targets,
+      lpNow: `${lp.now}/10`,
+      lpLater: `${lp.later}/10`,
+      lpRises: lp.later > lp.now,
+      lpNowPct: lp.now * 10,
+      lpLaterPct: lp.later * 10,
+      advanced: this.state.advanced,
+      chevron: this.state.advanced ? '90deg' : '0deg',
+      toggleAdvanced: () => this.setState({ advanced: !this.state.advanced }),
+      weekly: rupees(each),
+      weeks: [1, 2, 3, 4].map((n) => ({ label: `Week ${n}`, amount: plainRupees(n === 1 ? monthPaise - each * 3 : each) })),
+      checks: [{ label: 'Square' }, { label: 'Keywords' }, { label: 'Ad' }, { label: 'Money' }],
+    };
+  }
+}
+</script>
+</body>
+</html>

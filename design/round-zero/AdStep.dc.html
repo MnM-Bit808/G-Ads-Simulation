@@ -1,0 +1,296 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: inherit; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .tap { cursor: pointer; user-select: none; }
+    .hov:hover { background: rgba(127, 127, 127, 0.14); }
+    .link { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .opt { transition: border-color 150ms ease, box-shadow 150ms ease; }
+    .opt:hover { border-color: #4A454F; }
+    .field { font: inherit; font-size: 14px; border-radius: 10px; padding: 0 12px; height: 36px; box-sizing: border-box; outline: none; border: 1px solid #3A363E; background: #141216; color: #EDE8E3; width: 100%; }
+    .field::placeholder { color: #8A847E; }
+    .press { transition: transform 160ms ease-out; }
+    .press:active { transform: scale(0.97); }
+    @media (prefers-reduced-motion: reduce) { .press:active { transform: none; } }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <sc-for list="{{areas}}" as="a" hint-placeholder-count="4">
+      <div title="{{a.label}}" style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: {{a.bg}}; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{a.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <sc-for list="{{a.paths}}" as="p" hint-placeholder-count="2"><path d="{{p}}"></path></sc-for>
+        </svg>
+        <div style="font-size: 10px; font-weight: 600; color: {{a.fg}};">{{a.label}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">Mid-price · Performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Before week 1</div>
+    <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+      <div class="tap" style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: {{s.weight}}; background: {{s.bg}}; color: {{s.fg}}; box-shadow: {{s.shadow}};">
+        <div style="width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: {{s.dotBg}}; border: 1.5px solid {{s.dotLine}}; color: {{s.dotFg}}; font-size: 11px; font-weight: 700;">
+          <sc-if value="{{s.done}}" hint-placeholder-val="{{false}}">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+          </sc-if>
+          <sc-if value="{{s.notDone}}" hint-placeholder-val="{{true}}">
+            <div>{{s.n}}</div>
+          </sc-if>
+        </div>
+        <div style="flex-grow: 1;">{{s.label}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div class="display" style="font-weight: 700; font-size: 20px;">Round 0 <span style="font-weight: 400; color: #8A847E;">before the first auction</span></div>
+      <div style="font-size: 13px; color: #A19A94;">Step 4 of 5</div>
+    </div>
+
+    <div style="flex-grow: 1; min-height: 0; padding: 20px 40px 16px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div class="display" style="font-weight: 800; font-size: 44px; line-height: 0.95; letter-spacing: -0.025em;">Your ad</div>
+        <div style="font-size: 14px; color: #A19A94;">The only thing your rivals can see about you. Hire a writer, or write it yourself. <span class="link">why?</span></div>
+      </div>
+
+      <div style="flex-grow: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 28px;">
+        <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+            <div class="display" style="font-weight: 700; font-size: 18px;">Who writes it</div>
+            <div style="font-size: 12px; color: #8A847E;">from a ₹50,000 creative budget</div>
+          </div>
+          <sc-for list="{{writers}}" as="w" hint-placeholder-count="4">
+            <div class="tap opt" onClick="{{w.pick}}" style="border-radius: 16px; border: 1px solid {{w.line}}; box-shadow: 0 0 0 1px {{w.ring}}; background: {{w.bg}}; padding: 12px 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; align-items: center;">
+              <div class="display" style="font-weight: 700; font-size: 16px;">{{w.label}}</div>
+              <div class="num display" style="font-weight: 800; font-size: 18px; text-align: right;">{{w.price}}</div>
+              <div style="font-size: 12px; color: #A19A94;">{{w.what}}</div>
+              <div style="font-size: 12px; color: #A19A94; text-align: right; white-space: nowrap;">{{w.grade}}</div>
+            </div>
+          </sc-for>
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: #17161A; border: 1px solid #2A272D;">
+            <div class="num display" style="font-weight: 800; font-size: 18px;">{{leftover}}</div>
+            <div style="font-size: 13px; color: #A19A94;">of the creative budget goes to your ads instead</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+          <sc-if value="{{showAngles}}" hint-placeholder-val="{{false}}">
+            <div style="border: 1px dashed #4A454F; border-radius: 16px; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+                <div style="font-size: 13px; font-weight: 700; color: #CFC9C3;">What your ad leads with</div>
+                <div style="font-size: 12px; color: #8A847E;">arrives with the message project · not built yet</div>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <div style="padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; background: #D7262F; color: #FFF5F4;">Proof</div>
+                <div style="padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid #3A363E; color: #A19A94;">Price</div>
+                <div style="padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid #3A363E; color: #A19A94;">Comfort</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <div class="display" style="font-weight: 700; font-size: 18px;">As searchers see it</div>
+          <div style="background: #17161A; border: 1px solid #2A272D; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px;">
+            <div style="font-size: 12px; color: #8A847E;">Sponsored · vellaandco.in</div>
+            <div style="font-size: 16px; font-weight: 700; line-height: 1.3; color: {{headColor}};">{{headLine}}</div>
+            <div style="font-size: 13px; line-height: 1.45; color: #A19A94;">{{descLine}}</div>
+          </div>
+
+          <sc-if value="{{diy}}" hint-placeholder-val="{{false}}">
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;">
+              <input class="field" placeholder="Headline 1" maxlength="30" value="{{h1}}" onChange="{{onH1}}">
+              <input class="field" placeholder="Headline 2" maxlength="30" value="{{h2}}" onChange="{{onH2}}">
+              <input class="field" placeholder="Headline 3" maxlength="30" value="{{h3}}" onChange="{{onH3}}">
+            </div>
+            <input class="field" placeholder="Description 1" maxlength="90" value="{{d1}}" onChange="{{onD1}}">
+            <input class="field" placeholder="Description 2" maxlength="90" value="{{d2}}" onChange="{{onD2}}">
+          </sc-if>
+
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-top: 2px;">
+            <div class="display" style="font-weight: 700; font-size: 18px;">How it runs, from week 1</div>
+            <div style="font-size: 12px; color: #8A847E;">two of Quality Score's three parts · the grade the auction uses</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <sc-for list="{{grades}}" as="g" hint-placeholder-count="3">
+              <div style="display: grid; grid-template-columns: 150px minmax(0, 1fr) 52px; gap: 12px; align-items: center;">
+                <div style="display: flex; flex-direction: column;">
+                  <div style="font-size: 13px; font-weight: 700;">{{g.label}}</div>
+                  <div style="font-size: 12px; color: #8A847E;">{{g.source}}</div>
+                </div>
+                <div style="height: 6px; border-radius: 3px; background: #2A272D;"><div style="width: {{g.pct}}%; height: 100%; border-radius: 3px; background: #A19A94;"></div></div>
+                <div class="num display" style="font-weight: 800; font-size: 18px; text-align: right;">{{g.value}}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 12px; line-height: 1.45; color: #A19A94; text-wrap: pretty;">{{gradeNote}} <span class="link">why?</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+        <div style="font-size: 13px; color: #8A847E; white-space: nowrap;">So far</div>
+        <div style="padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">Mid · Performance</div>
+        <div style="padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">5 keywords</div>
+        <div style="padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">{{writerChip}}</div>
+      </div>
+      <div class="display tap press" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <div>Next: your money</div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"angles":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+/*
+ * Round 0, step 4, under the rules agreed on 2026-09-14: the fee buys not
+ * having to write. A hired writer writes the ad and it runs at the writer's
+ * level; writing it yourself is free and graded on your own words; both run
+ * from week 1 (no two-week wait). One grade is shown, the one the auction uses.
+ *
+ * Real content: the writers and their prices and levels (WRITER_TIERS,
+ * engine/constants.js), each writer's copy for mid-price performance
+ * (content/writerCopy.js, the variant seed 20260902 draws) and the ₹50,000
+ * creative budget. The third part of the score, the landing page, is shown in
+ * step 5, where the site is built. The "angles" switch shows where the message project's
+ * picker would sit; it is not built and its effect is not yet decided.
+ */
+const WRITERS = [
+  { id: 'diy', label: 'Write it yourself', pricePaise: 0, grade: null, what: 'Free. Graded on your own words.' },
+  { id: 'freelancer', label: 'Freelance copywriter', pricePaise: 1000000, grade: 6, what: 'Names what you sell, plainly.' },
+  { id: 'agency', label: 'Creative agency', pricePaise: 2500000, grade: 7, what: 'Adds a hook and one concrete detail.' },
+  { id: 'retainer', label: 'Premium retainer', pricePaise: 5000000, grade: 8, what: 'Writes from the customer’s day.' },
+];
+const COPY = {
+  freelancer: { headlines: ['Gym Leggings And Bras', 'Workout Clothing', 'Made For Training'], descriptions: ['Leggings, sports bras and tees made for the gym.', 'Vella & Co. offers 30-day returns and free delivery. Sizes XS to XXL.'] },
+  agency: { headlines: ['Squat Rack Approved', 'Stays Put Under Load', 'No Adjusting Mid-Set'], descriptions: ['Leggings with a waistband that does not need pulling up between sets.', 'Fit guide with real measurements. Thirty days to send it back, free.'] },
+  retainer: { headlines: ['The Pair You Train In', 'Still Opaque At Week Ten', 'Nothing To Think About'], descriptions: ['Leggings you stop noticing, which is the only review that matters at the rack.', 'Vella & Co. measures in centimetres. Thirty days to return, free both ways.'] },
+};
+const CREATIVE_PAISE = 5000000;
+const STEPS = ['The market', 'Where you sit', 'Your keywords', 'Your ad', 'Your money'];
+const CURRENT = 3;
+const ICON = {
+  bag: ['M6 7h12l-1 13H7L6 7z', 'M9 7a3 3 0 0 1 6 0'],
+  users: ['M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0', 'M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6', 'M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0', 'M16 14.2c2.9.4 5 2.8 5 5.8'],
+  book: ['M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z', 'M4 19a2 2 0 0 1 2-2h13'],
+  trophy: ['M8 4h8v5a4 4 0 0 1-8 0V4z', 'M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4', 'M12 13v4M9 20h6'],
+};
+const rupees = (paise) => `₹${Math.round(paise / 100).toLocaleString('en-IN')}`;
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = { writer: 'freelancer', h1: '', h2: '', h3: '', d1: '', d2: '' };
+  }
+
+  renderVals() {
+    const areas = [
+      { label: 'Brand', paths: ICON.bag, on: true },
+      { label: 'Market', paths: ICON.users },
+      { label: 'Guide', paths: ICON.book },
+      { label: 'Results', paths: ICON.trophy, locked: true },
+    ].map((a) => ({
+      ...a,
+      bg: a.on ? '#2A1216' : 'transparent',
+      stroke: a.on ? '#F3EEEA' : (a.locked ? '#4A454F' : '#8A8389'),
+      fg: a.on ? '#F3EEEA' : (a.locked ? '#4A454F' : '#8A8389'),
+    }));
+    const steps = STEPS.map((label, i) => {
+      const done = i < CURRENT;
+      const on = i === CURRENT;
+      return {
+        label, n: String(i + 1), done, notDone: !done,
+        bg: on ? '#1F1C22' : 'transparent',
+        shadow: on ? '0 0 0 1px #2E2A33' : 'none',
+        fg: on ? '#F3EEEA' : '#CFC9C3',
+        weight: on ? 700 : 500,
+        dotBg: on ? '#D7262F' : (done ? '#EDE8E3' : 'transparent'),
+        dotLine: on ? '#D7262F' : (done ? '#EDE8E3' : '#4A454F'),
+        dotFg: on ? '#FFF5F4' : (done ? '#0D0C0E' : '#A19A94'),
+      };
+    });
+
+    const chosen = WRITERS.find((w) => w.id === this.state.writer);
+    const diy = chosen.id === 'diy';
+    const writers = WRITERS.map((w) => {
+      const on = w.id === this.state.writer;
+      return {
+        label: w.label,
+        what: w.what,
+        price: w.pricePaise === 0 ? 'free' : rupees(w.pricePaise),
+        grade: w.grade === null ? 'your words decide' : `runs at ${w.grade} · ${w.grade}`,
+        line: on ? '#D7262F' : '#2A272D',
+        ring: on ? '#D7262F' : 'transparent',
+        bg: on ? '#1C1417' : '#17161A',
+        pick: () => this.setState({ writer: w.id }),
+      };
+    });
+
+    const typed = [this.state.h1, this.state.h2, this.state.h3].filter((t) => t.trim());
+    const typedDesc = [this.state.d1, this.state.d2].filter((t) => t.trim());
+    let headLine;
+    let descLine;
+    if (diy) {
+      headLine = typed.length ? typed.join(' · ') : 'Your headlines appear here';
+      descLine = typedDesc.length ? typedDesc.join(' ') : 'Your descriptions appear here.';
+    } else {
+      headLine = COPY[chosen.id].headlines.join(' · ');
+      descLine = COPY[chosen.id].descriptions.join(' ');
+    }
+
+    // Two of Quality Score's three parts come from the ad; the third, the
+    // landing page, is the site, and it is shown where it is built: step 5.
+    const grades = diy
+      ? [
+        { label: 'Expected click-through', source: 'graded on your words', value: '—', pct: 0 },
+        { label: 'Ad relevance', source: 'against your keywords', value: '—', pct: 0 },
+      ]
+      : [
+        { label: 'Expected click-through', source: `the ${chosen.label.toLowerCase()}'s level`, value: `${chosen.grade}/10`, pct: chosen.grade * 10 },
+        { label: 'Ad relevance', source: `the ${chosen.label.toLowerCase()}'s level`, value: `${chosen.grade}/10`, pct: chosen.grade * 10 },
+      ];
+
+    const set = (key) => (e) => this.setState({ [key]: e.target.value });
+    return {
+      areas,
+      steps,
+      writers,
+      diy,
+      showAngles: this.props.angles === true,
+      headLine,
+      descLine,
+      headColor: diy && typed.length === 0 ? '#8A847E' : '#EDE8E3',
+      h1: this.state.h1, h2: this.state.h2, h3: this.state.h3, d1: this.state.d1, d2: this.state.d2,
+      onH1: set('h1'), onH2: set('h2'), onH3: set('h3'), onD1: set('d1'), onD2: set('d2'),
+      grades,
+      gradeNote: diy
+        ? 'The game’s own grader scores your words as you type, and that score runs from week 1. It checks rules, not taste: echoing your keywords counts for more than reading well. The third part of the score, the landing page, is your site: you build it in the next step.'
+        : 'A hired writer’s ad runs at the writer’s level whatever the words say: this game cannot judge professional writing, so it takes the writer’s level as the grade. The third part of the score, the landing page, is your site: you build it in the next step.',
+      leftover: rupees(CREATIVE_PAISE - chosen.pricePaise),
+      writerChip: diy ? 'Written by you' : `Written by the ${chosen.label.toLowerCase()}`,
+    };
+  }
+}
+</script>
+</body>
+</html>

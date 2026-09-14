@@ -1,0 +1,84 @@
+{
+  "pages": [
+    { "id": "page-2", "name": "Step 1 · The market" },
+    { "id": "page-1", "name": "Step 2 · Where you sit" },
+    { "id": "page-5", "name": "Steps 4 and 5" },
+    { "id": "page-4", "name": "Build order and step 3" },
+    { "id": "page-3", "name": "Not chosen" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html", "title": "Step 2 · Where you sit (chosen)", "page": "page-1", "is_interactive": true, "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "MarketMap.dc.html", "title": "Step 1 · the map kept, pulsing by searches (chosen)", "page": "page-2", "is_interactive": true, "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "AdStep.dc.html", "title": "Step 4 · Your ad", "page": "page-5", "is_interactive": true, "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "MoneyStep.dc.html", "title": "Step 5 · Your money, then Go", "page": "page-5", "is_interactive": true, "x": 1560, "y": 0, "w": 1440, "h": 900 },
+    { "file": "KeywordsCards.dc.html", "title": "Step 3 with the shared cards (orders A and C · C chosen)", "page": "page-4", "is_interactive": true, "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "KeywordsList.dc.html", "title": "Step 3 with its own list (order B)", "page": "page-4", "is_interactive": true, "x": 1560, "y": 0, "w": 1440, "h": 900 },
+    { "file": "Flow.dc.html", "title": "B · Its own flow", "page": "page-3", "is_interactive": true, "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "MapCut.dc.html", "title": "Map cut from round 0", "page": "page-3", "x": 1560, "y": 0, "w": 1440, "h": 900 },
+    { "file": "MapKept.dc.html", "title": "Map kept, still (drawn in the flow)", "page": "page-3", "is_interactive": true, "x": 3120, "y": 0, "w": 1440, "h": 900 }
+  ],
+  "annotations": [
+    {
+      "id": "where-brief",
+      "page": "page-1",
+      "x": 0, "y": -560, "w": 1300,
+      "text": "Round 0 lives inside the sidebar layout, the owner's choice: the section list becomes the five steps (1 The market · 2 Where you sit · 3 Your keywords · 4 Your ad · 5 Your money), and the tray holds your choices so far and Next.\nReal content throughout: the eight rival ads of the default market (seed 20260902, you as Vella & Co., the brand now assigned rather than picked), and the grid's economics from the round 0 briefing."
+    },
+    {
+      "id": "squares",
+      "page": "page-1",
+      "x": 0, "y": -370, "w": 1300,
+      "text": "The squares as a diagram, agreed with both fillings. Price is a real axis with an arrow (value to premium) and carries the briefing's two figures per level as bars: searches a week shrink as order value grows, which is the trade-off the grid exists to show. Purpose is a plain divider, no arrow, because performance and lifestyle are kinds, not a scale. Choose a square and its price and purpose light red on the axes, since red is you. Text in the squares is centred.\nWho you would be: a line per square, drafted on the earlier round 0 canvas ('cheap' is now 'affordable'), and each row carries the briefing's own line on competition. Your guesses: tap the small grid on any ad to note where you think that rival sits; its name appears in that square with a question mark. The game never confirms a guess. Three are placed to show it, read from the ads.\nWhat a square cannot carry: a figure of its own. Searches or break-even per square would be worked out from what round 0 withholds (I3)."
+    },
+    {
+      "id": "map-brief",
+      "page": "page-2",
+      "x": 0, "y": -600, "w": 1300,
+      "text": "Step 1, the market, inside the sidebar layout, with the India map kept and pulsing by searches (both the owner's choices). The same drawing also becomes the control in Where and when.\nMore cities, as asked: 8 metros (the usual list, which adds Kolkata and Ahmedabad to the game's six; there are not 10 to 12 metros to show), 12 large cities and 12 smaller cities and towns. The added cities are a proposal for the owner to review, and their positions here are approximate; the build takes them from the geonames dataset the map's other cities came from.\nThis adds a motion the makeover's six did not include: an ambient one, longer than 300ms. The design doc records it as a named exception, off for anyone who has asked for reduced motion."
+    },
+    {
+      "id": "map-motion",
+      "page": "page-2",
+      "x": 0, "y": -300, "w": 1300,
+      "text": "Pulse by searches, chosen: each city rings as often as its kind of place is searched, so the motion is the data. Switch the price level (All, Value, Mid, Premium): for value brands the towns ring fastest, for premium the metros. 'All' is worked from the briefing's public figures (each price level's shares weighted by its searches a week): metros 20%, large cities 36%, towns 44%. The model knows three kinds of place, not cities, so every city of a kind rings at its kind's rate. The chip above the board still switches to the two motions not chosen, for comparison."
+    },
+    {
+      "id": "steps45-brief",
+      "page": "page-5",
+      "x": 0, "y": -420, "w": 1300,
+      "text": "Steps 4 and 5, under the rules agreed. Step 4: the fee buys not having to write. Four writers, each with its real price and level; a hired writer writes the ad (real copy for mid-price performance, content/writerCopy.js) and it runs at the writer's level from week 1; writing it yourself is free and graded on your own words, also from week 1. One grade is shown, the one the auction uses. What is left of the ₹50,000 creative budget goes to ads. The 'angles' switch shows where the message project's picker would sit; it is not built.\nOne decision drawn rather than asked: the freelance copywriter is chosen when you arrive, so a player who does not want to write never meets empty boxes. The alternative is to arrive on writing it yourself, as round 0 does today."
+    },
+    {
+      "id": "step5-case",
+      "page": "page-5",
+      "x": 1560, "y": -420, "w": 1300,
+      "text": "Step 5: the month, built as round 0 builds it today (the base ₹1,68,000, plus what the writer did not cost, plus capital not committed), drawn as where it comes from; commit capital and the month shrinks by the same amount. Capital in plain view and neutral, defaulting to kept; each target keeps round 0's own line and its real rungs and prices (photography's top rung costs more than the ₹1,20,000 on offer). The weekly split is behind Advanced, even by default. The tray lists what is done and carries Go.\nThe landing page grade lives here now, not in step 4 (the owner's catch): it is the site, and every choice that moves it is on this screen. It updates as you choose, from the game's own figures: the page, the size guide and photography move it from week 1; the page's own capital adds up to 3 points from week 4. Each target also says what it moves, so the one with a number on screen does not look like the only one that pays."
+
+    },
+    {
+      "id": "order-brief",
+      "page": "page-4",
+      "x": 0, "y": -620, "w": 1300,
+      "text": "Build order, decided: C (the owner's choice). The sidebar layout, then round 0, which builds the cards, the slider and the planner drawer, then the weekly Your keywords, which adds the week's figures to the same cards, then angles and images, then the rest.\nThe one screen the order changes is round 0's step 3, Your keywords, drawn both ways with real planner content (weekly searches, and each search's reach on each match type, as the engine counted them for the makeover canvas).\nA would have built the keyword pieces first (the same screen as C, round 0 a stage later); B would have given round 0 its own list (right) and replaced it later."
+    },
+    {
+      "id": "cards-case",
+      "page": "page-4",
+      "x": 0, "y": -330, "w": 1300,
+      "text": "The shared cards (orders A and C). The same card and planner drawer as the weekly Your keywords section, empty where only a played week can fill it: no Quality Score, no clicks, nothing to compare a bid with. Drag a bid, flip a match type (the reach changes, and tags appear on broad), or tap Add a keyword to open the planner.\nFor: one keyword control in the whole game, so round 0 teaches the controls you will use every week.\nAgainst, for C: round 0's stage carries the building of the controls and the cards, so it is a bigger stage than B's."
+    },
+    {
+      "id": "list-case",
+      "page": "page-4",
+      "x": 1560, "y": -330, "w": 1300,
+      "text": "Its own list (order B, not chosen). The planner as a table beside the chosen keywords; bids typed into boxes, one at a time. Quicker to build before the cards exist, but thrown away when the cards replace it."
+    },
+    {
+      "id": "not-chosen",
+      "page": "page-3",
+      "x": 0, "y": -300, "w": 1300,
+      "text": "Kept as the record. B · Its own flow: a full-screen setup of five steps, which gave the step 1,328px so the ads sat beside the grid; not chosen for a second layout to build and keep. Map cut from round 0: chosen once, then reversed by the owner in favour of keeping the map, moving. Map kept, still: the first drawing of the kept map, in the flow and without motion."
+    }
+  ],
+  "launch": { "view": "canvas", "page": "page-5" }
+}

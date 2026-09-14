@@ -1,0 +1,332 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: inherit; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .tap { cursor: pointer; user-select: none; }
+    .hov:hover { background: rgba(127, 127, 127, 0.14); }
+    .link { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .kinput { -webkit-appearance: none; appearance: none; background: transparent; }
+    .kinput::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; }
+    .kinput::-moz-range-thumb { width: 16px; height: 16px; border: 0; }
+    .field { font: inherit; font-size: 14px; border-radius: 10px; padding: 0 12px; height: 38px; box-sizing: border-box; outline: none; border: 1px solid #3A363E; background: #141216; color: #EDE8E3; }
+    .press { transition: transform 160ms ease-out; }
+    .press:active { transform: scale(0.97); }
+    .drawer { transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1), transform 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+    .overlay { transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+    @starting-style {
+      .drawer { opacity: 0; transform: translateX(100%); }
+      .overlay { opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .press:active { transform: none; }
+      @starting-style { .drawer { transform: none; } }
+    }
+  </style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <sc-for list="{{areas}}" as="a" hint-placeholder-count="4">
+      <div title="{{a.label}}" style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: {{a.bg}}; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{a.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <sc-for list="{{a.paths}}" as="p" hint-placeholder-count="2"><path d="{{p}}"></path></sc-for>
+        </svg>
+        <div style="font-size: 10px; font-weight: 600; color: {{a.fg}};">{{a.label}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">Mid-price · Performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Before week 1</div>
+    <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+      <div class="tap" style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: {{s.weight}}; background: {{s.bg}}; color: {{s.fg}}; box-shadow: {{s.shadow}};">
+        <div style="width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: {{s.dotBg}}; border: 1.5px solid {{s.dotLine}}; color: {{s.dotFg}}; font-size: 11px; font-weight: 700;">
+          <sc-if value="{{s.done}}" hint-placeholder-val="{{false}}">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+          </sc-if>
+          <sc-if value="{{s.notDone}}" hint-placeholder-val="{{true}}">
+            <div>{{s.n}}</div>
+          </sc-if>
+        </div>
+        <div style="flex-grow: 1;">{{s.label}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div class="display" style="font-weight: 700; font-size: 20px;">Round 0 <span style="font-weight: 400; color: #8A847E;">before the first auction</span></div>
+      <div style="font-size: 13px; color: #A19A94;">Step 3 of 5</div>
+    </div>
+
+    <div style="flex-grow: 1; min-height: 0; padding: 20px 40px 16px; display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div class="display" style="font-weight: 800; font-size: 44px; line-height: 0.95; letter-spacing: -0.025em;">Your keywords</div>
+          <div style="font-size: 14px; color: #A19A94;">{{countLabel}} · the searches you bid on, and how loosely each one matches · <span class="link">why?</span></div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
+        <sc-for list="{{cards}}" as="c" hint-placeholder-count="5">
+          <div style="background: #17161A; border-radius: 20px; border: 1px solid #2A272D; padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; min-width: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 26px;">
+              <div style="padding: 3px 9px; border-radius: 999px; border: 1px solid #3A363E; color: #A19A94; font-size: 12px; font-weight: 600;">new</div>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <div title="Quality Score: none until it has run" style="padding: 3px 9px; border-radius: 999px; background: #221F25; color: #EDE8E3; font-size: 12px; font-weight: 700;">QS —</div>
+                <div class="tap hov" onClick="{{c.remove}}" title="Remove keyword" style="width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #A19A94;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg>
+                </div>
+              </div>
+            </div>
+            <div class="display" style="font-weight: 700; font-size: 19px; line-height: 1.15; letter-spacing: -0.01em; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere;">{{c.text}}</div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; gap: 4px;">
+                <sc-for list="{{c.pills}}" as="m" hint-placeholder-count="3">
+                  <div class="tap" onClick="{{m.pick}}" style="padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; background: {{m.bg}}; color: {{m.fg}}; border: 1px solid {{m.line}};">{{m.label}}</div>
+                </sc-for>
+              </div>
+              <div style="height: 16px; font-size: 12px; line-height: 16px; color: #A19A94; white-space: nowrap;">{{c.reachLabel}}</div>
+              <div title="{{c.tagsLine}}" style="height: 16px; font-size: 12px; line-height: 16px; color: #A19A94; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{c.tagsLine}}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; height: 30px;">
+                <div style="font-size: 12px; color: #A19A94;">Bid</div>
+                <div class="display num" title="Tap to type an exact bid" style="font-weight: 800; font-size: 22px; line-height: 28px; border-bottom: 1px dashed #4A454F; white-space: nowrap;">₹{{c.bid}}</div>
+              </div>
+              <div style="position: relative; height: 16px;">
+                <div style="position: absolute; left: 0; right: 0; top: 6px; height: 4px; border-radius: 2px; background: #2E2A33;"></div>
+                <div style="position: absolute; left: 0; top: 6px; height: 4px; border-radius: 2px; background: #D7262F; width: {{c.pct}}%;"></div>
+                <div style="position: absolute; top: 0; left: calc({{c.pct}}% - 8px); width: 16px; height: 16px; border-radius: 50%; background: #17161A; border: 3px solid #D7262F; box-sizing: border-box;"></div>
+                <input class="kinput" type="range" min="1" max="100" step="1" value="{{c.bid}}" onChange="{{c.onSlide}}" aria-label="Bid for {{c.text}}" style="position: absolute; left: -8px; top: -8px; width: calc(100% + 16px); height: 32px; margin: 0; opacity: 0; cursor: pointer;">
+              </div>
+              <div style="font-size: 12px; color: #A19A94;">new: no clicks yet</div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 8px; padding-top: 10px; border-top: 1px solid #232026; margin-top: auto;">
+              <div style="display: flex; flex-direction: column;"><div class="num" style="font-weight: 700; font-size: 15px; color: #6D6770;">—</div><div style="font-size: 12px; color: #A19A94;">clicks</div></div>
+              <div style="display: flex; flex-direction: column;"><div class="num" style="font-weight: 700; font-size: 15px; color: #6D6770;">—</div><div style="font-size: 12px; color: #A19A94;">cost</div></div>
+              <div style="display: flex; flex-direction: column;"><div class="num" style="font-weight: 700; font-size: 15px; color: #6D6770;">—</div><div style="font-size: 12px; color: #A19A94;">conv.</div></div>
+            </div>
+          </div>
+        </sc-for>
+        <div class="tap hov" onClick="{{openPlanner}}" style="border-radius: 20px; border: 2px dashed #3A363E; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #A19A94; min-height: 280px; box-sizing: border-box;">
+          <div style="width: 44px; height: 44px; border-radius: 50%; background: #221F25; display: flex; align-items: center; justify-content: center; color: #EDE8E3;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+          </div>
+          <div class="display" style="font-weight: 700; font-size: 16px; color: #EDE8E3;">Add a keyword</div>
+          <div style="font-size: 12px;">from the planner, or your own words</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+        <div style="font-size: 13px; color: #8A847E; white-space: nowrap;">So far</div>
+        <div style="padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">Mid · Performance</div>
+        <div style="padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">{{countLabel}}</div>
+      </div>
+      <div class="display tap press" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <div>Next: your ad</div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{plannerOpen}}" hint-placeholder-val="{{false}}">
+    <div class="overlay" onClick="{{closePlanner}}" style="position: absolute; inset: 0; z-index: 20; background: rgba(0, 0, 0, 0.55);"></div>
+    <div class="drawer" style="position: absolute; top: 0; right: 0; bottom: 0; width: 480px; z-index: 21; background: #141216; border-left: 1px solid #26232A; box-shadow: -12px 0 32px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column;">
+      <div style="padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid #2A272D;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div class="display" style="font-weight: 800; font-size: 26px;">Add keywords</div>
+          <div class="tap hov" onClick="{{closePlanner}}" title="Close" style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+          </div>
+        </div>
+        <input class="field" placeholder="search the planner, or type your own" value="">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; gap: 4px;">
+            <div style="padding: 5px 11px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid #3A363E; color: #A19A94;">Exact</div>
+            <div style="padding: 5px 11px; border-radius: 999px; font-size: 13px; font-weight: 600; background: #D7262F; color: #FFF5F4; border: 1px solid #D7262F;">Phrase</div>
+            <div style="padding: 5px 11px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid #3A363E; color: #A19A94;">Broad</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="font-size: 13px; color: #A19A94;">Bid ₹</div>
+            <input class="field num" style="width: 72px;" value="30">
+          </div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) 76px 64px 86px; gap: 10px; padding: 10px 24px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E;">
+        <div>Search</div><div style="text-align: right;">A week</div><div style="text-align: right;">Reach</div><div></div>
+      </div>
+      <div style="flex-grow: 1; min-height: 0; overflow-y: auto; padding: 0 24px 24px;">
+        <sc-for list="{{plannerRows}}" as="p" hint-placeholder-count="12">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 76px 64px 86px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px solid #232026;">
+            <div style="display: flex; flex-direction: column; min-width: 0;">
+              <div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{p.text}}</div>
+              <div style="font-size: 12px; color: #8A847E;">{{p.intent}}</div>
+            </div>
+            <div class="num" style="text-align: right; font-size: 13px;">{{p.weekly}}</div>
+            <div class="num" style="text-align: right; font-size: 13px; color: #A19A94;">{{p.reach}}</div>
+            <div class="tap press" onClick="{{p.add}}" style="justify-self: end; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; background: {{p.btnBg}}; color: {{p.btnFg}}; border: 1px solid {{p.btnLine}};">{{p.btnLabel}}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding: 14px 24px; border-top: 1px solid #2A272D; font-size: 12px; line-height: 1.45; color: #A19A94;">How often a search is made is public research. What it is worth to you is learned by running it.</div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+/*
+ * Round 0, step 3, built from the weekly Your keywords cards (orders A and C).
+ * The same card and the same planner drawer as the pilot section
+ * (design/makeover/Main.dc.html), with nothing in the slots only a played
+ * week can fill: no Quality Score, no clicks, no "was". Real planner rows:
+ * weekly searches and each search's reach on each match type, as the engine
+ * counted them for the makeover canvas. Bids open at ₹30, as round 0 adds
+ * them today. Drag a bid, flip a match type, or open the planner.
+ */
+const KEYWORDS = [
+  { text: 'gym leggings', tags: ['leggings', 'gym'], match: 'phrase', reach: { exact: 1, phrase: 16, broad: 68 } },
+  { text: 'squat proof leggings', tags: ['leggings', 'squat-proof', 'gym'], match: 'phrase', reach: { exact: 1, phrase: 2, broad: 20 } },
+  { text: 'workout leggings', tags: ['leggings', 'training'], match: 'phrase', reach: { exact: 1, phrase: 1, broad: 63 } },
+  { text: 'compression leggings', tags: ['leggings', 'compression'], match: 'broad', reach: { exact: 1, phrase: 2, broad: 50 } },
+  { text: 'vella leggings', tags: ['brand-term', 'india'], match: 'exact', reach: { exact: 1, phrase: 1, broad: 18 } },
+];
+// From the makeover canvas's data (design/makeover/Main.dc.html), which the
+// engine counted: each search's tags (E9) and its reach on each match (E8).
+const PLANNER = [
+  { text: 'cheap gym leggings', weekly: 10105, intent: 'commercial', tags: ['leggings', 'gym', 'cheap', 'women'], reach: { exact: 1, phrase: 1, broad: 31 } },
+  { text: 'gym wear sale', weekly: 9202, intent: 'commercial', tags: ['gym', 'sale'], reach: { exact: 1, phrase: 1, broad: 40 } },
+  { text: 'cheap athleisure', weekly: 9116, intent: 'commercial', tags: ['casual', 'cheap', 'women'], reach: { exact: 1, phrase: 1, broad: 8 } },
+  { text: 'co ord set sale', weekly: 8299, intent: 'commercial', tags: ['co-ord-set', 'sale'], reach: { exact: 1, phrase: 1, broad: 23 } },
+  { text: 'budget gym wear women', weekly: 8256, intent: 'commercial', tags: ['gym', 'budget', 'women'], reach: { exact: 1, phrase: 1, broad: 12 } },
+  { text: 'budget loungewear', weekly: 7482, intent: 'commercial', tags: ['lounge', 'budget', 'women'], reach: { exact: 1, phrase: 1, broad: 8 } },
+  { text: 'leggings combo pack', weekly: 7439, intent: 'commercial', tags: ['leggings', 'combo'], reach: { exact: 1, phrase: 1, broad: 53 } },
+  { text: 'sports bra combo pack', weekly: 7353, intent: 'commercial', tags: ['sports-bra', 'combo', 'budget'], reach: { exact: 1, phrase: 1, broad: 2 } },
+  { text: 'gym leggings under 999', weekly: 6450, intent: 'commercial', tags: ['leggings', 'gym', 'budget'], reach: { exact: 1, phrase: 1, broad: 22 } },
+  { text: 'co ord set under 999', weekly: 5805, intent: 'commercial', tags: ['co-ord-set', 'budget'], reach: { exact: 1, phrase: 1, broad: 37 } },
+  { text: 'gym leggings', weekly: 5590, intent: 'commercial', tags: ['leggings', 'gym'], reach: { exact: 1, phrase: 16, broad: 68 } },
+  { text: 'athleisure leggings', weekly: 5246, intent: 'commercial', tags: ['leggings', 'casual'], reach: { exact: 1, phrase: 1, broad: 63 } },
+  { text: 'workout leggings', weekly: 5117, intent: 'commercial', tags: ['leggings', 'training'], reach: { exact: 1, phrase: 1, broad: 63 } },
+  { text: 'squat proof leggings', weekly: 3354, intent: 'commercial', tags: ['leggings', 'squat-proof', 'gym'], reach: { exact: 1, phrase: 2, broad: 20 } },
+];
+const MATCHES = ['exact', 'phrase', 'broad'];
+const LABEL = { exact: 'Exact', phrase: 'Phrase', broad: 'Broad' };
+const STEPS = ['The market', 'Where you sit', 'Your keywords', 'Your ad', 'Your money'];
+const CURRENT = 2;
+const MAX = 100;
+const ICON = {
+  bag: ['M6 7h12l-1 13H7L6 7z', 'M9 7a3 3 0 0 1 6 0'],
+  users: ['M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0', 'M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6', 'M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0', 'M16 14.2c2.9.4 5 2.8 5 5.8'],
+  book: ['M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z', 'M4 19a2 2 0 0 1 2-2h13'],
+  trophy: ['M8 4h8v5a4 4 0 0 1-8 0V4z', 'M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4', 'M12 13v4M9 20h6'],
+};
+const inr = (n) => Math.round(n).toLocaleString('en-IN');
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = {
+      keywords: KEYWORDS.map((k) => ({ ...k, bid: 30 })),
+      plannerOpen: false,
+    };
+  }
+
+  renderVals() {
+    const areas = [
+      { label: 'Brand', paths: ICON.bag, on: true },
+      { label: 'Market', paths: ICON.users },
+      { label: 'Guide', paths: ICON.book },
+      { label: 'Results', paths: ICON.trophy, locked: true },
+    ].map((a) => ({
+      ...a,
+      bg: a.on ? '#2A1216' : 'transparent',
+      stroke: a.on ? '#F3EEEA' : (a.locked ? '#4A454F' : '#8A8389'),
+      fg: a.on ? '#F3EEEA' : (a.locked ? '#4A454F' : '#8A8389'),
+    }));
+    const steps = STEPS.map((label, i) => {
+      const done = i < CURRENT;
+      const on = i === CURRENT;
+      return {
+        label, n: String(i + 1), done, notDone: !done,
+        bg: on ? '#1F1C22' : 'transparent',
+        shadow: on ? '0 0 0 1px #2E2A33' : 'none',
+        fg: on ? '#F3EEEA' : '#CFC9C3',
+        weight: on ? 700 : 500,
+        dotBg: on ? '#D7262F' : (done ? '#EDE8E3' : 'transparent'),
+        dotLine: on ? '#D7262F' : (done ? '#EDE8E3' : '#4A454F'),
+        dotFg: on ? '#FFF5F4' : (done ? '#0D0C0E' : '#A19A94'),
+      };
+    });
+    const update = (text, patch) => this.setState({
+      keywords: this.state.keywords.map((k) => (k.text === text ? { ...k, ...patch } : k)),
+    });
+    const cards = this.state.keywords.map((k) => ({
+      text: k.text,
+      bid: k.bid,
+      pct: Math.round((100 * (k.bid - 1)) / (MAX - 1)),
+      reachLabel: `reaches ${k.reach[k.match]} ${k.reach[k.match] === 1 ? 'search' : 'searches'}`,
+      // Tags decide broad reach and nothing else (E8), so they show on broad only.
+      tagsLine: k.match === 'broad' ? `matches on: ${k.tags.join(' · ')}` : '',
+      pills: MATCHES.map((m) => ({
+        label: LABEL[m],
+        bg: m === k.match ? '#D7262F' : 'transparent',
+        fg: m === k.match ? '#FFF5F4' : '#A19A94',
+        line: m === k.match ? '#D7262F' : '#3A363E',
+        pick: () => update(k.text, { match: m }),
+      })),
+      onSlide: (e) => update(k.text, { bid: Number(e.target.value) }),
+      remove: () => this.setState({ keywords: this.state.keywords.filter((x) => x.text !== k.text) }),
+    }));
+    const held = new Set(this.state.keywords.map((k) => k.text));
+    const plannerRows = PLANNER.map((p) => {
+      const inAccount = held.has(p.text);
+      return {
+        ...p,
+        weekly: inr(p.weekly),
+        reach: p.reach.phrase,
+        btnLabel: inAccount ? 'in account' : 'Add',
+        btnBg: inAccount ? 'transparent' : '#D7262F',
+        btnFg: inAccount ? '#8A847E' : '#FFF5F4',
+        btnLine: inAccount ? '#3A363E' : '#D7262F',
+        add: () => {
+          if (inAccount) return;
+          if (this.state.keywords.length >= 7) return;
+          this.setState({ keywords: [...this.state.keywords, { text: p.text, tags: p.tags, match: 'phrase', reach: p.reach, bid: 30 }] });
+        },
+      };
+    });
+    const n = this.state.keywords.length;
+    return {
+      areas,
+      steps,
+      cards,
+      countLabel: `${n} ${n === 1 ? 'keyword' : 'keywords'}`,
+      plannerOpen: this.state.plannerOpen,
+      openPlanner: () => this.setState({ plannerOpen: true }),
+      closePlanner: () => this.setState({ plannerOpen: false }),
+      plannerRows,
+    };
+  }
+}
+</script>
+</body>
+</html>

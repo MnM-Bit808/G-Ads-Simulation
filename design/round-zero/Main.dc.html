@@ -1,0 +1,390 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: inherit; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .tap { cursor: pointer; user-select: none; }
+    .hov:hover { background: rgba(127, 127, 127, 0.14); }
+    .link { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .tile { transition: border-color 150ms ease, box-shadow 150ms ease; }
+    .tile:hover { border-color: #4A454F; }
+    .mini:hover { border-color: #CFC9C3; }
+    .press { transition: transform 160ms ease-out; }
+    .press:active { transform: scale(0.97); }
+    @media (prefers-reduced-motion: reduce) { .press:active { transform: none; } }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <sc-for list="{{areas}}" as="a" hint-placeholder-count="4">
+      <div title="{{a.label}}" style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: {{a.bg}}; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="{{a.stroke}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <sc-for list="{{a.paths}}" as="p" hint-placeholder-count="2"><path d="{{p}}"></path></sc-for>
+        </svg>
+        <div style="font-size: 10px; font-weight: 600; color: {{a.fg}};">{{a.label}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">your brand this game</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Before week 1</div>
+    <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+      <div class="tap" style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: {{s.weight}}; background: {{s.bg}}; color: {{s.fg}}; box-shadow: {{s.shadow}};">
+        <div style="width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: {{s.dotBg}}; border: 1.5px solid {{s.dotLine}}; color: {{s.dotFg}}; font-size: 11px; font-weight: 700;">
+          <sc-if value="{{s.done}}" hint-placeholder-val="{{false}}">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+          </sc-if>
+          <sc-if value="{{s.notDone}}" hint-placeholder-val="{{true}}">
+            <div>{{s.n}}</div>
+          </sc-if>
+        </div>
+        <div style="flex-grow: 1;">{{s.label}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div class="display" style="font-weight: 700; font-size: 20px;">Round 0 <span style="font-weight: 400; color: #8A847E;">before the first auction</span></div>
+        <div style="display: flex; gap: 6px;">
+          <sc-for list="{{dots}}" as="d" hint-placeholder-count="12">
+            <div style="width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #3A363E; box-sizing: border-box;"></div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="font-size: 13px; color: #A19A94;">Step 2 of 5</div>
+    </div>
+
+    <div style="flex-grow: 1; min-height: 0; padding: 20px 40px 14px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div class="display" style="font-weight: 800; font-size: 44px; line-height: 0.95; letter-spacing: -0.025em;">Where you sit</div>
+        <div style="font-size: 15px; line-height: 1.5; color: #A19A94;">Nobody tells you where the other eight sit. Their ads are the only evidence before the first auction. <span class="link">why?</span></div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+          <div class="display" style="font-weight: 700; font-size: 18px;">The other eight</div>
+          <div style="font-size: 12px; color: #8A847E;">{{rivalsNote}}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+          <sc-for list="{{rivals}}" as="r" hint-placeholder-count="8">
+            <div style="background: #17161A; border: 1px solid #2A272D; border-radius: 16px; padding: 10px 12px 11px; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 22px;">
+                <div style="display: flex; align-items: baseline; gap: 8px; min-width: 0;">
+                  <div style="font-size: 12px; font-weight: 700; color: #CFC9C3; white-space: nowrap;">{{r.name}}</div>
+                  <div style="font-size: 12px; color: #8A847E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Sponsored · {{r.domain}}</div>
+                </div>
+                <sc-if value="{{guessing}}" hint-placeholder-val="{{true}}">
+                  <div title="Where do you think {{r.name}} sits?" style="display: grid; grid-template-columns: repeat(3, 14px); gap: 2px; flex-shrink: 0;">
+                    <sc-for list="{{r.minis}}" as="m" hint-placeholder-count="6">
+                      <div class="tap mini" onClick="{{m.pick}}" title="{{m.label}}" style="width: 14px; height: 10px; border-radius: 2px; box-sizing: border-box; border: 1px solid {{m.line}}; background: {{m.bg}};"></div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="font-size: 13px; font-weight: 700; line-height: 1.3; color: #EDE8E3; text-wrap: pretty;">{{r.head}}</div>
+              <div style="font-size: 12px; line-height: 1.4; color: #A19A94; text-wrap: pretty;">{{r.desc}}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+          <div style="display: flex; align-items: baseline; gap: 10px; flex-shrink: 0;">
+            <div class="display" style="font-weight: 700; font-size: 18px;">Pick your square</div>
+            <div style="font-size: 12px; color: #8A847E;">fixed until week 5</div>
+          </div>
+          <div style="font-size: 12px; line-height: 1.4; color: #A19A94; text-align: right; min-width: 0;">{{readout}} <span class="link">why?</span></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 118px 2px minmax(0, 1fr); column-gap: 12px; row-gap: 0;">
+          <div style="display: grid; grid-template-rows: 60px 60px; row-gap: 4px;">
+            <sc-for list="{{rows}}" as="row" hint-placeholder-count="2">
+              <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 2px; text-align: right;">
+                <div style="font-size: 13px; font-weight: 700; color: {{row.fg}};">{{row.label}}</div>
+                <div style="font-size: 12px; line-height: 1.3; color: #8A847E;">{{row.note}}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: grid; grid-template-rows: 60px 60px; row-gap: 4px;">
+            <sc-for list="{{rows}}" as="row" hint-placeholder-count="2">
+              <div style="border-radius: 1px; background: {{row.axis}};"></div>
+            </sc-for>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: 60px 60px; gap: 4px;">
+            <sc-for list="{{cells}}" as="c" hint-placeholder-count="6">
+              <div class="tap tile" onClick="{{c.pick}}" style="box-sizing: border-box; border-radius: {{c.radius}}; border: 1px solid {{c.line}}; box-shadow: 0 0 0 1px {{c.ring}}; background: {{c.bg}}; padding: 6px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-width: 0; text-align: center;">
+                <sc-if value="{{c.showIdentity}}" hint-placeholder-val="{{true}}">
+                  <div class="display" style="font-weight: 700; font-size: 15px; line-height: 1.15; color: {{c.fg}}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">{{c.identity}}</div>
+                </sc-if>
+                <sc-if value="{{c.nameOnly}}" hint-placeholder-val="{{false}}">
+                  <div style="font-size: 13px; font-weight: 600; color: {{c.fg}};">{{c.name}}</div>
+                </sc-if>
+                <sc-if value="{{c.hasChips}}" hint-placeholder-val="{{false}}">
+                  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 4px;">
+                    <sc-if value="{{c.on}}" hint-placeholder-val="{{false}}">
+                      <div style="padding: 1px 9px; border-radius: 999px; background: #D7262F; color: #FFF5F4; font-size: 12px; font-weight: 700;">You</div>
+                    </sc-if>
+                    <sc-for list="{{c.guessed}}" as="g" hint-placeholder-count="0">
+                      <div style="padding: 1px 8px; border-radius: 999px; background: #221F25; border: 1px dashed #4A454F; color: #CFC9C3; font-size: 12px; font-weight: 600;">{{g.name}}?</div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 3px; padding-top: 31px; text-align: right;">
+            <div style="font-size: 12px; line-height: 16px; color: #8A847E;">searches a week</div>
+            <div style="font-size: 12px; line-height: 16px; color: #8A847E;">order · margin</div>
+          </div>
+          <div></div>
+
+          <div style="position: relative; margin: 4px 12px 0 0;">
+            <svg width="12" height="12" viewBox="0 0 12 12" style="position: absolute; right: -11px; top: -5.25px;"><path d="M2 1.5l7 4.5-7 4.5" fill="none" stroke="#4A454F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            <div style="position: absolute; right: -8px; top: 8px; font-size: 12px; color: #8A847E;">price</div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));">
+              <sc-for list="{{prices}}" as="p" hint-placeholder-count="3">
+                <div style="border-top: 1.5px solid {{p.axis}}; display: flex; flex-direction: column; align-items: center; gap: 3px;">
+                  <div style="width: 1.5px; height: 6px; margin-bottom: -1px; background: {{p.axis}};"></div>
+                  <div class="display" style="font-weight: 700; font-size: 15px; line-height: 16px; color: {{p.fg}};">{{p.label}}</div>
+                  <div style="display: flex; align-items: center; gap: 8px; height: 16px;">
+                    <div class="num" style="font-size: 12px; color: #CFC9C3; width: 84px; text-align: right;">{{p.searches}}</div>
+                    <div title="searches a week" style="width: 64px; height: 4px; border-radius: 2px; background: #2A272D;"><div style="width: {{p.searchesPct}}%; height: 100%; border-radius: 2px; background: #A19A94;"></div></div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px; height: 16px;">
+                    <div class="num" style="font-size: 12px; color: #CFC9C3; width: 84px; text-align: right;">{{p.order}} · {{p.margin}}</div>
+                    <div title="order value" style="width: 64px; height: 4px; border-radius: 2px; background: #2A272D;"><div style="width: {{p.orderPct}}%; height: 100%; border-radius: 2px; background: #A19A94;"></div></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+        <div style="font-size: 13px; color: #8A847E; white-space: nowrap;">So far</div>
+        <div style="padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">{{chosenLabel}}</div>
+      </div>
+      <div class="display tap press" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <div>Next: your keywords</div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"squares":{"editor":"enum","options":["Both","Who you would be","Your guesses"],"default":"Both"},"$preview":{"width":1440,"height":900}}'>
+/*
+ * Round 0 inside the sidebar layout, step 2 of five, the owner's choice. The
+ * sidebar takes 304px, so the ads stack above the grid. The rival ads are the
+ * default market's own (seed 20260902, the player as Vella & Co.).
+ *
+ * WHAT A SQUARE MAY CARRY. The briefing gives figures by price level only, so
+ * those sit on the columns; a figure per square would be worked out from the
+ * affinities round 0 withholds (DECISIONS I3). The rows carry the briefing's
+ * own public line on competition. The squares carry two things that are not
+ * the game's statements: who you would be there (the identity lines drafted on
+ * the earlier round 0 canvas, design/Grid.dc.html) and the player's own
+ * guesses about the rivals, which the game never confirms (C5). Three guesses
+ * are placed to show it, read from the ads; tap the small grid on any ad to
+ * change one.
+ */
+const RIVALS = [
+  { name: 'Auren', domain: 'auren.in', headlines: ['Recycled Nylon, Built To Last', 'Tested Over A Training Block', 'No Chafe, No Ride, No Fuss'], descriptions: ['Recycled technical nylon with bonded panels, tested through a full training block.', 'Talk to a fitter before you order. Thirty days to change your mind, either way.'] },
+  { name: 'Halcyon', domain: 'halcyon.in', headlines: ['Leggings Built To Train In', 'Holds Up, Wash After Wash', 'Squat-Proof, Sweat-Wicking'], descriptions: ['Gym wear that survives four sessions a week and a hot Indian summer.', 'Sizes XS to XXL, with a fit guide that admits when to size up. 30-day returns.'] },
+  { name: 'Kestrel', domain: 'kestrel.in', headlines: ['Modal And Cashmere Blend', 'Considered Athleisure', 'Made To Outlast Trends'], descriptions: ['Loungewear in modal and cashmere blend, cut to hold its shape for years.', 'Fit consultation, and a care card in every box. 30-day returns.'] },
+  { name: 'Lumen', domain: 'lumenlabel.in', headlines: ['Seamless Compression Kit', 'Japanese Technical Knit', 'Made For Heavy Lifts'], descriptions: ['Seamless, sculpting, second-skin. Japanese yarn, knitted to hold under load.', 'Fit consultation before you buy. 30-day returns, free delivery both ways.'] },
+  { name: 'Marlow', domain: 'marlowlabel.in', headlines: ['Co-ord Sets From ₹1199', 'Comfy Everyday, Low Price', 'Buy 2 Sets, Save 20%'], descriptions: ['Soft co-ord sets and joggers that look put together, for a lot less.', 'New drops monthly, sizes XS to XXL. Easy 15-day returns, no questions asked.'] },
+  { name: 'Nira', domain: 'nira.in', headlines: ['Gym Leggings From ₹799', 'Squat Proof, Not Pricey', '2 Sports Bras For ₹999'], descriptions: ['Train hard, spend little. Squat-proof leggings and high-impact bras that hold.', 'Free delivery over ₹799. Easy 15-day returns, because gym fit is hard to guess.'] },
+  { name: 'Satva', domain: 'satva.in', headlines: ['Athleisure For All Day', 'Studio To Street Co-ords', 'The Set You Reach For'], descriptions: ['Everyday athleisure for the school run, the studio, and whatever comes after.', 'Sizes XS to XXL, with a fit guide for between-sizes. 30-day returns.'] },
+  { name: 'Torvi', domain: 'torvi.in', headlines: ['Gym Tees From ₹299', 'Kit Out The Whole Week', 'Buy 3 Tees, Save ₹200'], descriptions: ['Quick-dry tees and running shorts for people who turn up four times a week.', 'One swap within 15 days, no charge, because the first guess is rarely right.'] },
+];
+
+// The briefing's figures by price level (setup.js, briefing). The two bars
+// on the price axis are drawn from these alone: searches as a share of
+// value's, order value as a share of premium's.
+const PRICES = [
+  { key: 'value', label: 'Value', order: '₹1,200', margin: '40%', searches: '2,23,600', searchesN: 223600, orderN: 1200 },
+  { key: 'mid', label: 'Mid', order: '₹2,400', margin: '52%', searches: '1,20,400', searchesN: 120400, orderN: 2400 },
+  { key: 'premium', label: 'Premium', order: '₹4,800', margin: '62%', searches: '86,000', searchesN: 86000, orderN: 4800 },
+];
+const MAX_SEARCHES = Math.max(...PRICES.map((p) => p.searchesN));
+const MAX_ORDER = Math.max(...PRICES.map((p) => p.orderN));
+// The briefing's competition hint (setup.js, briefing), cut to a caption.
+const PURPOSES = [
+  { key: 'performance', label: 'Performance', note: 'the most contested' },
+  { key: 'lifestyle', label: 'Lifestyle', note: 'fewer bidders' },
+];
+const IDENTITY = {
+  'value|performance': 'An affordable gym-wear brand',
+  'value|lifestyle': 'A budget loungewear label',
+  'mid|performance': 'A serious training brand',
+  'mid|lifestyle': 'An everyday athleisure label',
+  'premium|performance': 'A technical performance house',
+  'premium|lifestyle': 'A considered luxury label',
+};
+const CELLS = PURPOSES.flatMap((u) => PRICES.map((p) => ({ key: `${p.key}|${u.key}`, label: `${p.label} · ${u.label}` })));
+const STEPS = ['The market', 'Where you sit', 'Your keywords', 'Your ad', 'Your money'];
+const CURRENT = 1;
+
+const names = (list) => (list.length <= 1 ? list.join('') : `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`);
+
+const ICON = {
+  bag: ['M6 7h12l-1 13H7L6 7z', 'M9 7a3 3 0 0 1 6 0'],
+  users: ['M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0', 'M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6', 'M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0', 'M16 14.2c2.9.4 5 2.8 5 5.8'],
+  book: ['M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z', 'M4 19a2 2 0 0 1 2-2h13'],
+  trophy: ['M8 4h8v5a4 4 0 0 1-8 0V4z', 'M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4', 'M12 13v4M9 20h6'],
+};
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = {
+      cell: 'mid|performance',
+      guess: { Nira: 'value|performance', Marlow: 'value|lifestyle', Kestrel: 'premium|lifestyle' },
+    };
+  }
+
+  renderVals() {
+    const mode = this.props.squares ?? 'Both';
+    const guessing = mode !== 'Who you would be';
+    const identity = mode !== 'Your guesses';
+    const guess = this.state.guess;
+    const setGuess = (name, key) => () => {
+      const next = { ...this.state.guess };
+      if (next[name] === key) delete next[name];
+      else next[name] = key;
+      this.setState({ guess: next });
+    };
+
+    // Before week 1 only the brand area has anything in it; the others are
+    // drawn as the shell draws a locked area.
+    const areas = [
+      { label: 'Brand', paths: ICON.bag, on: true },
+      { label: 'Market', paths: ICON.users },
+      { label: 'Guide', paths: ICON.book },
+      { label: 'Results', paths: ICON.trophy, locked: true },
+    ].map((a) => ({
+      ...a,
+      bg: a.on ? '#2A1216' : 'transparent',
+      stroke: a.on ? '#F3EEEA' : (a.locked ? '#4A454F' : '#8A8389'),
+      fg: a.on ? '#F3EEEA' : (a.locked ? '#4A454F' : '#8A8389'),
+    }));
+    const steps = STEPS.map((label, i) => {
+      const done = i < CURRENT;
+      const on = i === CURRENT;
+      return {
+        label, n: String(i + 1), done, notDone: !done,
+        bg: on ? '#1F1C22' : 'transparent',
+        shadow: on ? '0 0 0 1px #2E2A33' : 'none',
+        fg: on ? '#F3EEEA' : '#CFC9C3',
+        weight: on ? 700 : 500,
+        dotBg: on ? '#D7262F' : (done ? '#EDE8E3' : 'transparent'),
+        dotLine: on ? '#D7262F' : (done ? '#EDE8E3' : '#4A454F'),
+        dotFg: on ? '#FFF5F4' : (done ? '#0D0C0E' : '#A19A94'),
+      };
+    });
+    const rivals = RIVALS.map((r) => ({
+      ...r,
+      head: r.headlines.join(' · '),
+      desc: r.descriptions.join(' '),
+      minis: CELLS.map((c) => {
+        const placed = guess[r.name] === c.key;
+        return {
+          label: `${r.name}: ${c.label}`,
+          bg: placed ? '#EDE8E3' : 'transparent',
+          line: placed ? '#EDE8E3' : '#4A454F',
+          pick: setGuess(r.name, c.key),
+        };
+      }),
+    }));
+    const [chosenPrice, chosenPurpose] = this.state.cell.split('|');
+    // The crosshair: your square's price and purpose light up on the axes, in
+    // red, because red is you.
+    const rows = PURPOSES.map((purpose) => ({
+      label: purpose.label,
+      note: purpose.note,
+      fg: purpose.key === chosenPurpose ? '#EDE8E3' : '#A19A94',
+      axis: purpose.key === chosenPurpose ? '#D7262F' : '#4A454F',
+    }));
+    const prices = PRICES.map((p) => ({
+      ...p,
+      fg: p.key === chosenPrice ? '#EDE8E3' : '#A19A94',
+      axis: p.key === chosenPrice ? '#D7262F' : '#4A454F',
+      searchesPct: Math.round((100 * p.searchesN) / MAX_SEARCHES),
+      orderPct: Math.round((100 * p.orderN) / MAX_ORDER),
+    }));
+    // One block of six, rounded only at its outer corners.
+    const CORNER = ['14px 4px 4px 4px', '4px', '4px 14px 4px 4px', '4px 4px 4px 14px', '4px', '4px 4px 14px 4px'];
+    const cells = PURPOSES.flatMap((purpose) => PRICES.map((price) => ({ price, purpose }))).map(({ price, purpose }, i) => {
+      const key = `${price.key}|${purpose.key}`;
+      const on = this.state.cell === key;
+      const guessed = guessing ? RIVALS.filter((r) => guess[r.name] === key).map((r) => ({ name: r.name })) : [];
+      return {
+        name: `${price.label} · ${purpose.label}`,
+        identity: IDENTITY[key],
+        showIdentity: identity,
+        nameOnly: !identity,
+        guessed,
+        hasChips: on || guessed.length > 0,
+        on,
+        radius: CORNER[i],
+        line: on ? '#D7262F' : '#2A272D',
+        ring: on ? '#D7262F' : 'transparent',
+        bg: on ? '#1C1417' : '#17161A',
+        fg: on ? '#EDE8E3' : '#CFC9C3',
+        pick: () => this.setState({ cell: key }),
+      };
+    });
+    const placed = Object.keys(guess).length;
+    const here = RIVALS.filter((r) => guess[r.name] === this.state.cell).map((r) => r.name);
+    let readout = 'Price sets what a click can be worth to you. Purpose sets which searches are yours.';
+    if (guessing && here.length > 0) {
+      readout = `You've placed ${names(here)} here. If you're right, you'll be competing for exactly the same searches.`;
+    } else if (guessing) {
+      readout = `${readout} You haven't placed any rival here.`;
+    }
+    const [price, purpose] = this.state.cell.split('|');
+    return {
+      areas,
+      steps,
+      guessing,
+      dots: new Array(12).fill(0).map((_, i) => ({ i })),
+      rivalsNote: guessing ? `tap the small grid to note where each sits · ${placed} of 8 placed, if you like` : 'in no particular order',
+      rivals,
+      prices,
+      rows,
+      cells,
+      readout,
+      chosenLabel: `${PRICES.find((p) => p.key === price).label} · ${PURPOSES.find((p) => p.key === purpose).label}`,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: inherit; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .tap { cursor: pointer; user-select: none; }
+    .hov:hover { background: rgba(127, 127, 127, 0.14); }
+    .link { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .seg:hover { filter: brightness(1.12); }
+    .press { transition: transform 160ms ease-out; }
+    .press:active { transform: scale(0.97); }
+    @media (prefers-reduced-motion: reduce) { .press:active { transform: none; } }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+
+  <div style="height: 72px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 32px; border-bottom: 1px solid #26232A;">
+    <div style="display: flex; align-items: center; gap: 12px; width: 230px;">
+      <div class="display" style="width: 40px; height: 40px; border-radius: 12px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px;">V&amp;</div>
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <div class="display" style="font-weight: 800; font-size: 18px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+        <div style="font-size: 12px; color: #8A847E;">your brand this game</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 999px; background: {{s.bg}};">
+            <div style="width: 24px; height: 24px; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: {{s.dotBg}}; border: 1.5px solid {{s.dotLine}}; color: {{s.dotFg}}; font-size: 12px; font-weight: 700;">{{s.n}}</div>
+            <div style="font-size: 13px; font-weight: {{s.weight}}; color: {{s.fg}}; white-space: nowrap;">{{s.label}}</div>
+          </div>
+          <sc-if value="{{s.hasJoin}}" hint-placeholder-val="{{true}}">
+            <div style="width: 14px; height: 1px; background: #3A363E;"></div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+    <div style="width: 230px; display: flex; justify-content: flex-end;">
+      <div class="tap hov" style="height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3A363E; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+        <div>Field guide</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; min-height: 0; padding: 26px 56px 22px; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Step 1 of 5</div>
+      <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">The market</div>
+      <div style="font-size: 15px; line-height: 1.5; color: #A19A94;">Twelve weeks against eight rival brands. You finish ranked by profit after returns.</div>
+    </div>
+
+    <div style="flex-grow: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px;">
+      <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="display" style="font-weight: 700; font-size: 20px;">Three price levels</div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+            <sc-for list="{{tiers}}" as="t" hint-placeholder-count="3">
+              <div style="background: #17161A; border: 1px solid #2A272D; border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px;">
+                <div style="font-size: 13px; font-weight: 700; color: #CFC9C3;">{{t.label}}</div>
+                <div class="display num" style="font-weight: 800; font-size: 28px; line-height: 1.1;">{{t.searches}}</div>
+                <div style="font-size: 12px; color: #8A847E;">searches a week</div>
+                <div class="num" style="margin-top: 6px; font-size: 13px; color: #CFC9C3;">{{t.order}} order · {{t.margin}} margin</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background: #1A0C0F; border: 1px solid #4A1A1F; border-radius: 20px; padding: 14px 20px; display: flex; flex-direction: column; gap: 6px;">
+          <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A8989A;">What a click is worth to you, at break-even</div>
+          <div style="font-size: 12px; color: #A8989A;">order value × margin × (1 − return rate) × conversion rate</div>
+          <div class="display num" style="font-weight: 800; font-size: 22px; line-height: 1.2; color: #F3EEEA;">₹2,400 × 52% × 58.3% × 2.8% = ₹20.37</div>
+          <div style="font-size: 13px; line-height: 1.45; color: #D9D1CB; text-wrap: pretty;">That is a click on a search worth nothing in particular. The searches you choose to compete for are worth roughly double, which is why your position matters. <span class="link">why?</span></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div class="display" style="font-weight: 700; font-size: 20px;">What you're not told</div>
+          <sc-for list="{{hints}}" as="h" hint-placeholder-count="3">
+            <div style="display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 12px; padding-bottom: 10px; border-bottom: 1px solid #232026;">
+              <div style="font-size: 13px; font-weight: 700; color: #CFC9C3;">{{h.label}}</div>
+              <div style="font-size: 13px; line-height: 1.45; color: #A19A94; text-wrap: pretty;">{{h.text}}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+        <div style="background: #17161A; border: 1px solid #2A272D; border-radius: 20px; padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div class="display" style="font-weight: 700; font-size: 20px;">Where the searches are</div>
+            <div style="font-size: 13px; color: #A19A94;">Each price level's searches, by the kind of place they come from.</div>
+          </div>
+          <sc-for list="{{bars}}" as="b" hint-placeholder-count="3">
+            <div style="display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; align-items: center;">
+              <div style="font-size: 14px; font-weight: 700; color: #CFC9C3;">{{b.label}}</div>
+              <div style="display: flex; gap: 2px; height: 34px;">
+                <sc-for list="{{b.segs}}" as="s" hint-placeholder-count="3">
+                  <div class="seg" title="{{s.title}}" style="flex-grow: {{s.grow}}; flex-basis: 0; min-width: 0; border-radius: {{s.radius}}; background: {{s.bg}}; color: {{s.fg}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;"><span class="num">{{s.pct}}</span></div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px;">
+            <div></div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <sc-for list="{{legend}}" as="l" hint-placeholder-count="3">
+                <div style="display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 10px; align-items: start;">
+                  <div style="width: 12px; height: 12px; border-radius: 3px; margin-top: 3px; background: {{l.bg}};"></div>
+                  <div style="display: flex; flex-direction: column; gap: 1px;">
+                    <div style="font-size: 13px; font-weight: 700;">{{l.label}}</div>
+                    <div style="font-size: 12px; color: #8A847E;">{{l.examples}}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="font-size: 13px; line-height: 1.45; color: #A19A94; text-wrap: pretty;">Cash on delivery is ordinary outside the metros, and COD orders come back more often. The same click is worth less the further out it is, not because fewer people buy, but because more of what they buy comes back. How much is in your own location report.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 84px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 32px 0 56px;">
+    <div style="font-size: 13px; color: #8A847E;">Nothing to decide here. Read it, then choose where you sit.</div>
+    <div class="display tap press" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+      <div>Next: where you sit</div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+/*
+ * Round 0, step 1, with the map cut: the nine shares as three bars, one per
+ * price level. The places are ordered (metros, then large cities, then
+ * towns), so they take one neutral ramp from light to dark; red is the
+ * player's colour and amber a warning, so neither can mark a place. Every
+ * figure is the round 0 briefing's own (setup.js, briefing).
+ */
+const TIERS = [
+  { label: 'Value', searches: '2,23,600', order: '₹1,200', margin: '40%' },
+  { label: 'Mid', searches: '1,20,400', order: '₹2,400', margin: '52%' },
+  { label: 'Premium', searches: '86,000', order: '₹4,800', margin: '62%' },
+];
+const HINTS = [
+  { label: 'Who buys', text: 'Cheaper products convert more often; a ₹4,800 decision is researched, compared and slept on.' },
+  { label: 'Returns', text: 'About two in five orders come back category-wide, counting parcels refused at the door as well as those sent back. Price barely changes how often; it changes how much each one costs you.' },
+  { label: 'Competition', text: 'Activewear searches are the most contested in the category. Almost everyone sells leggings, so anyone bidding broadly on them turns up in gym and training auctions, while searches for casual and lounge wear draw fewer bidders.' },
+];
+const PLACES = [
+  { label: 'Metros', examples: 'Mumbai, Delhi NCR, Bengaluru, Hyderabad, Chennai, Pune', bg: '#D9D3CD', fg: '#0D0C0E' },
+  { label: 'Large cities', examples: 'Jaipur, Lucknow, Kochi, Indore, Chandigarh, Coimbatore', bg: '#9E9599', fg: '#0D0C0E' },
+  { label: 'Smaller cities and towns', examples: 'Guwahati, Raipur, Jodhpur, Salem, Warangal, Siliguri', bg: '#4A444A', fg: '#EDE8E3' },
+];
+const SHARES = [
+  { label: 'Value', parts: [12, 35, 53] },
+  { label: 'Mid', parts: [22, 38, 40] },
+  { label: 'Premium', parts: [38, 36, 26] },
+];
+const STEPS = ['The market', 'Where you sit', 'Your keywords', 'Your ad', 'Your money'];
+
+class Component extends DCLogic {
+  renderVals() {
+    const steps = STEPS.map((label, i) => ({
+      label, n: String(i + 1), hasJoin: i < STEPS.length - 1,
+      bg: i === 0 ? '#221F25' : 'transparent',
+      dotBg: i === 0 ? '#D7262F' : 'transparent',
+      dotLine: i === 0 ? '#D7262F' : '#4A454F',
+      dotFg: i === 0 ? '#FFF5F4' : '#A19A94',
+      fg: i === 0 ? '#EDE8E3' : '#8A847E',
+      weight: i === 0 ? 700 : 500,
+    }));
+    const bars = SHARES.map((row) => ({
+      label: row.label,
+      segs: row.parts.map((pct, i) => ({
+        grow: pct,
+        pct: `${pct}%`,
+        bg: PLACES[i].bg,
+        fg: PLACES[i].fg,
+        radius: i === 0 ? '4px 0 0 4px' : (i === row.parts.length - 1 ? '0 4px 4px 0' : '0'),
+        title: `${row.label} brands: ${pct}% of searches from ${PLACES[i].label.toLowerCase()}`,
+      })),
+    }));
+    return { steps, tiers: TIERS, hints: HINTS, bars, legend: PLACES };
+  }
+}
+</script>
+</body>
+</html>
