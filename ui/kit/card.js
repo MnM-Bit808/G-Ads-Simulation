@@ -102,7 +102,8 @@ export function keywordCard({ card, maxRupees, openGuide = null, onMatch, onBid,
 
     figure = typeIn({
       text: rupees(model.bidPaise),
-      value: Math.round(model.bidPaise / 100),
+      // Read on opening: a drag moves `model` without redrawing (see `show`).
+      value: () => Math.round(model.bidPaise / 100),
       label: KEYWORDS.typeBid({ keyword: model.text }),
       onCommit: (value) => onBid(value, true),
     });

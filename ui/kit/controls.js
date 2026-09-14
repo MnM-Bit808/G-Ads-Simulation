@@ -100,7 +100,12 @@ export function slider({ minRupees, maxRupees, valueRupees, wasRupees = null, la
   return { node: box, range, showWas };
 }
 
-/** A figure that becomes a box to type in when tapped: a slider alone is too coarse for a bid. */
+/**
+ * A figure that becomes a box to type in when tapped: a slider alone is too
+ * coarse for a bid. `value` may be a function, read when the box opens: a
+ * slider beside it changes the figure in place, and the box must open on what
+ * the figure says now, not on what it said when it was drawn.
+ */
 export function typeIn({ text, value, label, onCommit }) {
   const shown = el('button', 'kbid', text);
   shown.type = 'button';
@@ -110,7 +115,7 @@ export function typeIn({ text, value, label, onCommit }) {
     box.type = 'number';
     box.min = '1';
     box.step = '1';
-    box.value = String(value);
+    box.value = String(typeof value === 'function' ? value() : value);
     box.setAttribute('aria-label', label);
     let done = false;
     // Enter and Escape put focus back on the figure BEFORE the caller redraws,
