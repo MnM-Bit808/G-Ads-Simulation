@@ -2934,7 +2934,8 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   ```
 
 - [ ] **Step 4: The guide's card link,** in `ui/guide/drawer.js`:
-  `createGuide({ figures, reveal = null, canShowCard = () => true })`, and in
+  `createGuide({ figures, reveal: revealCard = null, canShowCard = () => true })`
+  (the drawer holds the option as `revealCard`, since it has its own `reveal`), and in
   `open`, replace `foot.replaceChildren(button('ghost', GUIDE.showCard(), ...));`
   with:
 
