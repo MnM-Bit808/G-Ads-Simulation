@@ -55,6 +55,9 @@ export function openPlanner({ trigger, queries, weeklyVolume, state, held, reach
   drawer.setAttribute('role', 'dialog');
   drawer.setAttribute('aria-modal', 'true');
   drawer.setAttribute('aria-label', KEYWORDS.plannerTitle());
+  // The drawer sits outside every card, so without a region of its own the
+  // playtest recorder named its clicks "Add" and "×", from nowhere.
+  drawer.dataset.region = KEYWORDS.plannerTitle();
   // A click on the drawer's plain text would otherwise send focus to the page
   // behind, where Escape no longer reaches the drawer.
   drawer.tabIndex = -1;
