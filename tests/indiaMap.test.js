@@ -6,7 +6,7 @@ import { describe, test, expect } from 'vitest';
 import { briefing } from '../setup.js';
 import { studioRule, studioToken, rgb, contrast } from './fixtures/studioCss.js';
 import { QUERY_SET } from '../content/querySet.js';
-import { sharesFor, pulsePeriods, FASTEST_PULSE_S } from '../ui/map/india.js';
+import { sharesFor, pulsePeriods, pulseDelay, FASTEST_PULSE_S } from '../ui/map/india.js';
 
 const brief = briefing(QUERY_SET);
 const shares = (basis) => sharesFor(brief.locations, brief.weeklySearchesByTier, basis);
@@ -36,6 +36,21 @@ describe('the pulse is the share', () => {
 
   test('a kind of place nobody searches does not ring', () => {
     expect(pulsePeriods({ a: 0.5, b: 0 }).b).toBeNull();
+  });
+
+  test('a ring is already ringing when the map is drawn, however often it is redrawn', () => {
+    // Found by an animation audit (2026-09-14): with a positive delay every
+    // redraw of the map (arriving, switching price level, tapping a place)
+    // blanked all 32 rings, which came back one by one over up to 2.6 seconds.
+    for (const period of [1.6, 3.52, 7.07]) {
+      const delays = Array.from({ length: 12 }, (_, i) => pulseDelay(i, period));
+      for (const d of delays) {
+        expect(d, `period ${period}`).toBeLessThanOrEqual(0);
+        expect(d, `period ${period}`).toBeGreaterThan(-period);
+      }
+      expect(new Set(delays.map((d) => d.toFixed(2))).size, 'a kind\'s cities still ring out of step')
+        .toBeGreaterThan(1);
+    }
   });
 });
 

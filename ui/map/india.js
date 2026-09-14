@@ -55,6 +55,25 @@ export function pulsePeriods(shares, fastest = FASTEST_PULSE_S) {
     .map(([id, share]) => [id, share > 0 ? (fastest * top) / share : null]));
 }
 
+/** Each city of a kind starts this much further through the cycle than the last. */
+const PULSE_STAGGER_S = 0.37;
+
+/**
+ * Where a city's ring starts in its cycle, as an animation delay: NEGATIVE, so
+ * the ring is already running when the map is drawn. The map is redrawn on
+ * every tap and every switch of price level, and a positive delay blanked all
+ * the rings each time, bringing them back one by one over seconds (found by an
+ * animation audit, 2026-09-14). Offset per city, so a kind's cities do not
+ * ring in lockstep.
+ *
+ * @param {number} index - the city's place in its kind's list
+ * @param {number} period - seconds between rings, from `pulsePeriods`
+ * @returns {number} seconds, in (-period, 0]
+ */
+export function pulseDelay(index, period) {
+  return -((index * PULSE_STAGGER_S) % period);
+}
+
 function make(tag, attrs = {}) {
   const node = document.createElementNS(NS, tag);
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
@@ -92,8 +111,7 @@ export function drawIndia({ locations, shares, lit = null, onPick }) {
       if (period !== null) {
         const ring = make('circle', { cx: x, cy: y, r: 7, class: 'r0-ring' });
         ring.style.animationDuration = `${period.toFixed(2)}s`;
-        // Offset through the period, so a kind's cities do not ring in lockstep.
-        ring.style.animationDelay = `${((i * 0.37) % period).toFixed(2)}s`;
+        ring.style.animationDelay = `${pulseDelay(i, period).toFixed(2)}s`;
         pin.append(ring);
       }
       pin.append(make('circle', { cx: x, cy: y, r: 3.5, class: 'r0-city' }));
