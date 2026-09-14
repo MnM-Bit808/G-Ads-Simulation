@@ -24,6 +24,7 @@ import { DEBRIEF } from '../ui/words/debrief.js';
 import { CAPITAL } from '../ui/words/capital.js';
 import { MARKET } from '../ui/words/market.js';
 import { FORM } from '../ui/words/form.js';
+import { SHELL } from '../ui/words/shell.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -201,6 +202,26 @@ describe('the decision form', () => {
   });
 });
 
+describe('the Studio layout', () => {
+  const FIGURES = { played: 4, total: 12, month: 1, spent: '₹2,96,535', budget: '₹3,13,000',
+    n: 2, week: 5, hours: 168, round: 0 };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(SHELL)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(SHELL)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('one change reads as one', () => {
+    expect(SHELL.changes({ n: 1 })).toBe('change waiting');
+    expect(SHELL.changes({ n: 3 })).toBe('changes waiting');
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -221,6 +242,20 @@ describe('a card that has moved draws, and no longer writes', () => {
     for (const literal of literals(body)) {
       const words = outsideInterpolation(literal).slice(1, -1).trim().split(/\s+/).filter(Boolean);
       expect(words.length, literal).toBeLessThan(3);
+    }
+  });
+});
+
+describe('the new screens draw, and do not write', () => {
+  // A "word" here must hold two letters in a row, so icon paths and class
+  // lists are not counted.
+  const drawing = ['ui/shell/shell.js'];
+  test.each(drawing)('%s holds no sentence of its own', (file) => {
+    const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
+    for (const literal of literals(body)) {
+      const words = outsideInterpolation(literal).slice(1, -1).trim().split(/\s+/)
+        .filter((w) => /[a-z]{2,}/i.test(w));
+      expect(words.length, `${file}: ${literal}`).toBeLessThan(3);
     }
   });
 });

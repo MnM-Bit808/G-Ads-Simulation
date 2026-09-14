@@ -393,6 +393,8 @@ export function playtestFilename(log) {
 /** A card's own title: its heading's first text, without the grey subtitle. */
 function cardTitle(card) {
   if (card.tagName === 'HEADER') return 'header';
+  // The Studio layout's regions (the sidebar, the tray, a section) name themselves.
+  if (card.dataset?.region) return card.dataset.region;
   const heading = card.querySelector('h2');
   return tidy(heading?.childNodes[0]?.textContent ?? heading?.textContent);
 }
@@ -421,7 +423,7 @@ function controlLabel(control) {
 export function attachRecorder(recorder) {
   // Capture phase, so a control that stops the click from bubbling is still counted.
   document.addEventListener('click', (event) => {
-    const card = event.target.closest?.('.card, header');
+    const card = event.target.closest?.('.card, header, [data-region]');
     recorder.click(describeClick({
       card: card ? cardTitle(card) : null,
       control: controlLabel(event.target.closest?.(CONTROL)),

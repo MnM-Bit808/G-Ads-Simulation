@@ -96,10 +96,12 @@ function button(className, label, onClick, iconPaths = null, iconAfter = false) 
  *
  * @param {object} options
  * @param {Readonly<Record<string, string>>} options.figures - from `guideFigures()`
+ * @param {((slot: string) => boolean)|null} [options.reveal] - in the Studio
+ *   layout, opens the section a card sits in before it is shown
  * @returns {{node: HTMLElement, open: (id: string, opener?: Element) => void,
  *   openContents: (opener?: Element) => void, close: () => void}}
  */
-export function createGuide({ figures }) {
+export function createGuide({ figures, reveal: revealCard = null }) {
   const node = el('aside', 'card guide');
   node.id = 'field-guide';
   node.hidden = true;
@@ -198,6 +200,9 @@ export function createGuide({ figures }) {
   // would otherwise be thrown back to wherever they started.
   function showCard(slot) {
     close({ restoreFocus: false });
+    // In the Studio layout the card may sit in a section that is not open.
+    // (`revealCard`, because the drawer's own `reveal` shows the drawer.)
+    revealCard?.(slot);
     const card = document.querySelector(`[data-slot="${slot}"]`);
     if (!card) return;
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

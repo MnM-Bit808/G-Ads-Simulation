@@ -37,6 +37,7 @@ import {
 import { createGuide } from './guide/drawer.js';
 import { guideFigures } from './guide/figures.js';
 import { lookMode } from './look.js';
+import { createStudio } from './shell/shell.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -52,11 +53,18 @@ const redoButton = document.getElementById('redo');
 const guideButton = document.getElementById('guide');
 
 /**
+ * The Studio layout (plans/2026-09-13-studio-makeover.md), built on the first
+ * week drawn with `?look=studio` and dropped whenever the game is.
+ */
+let studio = null;
+
+/**
  * The field guide (stage C2). Built once and kept outside `#app`, so redrawing
  * a week never removes it; the dashboard's "why?" buttons and the header's
- * Field guide button all open this one drawer.
+ * Field guide button all open this one drawer. In the Studio layout, "show me
+ * on the card" first opens the section the card sits in.
  */
-const guide = createGuide({ figures: guideFigures() });
+const guide = createGuide({ figures: guideFigures(), reveal: (slot) => studio?.reveal(slot) ?? false });
 document.body.append(guide.node);
 guideButton.addEventListener('click', () => guide.openContents(guideButton));
 
@@ -299,6 +307,7 @@ function restart(market) {
   clearSave(storage);
   game = null;
   rewinding = null;
+  studio = null;
   render();
   window.scrollTo(0, 0);
 }
@@ -323,6 +332,26 @@ function render() {
     window.scrollTo(0, 0);
     return;
   }
+  // The Studio layout: the same dashboard and form, shown one section at a
+  // time, with the ending in its own Results area.
+  if (look === 'studio') {
+    studio ??= createStudio({
+      onRun: runWeek,
+      onRedo: redo,
+      openGuide: guide.open,
+      openContents: (trigger) => guide.openContents(trigger),
+      onPlaytest: recorder ? sendPlaytestFile : null,
+    });
+    let endingNode = null;
+    if (game.reports.length >= TOTAL_ROUNDS) {
+      endingNode = el('div', 'studio-results');
+      endingNode.append(...endingNodes());
+    }
+    studio.draw(game, { saved: game.saved, canRedo: canRedoRoundZero(game.state), endingNode });
+    app.replaceChildren(studio.node);
+    return;
+  }
+
   const dashboard = renderDashboard(game, () => {
     // Only the button, so staging a change does not rebuild the screen under
     // the cursor. The dashboard redraws its own cards.
@@ -333,31 +362,57 @@ function render() {
   // dashboard is still the most detailed thing in the game, and a summary that
   // hid it would answer fewer questions than it raised.
   if (game.reports.length >= TOTAL_ROUNDS) {
-    const ending = el('section', 'grid');
-    ending.append(renderEnding({
-      state: game.state,
-      history: game.state.history,
-      playerId: game.playerId,
-      opening: game.opening,
-      // The debrief replays the game from here, and the reveal reads the
-      // rivals' round-0 ads and positions from it.
-      initial: game.initial,
-      openGuide: guide.open,
-      onRestart: restart,
-    }));
-    // A playtester's questions come after the books are open and before the
-    // last week, so they are asked once the whole game has been seen.
-    const questions = el('section', 'grid');
-    if (recorder) {
-      questions.append(renderPlaytestPanel({
-        recorder,
-        onDownload: () => downloadPlaytestFile(recorder, storage),
-      }));
-    }
-    app.replaceChildren(ending, ...(recorder ? [questions] : []), dashboard);
+    app.replaceChildren(...endingNodes(), dashboard);
     return;
   }
   app.replaceChildren(dashboard);
+}
+
+/** The end screen and, on the playtest link, its questions. */
+function endingNodes() {
+  const ending = el('section', 'grid');
+  ending.append(renderEnding({
+    state: game.state,
+    history: game.state.history,
+    playerId: game.playerId,
+    opening: game.opening,
+    // The debrief replays the game from here, and the reveal reads the
+    // rivals' round-0 ads and positions from it.
+    initial: game.initial,
+    openGuide: guide.open,
+    onRestart: restart,
+  }));
+  if (!recorder) return [ending];
+  // A playtester's questions come after the books are open and before the
+  // last week, so they are asked once the whole game has been seen.
+  const questions = el('section', 'grid');
+  questions.append(renderPlaytestPanel({
+    recorder,
+    onDownload: () => downloadPlaytestFile(recorder, storage),
+  }));
+  return [ending, questions];
+}
+
+/**
+ * Back to round 0, keeping the game to rewind FROM. Same seed, same rivals,
+ * same cells, same ads — only the player's own choices change, because
+ * replaying against a different market would answer a different question.
+ */
+function redo() {
+  rewinding = game.state;
+  game = null;
+  studio = null;
+  render();
+}
+
+/**
+ * At the end the questions come first; anywhere else, the file at once, so a
+ * player who stops halfway can still send what they did.
+ */
+function sendPlaytestFile() {
+  const questions = document.getElementById('playtest-panel');
+  if (questions) questions.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  else downloadPlaytestFile(recorder, storage);
 }
 
 /**
@@ -533,14 +588,7 @@ for (const type of ['input', 'change', 'click']) {
   app.addEventListener(type, () => { if (!game) roundZeroTouched = true; });
 }
 
-redoButton.addEventListener('click', () => {
-  // Back to round 0, keeping the game to rewind FROM. Same seed, same rivals,
-  // same cells, same ads — only the player's own choices change, because
-  // replaying against a different market would answer a different question.
-  rewinding = game.state;
-  game = null;
-  render();
-});
+redoButton.addEventListener('click', redo);
 
 if (recorder) {
   // Before the first screen is drawn, so the load is recorded ahead of the
@@ -548,13 +596,7 @@ if (recorder) {
   recorder.load();
   attachRecorder(recorder);
   playtestButton.hidden = false;
-  playtestButton.addEventListener('click', () => {
-    // At the end the questions come first; anywhere else, the file at once, so
-    // a player who stops halfway can still send what they did.
-    const questions = document.getElementById('playtest-panel');
-    if (questions) questions.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    else downloadPlaytestFile(recorder, storage);
-  });
+  playtestButton.addEventListener('click', sendPlaytestFile);
 }
 
 const saved = readSave(storage);

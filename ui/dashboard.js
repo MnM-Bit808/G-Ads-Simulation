@@ -1093,9 +1093,13 @@ function renderMarket(root, game) {
  * @param {object} game the running game: state, reports, insights, playerId,
  *   draft, view
  * @param {Function} [onDecisionChange] so the header can say how much is staged
+ * @param {object} [options]
+ * @param {Function} [options.openGuide]
+ * @param {(ctx: object) => void} [options.onContext] - handed the context this
+ *   builds, so the Studio layout can stage changes through the same form
  * @returns {HTMLElement}
  */
-export function renderDashboard(game, onDecisionChange, { openGuide } = {}) {
+export function renderDashboard(game, onDecisionChange, { openGuide, onContext } = {}) {
   const report = game.reports[game.reports.length - 1];
   const row = report.byAdvertiser[game.playerId];
   const root = document.getElementById('tpl-dashboard').content
@@ -1174,5 +1178,7 @@ export function renderDashboard(game, onDecisionChange, { openGuide } = {}) {
   root.querySelector('[data-slot="decisions"]').replaceWith(renderDecisions(ctx));
   renderTerms(root, game, ctx);
   renderPlaces(root, game, ctx);
+  // The Studio's keywords section stages changes through this same context.
+  onContext?.(ctx);
   return root;
 }
