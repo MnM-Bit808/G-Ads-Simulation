@@ -4517,6 +4517,26 @@ where it can be tested, one commit each.
   ask the spec's question again, now for all five steps. Their answer decides
   whether round 0 is done.
 
+  *Played, 2026-09-14.* Four round 0s into week 2 each matched their account:
+  the freelancer (₹3,28,000; 6 · 6, landing 5; nothing pending), the agency
+  with reviews (₹2,58,000; 7 · 7, landing 7; ₹55,000 pending at week 4), the
+  retainer with a size guide and photography (₹2,13,000; 8 · 8, landing 7; both
+  pending at week 4), and writing it yourself, weak then good (8 · 3 then
+  8 · 10; the account ran 8 · 10 at ₹3,38,000). A redo kept the brand, the seed
+  and all eight rivals, and was then gone. Reading load by the script: 281
+  (about 248 visible: 33 are map labels shown only when a place is lit), 119,
+  23 plus 15 a keyword, 150 (160 writing it yourself), 208; 781 in all against
+  2,648. Contrast: every enabled text passes on every step, the planner, the
+  QS panel, the menu, the reserve warning, the ad's problems and a need in the
+  tray; the only failures are disabled (the strip's Market and Results, 2.18:1;
+  an unaffordable rung, 3.28:1), for the owner. Red is only the player's own.
+  At 375 × 812 nothing is wider than the screen on any step, and the tray is
+  166px, 266px on step 5. Tab reaches all 29 of step 5's controls with a 2px
+  outline; the pane's key presses carry no character, so Enter could not be
+  played. The playtest recording named Round 0 steps, Tray and every step, and
+  found two gaps, both fixed: the planner drawer had no region (458311f) and a
+  guess cell had no label (02e2489). The classic look played into week 1.
+
 ---
 
 ### Task 16: docs
