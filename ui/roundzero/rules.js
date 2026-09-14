@@ -10,7 +10,7 @@
  */
 
 import { placeRivals, buildRivals } from '../../setup.js';
-import { BRAND_IDENTITIES, assignIdentities } from '../../content/brands.js';
+import { BRAND_IDENTITIES, assignIdentities, brandById, brandNamedIn } from '../../content/brands.js';
 import { cellKey, parseCell, landingPageBonus } from '../../engine/positions.js';
 import { keywordReach } from '../../engine/matching.js';
 import { writerCopyFor, WRITER_COPY_VARIANTS } from '../../content/writerCopy.js';
@@ -112,6 +112,21 @@ export function researchList(querySet) {
     intent: query.intent,
     weekly: Math.round((querySet.weeklyVolume * query.volumeShareBp) / 10000),
   })).sort((a, b) => b.weekly - a.weekly);
+}
+
+/**
+ * The search a brand's name brings with it, counted as the planner counts it:
+ * the one thing choosing among the nine decides. Ownership is read from the
+ * words, the way a player would, because `brandOwner` is withheld from every
+ * viewer (16.1).
+ *
+ * @param {string} brandId
+ * @param {object} querySet
+ * @returns {{id: string, text: string, intent: string, weekly: number}|null}
+ */
+export function ownSearch(brandId, querySet) {
+  const me = brandById(brandId);
+  return researchList(querySet).find((q) => q.intent === 'brand' && brandNamedIn(q.text, [me])) ?? null;
 }
 
 /**
@@ -391,6 +406,37 @@ export function createSetupDraft({ playerBrandId, rootSeed }) {
 /** Choose a square. The writer's copy is written for the square, so it follows. */
 export function setCell(draft, cell, rootSeed) {
   draft.cell = cell;
+  syncWriterCopy(draft, rootSeed);
+}
+
+/**
+ * Choose the brand, one of the nine (I35, reopened by the owner 2026-09-15).
+ * The brand left becomes a rival, and a hired writer's copy, which carries the
+ * name, is written again.
+ *
+ * THE NOTES FOLLOW THE ADS, NOT THE NAMES. Rivals are dealt around the player
+ * in the brands' fixed order (`assignIdentities`), so another brand moves up to
+ * seven names onto different ads, while the eight ads and their squares stay
+ * the same. A note is the player's reading of an ad, so it goes wherever that
+ * ad went. Matching by name would leave notes on ads the player never read.
+ *
+ * @param {object} draft
+ * @param {string} brandId - refused, with the draft untouched, unless one of the nine
+ * @param {number} rootSeed
+ * @param {object} querySet
+ */
+export function setBrand(draft, brandId, rootSeed, querySet) {
+  brandById(brandId);
+  const adText = (ad) => JSON.stringify([ad.headlines, ad.descriptions]);
+  const wasOn = new Map(rivalAds(rootSeed, draft.playerBrandId, querySet).map((r) => [r.name, adText(r.ad)]));
+  const nowOn = new Map(rivalAds(rootSeed, brandId, querySet).map((r) => [adText(r.ad), r.name]));
+  const guesses = {};
+  for (const [name, cell] of Object.entries(draft.guesses ?? {})) {
+    const wearer = nowOn.get(wasOn.get(name));
+    if (wearer) guesses[wearer] = cell;
+  }
+  draft.guesses = guesses;
+  draft.playerBrandId = brandId;
   syncWriterCopy(draft, rootSeed);
 }
 

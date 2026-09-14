@@ -31,7 +31,7 @@ import {
   el, add, table, field, input, select, rupees, whole, scrollX,
 } from './dom.js';
 import { briefing } from '../setup.js';
-import { BRAND_IDENTITIES, brandNamedIn } from '../content/brands.js';
+import { BRAND_IDENTITIES } from '../content/brands.js';
 import { parseCell } from '../engine/positions.js';
 import { validateAdCopy, namesARival } from '../agents/grader.js';
 import { tagKeywordOffline } from '../agents/keywordTagger.js';
@@ -50,6 +50,7 @@ import { wholeRupeeBid } from './reserve.js';
 import {
   syncPage, syncWriterCopy, committed, researchList, positionMatrix, splitShares,
   submittedAd, gradeAsSubmitted, openingReserve, monthlyBudget, evenSplit, rivalAds,
+  setBrand, ownSearch,
 } from './roundzero/rules.js';
 
 // Re-exported: tests/roundZero.test.js reads them from this page.
@@ -217,8 +218,7 @@ function sectionBrand(draft, querySet, rerender, rootSeed) {
     chip.append(el('strong', null, brand.name));
     chip.append(el('span', 'muted', brand.domain));
     chip.addEventListener('click', () => {
-      draft.playerBrandId = brand.id;
-      syncWriterCopy(draft, rootSeed);
+      setBrand(draft, brand.id, rootSeed, querySet);
       rerender();
     });
     row.append(chip);
@@ -229,19 +229,14 @@ function sectionBrand(draft, querySet, rerender, rootSeed) {
     + 'brand called BudgetBox turning up in the premium tier would mislead you, '
     + 'and position here is signalled entirely through ad copy.'));
 
-  // The one thing the choice actually decides. Ownership is INFERRED from the
-  // words, the way a player would - `brandOwner` is withheld from every viewer
-  // (16.1) - and your own name is yours to recognise.
-  const me = BRAND_IDENTITIES.find((b) => b.id === draft.playerBrandId);
-  const own = querySet.queries.find((q) => q.intent === 'brand'
-    && brandNamedIn(q.text, [me]));
+  // The one thing the choice actually decides (rules.js, ownSearch).
+  const own = ownSearch(draft.playerBrandId, querySet);
   if (own) {
-    const weekly = Math.round((querySet.weeklyVolume * own.volumeShareBp) / 10000);
     const line = el('p', 'own-brand');
     line.append(document.createTextNode('Picking it also gives you a search. People type '));
     line.append(el('strong', null, `“${own.text}”`));
     line.append(document.createTextNode(
-      ` about ${whole(weekly)} times a week, and somebody searching your name buys `
+      ` about ${whole(own.weekly)} times a week, and somebody searching your name buys `
       + 'far more often than somebody searching a category — it is the cheapest '
       + 'good traffic in the market. It is also the easiest to lose: nothing stops '
       + 'a rival bidding on your name, and if you are not there when they do, they '

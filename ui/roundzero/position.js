@@ -11,11 +11,15 @@
  * what round 0 withholds.
  */
 
-import { el, rupees, whole, pct } from '../dom.js';
+import { el, add, rupees, whole, pct } from '../dom.js';
 import { PRICE_TIERS, REPOSITION_ROUND } from '../../engine/constants.js';
+import { BRAND_IDENTITIES } from '../../content/brands.js';
 import { R0, PRICE_WORD, PURPOSE_WORD, cellWords } from '../words/roundZero.js';
 import { serp } from '../kit/serp.js';
-import { rivalAds, positionMatrix, setCell, setGuess, guessedIn } from './rules.js';
+import { whyButton } from '../guide/drawer.js';
+import {
+  rivalAds, positionMatrix, setCell, setGuess, guessedIn, setBrand, ownSearch,
+} from './rules.js';
 
 const WHO = {
   'value|performance': R0.whoValuePerformance,
@@ -37,19 +41,52 @@ function bar(fraction, text) {
 }
 
 /**
+ * The nine names, and the search the chosen one brings. The brand is the
+ * player's to choose (I35, reopened by the owner 2026-09-15); it starts on the
+ * one the seed draws.
+ */
+function brandPicker({ draft, querySet, rootSeed, openGuide, redraw }) {
+  const box = el('div', 'r0-brands');
+  box.dataset.region = R0.brandTitle();
+  const head = el('div', 'r0-head');
+  head.append(el('h3', null, R0.brandTitle()), el('span', 'r0-small', R0.brandNote()));
+  const row = el('div', 'r0-brand-row');
+  for (const brand of BRAND_IDENTITIES) {
+    const on = brand.id === draft.playerBrandId;
+    const pick = el('button', on ? 'r0-brand on' : 'r0-brand');
+    pick.type = 'button';
+    pick.dataset.key = `brand:${brand.id}`;
+    pick.setAttribute('aria-pressed', String(on));
+    pick.append(el('strong', null, brand.name), el('span', null, brand.domain));
+    pick.addEventListener('click', () => { if (!on) { setBrand(draft, brand.id, rootSeed, querySet); redraw(); } });
+    row.append(pick);
+  }
+  box.append(head, row);
+  const own = ownSearch(draft.playerBrandId, querySet);
+  if (own) {
+    const said = el('p', 'r0-small', R0.ownSearch({ query: own.text, volume: whole(own.weekly) }));
+    add(said, whyButton(R0.ownSearch, openGuide));
+    box.append(said);
+  }
+  return box;
+}
+
+/**
  * @param {object} ctx - the frame's context (./studio.js)
- * @param {object} ctx.draft - round 0's draft; a guess and the square are kept here
+ * @param {object} ctx.draft - round 0's draft; the brand, a guess and the square are kept here
  * @param {object} ctx.brief - `briefing(querySet)`, for the axis's figures
  * @param {object} ctx.querySet
  * @param {number} ctx.rootSeed
+ * @param {Function} ctx.openGuide - `guide.open`
  * @param {() => void} ctx.redraw - redraws this step, keeping the scroll and focus
  * @returns {{node: HTMLElement}}
  */
-export function renderPositionStep({ draft, brief, querySet, rootSeed, redraw }) {
+export function renderPositionStep({ draft, brief, querySet, rootSeed, openGuide, redraw }) {
   const ads = rivalAds(rootSeed, draft.playerBrandId, querySet);
   const matrix = positionMatrix();
   const node = el('div', 'r0-position');
-  node.append(el('p', 'r0-intro', R0.positionIntro({ rivals: ads.length })));
+  node.append(el('p', 'r0-intro', R0.positionIntro({ rivals: ads.length })),
+    brandPicker({ draft, querySet, rootSeed, openGuide, redraw }));
 
   // The other eight, as searchers see them, each with a grid for a guess.
   const rivals = el('div', 'r0-rivals');

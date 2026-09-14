@@ -4150,6 +4150,23 @@ one was ten buttons and a paragraph for no decision. `assignPlayerBrand` in
 same seed is always the same brand, a new market can be another, and the redo
 keeps it. The engine was not touched; `startGame` already took `playerBrandId`.
 
+**REOPENED BY THE OWNER, 2026-09-15: the brand is a pick from the nine.** After
+playing the pilot the owner asked why they could not choose their brand. The
+figures above still hold, so the pick decides almost nothing about the
+economics; it is the player's name. Step 2 now opens with the nine names,
+starting on the seed's draw, and one line for the search the chosen name brings
+(`ownSearch`, the classic page's figure). A typed name was considered and is
+not workable: the query set holds searches for these nine names only, so a
+tenth would have no search of its own. Choosing another brand makes the one
+left a rival, and a hired writer's copy is written again for the new name
+(`setBrand` in `ui/roundzero/rules.js`, which the classic page's picker now
+calls too). Rivals are dealt around the player in the brands' fixed order, so a
+different brand moves up to seven names onto different ads, while the eight ads
+and their squares stay the same. **The notes follow the ads:** a note is the
+player's reading of an ad, so it goes wherever that ad went. Step 2 grew by
+about 54 words, 19 of them the names and domains. The redo still opens on the
+brand the game was played as, and the player may choose again there.
+
 **The freelancer is the arrival.** A player arrives with the freelance
 copywriter hired and its copy in the ad, so someone who does not want to write
 never meets five empty boxes. Writing it yourself is one choice away and graded

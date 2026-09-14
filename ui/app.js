@@ -332,8 +332,8 @@ function render() {
     roundZeroTouched = false;
     if (look === 'studio') {
       // Round 0 in the sidebar layout (plans/2026-09-14-round-zero-redesign.md).
-      // The brand is drawn from the seed; a redo keeps the one it had, because
-      // redoRoundZero rebuilds the same market around it.
+      // Round 0 starts on the brand the seed draws, and step 2 lets the player
+      // pick another; a redo starts on the one the game was played as.
       app.replaceChildren(createRoundZero({
         querySet: QUERY_SET,
         rootSeed,

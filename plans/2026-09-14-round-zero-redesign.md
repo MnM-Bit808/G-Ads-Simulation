@@ -440,6 +440,11 @@ tasks carry the detail, in their *Found when built* notes.
 - **The default market's brand (section 4).** With the brand drawn from the
   seed, seed 20260902 draws Marlow, not Vella & Co.; the canvas's Vella & Co.
   was for illustration.
+- **The brand is picked again (section 4), by the owner, 2026-09-15**, after
+  playing the pilot. Step 2 opens with the nine names, starting on the seed's
+  draw, and the line for the search the chosen name brings. A note on a rival
+  follows the ad it was made about, since another brand deals the eight names
+  onto the eight ads differently (DECISIONS I35).
 - **The cities (sections 4 and 8).** The first eighteen had been typed by hand
   (`SIM` in `design/build-cities.mjs`); only the backdrop came from the geonames
   dataset. All 32 now come from the dataset, and five pairs of names that

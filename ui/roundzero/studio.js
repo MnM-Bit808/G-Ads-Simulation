@@ -12,7 +12,7 @@
 
 import { el, rupees } from '../dom.js';
 import { briefing, REDO_DEADLINE_ROUND } from '../../setup.js';
-import { BRAND_IDENTITIES } from '../../content/brands.js';
+import { brandById } from '../../content/brands.js';
 import { writerTier } from '../../content/writers.js';
 import { TOTAL_ROUNDS } from '../../engine/constants.js';
 import { AREAS, ICONS } from '../shell/sections.js';
@@ -45,7 +45,8 @@ const NEED = { keyword: R0.needKeyword, ad: R0.needAd, split: R0.needSplit };
  * @param {object} args
  * @param {object} args.querySet
  * @param {number} args.rootSeed
- * @param {string} args.playerBrandId - assigned from the seed, or kept by a redo
+ * @param {string} args.playerBrandId - the brand round 0 starts on: the seed's
+ *   draw, or the one a redo kept. Step 2 lets the player choose another.
  * @param {Function} args.openGuide - `guide.open`
  * @param {(trigger: HTMLElement) => void} args.openContents
  * @param {(choices: {playerBrandId: string, player: object}) => Promise<void>} args.onGo
@@ -58,7 +59,8 @@ const NEED = { keyword: R0.needKeyword, ad: R0.needAd, split: R0.needSplit };
 export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, openContents, onGo, onPlaytest = null }) {
   const brief = briefing(querySet);
   const draft = createSetupDraft({ playerBrandId, rootSeed });
-  const brand = BRAND_IDENTITIES.find((b) => b.id === playerBrandId);
+  // Read each time it is drawn: step 2 lets the player choose another.
+  const brandName = () => brandById(draft.playerBrandId).name;
   const view = { step: 'market', visited: new Set(['market']), direction: 0 };
   let going = false;
 
@@ -97,13 +99,15 @@ export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, 
       drawSection();
       body.scrollTop = y;
       if (key) content.querySelector(`[data-key="${CSS.escape(key)}"]`)?.focus();
+      // The rail carries the brand's initials, which a redraw may have changed.
+      drawRail();
       drawList();
       drawTray();
     },
   };
 
   function drawRail() {
-    const initials = brand.name.split(' ').slice(0, 2).map((w) => w[0]).join('');
+    const initials = brandName().split(' ').slice(0, 2).map((w) => w[0]).join('');
     rail.replaceChildren(el('div', 'studio-logo', initials));
     for (const area of AREAS) {
       const b = button('studio-area', icon(area.icon), el('span', null, area.label));
@@ -124,7 +128,7 @@ export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, 
   function drawList() {
     const done = stepsDone(draft, view.visited);
     const head = el('div', 'studio-brand');
-    head.append(el('strong', null, brand.name), el('span', null, R0.yourBrand()));
+    head.append(el('strong', null, brandName()), el('span', null, R0.yourBrand()));
     list.replaceChildren(head, el('p', 'studio-area-title', R0.beforeWeek({ week: 1 })));
     STEPS.forEach((step, i) => {
       const mark = el('span', done[step.key] ? 'r0-mark done' : 'r0-mark', done[step.key] ? '✓' : String(i + 1));

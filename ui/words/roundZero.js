@@ -76,6 +76,10 @@ export const R0 = Object.freeze({
   readOnly: line('instruction', 'Nothing to decide here. Read it, then choose where you sit.'),
 
   // Step 2, where you sit
+  brandTitle: line('label', 'Your brand'),
+  brandNote: line('instruction', 'one of the nine · the other eight are your rivals'),
+  ownSearch: line('reading', ({ query, volume }) => `Your name brings a search of its own: “${query}”, `
+    + `about ${volume} a week. Any rival may bid on it.`, { why: 'ownName' }),
   positionIntro: line('reading', ({ rivals }) => `Nobody tells you where the other ${rivals} sit. `
     + 'Their ads are the only evidence before the first auction.'),
   otherRivals: line('label', ({ n }) => `The other ${n}`),

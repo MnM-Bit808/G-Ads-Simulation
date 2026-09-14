@@ -303,6 +303,80 @@ describe('guesses are the player\'s notes, and never leave round 0', () => {
   });
 });
 
+describe('choosing the brand (I35, reopened by the owner 2026-09-15)', () => {
+  const other = BRAND_IDENTITIES.find((b) => b.id !== BRAND);
+  const adText = (ad) => JSON.stringify([ad.headlines, ad.descriptions]);
+
+  test('the brand left becomes a rival, and the brand taken stops being one', () => {
+    const d = fresh();
+    rules.setBrand(d, other.id, SEED, QUERY_SET);
+    expect(d.playerBrandId).toBe(other.id);
+    const names = rules.rivalAds(SEED, d.playerBrandId, QUERY_SET).map((a) => a.name);
+    expect(names).toContain(BRAND_IDENTITIES[1].name);
+    expect(names).not.toContain(other.name);
+  });
+
+  test('a note stays on the ad it was made about, whoever wears that ad now', () => {
+    // Rivals are dealt around the player in the brands' fixed order, so a
+    // different brand moves several names onto different ads (up to seven of
+    // the eight). The notes are readings of ads, so they follow the ads.
+    const cells = rules.positionMatrix().rows.flatMap((row) => row.cells.map((c) => c.key));
+    const before = rules.rivalAds(SEED, BRAND, QUERY_SET);
+    for (const target of BRAND_IDENTITIES.filter((b) => b.id !== BRAND)) {
+      const d = fresh();
+      before.forEach((rival, i) => rules.setGuess(d, rival.name, cells[i % cells.length]));
+      const noteOn = new Map(before.map((rival) => [adText(rival.ad), d.guesses[rival.name]]));
+      rules.setBrand(d, target.id, SEED, QUERY_SET);
+      const after = rules.rivalAds(SEED, target.id, QUERY_SET);
+      expect(Object.keys(d.guesses).sort(), target.id).toEqual(after.map((r) => r.name).sort());
+      for (const rival of after) expect(d.guesses[rival.name], `${target.id} ${rival.name}`).toBe(noteOn.get(adText(rival.ad)));
+    }
+  });
+
+  test('a hired writer\'s copy is written again for the new name', () => {
+    const d = fresh();
+    rules.setBrand(d, other.id, SEED, QUERY_SET);
+    const copy = writerCopyFor(d.cell, d.writerTier, other.name, SEED % WRITER_COPY_VARIANTS);
+    expect(d.ad.headlines).toEqual(copy.headlines);
+    expect(d.ad.descriptions).toEqual(copy.descriptions);
+  });
+
+  test('words the player wrote are left as they are', () => {
+    const d = fresh();
+    rules.setWriter(d, 'diy', SEED);
+    rules.writeAd(d, 'headlines', 0, 'Squat Proof All Day');
+    rules.setBrand(d, other.id, SEED, QUERY_SET);
+    expect(d.ad.headlines).toEqual(['Squat Proof All Day', '', '']);
+  });
+
+  test('a name that is not one of the nine is refused, and nothing changes', () => {
+    const d = fresh();
+    rules.setGuess(d, rules.rivalAds(SEED, BRAND, QUERY_SET)[0].name, 'value|lifestyle');
+    const kept = JSON.stringify(d);
+    expect(() => rules.setBrand(d, 'budgetbox', SEED, QUERY_SET)).toThrow(RangeError);
+    expect(JSON.stringify(d)).toBe(kept);
+  });
+
+  test('each name comes with a search of its own, counted as the planner counts it', () => {
+    const planner = rules.researchList(QUERY_SET);
+    for (const brand of BRAND_IDENTITIES) {
+      const own = rules.ownSearch(brand.id, QUERY_SET);
+      expect(own.intent, brand.id).toBe('brand');
+      expect(own.text, brand.id).toContain(brand.name.split(' ')[0].toLowerCase());
+      expect(own.weekly, brand.id).toBe(planner.find((q) => q.id === own.id).weekly);
+    }
+    expect(new Set(BRAND_IDENTITIES.map((b) => rules.ownSearch(b.id, QUERY_SET).id)).size).toBe(9);
+  });
+
+  test('Go opens the account under the name chosen', () => {
+    const d = fresh();
+    rules.setBrand(d, other.id, SEED, QUERY_SET);
+    rules.addSetupKeyword(d, 'gym leggings');
+    const state = startGame({ rootSeed: SEED, querySet: QUERY_SET, ...rules.startChoices(d) });
+    expect(state.advertisers[0].id).toBe(other.id);
+  });
+});
+
 describe('what Go needs, and what it sends', () => {
   test('a keyword and a finished ad; the square and the money arrive done', () => {
     const d = fresh();

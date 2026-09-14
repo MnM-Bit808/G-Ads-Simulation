@@ -45,7 +45,7 @@ const start = (over = {}) => startGame({
   rootSeed: 20260902, playerBrandId: PLAYER_BRAND, player: choices(), querySet: QUERY_SET, ...over,
 });
 
-describe('the player\'s brand is drawn from the seed, not picked (round 0 redesign)', () => {
+describe('round 0 starts on a brand drawn from the seed (the player may pick another, I35)', () => {
   test('the same seed is always the same brand', () => {
     expect(assignPlayerBrand(20260902)).toBe(assignPlayerBrand(20260902));
   });

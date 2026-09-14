@@ -34,8 +34,8 @@ own section; the owner played it on 2026-09-15 and said "Alive".
   - Round 0, all sixteen tasks of `plans/2026-09-14-round-zero-redesign-plan.md`
     (`98610c4` onward), as designed in `plans/2026-09-14-round-zero-redesign.md`
     (DECISIONS I35). Five steps in the sidebar layout: the market, where you
-    sit, your keywords, your ad, your money. The brand is drawn from the seed,
-    the India map has 32 cities that pulse by searches, and the shared kit
+    sit, your keywords, your ad, your money. The brand starts on the seed's
+    draw and, since 2026-09-15, is the player's to pick in step 2; the India map has 32 cities that pulse by searches, and the shared kit
     (`ui/kit/`) is built for the weekly *Your keywords* to reuse. Two rules
     changed: a self-written ad is graded on its words from week 1 (I11, measured
     on the harness first), and a hired writer's ad is always the writer's copy
@@ -76,10 +76,10 @@ change moves the market, so it is measured on `scripts/market-harness.js`
 before and after, against gates agreed first.
 
 **What to do next, in the owner's order (2026-09-15):**
-1. **The brand as a pick from the nine,** in round 0's step 2, starting on the
-   one the seed draws. It reopens DECISIONS I35: the pick changes nothing in the
-   game, but it is the player's own. A typed name is not workable, because the
-   query set holds only the nine brands' own searches.
+1. **DONE 2026-09-15: the brand as a pick from the nine,** in round 0's step
+   2, starting on the one the seed draws (DECISIONS I35's dated note). A note
+   on a rival follows the ad it was made about, because another brand deals
+   the eight names onto the eight ads differently.
 2. **Your ad, read-only:** the ad as searchers see it, who wrote it, its grades
    and the landing page. Rewriting an ad mid-game waits for the message project.
 3. **Where and when,** drawn first as mock-ups on the canvas: hours as bars to

@@ -275,7 +275,7 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
     placed: 3, names: ['Nira', 'Marlow'], name: 'Nira', cell: 'Value · Performance',
     budget: '₹50,000', grade: 6, max: 30, writer: 'freelance copywriter', value: 7, scale: 10,
     month: 1, capital: '₹1,20,000', what: 'parcels refused', label: 'a chart',
-    weekly: '₹77,000', planned: '₹3,00,000',
+    weekly: '₹77,000', planned: '₹3,00,000', query: 'nira joggers', volume: '2,838',
   };
 
   test('every entry is a line of a kind the screen may carry', () => {
