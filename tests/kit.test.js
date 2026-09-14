@@ -4,6 +4,7 @@
  * decided here.
  */
 import { describe, test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { sliderMaxPaise, SLIDER_FLOOR_PAISE } from '../ui/kit/card.js';
 import { plannerRows, PLANNER_ROWS } from '../ui/kit/planner.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -21,6 +22,16 @@ describe('a text box can be made out wherever it sits', () => {
     ['the planner drawer', () => studioRule('.kplanner', 'background')],
   ])('against %s', (_, ground) => {
     expect(contrast(outline, rgb(ground()))).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('what the Studio marks hidden stays hidden', () => {
+  // A class that sets `display` outranks the browser's own rule for `hidden`,
+  // so the tray showed "0 changes waiting" beside "No changes yet", and Adjust
+  // several's bar sat on top of the tray's lines (found playing Your keywords).
+  test('over any display a class gives it', () => {
+    const css = readFileSync(new URL('../ui/studio.css', import.meta.url), 'utf8');
+    expect(css).toMatch(/body\.studio \[hidden\] \{ display: none !important; \}/);
   });
 });
 

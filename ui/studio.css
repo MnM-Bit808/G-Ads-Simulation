@@ -118,6 +118,10 @@ body.studio tr.you td { background: rgba(215, 38, 47, 0.12); }
 body.studio button.why { border-bottom-color: rgba(255, 97, 102, 0.6); }
 body.studio :is(button.why, button.guide-next, .guide-sources a):hover { color: #FF8A8E; }
 
+/* A class that sets display outranks the browser's own rule for hidden, so the
+   Studio says it once for everything it hides (tests/kit.test.js). */
+body.studio [hidden] { display: none !important; }
+
 /* --- the shell (spec section 2) ------------------------------------------ */
 /* Round 0 keeps the page and its header; the shell takes the window. */
 body.studio:has(.studio-shell) .bar { display: none; }
