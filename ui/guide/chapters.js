@@ -116,6 +116,14 @@ const GOOGLE = {
     label: 'Google Ads Help: About Quality Score for Search campaigns',
     url: 'https://support.google.com/google-ads/answer/6167118',
   },
+  responsiveSearchAds: {
+    label: 'Google Ads Help: About responsive search ads',
+    url: 'https://support.google.com/google-ads/answer/7684791',
+  },
+  dailyBudgets: {
+    label: 'Google Ads Help: About average daily budgets',
+    url: 'https://support.google.com/google-ads/answer/6385083',
+  },
 };
 
 const INDIA = {
@@ -381,10 +389,54 @@ export const CHAPTERS = Object.freeze({
     yourAccount: 'hours',
     related: ['smartBidding'],
   }),
+
+  writers: chapter({
+    title: 'Who writes the ad',
+    real: () => 'A search ad in Google Ads is built from headlines and descriptions: up to 15 '
+      + 'headlines of up to 30 characters and 4 descriptions of up to 90, which Google '
+      + 'assembles into combinations, testing them to learn which are most relevant. At least '
+      + 'one headline and one description show at a time. Two of Quality Score’s three parts '
+      + 'are about the ad: expected clickthrough rate, the likelihood it is clicked when shown, '
+      + 'and ad relevance, how closely it matches the intent behind a search. The third, '
+      + 'landing page experience, is how relevant and useful your page is to people who click.',
+    realSources: [GOOGLE.responsiveSearchAds, GOOGLE.qualityScore],
+    game: () => 'Before the first week you choose who writes the ad, which sets two of Quality '
+      + 'Score’s three parts: expected click-through and ad relevance. A hired writer’s ad runs '
+      + 'at the writer’s level whatever the words say, because this game cannot judge '
+      + 'professional writing. Writing it yourself costs nothing, and the game’s grader scores '
+      + 'your words by rules, not taste: echoing your own keywords counts for more than reading '
+      + 'well. Both run from the first week, and what the writer does not cost goes to your ads, '
+      + 'so the fee buys not having to write, and insurance against writing badly. The landing '
+      + 'page is built with capital. Where it departs: Google’s Quality Score has no part for '
+      + 'who wrote the ad.',
+    cites: ['I11', 'I10', 'I25', 'I9'],
+    yourAccount: 'keywords',
+    related: ['qualityScore'],
+  }),
+
+  weeklySplit: chapter({
+    title: 'Splitting the month into weeks',
+    real: () => 'Google Ads budgets by the day: you set an average daily budget for each '
+      + 'campaign, the average amount it spends per day. On a particular day it may spend up to '
+      + 'twice that, for most campaigns, because Google leans spend toward the days of the month '
+      + 'when you are more likely to get clicks and conversions. Across a month it stays within '
+      + '30.4 times the daily figure.',
+    realSources: [GOOGLE.dailyBudgets],
+    game: () => 'Here each month’s money is a fixed amount you divide across its four weeks, '
+      + 'evenly unless you change the split, and within a week it is paced across the days and '
+      + 'hours. A week spends what it was given and no more, and money left when the month ends '
+      + 'is lost: nothing carries over, so hoarding cannot win. Where it departs: Google works '
+      + 'from a daily average and moves spend between days for you; here the shape of the month '
+      + 'is yours to set, which is why the split exists, and yours to read afterwards.',
+    cites: ['D10', '§13.2', 'D1'],
+    yourAccount: 'split',
+    related: ['rankOrBudget'],
+  }),
 });
 
 /** The guide's contents list, in reading order. */
 export const CONTENTS = Object.freeze([
   'attributionLag', 'returnsSplit', 'cashOnDelivery', 'rankOrBudget', 'broadMatch',
-  'qualityScore', 'ownName', 'smartBidding', 'hours', 'counterfactuals', 'kindMarket',
+  'qualityScore', 'writers', 'ownName', 'smartBidding', 'hours', 'weeklySplit',
+  'counterfactuals', 'kindMarket',
 ]);
