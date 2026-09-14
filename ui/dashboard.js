@@ -1081,6 +1081,58 @@ function renderMarket(root, game) {
 
 
 /**
+ * What the decision form is handed to draw from: the account's own figures,
+ * the public view, and lookups that answer without handing over what they read.
+ *
+ * The half of the form's context that needs no page, so a test can read what
+ * the cards read without drawing them. `renderDashboard` adds the half that
+ * does — the guide, the report's range and the redraws.
+ *
+ * @param {object} game the running game: state, reports, playerId, draft
+ * @param {object} [view] the player's public view, when the caller already
+ *   has one
+ * @returns {object} built afresh each week, when the dashboard is drawn
+ */
+export function formContext(game, view = getPublicView(game.state, game.playerId)) {
+  const row = game.reports[game.reports.length - 1].byAdvertiser[game.playerId];
+  return {
+    draft: game.draft,
+    // The public view, not content/querySet.js: the form may see a search's
+    // text, volume and intent and nothing else (16.1), and taking it from here
+    // means that is enforced rather than merely intended.
+    queries: view.querySet,
+    // The form adds keywords from the public view, which has no tags; this is
+    // the one thing it may ask of the full set, and the lookup happens in
+    // agents/keywordTagger.js rather than here (E9).
+    tagKeyword: (keyword) => tagKeywordOffline(keyword, game.state.querySet),
+    weeklyVolume: view.weeklyVolume,
+    texts: new Map(view.querySet.map((q) => [q.id, q.text])),
+    // Rival identity is public (R3), so a search carrying somebody's name can
+    // be named as such. `brandOwner` itself is withheld (16.1) and is never
+    // read — this is the same inference a player makes from the words.
+    advertisers: view.advertisers,
+    quality: row.quality,
+    // The grader's own 1-10 for this ad, with the landing-page capital folded
+    // in. The player's own data, and until now never on screen.
+    grades: effectiveGrades(game.draft),
+    money: row.money,
+    // What a founder could research (17.2), from the same function round 0
+    // uses — so the two screens cannot disagree about the grid.
+    brief: briefing(game.state.querySet),
+    // What each week of this month actually spent, so the split card can show
+    // it beside what that week was planned. Addition of report figures.
+    spentByWeek: spentByWeekOfMonth(game),
+    // The month just played, which the capital card reads its choice against
+    // (D12). The player's own report, so nothing R3 withholds.
+    lastMonth: lastMonthBudget(game.state.history, game.playerId, game.state.round),
+    // How many searches a keyword matches, as a count only: the matching reads
+    // the full set's tags, which the view withholds, and hands back a number,
+    // as Keyword Planner forecasts a keyword without its workings (E8).
+    reach: (keyword) => keywordReach(keyword, game.state.querySet),
+  };
+}
+
+/**
  * Draw one round for one advertiser, and the form that changes the next one.
  *
  * The search terms table and the decision form move together: blocking a row
@@ -1117,43 +1169,11 @@ export function renderDashboard(game, onDecisionChange, { openGuide, onContext }
   renderBudget(root, row, game);
   renderMarket(root, game);
 
-  // The public view, not content/querySet.js: the form may see a search's
-  // text, volume and intent and nothing else (16.1), and taking it from here
-  // means that is enforced rather than merely intended.
   const view = getPublicView(game.state, game.playerId);
   const ctx = {
-    draft: game.draft,
-    queries: view.querySet,
-    // The form adds keywords from the public view, which has no tags; this is
-    // the one thing it may ask of the full set, and the lookup happens in
-    // agents/keywordTagger.js rather than here (E9).
-    tagKeyword: (keyword) => tagKeywordOffline(keyword, game.state.querySet),
-    weeklyVolume: view.weeklyVolume,
-    texts: new Map(view.querySet.map((q) => [q.id, q.text])),
-    // Rival identity is public (R3), so a search carrying somebody's name can
-    // be named as such. `brandOwner` itself is withheld (16.1) and is never
-    // read — this is the same inference a player makes from the words.
-    advertisers: view.advertisers,
-    quality: row.quality,
-    // The grader's own 1-10 for this ad, with the landing-page capital folded
-    // in. The player's own data, and until now never on screen.
-    grades: effectiveGrades(game.draft),
-    money: row.money,
-    // What a founder could research (17.2), from the same function round 0
-    // uses — so the two screens cannot disagree about the grid.
-    brief: briefing(game.state.querySet),
-    // What each week of this month actually spent, so the split card can show
-    // it beside what that week was planned. Addition of report figures.
-    spentByWeek: spentByWeekOfMonth(game),
-    // The month just played, which the capital card reads its choice against
-    // (D12). The player's own report, so nothing R3 withholds.
-    lastMonth: lastMonthBudget(game.state.history, game.playerId, game.state.round),
+    ...formContext(game, view),
     // So a card on the form can carry a "why?" into the field guide.
     openGuide,
-    // How many searches a keyword matches, as a count only: the matching reads
-    // the full set's tags, which the view withholds, and hands back a number,
-    // as Keyword Planner forecasts a keyword without its workings (E8).
-    reach: (keyword) => keywordReach(keyword, game.state.querySet),
     terms: null,
     byKeyword: null,
     /** Both breakdowns follow whichever range the report is showing. */

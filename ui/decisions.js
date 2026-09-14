@@ -2146,6 +2146,20 @@ export function prepaidOutlook(draft, rows) {
   return { now: at(draft.prepaidDiscountPaise), none: at(0) };
 }
 
+/**
+ * The prepaid card's two figures, read from the context the form is handed.
+ *
+ * Apart from the card so a test can read what it shows without drawing it:
+ * this is the line where the card takes its figures from its context.
+ *
+ * @param {object} ctx from `formContext` in ui/dashboard.js
+ * @returns {{now: number, none: number}} refusal rates, 0..1
+ */
+export function prepaidReading(ctx) {
+  const rows = locationRows(ctx.draft, ctx.history ?? [], ctx.playerId);
+  return prepaidOutlook(ctx.draft, rows);
+}
+
 function prepaidCard(ctx, refresh) {
   const node = card('Prepaid discount', 'money off, to keep the parcel out of the wrong hands', 'span-2');
   node.dataset.slot = 'prepaid';
@@ -2169,8 +2183,7 @@ function prepaidCard(ctx, refresh) {
   node.append(chips);
 
   // What it is doing to this account, at the mix this account actually buys.
-  const rows = locationRows(draft, ctx.history ?? [], ctx.playerId);
-  const { now, none } = prepaidOutlook(draft, rows);
+  const { now, none } = prepaidReading(ctx);
   const table_ = el('table', 'mini');
   table(table_, ['', { label: 'Refusals', num: true }, { label: 'Costs you', num: true }], [
     { cells: ['No discount', pct(none, 1), '—'] },
