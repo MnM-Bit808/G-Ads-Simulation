@@ -216,6 +216,7 @@ describe('every interface module at least loads', () => {
     'shell/tray.js': () => import('../ui/shell/tray.js'),
     'shell/shell.js': () => import('../ui/shell/shell.js'),
     'words/shell.js': () => import('../ui/words/shell.js'),
+    'roundzero/rules.js': () => import('../ui/roundzero/rules.js'),
   };
 
   test('the list of modules to load is complete', () => {
