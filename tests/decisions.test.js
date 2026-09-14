@@ -24,6 +24,7 @@ import {
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
   removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
   prepaidOutlook, setPrepaidDiscount, locationRows, locationOutlook, qualityWindowPhrase,
+  setLocation,
 } from '../ui/decisions.js';
 
 /**
@@ -85,6 +86,34 @@ describe('an untouched form decides nothing', () => {
     expect(toDecision(draft)).not.toBeNull();
     changes(draft)[0].undo();
     expect(toDecision(draft)).toBeNull();
+  });
+});
+
+describe('every change the form sends is listed, so the tray and the summary can say it', () => {
+  // Found playing the Studio (makeover Task 10): a prepaid discount was sent to
+  // the engine and listed nowhere, so the tray read "No changes yet" over a
+  // decision about to run, with no way to take it back there.
+  test.each([
+    ['negatives', (d) => addNegative(d, { text: 'free', matchType: 'broad' })],
+    ['weeklySplitPaise', (d) => setWeekBudget(d, 1, d.weeklySplitPaise[1] + 100000)],
+    ['locationAdjustments', (d) => setLocation(d, 0, 30)],
+    ['prepaidDiscountPaise', (d) => setPrepaidDiscount(d, 5000)],
+    ['daypartAdjustments', (d) => setDaypart(d, 0, 20)],
+    ['strategy', (d) => setStrategy(d, 'maxClicks')],
+  ])('%s', (field, change) => {
+    const draft = createDraft(selfView());
+    expect(change(draft).ok ?? true).toBe(true);
+    expect(Object.keys(toDecision(draft).campaign)).toContain(field);
+    const rows = changes(draft);
+    expect(rows.length, 'listed').toBeGreaterThan(0);
+    for (const row of rows) row.undo?.();
+    expect(toDecision(draft), 'and its undo takes it back').toBeNull();
+  });
+
+  test('the discount says what it was and what it will be', () => {
+    const draft = createDraft(selfView());
+    setPrepaidDiscount(draft, 5000);
+    expect(changes(draft).find((r) => r.kind === 'prepaid').label).toBe('Prepaid discount none → ₹50');
   });
 });
 

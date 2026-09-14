@@ -375,6 +375,23 @@ export function changes(draft) {
     });
   });
 
+  // I34. Sent by toDecision and, until makeover Task 10 played it, listed
+  // nowhere: the tray said "No changes yet" over a discount about to run.
+  if (draft.prepaidDiscountPaise !== draft.base.prepaidDiscountPaise) {
+    const before = draft.base.prepaidDiscountPaise;
+    const after = draft.prepaidDiscountPaise;
+    const shown = (paise) => (paise === 0 ? 'none' : rupees(paise));
+    rows.push({
+      id: 'prepaid',
+      kind: 'prepaid',
+      label: `Prepaid discount ${shown(before)} → ${shown(after)}`,
+      detail: after === 0
+        ? 'cash on delivery at whatever rate the market runs'
+        : `${rupees(after)} off every prepaid order, from the week about to run`,
+      undo: () => setPrepaidDiscount(draft, before),
+    });
+  }
+
   if (draft.strategy !== draft.base.strategy) {
     rows.push({
       id: 'strategy',
