@@ -31,3 +31,19 @@ describe('the guess grid under each rival ad (step 2)', () => {
     expect(contrast(outline, rgb(studioToken('--studio-page')))).toBeGreaterThanOrEqual(3);
   });
 });
+
+describe('the icon strip\'s greyed-out areas (Market and Results, all through round 0)', () => {
+  // Measured in Task 15 at 2.18:1 against the strip; the owner had them raised
+  // to about 3.5:1, and no further, so they still read as off beside the rest.
+  const rail = rgb(studioToken('--studio-rail'));
+  const off = contrast(rgb(studioRule('.studio-area:disabled', 'color')), rail);
+  const on = contrast(rgb(studioRule('.studio-area', 'color')), rail);
+
+  test('can be read', () => {
+    expect(off).toBeGreaterThanOrEqual(3);
+  });
+
+  test('and still look off beside an area that works', () => {
+    expect(on - off).toBeGreaterThanOrEqual(1.5);
+  });
+});

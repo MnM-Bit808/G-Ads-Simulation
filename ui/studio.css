@@ -130,7 +130,9 @@ body.studio .studio-rail { display: flex; flex-direction: column; align-items: c
 body.studio .studio-logo { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 18px; border-radius: 14px; background: var(--studio-red); color: var(--studio-on-red); font: 800 17px/1 var(--studio-display); }
 body.studio .studio-area { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; padding: 8px 0 6px; border-radius: 14px; background: none; color: #8A8389; font-size: 10px; font-weight: 600; }
 body.studio .studio-area[aria-current="true"] { background: #2A1216; color: #F3EEEA; }
-body.studio .studio-area:disabled { opacity: 1; color: #4A454F; }
+/* Readable at 3:1 and still plainly off beside an area that works
+   (tests/roundZeroLook.test.js). */
+body.studio .studio-area:disabled { opacity: 1; color: #68636B; }
 body.studio .studio-playtest { margin-top: auto; }
 
 body.studio .studio-list { display: flex; flex-direction: column; gap: 4px; padding: 22px 12px; overflow-y: auto; background: var(--studio-sidebar); border-right: 1px solid #26232A; }
