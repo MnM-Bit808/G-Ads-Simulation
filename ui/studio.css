@@ -338,6 +338,14 @@ body.studio .r0-readonly { margin: 16px 0 0; font-size: 14px; color: var(--studi
   body.studio .r0-finish { flex-wrap: wrap; }
   body.studio .studio-tray.r0-tray { height: auto; min-height: 76px; padding: 8px 12px; flex-wrap: wrap; }
 }
+/* On a phone "So far" was squeezed beside Next and scrolled sideways; it takes
+   its own line, with the button beneath (the owner, 2026-09-14), and its chips
+   wrap, since four of them need about 480px of a 351px line. */
+@media (max-width: 700px) {
+  body.studio .r0-tray .r0-sofar, body.studio .r0-tray .r0-next, body.studio .r0-tray .r0-finish { flex: 1 1 100%; }
+  body.studio .r0-tray .r0-sofar { flex-wrap: wrap; overflow-x: visible; }
+}
+
 /* --- step 2, where you sit ------------------------------------------------ */
 body.studio .r0-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
 body.studio .r0-rivals, body.studio .r0-squares { margin-bottom: 16px; }

@@ -3664,7 +3664,8 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   against the card; and on a phone the tray's *So far* chips are squeezed
   beside Next and scroll sideways. The owner's gate: *it feels alive*, and
   both changed. The guess cells are 26 by 20px, 4px apart, outlined 3.33:1
-  (`tests/roundZeroLook.test.js`).
+  (`tests/roundZeroLook.test.js`). Under 700px the tray's *So far* takes its
+  own line, its chips wrapping, with the button full width beneath.
 
 - [ ] **Step 6: The owner's gate** (spec section 9). Hand over the dev-server link
   with `?look=studio` and ask the spec's question: play steps 1 and 2; does it
