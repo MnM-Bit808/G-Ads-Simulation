@@ -53,16 +53,20 @@ const anyCopyWritten = (ad) => [...(ad.headlines ?? []), ...(ad.descriptions ?? 
  *
  * THREE RULES, AND EACH ONE IS A WAY THIS COULD GO WRONG.
  *
- * It never overwrites what the PLAYER wrote. `draft.adIsSeeded` records whose
- * words are in the boxes, so switching tier rewrites a delivered ad but leaves a
- * hand-written one alone. Without it, typing three headlines and then changing
- * your mind about the writer would silently discard them.
+ * A hired writer's ad is ALWAYS the writer's copy, and the player's own words
+ * are set aside in `draft.ownAd`, never lost. `draft.adIsSeeded` records whose
+ * words are in the boxes. This used to leave hand-written words in place under
+ * a hired writer, which suited the classic page, whose boxes show for every
+ * writer; the Studio shows them only for Write it yourself, so those words sat
+ * in the account unseen, and if they broke Google's limits Go stayed blocked
+ * with nothing on screen to fix. The owner changed it (2026-09-14, I25).
  *
- * It CLEARS on the way to DIY, which is the whole reason the flag exists. The
- * words belong to the writer who was paid for them, and carrying an agency's
- * copy into DIY takes something the player did not buy — measured, retainer
- * copy grades `adRelevance` 1 against the keywords, so keeping it would punish
- * them for holding on to the best writing in the game.
+ * On the way to DIY the writer's copy goes, and the player's own words come
+ * back, or empty boxes if there are none. The words belong to the writer who
+ * was paid for them, and carrying an agency's copy into DIY takes something the
+ * player did not buy — measured, retainer copy grades `adRelevance` 1 against
+ * the keywords, so keeping it would punish them for holding on to the best
+ * writing in the game.
  *
  * The variant follows `rootSeed`, which `app.js` increments for a new market,
  * so restarting shows a different ad rather than the same one three times.
@@ -70,13 +74,19 @@ const anyCopyWritten = (ad) => [...(ad.headlines ?? []), ...(ad.descriptions ?? 
 export function syncWriterCopy(draft, rootSeed) {
   if (isDiy(draft.writerTier)) {
     if (draft.adIsSeeded) {
-      draft.ad.headlines = ['', '', ''];
-      draft.ad.descriptions = ['', ''];
+      const own = draft.ownAd ?? { headlines: ['', '', ''], descriptions: ['', ''] };
+      draft.ad.headlines = [...own.headlines];
+      draft.ad.descriptions = [...own.descriptions];
       draft.adIsSeeded = false;
     }
     return;
   }
-  if (!draft.adIsSeeded && anyCopyWritten(draft.ad)) return;
+  // The player's own words, as they last left them, blanks included.
+  if (!draft.adIsSeeded) {
+    draft.ownAd = anyCopyWritten(draft.ad)
+      ? { headlines: [...draft.ad.headlines], descriptions: [...draft.ad.descriptions] }
+      : null;
+  }
 
   const brand = BRAND_IDENTITIES.find((b) => b.id === draft.playerBrandId);
   const copy = writerCopyFor(
@@ -352,7 +362,8 @@ const normal = (text) => String(text).trim().toLowerCase().replace(/\s+/g, ' ');
  * spec's section 4, step 4). `syncWriterCopy` puts the freelancer's copy in.
  *
  * `guesses` are the player's notes on where each rival sits: never sent, and
- * never confirmed by the game (section 4, step 2).
+ * never confirmed by the game (section 4, step 2). `ownAd` holds the player's
+ * own words while a hired writer's copy is in the ad (`syncWriterCopy`).
  *
  * @param {{playerBrandId: string, rootSeed: number}} args
  * @returns {object}
@@ -366,6 +377,7 @@ export function createSetupDraft({ playerBrandId, rootSeed }) {
     ad: { headlines: ['', '', ''], descriptions: ['', ''], landingPageDescription: '' },
     writerTier: 'freelancer',
     adIsSeeded: false,
+    ownAd: null,
     split: null,
     guesses: {},
   };

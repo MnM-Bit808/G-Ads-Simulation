@@ -4091,7 +4091,10 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   writer; here they show only for *Write it yourself*, so the player's words
   stay in the ad under a hired writer, unseen and uneditable, and an invalid
   ad then blocks Go with nothing on screen to fix. And the kit's text boxes
-  (`kfield`) are outlined 1.65:1 against the page.
+  (`kfield`) are outlined 1.65:1 against the page. The owner chose: a hired
+  writer's ad is always the writer's copy, the player's words set aside in
+  `draft.ownAd` and back with *Write it yourself* (I25 rewritten, both looks);
+  and the boxes' outline raised to 3.33:1.
 
 ---
 

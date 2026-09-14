@@ -87,6 +87,76 @@ describe('the draft round 0 opens on', () => {
   });
 });
 
+describe('who writes the ad, and whose words are in it (I25, as the owner changed it)', () => {
+  // The Studio shows the ad's boxes only when you write it yourself, so a hired
+  // writer's ad that kept the player's words (I25's old second rule) sat in the
+  // account unseen, and if they broke Google's limits Go stayed blocked with
+  // nothing on screen to fix (found playing step 4, 2026-09-14).
+  const copyOf = (d, tier) => writerCopyFor(d.cell, tier, BRAND_IDENTITIES[1].name, SEED % WRITER_COPY_VARIANTS);
+  const typed = () => {
+    const d = fresh();
+    rules.setWriter(d, 'diy', SEED);
+    rules.writeAd(d, 'headlines', 0, 'Squat Proof All Day');
+    rules.writeAd(d, 'descriptions', 1, 'Made for heavy lifting days.');
+    return d;
+  };
+
+  test('a hired writer\'s ad is the writer\'s copy, even after you typed', () => {
+    const d = typed();
+    rules.setWriter(d, 'agency', SEED);
+    expect(d.ad.headlines).toEqual(copyOf(d, 'agency').headlines);
+    expect(d.ad.descriptions).toEqual(copyOf(d, 'agency').descriptions);
+    expect(d.adIsSeeded).toBe(true);
+  });
+
+  test('your words are set aside, not lost, and come back when you write again', () => {
+    const d = typed();
+    rules.setWriter(d, 'agency', SEED);
+    rules.setWriter(d, 'retainer', SEED);
+    rules.setWriter(d, 'diy', SEED);
+    expect(d.ad.headlines).toEqual(['Squat Proof All Day', '', '']);
+    expect(d.ad.descriptions).toEqual(['', 'Made for heavy lifting days.']);
+    expect(d.adIsSeeded).toBe(false);
+  });
+
+  test('with nothing of yours set aside, writing it yourself opens empty boxes', () => {
+    const d = fresh();
+    rules.setWriter(d, 'diy', SEED);
+    expect(d.ad.headlines).toEqual(['', '', '']);
+    expect(d.ad.descriptions).toEqual(['', '']);
+  });
+
+  test('what comes back is what you last wrote, blank boxes included', () => {
+    const d = typed();
+    rules.setWriter(d, 'freelancer', SEED);
+    rules.setWriter(d, 'diy', SEED);
+    rules.writeAd(d, 'headlines', 0, '');
+    rules.writeAd(d, 'descriptions', 1, '');
+    rules.setWriter(d, 'freelancer', SEED);
+    rules.setWriter(d, 'diy', SEED);
+    expect(d.ad.headlines).toEqual(['', '', '']);
+    expect(d.ad.descriptions).toEqual(['', '']);
+  });
+
+  test('changing the square while you write keeps your words', () => {
+    const d = typed();
+    rules.setCell(d, 'value|lifestyle', SEED);
+    expect(d.ad.headlines[0]).toBe('Squat Proof All Day');
+  });
+
+  test('the classic page\'s draft, which never had a place to set words aside, works the same', () => {
+    // ui/round-zero.js builds its own draft and calls syncWriterCopy directly.
+    const d = { playerBrandId: BRAND, cell: 'mid|performance', writerTier: 'diy', adIsSeeded: false,
+      ad: { headlines: ['Mine', '', ''], descriptions: ['', ''], landingPageDescription: '' } };
+    d.writerTier = 'agency';
+    rules.syncWriterCopy(d, SEED);
+    expect(d.ad.headlines).toEqual(copyOf(d, 'agency').headlines);
+    d.writerTier = 'diy';
+    rules.syncWriterCopy(d, SEED);
+    expect(d.ad.headlines).toEqual(['Mine', '', '']);
+  });
+});
+
 describe('the month, as step 5 draws it', () => {
   test('its parts add up to the month, and a zero part is left out', () => {
     const d = fresh();

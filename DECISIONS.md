@@ -3360,6 +3360,18 @@ round 0 beside the rivals'.
 2. **It never overwrites what the player wrote.** `draft.adIsSeeded` records whose
    words are in the boxes; without it, typing three headlines and then changing
    your mind about the writer would silently discard them.
+
+   **Changed 2026-09-14, by the owner.** A hired writer's ad is now always the
+   writer's copy, and the player's own words are set aside in `draft.ownAd`, not
+   lost: they come back when the player chooses Write it yourself, and only then
+   does rule 1 fall back to empty boxes. Keeping the player's words under a hired
+   writer suited the classic page, whose boxes show for every writer. The Studio's
+   round 0 shows them only for Write it yourself, so the words sat in the account
+   unseen, and if they broke Google's limits Go stayed blocked with nothing on
+   screen to fix; found by playing its step 4. The classic page follows the same
+   rule when a writer or square is chosen. Its boxes still show for a hired
+   writer, so typing over the writer's copy there still runs the player's words
+   at the writer's grade; the Studio, with no boxes for a hired writer, cannot.
 3. **The variant follows `rootSeed`**, which `app.js` increments for a new market,
    so a restart shows a different ad. `content/adCopy.js` carries the scar of the
    alternative: with one ad per cell, two rivals in a cell ran the same ad word
