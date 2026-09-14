@@ -202,15 +202,27 @@ number in the simulation without ever throwing an error.
   guesses the folder to publish on every deploy, and a wrong guess publishes the
   repository — docs and tests — while still reporting success.
   `tests/build.test.js` holds it, and holds `dist/` to exactly the files the
-  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 62 on the
-  branch `makeover`, whose stylesheet and fonts the build finds by following
-  `url()` inside CSS.
+  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 80 on the
+  branch `makeover` since round 0's rebuild (2026-09-14), whose stylesheet and
+  fonts the build finds by following `url()` inside CSS.
 - **The Studio makeover filters today's cards, it never moves them.** The
   decision form redraws every card it owns into its own region on each change,
   so a card moved into a sidebar section is redrawn into nothing. The shell
   shows a section's cards by CSS on `data-slot`. Everything new sits under
   `body.studio` (`?look=studio`) until the switch-over, and red there is the
   player's colour, so losses and warnings are amber with a minus sign.
+- **Round 0's rules live in `ui/roundzero/rules.js`, and both looks read them.**
+  A figure round 0 shows (the month, the reserve, the grades, the landing page
+  grade) comes from there, never from a drawing module, so the classic page and
+  the Studio's five steps cannot disagree about the account Go will open.
+- **Since 2026-09-14 a self-written ad runs on its words from week 1 (I11).** No
+  new game sets `pendingGrade`, and `game.js`'s `landCreative` stays only for
+  saves made before then; `tests/fixtures/oldSave.js` builds one, and the game
+  and dashboard tests load it.
+- **A drawing module's class list holds at most two names in one string.** The
+  drawing guard in `tests/words.test.js` reads three words as a sentence, which
+  a drawing module may not hold. Add a third with `classList.add`, as
+  `ui/roundzero/studio.js` does.
 - **The engine's `replayGame` is not a game replay.** It runs `runRound` alone,
   so it skips everything `game.js` adds: capital, repositioning, a self-written
   ad landing, Quality Scores. Measured, its costs do not match a played game.

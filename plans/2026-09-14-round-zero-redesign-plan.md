@@ -4600,3 +4600,13 @@ where it can be tested, one commit each.
 - [ ] `npm test`. Commit: *Record round 0's build: the handover, the traps, the
   decisions and the makeover plan's amendments*.
 
+  *Found when written:* the background check on the landing page's timing never
+  reached the branch. It left one uncommitted test in its worktree, and the
+  test confirms the suspicion: a page bought in round 0 is graded from week 1.
+  The handover records it for the owner, and the spec's section 14 lists every
+  other correction. Two more things for the makeover plan than this task
+  foresaw: its Task 8's drawing guard already lists the kit, and its Task 9
+  must keep the tray chips' entrance off round 0's tray, which redraws its
+  chips on every change. The next free DECISIONS number was I35. The build
+  publishes 80 files.
+

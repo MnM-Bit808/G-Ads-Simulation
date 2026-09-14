@@ -4095,6 +4095,63 @@ solver. And `submitRound` REJECTS an out-of-range discount rather than clamping
 — a clamp would let a controller ask for ₹500 and be quietly charged for ₹100,
 which is the shape of bug that survives a whole game.
 
+### I35. Round 0 is five steps in the sidebar layout, and the brand is drawn — `FIXED` (2026-09-14)
+
+**What was measured before.** Round 0 was 2,648 words across eleven sections
+and 97 buttons, and 1,170 of the words were 35 blocks of explanation. The one
+recorded human game spent 18 of its 28 minutes there (`reviews/slc-review.md`,
+section 5). Opened in the Studio look it also wore a second palette the new
+stylesheet never reached, with red on every rival ad and 32 texts failing
+contrast (`plans/2026-09-14-round-zero-redesign.md`, section 1).
+
+**What it is now, behind `?look=studio`.** Five steps in the sidebar layout,
+open in any order from the list, *Next* moving forward: the market (read only),
+where you sit, your keywords, your ad, your money, then Go. Each step is a
+drawing module in `ui/roundzero/`. Every figure a step shows comes from
+`ui/roundzero/rules.js`, which the classic page reads too, and Go sends exactly
+what the classic page sends (`startChoices`). Measured at the end of the build
+with the plan's script: 281, 119, 23 (plus 15 a keyword), 150 and 208 words,
+781 in all against 2,648 (the plan's Task 15). Without the link, round 0 is the
+classic page.
+
+**THE BRAND IS DRAWN, NOT PICKED.** A brand's own searches run 2,838 to 2,881 a
+week whichever of the nine it is, within two percent of each other, so choosing
+one was ten buttons and a paragraph for no decision. `assignPlayerBrand` in
+`setup.js` draws it from the seed (`deriveSeed(rootSeed, 'player-brand')`): the
+same seed is always the same brand, a new market can be another, and the redo
+keeps it. The engine was not touched; `startGame` already took `playerBrandId`.
+
+**The freelancer is the arrival.** A player arrives with the freelance
+copywriter hired and its copy in the ad, so someone who does not want to write
+never meets five empty boxes. Writing it yourself is one choice away and graded
+on its words from week 1 (I11); a hired writer's ad is always the writer's
+copy, with the player's own words set aside until they choose to write (I25).
+
+**GUESSES ARE NOTES, NEVER CONFIRMED AND NEVER SENT.** Step 2 lets the player
+mark where they think each rival sits, and shows the rivals they placed in each
+square. The game never says whether a guess is right: the player learns where
+rivals sit from Auction Insights and at the end (G1). The guesses live in round
+0's draft (`draft.guesses`) and Go does not send them, so nothing keeps them
+once week 1 begins, because nothing reads them yet. Carrying them into the end
+reveal is a later decision (the design's section 12). Nothing in round 0 plots
+a territory or states a rival's square (I3, C5).
+
+**Capital in plain view, and neutral.** Kept is the default and nothing is
+recommended: measured, every allocation beat keeping it in the one cell tested,
+so tucking capital behind "advanced" would have steered players to the worst
+option. The landing page grade sits in step 5 beside the capital that moves it.
+How that grade is timed is open (the design's section 12): a page bought in
+round 0 raises the graded page from week 1, though the site work goes live at
+week 4.
+
+**Not changed:** the engine's economics, the query set, the rival policies, and
+every constant but I11's `CREATIVE_DIY_LIVE_ROUND`, which went. The map's 32
+cities (G4) are display geography; nothing in `engine/` reads them.
+
+The design, decided with the owner one question at a time on a canvas, is
+`plans/2026-09-14-round-zero-redesign.md`; the build and its play record are
+`plans/2026-09-14-round-zero-redesign-plan.md`.
+
 ### F14. The engine contradicts itself about returns — `FIXED`
 
 **RESOLVED 2026-09-11, and it took four constants rather than three numbers.**

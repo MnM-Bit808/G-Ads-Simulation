@@ -24,6 +24,43 @@ in `ui/keywords/read.js`, drawing in `ui/keywords/render.js`, words in
 working mock-up is `design/makeover/Main.dc.html` (canvas
 https://claude.ai/code/artifact/d881fe56-251c-4ded-9173-b8616924bbc4).
 
+## Amended by the round 0 plan (2026-09-14)
+
+Round 0 was rebuilt in the Studio look between this plan's Tasks 6 and 7
+(`plans/2026-09-14-round-zero-redesign-plan.md`), and on the way it built the
+keyword card, the planner drawer and the kit's controls that Tasks 7 to 9 here
+were to write. Read those tasks with these changes:
+
+- **Task 6** was built before round 0 (`f75a3a3`): the keyword card opens its
+  chapter from the *QS* button.
+- **Task 7:** `SLIDER_FLOOR_PAISE`, `SLIDER_HEADROOM`, `SLIDER_STEP_PAISE` and
+  `sliderMaxPaise` live in `ui/kit/card.js`; import them from there instead of
+  defining them in `ui/keywords/read.js`. `ui/words/keywords.js` exists, so
+  Task 7 adds only the weekly lines, and `KEYWORDS.isNew` reads "new: no clicks
+  yet".
+- **Task 8:** Step 3 is done: `ui/kit/controls.js` holds `icon`, `button`,
+  `pills`, `toggle`, `stat`, `slider` and `typeIn`, and the shell imports
+  `icon` and `button` from it. Step 2's drawing guard already lists the kit, so
+  it adds only `ui/keywords/render.js`. Step 4 draws each card with the kit's
+  `keywordCard` (`ui/kit/card.js`), adding the weekly parts to it (the running
+  switch, *was*, the checkbox, the changed and paused outlines) rather than
+  drawing its own, and opens the drawer with the kit's `openPlanner`
+  (`ui/kit/planner.js`). Step 6 appends only the section's own rules (`khead`,
+  `kpanel`, `klever`, `kbar`, `klegend`, `kcheck`, `kbulk`, `kswitch`,
+  `kadjust`, and the card's changed, paused and selected states); the card,
+  pills, slider, menu, planner and text box are styled already.
+- **Task 9:** the press, the planner drawer's entrance and exit, the menu's
+  grow and round 0's step transition are in the motion block at the end of
+  `ui/studio.css`, reduced motion included. Task 9 adds only the tray's chips,
+  the switch's knob, the section dot and a section's first visit, and does not
+  declare the others twice. **Keep the chip entrance to the weekly tray**
+  (`body.studio .studio-tray:not(.r0-tray) .studio-chip`): round 0 redraws its
+  tray's *So far* chips on every change, so an entrance there would replay
+  under every drag of a bid.
+- **Task 11:** CLAUDE.md and HANDOVER already give `makeover`'s file count (80
+  at the end of round 0); `wrangler.jsonc`'s comment still says 54, for the
+  switch-over to change.
+
 ## Global constraints
 
 - Branch `makeover`, cut from `main`. Commit after each green `npm test`, one

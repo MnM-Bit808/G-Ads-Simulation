@@ -12,11 +12,13 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, 2026-09-14: the Studio makeover, and round 0 next.** The owner
-has put the stranger playtests on hold and started a visual makeover instead.
-Their own sessions with two other people kept raising the same complaints: too
-much to read, fiddly click-and-edit controls, and a static look. "It needs to
-feel alive."
+**Current state, 2026-09-14: round 0 is rebuilt in the Studio look, on the
+branch `makeover`.** The owner put the stranger playtests on hold for a visual
+makeover. Their own sessions with two other people kept raising the same
+complaints: too much to read, fiddly click-and-edit controls, and a static
+look. "It needs to feel alive." Round 0 went first, after the owner opened it in
+the new look and called it horrid. They have since played all five new steps
+and said "it feels alive".
 
 - **Live site unchanged**, at `387baf1`.
 - **`main` is at `80d41e6`, not pushed.** It holds the makeover's design doc
@@ -24,40 +26,70 @@ feel alive."
   (`design/makeover/`, drawn at
   https://claude.ai/code/artifact/d881fe56-251c-4ded-9173-b8616924bbc4) and the
   11-task build plan (`plans/2026-09-13-studio-makeover-plan.md`).
-- **The branch `makeover` is two tasks in, and nothing on it is pushed.**
-  - Task 1 (`644d79b`): `?look=studio` switches to the new look and remembers
-    it. Today's cards take the Red signal colours through `ui/studio.css`
-    without a line of `style.css` changing.
-  - Task 2 (`f80d2ff`): the two typefaces, stored in `ui/fonts/` with their
-    licences, and a build that follows `url()` inside stylesheets.
-  - On `makeover`: 1664 tests pass, 1 todo, and the build publishes 62 files.
+- **The branch `makeover` holds all of it, and nothing on it is pushed.**
+  - Makeover Tasks 1–6: `?look=studio` and the Red signal colours, the two
+    typefaces, the sidebar layout (sections, the tray's order and the shell,
+    played through twelve weeks), and the Quality Score chapter.
+  - Round 0, all sixteen tasks of `plans/2026-09-14-round-zero-redesign-plan.md`
+    (`98610c4` onward), as designed in `plans/2026-09-14-round-zero-redesign.md`
+    (DECISIONS I35). Five steps in the sidebar layout: the market, where you
+    sit, your keywords, your ad, your money. The brand is drawn from the seed,
+    the India map has 32 cities that pulse by searches, and the shared kit
+    (`ui/kit/`) is built for the weekly *Your keywords* to reuse. Two rules
+    changed: a self-written ad is graded on its words from week 1 (I11, measured
+    on the harness first), and a hired writer's ad is always the writer's copy
+    (I25).
+  - What playing it measured: four accounts matched round 0; 781 words against
+    2,648; every enabled text passes contrast; nothing is wider than a 375px
+    phone. The record is the round 0 plan's Task 15.
+  - On `makeover`: 1842 tests pass, 1 todo, and the build publishes 80 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
-**What to do next, in order:**
-1. **Round 0, redesigned drastically in the Studio look.** The owner opened
-   it after Task 2 and called it horrid. `plans/next-session-prompt.md` sets out
-   the brainstorm:
-   - review recommendation 4's five steps, which re-open I11;
-   - whether round 0 lives in the shell or in a setup flow of its own;
-   - sequencing against plan Tasks 3–11;
-   - what happens to the India map.
+**To play it:** `npm run dev`, then `http://localhost:5173/ui/?look=studio`. The
+look is remembered; `?look=classic` turns it off. A saved game is offered back
+on every load, so choose *Start a new game* to reach round 0. The classic round
+0 reads the same rules (`ui/roundzero/rules.js`).
 
-   Then a design doc, a task plan and the build on `makeover`.
-2. **Then the rest of the Studio plan**, Tasks 3–11, in the order agreed. Task
-   10 is a play-through, and the owner's verdict is its gate.
-3. **Then the playtests**, below, on whatever the makeover has become.
-4. **Still open for the owner, none blocking:** A9, F15 (b)/(c) and E8's formula
-   (item 5 below).
+**Open, and the owner's to decide: the landing page's timing** (the round 0
+design, section 12). A page bought in round 0 raises the graded landing page
+from week 1, though the site work goes live at week 4: reviews take it from 5
+to 7 in week 1's auctions, then to 9 at week 4. A background check confirmed
+it in a test it never committed, `tests/capitalTiming.test.js` in the worktree
+`.claude/worktrees/cranky-montalcini-b7c4de` (written against `main`'s code),
+and Task 15 played the same on `makeover`: the agency with reviews opened at
+landing 7. Step 5 shows what the engine does, so it follows any change. A
+change moves the market, so it is measured on `scripts/market-harness.js`
+before and after, against gates agreed first.
+
+**What to do next, in order:**
+1. **The rest of the Studio plan**, Tasks 7–11, read with the amendments at the
+   top of `plans/2026-09-13-studio-makeover-plan.md`: the weekly *Your
+   keywords* reuses round 0's card, planner and controls rather than drawing
+   its own. Task 10 is a play-through, and the owner's verdict is its gate.
+2. **The message project** (the round 0 design, section 11): angles that change
+   who clicks, images from week 9. It needs its own design doc, a spec change
+   and DECISIONS entries before any build.
+3. **Then the other sections**, *Where and when* with the map as a control, and
+   the switch-over (the round 0 design, section 9).
+4. **Then the playtests**, below, on whatever the makeover has become.
+5. **Still open for the owner, none blocking:** A9, F15 (b)/(c) and E8's formula
+   (item 5 below), and whether round 0's rival guesses carry into the end
+   reveal (the round 0 design, section 12).
 
 **Decided about the makeover, not to re-open:**
 - a sidebar shell like Claude's app, not the real Google Ads layout;
 - Studio drop's cards and type;
 - the Red signal palette, where red means *you and your changes*, so warnings
   and losses are amber with a minus sign;
-- six motions, none of them the week playing out.
+- six motions, none of them the week playing out, plus the map's pulse as the
+  one named exception;
+- round 0 inside the sidebar layout as five steps, the brand drawn rather than
+  picked, the freelancer as the writer a player arrives on, and capital in
+  plain view with nothing recommended.
 
-The design doc records each choice and what was rejected.
+The two design docs record each choice and what was rejected (round 0's in its
+section 2).
 
 **End of 2026-09-13, kept for its list.** `main` was at the latest push and was the
 only branch; the game is live and invite-only; 1656 tests passed, 1 todo; the
@@ -1422,6 +1454,10 @@ records twice already.
 
 ## Round 0 has a design, and part of it is built
 
+**This is the classic look's round 0**, which `?look=classic` still draws. The
+Studio look rebuilt round 0 on `makeover` on 2026-09-14 (*Start here*, DECISIONS
+I35), and the hired-writer fix this section calls open was built as I25.
+
 **The canvas:** https://claude.ai/code/artifact/5e9555b3-28fa-4d12-8479-5f10812a086a
 
 Six interactive artboards covering all ten round 0 cards, built on the
@@ -2113,6 +2149,13 @@ screen in order, cards by time on screen, week compute times, rank and
 contribution replayed from their save, the weeks in the red, the weeks they
 decided something (with how many of weeks 7–12, stage D's gate, and the week-5
 capital card marked when it was left alone), and their answers.
+
+It counts clicks per screen; it does not list them. What was clicked, named by
+card or region and control, is in the file's `recording.clicks`, each with its
+`where`: read those directly when the names matter. In the Studio's round 0 the
+regions are *Round 0 steps*, *Tray*, each step by name, and the planner drawer
+(*Add keywords*); a control with no text, such as a guess cell, is named by its
+label for screen readers.
 
 **For the one played on a call,** use the same link and record the call
 yourself. Watching changes how people read, so its timings are not pooled with

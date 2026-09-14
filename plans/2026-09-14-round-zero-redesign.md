@@ -1,7 +1,9 @@
 # Round 0, redesigned in the Studio look
 
 *Design, 2026-09-14. Decided with the owner one question at a time, each
-screen chosen on the canvas. No code has been written against it.*
+screen chosen on the canvas. Built the same day on `makeover`
+(`plans/2026-09-14-round-zero-redesign-plan.md`); where the build departs from
+this text, section 14 says so.*
 
 *It changes the Studio makeover's plan (`plans/2026-09-13-studio-makeover.md`):
 round 0 moves from seventh to first among the sections, lives inside the
@@ -428,3 +430,64 @@ player as Vella & Co.), the briefing's figures, engine-counted reach for the
 planner rows, the writers' real copy and prices, the capital rungs, and the
 landing page grades from the game's own code. The added cities' positions on
 the canvas are approximate; the build takes them from the dataset.
+
+## 14. Corrected by the build
+
+Each was agreed with the owner, either before the build (the plan's *Where
+this plan narrows or departs from the spec*) or when playing it. The plan's
+tasks carry the detail, in their *Found when built* notes.
+
+- **The default market's brand (section 4).** With the brand drawn from the
+  seed, seed 20260902 draws Marlow, not Vella & Co.; the canvas's Vella & Co.
+  was for illustration.
+- **The cities (sections 4 and 8).** The first eighteen had been typed by hand
+  (`SIM` in `design/build-cities.mjs`); only the backdrop came from the geonames
+  dataset. All 32 now come from the dataset, and five pairs of names that
+  collided when a kind of place was lit are placed apart (`labelPlace`,
+  `ui/india-map.js`).
+- **The backdrop (section 7)** is 135 dots, not 150: fifteen that crowded the
+  new cities were dropped.
+- **The returns line (section 4, step 1) is cut**, by the owner: where to
+  advertise is chosen week by week, never in round 0, and the weekly card shows
+  each place's returns in the player's own figures. The classic page keeps it.
+- **On a phone (section 3).** Under 900px the top bar drops the week dots and
+  *before the first auction*. Under 700px *So far* takes its own line above
+  *Next*, and step 5's tray drops it, since the checklist beside Go names the
+  same four things.
+- **The strip's Market and Results (section 3)** are greyed out in the
+  coastline's grey, 3.47:1, readable and still plainly off (the owner's ruling).
+- **`tests/writerBalance.test.js` was rewritten, not retired (section 5).** Two
+  of its orderings still hold: *paying more buys more*, and *writing badly
+  loses to the cheapest writer*. The third flips to *writing well beats the
+  retainer*, which is the new rule's point.
+- **I25's second rule changed (section 5)**, by the owner, found by playing step
+  4: a hired writer's ad is always the writer's copy, and the player's own words
+  are set aside in `draft.ownAd`, coming back when they choose Write it
+  yourself. The first rule, empty boxes on the way to writing it yourself,
+  applies only when there are no words of their own.
+- **Two guide chapters were written for round 0's "why?" links (section 4)**,
+  which had nowhere to go: *Who writes the ad* and *Splitting the month into
+  weeks* (`ui/guide/chapters.js`).
+- **Round 0 has its own controller (section 8)**, `ui/roundzero/studio.js`,
+  sharing the shell's classes, icons and kit, rather than being a mode of
+  `ui/shell/shell.js`, whose every draw function reads a played game. On screen
+  it is the same layout.
+- **Guesses live in round 0's draft only (section 8)**, not the browser save.
+  Round 0 is never saved (the save is the state before week 1 plus the log), so
+  a reload in round 0 loses every choice, guesses included, as it always has;
+  after Go nothing reads them.
+- **The guide's *Show me on the card* is hidden before week 1**
+  (`canShowCard`, `ui/guide/drawer.js`): there is no card to show yet, and a
+  button that does nothing is worse than none.
+- **Motion (section 7).** Round 0 uses the step transition, the press, the
+  planner drawer and the keyword card's menu (the makeover's row 6 is drawers
+  and the menu). Each city's ring starts part-way through its cycle
+  (`pulseDelay`, `ui/map/india.js`), so redrawing the map never blanks it.
+- **The build order (section 9)** began after makeover Task 6, not 5: the
+  keyword card opens that task's Quality Score chapter from its *QS* button.
+- **The landing page's timing (section 12) is confirmed, and not yet decided.**
+  A background check found that a page bought in round 0 raises the graded
+  landing page in week 1's auctions, though the site work goes live at week 4:
+  reviews take it from 5 to 7 in week 1 and to 9 at week 4. Step 5 shows what
+  the engine does. HANDOVER's *Start here* says where the check's test is; the
+  owner decides what changes, and any change is measured on the harness first.
