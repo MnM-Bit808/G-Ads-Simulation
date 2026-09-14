@@ -287,6 +287,61 @@ body.studio .kserp-head.empty, body.studio .kserp-desc.empty { color: var(--stud
 @media (max-width: 1000px) { body.studio .kgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 620px) { body.studio .kgrid { grid-template-columns: minmax(0, 1fr); } }
 
+/* --- Your keywords, a played week (spec section 4): the card's weekly parts,
+   the head, the reading panel and Adjust several ------------------------- */
+body.studio .kcard.changed { border-color: var(--studio-red); box-shadow: 0 0 0 1px var(--studio-red); }
+body.studio .kcard.selected { border-color: var(--studio-text); box-shadow: 0 0 0 1px var(--studio-text); }
+body.studio .kcard.paused { background: #121114; }
+body.studio .kcard.paused .kcard-name { color: #6E6872; }
+body.studio .kcard.paused .kslider input[type="range"] { accent-color: #5A5560; }
+body.studio .kwas { font-size: 12px; font-weight: 600; color: var(--studio-red-text); }
+body.studio .kbid-row .kwas { margin-left: auto; }
+body.studio .kbid-row .kwas + .kbid, body.studio .kbid-row .kwas + .kbid-input { margin-left: 0; }
+/* No words, so its outline is all that shows it: 3:1 on any card (tests/kit.test.js). */
+body.studio .kcheck { width: 20px; height: 20px; padding: 0; border: 2px solid #68636B; border-radius: 6px; background: none; }
+body.studio .kcheck[aria-checked="true"] { border-color: var(--studio-text); background: var(--studio-text); }
+
+body.studio .khead { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin: -8px 0 16px; }
+body.studio .ksub { margin: 0; font-size: 14px; color: var(--studio-muted); }
+body.studio .ktools { display: flex; align-items: center; gap: 10px; }
+body.studio .kswitch { gap: 2px; padding: 3px; border-radius: 999px; background: #211E24; }
+body.studio .kswitch .kpill { padding: 6px 14px; border: 0; font-size: 13px; }
+body.studio .kadjust { height: 38px; padding: 0 16px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-text); font-size: 14px; }
+
+body.studio .kpanel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.95fr); gap: 28px; align-items: center; margin-bottom: 16px; padding: 16px 22px; border: 1px solid var(--studio-panel-edge); border-radius: 20px; background: var(--studio-panel); color: #F3EEEA; }
+body.studio .kpanel h3 { margin: 2px 0 4px; font: 800 24px/1.1 var(--studio-display); }
+body.studio .kpanel p { margin: 0; font-size: 13px; line-height: 1.45; color: #D9D1CB; }
+body.studio .kpanel .kpanel-eyebrow, body.studio .kpanel .kpanel-small { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A8989A; }
+body.studio .kbar { display: flex; gap: 2px; height: 12px; margin: 8px 0; overflow: hidden; border-radius: 6px; }
+body.studio .kbar span { flex-basis: 0; min-width: 2px; background: #4A444A; }
+body.studio .kbar span.lead { background: var(--studio-red); }
+body.studio .kbar span:nth-child(2) { background: #8F8589; }
+body.studio .kbar span:nth-child(3) { background: #6F676C; }
+body.studio .klegend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: #D9D1CB; }
+body.studio .klegend li { display: flex; align-items: center; gap: 6px; }
+body.studio .klegend strong { color: #F3EEEA; font-variant-numeric: tabular-nums; }
+body.studio .klegend-key { width: 8px; height: 8px; border-radius: 2px; background: #8F8589; }
+body.studio .klegend li.lead .klegend-key { background: var(--studio-red); }
+body.studio .kpanel-levers { display: flex; flex-direction: column; gap: 8px; }
+body.studio .klever { display: flex; flex-direction: column; gap: 1px; padding: 8px 12px; border: 1px solid #5A262C; border-radius: 12px; background: none; color: #F3EEEA; text-align: left; }
+body.studio .klever strong { font-size: 13px; }
+body.studio .klever span { font-size: 12px; font-weight: 400; color: #A8989A; }
+
+/* The bar wraps and the tray grows to hold it, at any width it does not fit:
+   on one line it pushed the page sideways at 673px. */
+body.studio .studio-tray.bulk { height: auto; min-height: 76px; padding-top: 10px; padding-bottom: 10px; }
+body.studio .kbulk { display: flex; flex: 1; flex-wrap: wrap; align-items: center; gap: 8px 14px; min-width: 0; color: var(--studio-text); }
+body.studio .kbulk-count { min-width: 92px; font-size: 14px; white-space: nowrap; }
+body.studio .kbulk-group, body.studio .kbulk-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--studio-muted); white-space: nowrap; }
+body.studio .kbulk-label input { width: 64px; }
+body.studio .kbulk-apply { padding: 7px 14px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font-size: 13px; }
+body.studio .kbulk-pill { padding: 6px 11px; border: 1px solid #4A454F; border-radius: 999px; background: none; color: var(--studio-text); font-size: 12px; }
+body.studio .kbulk-note { flex: 1; min-width: 0; overflow: hidden; font-size: 12px; color: var(--studio-amber); text-overflow: ellipsis; white-space: nowrap; }
+body.studio .kbulk-done { padding: 9px 18px; border: 1px solid #4A454F; border-radius: 999px; background: none; color: var(--studio-text); font-size: 14px; }
+
+@media (max-width: 1000px) { body.studio .kpanel { grid-template-columns: minmax(0, 1fr); gap: 14px; } }
+@media (max-width: 620px) { body.studio .khead { flex-direction: column; align-items: flex-start; } }
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */

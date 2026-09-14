@@ -2904,6 +2904,27 @@ kit; `renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride
   Then play one classic week. Commit: *Draw Your keywords: cards, the reading
   panel, the planner and adjust several*.
 
+  *Found when built:* as amended above, the section draws the kit's card and
+  planner rather than its own. The kit's `keywordCard` gained two optional parts,
+  `onActive` (the running switch) and `select` (the tick), and draws "was", the
+  slider's was-marker and the changed, paused and selected outlines from the
+  model, which gained `changed` (round 0's is false). `render.js` is the head,
+  the reading panel, the grid and Adjust several, about 300 lines where the plan
+  had 540. The planner shares `ctx.planner`, the classic planner's own state.
+  The section exposes `leave()`, which the shell calls on leaving it while
+  picking, or the tray would keep the bar in another section; and the shell
+  refreshes it on the way in, since another section may have staged a change.
+  The owner asked for round 0's reserve warning on every week's card (commits
+  before this one). `ctx.refresh` exists: `renderDecisions` writes it back.
+  Playing it found three things, each its own commit or fixed here: the tray
+  showed "0 changes waiting" beside "No changes yet", because a class's
+  `display` outranked `hidden` (fixed for the whole Studio); a played week's
+  top bar ran to 497px on a 375px phone, as round 0's once did; and Adjust
+  several's bar, on one line, pushed the page sideways at 673px, so it wraps
+  and the tray grows at any width. Its tick measured 1.52:1 against a card and
+  now uses the 3:1 grey. The Enter key does not reach the typed-bid box in the
+  browser pane, so that was committed with Tab. The build publishes 83 files.
+
 ---
 
 ### Task 9: the motion

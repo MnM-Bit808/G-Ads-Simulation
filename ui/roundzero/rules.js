@@ -566,6 +566,8 @@ export function setupKeywordCards(draft, querySet) {
       wasBidPaise: null,
       wasMatchType: null,
       isNew: true,
+      // Nothing to have changed from before the first week: no red outline.
+      changed: false,
       stats: null,
       quality: { value: null, ratings: [] },
       active: null,

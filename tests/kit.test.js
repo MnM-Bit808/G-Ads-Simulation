@@ -25,6 +25,18 @@ describe('a text box can be made out wherever it sits', () => {
   });
 });
 
+describe('Adjust several\'s tick can be made out on any card', () => {
+  // It has no words, so its outline is all that shows it is there: measured at
+  // 1.52:1 on a card playing Your keywords, under the 3:1 a control needs.
+  const outline = rgb(studioRule('.kcheck', 'border'));
+  test.each([
+    ['a card', () => studioToken('--studio-card')],
+    ['a paused card', () => studioRule('.kcard.paused', 'background')],
+  ])('on %s', (_, ground) => {
+    expect(contrast(outline, rgb(ground()))).toBeGreaterThanOrEqual(3);
+  });
+});
+
 describe('what the Studio marks hidden stays hidden', () => {
   // A class that sets `display` outranks the browser's own rule for `hidden`,
   // so the tray showed "0 changes waiting" beside "No changes yet", and Adjust

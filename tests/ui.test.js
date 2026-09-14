@@ -223,6 +223,7 @@ describe('every interface module at least loads', () => {
     'kit/serp.js': () => import('../ui/kit/serp.js'),
     'words/keywords.js': () => import('../ui/words/keywords.js'),
     'keywords/read.js': () => import('../ui/keywords/read.js'),
+    'keywords/render.js': () => import('../ui/keywords/render.js'),
     'reserve.js': () => import('../ui/reserve.js'),
     'map/india.js': () => import('../ui/map/india.js'),
     'roundzero/studio.js': () => import('../ui/roundzero/studio.js'),

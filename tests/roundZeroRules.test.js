@@ -240,7 +240,8 @@ describe('keywords in round 0', () => {
     expect(phrase.reach).toBe(keywordReach({ text: 'gym leggings', matchType: 'phrase', tags }, QUERY_SET));
     expect(phrase.tags).toBeNull();
     expect(broad.tags.length).toBeGreaterThan(0);
-    expect(phrase).toMatchObject({ id: 'gym leggings', isNew: true, stats: null, active: null });
+    // Round 0 has no week to have changed from: no outline, no switch.
+    expect(phrase).toMatchObject({ id: 'gym leggings', isNew: true, stats: null, active: null, changed: false });
   });
 
   test('a bid under the reserve says what it needs, and a bid over it says nothing', () => {

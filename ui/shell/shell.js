@@ -20,6 +20,7 @@ import {
 import { trayLines } from './tray.js';
 import { SHELL } from '../words/shell.js';
 import { icon, button } from '../kit/controls.js';
+import { renderKeywordsSection } from '../keywords/render.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
@@ -48,6 +49,8 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
   let game = null;
   let ctx = null;
   let dashboard = null;
+  // Your keywords draws its own cards over the same context (ui/keywords/render.js).
+  let keywords = null;
   let ending = null;
   let extras = { saved: null, canRedo: false };
   let running = false;
@@ -180,7 +183,12 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       shown = el('p', 'studio-panel', `${SHELL.opensAt({ week: st.opensAt })} ${SHELL.returnsLocked()}`);
     } else if (s.key === 'results') shown = ending ?? el('p', 'studio-panel', SHELL.resultsLocked());
     else if (s.key === 'ad') shown = el('p', 'studio-panel', SHELL.adSection());
-    else {
+    else if (s.draws?.includes('keywords') && keywords) {
+      // Redrawn on the way in: another section may have staged a change or
+      // moved the report's range while it was away.
+      keywords.refresh();
+      shown = keywords.node;
+    } else {
       dashboard.dataset.section = s.key;
       shown = dashboard;
     }
@@ -197,7 +205,11 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       const take = chip.undo;
       if (!take || chip.classList.contains('leaving')) return;
       chip.classList.add('leaving');
-      setTimeout(() => { take(); ctx.refresh(); }, UNDO_FADE_MS);
+      setTimeout(() => {
+        take();
+        ctx.refresh();
+        if (view.section === 'keywords') keywords?.refresh();
+      }, UNDO_FADE_MS);
     });
     chip.append(text, undo);
     return chip;
@@ -250,6 +262,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
   function open(key) {
     const s = SECTIONS.find((x) => x.key === key);
     const st = sectionState(s, args());
+    if (view.section === 'keywords' && key !== 'keywords') keywords?.leave();
     view.area = s.area;
     view.section = key;
     view.menuOpen = false;
@@ -282,6 +295,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       onContext: (c) => { ctx = c; },
     });
     dashboard.classList.add('studio-cards');
+    keywords = renderKeywordsSection({ game, ctx, openGuide, openSection: open, setTrayOverride });
     if (ending && !view.resultsShown) {
       view.resultsShown = true;
       view.area = 'results';

@@ -55,15 +55,19 @@ export function keywordCards({ draft, byKeyword, quality = {}, grades = null, re
     const base = draft.base.keywords.find((k) => k.id === keyword.id) ?? null;
     const row = base ? byKeyword?.[keyword.id] : null;
     const broad = keyword.matchType === 'broad';
+    const wasBidPaise = base && base.bidPaise !== keyword.bidPaise ? base.bidPaise : null;
+    const wasMatchType = base && base.matchType !== keyword.matchType ? base.matchType : null;
     return {
       id: keyword.id,
       text: keyword.text,
       matchType: keyword.matchType,
       active: keyword.active !== false,
       isNew: base === null,
+      // The red outline: this card is a change waiting in the tray.
+      changed: base === null || wasBidPaise !== null || wasMatchType !== null,
       bidPaise: keyword.bidPaise,
-      wasBidPaise: base && base.bidPaise !== keyword.bidPaise ? base.bidPaise : null,
-      wasMatchType: base && base.matchType !== keyword.matchType ? base.matchType : null,
+      wasBidPaise,
+      wasMatchType,
       reach: reach(keyword),
       // Tags decide how far broad reaches and nothing else (E8), so they show
       // exactly when broad is chosen.

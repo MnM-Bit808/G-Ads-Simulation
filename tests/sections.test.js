@@ -35,6 +35,11 @@ describe('every card on today\'s page has one place in the new layout', () => {
     }
   });
 
+  test('Your keywords draws its own card, so the guide can still open it', () => {
+    expect(RETIRED_SLOTS).toContain('keywords');
+    expect(sectionOf('keywords').key).toBe('keywords');
+  });
+
   // CLAUDE.md's trap: "show me on the card" must land on something that exists.
   test.each(Object.entries(CHAPTERS))('the guide\'s %s can open the section holding its card', (_, c) => {
     expect(sectionOf(c.yourAccount), c.yourAccount).not.toBeNull();

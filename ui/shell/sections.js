@@ -41,7 +41,9 @@ export const AREAS = Object.freeze([
 
 export const SECTIONS = Object.freeze([
   { key: 'week', area: 'brand', label: 'Your week', icon: ICONS.week, slots: ['headline', 'share', 'revised'] },
-  { key: 'keywords', area: 'brand', label: 'Your keywords', icon: ICONS.keywords, slots: ['keywords'] },
+  // Rebuilt: it draws its own cards (ui/keywords/render.js) and the classic
+  // keywords card is retired in the Studio; `draws` lets the guide open it.
+  { key: 'keywords', area: 'brand', label: 'Your keywords', icon: ICONS.keywords, slots: [], draws: ['keywords'] },
   { key: 'typed', area: 'brand', label: 'What people typed', icon: ICONS.typed, slots: ['terms', 'negatives'] },
   // Today's weekly screen has no ad card: the ad is written in round 0 and its
   // grades show in each keyword's Quality Score. The section says so.
@@ -59,8 +61,8 @@ export const SECTIONS = Object.freeze([
     slots: [], opensAt: TOTAL_ROUNDS },
 ]);
 
-/** Cards the new screens draw instead: the tray replaces *Next week*. */
-export const RETIRED_SLOTS = Object.freeze(['next']);
+/** Cards the new screens draw instead: the tray replaces *Next week*; Your keywords draws its own. */
+export const RETIRED_SLOTS = Object.freeze(['keywords', 'next']);
 
 /** @returns {object|null} the section a card's slot lives in */
 export function sectionOf(slot) {

@@ -2,11 +2,14 @@
  * The keyword card (plans/2026-09-13-studio-makeover.md, section 4). One card
  * for the whole game: round 0 draws it before any week has run, with its
  * weekly places present and empty; the weekly Your keywords section fills
- * the same places with the week's figures.
+ * the same places with the week's figures, and adds the week's own parts:
+ * the running switch, "was", the tick for Adjust several, and the outlines
+ * for a change waiting, a pause and a tick.
  *
  * A DRAG IS NEVER REDRAWN UNDER THE FINGER. While the slider moves, the caller
- * hands the new model to `show`, which changes the figure and the warning in
- * place; anything else (a match type, a typed bid) the caller redraws.
+ * hands the new model to `show`, which changes the figure, "was", the outline
+ * and the warning in place; the switch and the tick change in place too.
+ * Anything else (a match type, a typed bid) the caller redraws.
  */
 
 import { el, add, rupees, whole } from '../dom.js';
@@ -14,7 +17,7 @@ import { whyButton } from '../guide/drawer.js';
 import { QUALITY_MIN_IMPRESSIONS } from '../../engine/constants.js';
 import { KEYWORDS } from '../words/keywords.js';
 import { FORM } from '../words/form.js';
-import { pills, stat, slider, typeIn } from './controls.js';
+import { pills, toggle, stat, slider, typeIn } from './controls.js';
 
 /** The slider never ends below ₹100; past that, half again the highest bid (I6's display bounds). */
 export const SLIDER_FLOOR_PAISE = 10000;
@@ -42,16 +45,27 @@ const RATING_WORD = { above: KEYWORDS.above, average: KEYWORDS.average, below: K
  * @param {(rupees: number, settled: boolean) => void} args.onBid - `settled` is
  *   false while the slider moves
  * @param {() => void} args.onRemove
+ * @param {((on: boolean) => void)|null} [args.onActive] - a played week's
+ *   running switch; round 0 has none
+ * @param {{on: boolean, onToggle: (on: boolean) => void}|null} [args.select] -
+ *   the tick, while Adjust several is picking
  * @returns {{node: HTMLElement, show: (card: object) => void}}
  */
-export function keywordCard({ card, maxRupees, openGuide = null, onMatch, onBid, onRemove }) {
+export function keywordCard({
+  card, maxRupees, openGuide = null, onMatch, onBid, onRemove, onActive = null, select = null,
+}) {
   let model = card;
   let view = 'body';
   const node = el('article', 'kcard');
   node.dataset.id = card.id;
+  node.classList.toggle('changed', card.changed);
+  node.classList.toggle('paused', card.active === false);
 
   const left = el('div', 'kcard-left');
-  if (card.isNew) left.append(el('span', 'knew', KEYWORDS.newTag()));
+  if (select) left.append(tick());
+  if (onActive) left.append(runningSwitch());
+  // The week's switch takes the tag's place: "new: no clicks yet" says it below.
+  else if (card.isNew) left.append(el('span', 'knew', KEYWORDS.newTag()));
   const qs = el('button', 'kqs', KEYWORDS.qs({ value: card.quality.value ?? '—' }));
   qs.type = 'button';
   qs.dataset.key = `${card.id}:qs`;
@@ -67,8 +81,10 @@ export function keywordCard({ card, maxRupees, openGuide = null, onMatch, onBid,
   const inner = el('div', 'kcard-inner');
   node.append(top, menuHost, el('h3', 'kcard-name', card.text), inner);
 
-  // The two things a drag changes, kept so `show` can reach them.
+  // What a drag changes, kept so `show` can reach them.
   let figure = null;
+  let bar = null;
+  const was = el('span', 'kwas');
   const warning = el('p', 'kwarn');
   const warningText = el('span');
   warning.append(warningText);
@@ -77,6 +93,41 @@ export function keywordCard({ card, maxRupees, openGuide = null, onMatch, onBid,
   function showWarning() {
     warning.hidden = model.needPaise == null;
     warningText.textContent = model.needPaise == null ? '' : KEYWORDS.underReserve({ need: rupees(model.needPaise) });
+  }
+
+  function showWas() {
+    was.textContent = model.wasBidPaise == null ? '' : KEYWORDS.wasBid({ bid: rupees(model.wasBidPaise) });
+    bar?.showWas(model.wasBidPaise == null ? null : Math.round(model.wasBidPaise / 100));
+    node.classList.toggle('changed', model.changed);
+  }
+
+  function runningSwitch() {
+    const running = toggle({
+      on: card.active !== false,
+      labelOn: KEYWORDS.running(),
+      labelOff: KEYWORDS.paused(),
+      titleOn: KEYWORDS.pauseTitle(),
+      titleOff: KEYWORDS.resumeTitle(),
+      onToggle: (on) => { node.classList.toggle('paused', !on); onActive(on); },
+    });
+    running.dataset.key = `${card.id}:active`;
+    return running;
+  }
+
+  function tick() {
+    const box = el('button', 'kcheck');
+    box.type = 'button';
+    box.dataset.key = `${card.id}:check`;
+    box.setAttribute('role', 'checkbox');
+    box.setAttribute('aria-label', KEYWORDS.select({ keyword: card.text }));
+    let on = select.on;
+    const showTick = () => {
+      box.setAttribute('aria-checked', String(on));
+      node.classList.toggle('selected', on);
+    };
+    showTick();
+    box.addEventListener('click', () => { on = !on; showTick(); select.onToggle(on); });
+    return box;
   }
 
   function paidLine() {
@@ -95,6 +146,7 @@ export function keywordCard({ card, maxRupees, openGuide = null, onMatch, onBid,
       onPick: onMatch,
     });
     const reach = el('p', 'kreach', FORM.reach({ count: model.reach }));
+    if (model.wasMatchType) reach.append(el('span', 'kwas', KEYWORDS.wasMatch({ match: MATCH_WORD[model.wasMatchType]() })));
     let tagsText = '';
     if (model.tags) tagsText = model.noTagsOnBroad ? KEYWORDS.noTags() : KEYWORDS.tags({ list: model.tags.join(' · ') });
     const tags = el('p', model.noTagsOnBroad ? 'ktags warn' : 'ktags', tagsText);
@@ -109,9 +161,9 @@ export function keywordCard({ card, maxRupees, openGuide = null, onMatch, onBid,
     });
     figure.dataset.key = `${model.id}:bid`;
     const bidRow = el('div', 'kbid-row');
-    bidRow.append(el('span', 'klabel', KEYWORDS.bid()), figure);
+    bidRow.append(el('span', 'klabel', KEYWORDS.bid()), was, figure);
 
-    const bar = slider({
+    bar = slider({
       minRupees: 1,
       maxRupees,
       valueRupees: Math.min(maxRupees, Math.round(model.bidPaise / 100)),
@@ -120,6 +172,7 @@ export function keywordCard({ card, maxRupees, openGuide = null, onMatch, onBid,
     });
     bar.range.dataset.key = `${model.id}:slider`;
     showWarning();
+    showWas();
 
     const figures = el('div', 'kstats');
     const s = model.stats;
@@ -186,11 +239,12 @@ export function keywordCard({ card, maxRupees, openGuide = null, onMatch, onBid,
   more.addEventListener('click', () => { view = view === 'menu' ? 'body' : 'menu'; draw(); });
   draw();
 
-  /** Mid-drag: the new bid and its warning, in place. */
+  /** Mid-drag: the new bid, its "was", its outline and its warning, in place. */
   function show(next) {
     model = next;
     if (figure) figure.textContent = rupees(next.bidPaise);
     showWarning();
+    showWas();
   }
 
   return { node, show };

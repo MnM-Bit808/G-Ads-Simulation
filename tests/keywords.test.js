@@ -45,6 +45,15 @@ describe('a card per keyword', () => {
     expect(cards(d)[0]).toMatchObject({ bidPaise: before + 500, wasBidPaise: before, wasMatchType: 'exact' });
   });
 
+  test('a card is marked changed once it is new, or its bid or match has moved', () => {
+    const d = draft();
+    expect(cards(d)[0].changed).toBe(false);
+    updateKeyword(d, d.keywords[0].id, { matchType: 'phrase' });
+    expect(cards(d)[0].changed).toBe(true);
+    addKeyword(d, { text: 'running shorts', matchType: 'phrase', bidPaise: 3000 });
+    expect(cards(d).at(-1).changed).toBe(true);
+  });
+
   test('tags show on broad and only on broad (E8)', () => {
     const d = draft();
     expect(cards(d).some((c) => c.matchType === 'broad')).toBe(true);
