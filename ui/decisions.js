@@ -2152,12 +2152,17 @@ export function prepaidOutlook(draft, rows) {
  * Apart from the card so a test can read what it shows without drawing it:
  * this is the line where the card takes its figures from its context.
  *
+ * IT ASKED FOR KEYS NOTHING SET. It read `ctx.history` and `ctx.playerId`,
+ * which the dashboard never packed, and `?? []` turned the gap into an account
+ * with no weeks played — so every account read the towns' refusal rate, every
+ * week, and nothing threw. `ctx.places` is the account's own rows, and there
+ * is no fallback: a context without them now fails, and a test names it.
+ *
  * @param {object} ctx from `formContext` in ui/dashboard.js
  * @returns {{now: number, none: number}} refusal rates, 0..1
  */
 export function prepaidReading(ctx) {
-  const rows = locationRows(ctx.draft, ctx.history ?? [], ctx.playerId);
-  return prepaidOutlook(ctx.draft, rows);
+  return prepaidOutlook(ctx.draft, ctx.places());
 }
 
 function prepaidCard(ctx, refresh) {

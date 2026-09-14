@@ -1129,6 +1129,11 @@ export function formContext(game, view = getPublicView(game.state, game.playerId
     // the full set's tags, which the view withholds, and hands back a number,
     // as Keyword Planner forecasts a keyword without its workings (E8).
     reach: (keyword) => keywordReach(keyword, game.state.querySet),
+    // This account's own places, the rows the places card draws, which the
+    // prepaid card weights its refusal rate by. The rows and never the history
+    // they are summed from: `state.history` holds all nine advertisers'
+    // reports, and the form may only know what a controller could.
+    places: () => locationRows(game.draft, game.state.history, game.playerId),
   };
 }
 
