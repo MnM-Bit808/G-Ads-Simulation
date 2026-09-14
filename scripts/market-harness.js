@@ -13,8 +13,9 @@
  * writer, nothing committed at round 0, and nothing committed at week 5 either,
  * which is what the form sends if the player leaves the capital card alone.
  * Rivals run their own policies and are asserted live. Expected mode. The
- * `writer` mode plays the same player twice, hiring the agency and writing `AD`
- * itself, for DECISIONS I11 (plans/2026-09-14-round-zero-redesign.md, section 5).
+ * `writer` mode plays the same player twice, hiring the agency and writing its
+ * own ad (OWN_AD, one per square), for DECISIONS I11
+ * (plans/2026-09-14-round-zero-redesign.md, section 5).
  *
  * usage:
  *   node scripts/market-harness.js market  <label> [workers]
@@ -60,6 +61,60 @@ const AD = {
 };
 
 /**
+ * What the same player writes when it writes its own ad: one per square, as a
+ * careful player would, in the words of that square's own keywords (I11's
+ * measurement, agreed with the owner before the first run). The grader scores
+ * relevance against your own keywords, so a careful writer echoes them; a
+ * strong self-writer is also where the new rule could be too generous, which is
+ * what the gates are there to catch. The page is AD's, so only the writing
+ * differs from the hiring player.
+ */
+const OWN_AD = Object.freeze({
+  'value|performance': {
+    headlines: ['Gym Leggings Under ₹999', 'Sports Bra Combo Pack Sale', 'Budget Gym Wear For Women'],
+    descriptions: [
+      'Vella leggings and sports bras that hold through 4 sessions a week.',
+      'Cheap enough to own two pairs. Free delivery and 30-day returns.',
+    ],
+  },
+  'value|lifestyle': {
+    headlines: ['Co-ord Sets Under ₹999', 'Budget Loungewear That Lasts', 'Leggings Combo Pack Sale'],
+    descriptions: [
+      'Cheap athleisure that looks put together, in sizes XS to XXL.',
+      'Vella co-ord sets from ₹799. Free delivery, easy 15-day returns.',
+    ],
+  },
+  'mid|performance': {
+    headlines: ['High Waisted Gym Leggings', 'Sports Bra, High Impact', 'Running Tights For Women'],
+    descriptions: [
+      'Vella workout leggings that hold through 4 sessions a week.',
+      'Sizes XS to XXL, free delivery and 30-day returns.',
+    ],
+  },
+  'mid|lifestyle': {
+    headlines: ['Everyday Athleisure Leggings', 'Matching Co-ord Sets', 'Joggers And Lounge Pants'],
+    descriptions: [
+      'Vella sets for women who wear them to the studio and after.',
+      'Sizes XS to XXL. Free delivery and 30-day returns.',
+    ],
+  },
+  'premium|performance': {
+    headlines: ['Seamless Compression Leggings', 'Squat Proof, No Camel Toe', 'Four Way Stretch Gym Tights'],
+    descriptions: [
+      'Vella’s buttery soft knit holds through 4 sessions a week.',
+      'Fit consultation before you buy. Free returns within 30 days.',
+    ],
+  },
+  'premium|lifestyle': {
+    headlines: ['Luxury Loungewear In Modal', 'Buttery Soft Designer Leggings', 'Bamboo Fabric Lounge Pants'],
+    descriptions: [
+      'Premium athleisure from Vella, cut to hold its shape for years.',
+      'Fit consultation, and free returns within 30 days.',
+    ],
+  },
+});
+
+/**
  * F15's player, as round 0 choices.
  *
  * @param {string} cell 'price|purpose'
@@ -81,7 +136,9 @@ export function harnessPlayer(cell, writerTier = 'agency') {
       ...own.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: Math.round(breakEven * 0.7) })),
       { text: brand.text, matchType: 'exact', bidPaise: Math.round(breakEven * 1.2) },
     ],
-    ad: AD,
+    // A hired writer's ad runs at the writer's level whatever it says, so the
+    // hiring player keeps the one ad; the self-writer writes its square's own.
+    ad: writerTier === 'diy' ? { ...OWN_AD[cell], landingPageDescription: AD.landingPageDescription } : AD,
     writerTier,
   };
 }
@@ -210,8 +267,8 @@ const rivalProfits = (state) => Object.fromEntries(state.advertisers
 
 /**
  * I11's comparison on one market: the player hiring the agency, and the same
- * player writing AD itself. `written` is the grade AD gets in this cell, the
- * figure the owner agreed counts as a competent self-written ad.
+ * player writing its own ad (OWN_AD). `written` is the grade that ad gets in
+ * this cell, the figure the owner agreed counts as a careful self-written ad.
  */
 export async function writerRow({ seed, cell }) {
   const out = { seed, cell };
@@ -225,7 +282,7 @@ export async function writerRow({ seed, cell }) {
   }
   const player = harnessPlayer(cell, 'diy');
   const rivalNames = BRAND_IDENTITIES.filter((b) => b.id !== PLAYER).map((b) => b.name);
-  const { expectedCtr, adRelevance, landingPage } = gradeAdOffline(AD, { keywords: player.keywords, rivalNames }, 0);
+  const { expectedCtr, adRelevance, landingPage } = gradeAdOffline(player.ad, { keywords: player.keywords, rivalNames }, 0);
   out.written = { expectedCtr, adRelevance, landingPage };
   return out;
 }

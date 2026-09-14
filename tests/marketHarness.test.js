@@ -1,5 +1,7 @@
 import { describe, test, expect } from 'vitest';
-import { harnessPlayer, playMarket, writerGates, PLAYER } from '../scripts/market-harness.js';
+import { harnessPlayer, playMarket, writerGates, PLAYER, CELLS } from '../scripts/market-harness.js';
+import { gradeAdOffline, validateAdCopy } from '../agents/grader.js';
+import { BRAND_IDENTITIES } from '../content/brands.js';
 import { MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE, CREATIVE_ALLOCATION_PAISE } from '../engine/constants.js';
 import { writerTier } from '../content/writers.js';
 
@@ -34,6 +36,27 @@ describe('the self-writing player, and the gates it is judged by (round 0 redesi
     const own = harnessPlayer('mid|lifestyle', 'diy');
     expect(own.writerTier).toBe('diy');
     expect(own.keywords).toEqual(harnessPlayer('mid|lifestyle').keywords);
+  });
+
+  test('it writes as a careful player would, for its own square: both copy grades 8 or more', () => {
+    // Agreed with the owner before the first run: a careful writer echoes its own
+    // keywords, and the gates exist to catch the rule being too generous, which
+    // is where a strong writer is.
+    const rivalNames = BRAND_IDENTITIES.filter((b) => b.id !== PLAYER).map((b) => b.name);
+    for (const cell of CELLS) {
+      const { ad, keywords } = harnessPlayer(cell, 'diy');
+      expect(validateAdCopy(ad).valid, cell).toBe(true);
+      const grade = gradeAdOffline(ad, { keywords, rivalNames }, 0);
+      expect(grade.expectedCtr, cell).toBeGreaterThanOrEqual(8);
+      expect(grade.adRelevance, cell).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  test('and describes the same page as the hiring player, so only the writing differs', () => {
+    for (const cell of CELLS) {
+      expect(harnessPlayer(cell, 'diy').ad.landingPageDescription)
+        .toBe(harnessPlayer(cell).ad.landingPageDescription);
+    }
   });
 
   const row = (seed, ownRank, ownNet, hiredNet, rivalNet) => ({
