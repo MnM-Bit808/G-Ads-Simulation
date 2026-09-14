@@ -4434,6 +4434,20 @@ so round 0 adds the moments it uses now, and that task later skips them.
   flags; `npm test`; commit: *Move round 0 only where it explains: the steps,
   the press, the drawer and the menu*.
 
+  *Found when built:* `/review-animations` was not in the session (it had
+  `improve-animations` and `find-animation-opportunities`); the owner chose to
+  run `improve-animations` on the motion instead. It confirmed the press, the
+  drawer, the menu and the step slide against its values, and flagged four
+  things; the owner took one. The map's rings had positive delays, so every
+  redraw (arriving, a tap, a price level) blanked all 32 and brought them back
+  over up to 2.6 seconds; `pulseDelay` now starts each ring mid-cycle. The step
+  slide's own curve stays (the spec's row 4), named `--studio-ease-in-out`. Not
+  taken: a test holding `DRAWER_EXIT_MS` to the CSS's 150ms, and measuring the
+  pulse's repaint cost on a real phone. In the pane the step slid a measured
+  24px (Chrome's `getKeyframes` reports a `@starting-style` transform doubled,
+  48px, at a device pixel ratio of 2); redraws moved nothing; the planner came
+  in over 220ms and left over 150ms; the menu grew from its button.
+
 ---
 
 ### Task 15: play it through, and measure

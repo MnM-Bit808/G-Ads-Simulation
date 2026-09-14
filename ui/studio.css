@@ -66,6 +66,9 @@ body.studio {
   --studio-display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif;
   --studio-body: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --studio-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Round 0's step transition only: the makeover spec's motion row 4 names this
+     curve, the one motion not on --studio-ease; kept by the owner, 2026-09-14. */
+  --studio-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 
   /* Today's cards read these names. Restating them re-themes every card that
      has not been rebuilt yet, with no change to style.css. Losses are amber:
@@ -463,3 +466,34 @@ body.studio .r0-advanced-toggle { padding: 6px 14px; border: 1px solid var(--stu
 body.studio .r0-weeks { display: grid; grid-template-columns: repeat(4, minmax(0, 120px)); gap: 10px; width: 100%; }
 body.studio .r0-week { display: flex; flex-direction: column; gap: 4px; }
 @media (max-width: 900px) { body.studio .r0-targets, body.studio .r0-weeks { grid-template-columns: minmax(0, 1fr); } }
+
+/* --- round 0's motion (makeover spec, section 3): the step transition, the
+   press, the planner drawer and the card's menu. The map's pulse is in its own
+   block above, the one named exception. ------------------------------------- */
+body.studio .r0-step .studio-content > * { transition: opacity 250ms var(--studio-ease-in-out), transform 250ms var(--studio-ease-in-out); }
+body.studio .r0-step[data-direction="none"] .studio-content > * { transition: none; }
+body.studio .press { transition: transform 160ms ease-out; }
+body.studio .press:active { transform: scale(0.97); }
+body.studio .kmenu, body.studio .kplanner, body.studio .kplanner-overlay { transition: opacity 220ms var(--studio-ease), transform 220ms var(--studio-ease); }
+body.studio .kmenu { transition-duration: 150ms; }
+body.studio .kplanner.closing { opacity: 0; transform: translateX(100%); transition-duration: 150ms; }
+body.studio .kplanner-overlay.closing { opacity: 0; transition-duration: 150ms; }
+
+@starting-style {
+  body.studio .r0-step[data-direction="forward"] .studio-content > * { opacity: 0; transform: translateX(24px); }
+  body.studio .r0-step[data-direction="back"] .studio-content > * { opacity: 0; transform: translateX(-24px); }
+  body.studio .kmenu { opacity: 0; transform: scale(0.97); }
+  body.studio .kplanner { opacity: 0; transform: translateX(100%); }
+  body.studio .kplanner-overlay { opacity: 0; }
+}
+
+/* Reduced motion keeps the fades and drops the movement and the press. */
+@media (prefers-reduced-motion: reduce) {
+  body.studio .press:active { transform: none; }
+  body.studio .kplanner.closing { transform: none; }
+  @starting-style {
+    body.studio .r0-step[data-direction="forward"] .studio-content > *,
+    body.studio .r0-step[data-direction="back"] .studio-content > *,
+    body.studio .kmenu, body.studio .kplanner { transform: none; }
+  }
+}
