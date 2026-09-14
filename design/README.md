@@ -65,6 +65,31 @@ Co. at mid-price performance, four phrase keywords, two broad and the brand on
 exact), added up over weeks 1–4 as the keyword card does. The one invented detail
 is a pending bid change, drawn to show the tray.
 
+## `where-when/`: the controls for Where and when (2026-09-15)
+
+A fourth canvas, https://claude.ai/code/artifact/84535b5e-0d58-4228-b2b5-fbfcf8d7383b,
+asked for after the Studio pilot: the owner found the hours cramped and disliked
+the number boxes and preset buttons. Two options for each half of the section,
+every bar draggable, drawn inside the weekly sidebar layout.
+
+- **Page 1, hours of the day:** `Main.dc.html` (A · the day to scale: each block
+  as wide as its hours, with the day's clicks by hour on the same clock) and
+  `HoursSliders.dc.html` (B · six equal sliders, each with its own figures).
+- **Page 2, where you advertise:** `PlacesBeside.dc.html` (A · the three kinds of
+  place as rows with a bar each, beside the India map, which lights and names a
+  row's cities) and `PlacesOnMap.dc.html` (B · tap a city or a kind to set it,
+  with its figures beside the map).
+
+Both scales run from off through even to four times the keyword bid, the most a
+bid can be under manual bidding (`MAX_BID_MULTIPLE`). Its numbers come from one
+game played six weeks with the engine (seed 1, Vella & Co. at mid-price
+performance, manual bids of ₹33, no adjustments), read with the form's own
+`daypartRows` and `locationRows`; the map and the 32 cities are
+`ui/india-map.js` and `content/locations.js`. The notes on the canvas carry each
+option's case and cost, and two findings for the owner: the hours box accepts
++900% though nothing past +300% changes a bid, and the engine applies a place
+adjustment without the four-times cap its own comment describes.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.
