@@ -349,6 +349,9 @@ body.studio .r0-readonly { margin: 16px 0 0; font-size: 14px; color: var(--studi
 @media (max-width: 700px) {
   body.studio .r0-tray .r0-sofar, body.studio .r0-tray .r0-next, body.studio .r0-tray .r0-finish { flex: 1 1 100%; }
   body.studio .r0-tray .r0-sofar { flex-wrap: wrap; overflow-x: visible; }
+  /* At step 5 the checklist beside Go already says what is done, and with So
+     far above it the tray took 266px of an 812px phone (the owner, 2026-09-14). */
+  body.studio .r0-tray:has(.r0-finish) .r0-sofar { display: none; }
 }
 
 /* --- step 2, where you sit ------------------------------------------------ */
