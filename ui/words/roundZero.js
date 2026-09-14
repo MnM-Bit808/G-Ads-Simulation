@@ -141,6 +141,43 @@ export const R0 = Object.freeze({
     + 'from the first week. It checks rules, not taste: echoing your keywords counts for more than '
     + 'reading well. The landing page, the third part, is your site: you build it in the next step.',
     { why: 'writers' }),
+
+  // Step 5, your money
+  moneyIntro: line('reading', ({ month, capital }) => `Month ${month}’s budget, and ${capital} of capital: `
+    + 'build the site your clicks land on, or keep it as ad money.'),
+  monthTitle: line('label', ({ month }) => `Month ${month}, to spend on clicks`),
+  monthNote: line('label', ({ weeks }) => `over ${weeks} weeks · unspent money is lost at the month’s end`),
+  partBase: line('label', 'the month'),
+  partWriter: line('label', 'left from the writer'),
+  capitalTitle: line('label', 'Capital'),
+  capitalWhen: line('label', ({ week }) => `site work goes live at week ${week} · until then the money is `
+    + 'spent and the site unchanged'),
+  notCommitted: line('label', 'not committed'),
+  lpTitle: line('label', 'Landing page grade'),
+  lpNote: line('label', ({ step }) => `the third part of Quality Score · the ad’s two are in ${step}`),
+  lpFrom: line('label', ({ value, scale, week }) => `${value}/${scale} from week ${week}`),
+  targetPage: line('label', 'The page itself'),
+  targetSize: line('label', 'Size guide'),
+  targetPhoto: line('label', 'Photography'),
+  targetConfirm: line('label', 'Order confirmation'),
+  moves: line('label', ({ what }) => `moves: ${what}`),
+  movesPage: line('label', 'the landing page grade'),
+  movesSize: line('label', 'parcels sent back'),
+  movesPhoto: line('label', 'how many visitors buy'),
+  movesConfirm: line('label', 'parcels refused'),
+  whyPage: line('reading', 'Better quality, so a cheaper click. Worth most in the middle.'),
+  whySize: line('reading', 'Fewer parcels sent back after delivery. Worth most at the cheap end, and to '
+    + 'anything sold on how it looks.'),
+  whyPhoto: line('reading', 'More of your visitors buy. Worth most where the decision is considered.'),
+  whyConfirm: line('reading', 'Fewer parcels refused at the door. Worth most where cash on delivery is '
+    + 'commonest, which is the cheap end and the small towns.'),
+  rung: line('label', ({ label, price }) => `${label} · ${price}`),
+  tooDear: line('label', 'more than the capital left'),
+  advanced: line('instruction', 'Advanced'),
+  splitEven: line('reading', ({ weekly }) => `the weekly split: even, ${weekly} a week`),
+  splitCustom: line('reading', ({ planned, month }) => `the weekly split: ${planned} planned of ${month}`),
+  splitNotGoogle: line('disclosure', 'a decision Google does not offer', { why: 'weeklySplit' }),
+  weekN: line('label', ({ n }) => `Week ${n}`),
 });
 
 /** A price level's name, by the engine's key. */

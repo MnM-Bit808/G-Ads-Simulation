@@ -228,6 +228,7 @@ describe('every interface module at least loads', () => {
     'roundzero/position.js': () => import('../ui/roundzero/position.js'),
     'roundzero/keywords.js': () => import('../ui/roundzero/keywords.js'),
     'roundzero/ad.js': () => import('../ui/roundzero/ad.js'),
+    'roundzero/money.js': () => import('../ui/roundzero/money.js'),
     'words/roundZero.js': () => import('../ui/words/roundZero.js'),
   };
 

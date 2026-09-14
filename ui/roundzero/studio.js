@@ -26,16 +26,17 @@ import { renderMarketStep } from './market.js';
 import { renderPositionStep } from './position.js';
 import { renderKeywordsStep } from './keywords.js';
 import { renderAdStep } from './ad.js';
+import { renderMoneyStep } from './money.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 
-/** The five steps. A step whose `render` is null is not built yet. */
+/** The five steps, in order. */
 const STEPS = [
   { key: 'market', label: R0.stepMarket, render: renderMarketStep },
   { key: 'position', label: R0.stepPosition, render: renderPositionStep },
   { key: 'keywords', label: R0.stepKeywords, render: renderKeywordsStep },
   { key: 'ad', label: R0.stepAd, render: renderAdStep },
-  { key: 'money', label: R0.stepMoney, render: null },
+  { key: 'money', label: R0.stepMoney, render: renderMoneyStep },
 ];
 const CHECK = { square: R0.checkSquare, keywords: R0.checkKeywords, ad: R0.checkAd, money: R0.checkMoney };
 const NEED = { keyword: R0.needKeyword, ad: R0.needAd, split: R0.needSplit };
@@ -130,7 +131,6 @@ export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, 
       if (done[step.key]) mark.setAttribute('aria-label', R0.done());
       const item = button('studio-item', mark, el('span', 'grow', step.label()));
       item.setAttribute('aria-current', String(view.step === step.key));
-      item.disabled = step.render === null;
       item.addEventListener('click', () => open(step.key));
       list.append(item);
     });
@@ -205,7 +205,6 @@ export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, 
     const nextStep = STEPS[at(view.step) + 1];
     const next = button('studio-run r0-next', R0.next({ step: nextStep.label() }));
     next.classList.add('press');
-    next.disabled = nextStep.render === null;
     next.addEventListener('click', () => open(nextStep.key));
     tray.replaceChildren(soFar(), next);
   }
@@ -221,7 +220,7 @@ export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, 
   /** Open a step, from the list or from Next. */
   function open(key) {
     const step = STEPS[at(key)];
-    if (!step || step.render === null) return;
+    if (!step) return;
     view.direction = Math.sign(at(key) - at(view.step));
     view.step = key;
     view.visited.add(key);

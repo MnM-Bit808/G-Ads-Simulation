@@ -4366,6 +4366,16 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   Then play a classic round 0 into week 1. Commit: *Draw step 5: the month, the
   capital beside the grade it moves, the weekly split, and Go*.
 
+  *Found when built:* the words test's figures already held `weeks` and
+  `price`, so the two this step would add are left out (the linter's
+  no-dupe-keys). With every step built, the frame's disabled-step rule and the
+  Next button's disabled style are dead, and go. The week 1 screen shows no
+  Quality Score until 500 impressions, so the account was checked against round
+  0 through the save: brand, square, keyword, the agency's copy, both capital
+  commitments live at week 4, and four weeks of ₹58,250 adding to the month.
+  Left for Task 15: an unaffordable rung is 3.28:1 (disabled, so exempt unless
+  the owner says otherwise), and on a phone step 5's tray is 266px tall of 812.
+
 ---
 
 ### Task 14: round 0's motion
