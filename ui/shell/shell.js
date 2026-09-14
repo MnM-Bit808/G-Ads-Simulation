@@ -333,7 +333,9 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       onContext: (c) => { ctx = c; },
     });
     dashboard.classList.add('studio-cards');
-    keywords = renderKeywordsSection({ game, ctx, openGuide, openSection: open, setTrayOverride });
+    keywords = renderKeywordsSection({
+      game, ctx, openGuide, openSection: open, setTrayOverride, refreshTray: drawTray,
+    });
     if (ending && !view.resultsShown) {
       view.resultsShown = true;
       view.area = 'results';

@@ -78,9 +78,12 @@ export function stat(value, label) {
 
 /**
  * A slider in whole rupees, with the week's starting value marked. `onInput`
- * fires while dragging; the caller updates figures in place.
+ * fires while dragging; the caller updates figures in place. `onSettle` fires
+ * once the finger lifts (or a key moves it), for work too heavy for every step.
  */
-export function slider({ minRupees, maxRupees, valueRupees, wasRupees = null, label, onInput }) {
+export function slider({
+  minRupees, maxRupees, valueRupees, wasRupees = null, label, onInput, onSettle = null,
+}) {
   const box = el('div', 'kslider');
   const range = el('input');
   range.type = 'range';
@@ -96,6 +99,7 @@ export function slider({ minRupees, maxRupees, valueRupees, wasRupees = null, la
   };
   showWas(wasRupees);
   range.addEventListener('input', () => onInput(Number(range.value)));
+  if (onSettle) range.addEventListener('change', () => onSettle(Number(range.value)));
   box.append(range, was);
   return { node: box, range, showWas };
 }

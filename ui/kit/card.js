@@ -45,6 +45,8 @@ const RATING_WORD = { above: KEYWORDS.above, average: KEYWORDS.average, below: K
  * @param {(rupees: number, settled: boolean) => void} args.onBid - `settled` is
  *   false while the slider moves
  * @param {() => void} args.onRemove
+ * @param {((rupees: number) => void)|null} [args.onDragEnd] - once the slider
+ *   is let go, for work too heavy for every step of a drag
  * @param {((on: boolean) => void)|null} [args.onActive] - a played week's
  *   running switch; round 0 has none
  * @param {{on: boolean, onToggle: (on: boolean) => void}|null} [args.select] -
@@ -52,7 +54,7 @@ const RATING_WORD = { above: KEYWORDS.above, average: KEYWORDS.average, below: K
  * @returns {{node: HTMLElement, show: (card: object) => void}}
  */
 export function keywordCard({
-  card, maxRupees, openGuide = null, onMatch, onBid, onRemove, onActive = null, select = null,
+  card, maxRupees, openGuide = null, onMatch, onBid, onRemove, onDragEnd = null, onActive = null, select = null,
 }) {
   let model = card;
   let view = 'body';
@@ -169,6 +171,7 @@ export function keywordCard({
       valueRupees: Math.min(maxRupees, Math.round(model.bidPaise / 100)),
       label: KEYWORDS.sliderLabel({ keyword: model.text }),
       onInput: (value) => onBid(value, false),
+      onSettle: onDragEnd,
     });
     bar.range.dataset.key = `${model.id}:slider`;
     showWarning();

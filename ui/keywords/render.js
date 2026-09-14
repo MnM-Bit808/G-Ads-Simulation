@@ -50,9 +50,10 @@ const normal = (text) => String(text).trim().toLowerCase().replace(/\s+/g, ' ');
  * @param {Function} [args.openGuide]
  * @param {(key: string) => void} args.openSection
  * @param {(node: HTMLElement|null) => void} args.setTrayOverride
+ * @param {() => void} args.refreshTray - the tray alone, for each step of a drag
  * @returns {{node: HTMLElement, refresh: () => void, leave: () => void}}
  */
-export function renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride }) {
+export function renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride, refreshTray }) {
   const played = game.reports.length;
   const state = { selecting: false, selected: new Set() };
   // Fixed for the week from the bids it started with, so the slider never
@@ -64,7 +65,7 @@ export function renderKeywordsSection({ game, ctx, openGuide, openSection, setTr
   // The guide's "show me on the card" looks for the keywords slot (sections.js, draws).
   node.dataset.slot = 'keywords';
 
-  const staged = (light = false) => ctx.refresh(light ? { summaryOnly: true } : undefined);
+  const staged = () => ctx.refresh();
   const focusAdd = () => node.querySelector('[data-key="add"]')?.focus();
   // The full query set, for one number per keyword: what its bid must clear
   // (ui/reserve.js), as `ctx.reach` reads it for another. No tag is shown.
@@ -195,10 +196,14 @@ export function renderKeywordsSection({ game, ctx, openGuide, openSection, setTr
       onBid: (value, settled) => {
         if (!updateKeyword(ctx.draft, card.id, { bidPaise: value * 100 }).ok) return;
         if (value > maxRupees) maxRupees = Math.ceil(value / RUPEE_STEP) * RUPEE_STEP;
-        staged(!settled);
-        if (settled) { redraw(); return; }
+        if (settled) { staged(); redraw(); return; }
+        // Mid-drag only this card and the tray can change. The form's refresh
+        // redraws its cards and the search terms behind the section, 36ms a
+        // step with sixty keywords, so it waits for the slider to be let go.
+        refreshTray();
         drawn.show(cardsFor(own())[0]);
       },
+      onDragEnd: () => staged(),
       // The card, and the menu that had focus, are gone after the redraw.
       onRemove: () => { removeKeyword(ctx.draft, card.id); staged(); redraw(); focusAdd(); },
       onActive: (on) => { updateKeyword(ctx.draft, card.id, { active: on }); staged(); },
