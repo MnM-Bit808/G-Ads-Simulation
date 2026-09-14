@@ -105,6 +105,42 @@ export const R0 = Object.freeze({
   // Step 3, your keywords
   keywordsIntro: line('reading', ({ n }) => `${n} ${n === 1 ? 'keyword' : 'keywords'} · the searches you `
     + 'bid on, and how loosely each one matches', { why: 'broadMatch' }),
+
+  // Step 4, your ad
+  adIntro: line('reading', 'The only thing your rivals can see about you. Hire a writer, or write it '
+    + 'yourself.', { why: 'writers' }),
+  whoWrites: line('label', 'Who writes it'),
+  fromBudget: line('label', ({ budget }) => `from a ${budget} creative budget`),
+  free: line('label', 'free'),
+  writerDiy: line('reading', 'Free. Graded on your own words.'),
+  writerFreelancer: line('reading', 'Names what you sell, plainly.'),
+  writerAgency: line('reading', 'Adds a hook and one concrete detail.'),
+  writerRetainer: line('reading', 'Writes from the customer’s day.'),
+  yourWordsDecide: line('label', 'your words decide'),
+  runsAt: line('label', ({ grade }) => `runs at ${grade} · ${grade}`),
+  leftover: line('reading', ({ amount }) => `${amount} of the creative budget goes to your ads instead`),
+  asSearchersSee: line('label', 'As searchers see it'),
+  emptyHead: line('instruction', 'Your headlines appear here'),
+  emptyDesc: line('instruction', 'Your descriptions appear here.'),
+  headlineN: line('label', ({ n }) => `Headline ${n}`),
+  descriptionN: line('label', ({ n }) => `Description ${n}`),
+  charCount: line('label', ({ n, max }) => `${n}/${max}`),
+  namesRival: line('reading', ({ name }) => `It names ${name}. Bidding on a rival’s name is allowed; `
+    + 'naming them in your ad is not, and it costs ad relevance.'),
+  howItRuns: line('label', ({ week }) => `How it runs, from week ${week}`),
+  twoParts: line('label', 'two of Quality Score’s three parts · the grade the auction uses'),
+  expectedCtr: line('label', 'Expected click-through'),
+  adRelevance: line('label', 'Ad relevance'),
+  byWriter: line('label', ({ writer }) => `written by the ${writer}`),
+  byYou: line('label', 'written by you'),
+  outOf: line('label', ({ value, scale }) => `${value}/${scale}`),
+  hiredNote: line('disclosure', 'A hired writer’s ad runs at the writer’s level whatever the words say: '
+    + 'this game cannot judge professional writing, so it takes the writer’s level as the grade. The '
+    + 'landing page, the third part, is your site: you build it in the next step.', { why: 'writers' }),
+  diyNote: line('disclosure', 'The game’s own grader scores your words as you type, and that score runs '
+    + 'from the first week. It checks rules, not taste: echoing your keywords counts for more than '
+    + 'reading well. The landing page, the third part, is your site: you build it in the next step.',
+    { why: 'writers' }),
 });
 
 /** A price level's name, by the engine's key. */

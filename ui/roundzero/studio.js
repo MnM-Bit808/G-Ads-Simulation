@@ -25,6 +25,7 @@ import {
 import { renderMarketStep } from './market.js';
 import { renderPositionStep } from './position.js';
 import { renderKeywordsStep } from './keywords.js';
+import { renderAdStep } from './ad.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 
@@ -33,7 +34,7 @@ const STEPS = [
   { key: 'market', label: R0.stepMarket, render: renderMarketStep },
   { key: 'position', label: R0.stepPosition, render: renderPositionStep },
   { key: 'keywords', label: R0.stepKeywords, render: renderKeywordsStep },
-  { key: 'ad', label: R0.stepAd, render: null },
+  { key: 'ad', label: R0.stepAd, render: renderAdStep },
   { key: 'money', label: R0.stepMoney, render: null },
 ];
 const CHECK = { square: R0.checkSquare, keywords: R0.checkKeywords, ad: R0.checkAd, money: R0.checkMoney };

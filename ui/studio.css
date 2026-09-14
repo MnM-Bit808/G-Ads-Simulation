@@ -402,3 +402,35 @@ body.studio .r0-bar-text { position: relative; padding-left: 6px; font-size: 11p
 @media (max-width: 900px) {
   body.studio .r0 .studio-dots, body.studio .r0 .studio-saved { display: none; }
 }
+
+/* --- step 4, your ad ------------------------------------------------------ */
+body.studio .r0-writers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+body.studio .r0-writers .r0-head, body.studio .r0-writers > .r0-small { grid-column: 1 / -1; }
+body.studio .r0-writer { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 16px; background: var(--studio-card); color: var(--studio-text); text-align: left; }
+body.studio .r0-writer.on { border-color: var(--studio-red); box-shadow: 0 0 0 1px var(--studio-red); }
+body.studio .r0-writer-price { font: 800 20px/1.1 var(--studio-display); }
+body.studio .r0-writer-grade { margin-top: auto; font-size: 12px; font-weight: 700; color: var(--studio-soft); }
+body.studio .r0-ad-split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+body.studio .r0-written { display: flex; flex-direction: column; gap: 12px; }
+body.studio .r0-boxes { display: flex; flex-direction: column; gap: 8px; }
+body.studio .r0-field { display: grid; grid-template-columns: 110px minmax(0, 1fr) 56px; gap: 8px; align-items: center; }
+body.studio .r0-count { font-size: 12px; text-align: right; color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .r0-count.over { color: var(--studio-amber); }
+body.studio .r0-problems { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.45; color: var(--studio-amber); }
+body.studio .r0-grades { padding: 18px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .r0-grade { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin: 12px 0; }
+body.studio .r0-grade-name { font-weight: 700; }
+body.studio .r0-grade .r0-small { grid-column: 1; }
+body.studio .r0-grade-track { grid-column: 1; position: relative; height: 8px; overflow: hidden; border-radius: 4px; background: #2E2A33; }
+body.studio .r0-grade-fill { position: absolute; inset: 0 auto 0 0; background: var(--studio-text); }
+body.studio .r0-grade-value { grid-column: 2; grid-row: 1 / span 3; align-self: center; font: 800 26px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+@media (max-width: 1000px) {
+  body.studio .r0-writers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .r0-ad-split { grid-template-columns: minmax(0, 1fr); }
+}
+/* At 375px a label beside its box left the box 161px, too narrow to show a
+   30-character headline whole: on a phone the label sits above it. */
+@media (max-width: 700px) {
+  body.studio .r0-field { grid-template-columns: minmax(0, 1fr) 56px; gap: 4px 8px; }
+  body.studio .r0-field > .r0-small { grid-column: 1 / -1; }
+}

@@ -4081,6 +4081,18 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   Commit: *Draw step 4: who writes the ad, the ad as searchers see it, and how
   it runs from week 1*.
 
+  *Found when built:* the problems list leaves out `graded.notes`, which say
+  the over-length and the rival penalty a second time in the engine's words
+  ("adRelevance penalised by 4"); it shows what the classic page shows. On a
+  phone a field's label sits above its box (the box was 161px at 375px).
+  Two things for the owner. **Switching back to a writer does not bring its
+  copy back** once the player has typed: I25 never overwrites the player's
+  words, which worked on the classic page because its boxes show for every
+  writer; here they show only for *Write it yourself*, so the player's words
+  stay in the ad under a hired writer, unseen and uneditable, and an invalid
+  ad then blocks Go with nothing on screen to fix. And the kit's text boxes
+  (`kfield`) are outlined 1.65:1 against the page.
+
 ---
 
 ### Task 13: step 5, your money, and Go
