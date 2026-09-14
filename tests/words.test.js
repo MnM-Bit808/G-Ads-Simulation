@@ -27,6 +27,7 @@ import { FORM } from '../ui/words/form.js';
 import { SHELL } from '../ui/words/shell.js';
 import { KEYWORDS } from '../ui/words/keywords.js';
 import { R0 } from '../ui/words/roundZero.js';
+import { AD } from '../ui/words/ad.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -316,6 +317,34 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
   });
 });
 
+describe('the weekly Your ad', () => {
+  const FIGURES = {
+    amount: '₹10,000', budget: '₹50,000', week: 4, value: 9, scale: 10, part: 'Landing page',
+    text: 'A plain product page.', label: 'reviews', from: 'plain',
+  };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(AD)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of Object.entries(AD)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(AD)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('a hired ad says it runs at the writer\'s level (I11: "that sentence is printed")', () => {
+    expect(AD.hired.kind).toBe('disclosure');
+    expect(AD.hired()).toMatch(/runs at the writer’s level/);
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -345,7 +374,8 @@ describe('the new screens draw, and do not write', () => {
   // lists are not counted.
   const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
-    'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js'];
+    'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
+    'ui/ad/render.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

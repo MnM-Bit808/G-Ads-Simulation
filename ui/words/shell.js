@@ -22,8 +22,6 @@ export const SHELL = Object.freeze({
   opensAt: line('reading', ({ week }) => `Opens at week ${week}.`),
   returnsLocked: line('reading', 'Before then there is no honest reading of what came back.'),
   resultsLocked: line('reading', 'Opens after the last week, with the debrief and the rival reveal.'),
-  adSection: line('reading', 'Your ad is written before the first week, and its grades show in each '
-    + 'keyword’s Quality Score. It moves here when this section is built.'),
   redo: line('instruction', ({ round }) => `Redo round ${round}`),
   playtest: line('instruction', 'Send playtest file'),
   playtestShort: line('label', 'Playtest'),

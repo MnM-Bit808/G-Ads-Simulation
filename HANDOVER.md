@@ -57,7 +57,11 @@ own section; the owner played it on 2026-09-15 and said "Alive".
   - After the gate, for a desktop browser (the owner's call): a section's cards
     at full width, one scroll, slim scrollbars, the guide's contents numbered.
     The design doc's section 10 lists every departure.
-  - On `makeover`: 1894 tests pass, 1 todo, and the build publishes 83 files.
+  - Then, in the owner's order: the brand as a pick in round 0's step 2; each
+    Quality Score part's grade out of ten on the Studio keyword card, as I1
+    says and the Studio had dropped; and the weekly *Your ad*, read-only
+    (`ui/ad/`).
+  - On `makeover`: 1921 tests pass, 1 todo, and the build publishes 86 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -75,15 +79,24 @@ it in a test it never committed, `tests/capitalTiming.test.js` in the worktree
 and Task 15 played the same on `makeover`: the agency with reviews opened at
 landing 7. Step 5 shows what the engine does, so it follows any change. A
 change moves the market, so it is measured on `scripts/market-harness.js`
-before and after, against gates agreed first.
+before and after, against gates agreed first. It reaches every target's
+sentence, not only the page's (found building Your ad, 2026-09-15): a ₹25,000
+size guide alone takes the graded page from 5 to 7 from week 1, and ₹50,000 of
+photography to 6, though neither goes live until week 4. That a size guide
+moves the landing grade at all is documented (DECISIONS I9, *What this
+costs*); the open part is only the week it starts. The weekly *Your ad* shows it as the
+engine does: the page's parts marked "week 4", its description graded now.
 
 **What to do next, in the owner's order (2026-09-15):**
 1. **DONE 2026-09-15: the brand as a pick from the nine,** in round 0's step
    2, starting on the one the seed draws (DECISIONS I35's dated note). A note
    on a rival follows the ad it was made about, because another brand deals
    the eight names onto the eight ads differently.
-2. **Your ad, read-only:** the ad as searchers see it, who wrote it, its grades
-   and the landing page. Rewriting an ad mid-game waits for the message project.
+2. **DONE 2026-09-15: Your ad, read-only** (`ui/ad/read.js`, `render.js`): the
+   ad as searchers see it, who wrote it, the three grades out of ten the
+   auctions use that week with any change to come and its week, and the
+   landing page. Rewriting an ad mid-game waits for the message project. The
+   keyword card's Quality Score shows each part's grade out of ten again (I1).
 3. **Where and when,** drawn first as mock-ups on the canvas: hours as bars to
    drag, and places set on the India map, as the makeover design's section 7
    planned. Then the rest of that section's list, one section at a time, and

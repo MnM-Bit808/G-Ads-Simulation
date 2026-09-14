@@ -202,8 +202,8 @@ number in the simulation without ever throwing an error.
   guesses the folder to publish on every deploy, and a wrong guess publishes the
   repository — docs and tests — while still reporting success.
   `tests/build.test.js` holds it, and holds `dist/` to exactly the files the
-  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 83 on the
-  branch `makeover` since the Studio pilot (2026-09-15), whose stylesheet and
+  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 86 on the
+  branch `makeover` since the weekly Your ad (2026-09-15), whose stylesheet and
   fonts the build finds by following `url()` inside CSS.
 - **The Studio makeover filters today's cards, it never moves them.** The
   decision form redraws every card it owns into its own region on each change,

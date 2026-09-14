@@ -45,8 +45,8 @@ export const SECTIONS = Object.freeze([
   // keywords card is retired in the Studio; `draws` lets the guide open it.
   { key: 'keywords', area: 'brand', label: 'Your keywords', icon: ICONS.keywords, slots: [], draws: ['keywords'] },
   { key: 'typed', area: 'brand', label: 'What people typed', icon: ICONS.typed, slots: ['terms', 'negatives'] },
-  // Today's weekly screen has no ad card: the ad is written in round 0 and its
-  // grades show in each keyword's Quality Score. The section says so.
+  // Read-only (the owner, 2026-09-15): the ad is written in round 0 and runs as
+  // it is (I9). It draws itself (ui/ad/render.js); the classic page has no ad card.
   { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, slots: [] },
   { key: 'money', area: 'brand', label: 'Your money', icon: ICONS.money,
     slots: ['window', 'budget', 'split', 'bidding', 'deadline'] },

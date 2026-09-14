@@ -362,6 +362,30 @@ body.studio .kbulk-done { padding: 9px 18px; border: 1px solid #4A454F; border-r
 @media (max-width: 1000px) { body.studio .kpanel { grid-template-columns: minmax(0, 1fr); gap: 14px; } }
 @media (max-width: 620px) { body.studio .khead { flex-direction: column; align-items: flex-start; } }
 
+/* --- Your ad, a played week (read-only, the owner's call 2026-09-15) ------- */
+body.studio .yad h3 { margin: 0 0 8px; font: 700 16px/1.2 var(--studio-display); }
+body.studio .yad-intro { max-width: 720px; margin: 0 0 18px; font-size: 16px; line-height: 1.5; color: var(--studio-soft); }
+body.studio .yad-preview { max-width: 640px; margin-bottom: 16px; }
+body.studio .yad-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; margin-bottom: 14px; }
+body.studio .yad-card { padding: 16px 18px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .yad-writer { margin: 0; font: 800 20px/1.2 var(--studio-display); }
+body.studio .yad-small { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .yad-note { margin: 10px 0 0; font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .yad-grades { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; gap: 10px 12px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+body.studio .yad-track { position: relative; height: 10px; border-radius: 5px; background: var(--studio-raised); }
+body.studio .yad-fill, body.studio .yad-ghost { position: absolute; inset: 0 auto 0 0; border-radius: 5px; }
+body.studio .yad-fill { background: var(--studio-text); }
+/* The grade still to come, outlined behind this week's (3:1 against the track). */
+body.studio .yad-ghost { border: 1px dashed var(--studio-muted); }
+body.studio .yad-value { font-variant-numeric: tabular-nums; }
+body.studio .yad-page { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; align-items: start; }
+body.studio .yad-sketch { overflow: hidden; border: 1px solid var(--studio-line-strong); border-radius: 12px; }
+body.studio .yad-bar { padding: 6px 10px; background: var(--studio-raised); font-size: 12px; color: var(--studio-muted); }
+body.studio .yad-strip { margin: 8px; padding: 10px; border: 1px solid transparent; border-radius: 8px; background: var(--studio-raised); font-size: 12px; text-align: center; color: var(--studio-soft); }
+body.studio .yad-strip.coming { border-color: var(--studio-muted); border-style: dashed; background: none; }
+body.studio .yad-quote { margin: 0; font-size: 14px; line-height: 1.5; color: var(--studio-text); }
+@media (max-width: 900px) { body.studio .yad-row, body.studio .yad-page { grid-template-columns: minmax(0, 1fr); } }
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */

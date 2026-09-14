@@ -21,6 +21,7 @@ import { trayLines } from './tray.js';
 import { SHELL } from '../words/shell.js';
 import { icon, button } from '../kit/controls.js';
 import { renderKeywordsSection } from '../keywords/render.js';
+import { renderAdSection } from '../ad/render.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
@@ -191,7 +192,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     else if (st.locked) {
       shown = el('p', 'studio-panel', `${SHELL.opensAt({ week: st.opensAt })} ${SHELL.returnsLocked()}`);
     } else if (s.key === 'results') shown = ending ?? el('p', 'studio-panel', SHELL.resultsLocked());
-    else if (s.key === 'ad') shown = el('p', 'studio-panel', SHELL.adSection());
+    else if (s.key === 'ad') shown = renderAdSection({ game, openGuide }).node;
     else if (s.draws?.includes('keywords') && keywords) {
       // Redrawn on the way in: another section may have staged a change or
       // moved the report's range while it was away.

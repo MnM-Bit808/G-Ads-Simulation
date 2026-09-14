@@ -468,8 +468,14 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   the week will run, under manual bidding.
 - **Your ad (section 2's table)** had no weekly card to take over, and the
   pilot's section said so. The owner chose on 2026-09-15 to build it
-  read-only: the ad as searchers see it, its writer, its grades and the landing
-  page.
+  read-only, and it is built (`ui/ad/`): the ad as searchers see it, its
+  writer and fee, the three grades out of ten the auctions use that week, with
+  a grade still to change outlined and dated (capital going live, or an old
+  save's own words landing), and the landing page as the grader read it,
+  sketched with each part's week. It draws itself, as Your keywords does,
+  since the classic page has no ad card to filter. Designing it found that the
+  Studio's Quality Score panel had dropped the grade out of ten that DECISIONS
+  I1 puts beside each rating; the card shows it again.
 - **Motion (section 3).** The tray's entrance is the weekly tray's only, since
   round 0's redraws its chips on every change; the strip scrolls to the line
   just made. A section's first visit plays once and staggers top to bottom, and
