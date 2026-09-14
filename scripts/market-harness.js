@@ -12,11 +12,15 @@
  * 0.7 x realised break-even, its own brand search on exact at 1.2x, the agency
  * writer, nothing committed at round 0, and nothing committed at week 5 either,
  * which is what the form sends if the player leaves the capital card alone.
- * Rivals run their own policies and are asserted live. Expected mode.
+ * Rivals run their own policies and are asserted live. Expected mode. The
+ * `writer` mode plays the same player twice, hiring the agency and writing `AD`
+ * itself, for DECISIONS I11 (plans/2026-09-14-round-zero-redesign.md, section 5).
  *
  * usage:
  *   node scripts/market-harness.js market  <label> [workers]
  *   node scripts/market-harness.js capital <label> [workers]
+ *   node scripts/market-harness.js writer  <label> [workers]
+ *   node scripts/market-harness.js compare <before.json> <after.json>
  *
  * `market` plays 72 whole games (seeds 1-12, the six cells) and reports F15's
  * economics, the player's profit and rank, every rival's month-2 budget, and how
@@ -39,6 +43,7 @@ import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
 import { allCells, parseCell, businessFor, realisedBreakEvenCpcPaise } from '../engine/positions.js';
 import { TOTAL_ROUNDS, CAPEX_ALLOCATION_PAISE } from '../engine/constants.js';
+import { gradeAdOffline } from '../agents/grader.js';
 
 export const PLAYER = BRAND_IDENTITIES[0].id;
 export const SEEDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -58,9 +63,10 @@ const AD = {
  * F15's player, as round 0 choices.
  *
  * @param {string} cell 'price|purpose'
+ * @param {string} [writerTier] - 'agency', or 'diy' for the self-writing player
  * @returns {object} the `player` argument of `startGame`
  */
-export function harnessPlayer(cell) {
+export function harnessPlayer(cell, writerTier = 'agency') {
   const position = parseCell(cell);
   const breakEven = realisedBreakEvenCpcPaise(businessFor(position, EMPTY_CAPEX, 1), QUERY_SET, position);
   const own = QUERY_SET.queries.filter((q) => homeCell(q) === cell)
@@ -76,7 +82,7 @@ export function harnessPlayer(cell) {
       { text: brand.text, matchType: 'exact', bidPaise: Math.round(breakEven * 1.2) },
     ],
     ad: AD,
-    writerTier: 'agency',
+    writerTier,
   };
 }
 
@@ -94,10 +100,15 @@ export const keepAtWindow = (round, state) => (
  * @param {object} [options.from] a state to continue from, instead of a new game
  * @param {number} [options.rounds] the last round to play
  * @param {Function} [options.playerDecision] (round, state) => decision | null
+ * @param {string} [options.writerTier] - who writes the player's ad
  * @returns {Promise<{state: object, insights: object[]}>}
  */
-export async function playMarket({ seed, cell, from = null, rounds = TOTAL_ROUNDS, playerDecision = keepAtWindow }) {
-  let state = from ?? startGame({ rootSeed: seed, playerBrandId: PLAYER, querySet: QUERY_SET, player: harnessPlayer(cell) });
+export async function playMarket({
+  seed, cell, from = null, rounds = TOTAL_ROUNDS, playerDecision = keepAtWindow, writerTier = 'agency',
+}) {
+  let state = from ?? startGame({
+    rootSeed: seed, playerBrandId: PLAYER, querySet: QUERY_SET, player: harnessPlayer(cell, writerTier),
+  });
   const live = state.advertisers.filter((a) => a.policyId).length;
   if (live !== state.advertisers.length - 1) throw new Error(`rivals are not live (${live}), so this measures nothing`);
   const insights = [];
@@ -192,6 +203,61 @@ export async function capitalRow({ seed, cell }) {
   return out;
 }
 
+/** Every rival's final net profit, by id. */
+const rivalProfits = (state) => Object.fromEntries(state.advertisers
+  .filter((a) => a.id !== PLAYER)
+  .map((a) => [a.id, gameTotals(state.history, a.id).all.netProfitPaise]));
+
+/**
+ * I11's comparison on one market: the player hiring the agency, and the same
+ * player writing AD itself. `written` is the grade AD gets in this cell, the
+ * figure the owner agreed counts as a competent self-written ad.
+ */
+export async function writerRow({ seed, cell }) {
+  const out = { seed, cell };
+  for (const [key, writerTier] of [['hired', 'agency'], ['own', 'diy']]) {
+    const { state } = await playMarket({ seed, cell, writerTier });
+    out[key] = {
+      net: gameTotals(state.history, PLAYER).all.netProfitPaise,
+      rank: finalStandings(state).findIndex((r) => r.id === PLAYER) + 1,
+      rivals: rivalProfits(state),
+    };
+  }
+  const player = harnessPlayer(cell, 'diy');
+  const rivalNames = BRAND_IDENTITIES.filter((b) => b.id !== PLAYER).map((b) => b.name);
+  const { expectedCtr, adRelevance, landingPage } = gradeAdOffline(AD, { keywords: player.keywords, rivalNames }, 0);
+  out.written = { expectedCtr, adRelevance, landingPage };
+  return out;
+}
+
+/**
+ * The gates agreed with the owner before the run (spec section 5): the
+ * self-writing player's median rank improves by at most one place; the hiring
+ * player does not move at all, since nothing it touches changed; and no
+ * rival's median profit, in the self-writer's markets, falls by more than 5%.
+ *
+ * @param {object[]} before - writerRow rows
+ * @param {object[]} after - writerRow rows, the same markets
+ */
+export function writerGates(before, after) {
+  const key = (r) => `${r.seed}|${r.cell}`;
+  const then = new Map(before.map((r) => [key(r), r]));
+  const rank = { before: median(before.map((r) => r.own.rank)), after: median(after.map((r) => r.own.rank)) };
+  rank.ok = rank.before - rank.after <= 1;
+  const hiredUnmoved = after.every((r) => {
+    const was = then.get(key(r));
+    return Boolean(was) && was.hired.net === r.hired.net && was.hired.rank === r.hired.rank;
+  });
+  const ids = Object.keys(before[0].own.rivals);
+  const rivals = ids.map((id) => {
+    const b = median(before.map((r) => r.own.rivals[id]));
+    const a = median(after.map((r) => r.own.rivals[id]));
+    const change = (a - b) / Math.abs(b);
+    return { id, before: b, after: a, change, ok: change >= -0.05 };
+  });
+  return { rank, hiredUnmoved, rivals, ok: rank.ok && hiredUnmoved && rivals.every((r) => r.ok) };
+}
+
 // ---------------------------------------------------------------------------
 // Running it
 // ---------------------------------------------------------------------------
@@ -236,7 +302,32 @@ function summariseCapital(rows) {
   return out.join('\n');
 }
 
-const MODES = { market: [marketRow, summariseMarket], capital: [capitalRow, summariseCapital] };
+function summariseWriter(rows) {
+  const m = (f) => median(rows.map(f));
+  const grades = [...new Set(rows.map((r) => `${r.cell} ${r.written.expectedCtr}/${r.written.adRelevance}`))];
+  return [
+    `${rows.length} markets`,
+    `the self-written ad grades (expected CTR / ad relevance): ${grades.join(', ')}`,
+    `hiring the agency: median rank ${m((r) => r.hired.rank)}, median net ₹${rupees(m((r) => r.hired.net))}`,
+    `writing it: median rank ${m((r) => r.own.rank)}, median net ₹${rupees(m((r) => r.own.net))}`,
+  ].join('\n');
+}
+
+function printGates(beforeFile, afterFile) {
+  const out = writerGates(JSON.parse(readFileSync(beforeFile, 'utf8')), JSON.parse(readFileSync(afterFile, 'utf8')));
+  console.log(`self-writer's median rank: ${out.rank.before} -> ${out.rank.after}  ${out.rank.ok ? 'PASS' : 'FAIL'}`);
+  console.log(`the hiring player unmoved in every market: ${out.hiredUnmoved ? 'PASS' : 'FAIL'}`);
+  for (const r of out.rivals) {
+    console.log(`  ${r.id.padEnd(12)} median ₹${rupees(r.before)} -> ₹${rupees(r.after)} (${pct(r.change)})  ${r.ok ? 'PASS' : 'FAIL'}`);
+  }
+  console.log(out.ok ? 'ALL GATES PASS' : 'A GATE FAILED');
+}
+
+const MODES = {
+  market: [marketRow, summariseMarket],
+  capital: [capitalRow, summariseCapital],
+  writer: [writerRow, summariseWriter],
+};
 
 async function worker(mode, outFile, seeds) {
   const [row] = MODES[mode];
@@ -246,7 +337,7 @@ async function worker(mode, outFile, seeds) {
 }
 
 async function main(mode, label, workers) {
-  if (!MODES[mode]) throw new Error(`mode must be ${Object.keys(MODES).join(' or ')}`);
+  if (!MODES[mode]) throw new Error(`mode must be ${Object.keys(MODES).join(', ')}, or compare`);
   const dir = mkdtempSync(join(tmpdir(), 'harness-'));
   const groups = Array.from({ length: workers }, () => []);
   SEEDS.forEach((seed, i) => groups[i % workers].push(seed));
@@ -268,6 +359,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (first === '--worker') {
     const [mode, outFile, ...seeds] = rest;
     await worker(mode, outFile, seeds.map(Number));
+  } else if (first === 'compare') {
+    printGates(rest[0], rest[1]);
   } else {
     await main(first, rest[0] ?? 'run', Number(rest[1] ?? 6));
   }
