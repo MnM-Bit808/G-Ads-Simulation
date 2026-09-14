@@ -112,6 +112,10 @@ const GOOGLE = {
     label: 'Google Ads Help: Duration of the learning period for campaigns',
     url: 'https://support.google.com/google-ads/answer/13020501',
   },
+  qualityScore: {
+    label: 'Google Ads Help: About Quality Score for Search campaigns',
+    url: 'https://support.google.com/google-ads/answer/6167118',
+  },
 };
 
 const INDIA = {
@@ -290,6 +294,32 @@ export const CHAPTERS = Object.freeze({
     yourAccount: 'terms',
   }),
 
+  qualityScore: chapter({
+    title: 'What the Quality Score is, and is not',
+    real: () => 'Google Ads gives each keyword a Quality Score from 1 to 10, a diagnostic of '
+      + 'how your ad quality compares to other advertisers. Three parts make it up: expected '
+      + 'clickthrough rate, the likelihood your ad is clicked when shown; ad relevance, how '
+      + 'closely your ad matches the intent behind a search; and landing page experience, how '
+      + 'relevant and useful your page is to people who click. Each is rated above average, '
+      + 'average or below average, against advertisers whose ads showed for the exact same '
+      + 'search over the last 90 days. Google says it is not an input in the ad auction. A '
+      + 'dash means too few searches exactly match the keyword to score it.',
+    realSources: [GOOGLE.qualityScore],
+    needs: ['qsImpressions'],
+    game: ({ qsImpressions }) => 'Here too the score is a report, never an input: the '
+      + 'auction weighs your ad’s quality afresh on every search, and the score is worked out '
+      + 'afterwards. It counts only the keyword’s own literal search, in finished weeks, so a '
+      + 'better ad counts in the very next auction, in your position and its price, while the '
+      + 'score catches up late or never. Each part has three levels against everyone on the '
+      + 'same search, so a real improvement can leave it unmoved, and landing page reads '
+      + `above average only rarely. A keyword has no score until its own search earns `
+      + `${qsImpressions} impressions. Where it departs: the overall score comes from the `
+      + 'three ratings through a table this game invented.',
+    cites: ['A1', 'A2', 'A5', 'A6'],
+    yourAccount: 'keywords',
+    related: ['broadMatch'],
+  }),
+
   ownName: chapter({
     title: 'Defending your own name',
     real: () => 'Google’s trademark policy does not restrict using a trademark as a keyword, so '
@@ -356,5 +386,5 @@ export const CHAPTERS = Object.freeze({
 /** The guide's contents list, in reading order. */
 export const CONTENTS = Object.freeze([
   'attributionLag', 'returnsSplit', 'cashOnDelivery', 'rankOrBudget', 'broadMatch',
-  'ownName', 'smartBidding', 'hours', 'counterfactuals', 'kindMarket',
+  'qualityScore', 'ownName', 'smartBidding', 'hours', 'counterfactuals', 'kindMarket',
 ]);
