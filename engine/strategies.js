@@ -138,6 +138,52 @@ export function locationMultiplier(adjustments, tier) {
 }
 
 /**
+ * A bid from its parts, before the one clamp: the strategy's bid times the
+ * hour's adjustment, and the place's when there is one. Not money yet, and not
+ * rounded: `clampBidPaise` makes it a bid.
+ *
+ * The round builds each hour's bid once and multiplies it by each place's
+ * adjustment afterwards, so the clamp has to wait for both. It used to clamp
+ * the hour's bid and then only floor the place's, so a place carried a bid past
+ * MAX_BID_MULTIPLE and an hour above the cap was cut before a place could bring
+ * it back down (DECISIONS G4, found 2026-09-15).
+ *
+ * @param {object} args - as `effectiveBidPaise`
+ * @returns {number} paise, unrounded and unclamped
+ */
+export function unclampedBidPaise({
+  strategy, strategyParams, keyword, business, bidding, daypartAdjustments, hour, rng,
+  locationAdjustments = null, locationTier = null,
+}) {
+  if (!STRATEGIES[strategy]) {
+    throw new RangeError(`unknown strategy "${strategy}"`);
+  }
+  assertPaise(keyword.bidPaise, 'keyword.bidPaise');
+
+  const daypart = daypartMultiplier(daypartAdjustments, hour);
+  // Location is optional so every existing caller keeps its meaning: a bid with
+  // no location is the bid anywhere, which is what the market was before G4.
+  const place = locationTier === null ? 1 : locationMultiplier(locationAdjustments, locationTier);
+  return rawBid(strategy, strategyParams, keyword, business, bidding, hour, rng) * daypart * place;
+}
+
+/**
+ * THE ONE CLAMP over both adjustments rather than one each, so -50% on the hour
+ * and -50% on the place compound the way two bid adjustments do, instead of
+ * each being floored separately at MIN_BID_PAISE, and so no bid passes
+ * MAX_BID_MULTIPLE x its keyword whichever adjustment took it there (G4).
+ *
+ * @param {number} unclampedPaise - from `unclampedBidPaise`, times a place's
+ *   multiplier if the round applies one afterwards
+ * @param {{bidPaise: number}} keyword
+ * @returns {number} integer paise
+ */
+export function clampBidPaise(unclampedPaise, keyword) {
+  const ceiling = Math.round(keyword.bidPaise * MAX_BID_MULTIPLE);
+  return clamp(Math.round(unclampedPaise), MIN_BID_PAISE, ceiling);
+}
+
+/**
  * What this advertiser actually bids for one auction.
  *
  * The budget-spending strategies do not solve for a bid that exhausts the
@@ -155,26 +201,8 @@ export function locationMultiplier(adjustments, tier) {
  * @param {(() => number)|null} args.rng
  * @returns {number} integer paise
  */
-export function effectiveBidPaise({
-  strategy, strategyParams, keyword, business, bidding, daypartAdjustments, hour, rng,
-  locationAdjustments = null, locationTier = null,
-}) {
-  if (!STRATEGIES[strategy]) {
-    throw new RangeError(`unknown strategy "${strategy}"`);
-  }
-  assertPaise(keyword.bidPaise, 'keyword.bidPaise');
-
-  const daypart = daypartMultiplier(daypartAdjustments, hour);
-  // Location is optional so every existing caller keeps its meaning: a bid with
-  // no location is the bid anywhere, which is what the market was before G4.
-  const place = locationTier === null ? 1 : locationMultiplier(locationAdjustments, locationTier);
-  const raw = rawBid(strategy, strategyParams, keyword, business, bidding, hour, rng);
-
-  // ONE CLAMP over both adjustments rather than one each, so -50% on the hour
-  // and -50% on the place compound the way two bid adjustments do, instead of
-  // each being floored separately at MIN_BID_PAISE.
-  const ceiling = Math.round(keyword.bidPaise * MAX_BID_MULTIPLE);
-  return clamp(Math.round(raw * daypart * place), MIN_BID_PAISE, ceiling);
+export function effectiveBidPaise(args) {
+  return clampBidPaise(unclampedBidPaise(args), args.keyword);
 }
 
 function rawBid(strategy, params, keyword, business, bidding, hour, rng) {

@@ -874,6 +874,48 @@ describe('the two paths through the auction agree when they should', () => {
   });
 });
 
+describe('an hour and a place adjustment share one cap (DECISIONS G4)', () => {
+  /**
+   * G4 says both adjustments compound and are clamped ONCE, at MIN_BID_PAISE
+   * and MAX_BID_MULTIPLE x the keyword bid, as `effectiveBidPaise` does when it
+   * is handed both. The round built each hour's bid clamped, then multiplied by
+   * the place with only a floor, so a place could carry a bid past four times
+   * its keyword and an hour above the cap was cut before a place could bring it
+   * back (found drawing Where and when's controls, 2026-09-15).
+   */
+  const same = (a, b) => {
+    const x = runRound(a, { mode: 'expected' }).raw.byAdvertiser;
+    const y = runRound(b, { mode: 'expected' }).raw.byAdvertiser;
+    for (const advertiser of a.advertisers) {
+      expect(y[advertiser.id].impressions, `${advertiser.id} impressions`).toBeCloseTo(x[advertiser.id].impressions, 6);
+      expect(y[advertiser.id].costPaise, `${advertiser.id} cost`).toBeCloseTo(x[advertiser.id].costPaise, 6);
+    }
+  };
+  // Keywords at ₹3, so four times is ₹12: under the rivals, where a bid still
+  // changes who wins, and far from the budget, which would otherwise hide it.
+  // Every state tilts by place, so all take the same, three-auction path.
+  const with_ = (hours, places) => {
+    const state = makeGameState();
+    const player = state.advertisers[0];
+    for (const group of player.adGroups) for (const keyword of group.keywords) keyword.bidPaise = 300;
+    player.campaign.daypartAdjustments = new Array(6).fill(hours);
+    player.campaign.locationAdjustments = new Array(3).fill(places);
+    return state;
+  };
+  // +300% on the hour is the cap already; +1% on the place would pass it.
+  const atTheCap = () => with_(300, 1);
+
+  test('a place cannot carry a bid past four times its keyword', () => {
+    // Six times the keyword, reached through the place, is four.
+    same(atTheCap(), with_(300, 50));
+  });
+
+  test('an hour past the cap still compounds with a place that lowers it', () => {
+    // Eight times the keyword, then halved, is four: the cap, reached once.
+    same(atTheCap(), with_(700, -50));
+  });
+});
+
 describe('turning a location down', () => {
   const before = runRound(makeGameState(), { mode: 'expected' });
   const state = makeGameState();

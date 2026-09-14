@@ -34,7 +34,7 @@
 import {
   ADVERTISER_COUNT, ROUNDS_PER_MONTH, POSITION_CTR_MULTIPLIERS, TOP_SLOTS,
   AUCTIONS_PER_QUERY_HOUR, MAX_SLOTS, ATTRIBUTION_LAG_DISTRIBUTION,
-  LOCATION_TIERS, RETURN_RATE_CLAMP_MAX, MIN_BID_PAISE,
+  LOCATION_TIERS, RETURN_RATE_CLAMP_MAX,
   REPOSITION_COST_PAISE,
 } from './constants.js';
 import { assertPaise, mulRate, allocate } from './money.js';
@@ -47,7 +47,9 @@ import {
   locationSharesFor, locationEffects, rtoShareOfReturns, codShareFor,
 } from './locations.js';
 import { resolveAuction } from './auction.js';
-import { estimatedConvRate, effectiveBidPaise, locationMultiplier } from './strategies.js';
+import {
+  estimatedConvRate, unclampedBidPaise, clampBidPaise, locationMultiplier,
+} from './strategies.js';
 import {
   dailyTargetPaise, pacingContext, participationFrom,
   opensNewMonth, rankAllocations, allocationForRound,
@@ -200,7 +202,10 @@ export function runRound(gameState, options = {}) {
 
             entrants.push({
               id: advertisers[i].id,
-              bidPaise: bids[i][q][hour],
+              bidPaise: clampBidPaise(bids[i][q][hour], plan.keyword),
+              // Kept unclamped, so a place's adjustment compounds with the
+              // hour's before the one clamp (G4).
+              _unclamped: bids[i][q][hour],
               qualitySignal: applyHourAndNoise(plan.base, hour, perAdvertiserRng[i], mode),
               _i: i,
               _volume: hourVolume * participation,
@@ -234,11 +239,12 @@ export function runRound(gameState, options = {}) {
               const multiplier = locationMultipliers[e._i][tier];
               here.push({
                 ...e,
-                // Re-clamped, not just scaled: MIN_BID_PAISE is a floor on what
-                // anybody can bid, so -100% is a bid of one rupee rather than no
-                // bid at all - which behaves like an off switch only because a
-                // rupee sits under AD_RANK_FLOOR.
-                bidPaise: Math.max(MIN_BID_PAISE, Math.round(e.bidPaise * multiplier)),
+                // Clamped once, from the unclamped hour's bid: MIN_BID_PAISE is a
+                // floor on what anybody can bid, so -100% is a bid of one rupee
+                // rather than no bid at all - which behaves like an off switch
+                // only because a rupee sits under AD_RANK_FLOOR - and no place
+                // takes a bid past MAX_BID_MULTIPLE x its keyword (G4).
+                bidPaise: clampBidPaise(e._unclamped * multiplier, e._plan.keyword),
                 _volume: e._volume * share,
               });
             }
@@ -391,8 +397,11 @@ function buildBidTable(advertisers, business, entryPlan, queries, rngs, mode) {
       const plan = entryPlan[i][q];
       if (!plan) return null;
       const row = new Array(HOURS_PER_DAY);
+      // Rounded to paise, as this table always was, but not clamped: the clamp
+      // waits for the place's adjustment (G4). Rounding here rather than once at
+      // the end keeps every bid the clamp does not touch exactly what it was.
       for (let hour = 0; hour < HOURS_PER_DAY; hour++) {
-        row[hour] = effectiveBidPaise({
+        row[hour] = Math.round(unclampedBidPaise({
           strategy: advertiser.campaign.strategy,
           strategyParams: advertiser.campaign.strategyParams,
           keyword: plan.keyword,
@@ -401,7 +410,7 @@ function buildBidTable(advertisers, business, entryPlan, queries, rngs, mode) {
           daypartAdjustments: advertiser.campaign.daypartAdjustments,
           hour,
           rng: null,
-        });
+        }));
       }
       return row;
     });

@@ -2172,6 +2172,21 @@ would teach the wrong lesson about where the traffic went.
 compound the way two bid adjustments do, rather than each being floored separately
 at `MIN_BID_PAISE`.
 
+*Made true in the round on 2026-09-15.* `effectiveBidPaise` clamped once, but the
+round builds each hour's bid once and applies the place afterwards: it clamped
+the hour's bid, then only floored the place's. So a place carried a bid past
+`MAX_BID_MULTIPLE` × its keyword (+300% on the hour and +100% on a place bid 8×),
+and an hour above the cap was cut before a place could bring it back. Found
+drawing the Studio's Where and when controls. The round now keeps each hour's
+bid unclamped (`unclampedBidPaise`, still rounded to paise per hour as the
+table always was) and clamps once, after the place (`clampBidPaise`), on both
+paths through the auction. Measured on the market harness, 72 games before and
+after: identical to the byte, so the rivals never reach the cap and the change
+reaches only a player who stacks the two adjustments. A first version that
+rounded once at the end instead moved every game by a paisa's worth and one by
+15% of the player's profit, so the rounding stays where it was. Two tests in
+`tests/round.test.js` hold the cap.
+
 **TWO PATHS THROUGH THE AUCTION, and a test that they agree.** When nobody adjusts
 by location the ladders are identical, so one resolution apportioned is exact and
 the round takes it — a player who never touches the control pays nothing. The
