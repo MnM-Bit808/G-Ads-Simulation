@@ -15,35 +15,15 @@ import { renderDashboard } from '../dashboard.js';
 import { changes } from '../decisions.js';
 import { TOTAL_ROUNDS, ROUNDS_PER_MONTH } from '../../engine/constants.js';
 import {
-  AREAS, SECTIONS, ICONS, ICON_BOX, sectionOf, sectionsIn, sectionState, visibilityRules,
+  AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, visibilityRules,
 } from './sections.js';
 import { trayLines } from './tray.js';
 import { SHELL } from '../words/shell.js';
+import { icon, button } from '../kit/controls.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
 const UNDO_FADE_MS = 150;
-const SVG = 'http://www.w3.org/2000/svg';
-
-function icon(paths) {
-  const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('viewBox', ICON_BOX);
-  svg.setAttribute('aria-hidden', 'true');
-  svg.classList.add('studio-icon');
-  for (const d of paths) {
-    const path = document.createElementNS(SVG, 'path');
-    path.setAttribute('d', d);
-    svg.append(path);
-  }
-  return svg;
-}
-
-function button(className, ...children) {
-  const node = el('button', className);
-  node.type = 'button';
-  node.append(...children);
-  return node;
-}
 
 /**
  * @param {object} deps

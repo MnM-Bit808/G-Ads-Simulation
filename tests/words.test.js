@@ -25,6 +25,7 @@ import { CAPITAL } from '../ui/words/capital.js';
 import { MARKET } from '../ui/words/market.js';
 import { FORM } from '../ui/words/form.js';
 import { SHELL } from '../ui/words/shell.js';
+import { KEYWORDS } from '../ui/words/keywords.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -222,6 +223,29 @@ describe('the Studio layout', () => {
   });
 });
 
+describe('the keyword card and the planner', () => {
+  const FIGURES = {
+    value: 7, list: 'leggings · gym', bid: '₹30', keyword: 'gym leggings', cpc: '₹12',
+    impressions: '100', need: '₹16', n: 12, text: 'squat proof leggings',
+  };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(KEYWORDS)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of Object.entries(KEYWORDS)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(KEYWORDS)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -249,7 +273,7 @@ describe('a card that has moved draws, and no longer writes', () => {
 describe('the new screens draw, and do not write', () => {
   // A "word" here must hold two letters in a row, so icon paths and class
   // lists are not counted.
-  const drawing = ['ui/shell/shell.js'];
+  const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

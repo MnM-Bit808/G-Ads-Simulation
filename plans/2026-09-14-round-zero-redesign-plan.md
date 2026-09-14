@@ -2570,6 +2570,16 @@ amends the makeover plan to say so.
   kit) and one classic week. Commit: *Build the Studio kit round 0 and Your
   keywords share: controls, the keyword card, the planner, the ad block*.
 
+  *Found when built:* mounted on the dev page and played, the code above lost
+  keyboard focus in three places, each where a redraw removed the control
+  being used. After a planner row's Add, focus fell to the page and Escape no
+  longer closed the drawer; Cancel in the card's menu and *Back to the keyword*
+  dropped it the same way; and a bid typed and entered left nothing focused
+  for the frame's data-key restore to find. The built kit keeps focus in the
+  drawer (it takes `tabIndex = -1`, and focus that falls out goes to the
+  search box), returns it to ⋯ or the QS button, closes the menu on Escape,
+  and puts it back on the figure on Enter or Escape but not on a blur.
+
 ---
 
 ### Task 8: the map, drawn once, pulsing by searches

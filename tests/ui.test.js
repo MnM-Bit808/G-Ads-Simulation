@@ -217,6 +217,11 @@ describe('every interface module at least loads', () => {
     'shell/shell.js': () => import('../ui/shell/shell.js'),
     'words/shell.js': () => import('../ui/words/shell.js'),
     'roundzero/rules.js': () => import('../ui/roundzero/rules.js'),
+    'kit/controls.js': () => import('../ui/kit/controls.js'),
+    'kit/card.js': () => import('../ui/kit/card.js'),
+    'kit/planner.js': () => import('../ui/kit/planner.js'),
+    'kit/serp.js': () => import('../ui/kit/serp.js'),
+    'words/keywords.js': () => import('../ui/words/keywords.js'),
   };
 
   test('the list of modules to load is complete', () => {
