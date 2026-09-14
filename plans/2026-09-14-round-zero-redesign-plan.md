@@ -2779,6 +2779,12 @@ the filter would remove nothing and is gone.
   list in `tests/words.test.js`. `npm test`. Commit: *Draw India once, pulsing
   each city by its kind of place's share of searches*.
 
+  *Changed after it was built, on the owner's word:* measured by script, the
+  coastline above was 1.65:1 against the page and a dimmed city 2.43:1 against
+  the land, both under the 3:1 a graphic needs. The coastline is now `#68636B`
+  (3.33:1) and `.r0-place.dim` is 0.45 (3.17:1); `tests/indiaMap.test.js`
+  reads both from the stylesheet and holds them.
+
 ---
 
 ### Task 9: round 0's frame in the Studio, and step 1, the market

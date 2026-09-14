@@ -279,7 +279,8 @@ body.studio .kserp-head.empty, body.studio .kserp-desc.empty { color: var(--stud
 
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
-body.studio .r0-land { fill: #1C1A1F; stroke: var(--studio-line-strong); stroke-width: 1; }
+/* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */
+body.studio .r0-land { fill: #1C1A1F; stroke: #68636B; stroke-width: 1; }
 body.studio .r0-backdrop circle { fill: #3A363E; }
 body.studio .r0-pin { cursor: pointer; }
 body.studio .r0-city { fill: var(--studio-soft); }
@@ -287,6 +288,6 @@ body.studio .r0-ring { fill: none; stroke: var(--studio-soft); stroke-width: 1.5
 body.studio .r0-label { fill: var(--studio-text); font: 600 11px var(--studio-body); opacity: 0; pointer-events: none; }
 body.studio .r0-place.lit .r0-label { opacity: 1; }
 body.studio .r0-place.lit .r0-city { fill: var(--studio-text); }
-body.studio .r0-place.dim { opacity: 0.35; }
+body.studio .r0-place.dim { opacity: 0.45; }
 @keyframes r0-ring { from { opacity: 0.7; transform: scale(0.5); } to { opacity: 0; transform: scale(2.4); } }
 @media (prefers-reduced-motion: reduce) { body.studio .r0-ring { animation: none; } }
