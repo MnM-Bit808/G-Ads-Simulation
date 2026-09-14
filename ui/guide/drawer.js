@@ -98,10 +98,12 @@ function button(className, label, onClick, iconPaths = null, iconAfter = false) 
  * @param {Readonly<Record<string, string>>} options.figures - from `guideFigures()`
  * @param {((slot: string) => boolean)|null} [options.reveal] - in the Studio
  *   layout, opens the section a card sits in before it is shown
+ * @param {(slot: string) => boolean} [options.canShowCard] - whether a
+ *   chapter's card is on the page to be shown; false before week 1
  * @returns {{node: HTMLElement, open: (id: string, opener?: Element) => void,
  *   openContents: (opener?: Element) => void, close: () => void}}
  */
-export function createGuide({ figures, reveal: revealCard = null }) {
+export function createGuide({ figures, reveal: revealCard = null, canShowCard = () => true }) {
   const node = el('aside', 'card guide');
   node.id = 'field-guide';
   node.hidden = true;
@@ -164,12 +166,18 @@ export function createGuide({ figures, reveal: revealCard = null }) {
 
     body.replaceChildren(heading(view.title), real, game);
 
-    foot.replaceChildren(button('ghost', GUIDE.showCard(), () => showCard(view.yourAccount), ICONS.back));
+    // Before week 1 there is no card to show, and a button that does nothing is
+    // worse than none (plans/2026-09-14-round-zero-redesign-plan.md).
+    foot.replaceChildren();
+    if (canShowCard(view.yourAccount)) {
+      foot.append(button('ghost', GUIDE.showCard(), () => showCard(view.yourAccount), ICONS.back));
+    }
     if (view.next) {
       foot.append(button('guide-next', GUIDE.next({ title: view.next.title }),
         () => open(view.next.id), ICONS.next, true));
     }
-    foot.hidden = false;
+    // The last chapter, before week 1, has neither.
+    foot.hidden = foot.children.length === 0;
     reveal(opener);
   }
 

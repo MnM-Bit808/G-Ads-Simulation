@@ -17,7 +17,7 @@
  * and the round dashboard, which is what the rest of the game looks like.
  */
 
-import { startGame, redoRoundZero, canRedoRoundZero } from '../setup.js';
+import { startGame, redoRoundZero, canRedoRoundZero, assignPlayerBrand } from '../setup.js';
 import { playRound } from '../game.js';
 import { controllerFor } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -38,6 +38,7 @@ import { createGuide } from './guide/drawer.js';
 import { guideFigures } from './guide/figures.js';
 import { lookMode } from './look.js';
 import { createStudio } from './shell/shell.js';
+import { createRoundZero } from './roundzero/studio.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -62,9 +63,14 @@ let studio = null;
  * The field guide (stage C2). Built once and kept outside `#app`, so redrawing
  * a week never removes it; the dashboard's "why?" buttons and the header's
  * Field guide button all open this one drawer. In the Studio layout, "show me
- * on the card" first opens the section the card sits in.
+ * on the card" first opens the section the card sits in, and before week 1,
+ * when there is no card, it is not offered.
  */
-const guide = createGuide({ figures: guideFigures(), reveal: (slot) => studio?.reveal(slot) ?? false });
+const guide = createGuide({
+  figures: guideFigures(),
+  reveal: (slot) => studio?.reveal(slot) ?? false,
+  canShowCard: () => Boolean(game),
+});
 document.body.append(guide.node);
 guideButton.addEventListener('click', () => guide.openContents(guideButton));
 
@@ -324,11 +330,22 @@ function render() {
   recorder?.phase(screenName());
   if (!game) {
     roundZeroTouched = false;
-    app.replaceChildren(renderRoundZero({
-      querySet: QUERY_SET,
-      rootSeed,
-      onStart: begin,
-    }));
+    if (look === 'studio') {
+      // Round 0 in the sidebar layout (plans/2026-09-14-round-zero-redesign.md).
+      // The brand is drawn from the seed; a redo keeps the one it had, because
+      // redoRoundZero rebuilds the same market around it.
+      app.replaceChildren(createRoundZero({
+        querySet: QUERY_SET,
+        rootSeed,
+        playerBrandId: rewinding?.roundZero?.playerBrandId ?? assignPlayerBrand(rootSeed),
+        openGuide: guide.open,
+        openContents: (trigger) => guide.openContents(trigger),
+        onGo: begin,
+        onPlaytest: recorder ? sendPlaytestFile : null,
+      }).node);
+    } else {
+      app.replaceChildren(renderRoundZero({ querySet: QUERY_SET, rootSeed, onStart: begin }));
+    }
     window.scrollTo(0, 0);
     return;
   }

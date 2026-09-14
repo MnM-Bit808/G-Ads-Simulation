@@ -3379,6 +3379,18 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   Then play a classic round 0 into week 1. Commit: *Draw round 0 in the sidebar
   layout: the frame, the tray, and step 1, the market*.
 
+  *Found when built:* the Studio hides the page's header whenever the sidebar
+  layout is on the page, and the header carries the playtest button, so
+  `createRoundZero` also takes `onPlaytest` and draws the weekly shell's
+  Playtest icon in the strip on the playtest link. Step 1's `drawWhere`
+  replaced the pill or place just pressed and dropped focus, as the kit did
+  (Task 7); the place rows carry `place:<id>` keys and focus is restored by
+  key. The guide's footer hides when it holds nothing (the last chapter,
+  before week 1). `LOADABLE` needs `'words/roundZero.js'` too. Step 1 measured
+  296 words against the section's 150 to 200: its own lines are within it, and
+  the briefing's three hints (83 words) and returns-by-place line (48) are the
+  rest. Reduced motion was not played: the in-app browser cannot turn it on.
+
 ---
 
 ### Task 10: step 2, where you sit, and the owner's "alive" gate

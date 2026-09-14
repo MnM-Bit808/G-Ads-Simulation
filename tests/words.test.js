@@ -26,6 +26,7 @@ import { MARKET } from '../ui/words/market.js';
 import { FORM } from '../ui/words/form.js';
 import { SHELL } from '../ui/words/shell.js';
 import { KEYWORDS } from '../ui/words/keywords.js';
+import { R0 } from '../ui/words/roundZero.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -246,6 +247,36 @@ describe('the keyword card and the planner', () => {
   });
 });
 
+describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () => {
+  // One of every figure round 0's lines quote, formatted as the steps format them.
+  // Each step's task adds its own figures here.
+  const FIGURES = {
+    round: 0, week: 1, n: 3, total: 5, step: 'Where you sit', hours: 168,
+    weeks: 12, rivals: 8, order: '₹2,400', margin: '52%', level: 'value',
+    price: 'Mid', purpose: 'Performance', amount: '₹25,000',
+  };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(R0)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of Object.entries(R0)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(R0)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('"Next" names the step in the middle of a sentence', () => {
+    expect(R0.next({ step: 'Where you sit' })).toBe('Next: where you sit');
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -274,7 +305,7 @@ describe('the new screens draw, and do not write', () => {
   // A "word" here must hold two letters in a row, so icon paths and class
   // lists are not counted.
   const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
-    'ui/map/india.js'];
+    'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {
