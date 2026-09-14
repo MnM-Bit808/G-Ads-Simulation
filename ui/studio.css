@@ -408,11 +408,12 @@ body.studio .r0-bar-text { position: relative; padding-left: 6px; font-size: 11p
   body.studio .r0-bar-fill { position: static; height: 6px; }
   body.studio .r0-bar-text { padding-left: 0; white-space: normal; line-height: 1.35; }
 }
-/* On a phone, twelve empty dots and "before the first auction" pushed the step
-   count off the screen and widened the page to 424px; the list still says
-   "Before week 1". */
+/* On a phone, twelve dots and the note beside them pushed the bar's right end
+   off the screen: round 0's step count (424px wide), and a played week's month
+   and spend (497px wide at 375, found drawing Your keywords). "Week 2 of 12"
+   and the list's "Before week 1" still say where the game is. */
 @media (max-width: 900px) {
-  body.studio .r0 .studio-dots, body.studio .r0 .studio-saved { display: none; }
+  body.studio .studio-dots, body.studio .studio-saved { display: none; }
 }
 
 /* --- step 4, your ad ------------------------------------------------------ */
