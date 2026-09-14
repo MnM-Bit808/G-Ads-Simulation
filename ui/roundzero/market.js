@@ -83,7 +83,7 @@ export function renderMarketStep({ brief }) {
       row.addEventListener('click', () => light(place.id));
       places.append(row);
     }
-    places.append(el('p', 'r0-small', R0.pulseNote()), el('p', 'r0-small', brief.returnsVaryByLocation));
+    places.append(el('p', 'r0-small', R0.pulseNote()));
     const map = el('div', 'r0-mapbox');
     map.append(drawIndia({ locations: brief.locations, shares, lit, onPick: light }));
     const split = el('div', 'r0-where-split');

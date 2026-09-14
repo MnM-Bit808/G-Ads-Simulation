@@ -275,6 +275,14 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
   test('"Next" names the step in the middle of a sentence', () => {
     expect(R0.next({ step: 'Where you sit' })).toBe('Next: where you sit');
   });
+
+  test('step 1 leaves the returns-by-place line to the weekly card', () => {
+    // Step 1 measured 296 words against the design's 150 to 200 (2026-09-14),
+    // and the owner cut this one: where to advertise is chosen week by week,
+    // and the weekly card for it shows what came back from each place.
+    const market = readFileSync(fileURLToPath(new URL('../ui/roundzero/market.js', import.meta.url)), 'utf8');
+    expect(market).not.toMatch(/returnsVaryByLocation/);
+  });
 });
 
 describe('no number is typed into a sentence', () => {

@@ -3389,7 +3389,10 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   before week 1). `LOADABLE` needs `'words/roundZero.js'` too. Step 1 measured
   296 words against the section's 150 to 200: its own lines are within it, and
   the briefing's three hints (83 words) and returns-by-place line (48) are the
-  rest. Reduced motion was not played: the in-app browser cannot turn it on.
+  rest. The owner cut the returns-by-place line (where to advertise is chosen
+  week by week, and that week's card shows what came back from each place):
+  243 words, 210 without the city names. Reduced motion was not played: the
+  in-app browser cannot turn it on.
 
 ---
 
