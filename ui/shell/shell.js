@@ -25,6 +25,11 @@ import { renderKeywordsSection } from '../keywords/render.js';
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
 const UNDO_FADE_MS = 150;
+/** A first visit's cards arrive 40ms apart, and are done well inside 600ms (row 3). */
+const ARRIVE_STAGGER_MS = 40;
+const ARRIVE_DONE_MS = 600;
+/** Where studio.css puts the section list behind the menu. */
+const LIST_BEHIND_MENU = '(max-width: 900px)';
 
 /**
  * @param {object} deps
@@ -125,6 +130,10 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       list.append(redo);
     }
     list.append(el('p', 'studio-area-title', AREAS.find((a) => a.key === view.area).title));
+    // A dot's entrance is spent only where it can be seen: on a phone the list
+    // sits behind the menu, and the entrance waits for the menu to open. Asked
+    // of the width, not the page: the first draw happens before the shell is on it.
+    const listShown = view.menuOpen || !matchMedia(LIST_BEHIND_MENU).matches;
     for (const s of sectionsIn(view.area)) {
       const st = sectionState(s, args());
       const item = button(`studio-item${st.locked ? ' locked' : ''}`, icon(s.icon), el('span', 'grow', s.label));
@@ -133,7 +142,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       else if (st.fresh) {
         // The dot arrives once; a later redraw of the list keeps it still.
         const dot = el('span', view.dotsShown.has(st.seenKey) ? 'studio-dot' : 'studio-dot arrive');
-        view.dotsShown.add(st.seenKey);
+        if (listShown) view.dotsShown.add(st.seenKey);
         dot.title = SHELL.fresh();
         item.append(dot);
       }
@@ -189,11 +198,31 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       keywords.refresh();
       shown = keywords.node;
     } else {
+      if (view.firstOpen === s.key) arrive(s);
       dashboard.dataset.section = s.key;
       shown = dashboard;
     }
     content.replaceChildren(shown);
     body.scrollTop = 0;
+  }
+
+  /**
+   * A section's first visit, once: its cards come out of display: none, so
+   * @starting-style gives them an entrance, 40ms apart and at most six (spec
+   * section 3, row 3). Spent as it plays, or the next redraw for any reason
+   * (the menu, a week's figures) would play it again.
+   */
+  function arrive(s) {
+    view.firstOpen = null;
+    const cards = s.slots.flatMap((slot) => [...dashboard.querySelectorAll(`[data-slot="${slot}"]`)]).slice(0, 6);
+    cards.forEach((card, i) => {
+      card.classList.add('arriving');
+      card.style.transitionDelay = `${i * ARRIVE_STAGGER_MS}ms`;
+    });
+    setTimeout(() => cards.forEach((card) => {
+      card.classList.remove('arriving');
+      card.style.transitionDelay = '';
+    }), ARRIVE_DONE_MS);
   }
 
   function makeChip(line) {

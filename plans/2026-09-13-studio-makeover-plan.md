@@ -3016,6 +3016,21 @@ kit; `renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride
   flags; `npm test`; commit: *Move only where it explains: the tray, drawers,
   the menu, press, the switch and a section's first visit*.
 
+  *Found when built:* as amended above, only the tray's lines, the switch's
+  knob, the section dot and a section's first visit were new; the press, the
+  drawer and the menu came with round 0. Row 2 (revised figures) waits for Your
+  week to be rebuilt. Two things in Step 2's code were wrong. `view.firstOpen`
+  lasts until another section is opened, so every other redraw of the section
+  (the menu, on a phone) played the cards' entrance again; it is now spent as
+  it plays, in the shell's `arrive`. And a dot's entrance was spent in the
+  first draw even where the list is hidden behind the menu (under 900px), so on
+  a phone it never showed; it now waits for the list to be seen, asked of the
+  width (`LIST_BEHIND_MENU`), because the first draw happens before the shell
+  is on the page. No rebuilt section is ever fresh yet (Your keywords has no
+  `opensAt`), so the rebuilt-section case in Step 2 has nothing to act on. The
+  browser pane cannot turn on reduced motion; the rules were read back from the
+  page as written.
+
 ---
 
 ### Task 10: play it through, and measure

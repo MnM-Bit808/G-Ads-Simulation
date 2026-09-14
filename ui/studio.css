@@ -562,3 +562,32 @@ body.studio .kplanner-overlay.closing { opacity: 0; transition-duration: 150ms; 
     body.studio .kmenu, body.studio .kplanner { transform: none; }
   }
 }
+
+/* --- a played week's motion (makeover spec, section 3, rows 1 and 3): a new
+   line in the tray, a section's dot, its cards on the first visit, and the
+   switch's knob. The press, the drawer and the menu are in the block above.
+   Only the weekly tray's lines enter: round 0's tray redraws its So far chips
+   on every change, and they would replay under every drag. ---------------- */
+body.studio .studio-tray:not(.r0-tray) .studio-chip,
+body.studio .studio-dot.arrive,
+body.studio .studio-section.first-open .arriving { transition: opacity 200ms var(--studio-ease), transform 200ms var(--studio-ease); }
+body.studio .studio-tray:not(.r0-tray) .studio-chip.leaving { opacity: 0; transition-duration: 150ms; }
+body.studio .ktoggle-knob { transition: transform 150ms var(--studio-ease); }
+
+@starting-style {
+  body.studio .studio-tray:not(.r0-tray) .studio-chip { opacity: 0; transform: translateY(8px); }
+  body.studio .studio-dot.arrive { opacity: 0; transform: scale(0.8); }
+  body.studio .studio-section.first-open .arriving { opacity: 0; transform: scale(0.97); }
+}
+
+/* Reduced motion keeps these fades too, and drops the movement, the knob's
+   slide and the cards' stagger. */
+@media (prefers-reduced-motion: reduce) {
+  body.studio .ktoggle-knob { transition: none; }
+  body.studio .studio-section.first-open .arriving { transition-delay: 0ms !important; }
+  @starting-style {
+    body.studio .studio-tray:not(.r0-tray) .studio-chip,
+    body.studio .studio-dot.arrive,
+    body.studio .studio-section.first-open .arriving { transform: none; }
+  }
+}
