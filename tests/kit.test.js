@@ -7,6 +7,22 @@ import { describe, test, expect } from 'vitest';
 import { sliderMaxPaise, SLIDER_FLOOR_PAISE } from '../ui/kit/card.js';
 import { plannerRows, PLANNER_ROWS } from '../ui/kit/planner.js';
 import { QUERY_SET } from '../content/querySet.js';
+import { studioRule, studioToken, rgb, contrast } from './fixtures/studioCss.js';
+
+describe('a text box can be made out wherever it sits', () => {
+  // Measured playing round 0's step 4 (2026-09-14): 1.65:1 against the page,
+  // under the 3:1 a control's edge needs; the owner had it raised. The boxes
+  // sit on the page (step 4's ad), a keyword card (a typed bid) and the
+  // planner drawer (its search and bid).
+  const outline = rgb(studioRule('.kfield', 'border'));
+  test.each([
+    ['the page', () => studioToken('--studio-page')],
+    ['a card', () => studioToken('--studio-card')],
+    ['the planner drawer', () => studioRule('.kplanner', 'background')],
+  ])('against %s', (_, ground) => {
+    expect(contrast(outline, rgb(ground()))).toBeGreaterThanOrEqual(3);
+  });
+});
 
 describe('the slider\'s range, fixed while the page is up', () => {
   test('never shorter than the floor', () => {

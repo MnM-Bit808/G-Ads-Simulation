@@ -240,7 +240,8 @@ body.studio .kadd { display: flex; flex-direction: column; align-items: center; 
 body.studio .kadd strong { color: var(--studio-text); font: 700 16px/1.2 var(--studio-display); }
 body.studio .kadd span { font-size: 12px; font-weight: 400; }
 
-body.studio .kfield { height: 34px; padding: 0 10px; border: 1px solid var(--studio-line-strong); border-radius: 10px; background: #141216; color: var(--studio-text); font: inherit; font-size: 14px; }
+/* Outlined 3:1 or more on the page, a card and the planner (tests/kit.test.js). */
+body.studio .kfield { height: 34px; padding: 0 10px; border: 1px solid #68636B; border-radius: 10px; background: #141216; color: var(--studio-text); font: inherit; font-size: 14px; }
 body.studio .knum { font-variant-numeric: tabular-nums; }
 
 body.studio .kplanner-overlay { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, 0.55); }
