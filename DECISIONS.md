@@ -2222,6 +2222,9 @@ position on its own country works: an advertiser who ignores the control pays
 almost exactly nothing for the mechanic existing, which is what the normalisation
 was for and was previously only argued.
 
+**Round 0 names 32 cities (8 / 12 / 12) since 2026-09-14**, placed from the
+geonames-derived dataset; display geography only, nothing in `engine/` reads them.
+
 ---
 
 ## H. What the simulation gets right

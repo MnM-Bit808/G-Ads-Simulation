@@ -45,7 +45,7 @@ import {
 } from '../engine/constants.js';
 import { writerTier, isDiy } from '../content/writers.js';
 import { PAGE_FEATURES, pageShape } from './landing-page.js';
-import { MAP_VIEWBOX, INDIA_PATH, CITY_POINTS, BACKDROP } from './india-map.js';
+import { MAP_VIEWBOX, INDIA_PATH, CITY_POINTS, BACKDROP, labelPlace } from './india-map.js';
 import {
   syncPage, syncWriterCopy, committed, researchList, positionMatrix, splitShares,
   submittedAd, gradeAsSubmitted, openingReserve, monthlyBudget, evenSplit, rivalAds,
@@ -374,7 +374,7 @@ function sectionWhereSearch(brief) {
 /**
  * The country, with the tiers on it.
  *
- * WHY A MAP AT ALL. The card names eighteen real cities across three tiers, so
+ * WHY A MAP AT ALL. The card names thirty-two real cities across three tiers, so
  * this is the chart the data already asks for rather than an ornament: the
  * shape of the argument is that the metros are the SMALLEST of the three, and a
  * table of percentages says that in a way nobody feels.
@@ -457,8 +457,9 @@ function indiaMap(locations, lit, onPick) {
       pin.append(halo);
       pin.append(make('circle', { cx: x, cy: y, r: 6, class: 'india-city', filter: 'url(#city-glow)' }));
       pin.append(make('circle', { cx: x, cy: y, r: 3, class: 'india-city-core' }));
+      const at = labelPlace(name, point, 9);
       const label = make('text', {
-        x: x + 9, y: y + 3, class: `india-label${lit === place.id ? ' show' : ''}`,
+        x: at.x, y: at.y, 'text-anchor': at.anchor, class: `india-label${lit === place.id ? ' show' : ''}`,
       });
       label.textContent = name;
       pin.append(label);

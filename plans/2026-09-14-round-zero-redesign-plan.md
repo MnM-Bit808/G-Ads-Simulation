@@ -1762,6 +1762,12 @@ write them from memory.
   geography only, nothing in engine/ reads them." Commit: *Name thirty-two cities
   on the map, placed from the geonames dataset*.
 
+  *Found when built:* five pairs of names collided when their kind was lit, two
+  of them already in the first eighteen (Mumbai over Pune, Bengaluru over
+  Chennai). `LABEL_SIDE` and `labelPlace` in `ui/india-map.js` move seven names
+  off the right-hand side; the test checks both maps' type, and Task 8 uses the
+  same function.
+
 ---
 
 ### Task 7: the kit: controls, the keyword card, the planner drawer, the ad block
@@ -2658,7 +2664,7 @@ amends the makeover plan to say so.
    * map is on the page: leaving step 1 removes it.
    */
 
-  import { MAP_VIEWBOX, INDIA_PATH, CITY_POINTS, BACKDROP } from '../india-map.js';
+  import { MAP_VIEWBOX, INDIA_PATH, CITY_POINTS, BACKDROP, labelPlace } from '../india-map.js';
 
   /** The busiest kind of place rings once every this many seconds. */
   export const FASTEST_PULSE_S = 1.6;
@@ -2742,7 +2748,10 @@ amends the makeover plan to say so.
           pin.append(ring);
         }
         pin.append(make('circle', { cx: x, cy: y, r: 3.5, class: 'r0-city' }));
-        const label = make('text', { x: x + 7, y: y + 3, class: 'r0-label' });
+        // Which side the name sits is Task 6's LABEL_SIDE, checked in this
+        // map's type by tests/locations.test.js.
+        const at = labelPlace(name, point, 7);
+        const label = make('text', { x: at.x, y: at.y, 'text-anchor': at.anchor, class: 'r0-label' });
         label.textContent = name;
         pin.append(label);
         pin.addEventListener('click', () => onPick(place.id));

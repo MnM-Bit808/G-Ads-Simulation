@@ -11,6 +11,10 @@
  * no query belongs to a city. They exist so the tiers are recognisable as places
  * rather than as three abstract buckets.
  *
+ * Eight metros, because a longer list would be calling large cities metros; the
+ * line between a large city and a town is fuzzy in any list, and these follow
+ * the grouping the first eighteen used (plans/2026-09-14-round-zero-redesign.md).
+ *
  * THE GROUPING IS THE ORDINARY INDIAN E-COMMERCE ONE, and it is a caricature in
  * the same way the positioning grid is: a real media plan buys states, cities and
  * radii, not three buckets. Three is the fewest that gives a real choice, and
@@ -32,21 +36,23 @@ export const LOCATIONS = Object.freeze([
   Object.freeze({
     id: 'tier1',
     label: 'Metros',
-    examples: ['Mumbai', 'Delhi NCR', 'Bengaluru', 'Hyderabad', 'Chennai', 'Pune'],
+    examples: ['Mumbai', 'Delhi NCR', 'Bengaluru', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata', 'Ahmedabad'],
     note: 'Card and UPI mostly, bigger baskets, and the fewest returns. '
       + 'Everyone else wants to be here too.',
   }),
   Object.freeze({
     id: 'tier2',
     label: 'Large cities',
-    examples: ['Jaipur', 'Lucknow', 'Kochi', 'Indore', 'Chandigarh', 'Coimbatore'],
+    examples: ['Jaipur', 'Lucknow', 'Kochi', 'Indore', 'Chandigarh', 'Coimbatore',
+      'Nagpur', 'Visakhapatnam', 'Bhopal', 'Patna', 'Bhubaneswar', 'Vadodara'],
     note: 'Baskets close to the metros, and noticeably more of what sells here '
       + 'comes back.',
   }),
   Object.freeze({
     id: 'tier3',
     label: 'Smaller cities and towns',
-    examples: ['Guwahati', 'Raipur', 'Jodhpur', 'Salem', 'Warangal', 'Siliguri'],
+    examples: ['Guwahati', 'Raipur', 'Jodhpur', 'Salem', 'Warangal', 'Siliguri',
+      'Dehradun', 'Udaipur', 'Mysuru', 'Gorakhpur', 'Jammu', 'Hubballi'],
     note: 'The cheapest attention in the country, smaller baskets, and cash on '
       + 'delivery means half again as many returns as a metro.',
   }),

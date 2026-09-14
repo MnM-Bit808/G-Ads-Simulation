@@ -23,6 +23,7 @@ import {
   LOCATION_AOV_MULTIPLIER, PRICE_TIERS,
 } from '../engine/constants.js';
 import { LOCATIONS, location, locationsInOrder } from '../content/locations.js';
+import { CITY_POINTS, MAP_VIEWBOX, LABEL_SIDE, labelPlace } from '../ui/india-map.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { homeCell } from '../engine/querySet.js';
 import {
@@ -146,7 +147,6 @@ describe('what a player reads', () => {
 
   test('each tier names real places, because "tier 2" names nothing', () => {
     for (const tier of LOCATIONS) {
-      expect(tier.examples.length, tier.id).toBeGreaterThanOrEqual(4);
       expect(tier.label, tier.id).toBeTruthy();
       expect(tier.note, tier.id).toBeTruthy();
     }
@@ -170,6 +170,95 @@ describe('what a player reads', () => {
 
   test('the ordered list is in engine order', () => {
     expect(locationsInOrder().map((l) => l.id)).toEqual([...LOCATION_TIERS]);
+  });
+});
+
+describe('the cities round 0 names (plans/2026-09-14-round-zero-redesign.md)', () => {
+  test('eight metros, twelve large cities, twelve smaller cities and towns', () => {
+    expect(LOCATIONS.map((tier) => tier.examples.length)).toEqual([8, 12, 12]);
+  });
+
+  test('every city named has a point on the map, and the map has no stray points', () => {
+    const named = LOCATIONS.flatMap((tier) => tier.examples).sort();
+    expect(Object.keys(CITY_POINTS).sort()).toEqual(named);
+  });
+
+  test('every point is inside the drawing', () => {
+    const [, , width, height] = MAP_VIEWBOX.split(' ').map(Number);
+    for (const [name, [x, y]] of Object.entries(CITY_POINTS)) {
+      expect(x > 0 && x < width && y > 0 && y < height, name).toBe(true);
+    }
+  });
+
+  test('no two cities sit on top of each other', () => {
+    const points = Object.entries(CITY_POINTS);
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        const [a, [ax, ay]] = points[i];
+        const [b, [bx, by]] = points[j];
+        expect(Math.hypot(ax - bx, ay - by), `${a} and ${b}`).toBeGreaterThanOrEqual(8);
+      }
+    }
+  });
+
+  /**
+   * Lighting a kind of place shows all its names at once, so no name may land
+   * on another, or on another lit city's dot. Checked in both maps' type,
+   * measured with getBBox on the dev server (2026-09-14): the classic map sets
+   * 9px monospace 9 units from the dot; the Studio map (round 0 plan, Task 8)
+   * sets 11px Instrument Sans 7 units from it. A name's width is its letters
+   * times the widest per-letter width measured, so a narrow name is given more
+   * room than it needs and never less.
+   */
+  const TYPE = {
+    classic: { gap: 9, perLetter: 5.4, top: -8.2, bottom: 2.2, dot: 6 },
+    studio: { gap: 7, perLetter: 7.6, top: -10.5, bottom: 3, dot: 4 },
+  };
+  const nameBox = (name, type) => {
+    const { x, y, anchor } = labelPlace(name, CITY_POINTS[name], type.gap);
+    const width = name.length * type.perLetter;
+    let x0 = x;
+    if (anchor === 'end') x0 = x - width;
+    if (anchor === 'middle') x0 = x - width / 2;
+    return { x0, x1: x0 + width, y0: y + type.top, y1: y + type.bottom };
+  };
+  const overlap = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+
+  test('a lit kind of place shows its names without one covering another, in either map', () => {
+    // The first eighteen already collided in two places (Mumbai over Pune,
+    // Bengaluru over Chennai), and the thirty-two added three more.
+    for (const [map, type] of Object.entries(TYPE)) {
+      for (const tier of LOCATIONS) {
+        for (const a of tier.examples) {
+          for (const b of tier.examples) {
+            if (a === b) continue;
+            const [x, y] = CITY_POINTS[b];
+            const dot = { x0: x - type.dot, x1: x + type.dot, y0: y - type.dot, y1: y + type.dot };
+            expect(overlap(nameBox(a, type), dot), `${map}: ${a} covers ${b}`).toBe(false);
+            if (a < b) expect(overlap(nameBox(a, type), nameBox(b, type)), `${map}: ${a} and ${b}`).toBe(false);
+          }
+        }
+      }
+    }
+  });
+
+  test('and no name runs off the drawing', () => {
+    const [, , width, height] = MAP_VIEWBOX.split(' ').map(Number);
+    for (const [map, type] of Object.entries(TYPE)) {
+      for (const name of Object.keys(CITY_POINTS)) {
+        const box = nameBox(name, type);
+        expect(box.x0 >= 0 && box.x1 <= width && box.y0 >= 0 && box.y1 <= height, `${map}: ${name}`).toBe(true);
+      }
+    }
+  });
+
+  test('a name sits to the right of its dot unless it is listed as sitting elsewhere', () => {
+    for (const [name, side] of Object.entries(LABEL_SIDE)) {
+      expect(CITY_POINTS[name], `${name} is not on the map`).toBeDefined();
+      expect(['left', 'above', 'below'], name).toContain(side);
+    }
+    expect(labelPlace('Delhi NCR', [100, 100], 9)).toEqual({ x: 109, y: 103, anchor: 'start' });
+    expect(labelPlace('Mumbai', [100, 100], 9)).toEqual({ x: 91, y: 103, anchor: 'end' });
   });
 });
 
