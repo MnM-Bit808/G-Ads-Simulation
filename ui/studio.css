@@ -198,6 +198,13 @@ body.studio .studio-run { flex-shrink: 0; height: 52px; padding: 0 28px; border-
   body.studio .studio-section > h2.studio-title { font-size: 34px; }
 }
 
+/* The field guide's contents, numbered, one chapter to a row (the owner, 2026-09-15). */
+body.studio .guide-contents { counter-reset: chapter; gap: 0; }
+body.studio .guide-contents li { counter-increment: chapter; display: flex; align-items: baseline; gap: 4px; border-bottom: 1px solid var(--studio-line); }
+body.studio .guide-contents li:last-child { border-bottom: 0; }
+body.studio .guide-contents li::before { content: counter(chapter); flex: 0 0 26px; font: 700 13px var(--studio-display); color: var(--studio-faint); text-align: right; font-variant-numeric: tabular-nums; }
+body.studio .guide-contents button { padding: 10px 8px; }
+
 /* --- the kit: pills, the card, the planner, the ad block ------------------ */
 body.studio .kpills { display: flex; gap: 4px; }
 body.studio .kpill { padding: 4px 9px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
