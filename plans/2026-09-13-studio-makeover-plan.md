@@ -3073,6 +3073,36 @@ kit; `renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride
   does it feel alive, or only tidier? Their answer decides whether the pilot is
   done, and what the next section changes first.
 
+  *Played, 2026-09-14.* Twelve weeks in the Studio with seven keywords, recorded
+  with `?playtest=1`: every section; the keyword controls, a blocked search, a
+  place and two hours; the guide from three places (the head, the reading panel,
+  a card's QS) and from its contents; Redo round 0 once, which starts round 0
+  afresh in both looks and is then gone; the capital week, its window's five
+  cards arriving; Returns at week 6 and a prepaid discount; the debrief, whose
+  What if I hadn't? answered for week 2, and the reveal's eight answers. A
+  classic week played after, with sixty keywords. Word count with seven
+  keywords: 158 against about 120, of which 105 are the cards' repeated labels
+  (15 each), the panel 45, the head 9 and the add card 9. Sixty broad keywords
+  (and a sixty-two keyword round 0): a drag 4 to 7ms a step after the fix below,
+  the reading panel folds the rest into "14 others", but a click that redraws
+  the section took 274ms and the section is about 11,600px, twenty screens; put
+  to the owner with the compact list view the spec names, not built. Phone at
+  375 x 812: every section 375px wide by element edges, the menu, one card a
+  row, the planner 375px wide once its entrance is finished, the bar in a 146px
+  tray. The playtest file, read with `read-playtest.js`: every screen named in
+  order, the replay matched, the clicks named by region (Round 0 steps, Your
+  keywords, Add keywords, Tray, Sections, Icon strip, each chapter, Where did
+  they sit?). Its cards-by-time list was empty because the browser pane's page
+  is hidden and the sampler skips hidden ticks; its own logic, run by hand,
+  names the sections and cards on screen.
+
+  Found and fixed, one commit each: a prepaid discount was sent and listed
+  nowhere, in the tray or the classic summary (`54d5229`); a first visit's
+  stagger followed the slot list, not the page, so Your money's top card came
+  last (`b711db5`); a bid drag ran the form's whole refresh every step, 41ms
+  with sixty keywords, now the tray alone and one refresh on release
+  (`42fd67f`); round 0's drag worked out every card, 18ms, now one (`00308b3`).
+
 ---
 
 ### Task 11: docs
