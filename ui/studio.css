@@ -171,6 +171,19 @@ body.studio .studio-section.card { padding: 0; border: 0; border-radius: 0; back
 body.studio .studio-section > h2.studio-title { margin: 0 0 16px; font: 800 48px/0.95 var(--studio-display); letter-spacing: -0.025em; text-transform: none; color: var(--studio-text); }
 body.studio .studio-panel { max-width: 620px; margin: 0; padding: 22px 24px; border: 1px dashed var(--studio-line-strong); border-radius: 20px; background: var(--studio-card); font-size: 15px; line-height: 1.55; color: var(--studio-soft); }
 
+/* A section's cards, one to a row at the section's full width. The classic page
+   pairs them in a four-column grid, which in a section of one to five cards left
+   half the page empty: the search terms at 513px of 1,041 (the owner, after
+   playing the pilot, 2026-09-15). A note keeps a readable line. */
+body.studio .studio-cards.grid { grid-template-columns: minmax(0, 1fr); }
+body.studio .studio-cards :is(.span-2, .span-4) { grid-column: 1 / -1; }
+body.studio .studio-cards .note { max-width: 75ch; }
+/* One scroll, the page's: a table no longer scrolls in its own box, and only
+   goes sideways where it cannot fit, as on a phone. */
+body.studio .studio-cards .scroll { max-height: none; overflow-x: auto; }
+/* Slim scrollbars in the 3:1 grey, where the browser's own stood out. */
+body.studio, body.studio * { scrollbar-width: thin; scrollbar-color: #68636B transparent; }
+
 body.studio .studio-tray { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 18px; height: 76px; padding: 0 24px 0 40px; background: var(--studio-sidebar); border-top: 1px solid #26232A; }
 body.studio .studio-tray.bulk { background: #1F1C22; border-top-color: var(--studio-red); }
 body.studio .studio-lines { display: flex; flex: 1; align-items: center; gap: 12px; min-width: 0; }
