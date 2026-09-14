@@ -322,6 +322,8 @@ function readingOf(ctx) {
 
 export function renderTrends(ctx) {
   const node = el('article', 'card span-2');
+  // It replaces the page's `trends` placeholder, so it carries the slot on.
+  node.dataset.slot = 'trends';
   const heading = el('h2', null, 'Week by week');
   heading.append(el('span', 'muted', 'everyone, on what you are allowed to see'));
   node.append(heading);

@@ -1585,6 +1585,7 @@ function summaryCard(ctx) {
   if (rows.length === 0) return [];
 
   const node = card('Next week', `${rows.length} change${rows.length === 1 ? '' : 's'}, not yet committed`);
+  node.dataset.slot = 'next';
   const list = el('div', 'staged');
   for (const row of rows) {
     const item = el('div', `staged-row ${row.kind}`);
@@ -1637,6 +1638,7 @@ function windowCard(ctx, refresh) {
   const node = card('This week only', both
     ? 'capital to invest, and your one chance to move'
     : (draft.capexOpen ? 'capital to invest' : 'your one chance to move'));
+  node.dataset.slot = 'window';
 
   if (draft.capexOpen) node.append(capitalSection(ctx, refresh));
   if (draft.repositionOpen) node.append(positionSection(ctx, refresh));
@@ -2112,6 +2114,7 @@ export function prepaidOutlook(draft, rows) {
 
 function prepaidCard(ctx, refresh) {
   const node = card('Prepaid discount', 'money off, to keep the parcel out of the wrong hands', 'span-2');
+  node.dataset.slot = 'prepaid';
   const draft = ctx.draft;
   const chips = el('div', 'chip-row');
 
@@ -2175,6 +2178,7 @@ function splitCard(ctx, refresh) {
   // Half a row: measured 247px wide against 287px at half, and it pairs with
   // the hours card, which is the other half of pacing the same month.
   const node = card("This month's budget", "how the month is divided across its weeks", 'span-2');
+  node.dataset.slot = 'split';
 
   if (draft.weekIndex === 0 && draft.round > 1) {
     node.append(el('p', 'learning-now',
@@ -2371,6 +2375,7 @@ export function hourAdjustmentStacks(strategy) {
 
 function negativesCard(ctx, refresh) {
   const node = card('Negatives', 'searches you refuse to pay for');
+  node.dataset.slot = 'negatives';
   const draft = ctx.draft;
 
   // Does this account need to care yet? Answered from its own numbers rather
@@ -2522,6 +2527,7 @@ function previewBody(negative, ctx) {
 
 function keywordsCard(ctx, refresh) {
   const node = card('Keywords', 'what you bid on, and how loosely it matches');
+  node.dataset.slot = 'keywords';
   const draft = ctx.draft;
 
   const rows = draft.keywords.map((keyword) => {
