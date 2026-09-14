@@ -20,6 +20,12 @@
  * a way no screenshot shows: saying it in the wrong week, saying it to a player
  * who hired a writer, or saying it forever. The prose is verified in a browser,
  * the same way `termsOutlook`'s is.
+ *
+ * SINCE 2026-09-14 ONLY OLD SAVES REACH IT (I11). A self-written ad now runs on
+ * its words from week 1, so a new game never waits; the measurement above was
+ * taken under the old rule. A game saved before then still carries its week-3
+ * ad and must still be told, so these tests build that save
+ * (tests/fixtures/oldSave.js) and check a new game says nothing.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -34,32 +40,32 @@ import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
 import {
-  CREATIVE_DIY_LIVE_ROUND, DEFAULT_UNGRADED_QUALITY,
-  MONTHLY_BUDGET_PAISE, RANK_BUDGET_MULTIPLIERS,
+  DEFAULT_UNGRADED_QUALITY, MONTHLY_BUDGET_PAISE, RANK_BUDGET_MULTIPLIERS,
 } from '../engine/constants.js';
+import { OLD_SAVE_LIVE_ROUND, asOldSave } from './fixtures/oldSave.js';
 
-const diy = (over = {}) => ({ tier: 'diy', liveAtRound: CREATIVE_DIY_LIVE_ROUND, ...over });
+const diy = (over = {}) => ({ tier: 'diy', liveAtRound: OLD_SAVE_LIVE_ROUND, ...over });
 const hired = (over = {}) => ({ tier: 'freelancer', liveAtRound: 1, ...over });
 
-describe('whether the dashboard says anything about the copy', () => {
+describe('whether the dashboard says anything about the copy, in a game saved before I11 changed', () => {
   test('a self-written ad is flagged as not live, in every week before it lands', () => {
-    for (let round = 1; round < CREATIVE_DIY_LIVE_ROUND; round++) {
+    for (let round = 1; round < OLD_SAVE_LIVE_ROUND; round++) {
       const out = creativeOutlook(diy(), round);
       expect(out, `round ${round}`).toBeTruthy();
       expect(out.state, `round ${round}`).toBe('pending');
-      expect(out.liveAtRound, `round ${round}`).toBe(CREATIVE_DIY_LIVE_ROUND);
+      expect(out.liveAtRound, `round ${round}`).toBe(OLD_SAVE_LIVE_ROUND);
     }
   });
 
   test('and it is flagged as landed on the round it lands, which is the point', () => {
-    const out = creativeOutlook(diy(), CREATIVE_DIY_LIVE_ROUND);
+    const out = creativeOutlook(diy(), OLD_SAVE_LIVE_ROUND);
     expect(out.state).toBe('landed');
   });
 
   test('and never mentioned again', () => {
     // A card that keeps announcing a thing that happened four weeks ago trains
     // the player to stop reading the card.
-    for (const round of [CREATIVE_DIY_LIVE_ROUND + 1, 8, 12]) {
+    for (const round of [OLD_SAVE_LIVE_ROUND + 1, 8, 12]) {
       expect(creativeOutlook(diy(), round), `round ${round}`).toBeNull();
     }
   });
@@ -124,8 +130,8 @@ describe('it agrees with the game rather than restating it', () => {
     // stored grade still reads the ungraded default while the auction that round
     // runs on the written one. The grade in `nextGameState` is the one the round
     // actually used, which is what this compares against.
-    let state = start('diy');
-    for (let round = 1; round <= CREATIVE_DIY_LIVE_ROUND; round++) {
+    let state = asOldSave(start('diy'));
+    for (let round = 1; round <= OLD_SAVE_LIVE_ROUND; round++) {
       const outlook = creativeOutlook(state.advertisers[0].creative, state.round);
       const next = submitRound(state, {}, { mode: 'expected' }).nextGameState;
       const ranAt = next.advertisers[0].adGroups[0].gradedQuality.expectedCtr;
@@ -136,10 +142,10 @@ describe('it agrees with the game rather than restating it', () => {
   });
 
   test('and the round it calls landed is the round the copy actually changed', () => {
-    let state = start('diy');
+    let state = asOldSave(start('diy'));
     let landedAt = null;
     let before = state.advertisers[0].adGroups[0].gradedQuality.expectedCtr;
-    while (state.round <= CREATIVE_DIY_LIVE_ROUND + 1) {
+    while (state.round <= OLD_SAVE_LIVE_ROUND + 1) {
       const round = state.round;
       const said = creativeOutlook(state.advertisers[0].creative, round)?.state;
       const next = submitRound(state, {}, { mode: 'expected' }).nextGameState;
@@ -150,7 +156,16 @@ describe('it agrees with the game rather than restating it', () => {
       state = next;
     }
     expect(landedAt, 'the copy never landed, so this test proves nothing')
-      .toBe(CREATIVE_DIY_LIVE_ROUND);
+      .toBe(OLD_SAVE_LIVE_ROUND);
+  });
+
+  test('a new self-written account has nothing to report, at any round', () => {
+    // Since I11 changed, a self-written ad runs from week 1: nothing waits.
+    let state = start('diy');
+    while (state.round <= 4) {
+      expect(creativeOutlook(state.advertisers[0].creative, state.round), `round ${state.round}`).toBeNull();
+      state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+    }
   });
 
   test('a hired account never has anything to report, at any round', () => {

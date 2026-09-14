@@ -44,7 +44,7 @@ import { QUERY_SET } from '../content/querySet.js';
 import { composeDescription } from '../ui/landing-page.js';
 import { gradeAdOffline } from '../agents/grader.js';
 import {
-  WRITER_TIERS, DEFAULT_UNGRADED_QUALITY, CAPEX_ALLOCATION_PAISE,
+  WRITER_TIERS, CAPEX_ALLOCATION_PAISE,
   CREATIVE_ALLOCATION_PAISE, PRICE_TIERS, PURPOSES,
   LOCATION_VOLUME_BY_PRICE, LOCATION_TIERS,
 } from '../engine/constants.js';
@@ -71,6 +71,14 @@ const AD = {
   landingPageDescription: composeDescription(CAPEX),
 };
 
+/**
+ * A self-written ad that grades low: one headline and one description, no
+ * number or offer, and none of its keyword's words (5 and 3 against "gym
+ * leggings"). It must not echo the keyword, or relevance alone lifts it past a
+ * hire, which is what a first draft of this fixture did.
+ */
+const WEAK = { headlines: ['Our Range'], descriptions: ['Have a look.'], landingPageDescription: AD.landingPageDescription };
+
 /** The draft shape `renderRoundZero` holds. */
 const draft = (over = {}) => ({
   writerTier: 'diy',
@@ -93,35 +101,30 @@ describe('what round 0 says a bid has to clear', () => {
     expect(row.needPaise).toBe(expected);
   });
 
-  test('the grade it prices against is the one the FIRST auction runs at', () => {
-    // Not the grade a self-written ad will eventually reach. That difference is
-    // the entire reason this warning exists, and getting it backwards would
-    // reassure a player who is about to disappear for two weeks.
-    const written = gradeAdOffline(AD, { keywords: draft().keywords }, 0);
-    expect(written.expectedCtr, 'the fixture ad must grade well above the default')
-      .toBeGreaterThan(DEFAULT_UNGRADED_QUALITY.expectedCtr + 2);
-
+  test('writing it yourself prices the floor at what you wrote, from week 1 (I11)', () => {
     const out = openingReserve(draft(), QUERY_SET);
-    expect(out.grade.expectedCtr).toBe(DEFAULT_UNGRADED_QUALITY.expectedCtr);
-    expect(out.grade.adRelevance).toBe(DEFAULT_UNGRADED_QUALITY.adRelevance);
+    const written = gradeAsSubmitted(draft()).written;
+    expect(out.grade.expectedCtr).toBe(written.expectedCtr);
+    expect(out.grade.adRelevance).toBe(written.adRelevance);
     // The landing page is the player's own, graded from the page the capital
-    // built — it is not part of what the writer delays.
+    // built — no writer touches it.
     expect(out.grade.landingPage).toBe(written.landingPage);
   });
 
   test('it asks content/writers.js for that grade instead of restating it', () => {
     for (const tier of WRITER_TIERS) {
-      const out = openingReserve(draft({ writerTier: tier.id }), QUERY_SET);
-      const expected = openingCopyGrades(tier.id);
+      const d = draft({ writerTier: tier.id });
+      const out = openingReserve(d, QUERY_SET);
+      const expected = openingCopyGrades(tier.id, 0, gradeAsSubmitted(d).written);
       expect(out.grade.expectedCtr, tier.id).toBe(expected.expectedCtr);
       expect(out.grade.adRelevance, tier.id).toBe(expected.adRelevance);
     }
   });
 
-  test('hiring lowers the floor, which is the trade being made visible', () => {
-    const own = openingReserve(draft(), QUERY_SET).rows[0].needPaise;
-    const hired = openingReserve(draft({ writerTier: 'retainer' }), QUERY_SET).rows[0].needPaise;
-    expect(hired).toBeLessThan(own);
+  test('a weak ad of your own raises the floor; a hire guarantees its level', () => {
+    const own = openingReserve(draft({ ad: WEAK }), QUERY_SET).rows[0].needPaise;
+    const hired = openingReserve(draft({ ad: WEAK, writerTier: 'freelancer' }), QUERY_SET).rows[0].needPaise;
+    expect(own).toBeGreaterThan(hired);
   });
 });
 
@@ -155,12 +158,10 @@ describe('when it fires', () => {
     expect(out.under.map((r) => r.text)).toEqual(['sports bra']);
   });
 
-  test('a hired account at the same low bid is not warned, because it can show', () => {
-    // The measurement this encodes: at ₹14 a DIY opening takes zero impressions
-    // for two weeks while a hired one takes over a thousand clicks.
-    const low = 1400;
-    expect(at(low).under.length, 'diy').toBe(1);
-    expect(at(low, { writerTier: 'freelancer' }).under.length, 'freelancer').toBe(0);
+  test('at a bid a hire clears, a weak ad of your own is warned', () => {
+    const need = openingReserve(draft({ ad: WEAK, writerTier: 'freelancer' }), QUERY_SET).rows[0].needPaise;
+    expect(at(need, { ad: WEAK, writerTier: 'freelancer' }).under.length, 'freelancer').toBe(0);
+    expect(at(need, { ad: WEAK }).under.length, 'a weak ad of your own').toBe(1);
   });
 
   test('an empty keyword list is not a warning', () => {

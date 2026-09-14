@@ -193,6 +193,9 @@ function creativeOf(game, playerId) {
  * It reports the STATE and the card writes the sentence, following
  * `termsOutlook` and `negativesOutlook`.
  *
+ * Only a game saved before 2026-09-14 can reach 'pending' (I11): since then a
+ * self-written ad runs on its words from week 1.
+ *
  * @param {{liveAtRound?: number}|null|undefined} creative the player's own block
  * @param {number|null} round the round being reported
  * @returns {null | {state: 'pending'|'landed', liveAtRound: number,

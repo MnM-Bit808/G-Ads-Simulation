@@ -2,9 +2,10 @@
  * Who writes an advertiser's ad, and what grade that produces (DECISIONS I11).
  *
  * Every advertiser makes the same choice at round 0: hire someone, or write it
- * yourself. Hiring is immediate and guaranteed and capped; writing it yourself
- * is delayed, uncapped to the offline grader's ceiling, and only as good as
- * what you actually wrote.
+ * yourself. Hiring is guaranteed and capped; writing it yourself is free,
+ * uncapped to the offline grader's ceiling, and only as good as what you
+ * actually wrote. Both run from week 1 (I11: until 2026-09-14 a self-written ad
+ * waited until week 3).
  *
  * WHY A TIER SETS A LEVEL AND NOT A GRADE
  *
@@ -20,7 +21,7 @@
  * paid for.
  */
 
-import { WRITER_TIERS, DEFAULT_UNGRADED_QUALITY } from '../engine/constants.js';
+import { WRITER_TIERS } from '../engine/constants.js';
 
 /** The lowest and highest grade any component may take. */
 const GRADE_MIN = 1;
@@ -76,8 +77,8 @@ export function hiredCopyGrades(tierId, bias = 0) {
  * The two copy grades an advertiser actually OPENS on, at round 1.
  *
  * For a hired tier this is what the tier bought. For an advertiser writing its
- * own, it is the ungraded default (9.5) — because the copy has not shipped yet,
- * and that delay is the entire cost of writing it yourself (I11).
+ * own, it is what was written: since 2026-09-14 a self-written ad runs from
+ * week 1, so the fee buys not having to write, never a head start (I11).
  *
  * WHY IT IS A FUNCTION AND NOT TWO BRANCHES IN THE CALLER. Two places need it:
  * `creativeBlock` in `setup.js`, which builds the account, and round 0's own
@@ -87,20 +88,18 @@ export function hiredCopyGrades(tierId, bias = 0) {
  * — a screen that computes its own version of a rule the engine also computes
  * disagrees with it eventually, and the disagreement is invisible.
  *
- * It is deliberately NOT the grade a self-written ad will eventually reach. That
- * is what the writer card shows, and the difference between the two is what the
- * warning exists to make visible.
- *
  * @param {string} tierId
  * @param {number} [bias] -1, 0 or +1, as `hiredCopyGrades` takes it
+ * @param {{expectedCtr: number, adRelevance: number}|null} [written] - the
+ *   graded copy, required when the advertiser writes its own
  * @returns {{expectedCtr: number, adRelevance: number}}
+ * @throws {RangeError} for a self-written ad with no grade: the old default of
+ *   3/3 would silently bring back the wait this rule removed
  */
-export function openingCopyGrades(tierId, bias = 0) {
+export function openingCopyGrades(tierId, bias = 0, written = null) {
   if (isDiy(tierId)) {
-    return {
-      expectedCtr: DEFAULT_UNGRADED_QUALITY.expectedCtr,
-      adRelevance: DEFAULT_UNGRADED_QUALITY.adRelevance,
-    };
+    if (!written) throw new RangeError('a self-written ad opens on what was written: pass its grade');
+    return { expectedCtr: written.expectedCtr, adRelevance: written.adRelevance };
   }
   return hiredCopyGrades(tierId, bias);
 }

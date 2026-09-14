@@ -17,8 +17,9 @@ import { formatINR } from '../engine/money.js';
 import {
   ADVERTISER_COUNT, MONTHLY_BUDGET_PAISE,
   ROUNDS_PER_MONTH, PRICE_TIERS, CAPEX_ALLOCATION_PAISE, TAG_VOCABULARY,
-  CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND, DEFAULT_UNGRADED_QUALITY,
+  CREATIVE_ALLOCATION_PAISE, DEFAULT_UNGRADED_QUALITY,
 } from '../engine/constants.js';
+import { gradeAdOffline } from '../agents/grader.js';
 
 const PLAYER_BRAND = BRAND_IDENTITIES[0].id;
 const SEEDS = [1, 7, 42, 20260902, 999983, 12345, 2, 3, 5, 8, 13, 21];
@@ -78,20 +79,19 @@ describe('every advertiser chose who writes its ad (DECISIONS I11)', () => {
     }
   });
 
-  test('a self-written ad runs weak until it lands, then becomes what was written', () => {
+  test('a self-written ad runs on its own words from week 1 (I11)', () => {
     const diy = start().advertisers.filter((a) => isDiy(a.creative.tier));
-    expect(diy.length, 'nobody writes their own, so the mechanic is unreachable')
-      .toBeGreaterThan(0);
+    expect(diy.length, 'nobody writes their own, so the rule is unreachable').toBeGreaterThan(0);
     for (const a of diy) {
-      expect(a.creative.liveAtRound, a.id).toBe(CREATIVE_DIY_LIVE_ROUND);
-      expect(a.creative.pendingGrade, a.id).toBeTruthy();
-      // Until it lands they run the ungraded default (9.5, DECISIONS A8) —
-      // which is the cost of writing it yourself, and the whole reason hiring
-      // is worth anything.
-      expect(a.adGroups[0].gradedQuality.expectedCtr, a.id)
-        .toBe(DEFAULT_UNGRADED_QUALITY.expectedCtr);
-      expect(a.creative.pendingGrade.expectedCtr, a.id)
-        .toBeGreaterThan(DEFAULT_UNGRADED_QUALITY.expectedCtr);
+      const group = a.adGroups[0];
+      const written = gradeAdOffline(group.ad, {
+        keywords: group.keywords,
+        rivalNames: BRAND_IDENTITIES.filter((b) => b.id !== a.id).map((b) => b.name),
+      }, 0);
+      expect(a.creative.liveAtRound, a.id).toBe(1);
+      expect(a.creative.pendingGrade, a.id).toBeNull();
+      expect(group.gradedQuality.expectedCtr, a.id).toBe(written.expectedCtr);
+      expect(group.gradedQuality.adRelevance, a.id).toBe(written.adRelevance);
     }
   });
 

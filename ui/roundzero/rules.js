@@ -223,16 +223,9 @@ export function gradeAsSubmitted(draft) {
  * `minimumBidToShowPaise` exists for exactly this warning and says so; round 0
  * was not calling it.
  *
- * MEASURED, which is why the card says anything at all. A self-written ad opens
- * on the ungraded 3/3 default (I11) and needs ₹16.24 on this query set, where a
- * hired 6/6 needs ₹6.87. Round 0 offers ₹30 — 1.85x headroom against a hired
- * account's 4.37x — and accepts anything from ₹1. Played: ₹17 takes 396 clicks
- * in week 1, ₹16 takes 244, ₹14 takes ZERO, for two full weeks.
- *
- * THE GRADE IS THE OPENING ONE, NOT THE WRITTEN ONE, and that distinction is the
- * whole warning. A player writing their own ad watches it grade 8/10 on the card
- * below and opens the account at 3/10; pricing the floor against the 8 would
- * reassure exactly the player who is about to disappear. It comes from
+ * THE GRADE IS THE ONE THE FIRST AUCTION RUNS AT: a hire's level, or since
+ * 2026-09-14 (I11) the words as written. A weak ad of your own raises this
+ * floor; a better one lowers it, and so does raising the bid. It comes from
  * `openingCopyGrades` so this screen and `creativeBlock` cannot disagree.
  *
  * No landing-page bonus is added, and that is not an omission: round 0's capital
@@ -249,9 +242,8 @@ export function gradeAsSubmitted(draft) {
 export function openingReserve(draft, querySet) {
   const written = gradeAsSubmitted(draft).written;
   const grade = {
-    ...openingCopyGrades(draft.writerTier),
-    // The player's own page, graded from what the capital built (I9). A writer
-    // never touches it, so it is not part of what the delay withholds.
+    ...openingCopyGrades(draft.writerTier, 0, written),
+    // The player's own page, graded from what the capital built (I9).
     landingPage: written.landingPage,
   };
 

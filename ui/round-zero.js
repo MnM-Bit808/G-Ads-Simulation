@@ -40,7 +40,7 @@ import { FORM } from './words/form.js';
 import {
   HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS,
   CAPEX_ALLOCATION_PAISE,
-  WRITER_TIERS, CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
+  WRITER_TIERS, CREATIVE_ALLOCATION_PAISE,
   CAPEX_TIER_CURVE,
 } from '../engine/constants.js';
 import { writerTier, isDiy } from '../content/writers.js';
@@ -923,14 +923,13 @@ function sectionKeywords(querySet, draft, rerender, live) {
       = `${out.under.length === 1 ? 'One keyword bids' : `${out.under.length} keywords bid`} `
       + 'under the reserve, so it cannot appear at all: '
       + `${names}. At the grade this account OPENS on — `
-      + `${out.grade.expectedCtr}/10 for both copy components`
-      + `${isDiy(draft.writerTier) ? ', because you are writing the ad yourself' : ''} — `
+      + `${out.grade.expectedCtr}/10 and ${out.grade.adRelevance}/10 for the copy — `
       + `${worst.text} needs ${rupees(worst.needPaise)} and bids `
       + `${rupees(worst.bidPaise)}. A bid under the reserve enters every auction and `
       + 'shows in none, and the report calls that “lost to rank”, which looks '
       + 'exactly like being outbid.'
       + (isDiy(draft.writerTier)
-        ? ` That floor is set by the unwritten ad you open on, not by the one you wrote — hiring a writer lowers it, and so does raising the bid.`
+        ? ' That floor is set by the ad as you wrote it — a better ad lowers it, and so does raising the bid.'
         : '');
   };
   live.keywords();
@@ -997,8 +996,7 @@ function sectionWriter(draft, rerender, live, rootSeed) {
 
       row.append(el('div', 'writer-what muted', tier.grade === null
         ? `Graded on what you actually write — ${written.expectedCtr}/10 and `
-          + `${written.adRelevance}/10 as it stands. It does not go live until week `
-          + `${CREATIVE_DIY_LIVE_ROUND}; until then you run an unwritten ad that wins almost nothing.`
+          + `${written.adRelevance}/10 as it stands, running from week 1.`
         : `Both copy scores guaranteed at ${tier.grade}/10, running from week 1.`));
       rows.append(row);
     }
@@ -1180,7 +1178,7 @@ function sectionAd(draft, revalidate, live) {
     gradePanel.replaceChildren();
     gradePanel.append(el('p', 'field-label', hired
       ? `How this ad grades, with ${writerTier(draft.writerTier).label.toLowerCase()} writing it`
-      : `How this ad grades, as it stands — live from week ${CREATIVE_DIY_LIVE_ROUND}`));
+      : 'How this ad grades, as it stands — live from week 1'));
 
     // THE GRADER'S OWN SENTENCE, which nothing had ever read. It writes exactly
     // why it marked an ad down — "does not fit Google's limits, capped at 4: no

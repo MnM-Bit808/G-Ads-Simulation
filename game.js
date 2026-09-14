@@ -250,6 +250,10 @@ export function replayWithout(initialState, decisionLog, { advertiserId, round, 
  * It runs in the caller layer for the same reason the Quality Score does: the
  * engine resolves auctions and has no business knowing that someone was hired.
  *
+ * Since 2026-09-14 no new game sets a `pendingGrade` (I11): a self-written ad
+ * runs from week 1. This stays for saves made before then, which carry one due
+ * at round 3 in their first state and must replay exactly.
+ *
  * @param {object} advertiser
  * @param {number} round the round about to run
  * @returns {object} the advertiser, unchanged unless something was due

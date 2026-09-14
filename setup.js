@@ -44,7 +44,7 @@ import {
   RIVAL_PLACEMENT_CONSTRAINTS, POSITION_ECONOMICS,
   CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS, CAPEX_TIER_CURVE, CAPEX_DELAY_ROUNDS, RANK_BUDGET_MULTIPLIERS,
   PRICE_TIERS, PURPOSES, TOTAL_ROUNDS, QUERY_SET_RULES,
-  CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
+  CREATIVE_ALLOCATION_PAISE,
   LOCATION_TIERS, LOCATION_VOLUME_BY_PRICE,
 } from './engine/constants.js';
 import { mulberry32, deriveSeed } from './engine/rng.js';
@@ -169,11 +169,11 @@ export function placementIsLegal(placement) {
  * which matters more than usual, because 17.1 makes the eight ads the only
  * thing the player can observe about a rival at all.
  *
- * Hiring is immediate: the grade is what the tier guarantees, shaped by the
- * advertiser's own lean so two buyers of one tier are still different ads.
- * Writing it yourself is DELAYED, never faded: the copy is graded now, held in
- * `pendingGrade`, and applied whole at `liveAtRound`. Until then the advertiser
- * runs the ungraded default (9.5), which is what makes the delay cost anything.
+ * Hiring buys a guaranteed level, shaped by the advertiser's own lean so two
+ * buyers of one tier are still different ads; writing it yourself is graded on
+ * the words. Both run from round 1. `liveAtRound` and `pendingGrade` stay in the
+ * block because saves made before 2026-09-14 carry a self-written ad due at
+ * round 3, and `game.js` still lands it (I11).
  *
  * A WRITER WRITES COPY, so a tier only ever sets `expectedCtr` and
  * `adRelevance`. `landingPage` is passed in and never touched here: for a rival
@@ -198,32 +198,13 @@ function creativeBlock({ tierId, bias = 0, landingPage, ad, keywords, writtenGra
   const { pricePaise, unspentPaise } = creativeSpend(tierId, CREATIVE_ALLOCATION_PAISE);
   const base = { tier: tierId, spentPaise: pricePaise, unspentPaise };
 
+  // One grader pass, whoever writes: a hire discards it, and a self-written
+  // ad runs on it from week 1 (I11).
+  const written = isDiy(tierId) ? (writtenGrade ?? gradeAdOffline(ad, { keywords }, 0)) : null;
   // One source for "what grade does this advertiser open on", because round 0's
   // reserve warning needs the same answer and a second copy of it would drift.
-  const opening = { ...openingCopyGrades(tierId, bias), landingPage };
-
-  if (!isDiy(tierId)) {
-    return {
-      ...base,
-      liveAtRound: 1,
-      pendingGrade: null,
-      openingGrade: opening,
-    };
-  }
-
-  const written = writtenGrade ?? gradeAdOffline(ad, { keywords }, 0);
-  return {
-    ...base,
-    liveAtRound: CREATIVE_DIY_LIVE_ROUND,
-    // Graded now, applied later. The grade cannot depend on when it lands, or
-    // an advertiser could improve by doing nothing but waiting.
-    pendingGrade: {
-      expectedCtr: written.expectedCtr, adRelevance: written.adRelevance, landingPage,
-    },
-    // The ungraded default until it ships (9.5). This is the cost of writing it
-    // yourself, and the entire reason hiring anyone is worth paying for.
-    openingGrade: opening,
-  };
+  const opening = { ...openingCopyGrades(tierId, bias, written), landingPage };
+  return { ...base, liveAtRound: 1, pendingGrade: null, openingGrade: opening };
 }
 
 /**
@@ -708,9 +689,7 @@ function buildPlayer(identity, choices, querySet) {
 
   // Who writes it (I11), BEFORE the budget, because what the writer did not
   // cost is advertising money and the split has to be planned across the month
-  // the player will actually have. The default is DIY because writing their own
-  // copy is what the player has always done here; the delay is the new cost of
-  // doing so, not a new behaviour.
+  // the player will actually have. The default is DIY, as it always was here.
   const gradingContext = {
     keywords,
     rivalNames: BRAND_IDENTITIES.filter((b) => b.id !== identity.id).map((b) => b.name),

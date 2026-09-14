@@ -11,6 +11,7 @@ import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
 import { advertiserReport } from '../engine/report.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
+import { asOldSave } from './fixtures/oldSave.js';
 import {
   LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
   REPOSITION_ROUND, REPOSITION_COST_PAISE, MONTHLY_BUDGET_PAISE, TOTAL_ROUNDS,
@@ -404,7 +405,7 @@ describe('self-written copy ships on its delivery date (DECISIONS I11)', () => {
  */
 describe('a game played here is rebuilt exactly from its first state and its log', () => {
   const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|lifestyle').slice(0, 4);
-  const initial = () => startGame({
+  const initial = () => asOldSave(startGame({
     rootSeed: 20260902,
     playerBrandId: BRAND_IDENTITIES[0].id,
     querySet: QUERY_SET,
@@ -420,10 +421,11 @@ describe('a game played here is rebuilt exactly from its first state and its log
         ],
         landingPageDescription: 'A plain product page.',
       },
-      // Self-written, so the copy lands mid-game: the thing runRound never does.
+      // Self-written and saved before I11 changed, so the copy lands at week 3:
+      // the thing runRound never does, and old saves still need.
       writerTier: 'diy',
     },
-  });
+  }));
 
   // Everything the caller layer does that the engine's replay skips.
   const scripted = {
