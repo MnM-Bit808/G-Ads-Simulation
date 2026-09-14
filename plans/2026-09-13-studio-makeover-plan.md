@@ -3031,6 +3031,15 @@ kit; `renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride
   browser pane cannot turn on reduced motion; the rules were read back from the
   page as written.
 
+  *The review:* `/review-animations` was not in the session, so the owner had
+  `improve-animations` run on this task's diff instead, as in round 0's Task 14.
+  It found two things; the owner took the first. The tray's strip scrolls
+  sideways and never scrolled to a new line, so at 673px the second line showed
+  41 of its 271px and every later one none: the change just made entered out of
+  sight. The strip now scrolls to a line as it arrives, smoothly, or at once
+  under reduced motion. Declined: fading the "changes waiting" badge in with the
+  week's first line.
+
 ---
 
 ### Task 10: play it through, and measure

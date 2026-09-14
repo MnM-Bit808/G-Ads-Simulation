@@ -573,6 +573,8 @@ body.studio .studio-dot.arrive,
 body.studio .studio-section.first-open .arriving { transition: opacity 200ms var(--studio-ease), transform 200ms var(--studio-ease); }
 body.studio .studio-tray:not(.r0-tray) .studio-chip.leaving { opacity: 0; transition-duration: 150ms; }
 body.studio .ktoggle-knob { transition: transform 150ms var(--studio-ease); }
+/* The shell scrolls the strip to a line as it arrives (shell.js, drawTray). */
+body.studio .studio-chips { scroll-behavior: smooth; }
 
 @starting-style {
   body.studio .studio-tray:not(.r0-tray) .studio-chip { opacity: 0; transform: translateY(8px); }
@@ -584,6 +586,7 @@ body.studio .ktoggle-knob { transition: transform 150ms var(--studio-ease); }
    slide and the cards' stagger. */
 @media (prefers-reduced-motion: reduce) {
   body.studio .ktoggle-knob { transition: none; }
+  body.studio .studio-chips { scroll-behavior: auto; }
   body.studio .studio-section.first-open .arriving { transition-delay: 0ms !important; }
   @starting-style {
     body.studio .studio-tray:not(.r0-tray) .studio-chip,

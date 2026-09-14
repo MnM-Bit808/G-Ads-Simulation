@@ -255,12 +255,14 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     for (const [id, chip] of chips) {
       if (!keep.has(id)) { chips.delete(id); chip.remove(); }
     }
+    let added = false;
     for (const line of lines) {
       let chip = chips.get(line.id);
       if (!chip) {
         chip = makeChip(line);
         chips.set(line.id, chip);
         chipsBox.append(chip);
+        added = true;
       }
       chip.firstChild.textContent = line.text;
       chip.title = line.detail;
@@ -269,6 +271,10 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     }
     linesBox.hidden = bulk || lines.length === 0;
     empty.hidden = bulk || lines.length > 0;
+    // The newest line is the last, and the strip scrolls sideways: without this
+    // the change just made entered out of sight from the second or third line
+    // (the animation review, Task 9). Smooth, or instant under reduced motion.
+    if (added) chipsBox.scrollLeft = chipsBox.scrollWidth;
     count.textContent = String(lines.length);
     countWord.textContent = SHELL.changes({ n: lines.length });
     const over = played() >= TOTAL_ROUNDS;
