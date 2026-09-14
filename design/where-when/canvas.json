@@ -7,12 +7,16 @@
     {
       "id": "places",
       "name": "Where you advertise"
+    },
+    {
+      "id": "not-chosen",
+      "name": "Not chosen"
     }
   ],
   "artboards": [
     {
       "file": "Main.dc.html",
-      "title": "Hours · A · The day to scale",
+      "title": "Hours · A · The day to scale (chosen)",
       "page": "hours",
       "is_interactive": true,
       "x": 0,
@@ -23,16 +27,16 @@
     {
       "file": "HoursSliders.dc.html",
       "title": "Hours · B · Six sliders side by side",
-      "page": "hours",
+      "page": "not-chosen",
       "is_interactive": true,
-      "x": 1560,
+      "x": 0,
       "y": 0,
       "w": 1440,
       "h": 900
     },
     {
       "file": "PlacesBeside.dc.html",
-      "title": "Places · A · The map beside three bars",
+      "title": "Places · A · The map beside three bars (chosen)",
       "page": "places",
       "is_interactive": true,
       "x": 0,
@@ -43,7 +47,7 @@
     {
       "file": "PlacesOnMap.dc.html",
       "title": "Places · B · Set on the map",
-      "page": "places",
+      "page": "not-chosen",
       "is_interactive": true,
       "x": 1560,
       "y": 0,
@@ -66,12 +70,12 @@
       "x": 0,
       "y": -250,
       "w": 1440,
-      "text": "A · The day to scale. Each block is as wide as its hours, so the six-hour late night is half as wide again as the four-hour evening, and the day's clicks by hour line up underneath on the same clock.\nFor: when people search and where your money goes, in one picture; it fills the width that was empty.\nAgainst: the three-hour blocks are narrow targets on a phone."
+      "text": "Chosen by the owner, 2026-09-15. A · The day to scale. Each block is as wide as its hours, so the six-hour late night is half as wide again as the four-hour evening, and the day's clicks by hour line up underneath on the same clock.\nFor: when people search and where your money goes, in one picture; it fills the width that was empty.\nAgainst: the three-hour blocks are narrow targets on a phone."
     },
     {
       "id": "hours-b",
-      "page": "hours",
-      "x": 1560,
+      "page": "not-chosen",
+      "x": 0,
       "y": -250,
       "w": 1440,
       "text": "B · Six sliders side by side. Equal columns, one per block, each with its own clicks and sales per click underneath.\nFor: every block is the same size to grab, which suits a phone, and each block's figures sit with its control.\nAgainst: the day loses its shape; six hours of late night look the same as three of early morning."
@@ -79,7 +83,7 @@
     {
       "id": "hours-cap",
       "page": "hours",
-      "x": 3120,
+      "x": 1560,
       "y": 0,
       "w": 480,
       "text": "Found while drawing this. Today's box accepts up to +900%, but a bid can never be more than four times the keyword's bid (MAX_BID_MULTIPLE), so under manual bidding anything past +300% changes nothing, and past +150% under Maximise clicks, which already bids 1.6 times. Both options stop where the bid stops. Under Maximise clicks the top would be +150%."
@@ -98,11 +102,11 @@
       "x": 0,
       "y": -250,
       "w": 1440,
-      "text": "A · The map beside three bars. Each kind is a row with its figures and a bar; hover or drag a row and its cities light up and name themselves.\nFor: all three kinds, their figures and their bars in view at once, so kept-a-click compares at a glance; the rows stay the control a screen reader can use.\nAgainst: the map shows the choice rather than being where you make it."
+      "text": "Chosen by the owner, 2026-09-15. A · The map beside three bars. Each kind is a row with its figures and a bar; hover or drag a row and its cities light up and name themselves.\nFor: all three kinds, their figures and their bars in view at once, so kept-a-click compares at a glance; the rows stay the control a screen reader can use.\nAgainst: the map shows the choice rather than being where you make it."
     },
     {
       "id": "places-b",
-      "page": "places",
+      "page": "not-chosen",
       "x": 1560,
       "y": -250,
       "w": 1440,
@@ -111,10 +115,10 @@
     {
       "id": "places-cap",
       "page": "places",
-      "x": 3120,
+      "x": 1560,
       "y": 0,
       "w": 480,
-      "text": "A question for you, found while drawing this. The engine applies a place adjustment on top of the hour's without the four-times cap: the code means one cap to cover both, but the round multiplies by the place after capping. So +900% on a place really does bid ten times, and hours and places together can go further still. Rivals already tilt places by up to +320%. Both options here stop at +300%, matching the hours. Changing the engine moves the market, so it would be measured on the harness first."
+      "text": "A question for you, found while drawing this. The engine applies a place adjustment on top of the hour's without the four-times cap: the code means one cap to cover both, but the round multiplies by the place after capping. So +900% on a place really does bid ten times, and hours and places together can go further still. Rivals already tilt places by up to +320%. Changing the engine moves the market, so the owner chose to measure it on the harness first and then decide (2026-09-15); until then the bar stops at +300%, matching the hours."
     }
   ],
   "launch": {
