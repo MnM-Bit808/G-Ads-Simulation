@@ -3662,7 +3662,9 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   guess cells are 18 by 12px with centres 21 and 15px apart (the touch-target
   minimum is 24px, or spacing that makes up for it) and their outline is 2.1:1
   against the card; and on a phone the tray's *So far* chips are squeezed
-  beside Next and scroll sideways.
+  beside Next and scroll sideways. The owner's gate: *it feels alive*, and
+  both changed. The guess cells are 26 by 20px, 4px apart, outlined 3.33:1
+  (`tests/roundZeroLook.test.js`).
 
 - [ ] **Step 6: The owner's gate** (spec section 9). Hand over the dev-server link
   with `?look=studio` and ask the spec's question: play steps 1 and 2; does it
