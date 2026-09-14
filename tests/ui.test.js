@@ -222,6 +222,7 @@ describe('every interface module at least loads', () => {
     'kit/planner.js': () => import('../ui/kit/planner.js'),
     'kit/serp.js': () => import('../ui/kit/serp.js'),
     'words/keywords.js': () => import('../ui/words/keywords.js'),
+    'map/india.js': () => import('../ui/map/india.js'),
   };
 
   test('the list of modules to load is complete', () => {
