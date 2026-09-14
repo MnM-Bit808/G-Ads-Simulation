@@ -7,6 +7,7 @@
  */
 
 import { qualitySummary, updateKeyword } from '../decisions.js';
+import { lowestBidToShowPaise, wholeRupeeBid } from '../reserve.js';
 import { MIN_BID_PAISE } from '../../engine/constants.js';
 
 /** How many keywords the panel names by their share of the week's money (I6). */
@@ -27,11 +28,29 @@ const LEVERS = Object.freeze({
  * @param {object} args.draft
  * @param {Record<string, {clicks: number, costPaise: number, conversions: number}>} args.byKeyword
  * @param {Record<string, object>} [args.quality] - this advertiser's reportedScores
- * @param {object|null} [args.grades] - `effectiveGrades(draft)`
+ * @param {object|null} [args.grades] - `effectiveGrades(draft)`, the grade the
+ *   week's auctions run on
  * @param {(keyword: object) => number} args.reach - how many searches it reaches on its match type
+ * @param {{queries: object[]}} args.querySet - to find each keyword's own search
  * @returns {object[]}
  */
-export function keywordCards({ draft, byKeyword, quality = {}, grades = null, reach }) {
+export function keywordCards({ draft, byKeyword, quality = {}, grades = null, reach, querySet }) {
+  // Round 0's warning that a bid cannot clear the reserve (I17), priced with
+  // the hour and place adjustments this week will run. Manual bidding only:
+  // under a strategy the keyword's bid is not what it bids, and the strategy's
+  // own warning (`bidOutlook`) says whether its bid shows.
+  const underReserve = (keyword) => {
+    if (draft.strategy !== 'manual' || keyword.active === false) return null;
+    const need = lowestBidToShowPaise({
+      grade: grades,
+      keyword,
+      querySet,
+      daypartAdjustments: draft.daypartAdjustments,
+      locationAdjustments: draft.locationAdjustments,
+    });
+    return need !== null && keyword.bidPaise < need ? wholeRupeeBid(need) : null;
+  };
+
   return draft.keywords.map((keyword) => {
     const base = draft.base.keywords.find((k) => k.id === keyword.id) ?? null;
     const row = base ? byKeyword?.[keyword.id] : null;
@@ -57,10 +76,7 @@ export function keywordCards({ draft, byKeyword, quality = {}, grades = null, re
         conversions: row?.conversions ?? 0,
       },
       quality: qualitySummary(quality?.[keyword.id] ?? null, grades),
-      // Round 0's per-keyword warning that a bid cannot clear the reserve
-      // (I17). The weekly form has never carried it per keyword (it warns once,
-      // for the strategy's own bid, `bidOutlook`), so a week's card leaves it off.
-      needPaise: null,
+      needPaise: underReserve(keyword),
     };
   });
 }

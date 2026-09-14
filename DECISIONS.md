@@ -2955,6 +2955,16 @@ under and at 1.1 times the figure both showed nothing, which says nothing about
 the reserve. So the warning is necessary, not sufficient: clearing the reserve
 still leaves the rivals to beat.
 
+**And every week's card, since 2026-09-14, the owner's call.** The weekly
+*Your keywords* card gives the same warning, priced at the grade the week's
+auctions run on (the live landing-page points included) and with the hour and
+place bid adjustments that week will run, so a bid that clears at every hour can
+be warned once the evenings are cut. Manual bidding only: under a bid strategy
+the keyword's bid is not what it bids, and the strategy's own warning says
+whether its bid shows. A paused keyword enters no auction and is not warned. The
+figure is the lowest whole-rupee bid at or over the floor, since bids are slid
+and typed in rupees.
+
 **It names two levers and recommends neither** (I13). The floor is set by the
 unwritten ad, so hiring lowers it and so does raising the bid; which of those is
 right depends on what the player is trying to learn, and this card cannot know.

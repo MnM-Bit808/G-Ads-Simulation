@@ -9,13 +9,17 @@ import { getSelfView } from '../engine/insights.js';
 import { MIN_BID_PAISE } from '../engine/constants.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
-import { createDraft, updateKeyword, addKeyword } from '../ui/decisions.js';
+import { createDraft, updateKeyword, addKeyword, effectiveGrades } from '../ui/decisions.js';
 import { createSetupDraft, addSetupKeyword, setupKeywordCards } from '../ui/roundzero/rules.js';
 import { keywordCards, adjustSeveral, readingPanel } from '../ui/keywords/read.js';
+import { lowestBidToShowPaise, wholeRupeeBid } from '../ui/reserve.js';
+import { DAYPART_BLOCKS } from '../engine/constants.js';
 
 const draft = () => createDraft(getSelfView(makeGameState(), PLAYER_ID));
 const reach = (k) => `${k.matchType}:${k.text}`.length; // a stand-in the tests can predict
-const cards = (d, byKeyword = {}) => keywordCards({ draft: d, byKeyword, quality: {}, grades: null, reach });
+const cards = (d, byKeyword = {}) => keywordCards({
+  draft: d, byKeyword, quality: {}, grades: effectiveGrades(d), reach, querySet: QUERY_SET,
+});
 
 describe('a card per keyword', () => {
   test('in the draft\'s order, with its own text, match and bid', () => {
@@ -86,8 +90,49 @@ describe('a card per keyword', () => {
     expect(cards(draft())[0].quality).toMatchObject({ value: null, ratings: [] });
   });
 
-  test('a week\'s card never carries round 0\'s reserve warning', () => {
-    expect(cards(draft()).every((c) => c.needPaise === null)).toBe(true);
+});
+
+describe('a bid under the reserve, warned as round 0 warns it (I17)', () => {
+  const at = (d, bidPaise) => {
+    updateKeyword(d, d.keywords[0].id, { bidPaise });
+    return cards(d)[0].needPaise;
+  };
+  const floor = (d) => lowestBidToShowPaise({
+    grade: effectiveGrades(d), keyword: d.keywords[0], querySet: QUERY_SET,
+    daypartAdjustments: d.daypartAdjustments, locationAdjustments: d.locationAdjustments,
+  });
+
+  test('says the whole-rupee bid it needs, at the grade the week runs on', () => {
+    const d = draft();
+    expect(d.strategy).toBe('manual');
+    expect(at(d, MIN_BID_PAISE)).toBe(wholeRupeeBid(floor(d)));
+  });
+
+  test('from a paise under the floor, and says nothing at it', () => {
+    const d = draft();
+    const need = floor(d);
+    expect(at(d, need - 1)).not.toBeNull();
+    expect(at(d, need)).toBeNull();
+  });
+
+  test('counts the hours as adjusted: a bid that clears at every hour can fail at half', () => {
+    const d = draft();
+    const need = floor(d);
+    expect(at(d, need)).toBeNull();
+    d.daypartAdjustments = DAYPART_BLOCKS.map(() => -50);
+    expect(at(d, need)).not.toBeNull();
+  });
+
+  test('a paused keyword enters no auction, so it is not warned', () => {
+    const d = draft();
+    updateKeyword(d, d.keywords[0].id, { active: false });
+    expect(at(d, MIN_BID_PAISE)).toBeNull();
+  });
+
+  test('under a bid strategy the card says nothing: the strategy sets the bid, and warns for it', () => {
+    const d = draft();
+    d.strategy = 'maxClicks';
+    expect(at(d, MIN_BID_PAISE)).toBeNull();
   });
 });
 
