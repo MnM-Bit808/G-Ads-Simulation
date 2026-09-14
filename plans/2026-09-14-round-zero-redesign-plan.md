@@ -3651,6 +3651,19 @@ Task 8's `sharesFor`, `drawIndia`; the makeover's `AREAS`, `ICONS`.
   Commit: *Draw step 2: the rival ads with your guesses, and the squares as a
   diagram*.
 
+  *Found when built:* at 375px the page measured 424px wide. Round 0's top bar
+  (Task 9) held twelve dots, "before the first auction" and the step count on
+  one line, so under 900px round 0 drops the dots and that phrase (the list
+  still says *Before week 1*). The diagram's squares were 76px with a 50px
+  inside, narrower than "performance", and the bars' figures ran out of their
+  columns; under 700px the purpose labels sit above their rows as a rule, a
+  square is 110px, and a bar is a thin line with its figure beneath. `barOrder`
+  was never used and is not in the words. Two things left for the owner: the
+  guess cells are 18 by 12px with centres 21 and 15px apart (the touch-target
+  minimum is 24px, or spacing that makes up for it) and their outline is 2.1:1
+  against the card; and on a phone the tray's *So far* chips are squeezed
+  beside Next and scroll sideways.
+
 - [ ] **Step 6: The owner's gate** (spec section 9). Hand over the dev-server link
   with `?look=studio` and ask the spec's question: play steps 1 and 2; does it
   feel alive, or only tidier? **Stop until the owner answers.** Their answer

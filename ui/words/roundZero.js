@@ -10,6 +10,10 @@ import { line } from './line.js';
 
 const lower = (text) => `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 
+/** 'Nira', 'Nira and Marlow', 'Nira, Marlow and Kestrel'. */
+const listed = (names) => (names.length < 2 ? names.join('')
+  : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`);
+
 export const R0 = Object.freeze({
   // The frame
   stepMarket: line('label', 'The market'),
@@ -70,6 +74,33 @@ export const R0 = Object.freeze({
   pulseNote: line('reading', 'Each city rings as often as its kind of place is searched: the busiest '
     + 'rings fastest. Tap a place to name its cities.'),
   readOnly: line('instruction', 'Nothing to decide here. Read it, then choose where you sit.'),
+
+  // Step 2, where you sit
+  positionIntro: line('reading', ({ rivals }) => `Nobody tells you where the other ${rivals} sit. `
+    + 'Their ads are the only evidence before the first auction.'),
+  otherRivals: line('label', ({ n }) => `The other ${n}`),
+  guessNote: line('instruction', ({ placed, total }) => 'tap the small grid to note where each sits · '
+    + `${placed} of ${total} placed, if you like`),
+  sponsored: line('label', 'Sponsored'),
+  guessFor: line('label', ({ name }) => `Where you think ${name} sits`),
+  guessCell: line('label', ({ name, cell }) => `${name}: ${cell}`),
+  pickSquare: line('label', 'Pick your square'),
+  fixedUntil: line('label', ({ week }) => `fixed until week ${week}`),
+  readoutNone: line('reading', 'Price sets what a click can be worth to you. Purpose sets which searches '
+    + 'are yours. You haven’t placed any rival here.'),
+  readoutPlaced: line('reading', ({ names }) => `You’ve placed ${listed(names)} here. If you’re right, `
+    + 'you’ll be competing for exactly the same searches.'),
+  whoValuePerformance: line('label', 'An affordable gym-wear brand'),
+  whoValueLifestyle: line('label', 'A budget loungewear label'),
+  whoMidPerformance: line('label', 'A serious training brand'),
+  whoMidLifestyle: line('label', 'An everyday athleisure label'),
+  whoPremiumPerformance: line('label', 'A technical performance house'),
+  whoPremiumLifestyle: line('label', 'A considered luxury label'),
+  contestPerformance: line('label', 'the most contested'),
+  contestLifestyle: line('label', 'fewer bidders'),
+  you: line('label', 'You'),
+  guessed: line('label', ({ name }) => `${name}?`),
+  axisPrice: line('label', 'price'),
 });
 
 /** A price level's name, by the engine's key. */

@@ -23,13 +23,14 @@ import {
   createSetupDraft, stepsDone, checklist, canGo, startChoices, committed,
 } from './rules.js';
 import { renderMarketStep } from './market.js';
+import { renderPositionStep } from './position.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 
 /** The five steps. A step whose `render` is null is not built yet. */
 const STEPS = [
   { key: 'market', label: R0.stepMarket, render: renderMarketStep },
-  { key: 'position', label: R0.stepPosition, render: null },
+  { key: 'position', label: R0.stepPosition, render: renderPositionStep },
   { key: 'keywords', label: R0.stepKeywords, render: null },
   { key: 'ad', label: R0.stepAd, render: null },
   { key: 'money', label: R0.stepMoney, render: null },

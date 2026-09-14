@@ -338,3 +338,58 @@ body.studio .r0-readonly { margin: 16px 0 0; font-size: 14px; color: var(--studi
   body.studio .r0-finish { flex-wrap: wrap; }
   body.studio .studio-tray.r0-tray { height: auto; min-height: 76px; padding: 8px 12px; flex-wrap: wrap; }
 }
+
+/* --- step 2, where you sit ------------------------------------------------ */
+body.studio .r0-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+body.studio .r0-rivals, body.studio .r0-squares { margin-bottom: 16px; }
+body.studio .r0-rival-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+body.studio .r0-rival { display: flex; flex-direction: column; gap: 8px; }
+body.studio .r0-rival .kserp { flex: 1; }
+body.studio .r0-mini { display: grid; grid-template-columns: repeat(3, 18px); grid-template-rows: repeat(2, 12px); gap: 3px; align-self: flex-end; }
+body.studio .r0-mini-cell { width: 18px; height: 12px; padding: 0; border: 1px solid #4A454F; border-radius: 3px; background: none; }
+body.studio .r0-mini-cell.on { border-color: var(--studio-text); background: var(--studio-text); }
+body.studio .r0-readout { margin: 0 0 10px; font-size: 14px; color: var(--studio-soft); }
+body.studio .r0-diagram { display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 6px; align-items: stretch; }
+body.studio .r0-row-label { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-right: 10px; border-right: 2px solid #4A454F; }
+body.studio .r0-row-label.on { border-right-color: var(--studio-red); }
+body.studio .r0-row-label.on strong { color: var(--studio-text); }
+body.studio .r0-square { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 118px; padding: 12px; border: 1px solid var(--studio-line); border-radius: 6px; background: var(--studio-card); color: var(--studio-soft); text-align: center; }
+body.studio .r0-square.on { border-color: var(--studio-red); background: #1C1417; box-shadow: 0 0 0 1px var(--studio-red); color: var(--studio-text); }
+body.studio .r0-square-name { font-size: 12px; color: var(--studio-muted); }
+body.studio .r0-who { font: 700 15px/1.2 var(--studio-display); }
+body.studio .r0-square-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+body.studio .r0-you { padding: 2px 8px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font-size: 11px; font-weight: 700; }
+body.studio .r0-guess { padding: 2px 8px; border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 11px; color: var(--studio-soft); }
+body.studio .r0-axis-name { align-self: center; font-size: 12px; color: var(--studio-faint); }
+body.studio .r0-axis-name::after { content: ' →'; }
+body.studio .r0-axis { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 2px solid #4A454F; }
+body.studio .r0-axis.on { border-top-color: var(--studio-red); }
+body.studio .r0-axis strong { font-size: 13px; color: var(--studio-muted); }
+body.studio .r0-axis.on strong { color: var(--studio-text); }
+body.studio .r0-bar { position: relative; height: 18px; }
+body.studio .r0-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: #3A363E; }
+body.studio .r0-bar-text { position: relative; padding-left: 6px; font-size: 11px; line-height: 18px; color: var(--studio-soft); white-space: nowrap; }
+@media (max-width: 1280px) { body.studio .r0-rival-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  body.studio .r0-rival-grid { grid-template-columns: minmax(0, 1fr); }
+  /* On a phone the purpose labels sit above their rows, not beside them.
+     Beside, at 375px, a square was 76px wide and "performance" (77px) did not
+     fit in it; above, a square is about 110px. The divider becomes a rule. */
+  body.studio .r0-diagram { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.studio .r0-row-label, body.studio .r0-axis-name { grid-column: 1 / -1; }
+  body.studio .r0-row-label { flex-direction: row; align-items: baseline; gap: 8px; padding: 8px 0 4px; border-right: 0; border-bottom: 2px solid #4A454F; }
+  body.studio .r0-row-label.on { border-bottom-color: var(--studio-red); }
+  body.studio .r0-who { font-size: 12px; }
+  /* A bar's figure is wider than its column on a phone, and wrapped over a
+     part-width fill it read as smudges: the bar becomes a thin line with its
+     figure beneath, so nothing makes the step scroll sideways (375px). */
+  body.studio .r0-bar { display: flex; flex-direction: column; gap: 3px; height: auto; }
+  body.studio .r0-bar-fill { position: static; height: 6px; }
+  body.studio .r0-bar-text { padding-left: 0; white-space: normal; line-height: 1.35; }
+}
+/* On a phone, twelve empty dots and "before the first auction" pushed the step
+   count off the screen and widened the page to 424px; the list still says
+   "Before week 1". */
+@media (max-width: 900px) {
+  body.studio .r0 .studio-dots, body.studio .r0 .studio-saved { display: none; }
+}

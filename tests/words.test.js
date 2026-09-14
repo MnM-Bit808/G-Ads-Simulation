@@ -254,6 +254,7 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
     round: 0, week: 1, n: 3, total: 5, step: 'Where you sit', hours: 168,
     weeks: 12, rivals: 8, order: '₹2,400', margin: '52%', level: 'value',
     price: 'Mid', purpose: 'Performance', amount: '₹25,000',
+    placed: 3, names: ['Nira', 'Marlow'], name: 'Nira', cell: 'Value · Performance',
   };
 
   test('every entry is a line of a kind the screen may carry', () => {
@@ -274,6 +275,11 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
 
   test('"Next" names the step in the middle of a sentence', () => {
     expect(R0.next({ step: 'Where you sit' })).toBe('Next: where you sit');
+  });
+
+  test('the names you placed read as a list', () => {
+    expect(R0.readoutPlaced({ names: ['Nira'] })).toMatch(/^You’ve placed Nira here/);
+    expect(R0.readoutPlaced({ names: ['Nira', 'Marlow', 'Kestrel'] })).toMatch(/Nira, Marlow and Kestrel here/);
   });
 
   test('step 1 leaves the returns-by-place line to the weekly card', () => {
@@ -313,7 +319,7 @@ describe('the new screens draw, and do not write', () => {
   // A "word" here must hold two letters in a row, so icon paths and class
   // lists are not counted.
   const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
-    'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js'];
+    'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {
