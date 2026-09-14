@@ -4537,6 +4537,13 @@ where it can be tested, one commit each.
   found two gaps, both fixed: the planner drawer had no region (458311f) and a
   guess cell had no label (02e2489). The classic look played into week 1.
 
+  *The gate passed, 2026-09-14:* the owner played all five steps and said "it
+  feels alive". Their two rulings: the strip's greyed-out areas take the
+  coastline's grey, 3.47:1 against 5.51:1 for one that works (21c9bc8), and the
+  unaffordable rung stays at 3.28:1; on a phone, step 5's tray drops So far,
+  since the checklist beside Go names the same four things, 266px to 169px
+  (da408d9).
+
 ---
 
 ### Task 16: docs
