@@ -252,6 +252,18 @@ describe('keywords in round 0', () => {
     expect(ok.needPaise).toBeNull();
   });
 
+  test('what it says it needs is a whole-rupee bid that clears, and a rupee less does not', () => {
+    // Bids are slid and typed in rupees, and a figure shown to the nearest rupee
+    // could be one that fails: ₹6.02 showed as "needs ₹6" to a bid of ₹6.
+    const d = fresh();
+    rules.addSetupKeyword(d, 'gym leggings', { bidPaise: MIN_BID_PAISE });
+    const exact = rules.openingReserve(d, QUERY_SET).rows[0].needPaise;
+    const [card] = rules.setupKeywordCards(d, QUERY_SET);
+    expect(card.needPaise % 100).toBe(0);
+    expect(card.needPaise).toBeGreaterThanOrEqual(exact);
+    expect(card.needPaise - 100).toBeLessThan(exact);
+  });
+
   test('removing takes it out', () => {
     const d = fresh();
     rules.addSetupKeyword(d, 'gym leggings');

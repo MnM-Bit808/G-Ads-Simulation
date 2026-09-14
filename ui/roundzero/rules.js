@@ -25,7 +25,7 @@ import {
   writerTier, isDiy, hiredCopyGrades, openingCopyGrades,
 } from '../../content/writers.js';
 import { composeDescription, PAGE_FEATURES } from '../landing-page.js';
-import { lowestBidToShowPaise } from '../reserve.js';
+import { lowestBidToShowPaise, wholeRupeeBid } from '../reserve.js';
 
 /**
  * The landing page description is DERIVED, never typed (DECISIONS I9).
@@ -566,7 +566,7 @@ export function setupKeywordCards(draft, querySet) {
       stats: null,
       quality: { value: null, ratings: [] },
       active: null,
-      needPaise: reserve.rows[i].clears ? null : reserve.rows[i].needPaise,
+      needPaise: reserve.rows[i].clears ? null : wholeRupeeBid(reserve.rows[i].needPaise),
     };
   });
 }

@@ -46,6 +46,7 @@ import {
 import { writerTier, isDiy } from '../content/writers.js';
 import { PAGE_FEATURES, pageShape } from './landing-page.js';
 import { MAP_VIEWBOX, INDIA_PATH, CITY_POINTS, BACKDROP, labelPlace } from './india-map.js';
+import { wholeRupeeBid } from './reserve.js';
 import {
   syncPage, syncWriterCopy, committed, researchList, positionMatrix, splitShares,
   submittedAd, gradeAsSubmitted, openingReserve, monthlyBudget, evenSplit, rivalAds,
@@ -925,7 +926,7 @@ function sectionKeywords(querySet, draft, rerender, live) {
       + 'under the reserve, so it cannot appear at all: '
       + `${names}. At the grade this account OPENS on — `
       + `${out.grade.expectedCtr}/10 and ${out.grade.adRelevance}/10 for the copy — `
-      + `${worst.text} needs ${rupees(worst.needPaise)} and bids `
+      + `${worst.text} needs ${rupees(wholeRupeeBid(worst.needPaise))} and bids `
       + `${rupees(worst.bidPaise)}. A bid under the reserve enters every auction and `
       + 'shows in none, and the report calls that “lost to rank”, which looks '
       + 'exactly like being outbid.'

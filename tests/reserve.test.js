@@ -13,7 +13,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { lowestBidToShowPaise } from '../ui/reserve.js';
+import { lowestBidToShowPaise, wholeRupeeBid } from '../ui/reserve.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { minimumBidToShowPaise, resolveAuction } from '../engine/auction.js';
 import { qualitySignalBase, applyHourAndNoise } from '../engine/quality.js';
@@ -66,5 +66,13 @@ describe('the best hour, and the adjustments', () => {
 
   test('with every hour switched off no bid shows, and it says so rather than guessing', () => {
     expect(figure({ daypartAdjustments: DAYPART_BLOCKS.map(() => -100) })).toBeNull();
+  });
+});
+
+describe('the figure a player is shown', () => {
+  test('is the lowest whole-rupee bid at or over it, never one under', () => {
+    expect(wholeRupeeBid(602)).toBe(700);
+    expect(wholeRupeeBid(600)).toBe(600);
+    expect(wholeRupeeBid(601)).toBe(700);
   });
 });

@@ -29,6 +29,16 @@ import { heuristicTags } from '../agents/keywordTagger.js';
 
 const HOURS = Array.from({ length: HOURS_PER_DAY }, (_, hour) => hour);
 
+/**
+ * The figure a warning shows: the lowest whole-rupee bid at or over `paise`.
+ * Bids are slid and typed in rupees, and `rupees()` rounds to the nearest, so
+ * a floor of ₹6.02 used to read "needs ₹6" to a bid of ₹6 that it refused.
+ *
+ * @param {number} paise
+ * @returns {number} paise, a multiple of 100
+ */
+export const wholeRupeeBid = (paise) => Math.ceil(paise / 100) * 100;
+
 /** Doublings tried before deciding no bid can show (every hour or place off). */
 const MAX_DOUBLINGS = 24;
 
