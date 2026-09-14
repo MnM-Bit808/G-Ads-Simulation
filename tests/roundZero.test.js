@@ -39,7 +39,7 @@ import { homeCell } from '../engine/querySet.js';
 import { allCells } from '../engine/positions.js';
 import { validateAdCopy } from '../agents/grader.js';
 import { minimumBidToShowPaise } from '../engine/auction.js';
-import { qualitySignalBase } from '../engine/quality.js';
+import { qualitySignalBase, applyHourAndNoise } from '../engine/quality.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { composeDescription } from '../ui/landing-page.js';
 import { gradeAdOffline } from '../agents/grader.js';
@@ -91,13 +91,15 @@ const draft = (over = {}) => ({
 describe('what round 0 says a bid has to clear', () => {
   test('it agrees with the engine rather than computing its own floor', () => {
     // The whole point of the function: it must be the auction's own arithmetic.
-    // A restated floor would agree until AD_RANK_FLOOR moved.
+    // A restated floor would agree until AD_RANK_FLOOR moved. At the hour the
+    // signal is strongest, since 2026-09-14: priced without the hour, a bid it
+    // said could not show at all still cleared the reserve at 7pm.
     const out = openingReserve(draft(), QUERY_SET);
     const row = out.rows[0];
     const query = QUERY_SET.queries.find((q) => q.text === 'gym leggings');
-    const expected = minimumBidToShowPaise(qualitySignalBase(
-      out.grade, query, { text: 'gym leggings', matchType: 'phrase' },
-    ).base);
+    const { base } = qualitySignalBase(out.grade, query, { text: 'gym leggings', matchType: 'phrase' });
+    const expected = Math.min(...Array.from({ length: 24 },
+      (_, hour) => minimumBidToShowPaise(applyHourAndNoise(base, hour, null, 'expected'))));
     expect(row.needPaise).toBe(expected);
   });
 

@@ -15,7 +15,7 @@ import { cellKey, parseCell, landingPageBonus } from '../../engine/positions.js'
 import { keywordReach } from '../../engine/matching.js';
 import { writerCopyFor, WRITER_COPY_VARIANTS } from '../../content/writerCopy.js';
 import { explainGrade, validateAdCopy } from '../../agents/grader.js';
-import { heuristicTags, tagKeywordOffline } from '../../agents/keywordTagger.js';
+import { tagKeywordOffline } from '../../agents/keywordTagger.js';
 import {
   MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH,
   CREATIVE_ALLOCATION_PAISE, PRICE_TIERS, PURPOSES,
@@ -24,9 +24,8 @@ import {
 import {
   writerTier, isDiy, hiredCopyGrades, openingCopyGrades,
 } from '../../content/writers.js';
-import { qualitySignalBase } from '../../engine/quality.js';
-import { minimumBidToShowPaise } from '../../engine/auction.js';
 import { composeDescription, PAGE_FEATURES } from '../landing-page.js';
+import { lowestBidToShowPaise } from '../reserve.js';
 
 /**
  * The landing page description is DERIVED, never typed (DECISIONS I9).
@@ -231,7 +230,9 @@ export function gradeAsSubmitted(draft) {
  * calls that "lost to rank 100%" — which reads as being OUTBID and sends a
  * player to raise keyword bids, when the bid was never the binding thing.
  * `minimumBidToShowPaise` exists for exactly this warning and says so; round 0
- * was not calling it.
+ * was not calling it. It now asks `lowestBidToShowPaise` (ui/reserve.js), which
+ * prices the floor at the hour the signal is strongest: priced without the
+ * hour, a bid it called unable to show at all still cleared the reserve at 7pm.
  *
  * THE GRADE IS THE ONE THE FIRST AUCTION RUNS AT: a hire's level, or since
  * 2026-09-14 (I11) the words as written. A weak ad of your own raises this
@@ -259,11 +260,9 @@ export function openingReserve(draft, querySet) {
 
   const rows = (draft.keywords ?? []).map((keyword) => {
     // The keyword's own literal search, which is the most favourable query it
-    // could meet. Failing there means failing everywhere, at any hour, against
-    // anyone — the same test `setup.test.js` runs over every rival.
-    const query = querySet.queries.find((q) => q.text === keyword.text)
-      ?? { text: keyword.text, intent: 'commercial', tags: heuristicTags(keyword.text) };
-    const needPaise = minimumBidToShowPaise(qualitySignalBase(grade, query, keyword).base);
+    // could meet, at its best hour. Failing there means failing everywhere, at
+    // any hour, against anyone. Round 0 has no bid adjustments yet.
+    const needPaise = lowestBidToShowPaise({ grade, keyword, querySet });
     return {
       text: keyword.text,
       bidPaise: keyword.bidPaise,

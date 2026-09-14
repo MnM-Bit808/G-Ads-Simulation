@@ -2942,6 +2942,19 @@ rival, now run for the player before the fact. Verified live: two keywords at �
 warned that neither could appear, and the week they bought returned ₹0, zero
 impressions and lost-to-rank 100%.
 
+**Corrected 2026-09-14: "at any hour" was not yet true.** The auction's signal is
+the ad's quality times an hourly factor (`CONTEXT_FACTOR_CURVE`, 0.95 at night to
+1.05 at 7pm), and the floor was priced without it, so it sat about 5% above the
+lowest bid that shows. The table above has the evidence: ₹16 took 16,612
+impressions under a floor this entry gave as ₹16.24. The floor is now priced at
+the hour the signal is strongest (`lowestBidToShowPaise`, `ui/reserve.js`), and
+tested against the engine's own auction: at the figure a bid clears the reserve
+in some hour, a paise under it clears it in none. A played week could not prove
+it in today's market: at such low bids rivals take every slot, and bids a paise
+under and at 1.1 times the figure both showed nothing, which says nothing about
+the reserve. So the warning is necessary, not sufficient: clearing the reserve
+still leaves the rivals to beat.
+
 **It names two levers and recommends neither** (I13). The floor is set by the
 unwritten ad, so hiring lowers it and so does raising the bid; which of those is
 right depends on what the player is trying to learn, and this card cannot know.
