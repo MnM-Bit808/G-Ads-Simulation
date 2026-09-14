@@ -411,8 +411,10 @@ function controlLabel(control) {
       || control.type;
   }
   // innerText, not textContent: a brand button holds "Kestrel" and
-  // "kestrel.in" in two blocks, which textContent runs together.
-  return control.innerText || control.textContent;
+  // "kestrel.in" in two blocks, which textContent runs together. A button with
+  // no text at all, like round 0's guess cells, is named by its aria-label, or
+  // the click reads as its region alone.
+  return control.innerText || control.textContent || control.getAttribute('aria-label') || '';
 }
 
 /**
