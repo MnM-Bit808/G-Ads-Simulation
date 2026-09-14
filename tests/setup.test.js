@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import {
   placeRivals, placementIsLegal, briefing, rivalAdsForBriefing, buildRivals,
-  startGame, redoRoundZero, canRedoRoundZero, REDO_DEADLINE_ROUND,
+  startGame, redoRoundZero, canRedoRoundZero, REDO_DEADLINE_ROUND, assignPlayerBrand,
 } from '../setup.js';
 import { playGame, submitRound } from '../game.js';
 import { disciplined, controllerFor, RIVAL_CAST } from '../agents/policies.js';
@@ -42,6 +42,17 @@ const choices = (over = {}) => {
 
 const start = (over = {}) => startGame({
   rootSeed: 20260902, playerBrandId: PLAYER_BRAND, player: choices(), querySet: QUERY_SET, ...over,
+});
+
+describe('the player\'s brand is drawn from the seed, not picked (round 0 redesign)', () => {
+  test('the same seed is always the same brand', () => {
+    expect(assignPlayerBrand(20260902)).toBe(assignPlayerBrand(20260902));
+  });
+
+  test('every brand turns up across seeds, so no name is never yours', () => {
+    const drawn = new Set(Array.from({ length: 500 }, (_, i) => assignPlayerBrand(i + 1)));
+    expect([...drawn].sort()).toEqual(BRAND_IDENTITIES.map((b) => b.id).sort());
+  });
 });
 
 describe('every advertiser chose who writes its ad (DECISIONS I11)', () => {

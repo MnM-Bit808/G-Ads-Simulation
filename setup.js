@@ -880,4 +880,19 @@ export function canRedoRoundZero(gameState) {
     && gameState.round <= REDO_DEADLINE_ROUND;
 }
 
+/**
+ * The player's brand, drawn from the seed (plans/2026-09-14-round-zero-redesign.md).
+ *
+ * Picking one of nine decided almost nothing: a brand's own searches run to
+ * within two percent of each other whichever brand it is, so the pick was ten
+ * buttons and a paragraph for no decision. Drawn from its own substream, so the
+ * same seed is always the same brand and nothing else in the market moves.
+ *
+ * @param {number} rootSeed
+ * @returns {string} a brand id from BRAND_IDENTITIES
+ */
+export function assignPlayerBrand(rootSeed) {
+  return BRAND_IDENTITIES[deriveSeed(rootSeed, 'player-brand') % BRAND_IDENTITIES.length].id;
+}
+
 export { REDO_DEADLINE_ROUND };

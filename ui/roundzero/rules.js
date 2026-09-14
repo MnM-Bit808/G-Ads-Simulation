@@ -11,20 +11,22 @@
 
 import { placeRivals, buildRivals } from '../../setup.js';
 import { BRAND_IDENTITIES, assignIdentities } from '../../content/brands.js';
-import { cellKey } from '../../engine/positions.js';
+import { cellKey, parseCell, landingPageBonus } from '../../engine/positions.js';
+import { keywordReach } from '../../engine/matching.js';
 import { writerCopyFor, WRITER_COPY_VARIANTS } from '../../content/writerCopy.js';
-import { explainGrade } from '../../agents/grader.js';
-import { heuristicTags } from '../../agents/keywordTagger.js';
+import { explainGrade, validateAdCopy } from '../../agents/grader.js';
+import { heuristicTags, tagKeywordOffline } from '../../agents/keywordTagger.js';
 import {
   MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE, ROUNDS_PER_MONTH,
   CREATIVE_ALLOCATION_PAISE, PRICE_TIERS, PURPOSES,
+  CAPEX_DELAY_ROUNDS, MIN_BID_PAISE, WRITER_TIERS,
 } from '../../engine/constants.js';
 import {
   writerTier, isDiy, hiredCopyGrades, openingCopyGrades,
 } from '../../content/writers.js';
 import { qualitySignalBase } from '../../engine/quality.js';
 import { minimumBidToShowPaise } from '../../engine/auction.js';
-import { composeDescription } from '../landing-page.js';
+import { composeDescription, PAGE_FEATURES } from '../landing-page.js';
 
 /**
  * The landing page description is DERIVED, never typed (DECISIONS I9).
@@ -333,4 +335,302 @@ export function rivalAds(rootSeed, playerBrandId, querySet) {
   return buildRivals(identities, placement, querySet, () => 0.5)
     .map((rival) => ({ name: rival.name, domain: rival.domain, ad: rival.adGroups[0].ad }))
     .sort((a, b) => (a.name < b.name ? -1 : 1));
+}
+
+// ---------------------------------------------------------------------------
+// The Studio's five steps (plans/2026-09-14-round-zero-redesign.md, section 4)
+// ---------------------------------------------------------------------------
+
+/** The order step 5 draws the targets in: the page first, as round 0 always has. */
+export const CAPEX_ORDER = Object.freeze(['landingPage', 'sizeGuide', 'photography', 'orderConfirmation']);
+
+/** Round 0's starting bid for a keyword, as the classic planner's. */
+export const SETUP_BID_PAISE = 3000;
+
+/** The round capital committed in round 0 goes live at. */
+const CAPITAL_LIVE_AT = 1 + CAPEX_DELAY_ROUNDS;
+
+const normal = (text) => String(text).trim().toLowerCase().replace(/\s+/g, ' ');
+
+/**
+ * The draft the five steps fill in.
+ *
+ * THE FREELANCER, NOT WRITING IT YOURSELF, is the writer a player arrives on,
+ * so somebody who does not want to write never meets five empty boxes (the
+ * spec's section 4, step 4). `syncWriterCopy` puts the freelancer's copy in.
+ *
+ * `guesses` are the player's notes on where each rival sits: never sent, and
+ * never confirmed by the game (section 4, step 2).
+ *
+ * @param {{playerBrandId: string, rootSeed: number}} args
+ * @returns {object}
+ */
+export function createSetupDraft({ playerBrandId, rootSeed }) {
+  const draft = {
+    playerBrandId,
+    cell: 'mid|performance',
+    capex: Object.fromEntries(CAPEX_ORDER.map((key) => [key, 0])),
+    keywords: [],
+    ad: { headlines: ['', '', ''], descriptions: ['', ''], landingPageDescription: '' },
+    writerTier: 'freelancer',
+    adIsSeeded: false,
+    split: null,
+    guesses: {},
+  };
+  syncPage(draft);
+  syncWriterCopy(draft, rootSeed);
+  return draft;
+}
+
+/** Choose a square. The writer's copy is written for the square, so it follows. */
+export function setCell(draft, cell, rootSeed) {
+  draft.cell = cell;
+  syncWriterCopy(draft, rootSeed);
+}
+
+/**
+ * Choose who writes the ad. The month changes with the fee, so an edited
+ * weekly split no longer adds up and goes back to even.
+ */
+export function setWriter(draft, tierId, rootSeed) {
+  writerTier(tierId);
+  draft.writerTier = tierId;
+  syncWriterCopy(draft, rootSeed);
+  draft.split = null;
+}
+
+/** A keystroke in one of the ad's boxes: the words are now the player's (I25). */
+export function writeAd(draft, part, index, text) {
+  draft.ad[part][index] = text;
+  draft.adIsSeeded = false;
+}
+
+/** @returns {Array<{id: string, label: string, pricePaise: number, grade: number|null, on: boolean}>} */
+export function writerOptions(draft) {
+  return WRITER_TIERS.map((tier) => ({
+    id: tier.id, label: tier.label, pricePaise: tier.pricePaise, grade: tier.grade,
+    on: tier.id === draft.writerTier,
+  }));
+}
+
+/**
+ * The two grades the ad sets, as the auction will use them from week 1.
+ *
+ * @returns {{expectedCtr: number, adRelevance: number, byWriter: boolean,
+ *   checks: object[], notes: string[]}}
+ */
+export function adGrades(draft) {
+  const { applied, checks, notes } = gradeAsSubmitted(draft);
+  return {
+    expectedCtr: applied.expectedCtr,
+    adRelevance: applied.adRelevance,
+    byWriter: !isDiy(draft.writerTier),
+    checks,
+    notes,
+  };
+}
+
+/** The capital as Go will send it: the block `startGame` reads (C8). */
+export function capitalOf(draft) {
+  return {
+    committed: { ...draft.capex },
+    pending: CAPEX_ORDER
+      .filter((target) => draft.capex[target] > 0)
+      .map((target) => ({ target, paise: draft.capex[target], liveAtRound: CAPITAL_LIVE_AT })),
+    remainingUnallocatedPaise: CAPEX_ALLOCATION_PAISE - committed(draft),
+  };
+}
+
+/**
+ * A target's rungs, each marked chosen and affordable. A rung is affordable
+ * when what is committed to this target plus what is left would buy it:
+ * photography's top rung never is in round 0.
+ */
+export function capexRungs(draft, key) {
+  const left = CAPEX_ALLOCATION_PAISE - committed(draft);
+  return PAGE_FEATURES[key].map((rung) => ({
+    paise: rung.paise,
+    label: rung.label,
+    on: draft.capex[key] === rung.paise,
+    affordable: rung.paise <= draft.capex[key] + left,
+  }));
+}
+
+/** Choose a rung. The page's description follows it (I9); the month re-splits. */
+export function setCapex(draft, key, paise) {
+  const rung = capexRungs(draft, key).find((r) => r.paise === paise);
+  if (!rung) return { ok: false, reason: 'no such rung' };
+  if (!rung.affordable) return { ok: false, reason: 'more than the capital left' };
+  draft.capex[key] = paise;
+  syncPage(draft);
+  draft.split = null;
+  return { ok: true };
+}
+
+/**
+ * The landing page grade, the third part of Quality Score, as the engine will
+ * run it: the page the capital describes, graded (I9), which counts from week
+ * 1; plus the page's own capital as points once the site goes live
+ * (`landingPageBonus`, 13.3), capped at 10 as `round.js` caps it.
+ *
+ * The engine's own functions, so if the open question on the description's
+ * timing (the spec's section 12) changes the rule, this follows.
+ *
+ * @returns {{fromWeek1: number, fromWeek4: number, liveAt: number}}
+ */
+export function landingGrade(draft) {
+  const graded = gradeAsSubmitted(draft).applied.landingPage;
+  const block = capitalOf(draft);
+  return {
+    fromWeek1: Math.min(10, graded + landingPageBonus(block, 1)),
+    fromWeek4: Math.min(10, graded + landingPageBonus(block, CAPITAL_LIVE_AT)),
+    liveAt: CAPITAL_LIVE_AT,
+  };
+}
+
+/** Where the month comes from, for step 5's bar. A part worth nothing is left out. */
+export function monthParts(draft) {
+  return [
+    { key: 'base', paise: MONTHLY_BUDGET_PAISE },
+    { key: 'writer', paise: CREATIVE_ALLOCATION_PAISE - writerTier(draft.writerTier).pricePaise },
+    { key: 'kept', paise: CAPEX_ALLOCATION_PAISE - committed(draft) },
+  ].filter((part) => part.paise > 0);
+}
+
+/** The four weeks: even, unless the player has changed one. */
+export function weeklySplit(draft) {
+  return draft.split ?? evenSplit(monthlyBudget(draft));
+}
+
+/** Change one week of the split; the rest keep what they had. */
+export function setWeek(draft, index, paise) {
+  const split = [...weeklySplit(draft)];
+  split[index] = Math.max(0, Math.round(paise));
+  draft.split = split;
+}
+
+/**
+ * Add a keyword, once however it is typed.
+ *
+ * @returns {{ok: boolean, reason?: 'empty'|'held'}}
+ */
+export function addSetupKeyword(draft, text, { matchType = 'phrase', bidPaise = SETUP_BID_PAISE } = {}) {
+  const clean = normal(text);
+  if (!clean) return { ok: false, reason: 'empty' };
+  if (draft.keywords.some((k) => normal(k.text) === clean)) return { ok: false, reason: 'held' };
+  draft.keywords.push({ text: clean, matchType, bidPaise: Math.max(MIN_BID_PAISE, Math.round(bidPaise)) });
+  return { ok: true };
+}
+
+/** Change a keyword's match type or bid; a bid never goes under the minimum. */
+export function updateSetupKeyword(draft, text, change) {
+  const keyword = draft.keywords.find((k) => k.text === text);
+  if (!keyword) return { ok: false };
+  if (change.matchType) keyword.matchType = change.matchType;
+  if (change.bidPaise !== undefined) keyword.bidPaise = Math.max(MIN_BID_PAISE, Math.round(change.bidPaise));
+  return { ok: true };
+}
+
+/** Take a keyword out. */
+export function removeSetupKeyword(draft, text) {
+  const i = draft.keywords.findIndex((k) => k.text === text);
+  if (i >= 0) draft.keywords.splice(i, 1);
+  return { ok: i >= 0 };
+}
+
+/**
+ * Each keyword as the kit's card draws it (ui/kit/card.js), before any week
+ * has run: no score, no figures, no "was". The tags are the ones the account
+ * will be given (E9), shown on broad only (E8). `needPaise` is set only when
+ * the bid cannot clear the reserve at the grade the account opens on.
+ */
+export function setupKeywordCards(draft, querySet) {
+  const reserve = openingReserve(draft, querySet);
+  return draft.keywords.map((keyword, i) => {
+    const tags = tagKeywordOffline({ text: keyword.text }, querySet).tags;
+    const broad = keyword.matchType === 'broad';
+    return {
+      id: keyword.text,
+      text: keyword.text,
+      matchType: keyword.matchType,
+      bidPaise: keyword.bidPaise,
+      reach: keywordReach({ text: keyword.text, matchType: keyword.matchType, tags }, querySet),
+      tags: broad ? tags : null,
+      noTagsOnBroad: broad && tags.length === 0,
+      wasBidPaise: null,
+      wasMatchType: null,
+      isNew: true,
+      stats: null,
+      quality: { value: null, ratings: [] },
+      active: null,
+      needPaise: reserve.rows[i].clears ? null : reserve.rows[i].needPaise,
+    };
+  });
+}
+
+/** Note a rival in a square; the same square again takes the note back. */
+export function setGuess(draft, rivalName, cell) {
+  if (draft.guesses[rivalName] === cell) delete draft.guesses[rivalName];
+  else draft.guesses[rivalName] = cell;
+}
+
+/** The rivals the player has noted in a square, by name. */
+export function guessedIn(draft, cell) {
+  return Object.keys(draft.guesses).filter((name) => draft.guesses[name] === cell).sort();
+}
+
+/**
+ * What Go waits for. `need` names what is missing, for the tray's words.
+ *
+ * @returns {Array<{key: string, done: boolean, need: string|null}>}
+ */
+export function checklist(draft) {
+  const planned = weeklySplit(draft).reduce((a, b) => a + b, 0);
+  return [
+    { key: 'square', done: true, need: 'square' },
+    { key: 'keywords', done: draft.keywords.length > 0, need: 'keyword' },
+    { key: 'ad', done: validateAdCopy(submittedAd(draft)).valid, need: 'ad' },
+    { key: 'money', done: planned <= monthlyBudget(draft), need: 'split' },
+  ].map((item) => ({ ...item, need: item.done ? null : item.need }));
+}
+
+/** Whether Go may be pressed. */
+export const canGo = (draft) => checklist(draft).every((item) => item.done);
+
+/**
+ * The ticks in the steps list. The two reading steps are done once seen; the
+ * money step once seen and adding up; the others when their choice is complete.
+ *
+ * @param {object} draft
+ * @param {Set<string>} visited - step keys the player has opened
+ */
+export function stepsDone(draft, visited) {
+  const money = checklist(draft).find((c) => c.key === 'money').done;
+  return {
+    market: visited.has('market'),
+    position: visited.has('position'),
+    keywords: draft.keywords.length > 0,
+    ad: validateAdCopy(submittedAd(draft)).valid,
+    money: visited.has('money') && money,
+  };
+}
+
+/**
+ * What Go sends: exactly the shape the classic page's Go sends, so the account
+ * opens the same way from either look. Guesses are not part of it.
+ *
+ * @returns {{playerBrandId: string, player: object}}
+ */
+export function startChoices(draft) {
+  return {
+    playerBrandId: draft.playerBrandId,
+    player: {
+      position: parseCell(draft.cell),
+      capex: capitalOf(draft),
+      keywords: draft.keywords.map((k) => ({ ...k })),
+      ad: submittedAd(draft),
+      weeklySplitPaise: [...weeklySplit(draft)],
+      writerTier: draft.writerTier,
+    },
+  };
 }
