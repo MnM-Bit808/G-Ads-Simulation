@@ -2949,7 +2949,13 @@ lowest bid that shows. The table above has the evidence: ₹16 took 16,612
 impressions under a floor this entry gave as ₹16.24. The floor is now priced at
 the hour the signal is strongest (`lowestBidToShowPaise`, `ui/reserve.js`), and
 tested against the engine's own auction: at the figure a bid clears the reserve
-in some hour, a paise under it clears it in none. A played week could not prove
+in some hour, a paise under it clears it in none. **And it priced the keyword
+without its tags**, where `startGame` tags it (E9) and a keyword whose tags match
+its search runs a fit of up to 1.15 against an untagged one's 1.0, so the floor
+sat up to 15% high: in `tests/roundZero.test.js`'s own draft, ₹3.59 where the
+account's own keyword clears at ₹3.12. It is
+now priced as the account will hold it, and tested against the account
+`startGame` builds. A played week could not prove
 it in today's market: at such low bids rivals take every slot, and bids a paise
 under and at 1.1 times the figure both showed nothing, which says nothing about
 the reserve. So the warning is necessary, not sufficient: clearing the reserve

@@ -14,6 +14,8 @@
 
 import { describe, test, expect } from 'vitest';
 import { lowestBidToShowPaise, wholeRupeeBid } from '../ui/reserve.js';
+import { createSetupDraft, addSetupKeyword, startChoices, openingReserve } from '../ui/roundzero/rules.js';
+import { startGame, assignPlayerBrand } from '../setup.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { minimumBidToShowPaise, resolveAuction } from '../engine/auction.js';
 import { qualitySignalBase, applyHourAndNoise } from '../engine/quality.js';
@@ -37,6 +39,24 @@ describe('the auction agrees with the figure', () => {
     const need = figure();
     expect(HOURS.some((hour) => showsAlone(need, hour)), 'the figure').toBe(true);
     expect(HOURS.some((hour) => showsAlone(need - 1, hour)), 'a paise under').toBe(false);
+  });
+
+  test.each(['exact', 'phrase', 'broad'])('round 0 prices %s as the account will hold it, tags and all', (matchType) => {
+    // startGame tags the player's keywords (E9), and a keyword whose tags match
+    // its search runs a fit of up to 1.15 where an untagged one runs 1.0.
+    const SEED = 20260902;
+    const player = assignPlayerBrand(SEED);
+    const draft = createSetupDraft({ playerBrandId: player, rootSeed: SEED });
+    addSetupKeyword(draft, 'gym leggings', { matchType, bidPaise: 3000 });
+    const need = openingReserve(draft, QUERY_SET).rows[0].needPaise;
+    const account = startGame({ rootSeed: SEED, querySet: QUERY_SET, ...startChoices(draft) })
+      .advertisers.find((a) => a.id === player).adGroups[0];
+    const own = qualitySignalBase(account.gradedQuality, query, account.keywords[0]).base;
+    const shows = (bidPaise) => HOURS.some((hour) => resolveAuction([
+      { id: 'me', bidPaise, qualitySignal: applyHourAndNoise(own, hour, null, 'expected') },
+    ]).ladder[0].shown);
+    expect(shows(need), 'the figure').toBe(true);
+    expect(shows(need - 1), 'a paise under').toBe(false);
   });
 
   test('a paise under the figure priced without the hour still shows in the evening', () => {

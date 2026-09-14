@@ -261,8 +261,11 @@ export function openingReserve(draft, querySet) {
   const rows = (draft.keywords ?? []).map((keyword) => {
     // The keyword's own literal search, which is the most favourable query it
     // could meet, at its best hour. Failing there means failing everywhere, at
-    // any hour, against anyone. Round 0 has no bid adjustments yet.
-    const needPaise = lowestBidToShowPaise({ grade, keyword, querySet });
+    // any hour, against anyone. Round 0 has no bid adjustments yet. Priced with
+    // the tags startGame will give it (E9): a keyword whose tags match its search
+    // runs a fit of up to 1.15, and priced untagged the floor sat that much high.
+    const tagged = { ...keyword, tags: tagKeywordOffline(keyword, querySet).tags };
+    const needPaise = lowestBidToShowPaise({ grade, keyword: tagged, querySet });
     return {
       text: keyword.text,
       bidPaise: keyword.bidPaise,
