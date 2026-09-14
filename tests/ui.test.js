@@ -213,6 +213,7 @@ describe('every interface module at least loads', () => {
     'debrief/render.js': () => import('../ui/debrief/render.js'),
     'season/read.js': () => import('../ui/season/read.js'),
     'shell/sections.js': () => import('../ui/shell/sections.js'),
+    'shell/tray.js': () => import('../ui/shell/tray.js'),
   };
 
   test('the list of modules to load is complete', () => {

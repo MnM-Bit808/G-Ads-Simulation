@@ -292,14 +292,18 @@ export function toDecision(draft) {
  * This is what the player reads before committing. A form that hides a
  * consequence it could show is being cruel rather than honest.
  *
+ * Every row carries an `id` that stays the same while its figures move, so the
+ * Studio's tray can keep a line in place mid-drag (ui/shell/tray.js).
+ *
  * @param {object} draft
- * @returns {Array<{kind: string, label: string, detail: string, undo: Function}>}
+ * @returns {Array<{id: string, kind: string, label: string, detail: string, undo: Function|null}>}
  */
 export function changes(draft) {
   const rows = [];
 
   if (draft.repositionOpen && movedPosition(draft)) {
     rows.push({
+      id: 'position',
       kind: 'position',
       label: `Position: ${cellOf(draft.base.position)} → ${cellOf(draft.position)}`,
       detail: `costs ${rupees(REPOSITION_COST_PAISE)} from this month, restarts the `
@@ -314,6 +318,7 @@ export function changes(draft) {
       .filter(([key]) => draft.capex[key] > 0)
       .map(([key, label]) => `${rupees(draft.capex[key])} to ${label.toLowerCase()}`);
     rows.push({
+      id: 'capital',
       kind: 'capital',
       label: parts.length > 0
         ? `Capital: ${parts.join(', ')}`
@@ -330,6 +335,7 @@ export function changes(draft) {
     const before = draft.base.weeklySplitPaise[index];
     if (paise === before) return;
     rows.push({
+      id: `budget:${index}`,
       kind: 'budget',
       label: `Week ${index + 1} budget ${rupees(before)} → ${rupees(paise)}`,
       detail: index === draft.weekIndex
@@ -344,6 +350,7 @@ export function changes(draft) {
     if (percent === before) return;
     const place = LOCATIONS[index];
     rows.push({
+      id: `location:${index}`,
       kind: 'location',
       label: `${place.label} bid ${signed(before)} → ${signed(percent)}`,
       detail: percent <= -100
@@ -358,6 +365,7 @@ export function changes(draft) {
     if (percent === before) return;
     const block = DAYPART_BLOCKS[index];
     rows.push({
+      id: `daypart:${index}`,
       kind: 'daypart',
       label: `${block.label} bid ${signed(before)} → ${signed(percent)}`,
       detail: percent <= -100
@@ -369,6 +377,7 @@ export function changes(draft) {
 
   if (draft.strategy !== draft.base.strategy) {
     rows.push({
+      id: 'strategy',
       kind: 'strategy',
       label: `Bidding: ${strategyName(draft.base.strategy)} → ${strategyName(draft.strategy)}`,
       detail: learningWarning(),
@@ -382,6 +391,7 @@ export function changes(draft) {
     if (key && draft.strategyParams[key] !== draft.base.strategyParams[key]) {
       const format = key === 'targetCpaPaise' ? rupees : ratio;
       rows.push({
+        id: 'strategy-param',
         kind: 'strategy-param',
         label: `${paramLabel(draft.strategy)} ${format(draft.base.strategyParams[key])}`
           + ` → ${format(draft.strategyParams[key])}`,
@@ -394,6 +404,7 @@ export function changes(draft) {
   for (const negative of draft.negatives) {
     if (findNegative(draft.base.negatives, negative) === -1) {
       rows.push({
+        id: `negative-added:${negative.matchType}:${negative.text}`,
         kind: 'negative-added',
         label: `Block “${negative.text}”`,
         detail: `${negative.matchType} negative — ${NEGATIVE_HELP[negative.matchType]}`,
@@ -404,6 +415,7 @@ export function changes(draft) {
   draft.base.negatives.forEach((negative, index) => {
     if (findNegative(draft.negatives, negative) === -1) {
       rows.push({
+        id: `negative-removed:${negative.matchType}:${negative.text}`,
         kind: 'negative-removed',
         label: `Stop blocking “${negative.text}”`,
         detail: `the ${negative.matchType} negative comes off`,
@@ -415,6 +427,7 @@ export function changes(draft) {
   draft.base.keywords.forEach((before, index) => {
     if (draft.keywords.some((k) => k.id === before.id)) return;
     rows.push({
+      id: `keyword-removed:${before.id}`,
       kind: 'keyword-removed',
       label: `Remove “${before.text}”`,
       detail: 'it leaves the ad group; what it has already learned is kept',
@@ -426,6 +439,7 @@ export function changes(draft) {
     const before = draft.base.keywords.find((k) => k.id === keyword.id);
     if (!before) {
       rows.push({
+        id: `keyword-added:${keyword.id}`,
         kind: 'keyword-added',
         label: `Add “${keyword.text}”`,
         detail: `${keyword.matchType} match at ${rupees(keyword.bidPaise)}`
@@ -438,6 +452,7 @@ export function changes(draft) {
     }
     if (keyword.matchType !== before.matchType) {
       rows.push({
+        id: `keyword-match:${keyword.id}`,
         kind: 'keyword-match',
         label: `“${keyword.text}” → ${keyword.matchType} match`,
         detail: keyword.matchType === 'broad' && before.matchType !== 'broad'
@@ -448,6 +463,7 @@ export function changes(draft) {
     }
     if (keyword.bidPaise !== before.bidPaise) {
       rows.push({
+        id: `keyword-bid:${keyword.id}`,
         kind: 'keyword-bid',
         label: `“${keyword.text}” bid ${rupees(before.bidPaise)} → ${rupees(keyword.bidPaise)}`,
         detail: keyword.bidPaise > before.bidPaise
@@ -459,6 +475,7 @@ export function changes(draft) {
     if ((keyword.active !== false) !== (before.active !== false)) {
       const paused = keyword.active === false;
       rows.push({
+        id: `keyword-active:${keyword.id}`,
         kind: paused ? 'keyword-paused' : 'keyword-resumed',
         label: `${paused ? 'Pause' : 'Resume'} “${keyword.text}”`,
         detail: paused
