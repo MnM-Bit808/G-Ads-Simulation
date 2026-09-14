@@ -224,11 +224,29 @@ describe('the Studio layout', () => {
   });
 });
 
-describe('the keyword card and the planner', () => {
+describe('the keyword card, the planner and Your keywords', () => {
   const FIGURES = {
     value: 7, list: 'leggings · gym', bid: '₹30', keyword: 'gym leggings', cpc: '₹12',
     impressions: '100', need: '₹16', n: 12, text: 'squat proof leggings',
+    count: 7, range: 'weeks 1–4', week: 4, from: 1, to: 4, budget: '50%', rank: '0%', rankNone: true,
+    shown: '50%', match: 'phrase', reason: 'no such keyword',
   };
+
+  test('the panel names levers, never a verdict', () => {
+    for (const name of Object.keys(KEYWORDS).filter((k) => k.startsWith('said') || k.startsWith('lever'))) {
+      expect(KEYWORDS[name](FIGURES), name).not.toMatch(/\byou should\b|\blower your bids\b|\braise your bids\b/i);
+    }
+  });
+
+  test('no rank lost reads as none, not as zero per cent', () => {
+    expect(KEYWORDS.saidBudget({ budget: '50%', rank: '0%', rankNone: true })).toMatch(/None were lost to rank/);
+    expect(KEYWORDS.saidBudget({ budget: '50%', rank: '12%', rankNone: false })).toMatch(/12% were lost to rank/);
+  });
+
+  test('one keyword, or one refused, reads as one', () => {
+    expect(KEYWORDS.sub({ count: 1, range: 'week 4' })).toBe('1 keyword · week 4');
+    expect(KEYWORDS.refused({ n: 1, reason: 'no such keyword' })).toBe('1 left as it was: no such keyword');
+  });
 
   test('every entry is a line of a kind the screen may carry', () => {
     for (const [name, entry] of Object.entries(KEYWORDS)) expect(KINDS, name).toContain(entry.kind);

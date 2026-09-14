@@ -2019,6 +2019,18 @@ no chapter exists for it yet.
   purpose, and confirm each is caught; restore. `npm test`. Commit: *Work out what
   each keyword card shows, and write its words*.
 
+  *Found when built:* two of the tests above could not fail. The "was" test
+  reads `a.bidPaise` after `updateKeyword` has changed that same object, so it
+  expected the new bid as the old one; it now reads the bid first. The
+  percentage test took ₹33 down 20% to ₹26.40, where rounding and rounding down
+  agree; it now takes ₹33 down 10% to ₹29.70, which must come out ₹30. As
+  amended above, the slider's range and its tests are the kit's
+  (`tests/kit.test.js`). The weekly model also carries `needPaise: null`, so it
+  has exactly the keys round 0's `setupKeywordCards` gives the kit's card, and a
+  test holds the two shapes together. Broken on purpose, each of the rounding
+  of a click's price, the rounding of a percentage and the tags rule failed its
+  test.
+
 ---
 
 ### Task 8: Your keywords, drawn
