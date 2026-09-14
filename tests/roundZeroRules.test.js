@@ -253,6 +253,20 @@ describe('keywords in round 0', () => {
     expect(ok.needPaise).toBeNull();
   });
 
+  test('a card worked out alone is the same card worked out with the rest', () => {
+    // A drag redraws one card, so step 3 works out that card alone: all of
+    // them cost 14ms a step with sixty keywords (makeover Task 10).
+    const d = fresh();
+    rules.addSetupKeyword(d, 'gym leggings', { bidPaise: MIN_BID_PAISE });
+    rules.addSetupKeyword(d, 'sports bra', { matchType: 'broad' });
+    rules.addSetupKeyword(d, 'squat proof leggings india');
+    const all = rules.setupKeywordCards(d, QUERY_SET);
+    for (const keyword of d.keywords) {
+      const [alone] = rules.setupKeywordCards({ ...d, keywords: [keyword] }, QUERY_SET);
+      expect(alone).toEqual(all.find((c) => c.id === keyword.text));
+    }
+  });
+
   test('what it says it needs is a whole-rupee bid that clears, and a rupee less does not', () => {
     // Bids are slid and typed in rupees, and a figure shown to the nearest rupee
     // could be one that fails: ₹6.02 showed as "needs ₹6" to a bid of ₹6.

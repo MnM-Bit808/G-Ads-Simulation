@@ -54,7 +54,10 @@ export function renderKeywordsStep({ draft, querySet, openGuide, changed, redraw
       onBid: (rupees, settled) => {
         updateSetupKeyword(draft, card.text, { bidPaise: rupees * 100 });
         if (settled) { redraw(); return; }
-        drawn.show(setupKeywordCards(draft, querySet).find((c) => c.id === card.id));
+        // This card alone: every card, worked out for each step of a drag,
+        // took 18ms a step with sixty keywords.
+        const own = draft.keywords.filter((k) => k.text === card.text);
+        drawn.show(setupKeywordCards({ ...draft, keywords: own }, querySet)[0]);
         changed();
       },
       // The card, and the menu that had focus, are gone after the redraw.
