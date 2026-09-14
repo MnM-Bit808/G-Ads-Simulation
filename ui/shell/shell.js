@@ -214,7 +214,10 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
    */
   function arrive(s) {
     view.firstOpen = null;
-    const cards = s.slots.flatMap((slot) => [...dashboard.querySelectorAll(`[data-slot="${slot}"]`)]).slice(0, 6);
+    // One query, so the cards come in the page's order and the stagger reads top
+    // to bottom; by the section's slot list, Your money's top card came last.
+    const selector = s.slots.map((slot) => `[data-slot="${slot}"]`).join(', ');
+    const cards = [...dashboard.querySelectorAll(selector)].slice(0, 6);
     cards.forEach((card, i) => {
       card.classList.add('arriving');
       card.style.transitionDelay = `${i * ARRIVE_STAGGER_MS}ms`;
