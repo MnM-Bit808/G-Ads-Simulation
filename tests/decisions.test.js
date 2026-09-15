@@ -8,7 +8,7 @@ import { validateWeeklySplit } from '../engine/pacing.js';
 import {
   LEARNING_ROUNDS, REPOSITION_ROUND, CAPEX_ALLOCATION_PAISE, MONTHLY_BUDGET_PAISE,
   DAYPART_BLOCKS, QUALITY_MIN_IMPRESSIONS, AD_RANK_FLOOR,
-  CAPEX_TARGETS,
+  CAPEX_TARGETS, CAPEX_TIER_CURVE,
 } from '../engine/constants.js';
 import { submitRound, triggersLearning } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -1414,6 +1414,23 @@ describe('the prepaid card reads the account it is drawn for (I34)', () => {
     const out = prepaidOutlook(d, rows);
     expect(out.none).toBeGreaterThan(0);
     expect(out.none).toBeLessThan(1);
+  });
+
+  test('it counts order confirmation from the week it goes live', () => {
+    // The card read the cash mix alone and showed the same figure whether or not
+    // the player had bought order confirmation (I29).
+    const at = (round) => {
+      const state = makeGameState({ round });
+      const me = state.advertisers.find((a) => a.id === PLAYER_ID);
+      me.capex = {
+        committed: { orderConfirmation: 8000000 },
+        pending: [{ target: 'orderConfirmation', paise: 8000000, liveAtRound: 4 }],
+        remainingUnallocatedPaise: 0,
+      };
+      return prepaidOutlook(createDraft(getSelfView(state, PLAYER_ID)), []).none;
+    };
+    const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].effect;
+    expect(at(4)).toBeCloseTo(at(3) / top, 12);
   });
 });
 

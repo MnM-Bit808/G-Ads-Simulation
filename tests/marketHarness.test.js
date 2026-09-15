@@ -1,5 +1,7 @@
 import { describe, test, expect } from 'vitest';
-import { harnessPlayer, playMarket, writerGates, PLAYER, CELLS } from '../scripts/market-harness.js';
+import {
+  harnessPlayer, playMarket, writerGates, PLAYER, CELLS, prepaidDecision, RUNGS,
+} from '../scripts/market-harness.js';
 import { gradeAdOffline, validateAdCopy } from '../agents/grader.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE, CREATIVE_ALLOCATION_PAISE } from '../engine/constants.js';
@@ -28,6 +30,18 @@ describe('the market harness plays a real player (DECISIONS C8)', { timeout: 60_
     expect(budget(1)).toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE + agencyLeftover);
     expect(budget(5)).toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE);
     expect(state.advertisers.filter((a) => a.policyId)).toHaveLength(state.advertisers.length - 1);
+  });
+
+  test('the prepaid mode offers its rung from week 1 and still sends week 5\'s capital (I34, C8)', async () => {
+    // A decision that dropped the capital would lose the second ₹1,20,000 and
+    // measure a poorer player than any real one, which is C8 again.
+    expect(RUNGS[0]).toBe(0);
+    const { state } = await playMarket({
+      seed: 1, cell: 'value|performance', rounds: 5, playerDecision: prepaidDecision(3000),
+    });
+    expect(state.advertisers.find((a) => a.id === PLAYER).campaign.prepaidDiscountPaise).toBe(3000);
+    const budget = (round) => state.history.find((h) => h.round === round).byAdvertiser[PLAYER].budget.monthlyBudgetPaise;
+    expect(budget(5)).toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE);
   });
 });
 

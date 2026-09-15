@@ -30,8 +30,9 @@
 
 import { describe, test, expect } from 'vitest';
 import {
-  creativeOutlook, allocationWindowPhrase, rankSentence, profitSubLabel,
+  creativeOutlook, allocationWindowPhrase, rankSentence, profitSubLabel, formContext,
 } from '../ui/dashboard.js';
+import { createDraft, prepaidReading } from '../ui/decisions.js';
 import { startGame } from '../setup.js';
 import { getSelfView } from '../engine/insights.js';
 import { rankOf } from '../ui/ending.js';
@@ -39,8 +40,10 @@ import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
+import { businessFor, realisedBreakEvenCpcPaise, refusalOutlook } from '../engine/positions.js';
 import {
   DEFAULT_UNGRADED_QUALITY, MONTHLY_BUDGET_PAISE, RANK_BUDGET_MULTIPLIERS,
+  LOCATION_TIERS, COD_SHARE_BY_PRICE_LOCATION, RTO_RATE_COD, RTO_RATE_PREPAID,
 } from '../engine/constants.js';
 import { OLD_SAVE_LIVE_ROUND, asOldSave } from './fixtures/oldSave.js';
 
@@ -290,5 +293,113 @@ describe('the month the rank sentence quotes is the month the rank bought', () =
     const text = rankSentence(rank, month, snapshot);
     const unchanged = RANK_BUDGET_MULTIPLIERS[rank.position - 1] === 1;
     expect(/the same/.test(text), text).toBe(unchanged);
+  });
+});
+
+/**
+ * The prepaid card, read through the context the dashboard hands the form.
+ *
+ * TWO FAULTS, AND BOTH SHOWED A PLAUSIBLE NUMBER. The card asked its context for
+ * `history` and `playerId`, which the dashboard never packed, so it read the
+ * towns' rate for every account, every week. Then, with its own places, it
+ * worked the rate out from the cash mix alone, which knows nothing of order
+ * confirmation, purpose or the place gradient: on this account, with order
+ * confirmation live, it read 16.9% where the week booked 12.9% (I29, I34). It
+ * now asks `refusalOutlook`, the round's own arithmetic.
+ *
+ * Checked against what the engine BOOKED, through the report, and not against
+ * the function the card calls: an expectation built by the code under test agrees
+ * with it whatever it does. The forecast leaves out each search's own return
+ * multiplier (16.1 withholds it), so this holds it to a point, not to the digit;
+ * `round.test.js` holds it to the digit where the multiplier is 1.
+ */
+describe('the prepaid card shows the refusal rate this account runs at (I29, I34)', { timeout: 60_000 }, () => {
+  const POSITION = { price: 'mid', purpose: 'performance' };
+
+  // The game as ui/app.js holds it after nine weeks: the state, each week's
+  // report, and the draft rebuilt from the account the last week produced. Nine,
+  // so week 4 — the first with order confirmation live — has settled.
+  let shared = null;
+  const played = () => {
+    if (shared) return shared;
+    const breakEven = realisedBreakEvenCpcPaise(
+      businessFor(POSITION, { committed: {}, pending: [] }, 1), QUERY_SET, POSITION,
+    );
+    const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|performance')
+      .sort((a, b) => b.volumeShareBp - a.volumeShareBp).slice(0, 5);
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: POSITION,
+        // The top rung from round 0, live from week 4.
+        capex: { orderConfirmation: 8000000 },
+        keywords: own.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: Math.round(breakEven * 0.7) })),
+        ad: {
+          headlines: ['Activewear Built To Train In', 'Free Delivery Across India', 'Sizes XS To XXL'],
+          descriptions: [
+            'Leggings, tights and sports bras that hold through 4 sessions a week.',
+            'Easy returns within 30 days, and cash on delivery everywhere.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    const playerId = state.advertisers[0].id;
+    const reports = [];
+    for (let week = 0; week < 9; week++) {
+      const out = submitRound(state, {}, { mode: 'expected' });
+      reports.push(out.report);
+      state = out.nextGameState;
+    }
+    const draft = createDraft(getSelfView(state, playerId), {
+      allocationRounds: state.budgetSchedule?.capexAllocationRounds,
+    });
+    shared = { state, reports, draft, playerId, view: { termsRange: 'all' } };
+    return shared;
+  };
+
+  const booked = (game) => {
+    const c = game.state.history[3].byAdvertiser[game.playerId].conversions;
+    return c.refused / c.final;
+  };
+  // The card's old figure, worked out here from the sourced constants: the cash
+  // mix alone, at this account's places.
+  const cashMix = (game) => {
+    const clicks = LOCATION_TIERS.map((_, tier) => game.state.history.reduce(
+      (a, h) => a + (h.byAdvertiser[game.playerId].breakdown.byLocation[tier]?.clicks ?? 0), 0,
+    ));
+    const total = clicks.reduce((a, c) => a + c, 0);
+    return clicks.reduce((a, c, tier) => {
+      const cash = COD_SHARE_BY_PRICE_LOCATION[POSITION.price][tier];
+      return a + c * (cash * RTO_RATE_COD + (1 - cash) * RTO_RATE_PREPAID);
+    }, 0) / total;
+  };
+
+  test('with order confirmation live, it is within a point of what the week booked', () => {
+    const game = played();
+    // Neither of the card's old readings passes, or this would prove nothing.
+    expect(Math.abs(cashMix(game) - booked(game)), 'the cash mix alone').toBeGreaterThan(0.03);
+    const towns = refusalOutlook({
+      position: POSITION, capex: game.draft.capexBlock, round: game.draft.round,
+      placeWeights: LOCATION_TIERS.map((_, i) => (i === LOCATION_TIERS.length - 1 ? 1 : 0)),
+    });
+    expect(Math.abs(towns - booked(game)), 'the towns\' places, not this account\'s').toBeGreaterThan(0.015);
+
+    expect(Math.abs(prepaidReading(formContext(game)).none - booked(game))).toBeLessThan(0.01);
+  });
+
+  test('and the form is handed no other advertiser\'s figures to do it', () => {
+    // The obvious fix was `history: game.state.history`, and it would have
+    // worked, but every report in it carries all nine advertisers' money,
+    // traffic and quality. Nothing would have shown them, and nothing could
+    // prove the form ignored them, which is why a controller is never handed
+    // state. A function's own closure is not handed over; what it returns is,
+    // so that is checked with the rest.
+    const ctx = formContext(played());
+    const handed = JSON.stringify({ ...ctx, places: ctx.places() });
+    expect(handed).not.toMatch(/byAdvertiser/);
   });
 });

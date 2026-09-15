@@ -24,7 +24,7 @@ import { businessFor } from './positions.js';
 import { mulRate } from './money.js';
 import { buildInsights } from './insights.js';
 import { SCHEMA_VERSION, RTO_FREIGHT_PAISE } from './constants.js';
-import { codShareFor, refusalRateFor } from './locations.js';
+import { codShareFor } from './locations.js';
 
 /**
  * Build a fresh report for one round.
@@ -400,7 +400,6 @@ function splitRefusals(byLocation, price) {
       sentBack: row.sentBack ?? (returned - (row.refused ?? 0)),
       // The reason the two differ, which the card cannot say the split without.
       codShare: codShareFor(price, index),
-      refusalRate: refusalRateFor(price, index),
     };
   }
   return out;
