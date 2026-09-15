@@ -205,6 +205,14 @@ number in the simulation without ever throwing an error.
   green because their fixtures used whole zeros (I8's addendum). Compare a
   search against the account instead, and test on a played game. The rivals'
   `wastefulQueries` still asks for a zero.
+- **A controller's `report` is the week just played, and it never carries a
+  return.** Returns are written back into their click week two to five weeks
+  later, so a rule that reads returns must read the fourth argument, the
+  controller's own revised history (R3a, C9). Three rival rules read `report`
+  and read zero in every game ever played, every test green, because the tests
+  handed policies hand-built reports carrying `returned: 2` — a shape play never
+  produces. Test a rival rule in play: `playMarket` takes a `policyFor` that
+  wraps `controllerFor`, as `tests/rivalsInPlay.test.js` does.
 - **"The build works" means playing it, not loading it.** The dashboard crashed
   after week 1 for two days with 1348 tests green; only a smoke test that played
   round 0 into week 1 found it (I34). Open the browser and play a week.

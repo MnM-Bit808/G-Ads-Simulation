@@ -19,6 +19,20 @@ the stranger playtests** (*Deployment → Running a playtest* has the steps and 
 invite). Everything else below either waits on their files or on the owner's
 judgement.
 
+**2026-09-16, on the unpushed branch `claude/rival-history-main`** (built on
+`claude/rival-prepaid-main`, so it carries I34's rival discount too): **DECISIONS
+C9.** Three rival rules read returns off the week just played, which never carries
+one, so in every game a rival's belief about returns stayed the briefing's 40% and
+`grossOptimiser`'s places were `disciplined`'s; and the place rule see-sawed. Chosen
+with the owner: a controller is also handed its own revised history (spec R3a and
+hard rule 5 amended), both rules read it, and a place bid moves halfway toward its
+reading each week. On the harness the player's median rank is unchanged (5th, 0 of
+72 losing), net +0.8% paired median. **Two things for the owner, in C9:** D12's
+week-9 gate now reads 1.83× an ordinary week, under its double, though the week-9
+move itself is unchanged; and `npm run test:perf`'s sampled-round test fails at
+its 2,200ms bound on unchanged code on this machine. The same work for the makeover
+line follows on its own branch.
+
 **What to do next, in order:**
 1. **Run the stranger playtests on the live site.** Owner: pick three people
    (two alone, one on a video call), add their exact emails in Cloudflare
@@ -1204,10 +1218,14 @@ agreeing.
 
 **A rival learns where to bid; it is not told.** `policies.js` imports nothing from
 `engine/`, which is what makes its guard absolute, so a policy cannot read the
-volume table. `locationTilt` reads the rival's own `byLocation` report — net of
-returns, which arrive late, so a rival leans metro-ward first and corrects later, on
-the same terms the player does. `grossOptimiser` reads GROSS deliberately: section
-14's missing multiplication, applied to geography.
+volume table. `locationTilt` reads the rival's own `byLocation` reports, every week
+played, summed — net of returns, which arrive late, so a rival leans metro-ward
+first and corrects later, on the same terms the player does. `grossOptimiser` reads
+GROSS deliberately: section 14's missing multiplication, applied to geography.
+**True only since C9 (2026-09-16).** Until then it read the week just played,
+which never carries a return, so net and gross came out identical in every game,
+and it jumped all the way to each week's reading, so rivals see-sawed. It now
+also moves halfway toward its reading each week.
 
 **The leans are 200/320/100 and provisional.** At 40/70/20 rivals adjusted by 1-17%
 and nothing they did was visible in the market. They are policy numbers rather than

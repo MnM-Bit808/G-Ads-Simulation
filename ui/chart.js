@@ -222,9 +222,10 @@ const MOST_MOVERS = 3;
  * The rivals whose presence in the player's auctions moved most since last week.
  *
  * Read at week 9, when month 3's budgets take effect (DECISIONS D12, C8): rivals
- * then move 2.40 times an ordinary week. It says who moved and by how much, from
- * the overlap rate Auction Insights shows, and never why a particular rival did:
- * whose budget grew is private (R3).
+ * then move 1.83 times an ordinary week (2.40 before C9 made ordinary weeks
+ * busier; the week-9 move itself did not change). It says who moved and by how
+ * much, from the overlap rate Auction Insights shows, and never why a particular
+ * rival did: whose budget grew is private (R3).
  *
  * @param {object[]} insights one entry per round, keyed by advertiser id
  * @param {string} playerId
