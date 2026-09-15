@@ -241,6 +241,14 @@ describe('the week the market re-splits (D12, C8)', () => {
     ]);
   });
 
+  // Found drawing the Market area: judged on unrounded figures, a rival the
+  // screen showed going from 45% to 40% (0.4498 to 0.402) had "not moved".
+  test('a move is judged on the figures printed, five points of them', () => {
+    expect(insightMovers([week({ a: 0.4498 }), week({ a: 0.402 })], 'me', names))
+      .toEqual([{ id: 'a', name: 'Aster', from: 0.4498, to: 0.402 }]);
+    expect(insightMovers([week({ a: 0.304 }), week({ a: 0.3449 })], 'me', names)).toEqual([]);
+  });
+
   test('never more than three, and nothing when nobody moved', () => {
     const many = [week({ a: 0, b: 0, c: 0, d: 0 }), week({ a: 0.4, b: 0.3, c: 0.2, d: 0.1 })];
     expect(insightMovers(many, 'me', names).map((m) => m.id)).toEqual(['a', 'b', 'c']);
