@@ -239,9 +239,7 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
         // Working that share out again here used THIS week's advertiser: a
         // discount dropped at week 2 or a move at week 5 rewrote weeks already
         // sold (I34).
-        breakdown: reviseBreakdown(
-          existing.breakdown, r.keywordForQuery ?? new Map(), lateLanded, lateReturns,
-        ),
+        breakdown: reviseBreakdown(existing.breakdown, lateLanded, lateReturns),
         conversions: {
           ...existing.conversions,
           final: conversions,
@@ -363,11 +361,10 @@ function attributeConversions(r, landed) {
     };
   }
 
-  const keywordFor = r.keywordForQuery ?? new Map();
   for (const entry of landed) {
     const queryRow = byQuery[entry.queryId];
     if (queryRow) queryRow.conversions += entry.count;
-    const keywordRow = byKeyword[keywordFor.get(entry.queryId)];
+    const keywordRow = byKeyword[entry.keywordId];
     if (keywordRow) keywordRow.conversions += entry.count;
     const locationRow = byLocation[entry.locationTier];
     if (locationRow) {
@@ -479,8 +476,14 @@ function statedRefusals(breakdown, advertiser, round) {
   return { ...breakdown, byLocation };
 }
 
-/** Add later arrivals to the breakdown rows they belong to. */
-function reviseBreakdown(breakdown, keywordFor, late, lateReturns = []) {
+/**
+ * Add later arrivals to the breakdown rows they belong to.
+ *
+ * Each row is found from the entry itself: its search, the keyword that caught
+ * its click, and where it was bought. Never from the account as it is now, whose
+ * keywords may have changed since the week this report covers (I36).
+ */
+function reviseBreakdown(breakdown, late, lateReturns = []) {
   const byQuery = { ...breakdown.byQuery };
   const byKeyword = { ...breakdown.byKeyword };
   const byLocation = { ...(breakdown.byLocation ?? {}) };
@@ -489,10 +492,9 @@ function reviseBreakdown(breakdown, keywordFor, late, lateReturns = []) {
     if (queryRow) {
       byQuery[entry.queryId] = { ...queryRow, conversions: (queryRow.conversions ?? 0) + entry.count };
     }
-    const keywordId = keywordFor.get(entry.queryId);
-    const keywordRow = byKeyword[keywordId];
+    const keywordRow = byKeyword[entry.keywordId];
     if (keywordRow) {
-      byKeyword[keywordId] = { ...keywordRow, conversions: (keywordRow.conversions ?? 0) + entry.count };
+      byKeyword[entry.keywordId] = { ...keywordRow, conversions: (keywordRow.conversions ?? 0) + entry.count };
     }
     // Revised on the same clock as the other two (11.4). A location report that
     // was not revised would keep saying the towns never convert, which is the
@@ -530,10 +532,9 @@ function reviseBreakdown(breakdown, keywordFor, late, lateReturns = []) {
         returnedRevenuePaise: (queryRow.returnedRevenuePaise ?? 0) + entry.valuePaise,
       };
     }
-    const returnedKeywordId = keywordFor.get(entry.queryId);
-    const returnedKeywordRow = byKeyword[returnedKeywordId];
+    const returnedKeywordRow = byKeyword[entry.keywordId];
     if (returnedKeywordRow) {
-      byKeyword[returnedKeywordId] = {
+      byKeyword[entry.keywordId] = {
         ...returnedKeywordRow,
         returned: (returnedKeywordRow.returned ?? 0) + entry.count,
         returnedRevenuePaise:
