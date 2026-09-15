@@ -43,6 +43,7 @@ import { FORM } from './words/form.js';
 import { whyButton } from './guide/drawer.js';
 import { LOCATIONS } from '../content/locations.js';
 import { moneyBlock } from '../engine/report.js';
+import { allocate } from '../engine/money.js';
 import {
   canReposition, isOneStep, allCells, parseCell, cellKey, landingPageBonus,
 } from '../engine/positions.js';
@@ -331,16 +332,22 @@ export function changes(draft) {
     });
   }
 
+  // In what each week will be given (`weekBudgetsAtRun`), named by the game's
+  // own week, as the top bar and the Run button number them: at week 5 the
+  // plan's own figures are pre-capital, and "Week 1" was the month's first week.
+  const given = weekBudgetsAtRun(draft);
+  const givenBefore = weekBudgetsAtRun(draft, draft.base.weeklySplitPaise);
+  const firstWeek = draft.round - draft.weekIndex;
   draft.weeklySplitPaise.forEach((paise, index) => {
     const before = draft.base.weeklySplitPaise[index];
-    if (paise === before) return;
+    if (paise === before || given[index] === givenBefore[index]) return;
     rows.push({
       id: `budget:${index}`,
       kind: 'budget',
-      label: `Week ${index + 1} budget ${rupees(before)} → ${rupees(paise)}`,
+      label: `Week ${firstWeek + index} budget ${rupees(givenBefore[index])} → ${rupees(given[index])}`,
       detail: index === draft.weekIndex
         ? 'the week about to run'
-        : `week ${index + 1} of this month, and the month resets the plan after that`,
+        : 'later this month; a new month starts again from an even split',
       undo: () => setWeekBudget(draft, index, before),
     });
   });
@@ -585,6 +592,26 @@ export function monthBudgetAfter(draft) {
   let delta = draft.capexOpen ? CAPEX_ALLOCATION_PAISE - capexSpent(draft) : 0;
   if (draft.repositionOpen && movedPosition(draft)) delta -= REPOSITION_COST_PAISE;
   return Math.max(0, draft.monthlyBudgetPaise + delta);
+}
+
+/**
+ * What each week of this month will actually be given when the round runs.
+ *
+ * At an allocation round the engine adds the uncommitted capital, takes off a
+ * move, and re-spreads the month over the weeks in the plan's own proportions
+ * (engine/round.js, `applyBudgetAdjustments`, with the engine's own `allocate`).
+ * So at week 5 a plan of ₹42,000 a week becomes ₹72,000 a week once ₹1,20,000
+ * of capital is left for ads, and the plan's figures are not what a week will
+ * spend. In any other round the plan is taken as it stands.
+ *
+ * @param {object} draft
+ * @param {number[]} [split] - weights to spread, the draft's own by default
+ * @returns {number[]} integer paise per week of the month
+ */
+export function weekBudgetsAtRun(draft, split = draft.weeklySplitPaise) {
+  const respread = draft.capexOpen || (draft.repositionOpen && movedPosition(draft));
+  if (!respread || !split.some((w) => w > 0)) return [...split];
+  return allocate(monthBudgetAfter(draft), split);
 }
 
 /**

@@ -24,8 +24,9 @@ import {
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
   removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
   prepaidOutlook, setPrepaidDiscount, locationRows, locationOutlook, qualityWindowPhrase,
-  setLocation,
+  setLocation, weekBudgetsAtRun,
 } from '../ui/decisions.js';
+import { rupees } from '../ui/dom.js';
 
 /**
  * The decision form's model, tested without a DOM.
@@ -712,6 +713,48 @@ describe('the month the two of them leave you', () => {
     const to = allCells().map(parseCell).find((c) => isOneStep(from, c));
     return cellKey(to.price, to.purpose);
   }
+});
+
+describe('a week\'s budget in the tray, as the round will give it', () => {
+  const draftAt = (state) => createDraft(getSelfView(state, PLAYER_ID),
+    { allocationRounds: state.budgetSchedule.capexAllocationRounds });
+  const budgetRows = (draft) => changes(draft).filter((row) => row.kind === 'budget');
+
+  test('it names the game week, as the top bar and the Run button do', () => {
+    // Round 6 is the second week of month 2, so the month's third week is week 7.
+    const draft = draftAt(makeGameState({ round: 6 }));
+    setWeekBudget(draft, 2, draft.weeklySplitPaise[2] + 1000000);
+    expect(budgetRows(draft).map((row) => row.label)).toEqual([
+      `Week 7 budget ${rupees(draft.base.weeklySplitPaise[2])} → ${rupees(draft.weeklySplitPaise[2])}`,
+    ]);
+  });
+
+  test('at week 5 it quotes what the week will get once the capital settles, as the engine writes it', () => {
+    // The round adds the uncommitted capital and re-spreads the month in the
+    // plan's own shape (engine/round.js, applyBudgetAdjustments), so the plan's
+    // own figures are not what the week will spend.
+    const state = makeGameState({ round: REPOSITION_ROUND });
+    const draft = draftAt(state);
+    const base = draft.base.weeklySplitPaise;
+    setWeekBudget(draft, 0, base[0] * 2);
+    const out = submitRound(state, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' });
+    const given = out.report.byAdvertiser[PLAYER_ID].budget.weeklySplitPaise;
+    expect(weekBudgetsAtRun(draft)).toEqual(given);
+    const [row] = budgetRows(draft);
+    expect(row.label).toBe(`Week ${REPOSITION_ROUND} budget ${rupees(weekBudgetsAtRun(draft, base)[0])} → ${rupees(given[0])}`);
+  });
+
+  test('the capital alone moves every week and writes no budget line: the shape did not change', () => {
+    const draft = draftAt(makeGameState({ round: REPOSITION_ROUND }));
+    setCapex(draft, 'sizeGuide', CAPEX_ALLOCATION_PAISE / 2);
+    expect(budgetRows(draft)).toEqual([]);
+    expect(weekBudgetsAtRun(draft).reduce((a, b) => a + b, 0)).toBe(monthBudgetAfter(draft));
+  });
+
+  test('in an ordinary week the plan is what the weeks get', () => {
+    const draft = draftAt(makeGameState({ round: 6 }));
+    expect(weekBudgetsAtRun(draft)).toEqual(draft.weeklySplitPaise);
+  });
 });
 
 describe('the month just finished, read beside the capital choice (D12)', () => {
