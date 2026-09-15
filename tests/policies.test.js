@@ -13,6 +13,7 @@ import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE } from '../engine/constants.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
+import { playMarket } from '../scripts/market-harness.js';
 
 const STATE = makeGameState();
 const SRC = readFileSync(fileURLToPath(new URL('../agents/policies.js', import.meta.url)), 'utf8');
@@ -330,5 +331,88 @@ describe('week 5: every rival decides its second capital allocation (DECISIONS C
       expect(week5.byAdvertiser[a.id].budget.monthlyBudgetPaise, a.id)
         .toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE - invested);
     }
+  });
+});
+
+describe('rivals pull the prepaid discount too (DECISIONS I34, R6)', { timeout: 120_000 }, () => {
+  // I34 says they do, and in play none ever did: 18 games, 1,728 rival
+  // decisions, not one discount. A week's refusals land two to five weeks
+  // after its clicks, and the rule read them off the week just played.
+  test('through the door, a rival in a cash-heavy cell offers one at some point', async () => {
+    // Seed 2 seats a rival in the value tier, where most orders are cash on
+    // delivery and refusals cost the most.
+    const { state } = await playMarket({ seed: 2, cell: 'mid|performance' });
+    const cashHeavy = state.advertisers.filter((a) => a.policyId && a.position.price === 'value');
+    expect(cashHeavy.length, 'no rival in a value cell, so this would prove nothing').toBeGreaterThan(0);
+
+    const offered = cashHeavy.filter((a) => state.decisionLog.some((e) => e.advertiserId === a.id
+      && (e.decision?.campaign?.prepaidDiscountPaise ?? 0) > 0));
+    expect(offered.map((a) => a.id), 'no value-tier rival ever offered a discount').not.toEqual([]);
+    // Applied, not only logged.
+    expect(offered.some((a) => a.campaign.prepaidDiscountPaise > 0)).toBe(true);
+  });
+});
+
+describe('a rival steps its discount down only once refusals are clearly lighter (I34)', () => {
+  // A rival whose stated rate sat on the 12% line flipped between ₹50 and ₹30
+  // as its clicks moved between places: 8 of 144 rival-games, one of them seven
+  // times in eleven weeks. It now steps up at the line and down only a point
+  // under it.
+  let played;
+  // What the rule asks for when each place's row of a real report is reshaped.
+  const decide = (reshape, held) => {
+    const self = getSelfView(played, PLAYER_ID);
+    self.campaign.prepaidDiscountPaise = held;
+    const report = advertiserReport(played.history.at(-1), PLAYER_ID);
+    const byLocation = Object.fromEntries(Object.entries(report.breakdown.byLocation)
+      .map(([tier, row]) => [tier, reshape(row, Number(tier))]));
+    const decision = disciplined(self, { ...report, breakdown: { ...report.breakdown, byLocation } },
+      getPublicView(played, PLAYER_ID));
+    return decision.campaign.prepaidDiscountPaise;
+  };
+  const at = (rate, held) => decide((row) => ({ ...row, refusalRate: rate }), held);
+
+  test('set up: a real report, the shape a rival is handed after a week', async () => {
+    ({ finalState: played } = await playGame(STATE, everyone, { mode: 'expected', rounds: 1 }));
+    const byLocation = advertiserReport(played.history.at(-1), PLAYER_ID).breakdown.byLocation;
+    expect(Object.keys(byLocation).sort()).toEqual(['0', '1', '2']);
+    for (const row of Object.values(byLocation)) {
+      expect(row.eligibleAuctions).toBeGreaterThan(0);
+      expect(Number.isFinite(row.refusalRate)).toBe(true);
+    }
+  });
+
+  test('it weights by the searches it is in, not the clicks its place bids bought', () => {
+    // A rival's place bids see-saw week to week (locationTilt), so its clicks
+    // do too, while the searches it is eligible for stay put. Weighted by
+    // clicks, the metro-heavy week below reads 9.5% and asks for ₹30, and the
+    // town-heavy one 15.1% and ₹50: the flip. Over the same searches, both
+    // weeks are the same week.
+    const byPlace = [0.09, 0.12, 0.16];
+    const week = (clicks) => decide((row, tier) => ({
+      ...row, refusalRate: byPlace[tier], clicks: clicks[tier], eligibleAuctions: 1000,
+    }), 0);
+    expect(week([2000, 100, 100])).toBe(5000);
+    expect(week([100, 100, 2000])).toBe(5000);
+  });
+
+  test('it steps up at the line', () => {
+    expect(at(0.121, 0)).toBe(5000);
+    expect(at(0.121, 3000)).toBe(5000);
+    expect(at(0.115, 0)).toBe(3000);
+  });
+
+  test('holding ₹50, a rate just under the line changes nothing', () => {
+    // No change is sent at all, which is what an unchanged decision looks like.
+    expect(at(0.115, 5000)).toBeUndefined();
+  });
+
+  test('a rate clearly under the line steps it down', () => {
+    expect(at(0.105, 5000)).toBe(3000);
+  });
+
+  test('the same margin holds at the lower rung', () => {
+    expect(at(0.055, 3000)).toBeUndefined();
+    expect(at(0.045, 3000)).toBe(0);
   });
 });
