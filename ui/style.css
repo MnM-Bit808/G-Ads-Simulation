@@ -228,6 +228,10 @@ table.negatives th { white-space: pre-line; vertical-align: bottom; }
 .terms td:first-child { width: 40%; }
 .wasted td { color: var(--bad); }
 .wasted td:first-child::after { content: " ← no conversions"; color: var(--muted); font-size: 0.72rem; }
+/* A marked figure in the search terms report, such as a search returning
+   worse than the account (I32). The returns mark carried this class from the
+   day it was written with no rule behind it, so it was never red. */
+.terms .bad { color: var(--bad); }
 
 .tag-row { margin-top: 0.2rem; }
 /* How far a keyword reaches on its match type (E8), under the match select. */
