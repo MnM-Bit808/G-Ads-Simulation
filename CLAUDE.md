@@ -275,6 +275,15 @@ number in the simulation without ever throwing an error.
   lost it (now built properly, `capitalBlock` in `setup.js`), and the week-5
   capital decision was never sent. The committed harness does both right;
   `market` for F15's economics and the market's shape, `capital` for D12.
+- **A report is revised for five weeks by the account as it is then.**
+  `reviseReports` edits earlier weeks holding the current round's
+  advertisers, so anything it works out from the advertiser, rather than
+  adding up from the orders, describes the wrong week. The margin did: a
+  week-5 price move re-priced all of month 1 and moved the week-8 rank in 63
+  of 96 moving games (F18). The cash share on each place row did too (I34).
+  Record such a figure when the week's report is built, or on the order, as
+  `valuePaise` and `returnRate` are (11.3). The harness's `market` mode
+  never moves anyone, so it cannot see this; its `move` mode can.
 - **Don't re-propose a calendar event without new data.** A January surge and a
   festive season were both measured from Google Trends for India and rejected
   (F16): January is one of training's quietest months, and the festive rise
