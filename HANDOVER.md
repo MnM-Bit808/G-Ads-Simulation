@@ -2066,7 +2066,9 @@ at all.
   smoke test of the build played round 0 into week 1 and got an error: the
   prepaid discount card read a `ctx.price` nothing ever set. 1348 tests passed
   throughout. Fixed and recorded in I34 — and a reminder that "the build works"
-  means playing it, not loading it.
+  means playing it, not loading it. That fix mended one of three keys the card
+  read and nothing set; the other two failed quietly, showing every account the
+  towns' refusal rate, until 2026-09-15 (I34, and *Verifying the interface*).
 - **A plain static server let the browser keep a stale module through a hard
   reload.** With no bundler every module is cached on its own, so a returning
   player could pair new files with old ones after a deploy. The build writes a
@@ -2437,6 +2439,17 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   preview, the month arithmetic, the reading-back of `decisionLog` — is an
   exported function with tests, and only the drawing needs a browser. That is
   what made 47 of this session's tests possible at all.
+- **A key the form's context lacks is not an error, and a fallback hides it.**
+  The prepaid card read `ctx.history` and `ctx.playerId`, which the dashboard
+  never set, and `?? []` turned the gap into "no weeks played": every account
+  read the towns' refusal rate from the day the card shipped (2026-09-10) until
+  2026-09-15, in a card that had already crashed once over a third missing key,
+  `ctx.price` (I34). The context's data half is now `formContext(game)` in
+  `ui/dashboard.js`, built without a page, so a card's figures can be tested
+  through the context the screen really hands it, as `tests/dashboard.test.js`
+  does for `prepaidReading`. A card that reads a new key deserves the same
+  test. And the context carries the player's own rows, never `state.history`,
+  which holds all nine advertisers' reports.
 - **Resizing the browser pane reloads the page, and the game is in memory.**
   Four played rounds vanish and you are back at round 0 with no error and no
   clue. Set the viewport BEFORE opening the game, not after — and if a

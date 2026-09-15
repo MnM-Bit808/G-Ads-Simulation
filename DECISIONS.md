@@ -4119,6 +4119,32 @@ interface works. Fixed by reading the tier from the draft's position, and the
 arithmetic moved out of the render into `prepaidOutlook(draft, rows)`, where four
 tests hold it — including one on a real draft after a real round.
 
+**AND IT READ THE WRONG PLACES, QUIETLY, UNTIL 2026-09-15.** The card was written
+reading three keys from its context that the dashboard never set: `ctx.price`,
+`ctx.history` and `ctx.playerId`. The fix above mended the one that threw. The
+other two never threw: a missing key reads as undefined, and `ctx.history ?? []`
+turned that into an account with no weeks played, so the card fell back to the
+towns' mix, the most cash-heavy place, for every account in every week from the
+day it shipped. Measured after four weeks on seed 20260902, it overstated
+refusals in every cell: premium/lifestyle **15.6%** against its own 13.8%,
+mid/performance 17.9% against 16.9%, value/lifestyle 18.8% against 18.2%; the
+"fewer refusals" line by less, 8.7% against 8.0% for premium at ₹50. The four
+tests above could not see it, because `prepaidOutlook` was right. The fault was
+in what the card was handed, and that was built inside a render no test draws.
+
+Fixed by lifting the half of the form's context that needs no page into
+`formContext` (`ui/dashboard.js`), so a test reads the card through the context
+the screen really gives it (`prepaidReading`), and by handing it `places`: this
+account's own rows, the ones the places card draws. Not `state.history`, which
+was the obvious fix: it holds all nine advertisers' reports, and the form may
+only know what a controller could. A second test fails if it is handed over.
+The curve, its rule and the lever are unchanged.
+
+**STILL NOT THE WHOLE RATE, AND OPEN.** The card works refusals out from the
+payment mix alone, while the engine also divides them by order confirmation
+(I29, `round.js`), so an account that bought it does not see that reduction on
+the card. Found in the code on 2026-09-15; not yet measured.
+
 **LESS MODEST SINCE F14, without touching the curve.** The return level rose to
 the sourced total, so there are more refusals to prevent everywhere. On F14's
 harness ₹50 is now best in all six cells for +1.2% to +2.7%, where the same
