@@ -427,6 +427,56 @@ describe('an old week\'s late sales reach the keyword that caught their click', 
       expect(byKeyword[keyword].returned, `${query.text}: returns`).toBeCloseTo(byQuery[query.id].returned, 6);
     }
   });
+
+  // THE COMMONEST WAY IN, and the search terms report's whole lesson: block a
+  // search with a negative. The keyword stays and still matches the search, but
+  // nothing catches it any more, which lost its late sales exactly as a removed
+  // keyword did. Measured before the fix: week 2's row held 159.30 of the week's
+  // 163.27 sales and 61.29 of its 64.64 returns.
+  let blocked = null;
+  const playedWithNegative = () => {
+    if (blocked) return blocked;
+    const bid = Math.round(realisedBreakEvenCpcPaise(
+      businessFor(POSITION, { committed: {}, pending: [] }, 1), QUERY_SET, POSITION,
+    ) * 1.2);
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: POSITION,
+        capex: {},
+        keywords: [{ text: 'leggings', matchType: 'phrase', bidPaise: bid }],
+        ad: {
+          headlines: ['Activewear Built To Train In', 'Free Delivery Across India', 'Sizes XS To XXL'],
+          descriptions: [
+            'Leggings, tights and sports bras that hold through 4 sessions a week.',
+            'Easy returns within 30 days, and cash on delivery everywhere.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    const id = state.advertisers[0].id;
+    for (let week = 1; week <= 8; week++) {
+      const decisions = week === 3
+        ? { [id]: { campaign: { negatives: [{ text: 'gym leggings', matchType: 'exact' }] } } } : {};
+      state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
+    }
+    blocked = { state, id };
+    return blocked;
+  };
+
+  test.each([1, 2])('week %i: a search blocked later keeps its late sales on its keyword\'s row', (week) => {
+    const g = playedWithNegative();
+    const gym = search('gym leggings');
+    expect(row(g, 2).breakdown.byQuery[gym.id].clicks, 'the search sold before the block').toBeGreaterThan(0);
+    expect(row(g, 4).breakdown.byQuery[gym.id]?.clicks ?? 0, 'and nothing after it').toBe(0);
+    const r = row(g, week);
+    expect(total(r.breakdown.byKeyword, 'conversions'), 'sales').toBeCloseTo(r.conversions.final, 6);
+    expect(total(r.breakdown.byKeyword, 'returned'), 'returns').toBeCloseTo(r.conversions.returned, 6);
+  });
 });
 
 describe('missedToBudget (spec 11.2)', () => {
