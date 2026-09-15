@@ -79,8 +79,10 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     public figures and your share on top, each rival you meet as a card with
     its ad. Then *Results* after the last week (`ui/results/`), from
     `design/results/`, as four sections, on fixes to both end-of-game replays.
-    No Studio screen shows a classic card any more.
-  - On `makeover`: 2137 tests pass, 1 todo, and the build publishes 106 files.
+    No Studio screen shows a classic card any more. Then the Guide as a page
+    (`ui/guide/page.js`), from `design/guide/`: the field guide as a book,
+    with Show me fixed to mark what it opens in every rebuilt section.
+  - On `makeover`: 2227 tests pass, 1 todo, and the build publishes 108 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -196,8 +198,27 @@ engine does: the page's parts marked "week 4", its description graded now.
    Said plainly on the screens, by the owner's choice, not fixed: net profit
    never counts capital, and the last five weeks read high because their
    returns come back after the game ends (item 8).
-   Next, the rest of the makeover design's section 7 list (the Guide as a
-   page), and the switch-over.
+   **DONE 2026-09-15: the Guide as a page** (`ui/guide/book.js`,
+   `ui/guide/page.js`), from the canvas
+   https://claude.ai/code/artifact/5a912577-a5cc-4107-9923-c351e61837fd: the
+   Guide area is the field guide as a book (the owner's choice, over a panel
+   of the player's own figure on each chapter). Its list is Contents and the
+   thirteen chapters by number; the contents a card a chapter, with the
+   section it explains; a chapter its two halves side by side, Show me in
+   your account, "Read beside it" and previous and next. "why?" still opens
+   the drawer, and its Contents opens the page; the classic look and round 0
+   keep the drawer's own list. Checking the mock-ups found, and the build
+   fixed first: Show me marked nothing in any rebuilt section (the ring was
+   drawn on classic cards only, and focus looked for their h2); three
+   chapters pointed where their idea is not shown ("Who writes the ad" at
+   Your keywords, now Your ad's writer; "Defending your own name" at the
+   auction insights, now the search terms; "What only a simulation can tell
+   you" at a month bar, now Results' replays after week 12); Show me now
+   waits while its section is locked; two chapters named a classic card, and
+   the returns chapter's 30% is now the country's, which places move; six
+   related links from the owner's read-through; and each area remembers its
+   last section, so the rail goes back to where the player was.
+   Next: the switch-over.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.

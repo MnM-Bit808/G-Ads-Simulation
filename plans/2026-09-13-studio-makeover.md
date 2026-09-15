@@ -587,6 +587,17 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   net profit never counts capital, and the last weeks' returns come back after
   the game ends. Round 0's notes on the rivals are now kept for the reveal,
   which reopens section 12 of the round 0 design in the direction it asked.
+- **The Guide as a page (section 7, item 8)** is built as the owner chose from
+  the mock-ups on `design/guide/` (2026-09-15): the Guide area's list is
+  Contents and the numbered chapters, the contents a card a chapter, and a
+  chapter its two halves side by side with the section it explains, Show me,
+  the chapters to read beside it, and previous and next. Section 2's "'why?'
+  links still open it from any section" is kept as the drawer, whose Contents
+  now opens the page. Checking the mock-ups found Show me marking nothing in
+  any rebuilt section (the ring was the classic cards' alone), three chapters
+  pointing where their idea is not shown, two naming a classic card, and the
+  rail losing the player's place; all fixed first. A chapter may now name a
+  part only the Studio draws (`studioAccount`).
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.
