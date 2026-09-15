@@ -74,8 +74,11 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     the capital and the one move on top. Then *Returns* (`ui/returns/`), from
     `design/returns/`: every week split into refused and sent back, and the
     prepaid discount's rungs, each drawing what it saves against what it
-    costs, on the prepaid fix (I34) merged in for it.
-  - On `makeover`: 2080 tests pass, 1 todo, and the build publishes 100 files.
+    costs, on the prepaid fix (I34) merged in for it. Then the Market area as
+    one section, *Rivals* (`ui/rivals/`), from `design/market/`: the market's
+    public figures and your share on top, each rival you meet as a card with
+    its ad. No Studio section shows a classic card any more.
+  - On `makeover`: 2098 tests pass, 1 todo, and the build publishes 103 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -155,8 +158,20 @@ engine does: the page's parts marked "week 4", its description graded now.
    `ui/returns/read.js` for both looks; the classic note now names the discount
    and says capital has closed; and a first visit's entrance restored for
    rebuilt sections, which rebuilding Your money had quietly taken away.
-   Next, the rest of the makeover design's section 7 list, one section at a
-   time (the Market area, Results, the Guide as a page), and the switch-over.
+   **DONE 2026-09-15: the Market area** (`ui/rivals/`), from the canvas
+   https://claude.ai/code/artifact/230864af-39a1-4789-8631-158a34316d7a: one
+   section, Rivals (the owner's choice, merging today's Rivals and The market):
+   the market's four public figures this week beside last, the median click in
+   paise; your share and one reading; each rival you meet as a card, most met
+   first, with how often you met week by week, its ad, above-you and
+   you-outrank, and a five-point move marked. Only what R3 allows. Two fixes to
+   the shared market reading came first, for both looks: it names the rival
+   above you in the most of your auctions (overlap times position-above), where
+   it had named one in 2% of them; and a move is judged on the printed figures.
+   Left for the owner: a results page for one search (a DECISIONS entry
+   first), and keeping round 0's notes on rivals, which would change the save.
+   Next, the rest of the makeover design's section 7 list (Results, the Guide
+   as a page), and the switch-over.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.

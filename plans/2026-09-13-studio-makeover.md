@@ -556,6 +556,23 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   reach "held"; the section reads that half before and after instead, since
   the mix of places can move it. The rung you move to is red, your change; the
   account's own setting is bone, as a chosen chip is everywhere else.
+- **The Market area (section 7, item 6)** is built as the owner chose from the
+  mock-ups on `design/market/` (2026-09-15), and is one section, Rivals, where
+  section 2's table had two: the market card alone did not fill a section.
+  The market's four public figures and the player's own share sit on top;
+  each rival you meet is a card with how often you meet, week by week, its ad,
+  and who comes out above. Not chosen: one grid of every rival's weeks. Left
+  out on purpose: the trends chart's per-advertiser lines (impression share,
+  top of page, absolute top) for rivals, which read as a leaderboard, the
+  thing that chart warns against. Mapping today's cards found the market
+  reading naming the rival "above you most often when you meet" by that rate
+  alone, which picked one in 2% of the player's auctions; it now names the
+  rival above the player in the most of all its auctions, in both looks. A
+  second read of the mock-ups found a move judged on unrounded figures while
+  the screen printed rounded ones; moves are judged as printed. With this
+  section no Studio section shows a classic card, and the dashboard behind the
+  Studio is drawn only for the form's context. Still for the owner: a results
+  page for one search, which needs a DECISIONS entry before any design.
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.
