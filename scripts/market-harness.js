@@ -21,14 +21,16 @@
  *   node scripts/market-harness.js market  <label> [workers]
  *   node scripts/market-harness.js capital <label> [workers]
  *   node scripts/market-harness.js writer  <label> [workers]
+ *   node scripts/market-harness.js prepaid <label> [workers]
  *   node scripts/market-harness.js compare <before.json> <after.json>
  *
  * `market` plays 72 whole games (seeds 1-12, the six cells) and reports F15's
  * economics, the player's profit and rank, every rival's month-2 budget, and how
  * far rivals move into weeks 5 and 9 against an ordinary week. `capital` is
  * D12's comparison: forked at week 5, committing nothing against four ways of
- * investing the whole allocation. Both write `harness-<label>-<mode>.json` to the
- * system temp folder and print a summary.
+ * investing the whole allocation. `prepaid` is I34's comparison: every rung from
+ * week 1 against none, whole games. Each writes `harness-<label>-<mode>.json` to
+ * the system temp folder and prints a summary.
  */
 import { writeFileSync, readFileSync, mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
@@ -43,7 +45,7 @@ import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
 import { allCells, parseCell, businessFor, realisedBreakEvenCpcPaise } from '../engine/positions.js';
-import { TOTAL_ROUNDS, CAPEX_ALLOCATION_PAISE } from '../engine/constants.js';
+import { TOTAL_ROUNDS, CAPEX_ALLOCATION_PAISE, PREPAID_DISCOUNT_CURVE } from '../engine/constants.js';
 import { gradeAdOffline } from '../agents/grader.js';
 
 export const PLAYER = BRAND_IDENTITIES[0].id;
@@ -315,6 +317,30 @@ export function writerGates(before, after) {
   return { rank, hiredUnmoved, rivals, ok: rank.ok && hiredUnmoved && rivals.every((r) => r.ok) };
 }
 
+/** The rungs a player can pick (I34), none first. */
+export const RUNGS = PREPAID_DISCOUNT_CURVE.map((r) => r.paise);
+
+/**
+ * The harness player with a prepaid discount from week 1. It still sends the
+ * week-5 capital decision the form always sends: a decision that dropped it would
+ * lose the second allocation and measure a poorer player (C8).
+ */
+export const prepaidDecision = (paise) => (round, state) => {
+  const decision = { ...(keepAtWindow(round, state) ?? {}) };
+  if (round === 1 && paise > 0) decision.campaign = { prepaidDiscountPaise: paise };
+  return Object.keys(decision).length > 0 ? decision : null;
+};
+
+/** I34's comparison on one market: whole games at every rung, against none. */
+export async function prepaidRow({ seed, cell }) {
+  const out = { seed, cell };
+  for (const paise of RUNGS) {
+    const { state } = await playMarket({ seed, cell, playerDecision: prepaidDecision(paise) });
+    out[paise] = gameTotals(state.history, PLAYER).all.netProfitPaise;
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // Running it
 // ---------------------------------------------------------------------------
@@ -380,10 +406,27 @@ function printGates(beforeFile, afterFile) {
   console.log(out.ok ? 'ALL GATES PASS' : 'A GATE FAILED');
 }
 
+function summarisePrepaid(rows) {
+  const gain = (r, paise) => (r[paise] - r[0]) / Math.abs(r[0]);
+  const paid = RUNGS.slice(1);
+  const out = [`${rows.length} markets: a prepaid discount from week 1 at each rung, against none (I34)`];
+  out.push(`  ${'cell'.padEnd(20)}${paid.map((p) => `₹${p / 100}`.padStart(17)).join('')}   best`);
+  for (const cell of CELLS) {
+    const mine = rows.filter((r) => r.cell === cell);
+    const medians = paid.map((p) => median(mine.map((r) => gain(r, p))));
+    const wins = paid.map((p) => mine.filter((r) => r[p] > r[0]).length);
+    const top = medians.reduce((b, m, i) => (m > b.m ? { m, i } : b), { m: 0, i: -1 });
+    const best = top.i < 0 ? 'none' : `₹${paid[top.i] / 100}`;
+    out.push(`  ${cell.padEnd(20)}${medians.map((m, i) => `${pct(m)} (${wins[i]}/${mine.length})`.padStart(17)).join('')}   ${best}`);
+  }
+  return out.join('\n');
+}
+
 const MODES = {
   market: [marketRow, summariseMarket],
   capital: [capitalRow, summariseCapital],
   writer: [writerRow, summariseWriter],
+  prepaid: [prepaidRow, summarisePrepaid],
 };
 
 async function worker(mode, outFile, seeds) {
