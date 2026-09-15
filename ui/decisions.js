@@ -1245,6 +1245,58 @@ export function dropNegative(draft, index) {
   return { dropped: true };
 }
 
+/** A search whose sales cost over this many times the account's average is marked. */
+export const DEAR_TIMES = 2;
+
+/**
+ * What a sale has cost this account on average, over the search terms given.
+ *
+ * Taken over exactly the rows the report is showing, every week or this week
+ * only, so a search is marked against the period the table shows. A week's
+ * sales are still arriving, but they arrive for every search alike, so a search
+ * is compared with an account in the same state of settling.
+ *
+ * @param {object} terms search terms report rows, keyed by query id
+ * @returns {number|null} paise per sale, fractional; null while nothing in the
+ *   range has sold, when there is nothing to compare a search against
+ */
+export function averagePerSalePaise(terms) {
+  let costPaise = 0;
+  let sales = 0;
+  for (const r of Object.values(terms ?? {})) {
+    if (!(r.impressions > 0)) continue;
+    costPaise += r.costPaise;
+    sales += r.conversions ?? 0;
+  }
+  return sales > 0 ? costPaise / sales : null;
+}
+
+/**
+ * Whether a search costs too much for what it sold: the mark on the search
+ * terms report, and what the Negatives card counts.
+ *
+ * NOT "five clicks and no sale", which is what both used to ask. The game is
+ * played in expected mode, where a search's sales are its clicks times a
+ * conversion rate: a fraction, never exactly zero unless nobody searching it
+ * ever buys. So that rule marked only the zero-intent searches, and "how to
+ * wash gym leggings" at ₹4,458 a sale against an account's ₹488 went unmarked
+ * (DECISIONS I8).
+ *
+ * Marked when each sale cost over DEAR_TIMES the account's average, once the
+ * search has spent at least one average sale: short of that it has not had the
+ * money to sell, whatever it shows. A search that sold nothing is marked on the
+ * same terms, since no sale is dearer than any price.
+ *
+ * @param {{costPaise: number, conversions: number}} row
+ * @param {number|null} averagePaise from `averagePerSalePaise`
+ * @returns {boolean}
+ */
+export function isDear(row, averagePaise) {
+  if (averagePaise == null) return false;
+  const sales = row.conversions ?? 0;
+  return row.costPaise >= averagePaise && row.costPaise > DEAR_TIMES * averagePaise * sales;
+}
+
 /**
  * Whether this account needs to think about negatives at all, from its own data.
  *
@@ -1272,11 +1324,11 @@ export function negativesOutlook(draft, terms) {
   const loose = active.filter((k) => k.matchType !== 'exact').length;
   const broad = active.filter((k) => k.matchType === 'broad').length;
 
-  // The same marking the search terms table already makes: clicks paid for
-  // that came back with nothing. Not proof of waste on one week - conversions
-  // are still arriving - which is why the card points at the report rather
-  // than telling anyone to block.
-  const wasteful = rows.filter((r) => r.clicks >= 5 && r.conversions === 0);
+  // The same mark the search terms table makes, over the same rows. Not proof
+  // of waste on one week - sales are still arriving - which is why the card
+  // points at the report rather than telling anyone to block.
+  const averagePaise = averagePerSalePaise(terms);
+  const wasteful = rows.filter((r) => isDear(r, averagePaise));
   const wastedPaise = wasteful.reduce((total, r) => total + r.costPaise, 0);
 
   return {
@@ -1287,6 +1339,7 @@ export function negativesOutlook(draft, terms) {
     broad,
     wasteful: wasteful.length,
     wastedPaise,
+    averagePaise,
     // Worth attention when something is already being wasted, when a keyword
     // is reaching well past the searches it names, or when there are already
     // negatives whose over-blocking is worth checking.
@@ -2514,8 +2567,10 @@ function negativesCard(ctx, refresh) {
     verdict.append(el('strong', null, 'Worth your attention this week. '));
     verdict.append(document.createTextNode(
       outlook.wasteful > 0
-        ? `${outlook.wasteful} of your ${outlook.searches} searches took five clicks or `
-          + `more and returned nothing, costing ${rupees(outlook.wastedPaise)}. `
+        ? `${outlook.wasteful} of your ${outlook.searches} searches `
+          + `${outlook.wasteful === 1 ? 'is' : 'are'} selling at over twice your average `
+          + `of ${rupees(outlook.averagePaise)} a sale, or not at all: `
+          + `${rupees(outlook.wastedPaise)} between them. `
         : `${outlook.keywords} keywords pulled you into ${outlook.searches} different `
           + 'searches, which is a lot further than you named. ',
     ));
@@ -2526,9 +2581,15 @@ function negativesCard(ctx, refresh) {
     verdict.append(el('strong', null, 'Not much for you here yet. '));
     verdict.append(document.createTextNode(
       `Your ${outlook.keywords} keywords matched ${outlook.searches} searches, and `
-      + 'none of them is taking clicks without returning anything. Negatives start '
-      + 'to earn their keep when a keyword reaches past the words it names — which '
-      + 'is what broad match is for, and what it costs.',
+      // With nothing sold anywhere there is no average to hold a search
+      // against, and saying "none is dear" would be a judgement nobody made.
+      + (outlook.averagePaise === null
+        ? 'none of them has sold anything yet, so there is no average sale to hold '
+          + 'them against. '
+        : 'none of them is selling at over twice your average of '
+          + `${rupees(outlook.averagePaise)} a sale. `)
+      + 'Negatives start to earn their keep when a keyword reaches past the words '
+      + 'it names — which is what broad match is for, and what it costs.',
     ));
   }
   node.append(verdict);
