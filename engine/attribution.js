@@ -140,6 +140,11 @@ export function sampleOrderValuePaise(business, query, rng, mode) {
  * terms report shows what a query COST and never what it EARNED, which makes
  * the one tool for writing negatives (8.2) unusable for the purpose.
  *
+ * And the keyword that caught the click, for `breakdown.byKeyword`, snapshotted
+ * for the reason the value is. A revision used to ask which keyword catches the
+ * search in the week the sale LANDS, so removing a keyword took its late sales
+ * off its own row, or put them on whichever keyword took the search over (I36).
+ *
  * @param {object} args
  * @param {number} args.clicks
  * @param {number} args.convRate from effectiveConvRate
@@ -147,13 +152,14 @@ export function sampleOrderValuePaise(business, query, rng, mode) {
  * @param {number} args.returnRate 0..1, the rate in force now
  * @param {number} args.round the click round
  * @param {string} [args.queryId] the query these clicks came from
+ * @param {string} [args.keywordId] the keyword that caught them, this round
  * @param {(() => number)|null} args.rng
  * @param {'expected'|'sampled'} args.mode
  * @returns {Array<object>} pendingConversions entries
  */
 export function queueConversions({
   clicks, convRate, orderValuePaise, returnRate, refusedShare = 0, round, rng, mode,
-  queryId = null, locationTier = null,
+  queryId = null, keywordId = null, locationTier = null,
 }) {
   let count = clicks * convRate;
   if (count <= 0) return [];
@@ -176,6 +182,7 @@ export function queueConversions({
       clickedInRound: round,
       dueRound: round + lag,
       queryId,
+      keywordId,
       // Where the click was. Carried because the location report is only worth
       // having if it can show what the money DID, and revenue and returns are
       // the two things location changes - a breakdown of clicks alone would
@@ -235,6 +242,7 @@ export function queueReturns(landed, round, returnWindowRounds) {
       // click round would have nowhere to go.
       clickedInRound: entry.clickedInRound,
       queryId: entry.queryId ?? null,
+      keywordId: entry.keywordId ?? null,
       // And where it was bought. Returns are the whole trade the location
       // mechanic rests on - the towns convert perfectly well and then send it
       // back - so a return that could not name its location would leave the

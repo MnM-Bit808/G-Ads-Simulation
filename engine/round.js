@@ -280,7 +280,6 @@ export function runRound(gameState, options = {}) {
       // against rounds remaining", and the second number did not exist.
       weeklySplitPaise: [...(a.campaign.weeklySplitPaise ?? [])],
       roundsRemainingInMonth: ROUNDS_PER_MONTH - 1 - ((round - 1) % ROUNDS_PER_MONTH),
-      keywordForQuery: keywordForQuery(entryPlan[i], queries),
     }])),
     pairwise: { ...pairwise, ids: advertisers.map((a) => a.id) },
     marketContext: buildMarketContext(acc, advertisers),
@@ -499,9 +498,11 @@ function recordAuction({
           if (share <= 0) continue;
           const here = converted * share;
           const key = `${query.id}\u0000${t}`;
+          // One keyword per bucket: an advertiser catches a search through one
+          // ad group, with one keyword, for the whole round (8.6).
           const bucket = convAccum[i].get(key)
             ?? {
-              queryId: query.id, tier: t, count: 0, valuePaise: 0,
+              queryId: query.id, keywordId: e._plan.keyword.id, tier: t, count: 0, valuePaise: 0,
               returnWeighted: 0, refusedWeighted: 0,
             };
           bucket.count += here;
@@ -545,28 +546,6 @@ function recordAuction({
 
   recordPairwise(pairwise, ladder, byId, shown);
   recordQualityRows(acc, shown);
-}
-
-/**
- * Which keyword each query was matched through, this round.
- *
- * One advertiser matches one query through one ad group per round (8.6), so
- * this is a property of the entry plan rather than of any single auction, and
- * it is read straight off the plan once - 151 entries - instead of being
- * rewritten inside the hot loop.
- *
- * It WAS written in the loop, which in sampled mode meant roughly 600,000
- * Map.set calls per round all storing the same value, and cost the round about
- * 1.3 seconds of CPU. The measurement that caught it is the one in
- * round.test.js, which only started reporting honestly once it stopped timing
- * a wall clock under contention.
- */
-function keywordForQuery(plans, queries) {
-  const map = new Map();
-  for (let q = 0; q < queries.length; q++) {
-    if (plans[q]) map.set(queries[q].id, plans[q].keyword.id);
-  }
-  return map;
 }
 
 /**
@@ -677,6 +656,7 @@ function settleRound({ advertisers, business, acc, convAccum, round, perAdvertis
         rng: perAdvertiserRng[i],
         mode,
         queryId: bucket.queryId,
+        keywordId: bucket.keywordId,
         locationTier: bucket.tier,
       }));
     }
