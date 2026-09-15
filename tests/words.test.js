@@ -123,7 +123,7 @@ describe('the debrief', () => {
     terms: 14, negatives: 3, rank: 3, grossRank: 1,
     own: '₹10', other: '₹18', strategy: 'Maximise conversions', learning: 2,
     price: 'mid', purpose: 'lifestyle', cell: 'mid · lifestyle',
-    exact: 5, half: 2, names: ['Marlow', 'Nira'],
+    exact: 5, half: 2, names: ['Marlow', 'Nira'], weeks: [5, 11],
   };
 
   test('every entry is a line of a kind the screen may carry', () => {
@@ -140,6 +140,20 @@ describe('the debrief', () => {
     for (const [name, entry] of Object.entries(DEBRIEF)) {
       expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
     }
+  });
+
+  test('the budget question names the weeks it cannot put a rupee on', () => {
+    expect(DEBRIEF.budgetBrokeEven({ count: 2, weeks: [5, 11] }))
+      .toBe('In 2 of them, weeks 5 and 11, spending the rest of the month there and then would about have broken even.');
+    expect(DEBRIEF.budgetBrokeEven({ count: 1, weeks: [11] })).toMatch(/^In one of them, week 11, /);
+    expect(DEBRIEF.budgetNothingLeft({ weeks: [8, 12] })).toBe('Weeks 8 and 12 had nothing left in their month to spend.');
+    expect(DEBRIEF.budgetNothingLeft({ weeks: [8] })).toBe('Week 8 had nothing left in its month to spend.');
+  });
+
+  test('broad match does not take the blame for phrase match\'s longer searches', () => {
+    expect(DEBRIEF.broadMatch({ terms: '26', negatives: '1', blocked: 1 }))
+      .toMatch(/26 different searches .* phrase match’s longer searches\. By the end you were blocking one word\.$/);
+    expect(DEBRIEF.broadMatch({ terms: '26', negatives: '3', blocked: 3 })).toMatch(/blocking 3 words\.$/);
   });
 
   test('"What if I hadn\'t?" always reads to the end of the game', () => {

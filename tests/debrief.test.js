@@ -15,8 +15,8 @@
 
 import { describe, test, expect } from 'vitest';
 import {
-  MAX_MOMENTS, MATERIAL_LOSS, moments, windowDifference, budgetWeeks, lessons, revealRows,
-  replayWithoutChange,
+  MAX_MOMENTS, MATERIAL_LOSS, BROKE_EVEN_PER_CLICK_PAISE, moments, windowDifference, budgetWeeks, lessons,
+  revealRows, replayWithoutChange,
 } from '../ui/debrief/read.js';
 import { summariseDecisions, finalStandings } from '../ui/ending.js';
 import { startGame } from '../setup.js';
@@ -30,13 +30,15 @@ import { ROUNDS_PER_MONTH, LEARNING_ROUNDS } from '../engine/constants.js';
 const P = 'player';
 
 /** One week's report for the player, holding only what the readings use. */
-function week(round, { clicks = 100, costPaise = 100_000, impressionShare = 0.5, netProfitPaise = 0, missed = null } = {}) {
+function week(round, {
+  clicks = 100, costPaise = 100_000, impressionShare = 0.5, netProfitPaise = 0, missed = null, lostToBudget = 0,
+} = {}) {
   return {
     round,
     byAdvertiser: {
       [P]: {
         traffic: { impressions: clicks * 10, clicks, costPaise },
-        share: { impressionShare, lostToRank: 0, lostToBudget: 0 },
+        share: { impressionShare, lostToRank: 0, lostToBudget },
         money: { netProfitPaise },
         missedToBudget: missed,
       },
@@ -163,21 +165,44 @@ describe('the difference a removed decision made', () => {
 describe('the budget weeks', () => {
   const missed = (clicks, profitIfFundedPaise) => ({ clicks, profitIfFundedPaise });
 
-  test('weeks that ran out split by whether the extra traffic would have paid for itself', () => {
+  test('weeks that ran out split by what the rest of the month would have done there', () => {
+    // A rupee a click either way is breaking even (BROKE_EVEN_PER_CLICK_PAISE).
     const history = [
       week(1),
       week(2, { missed: missed(300, 50_000) }),
       week(3, { missed: missed(200, -20_000) }),
-      week(4, { missed: missed(0, 0) }),
+      week(4, { missed: missed(0, 0), lostToBudget: 0.4 }),
       week(5, { missed: missed(500, 90_000) }),
       week(6, { missed: missed(100, 0) }),
+      week(7, { missed: missed(1977, 3600) }),
     ];
     const read = budgetWeeks(history, P);
-    expect(read.played).toBe(6);
-    expect(read.ranOut).toBe(4);
+    expect(BROKE_EVEN_PER_CLICK_PAISE).toBe(100);
+    expect(read.played).toBe(7);
+    expect(read.ranOut).toBe(6);
     expect(read.paidFor.map((w) => w.round)).toEqual([2, 5]);
-    expect(read.didNotPay.map((w) => w.round)).toEqual([3, 6]);
+    expect(read.brokeEven.map((w) => w.round)).toEqual([6, 7]);
+    expect(read.lostMoney.map((w) => w.round)).toEqual([3]);
+    expect(read.nothingLeft).toEqual([4]);
     expect(read.best).toEqual({ round: 5, clicks: 500, profitIfFundedPaise: 90_000 });
+  });
+
+  test('₹36 on 1,977 more clicks is breaking even, not paying for itself', () => {
+    // Found drawing Results (2026-09-15): the line called it "paid for itself".
+    const read = budgetWeeks([week(11, { missed: missed(1977, 3600) })], P);
+    expect(read.paidFor).toEqual([]);
+    expect(read.brokeEven.map((w) => w.round)).toEqual([11]);
+    expect(read.best).toBeNull();
+  });
+
+  test('a week that lost impressions to budget with nothing left in its month still ran out', () => {
+    // The question asks what the rest of the month would have bought that
+    // week; in a month's last week there is none, so it imagines nothing. The
+    // week ran out all the same, and the lesson beside it says so.
+    const read = budgetWeeks([week(8, { missed: missed(0, 0), lostToBudget: MATERIAL_LOSS }),
+      week(9, { missed: missed(0, 0), lostToBudget: 0.05 })], P);
+    expect(read.ranOut).toBe(1);
+    expect(read.nothingLeft).toEqual([8]);
   });
 
   test('what rounds to nothing on screen counts as nothing', () => {
@@ -190,18 +215,19 @@ describe('the budget weeks', () => {
     ];
     const read = budgetWeeks(history, P);
     expect(read.ranOut).toBe(2);
-    expect(read.paidFor.map((w) => w.round)).toEqual([3]);
-    expect(read.didNotPay.map((w) => w.round)).toEqual([2]);
+    expect(read.paidFor).toEqual([]);
+    expect(read.brokeEven.map((w) => w.round)).toEqual([2, 3]);
   });
 
   test('it is never a total: the weeks spend the same remaining month', () => {
     const read = budgetWeeks([week(1, { missed: missed(300, 50_000) })], P);
-    expect(Object.keys(read).sort()).toEqual(['best', 'didNotPay', 'paidFor', 'played', 'ranOut']);
+    expect(Object.keys(read).sort())
+      .toEqual(['best', 'brokeEven', 'lostMoney', 'nothingLeft', 'paidFor', 'played', 'ranOut']);
   });
 
   test('a budget that never ran out has no best week', () => {
     const read = budgetWeeks([week(1), week(2)], P);
-    expect(read).toMatchObject({ ranOut: 0, paidFor: [], didNotPay: [], best: null });
+    expect(read).toMatchObject({ ranOut: 0, paidFor: [], brokeEven: [], lostMoney: [], nothingLeft: [], best: null });
   });
 });
 
@@ -269,9 +295,14 @@ describe('the six lessons', () => {
       .toEqual(['numbersMove', 'rankOrBudget', 'broadMatch', 'returns', 'ownName', 'smartBidding']);
   });
 
-  test('numbers keep moving: week 1 as first reported against as it stands', () => {
-    const { numbersMove } = lessonsFor({ history: [fullWeek(1, { gross: 90_000, firstGross: 40_000 }), fullWeek(2)] });
-    expect(numbersMove).toMatchObject({ met: true, figures: { round: 1, firstReportedPaise: 40_000, nowPaise: 90_000 } });
+  test('numbers keep moving: week 1\'s net profit as first reported against as it stands', () => {
+    // Net, like the Results chart beside it (the owner, 2026-09-15). A first
+    // report counts no returns yet, so its net profit is its gross; the
+    // played-game test below holds that.
+    const { numbersMove } = lessonsFor({
+      history: [fullWeek(1, { gross: 90_000, firstGross: 40_000, net: 70_000 }), fullWeek(2)],
+    });
+    expect(numbersMove).toMatchObject({ met: true, figures: { round: 1, firstReportedPaise: 40_000, nowPaise: 70_000 } });
   });
 
   test('rank or budget: met at 10%, naming the worst week and which kind of loss', () => {
@@ -509,9 +540,21 @@ describe('on a real played game', { timeout: 60_000 }, () => {
     const reported = state.history.filter((r) => (r.byAdvertiser[PLAYER].missedToBudget?.clicks ?? 0) >= 0.5);
     // The premise: this game's budget does run out, or the test proves nothing.
     expect(reported.length).toBeGreaterThan(0);
-    expect(read.ranOut).toBe(reported.length);
-    expect([...read.paidFor, ...read.didNotPay].map((w) => w.round).sort((a, b) => a - b))
+    expect(read.ranOut).toBe(reported.length + read.nothingLeft.length);
+    expect([...read.paidFor, ...read.brokeEven, ...read.lostMoney].map((w) => w.round).sort((a, b) => a - b))
       .toEqual(reported.map((r) => r.round));
+  });
+
+  test('a week\'s first report counts no returns, so its net profit then was its gross', async () => {
+    // What lets "Numbers keep moving" and the Results chart read a week's net
+    // profit as first reported from the one twin the report keeps. Returns
+    // are queued and resolved in later rounds, never in the round of the sale.
+    const { start, state } = await spendingGame();
+    const issued = replayLog(start, state.decisionLog, { mode: 'expected', throughRound: 8 }).reports;
+    for (const [i, report] of issued.entries()) {
+      expect(report.byAdvertiser[PLAYER].money.netProfitPaise, `week ${i + 1}`)
+        .toBe(state.history[i].byAdvertiser[PLAYER].money.grossProfitAsFirstReportedPaise);
+    }
   });
 });
 

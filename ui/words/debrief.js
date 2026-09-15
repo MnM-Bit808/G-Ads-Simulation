@@ -88,9 +88,19 @@ export const DEBRIEF = Object.freeze({
   budgetPaid: line('reading', ({ count, round, clicks, kept }) => (count === 1
     ? `In one of them more money would have paid for itself: week ${round}, ${clicks} more clicks and ${kept} kept.`
     : `In ${count} of them more money would have paid for itself, week ${round} most: ${clicks} more clicks and ${kept} kept.`)),
-  budgetDidNotPay: line('reading', ({ count, all }) => (all
-    ? 'In every one the extra traffic would not have paid for itself, so running out cost you nothing.'
-    : `In the other ${count} the extra traffic would not have paid for itself, so running out cost you nothing there.`)),
+  // Within a rupee a click either way (the owner, 2026-09-15): ₹36 on 1,977
+  // more clicks had read as "paid for itself".
+  budgetBrokeEven: line('reading', ({ count, weeks }) => (count === 1
+    ? `In one of them, week ${weeks[0]}, spending the rest of the month there and then would about have broken even.`
+    : `In ${count} of them, weeks ${listed(weeks)}, spending the rest of the month there and then would about have broken even.`)),
+  budgetLost: line('reading', ({ count, all }) => (all
+    ? 'In every one, spending the rest of the month there and then would have lost money, so running out cost you nothing.'
+    : `In ${count} of them, spending the rest of the month there and then would have lost money, so running out cost you nothing there.`)),
+  // A week that ran out with none of its month left: the question imagines
+  // nothing there, and without this line such a week read as never running out.
+  budgetNothingLeft: line('reading', ({ weeks }) => (weeks.length === 1
+    ? `Week ${weeks[0]} had nothing left in its month to spend.`
+    : `Weeks ${listed(weeks)} had nothing left in their month to spend.`)),
   budgetExact: line('disclosure',
     'An exact figure only a simulation can have: Google Ads can only estimate it, as impression share lost to budget.',
     { why: 'counterfactuals' }),
@@ -101,13 +111,16 @@ export const DEBRIEF = Object.freeze({
   didNotTry: line('label', 'You didn’t try this'),
 
   numbersMoveTitle: line('label', 'Numbers keep moving'),
+  // Net profit, as the Results chart reads every week (the owner, 2026-09-15).
   numbersMove: line('reading', ({ round, first, now }) =>
-    `Week ${round}’s gross profit read ${first} when you first saw it; it now stands at ${now}. Every week you read was unfinished.`,
+    `Week ${round}’s net profit read ${first} when it was first reported; it now stands at ${now}. Every week you read was unfinished.`,
   { why: 'attributionLag' }),
 
   rankOrBudgetTitle: line('label', 'Rank or budget'),
+  // It used to say the fix was more money, beside a budget question that
+  // could say more money would not have paid (the review, 2026-09-15).
   rankOrBudgetBudget: line('reading', ({ round, share }) =>
-    `Your worst week, week ${round}, lost ${share} of its impressions to budget. The fix for that is more money, or cheaper clicks through lower bids, not a higher bid.`,
+    `Your worst week, week ${round}, lost ${share} of its impressions to budget: the money ran out, so a higher bid would only have made each click dearer. Whether more money would have paid is what “If you had had more budget” works out.`,
   { why: 'rankOrBudget' }),
   rankOrBudgetRank: line('reading', ({ round, share }) =>
     `Your worst week, week ${round}, lost ${share} of its impressions to rank. The fix for that is a better ad or a higher bid, not more money.`,
@@ -117,17 +130,25 @@ export const DEBRIEF = Object.freeze({
   { why: 'rankOrBudget' }),
 
   broadMatchTitle: line('label', 'Broad match wanders'),
-  broadMatch: line('reading', ({ terms, negatives }) =>
-    `Your keywords bought clicks on ${terms} searches that no keyword of yours spelled out, and you blocked ${negatives}.`,
-  { why: 'broadMatch' }),
+  // The count takes in every search no keyword spelled out exactly, phrase
+  // match's longer searches too, so the sentence says so rather than laying
+  // them all at broad match's door (the review, 2026-09-15).
+  broadMatch: line('reading', ({ terms, negatives, blocked }) => {
+    const blocking = blocked === 1 ? 'one word' : `${negatives} words`;
+    return `Your keywords bought clicks on ${terms} different searches that none of them spelled out exactly: `
+      + `broad match wandering, and phrase match’s longer searches. By the end you were blocking ${blocking}.`;
+  }, { why: 'broadMatch' }),
   broadMatchNot: line('reading',
     'You never ran a broad keyword, so every search you bought was close to one you wrote. Next game, try one broad keyword and watch the search terms report.',
     { why: 'broadMatch' }),
 
   returnsTitle: line('label', 'Returns: gross against kept'),
+  // A return comes back two weeks after its sale lands, so the last weeks'
+  // returns never arrive inside the game (found drawing Results, 2026-09-15).
   returns: line('reading', ({ share, rank, grossRank }) =>
     `Returns took ${share} of your gross profit. You placed ${ordinal(rank)} on what you kept and `
-    + `${ordinal(grossRank)} on gross profit, which counts an order that came back as a sale.`,
+    + `${ordinal(grossRank)} on gross profit, which counts an order that came back as a sale. That share `
+    + 'would grow: the last weeks’ returns had not all come back when the game ended.',
   { why: 'returnsSplit' }),
 
   ownNameTitle: line('label', 'Defending your name'),

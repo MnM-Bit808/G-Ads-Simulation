@@ -326,35 +326,67 @@ export function replayWithoutChange(without, throughRound, options = {}) {
 }
 
 /**
- * The weeks the budget ran out, and whether more money would have paid.
+ * Within this much profit a click, either way, the extra traffic about broke
+ * even.
  *
- * A week ran out when its `missedToBudget` imagines extra clicks. It "paid for
- * itself" when the extra traffic's `profitIfFundedPaise` is above zero, and
- * "did not pay" otherwise: breaking even is not paying either. There is no
- * total on purpose (see the header).
+ * A display threshold, not a number the game runs on, so it lives here with
+ * its reason (DECISIONS I6). Found drawing Results (2026-09-15): ₹36 kept on
+ * 1,977 more clicks read as "paid for itself", two paise a click on clicks
+ * that cost about ₹20. A rupee a click is about a twentieth of what a click
+ * costs in this market, well clear of rounding and small beside the losses
+ * the question usually finds (₹1.21 to ₹4.27 a click in that game).
+ */
+export const BROKE_EVEN_PER_CLICK_PAISE = 100;
+
+/**
+ * The weeks the budget ran out, and what the rest of the month would have
+ * done there.
+ *
+ * The question (DECISIONS G1) raises one week to what is left of its month. A
+ * week that imagines at least a click sorts by its `profitIfFundedPaise` a
+ * click: paid for itself, about broke even (`BROKE_EVEN_PER_CLICK_PAISE`
+ * either way), or lost money. A week that lost at least `MATERIAL_LOSS` of its
+ * impressions to budget with nothing left in its month imagines nothing, but
+ * it ran out too: `nothingLeft`. Found drawing Results, where week 12 lost 74%
+ * to budget, the lesson beside it said so, and this said it never ran out.
+ * There is no total on purpose (see the header).
  *
  * @param {object[]} history
  * @param {string} playerId
- * @returns {{played: number, ranOut: number, paidFor: object[], didNotPay: object[], best: object|null}}
- *   each week `{round, clicks, profitIfFundedPaise}`
+ * @returns {{played: number, ranOut: number, paidFor: object[], brokeEven: object[],
+ *   lostMoney: object[], nothingLeft: number[], best: object|null}}
+ *   each week `{round, clicks, profitIfFundedPaise}`; `nothingLeft` holds rounds
  */
 export function budgetWeeks(history, playerId) {
   // What the screen would round to nothing counts as nothing: a week imagining
-  // a third of a click did not run out, and thirty paise did not "pay for
-  // itself". Found playing, where exactly that read "0 more clicks and ₹0 kept".
+  // a third of a click did not run out. Found playing, where exactly that read
+  // "0 more clicks and ₹0 kept".
   const WHOLE_CLICK = 0.5;
-  const WHOLE_RUPEE_PAISE = 50;
-  const ranOut = [];
+  const imagined = [];
+  const nothingLeft = [];
   for (const report of history ?? []) {
-    const missed = report.byAdvertiser?.[playerId]?.missedToBudget;
+    const row = report.byAdvertiser?.[playerId];
+    const missed = row?.missedToBudget;
     if (missed && missed.clicks >= WHOLE_CLICK) {
-      ranOut.push({ round: report.round, clicks: missed.clicks, profitIfFundedPaise: missed.profitIfFundedPaise });
+      imagined.push({ round: report.round, clicks: missed.clicks, profitIfFundedPaise: missed.profitIfFundedPaise });
+    } else if ((row?.share?.lostToBudget ?? 0) >= MATERIAL_LOSS) {
+      nothingLeft.push(report.round);
     }
   }
-  const paidFor = ranOut.filter((w) => w.profitIfFundedPaise >= WHOLE_RUPEE_PAISE);
-  const didNotPay = ranOut.filter((w) => w.profitIfFundedPaise < WHOLE_RUPEE_PAISE);
+  const perClick = (w) => w.profitIfFundedPaise / w.clicks;
+  const paidFor = imagined.filter((w) => perClick(w) >= BROKE_EVEN_PER_CLICK_PAISE);
+  const lostMoney = imagined.filter((w) => perClick(w) <= -BROKE_EVEN_PER_CLICK_PAISE);
+  const brokeEven = imagined.filter((w) => Math.abs(perClick(w)) < BROKE_EVEN_PER_CLICK_PAISE);
   const best = paidFor.reduce((top, w) => (!top || w.profitIfFundedPaise > top.profitIfFundedPaise ? w : top), null);
-  return { played: (history ?? []).length, ranOut: ranOut.length, paidFor, didNotPay, best };
+  return {
+    played: (history ?? []).length,
+    ranOut: imagined.length + nothingLeft.length,
+    paidFor,
+    brokeEven,
+    lostMoney,
+    nothingLeft,
+    best,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -420,7 +452,10 @@ export function lessons({ history, decisionLog, playerId, opening, state }) {
   const weeks = history ?? [];
   const rowOf = (report) => report.byAdvertiser?.[playerId];
 
-  // 1. The first week, as first reported against as it stands now.
+  // 1. The first week's net profit, as first reported against as it stands.
+  // A first report counts no returns yet (they resolve in later rounds), so
+  // its net profit then was its gross, the one twin the report keeps; a
+  // played-game test holds that.
   const first = weeks.find((r) => rowOf(r));
   const numbersMove = {
     id: 'numbersMove',
@@ -428,7 +463,7 @@ export function lessons({ history, decisionLog, playerId, opening, state }) {
     figures: first ? {
       round: first.round,
       firstReportedPaise: rowOf(first).money.grossProfitAsFirstReportedPaise,
-      nowPaise: rowOf(first).money.grossProfitPaise,
+      nowPaise: rowOf(first).money.netProfitPaise,
     } : null,
   };
 

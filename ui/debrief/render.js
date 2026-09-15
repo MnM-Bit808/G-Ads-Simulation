@@ -163,6 +163,36 @@ function momentsSection(ctx, busy) {
   return section;
 }
 
+/**
+ * The budget question's answer, in the order a player reads it: how often the
+ * money ran out, then what the rest of the month would have done in those
+ * weeks, then the weeks with none of their month left.
+ *
+ * @param {ReturnType<typeof budgetWeeks>} read
+ * @returns {string[]}
+ */
+export function budgetLines(read) {
+  if (read.ranOut === 0) return [DEBRIEF.budgetNeverRanOut()];
+  const lines = [DEBRIEF.budgetRanOut({ ranOut: read.ranOut, played: read.played })];
+  if (read.best) {
+    lines.push(DEBRIEF.budgetPaid({
+      count: read.paidFor.length,
+      round: read.best.round,
+      clicks: whole(read.best.clicks),
+      kept: rupees(read.best.profitIfFundedPaise),
+    }));
+  }
+  if (read.brokeEven.length > 0) {
+    lines.push(DEBRIEF.budgetBrokeEven({ count: read.brokeEven.length, weeks: read.brokeEven.map((w) => w.round) }));
+  }
+  if (read.lostMoney.length > 0) {
+    const all = read.paidFor.length + read.brokeEven.length + read.nothingLeft.length === 0;
+    lines.push(DEBRIEF.budgetLost({ count: read.lostMoney.length, all }));
+  }
+  if (read.nothingLeft.length > 0) lines.push(DEBRIEF.budgetNothingLeft({ weeks: read.nothingLeft }));
+  return lines;
+}
+
 function budgetSection(ctx, busy) {
   const section = el('section', 'debrief-part');
   section.append(el('h3', 'debrief-head', DEBRIEF.budgetHead()));
@@ -180,25 +210,7 @@ function budgetSection(ctx, busy) {
     const replayed = await replay(ctx.initial, () => ctx.state.decisionLog, lastRound,
       { counterfactualFor: [ctx.playerId] },
       (week, of) => { progress.textContent = DEBRIEF.replaying({ week, of }); });
-    const read = budgetWeeks(replayed.history, ctx.playerId);
-
-    const lines = [];
-    if (read.ranOut === 0) {
-      lines.push(DEBRIEF.budgetNeverRanOut());
-    } else {
-      lines.push(DEBRIEF.budgetRanOut({ ranOut: read.ranOut, played: read.played }));
-      if (read.best) {
-        lines.push(DEBRIEF.budgetPaid({
-          count: read.paidFor.length,
-          round: read.best.round,
-          clicks: whole(read.best.clicks),
-          kept: rupees(read.best.profitIfFundedPaise),
-        }));
-      }
-      if (read.didNotPay.length > 0) {
-        lines.push(DEBRIEF.budgetDidNotPay({ count: read.didNotPay.length, all: read.paidFor.length === 0 }));
-      }
-    }
+    const lines = budgetLines(budgetWeeks(replayed.history, ctx.playerId));
     result.replaceChildren(el('p', null, lines.join(' ')), disclosure(DEBRIEF.budgetExact, ctx.openGuide));
     ask.remove();
     busy(false);
@@ -221,7 +233,7 @@ function lessonSentence(lesson) {
         { round: f.round, share: pct(f.share) }];
     case 'broadMatch':
       return lesson.met
-        ? [DEBRIEF.broadMatch, { terms: whole(f.unwrittenTerms), negatives: whole(f.negatives) }]
+        ? [DEBRIEF.broadMatch, { terms: whole(f.unwrittenTerms), negatives: whole(f.negatives), blocked: f.negatives }]
         : [DEBRIEF.broadMatchNot, {}];
     case 'returns':
       return [DEBRIEF.returns, {
