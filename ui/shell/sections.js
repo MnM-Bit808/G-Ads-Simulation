@@ -40,7 +40,10 @@ export const AREAS = Object.freeze([
 ]);
 
 export const SECTIONS = Object.freeze([
-  { key: 'week', area: 'brand', label: 'Your week', icon: ICONS.week, slots: ['headline', 'share', 'revised'] },
+  // Rebuilt (the owner's choice, 2026-09-15, design/your-week/): it draws its
+  // own figures, chart and impressions (ui/week/render.js); the classic three
+  // cards are retired in the Studio.
+  { key: 'week', area: 'brand', label: 'Your week', icon: ICONS.week, slots: [], draws: ['headline', 'share', 'revised'] },
   // Rebuilt: it draws its own cards (ui/keywords/render.js) and the classic
   // keywords card is retired in the Studio; `draws` lets the guide open it.
   { key: 'keywords', area: 'brand', label: 'Your keywords', icon: ICONS.keywords, slots: [], draws: ['keywords'] },
@@ -63,8 +66,8 @@ export const SECTIONS = Object.freeze([
     slots: [], opensAt: TOTAL_ROUNDS },
 ]);
 
-/** Cards the new screens draw instead: the tray replaces *Next week*; Your keywords and Where and when draw their own. */
-export const RETIRED_SLOTS = Object.freeze(['keywords', 'next', 'places', 'hours']);
+/** Cards the new screens draw instead: the tray replaces *Next week*; Your keywords, Where and when and Your week draw their own. */
+export const RETIRED_SLOTS = Object.freeze(['keywords', 'next', 'places', 'hours', 'headline', 'share', 'revised']);
 
 /** @returns {object|null} the section a card's slot lives in */
 export function sectionOf(slot) {

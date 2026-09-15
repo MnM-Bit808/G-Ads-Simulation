@@ -47,6 +47,13 @@ describe('every card on today\'s page has one place in the new layout', () => {
     }
   });
 
+  test('Your week draws its own figures, chart and impressions, so the guide can still open all three', () => {
+    for (const slot of ['headline', 'share', 'revised']) {
+      expect(RETIRED_SLOTS, slot).toContain(slot);
+      expect(sectionOf(slot).key, slot).toBe('week');
+    }
+  });
+
   // CLAUDE.md's trap: "show me on the card" must land on something that exists.
   test.each(Object.entries(CHAPTERS))('the guide\'s %s can open the section holding its card', (_, c) => {
     expect(sectionOf(c.yourAccount), c.yourAccount).not.toBeNull();

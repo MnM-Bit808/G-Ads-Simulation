@@ -29,6 +29,7 @@ import { KEYWORDS } from '../ui/words/keywords.js';
 import { R0 } from '../ui/words/roundZero.js';
 import { AD } from '../ui/words/ad.js';
 import { WHERE } from '../ui/words/where.js';
+import { WEEK } from '../ui/words/week.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -381,6 +382,59 @@ describe('Where and when', () => {
   });
 });
 
+describe('Your week', () => {
+  const FIGURES = {
+    clicks: '3,170', impressions: '43,347', n: 3170, pending: '68.1', roas: '2.72', week: 6,
+    weeks: { kind: 'run', from: 1, to: 4 }, amount: '₹51,143', landed: 44, returned: 64,
+    rose: 'week 5 rose ₹53,317', fell: 'weeks 1 to 4 fell ₹51,143', score: 5, scale: 10,
+  };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(WEEK)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of Object.entries(WEEK)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(WEEK)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('the sentence the owner approved, word for word', () => {
+    const rose = WEEK.rose({ weeks: { kind: 'one', week: 5 }, amount: '₹53,317', landed: 44 });
+    const fell = WEEK.fell({ weeks: { kind: 'run', from: 1, to: 4 }, amount: '₹51,143', returned: 64 });
+    expect(WEEK.whileRan({ week: 6, rose, fell })).toBe('While week 6 ran, week 5 rose ₹53,317 as 44 more '
+      + 'conversions landed, and weeks 1 to 4 fell ₹51,143 between them as returns came back.');
+  });
+
+  test('the tick says before the week ran, not when you looked (the owner, 2026-09-15)', () => {
+    expect(WEEK.weeksSub({ week: 6 })).toMatch(/where it stood before week 6 ran$/);
+    expect(Object.values(WEEK).map((entry) => entry(FIGURES)).join(' ')).not.toMatch(/you last looked/);
+  });
+
+  test('a why is said only when it was counted', () => {
+    const one = { kind: 'one', week: 3 };
+    expect(WEEK.fell({ weeks: one, amount: '₹200', returned: 0 })).toBe('week 3 fell ₹200');
+    expect(WEEK.rose({ weeks: one, amount: '₹200', landed: 0 })).toBe('week 3 rose ₹200');
+    expect(WEEK.rose({ weeks: one, amount: '₹200', landed: 1 })).toBe('week 3 rose ₹200 as 1 more conversion landed');
+  });
+
+  test('weeks apart read as a list, and one click as one', () => {
+    expect(WEEK.fell({ weeks: { kind: 'list', list: [1, 3], last: 4 }, amount: '₹9', returned: 2 }))
+      .toBe('weeks 1, 3 and 4 fell ₹9 between them as returns came back');
+    expect(WEEK.clicks({ clicks: '1', n: 1 })).toBe('1 click');
+  });
+
+  test('positions read top, 2nd, 3rd, 4th', () => {
+    expect([1, 2, 3, 4].map((n) => WEEK.position({ n }))).toEqual(['top', '2nd', '3rd', '4th']);
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -411,7 +465,7 @@ describe('the new screens draw, and do not write', () => {
   const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
-    'ui/ad/render.js', 'ui/where/render.js'];
+    'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

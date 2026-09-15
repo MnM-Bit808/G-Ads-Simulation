@@ -23,6 +23,7 @@ import { icon, button } from '../kit/controls.js';
 import { renderKeywordsSection } from '../keywords/render.js';
 import { renderAdSection } from '../ad/render.js';
 import { renderWhereSection } from '../where/render.js';
+import { renderWeekSection } from '../week/render.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
@@ -52,6 +53,8 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
   const view = {
     area: 'brand', section: 'week', seen: {}, order: [], menuOpen: false,
     resultsShown: false, firstOpen: null, dotsShown: new Set(),
+    // The week whose revision Your week has played (spec section 3, row 2).
+    revisionFor: 0,
   };
   let game = null;
   let ctx = null;
@@ -196,7 +199,16 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       shown = el('p', 'studio-panel', `${SHELL.opensAt({ week: st.opensAt })} ${SHELL.returnsLocked()}`);
     } else if (s.key === 'results') shown = ending ?? el('p', 'studio-panel', SHELL.resultsLocked());
     else if (s.key === 'ad') shown = renderAdSection({ game, openGuide }).node;
-    else if (s.draws?.includes('keywords') && keywords) {
+    else if (s.key === 'week') {
+      const week = renderWeekSection({ game, openGuide });
+      shown = week.node;
+      // Once a week: the first time the section is seen after a week has run,
+      // however many redraws come after it.
+      if (view.revisionFor !== played()) {
+        view.revisionFor = played();
+        week.play();
+      }
+    } else if (s.draws?.includes('keywords') && keywords) {
       // Redrawn on the way in: another section may have staged a change or
       // moved the report's range while it was away.
       keywords.refresh();

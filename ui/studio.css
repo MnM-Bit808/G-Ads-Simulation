@@ -503,6 +503,103 @@ body.studio .ww.dragging :is(.ww-bar, .ww-read, .ww-fill, .ww-knob) { transition
   body.studio :is(.ww-bar, .ww-read, .ww-fill, .ww-knob, .ww-row) { transition: none; }
 }
 
+/* --- Your week, a played week (design/your-week/, the owner's choice 2026-09-15) --- */
+/* Sized by the section's own width, as Where and when is. */
+body.studio .yw { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .yw h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
+body.studio .yw-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px 14px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .yw-sub { margin: 0; font-size: 12px; color: var(--studio-muted); }
+body.studio .yw-note { max-width: 760px; margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
+
+/* the week's six figures */
+body.studio .yw-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: 16px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .yw-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+body.studio .yw-label { font-size: 12px; color: var(--studio-muted); }
+body.studio .yw-big { font: 800 28px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+/* Money lost is amber, with its minus sign, everywhere in the Studio. */
+body.studio .yw-big.loss { color: var(--studio-amber); }
+body.studio .yw-stat .yw-sub { font-variant-numeric: tabular-nums; }
+body.studio .yw-landed { display: flex; height: 6px; margin: 2px 0; overflow: hidden; border-radius: 3px; }
+body.studio .yw-landed span:first-child { background: var(--studio-text); }
+body.studio .yw-landed span:last-child { flex: 1; box-sizing: border-box; border: 1px dashed #68636B; border-left: none; border-radius: 0 3px 3px 0; }
+
+/* every week so far, beside where the impressions went */
+body.studio .yw-row { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+body.studio .yw-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+body.studio .yw-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+body.studio .yw-replay { flex-shrink: 0; padding: 4px 10px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; white-space: nowrap; }
+body.studio .yw-replay:hover { border-color: #4A454F; }
+body.studio .yw-scroll { overflow-x: auto; }
+/* Played weeks share the width; weeks to come take under half a share each.
+   The side padding holds what pokes out of the end columns (the zero line,
+   a tick, a figure), or the box would scroll by those few pixels. */
+body.studio .yw-chart { display: flex; gap: 10px; padding: 24px 6px 0; }
+body.studio .yw-col { flex: 1 1 0; min-width: 0; }
+body.studio .yw-col.future { flex-grow: 0.45; }
+body.studio .yw-bars { position: relative; height: 190px; }
+/* Room under the zero line for a losing week's figure. */
+body.studio .yw-chart.has-loss .yw-bars { margin-bottom: 16px; }
+body.studio .yw-bar { position: absolute; right: 3px; left: 3px; border-radius: 5px 5px 0 0; }
+body.studio .yw-bar.below { border-radius: 0 0 5px 5px; }
+body.studio .yw-bar.yw-now { background: var(--studio-text); }
+body.studio .yw-bar.loss { background: var(--studio-amber); }
+body.studio .yw-bar.yw-was { background: #7A7480; }
+body.studio .yw-value { position: absolute; right: -6px; left: -6px; font-size: 11px; font-weight: 700; line-height: 1; text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+body.studio .yw-value.loss { color: var(--studio-amber); }
+body.studio .yw-value.yw-was { color: var(--studio-muted); }
+/* Where the week stood before this week ran: the keyword slider's "was", made for a bar. */
+body.studio .yw-tick { position: absolute; right: -3px; left: -3px; height: 0; border-top: 2px dashed var(--studio-faint); }
+/* Where a losing week hangs from, so it clears 3:1 on the card (the canvas's
+   #3A363E measured 1.52:1). The stubs of weeks to come stay faint: their
+   numbers say they are to come. */
+body.studio .yw-zero { position: absolute; right: -5px; left: -5px; border-top: 1px solid #68636B; }
+body.studio .yw-stub { position: absolute; right: 3px; left: 3px; height: 10px; box-sizing: border-box; border: 1px dashed var(--studio-line-strong); border-radius: 5px; }
+body.studio .yw-foot { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; height: 36px; font-size: 11px; font-variant-numeric: tabular-nums; }
+body.studio .yw-week { color: var(--studio-faint); }
+body.studio .yw-change { color: var(--studio-muted); white-space: nowrap; }
+body.studio .yw-col.latest :is(.yw-week, .yw-change) { font-weight: 700; color: var(--studio-text); }
+body.studio .yw-reading { max-width: 680px; margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
+/* The revision (spec section 3, row 2): where each week stood gives way to
+   where it is now, on opacity alone, 250ms. Reduced motion keeps it, since a
+   fade moves nothing. */
+body.studio .yw-was { opacity: 0; }
+body.studio :is(.yw-was, .yw-now, .yw-tick, .yw-change) { transition: opacity 250ms var(--studio-ease); }
+body.studio .yw-chart.was .moved .yw-was { opacity: 1; }
+body.studio .yw-chart.was .moved :is(.yw-now, .yw-tick, .yw-change) { opacity: 0; }
+body.studio .yw-chart.instant * { transition: none; }
+
+body.studio .yw-strip { display: flex; gap: 2px; height: 14px; overflow: hidden; border-radius: 7px; background: var(--studio-raised); }
+body.studio :is(.yw-strip, .yw-key) .shown { background: var(--studio-text); }
+body.studio :is(.yw-strip, .yw-key) .budget { background: #7A7480; }
+body.studio :is(.yw-strip, .yw-key) .rank { background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px); }
+body.studio .yw-keys { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; font-variant-numeric: tabular-nums; }
+body.studio .yw-key { display: flex; align-items: center; gap: 6px; }
+body.studio .yw-key i { width: 10px; height: 10px; border-radius: 2px; }
+body.studio .yw-key .rank { box-shadow: inset 0 0 0 1px #7A7480; }
+body.studio .yw-key b { font-weight: 700; }
+body.studio .yw-key span { color: var(--studio-muted); }
+body.studio .yw-positions { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 8px; }
+body.studio .yw-pos { display: flex; flex-direction: column; gap: 6px; text-align: center; }
+body.studio .yw-posplot { display: flex; align-items: flex-end; height: 70px; }
+body.studio .yw-posbar { width: 100%; min-height: 3px; border-radius: 4px 4px 0 0; background: #7A7480; }
+body.studio .yw-posbar.top { background: var(--studio-text); }
+body.studio .yw-posfig { display: flex; flex-direction: column; font-size: 12px; color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .yw-posfig b { font-weight: 700; color: var(--studio-text); }
+
+/* A section under 1000px wide: the impressions go under the chart. */
+@container (max-width: 1000px) { body.studio .yw-row { grid-template-columns: minmax(0, 1fr); } }
+@container (max-width: 760px) { body.studio .yw-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* On a phone: two figures to a row, and the chart scrolls sideways at a
+   width where every week's figures fit. */
+@container (max-width: 560px) {
+  body.studio .yw-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
+  body.studio .yw-big { font-size: 24px; }
+  body.studio .yw-card { padding: 14px 14px 12px; }
+  body.studio .yw-head { flex-wrap: wrap; }
+  body.studio .yw-scroll { padding-bottom: 8px; }
+  body.studio .yw-chart { min-width: 600px; }
+}
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */
