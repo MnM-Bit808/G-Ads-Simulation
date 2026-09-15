@@ -1339,7 +1339,48 @@ With k throttled entrants that is 2^k ladders: one when nobody is throttled.
 
 ### Before (Task 3)
 
-*(the harness summary, the calibration figures and the four times go here)*
+On `makeover` at `54d250b` plus Tasks 1 and 2 (no engine change), 2026-09-15.
+
+**Harness**, `node scripts/market-harness.js market before-f17 6`, rows in
+`%TEMP%/harness-before-f17-market.json`:
+
+```
+72 markets
+player, settled weeks 1-7: CTR 8.2%  CPC ₹19.6  conversion 5.0%  gross ROAS 7.81  net ROAS 4.36  profit per ₹ 1.05  returned 42.1%
+rivals, settled weeks 1-7: CTR 5.5%  CPC ₹11.7  conversion 4.9%  gross ROAS 8.63  net ROAS 5.04  profit per ₹ 1.39  returned 41.2%
+player final net profit: median ₹6,57,635; loses money in 0 of 72
+player final rank: median 5; 1:1 2:2 3:5 4:16 5:16 6:16 7:16 8:0 9:0
+player month-2 budget: median ₹2,88,000
+rivals' month-2 budgets: median ₹2,48,000, from ₹1,68,000 to ₹2,88,000
+largest rival move against an ordinary week: into week 5 2.23x, into week 9 2.40x
+```
+
+**Calibration figures**, `CALIBRATION_FIGURES=1 npx vitest run tests/calibration.test.js`:
+
+```
+I1 solo, share of the month spent: 1.0000
+I1 solo, CPC over realised break-even: 0.174
+I1 solo, lost to budget: 0.1051
+I1 at 330000, spent and lost to budget: 0.857 0.0001
+I2 median CPC and the Value realised break-even: 1584 2822
+I2 lost to rank: vella 0.000, kestrel 0.379, marlow 0.000, satva 0.000, halcyon 0.000,
+                 lumen 0.000, nira 0.240, torvi 0.021, auren 0.000
+I2 best impression share: value 0.998, mid 0.540, premium 1.000
+I3 worst deviation: 11.3%
+I3 spread: 1.191x
+I3 worst deviation at the raised budget: 7.8%
+I3 lifestyle over performance: 1.012x
+I3 at 500000, worst deviation: 19.6%
+```
+
+**Times**, medians measured as `tests/performance.test.js` measures them
+(wall time, twice, in a scratch script against the real engine):
+
+| flat expected | flat sampled + CF | three-auction expected | three-auction sampled + CF |
+|---|---|---|---|
+| 90–95ms | 665–674ms | 188–260ms | 1,587–1,614ms |
+
+`npm run test:perf` passed all five, the new three-auction test included.
 
 ### After (Task 7)
 
