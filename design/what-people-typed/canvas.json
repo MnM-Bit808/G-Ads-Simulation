@@ -1,0 +1,72 @@
+{
+  "pages": [
+    {
+      "id": "chosen",
+      "name": "What people typed"
+    },
+    {
+      "id": "not-chosen",
+      "name": "Not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "A · One list, the money down it (chosen)",
+      "page": "chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "file": "ByKeyword.dc.html",
+      "title": "B · By the keyword that bought them",
+      "page": "not-chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "page": "chosen",
+      "x": 0,
+      "y": -520,
+      "w": 1440,
+      "text": "What people typed: two ways to draw it, replacing today's two cards (Search terms, Negatives). Both keep what the cards do: every search your keywords bought, with what it cost and sold; block one search from its row, or a family of them by their words, with what the block would catch shown before you make it. Try it: block a row, type other words into Block words, switch to this week only.\nReal figures from the engine: seed 1, Vella & Co. at mid-price performance, after week 6, with the makeover canvas's keywords (four phrase at ₹33, two broad at ₹24, the brand on exact at ₹57): 33 searches from 7 keywords. Block words opens on \"squat proof\" on broad, to show a block that also catches a search that sells."
+    },
+    {
+      "id": "a",
+      "page": "chosen",
+      "x": 1560,
+      "y": 0,
+      "w": 480,
+      "text": "Chosen by the owner, 2026-09-15. A · One list, the money down it. Every search in one list, most spent first, with its sales, what a sale cost there and how many came back; Block words beside it, and the rows it would catch are outlined in the list as you type.\nFor: it is the real search terms report, redrawn; the searches that cost most sit on top, and it needs nothing the engine does not already report.\nAgainst: why a search is there, which of your keywords reached it, is not on the screen."
+    },
+    {
+      "id": "b",
+      "page": "not-chosen",
+      "x": 0,
+      "y": -300,
+      "w": 1440,
+      "text": "B · By the keyword that bought them. The same searches under the keyword that reached each one, so a broad keyword's reach is drawn: under running leggings women sit flared leggings women and casual leggings women, marked with the word they lack. Block words beside it, the same.\nFor: it shows broad match wandering, the lesson of the guide's \"How far broad match wanders\", on your own keywords; real Google Ads shows the keyword beside each search.\nAgainst: the engine works out which keyword bought each search every week and then drops it, so this needs one addition to what the engine reports (the keyword, nothing it computes); and a search two keywords bought over the weeks needs a rule for where it sits."
+    },
+    {
+      "id": "found",
+      "page": "chosen",
+      "x": 0,
+      "y": 1000,
+      "w": 1440,
+      "text": "Two things drawing it found in today's cards, both from the game counting sales as expected fractions. The mark for a search that took five clicks and sold nothing never fires here, because no search that ever converts reads as zero: how to wash gym leggings cost ₹3,566 for 0.8 sales and goes unmarked. Both options mark instead a sale that costs over twice your ₹488 average, beside today's returns mark (more came back than your 26%). And the block preview's warning, \"this would also block searches that converted for you\", fires for almost any search you have bought, for the same reason; both options show the sales and let the amber mark say which ones matter."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "chosen"
+  }
+}

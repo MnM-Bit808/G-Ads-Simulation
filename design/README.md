@@ -131,6 +131,34 @@ captured before and after week 6 ran: week 5's profit rose ₹53,317 as its
 conversions landed, and weeks 1 to 4 fell ₹51,143 between them as returns
 came back.
 
+## `what-people-typed/`: search terms and negatives (2026-09-15)
+
+A sixth canvas, https://claude.ai/code/artifact/9564f078-b493-4538-94aa-90b6c035ffc0,
+the second section on the makeover design's section 7 list, replacing today's
+Search terms and Negatives cards. Both options work: block a search from its
+row, or a family of them by their words, with what the block would catch
+outlined before it is made, and the change landing in the tray.
+
+- **Page 1**, `Main.dc.html` (A · one list, the money down it), **chosen by
+  the owner on 2026-09-15**: every search the account bought, most spent
+  first, with its sales, what a sale cost there and how many came back, and
+  Block words beside it.
+- **Page 2**, `ByKeyword.dc.html` (B · by the keyword that bought them): the
+  same searches under the keyword that reached each, a broad keyword's
+  searches marked with the words they lack. It would have needed the engine
+  to record which keyword bought each search, which it works out every week
+  and then drops.
+
+Its numbers come from one game played six weeks with the engine (seed 1,
+Vella & Co. at mid-price performance, with the makeover canvas's keywords:
+four phrase at ₹33, two broad at ₹24, the brand on exact at ₹57), 33 searches
+from 7 keywords. A block matches as the engine's negatives do, on the words
+themselves. Drawing it found two marks in today's cards that the game's
+fractional sales defeat: "five clicks, no sale" never fires, and the block
+preview's warning about searches that sold nearly always does. Both options
+mark instead a sale that costs over twice the account's average, and show the
+sales a block would stop.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

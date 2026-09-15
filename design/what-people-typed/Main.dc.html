@@ -1,0 +1,360 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .why { color: #FF6166; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+    .pick { cursor: pointer; user-select: none; }
+    input::placeholder { color: #68636B; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: #2A1216; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #F3EEEA;">Brand</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M16 14.2c2.9.4 5 2.8 5 5.8"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Market</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Guide</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#68636B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #68636B;">Results</div>
+    </div>
+  </div>
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">mid · performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Your brand</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M11 20V5M17 20v-6M3 20h18"></path></svg>
+      <div style="flex-grow: 1;">Your week</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8L3 12z"></path><path d="M6 7.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path></svg>
+      <div style="flex-grow: 1;">Your keywords</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; background: #1F1C22; color: #F3EEEA; box-shadow: 0 0 0 1px #2E2A33;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a6 6 0 1 0 12 0a6 6 0 1 0 -12 0"></path><path d="M20 20l-4.5-4.5"></path></svg>
+      <div style="flex-grow: 1;">What people typed</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4h4l6 4V6L7 10H3z"></path><path d="M16.5 9a4 4 0 0 1 0 6"></path></svg>
+      <div style="flex-grow: 1;">Your ad</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M3 10h18M16 14.5h2"></path></svg>
+      <div style="flex-grow: 1;">Your money</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><path d="M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path></svg>
+      <div style="flex-grow: 1;">Where and when</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4V8z"></path><path d="M4 8l8 4 8-4M12 12v8"></path></svg>
+      <div style="flex-grow: 1;">Returns</div>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="display" style="font-weight: 700; font-size: 20px;">Week 6 of 12</div>
+        <div style="font-size: 13px; color: #8A847E;">saved</div>
+        <div style="display: flex; gap: 5px;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div></div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 13px;">
+        <div style="color: #A19A94;">Month 2</div>
+        <div class="num" style="font-weight: 700;">₹1,44,000 of ₹2,88,000 spent</div>
+      </div>
+    </div>
+    <div style="flex-grow: 1; min-height: 0; padding: 22px 40px 20px; display: flex; flex-direction: column; gap: 14px;">
+      <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">What people typed</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+        <div style="font-size: 14px; color: #CFC9C3;">{{summary}} <span class="why">why?</span></div>
+        <div style="display: flex; gap: 6px;">
+          <sc-for list="{{ranges}}" as="c" hint-placeholder-count="2">
+            <div class="pick" onClick="{{c.pick}}" style="padding: 5px 12px; border-radius: 999px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.color}}; font-size: 12px; font-weight: 600;">{{c.label}}</div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; min-height: 0;">
+        <div style="padding: 14px 12px 12px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 8px; min-width: 0;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 128px 48px 72px 82px 56px; gap: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; padding: 0 8px; white-space: nowrap;">
+            <div>Search</div><div>Spent</div><div style="text-align: right;">Sales</div><div style="text-align: right;">Per sale</div><div style="text-align: right;">Came back</div><div></div>
+          </div>
+          <div style="max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;">
+            <sc-for list="{{rows}}" as="r" hint-placeholder-count="12">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 128px 48px 72px 82px 56px; gap: 10px; align-items: center; padding: 6px 8px; border-radius: 10px; background: {{r.rowBg}}; box-shadow: inset 0 0 0 1px {{r.outline}}; opacity: {{r.opacity}};">
+              <div style="min-width: 0; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                <div style="font-size: 13px; text-decoration: {{r.strike}};">{{r.text}}</div>
+                <sc-if value="{{r.own}}" hint-placeholder-val="{{false}}"><div style="font-size: 10px; font-weight: 700; padding: 1px 7px; border: 1px solid #6A646E; border-radius: 999px; color: #CFC9C3; white-space: nowrap;">your name</div></sc-if>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; height: 6px; border-radius: 3px; background: #221F25; overflow: hidden;"><div style="width: {{r.barW}}; height: 100%; background: #EDE8E3;"></div></div>
+                <div class="num" style="font-size: 12px; width: 58px; text-align: right;">{{r.spendText}}</div>
+              </div>
+              <div class="num" style="font-size: 12px; text-align: right; color: #CFC9C3;">{{r.salesText}}</div>
+              <div class="num" style="font-size: 12px; text-align: right; color: {{r.perSaleColor}}; font-weight: {{r.perSaleWeight}};">{{r.perSaleText}}</div>
+              <div class="num" style="font-size: 12px; text-align: right; color: {{r.backColor}}; font-weight: {{r.backWeight}};">{{r.backText}}</div>
+              <div class="pick" onClick="{{r.onAction}}" style="font-size: 12px; text-align: right; color: {{r.actionColor}}; white-space: nowrap;">{{r.action}}</div>
+            </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 12px; color: #A19A94; padding: 2px 8px 0;">{{legend}}</div>
+        </div>
+        <div style="padding: 16px 18px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px;">
+          <div class="display" style="font-weight: 700; font-size: 18px;">Block words</div>
+          <div style="font-size: 12px; color: #A19A94; line-height: 1.45;">A block matches the words themselves: no plurals, no close variants. <span class="why">why?</span></div>
+          <input value="{{draft}}" onChange="{{typed}}" placeholder="free, near me, how to…" style="height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid #3A363E; background: #0D0C0E; color: #EDE8E3; font-family: inherit; font-size: 14px; outline: none;">
+          <div style="display: flex; gap: 6px;">
+            <sc-for list="{{matches}}" as="m" hint-placeholder-count="3">
+              <div class="pick" onClick="{{m.pick}}" style="padding: 5px 12px; border-radius: 999px; border: 1px solid {{m.border}}; background: {{m.bg}}; color: {{m.color}}; font-size: 12px; font-weight: 600;">{{m.label}}</div>
+            </sc-for>
+          </div>
+          <sc-if value="{{showPreview}}" hint-placeholder-val="{{true}}">
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: #1F1C22;">
+              <div style="font-size: 13px; line-height: 1.45;">{{headline}}</div>
+              <sc-if value="{{hasCaught}}" hint-placeholder-val="{{true}}">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <sc-for list="{{caughtRows}}" as="c" hint-placeholder-count="2">
+                    <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; font-size: 12px;">
+                      <div style="color: #CFC9C3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{c.text}}</div>
+                      <div class="num" style="color: #A19A94;">{{c.salesText}} sales</div>
+                      <div class="num" style="color: {{c.perSaleColor}};">{{c.perSaleText}} a sale</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div style="font-size: 12px; color: #A19A94; line-height: 1.45;">{{neverText}}</div>
+              <sc-if value="{{canBlock}}" hint-placeholder-val="{{true}}">
+                <div class="pick" onClick="{{doBlock}}" style="align-self: flex-start; padding: 7px 14px; border-radius: 999px; border: 1px solid #4A454F; font-size: 13px; font-weight: 600;">{{blockLabel}}</div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <div style="height: 1px; background: #2A272D; margin: 2px 0;"></div>
+          <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E;">Blocked</div>
+          <sc-if value="{{noneBlocked}}" hint-placeholder-val="{{true}}">
+            <div style="font-size: 13px; color: #A19A94; line-height: 1.45;">Nothing yet. Block one search from its row, or a family of them by their words.</div>
+          </sc-if>
+          <sc-for list="{{blocked}}" as="b" hint-placeholder-count="1">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 12px; border-radius: 12px; background: #1F1C22; font-size: 13px;">
+              <div style="flex: 1; min-width: 0;">{{b.text}}</div>
+              <div style="font-size: 12px; color: #A19A94; white-space: nowrap;">{{b.count}}</div>
+              <div class="pick" onClick="{{b.remove}}" style="width: 20px; height: 20px; border-radius: 50%; background: #2E2A33; color: #A19A94; display: grid; place-items: center; font-size: 12px;">✕</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <sc-if value="{{emptyTray}}" hint-placeholder-val="{{true}}">
+        <div style="font-size: 14px; color: #A19A94;">No changes yet. Anything you change, in any section, lands here.</div>
+      </sc-if>
+      <sc-if value="{{hasTray}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; overflow: hidden;">
+          <div style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #D7262F; color: #FFF5F4; display: grid; place-items: center; font-size: 13px; font-weight: 700;">{{trayN}}</div>
+          <div style="font-size: 15px; font-weight: 600; white-space: nowrap;">{{trayWord}}</div>
+          <sc-for list="{{tray}}" as="t" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">
+              <div>{{t.text}}</div>
+              <div class="pick" onClick="{{t.undo}}" style="width: 20px; height: 20px; border-radius: 50%; background: #2E2A33; color: #A19A94; display: grid; place-items: center; font-size: 12px;">✕</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div class="display" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"></path></svg>
+        <div>Run week 7</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+/*
+ * What people typed, option A: one list, the money down it. Real figures: seed 1, Vella & Co. at mid-price
+ * performance, four phrase keywords at Rs 33, two broad at Rs 24 and the brand
+ * on exact at Rs 57, six weeks played. Every search the account bought, its
+ * spend, sales and returns, as the engine reported them. A block matches the
+ * way the engine's negatives do (engine/matching.js, negativeFires): the
+ * words themselves, no plurals, no close variants.
+ */
+const DATA = {"weeks":6,"keywords":7,"all":[{"text":"cheap gym leggings","spend":69479,"sales":86.2,"back":20.1,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"gym leggings under 999","spend":40361,"sales":78,"back":20,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"gym leggings","spend":29462,"sales":60.4,"back":15.5,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"pack of 2 gym leggings","spend":28015,"sales":52.1,"back":13.4,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"gym leggings offer today","spend":27741,"sales":57.9,"back":15,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"workout leggings","spend":26380,"sales":54.4,"back":14,"brand":null,"via":"workout leggings · phrase","missing":[]},{"text":"best gym leggings under 1000","spend":21712,"sales":31.7,"back":8.2,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"sports bra high impact","spend":20377,"sales":37.6,"back":10.8,"brand":null,"via":"sports bra high impact · phrase","missing":[]},{"text":"gym tights for women","spend":20313,"sales":48.7,"back":11.7,"brand":null,"via":"gym tights for women · phrase","missing":[]},{"text":"high waisted gym leggings","spend":16259,"sales":48.4,"back":14.4,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"buy gym leggings online low price","spend":15936,"sales":33.7,"back":8.8,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"no camel toe gym leggings","spend":9719,"sales":18.1,"back":5,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"gym leggings with pockets","spend":9119,"sales":27.2,"back":7.7,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"nylon spandex gym leggings","spend":8384,"sales":11.4,"back":2.4,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"running leggings women","spend":8342,"sales":36,"back":9.3,"brand":null,"via":"running leggings women · broad","missing":[]},{"text":"tummy control gym leggings","spend":8244,"sales":15.3,"back":4.4,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"leggings 2 pack women","spend":6929,"sales":14.7,"back":3.8,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"flared leggings women","spend":6474,"sales":10.7,"back":3.3,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"cheap gym tights women","spend":6450,"sales":11.2,"back":2.7,"brand":null,"via":"running leggings women · broad","missing":["running","leggings"]},{"text":"vella leggings","spend":6435,"sales":67.7,"back":16.7,"brand":"own","via":"vella leggings · exact","missing":[]},{"text":"leggings multipack women","spend":6262,"sales":6.4,"back":1.7,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"sculpt gym leggings women","spend":6184,"sales":8.6,"back":2.3,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"seamless sports bra high impact","spend":6122,"sales":10.3,"back":2.9,"brand":null,"via":"sports bra high impact · phrase","missing":[]},{"text":"squat proof leggings","spend":5476,"sales":12.2,"back":3.5,"brand":null,"via":"high waisted gym leggings · broad","missing":["high","waisted","gym"]},{"text":"four way stretch gym tights","spend":4912,"sales":13.3,"back":3.2,"brand":null,"via":"high waisted gym leggings · broad","missing":["high","waisted","leggings"]},{"text":"training tights women","spend":4425,"sales":16.6,"back":4.1,"brand":null,"via":"running leggings women · broad","missing":["running","leggings"]},{"text":"premium gym leggings india","spend":3888,"sales":6.3,"back":1.5,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"how to wash gym leggings","spend":3566,"sales":0.8,"back":0.2,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"comfy leggings for women","spend":3537,"sales":6.8,"back":1.7,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"are gym leggings squat proof","spend":3050,"sales":0.7,"back":0.2,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"casual leggings women","spend":2584,"sales":5,"back":1.2,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"anti chafe running tights","spend":2238,"sales":6.7,"back":1.6,"brand":null,"via":"running leggings women · broad","missing":["leggings","women"]},{"text":"high rise compression tights","spend":2160,"sales":8.3,"back":2.4,"brand":null,"via":"high waisted gym leggings · broad","missing":["waisted","gym","leggings"]}],"week":[{"text":"cheap gym leggings","spend":13255,"sales":10,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"gym leggings under 999","spend":7060,"sales":7.6,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"pack of 2 gym leggings","spend":4881,"sales":5,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"gym leggings offer today","spend":4879,"sales":5.6,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"gym leggings","spend":4388,"sales":5.4,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"workout leggings","spend":3910,"sales":4.9,"back":0,"brand":null,"via":"workout leggings · phrase","missing":[]},{"text":"sports bra high impact","spend":3795,"sales":3.9,"back":0,"brand":null,"via":"sports bra high impact · phrase","missing":[]},{"text":"best gym leggings under 1000","spend":3762,"sales":3,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"gym tights for women","spend":3359,"sales":5,"back":0,"brand":null,"via":"gym tights for women · phrase","missing":[]},{"text":"buy gym leggings online low price","spend":2755,"sales":3.2,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"high waisted gym leggings","spend":2399,"sales":4.3,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"nylon spandex gym leggings","spend":1641,"sales":1.3,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"gym leggings with pockets","spend":1344,"sales":2.4,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"no camel toe gym leggings","spend":1240,"sales":1.5,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"vella leggings","spend":1219,"sales":6.3,"back":0,"brand":"own","via":"vella leggings · exact","missing":[]},{"text":"seamless sports bra high impact","spend":1185,"sales":1,"back":0,"brand":null,"via":"sports bra high impact · phrase","missing":[]},{"text":"tummy control gym leggings","spend":1053,"sales":1.3,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"cheap gym tights women","spend":1037,"sales":1.2,"back":0,"brand":null,"via":"running leggings women · broad","missing":["running","leggings"]},{"text":"running leggings women","spend":993,"sales":3.3,"back":0,"brand":null,"via":"running leggings women · broad","missing":[]},{"text":"flared leggings women","spend":961,"sales":1,"back":0,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"sculpt gym leggings women","spend":919,"sales":0.8,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"leggings 2 pack women","spend":898,"sales":1.4,"back":0,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"leggings multipack women","spend":807,"sales":0.6,"back":0,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"premium gym leggings india","spend":676,"sales":0.6,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"training tights women","spend":623,"sales":1.7,"back":0,"brand":null,"via":"running leggings women · broad","missing":["running","leggings"]},{"text":"four way stretch gym tights","spend":571,"sales":1.3,"back":0,"brand":null,"via":"high waisted gym leggings · broad","missing":["high","waisted","leggings"]},{"text":"squat proof leggings","spend":555,"sales":1,"back":0,"brand":null,"via":"high waisted gym leggings · broad","missing":["high","waisted","gym"]},{"text":"comfy leggings for women","spend":522,"sales":0.7,"back":0,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"casual leggings women","spend":382,"sales":0.5,"back":0,"brand":null,"via":"running leggings women · broad","missing":["running"]},{"text":"how to wash gym leggings","spend":287,"sales":0.1,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"are gym leggings squat proof","spend":246,"sales":0.1,"back":0,"brand":null,"via":"gym leggings · phrase","missing":[]},{"text":"anti chafe running tights","spend":220,"sales":0.6,"back":0,"brand":null,"via":"running leggings women · broad","missing":["leggings","women"]},{"text":"high rise compression tights","spend":177,"sales":0.7,"back":0,"brand":null,"via":"high waisted gym leggings · broad","missing":["waisted","gym","leggings"]}],"avg":{"all":487.60820980233825,"week":826.2700212104351},"rate":{"all":0.25882757005820234,"week":0},"queries":[{"id":"q_001","text":"cheap gym leggings"},{"id":"q_002","text":"gym wear sale"},{"id":"q_003","text":"budget gym wear women"},{"id":"q_004","text":"sports bra combo pack"},{"id":"q_005","text":"gym leggings under 999"},{"id":"q_006","text":"sports bra under 500"},{"id":"q_007","text":"leggings under 499"},{"id":"q_008","text":"pack of 2 gym leggings"},{"id":"q_009","text":"workout tshirt under 300"},{"id":"q_010","text":"gym leggings offer today"},{"id":"q_011","text":"best gym leggings under 1000"},{"id":"q_012","text":"running shorts under 400"},{"id":"q_013","text":"gym wear clearance sale"},{"id":"q_014","text":"yoga pants under 600"},{"id":"q_015","text":"compression tights under 999"},{"id":"q_016","text":"gym tshirt combo women"},{"id":"q_017","text":"buy gym leggings online low price"},{"id":"q_018","text":"discount activewear india"},{"id":"q_019","text":"leggings 2 pack women"},{"id":"q_020","text":"cheap gym tights women"},{"id":"q_021","text":"cheap athleisure"},{"id":"q_022","text":"co ord set sale"},{"id":"q_023","text":"budget loungewear"},{"id":"q_024","text":"leggings combo pack"},{"id":"q_025","text":"co ord set under 999"},{"id":"q_026","text":"loungewear set under 799"},{"id":"q_027","text":"joggers under 599"},{"id":"q_028","text":"lounge pants under 499"},{"id":"q_029","text":"oversized tshirt under 399"},{"id":"q_030","text":"matching set sale women"},{"id":"q_031","text":"everyday leggings pack of 3"},{"id":"q_032","text":"flared leggings under 699"},{"id":"q_033","text":"joggers combo women"},{"id":"q_034","text":"crop top under 299"},{"id":"q_035","text":"athleisure clearance sale"},{"id":"q_036","text":"best co ord set under 1000"},{"id":"q_037","text":"lounge set offer india"},{"id":"q_038","text":"leggings multipack women"},{"id":"q_039","text":"budget friendly loungewear"},{"id":"q_040","text":"casual joggers under 799"},{"id":"q_041","text":"gym leggings"},{"id":"q_042","text":"workout leggings"},{"id":"q_043","text":"sports bra high impact"},{"id":"q_044","text":"gym tights for women"},{"id":"q_045","text":"running leggings women"},{"id":"q_046","text":"high waisted gym leggings"},{"id":"q_047","text":"training shorts women"},{"id":"q_048","text":"workout tshirt women"},{"id":"q_049","text":"buy gym wear for women online"},{"id":"q_050","text":"sports bra for gym"},{"id":"q_051","text":"yoga pants women"},{"id":"q_052","text":"cycling shorts women"},{"id":"q_053","text":"quick dry gym tshirt"},{"id":"q_054","text":"workout set women"},{"id":"q_055","text":"running shorts with pockets"},{"id":"q_056","text":"gym leggings with pockets"},{"id":"q_057","text":"sweat wicking gym tshirt"},{"id":"q_058","text":"training tights women"},{"id":"q_059","text":"gym clothes women india"},{"id":"q_060","text":"high impact sports bra running"},{"id":"q_061","text":"athleisure leggings"},{"id":"q_062","text":"co ord set"},{"id":"q_063","text":"everyday leggings"},{"id":"q_064","text":"joggers for women"},{"id":"q_065","text":"lounge pants women"},{"id":"q_066","text":"matching set women"},{"id":"q_067","text":"flared leggings women"},{"id":"q_068","text":"oversized tshirt women"},{"id":"q_069","text":"casual joggers women"},{"id":"q_070","text":"athleisure set india"},{"id":"q_071","text":"comfy leggings for women"},{"id":"q_072","text":"travel joggers women"},{"id":"q_073","text":"cropped hoodie women"},{"id":"q_074","text":"everyday co ord set"},{"id":"q_075","text":"soft lounge set women"},{"id":"q_076","text":"wide leg lounge pants"},{"id":"q_077","text":"buy athleisure wear online india"},{"id":"q_078","text":"casual leggings women"},{"id":"q_079","text":"cotton joggers women"},{"id":"q_080","text":"everyday athleisure set"},{"id":"q_081","text":"seamless leggings"},{"id":"q_082","text":"compression leggings"},{"id":"q_083","text":"squat proof leggings"},{"id":"q_084","text":"buttery soft leggings"},{"id":"q_085","text":"no camel toe gym leggings"},{"id":"q_086","text":"four way stretch gym tights"},{"id":"q_087","text":"tummy control gym leggings"},{"id":"q_088","text":"moisture wicking gym tshirt"},{"id":"q_089","text":"high rise compression tights"},{"id":"q_090","text":"nylon spandex gym leggings"},{"id":"q_091","text":"seamless sports bra high impact"},{"id":"q_092","text":"best squat proof leggings india"},{"id":"q_093","text":"sculpt gym leggings women"},{"id":"q_094","text":"seamless workout co ord set"},{"id":"q_095","text":"second skin leggings"},{"id":"q_096","text":"anti chafe running tights"},{"id":"q_097","text":"imported gym wear women"},{"id":"q_098","text":"studio to street leggings"},{"id":"q_099","text":"technical training tights"},{"id":"q_100","text":"premium gym leggings india"},{"id":"q_101","text":"premium athleisure"},{"id":"q_102","text":"designer leggings"},{"id":"q_103","text":"luxury loungewear"},{"id":"q_104","text":"modal lounge pants"},{"id":"q_105","text":"buttery soft lounge set"},{"id":"q_106","text":"bamboo fabric loungewear"},{"id":"q_107","text":"silk finish leggings"},{"id":"q_108","text":"ribbed co ord set women"},{"id":"q_109","text":"cashmere blend joggers"},{"id":"q_110","text":"modal tshirt women"},{"id":"q_111","text":"structured co ord set women"},{"id":"q_112","text":"luxe lounge set women"},{"id":"q_113","text":"imported athleisure india"},{"id":"q_114","text":"tailored joggers women"},{"id":"q_115","text":"soft touch lounge pants"},{"id":"q_116","text":"pleated joggers women"},{"id":"q_117","text":"minimal design leggings"},{"id":"q_118","text":"elevated athleisure india"},{"id":"q_119","text":"wrinkle free travel co ord"},{"id":"q_120","text":"brushed fleece cropped hoodie"},{"id":"q_121","text":"vella leggings"},{"id":"q_122","text":"kestrel gym wear"},{"id":"q_123","text":"marlow co ord set"},{"id":"q_124","text":"satva leggings review"},{"id":"q_125","text":"halcyon activewear"},{"id":"q_126","text":"lumen sports bra"},{"id":"q_127","text":"nira joggers"},{"id":"q_128","text":"torvi leggings"},{"id":"q_129","text":"auren athleisure"},{"id":"q_130","text":"how to wash gym activewear"},{"id":"q_131","text":"how to wash gym leggings"},{"id":"q_132","text":"what to wear to the gym"},{"id":"q_133","text":"are gym leggings squat proof"},{"id":"q_134","text":"how to choose sports bra size"},{"id":"q_135","text":"legging size guide"},{"id":"q_136","text":"how tight should compression leggings be"},{"id":"q_137","text":"difference between leggings and tights"},{"id":"q_138","text":"how to remove sweat smell from gym clothes"},{"id":"q_139","text":"best fabric for gym wear"},{"id":"q_140","text":"how often to replace sports bra"},{"id":"q_141","text":"how to style athleisure"},{"id":"q_142","text":"free workout plan"},{"id":"q_143","text":"gym near me"},{"id":"q_144","text":"how to lose belly fat"},{"id":"q_145","text":"free gym diet chart"},{"id":"q_146","text":"home workout without equipment"},{"id":"q_147","text":"gym membership price"},{"id":"q_148","text":"protein powder for beginners"},{"id":"q_149","text":"yoga classes near me"},{"id":"q_150","text":"how to build muscle fast"},{"id":"q_151","text":"free fitness app"}]};
+const VIEW = 'list';
+const AMBER = '#F2A53A';
+const norm = (t) => String(t || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').trim().replace(/\s+/g, ' ');
+const toks = (t) => { const n = norm(t); return n ? n.split(' ') : []; };
+function fires(text, neg) {
+  const qt = toks(text);
+  const nt = toks(neg.text);
+  if (nt.length === 0) return false;
+  if (neg.match === 'exact') return norm(text) === norm(neg.text);
+  if (neg.match === 'phrase') {
+    for (let s = 0; s + nt.length <= qt.length; s++) {
+      let ok = true;
+      for (let j = 0; j < nt.length; j++) if (qt[s + j] !== nt[j]) { ok = false; break; }
+      if (ok) return true;
+    }
+    return false;
+  }
+  const have = new Set(qt);
+  return nt.every((w) => have.has(w));
+}
+const rupees = (r) => '₹' + Math.round(r).toLocaleString('en-IN');
+const pct = (x) => Math.round(100 * x) + '%';
+const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = { range: 'all', blocks: [], draft: 'squat proof', match: 'broad' };
+  }
+
+  renderVals() {
+    const { range, blocks, draft, match } = this.state;
+    const rows = DATA[range];
+    const avg = DATA.avg[range];
+    const rate = DATA.rate[range];
+    const maxSpend = Math.max(...rows.map((r) => r.spend));
+    const composing = { text: draft, match };
+    const typing = toks(draft).length > 0;
+    const blockOf = (text) => blocks.find((b) => fires(text, b)) || null;
+    const drop = (b) => this.setState({ blocks: this.state.blocks.filter((x) => x !== b) });
+
+    const row = (r) => {
+      const by = blockOf(r.text);
+      const perSale = r.sales > 0 ? r.spend / r.sales : null;
+      const dear = perSale !== null && perSale > 2 * avg;
+      const backRate = r.sales > 0 ? r.back / r.sales : null;
+      const worse = backRate !== null && r.back > 0 && backRate > rate * 1.15;
+      const caught = typing && !by && fires(r.text, composing);
+      return {
+        text: r.text,
+        own: r.brand === 'own',
+        missing: r.missing && r.missing.length ? 'no “' + r.missing.join(' ') + '”' : '',
+        hasMissing: Boolean(r.missing && r.missing.length),
+        barW: Math.max(2, Math.round((100 * r.spend) / maxSpend)) + '%',
+        spendText: rupees(r.spend),
+        salesText: r.sales.toFixed(1),
+        perSaleText: perSale === null ? '—' : rupees(perSale),
+        perSaleColor: dear ? AMBER : '#CFC9C3',
+        perSaleWeight: dear ? 700 : 400,
+        backText: backRate === null || r.back === 0 ? '—' : pct(backRate),
+        backColor: worse ? AMBER : '#CFC9C3',
+        backWeight: worse ? 700 : 400,
+        opacity: by ? 0.4 : 1,
+        strike: by ? 'line-through' : 'none',
+        outline: caught ? '#A19A94' : 'transparent',
+        rowBg: caught ? '#1F1C22' : 'transparent',
+        action: by ? (by.match === 'exact' && norm(by.text) === norm(r.text) ? 'undo' : 'blocked') : 'block',
+        actionColor: by ? '#A19A94' : '#FF6166',
+        onAction: () => {
+          if (by) { if (by.match === 'exact' && norm(by.text) === norm(r.text)) drop(by); return; }
+          this.setState({ blocks: [...this.state.blocks, { text: r.text, match: 'exact' }] });
+        },
+      };
+    };
+    const list = rows.map(row);
+
+    // By the keyword that bought each search (option B).
+    const groups = [];
+    if (VIEW === 'keyword') {
+      const by = new Map();
+      rows.forEach((r, i) => {
+        const key = r.via;
+        if (!by.has(key)) by.set(key, { key, rows: [], spend: 0, sales: 0 });
+        const g = by.get(key);
+        g.rows.push(list[i]);
+        g.spend += r.spend;
+        g.sales += r.sales;
+      });
+      for (const g of [...by.values()].sort((a, b) => b.spend - a.spend)) {
+        const [kw, type] = g.key.split(' · ');
+        groups.push({
+          keyword: kw, type,
+          sub: plural(g.rows.length, 'search', 'searches') + ' · ' + rupees(g.spend) + ' · ' + g.sales.toFixed(1) + ' sales',
+          rows: g.rows,
+        });
+      }
+    }
+
+    // The block being written, before it is made.
+    const bought = typing ? rows.filter((r) => !blockOf(r.text) && fires(r.text, composing)) : [];
+    const boughtTexts = new Set(bought.map((r) => norm(r.text)));
+    const never = typing ? DATA.queries.filter((q) => !boughtTexts.has(norm(q.text)) && !rows.some((r) => norm(r.text) === norm(q.text)) && fires(q.text, composing)) : [];
+    const spent = bought.reduce((s, r) => s + r.spend, 0);
+    const sold = bought.reduce((s, r) => s + r.sales, 0);
+    let headline = '';
+    if (typing && bought.length + never.length === 0) headline = 'Nothing in the market says “' + draft.trim() + '” on ' + match + '.';
+    else if (typing && bought.length === 0) headline = 'Blocks ' + plural(never.length, 'search', 'searches') + ', none of them bought yet.';
+    else if (typing) {
+      headline = 'Blocks ' + plural(bought.length + never.length, 'search', 'searches') + ': ' + bought.length + ' you have bought, '
+        + rupees(spent) + ' and ' + sold.toFixed(1) + ' sales' + (never.length ? ', and ' + never.length + ' you never have.' : '.');
+    }
+    const caughtRows = bought.slice(0, 5).map((r) => {
+      const perSale = r.sales > 0 ? r.spend / r.sales : null;
+      return {
+        text: r.text, spendText: rupees(r.spend), salesText: r.sales.toFixed(1),
+        perSaleText: perSale === null ? '—' : rupees(perSale),
+        perSaleColor: perSale !== null && perSale > 2 * avg ? AMBER : '#CFC9C3',
+      };
+    });
+    const neverText = never.length ? 'Never bought: ' + never.slice(0, 3).map((q) => q.text).join(', ') + (never.length > 3 ? ', and ' + (never.length - 3) + ' more' : '') + '.' : '';
+    const matches = ['broad', 'phrase', 'exact'].map((m) => ({
+      label: m, bg: m === match ? '#EDE8E3' : 'transparent', color: m === match ? '#0D0C0E' : '#CFC9C3',
+      border: m === match ? '#EDE8E3' : '#3A363E', pick: () => this.setState({ match: m }),
+    }));
+
+    const blocked = blocks.map((b) => ({
+      text: '“' + b.text + '” · ' + b.match,
+      count: plural(DATA.queries.filter((q) => fires(q.text, b)).length, 'search', 'searches'),
+      remove: () => drop(b),
+    }));
+    const tray = blocks.map((b) => ({ text: 'Block “' + b.text + '”' + (b.match === 'exact' ? '' : ' · ' + b.match), undo: () => drop(b) }));
+    const n = DATA.weeks;
+    const summary = range === 'all'
+      ? rows.length + ' searches from your ' + DATA.keywords + ' keywords, about ' + (rows.length / DATA.keywords).toFixed(1) + ' each'
+      : rows.length + ' searches this week, from your ' + DATA.keywords + ' keywords';
+    const chip = (key, label) => ({
+      label, bg: range === key ? '#EDE8E3' : 'transparent', color: range === key ? '#0D0C0E' : '#CFC9C3',
+      border: range === key ? '#EDE8E3' : '#3A363E', pick: () => this.setState({ range: key }),
+    });
+    return {
+      summary, ranges: [chip('all', 'all ' + n + ' weeks'), chip('week', 'this week only')],
+      rows: list, groups,
+      // A week just played has no returns yet (they take two weeks), so there is
+      // no rate of its own to compare with.
+      legend: 'Amber: a sale there costs over twice your ' + rupees(avg) + ' average'
+        + (rate > 0 ? ', or more of its sales came back than your ' + pct(rate) + '.' : '.'),
+      draft, typed: (e) => this.setState({ draft: e.target.value }), matches,
+      showPreview: typing, headline, caughtRows, hasCaught: caughtRows.length > 0, neverText,
+      canBlock: typing && bought.length + never.length > 0,
+      blockLabel: 'Block ' + plural(bought.length + never.length, 'search', 'searches'),
+      doBlock: () => { if (!typing) return; this.setState({ blocks: [...this.state.blocks, { text: draft.trim(), match }], draft: '' }); },
+      blocked, hasBlocked: blocked.length > 0, noneBlocked: blocked.length === 0,
+      tray, hasTray: tray.length > 0, emptyTray: tray.length === 0,
+      trayN: String(tray.length), trayWord: tray.length === 1 ? 'change' : 'changes',
+    };
+  }
+}
+
+</script>
+</body>
+</html>
