@@ -35,6 +35,7 @@ import { TYPED } from '../ui/words/typed.js';
 import { MONEY } from '../ui/words/money.js';
 import { RESULTS, TARGET_WORDS } from '../ui/words/results.js';
 import { GUIDE } from '../ui/words/guide.js';
+import { DOOR } from '../ui/words/door.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -778,6 +779,27 @@ describe('the Guide page says its own labels whole (ui/words/guide.js)', () => {
   });
 });
 
+describe('the front door says its words whole (ui/words/door.js)', () => {
+  // The switch-over, part 1 (design/switch-over/, A).
+  const FIGURES = { played: 6, total: 12, week: 7, of: 6, spend: '₹55,939', clicks: '4,284', n: 3 };
+
+  test('each renders with the figures it is given', () => {
+    for (const [name, entry] of Object.entries(DOOR)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN/);
+    }
+    expect(DOOR.played(FIGURES)).toBe('6 of 12 weeks played');
+    expect(DOOR.replaying(FIGURES)).toBe('Replaying week 7 of 6…');
+    expect(DOOR.moreDiffer({ n: 1 })).toBe('and 1 more week differs');
+  });
+
+  // A replay is exact by design, so it fails the same way every time: a door
+  // offering to try again would be a control that does nothing (ui/app.js).
+  test('a save this version cannot open is not offered again', () => {
+    const all = Object.values(DOOR).map((entry) => entry(FIGURES)).join(' ');
+    expect(all).not.toMatch(/try again/i);
+  });
+});
+
 describe('the new screens draw, and do not write', () => {
   // A "word" here must hold two letters in a row, so icon paths and class
   // lists are not counted.
@@ -785,7 +807,8 @@ describe('the new screens draw, and do not write', () => {
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
     'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js', 'ui/money/render.js',
-    'ui/returns/render.js', 'ui/rivals/render.js', 'ui/results/render.js', 'ui/guide/page.js'];
+    'ui/returns/render.js', 'ui/rivals/render.js', 'ui/results/render.js', 'ui/guide/page.js',
+    'ui/door/render.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

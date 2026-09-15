@@ -40,6 +40,9 @@ import { lookMode } from './look.js';
 import { createStudio } from './shell/shell.js';
 import { createRoundZero } from './roundzero/studio.js';
 import { notesFor } from './roundzero/rules.js';
+import { renderDoor } from './door/render.js';
+import { doorFacts, changedWeeks } from './door/read.js';
+import { DOOR } from './words/door.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -527,6 +530,21 @@ function choice(label, why, onPick) {
   return row;
 }
 
+/**
+ * The Studio's front door (design/switch-over/, A), in the page's own space:
+ * the shell appears only once there is a game to put in it.
+ *
+ * @param {object} view - `renderDoor`'s (ui/door/render.js)
+ * @returns {{progress: (week: number, of: number) => void}}
+ */
+function showDoor(view) {
+  const door = renderDoor(view);
+  app.replaceChildren(door.node);
+  window.scrollTo(0, 0);
+  door.node.querySelector('.door-title')?.focus({ preventScroll: true });
+  return door;
+}
+
 /** Throw the saved game away and open round 0. */
 function startAfresh() {
   clearSave(storage);
@@ -549,6 +567,18 @@ function offerResume(saved) {
   recorder?.phase('resume offer');
 
   const finished = saved.weeksPlayed >= TOTAL_ROUNDS;
+  if (look === 'studio') {
+    const facts = doorFacts(saved);
+    showDoor({
+      ...facts,
+      state: facts.finished ? 'finished' : 'offer',
+      onResume: () => resume(saved),
+      onStartAfresh: startAfresh,
+      onPlaytest: recorder ? sendPlaytestFile : null,
+    });
+    return;
+  }
+
   const node = panel('A game in progress', 'saved in this browser');
   node.append(el('p', 'note',
     `${me.name}, ${me.position.price} · ${me.position.purpose}: ${saved.weeksPlayed} of `
@@ -567,50 +597,82 @@ function offerResume(saved) {
 
 async function resume(saved) {
   recorder?.phase('restoring');
-  const node = panel('Restoring your game');
-  const progress = el('p', 'note', `Replaying week 1 of ${saved.weeksPlayed}…`);
-  node.append(progress);
-  showPanel(node);
-
-  const restored = await restoreSave(saved, {
-    mode: 'expected',
-    onWeek: (week, of) => {
-      progress.textContent = week < of ? `Replaying week ${week + 1} of ${of}…` : 'Done.';
-    },
-  });
-
-  rootSeed = saved.initialState.rootSeed;
-  openGame(saved.initialState, saved.playerId);
-  game.notes = saved.notes;
-  game.state = restored.state;
-  game.reports = restored.reports;
-  game.insights = restored.insights;
-  game.historyBefore = restored.historyBefore;
-  refreshDraft();
-  if (restored.exact) {
-    game.saved = true;
-    render();
-    return;
+  const base = {
+    ...doorFacts(saved), onStartAfresh: startAfresh, onPlaytest: recorder ? sendPlaytestFile : null,
+  };
+  let door = null;
+  let progress = null;
+  if (look === 'studio') door = showDoor({ ...base, state: 'restoring' });
+  else {
+    const node = panel('Restoring your game');
+    progress = el('p', 'note', `Replaying week 1 of ${saved.weeksPlayed}…`);
+    node.append(progress);
+    showPanel(node);
   }
 
-  // The same decisions, run by an engine that has changed since the save was
-  // written, gave different weeks. Say so rather than hand back a game quietly
-  // different from the one that was played.
-  recorder?.phase('replay changed');
-  const warn = panel('This game has changed since you saved it');
-  warn.append(el('p', 'note',
-    'The simulator has been updated since this game was saved. Replayed on this '
-    + 'version, your own decisions produce different weeks from the ones you '
-    + 'played, so the numbers you would see are this version’s, not the ones you '
-    + 'read at the time.'));
-  warn.append(
-    choice('Continue with these numbers', 'Carry on from here on the updated simulator.', () => {
+  // A replay is exact by design — the same first state, the same log and a
+  // seeded engine — so one that throws would throw again on the next try. Until
+  // this, nothing caught it and "Restoring your game" stayed on screen for ever
+  // (found drawing the switch-over, 2026-09-16).
+  try {
+    const restored = await restoreSave(saved, {
+      mode: 'expected',
+      onWeek: (week, of) => {
+        if (door) door.progress(week, of);
+        else progress.textContent = week < of ? `Replaying week ${week + 1} of ${of}…` : 'Done.';
+      },
+    });
+
+    rootSeed = saved.initialState.rootSeed;
+    openGame(saved.initialState, saved.playerId);
+    game.notes = saved.notes;
+    game.state = restored.state;
+    game.reports = restored.reports;
+    game.insights = restored.insights;
+    game.historyBefore = restored.historyBefore;
+    refreshDraft();
+    if (restored.exact) {
+      game.saved = true;
+      render();
+      return;
+    }
+
+    // The same decisions, run by an engine that has changed since the save was
+    // written, gave different weeks. Say so rather than hand back a game quietly
+    // different from the one that was played.
+    recorder?.phase('replay changed');
+    const carryOn = () => {
       persist();
       render();
-    }),
-    choice('Start a new game', 'Discards the saved game.', startAfresh),
-  );
-  showPanel(warn);
+    };
+    if (door) {
+      const { rows, more } = changedWeeks(saved.fingerprint, restored.reports, saved.playerId);
+      showDoor({ ...base, state: 'changed', rows, more, onCarryOn: carryOn });
+      return;
+    }
+    const warn = panel('This game has changed since you saved it');
+    warn.append(el('p', 'note',
+      'The simulator has been updated since this game was saved. Replayed on this '
+      + 'version, your own decisions produce different weeks from the ones you '
+      + 'played, so the numbers you would see are this version’s, not the ones you '
+      + 'read at the time.'));
+    warn.append(
+      choice('Continue with these numbers', 'Carry on from here on the updated simulator.', carryOn),
+      choice('Start a new game', 'Discards the saved game.', startAfresh),
+    );
+    showPanel(warn);
+  } catch (error) {
+    console.error(error);
+    recorder?.phase('restore failed');
+    game = null;
+    if (door) showDoor({ ...base, state: 'failed' });
+    else {
+      const node = panel(DOOR.failedTitle());
+      node.append(el('p', 'note', DOOR.failedNote()),
+        choice(DOOR.startNew(), DOOR.discardWhy(), startAfresh));
+      showPanel(node);
+    }
+  }
 }
 
 /**
@@ -632,8 +694,12 @@ window.addEventListener('beforeunload', (event) => {
   event.returnValue = '';
 });
 
+// A click on the front door is not work round 0 would lose, so reloading while
+// a game restores, or on a door that could not open one, asks nothing.
 for (const type of ['input', 'change', 'click']) {
-  app.addEventListener(type, () => { if (!game) roundZeroTouched = true; });
+  app.addEventListener(type, (event) => {
+    if (!game && !event.target.closest?.('.door')) roundZeroTouched = true;
+  });
 }
 
 redoButton.addEventListener('click', redo);

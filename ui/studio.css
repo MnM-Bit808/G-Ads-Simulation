@@ -139,6 +139,45 @@ body.studio [hidden] { display: none !important; }
 body.studio:has(.studio-shell) .bar { display: none; }
 body.studio main:has(> .studio-shell) { padding: 0; max-width: none; }
 
+/* --- the front door (design/switch-over/, A, the owner's choice 2026-09-16) --- */
+/* One card before a game opens: the page's own space, no header, as the shell. */
+body.studio:has(.door) .bar { display: none; }
+body.studio main:has(> .door) { padding: 0; max-width: none; }
+body.studio .door { display: grid; place-items: center; min-height: 100vh; min-height: 100dvh; padding: 24px 16px; box-sizing: border-box; }
+body.studio .door-column { display: flex; flex-direction: column; gap: 22px; width: min(600px, 100%); }
+body.studio .door-head { display: flex; align-items: center; gap: 14px; }
+body.studio .door-logo { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--studio-red); color: var(--studio-on-red); font: 800 17px/1 var(--studio-display); }
+body.studio .door-brand { display: flex; flex: 1; flex-direction: column; gap: 2px; }
+body.studio .door-brand strong { font: 800 20px/1.1 var(--studio-display); }
+body.studio .door-brand span { font-size: 12px; color: var(--studio-muted); }
+body.studio .door-playtest { padding: 6px 14px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 13px; font-weight: 600; }
+body.studio .door-card { display: flex; flex-direction: column; gap: 16px; padding: 30px 32px; border: 1px solid var(--studio-line); border-radius: 24px; background: var(--studio-card); }
+body.studio .door-eyebrow { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio h2.door-title { margin: 0; font: 800 40px/1 var(--studio-display); letter-spacing: -0.02em; text-transform: none; color: var(--studio-text); }
+body.studio .door-title:focus { outline: none; }
+body.studio .door-dots { display: flex; flex-wrap: wrap; gap: 6px; }
+body.studio .door-dots i { width: 12px; height: 12px; border: 1.5px solid var(--studio-line-strong); border-radius: 50%; box-sizing: border-box; }
+body.studio .door-dots i.on { border-color: var(--studio-red); background: var(--studio-red); }
+body.studio .door-count { margin: -6px 0 0; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--studio-muted); }
+body.studio .door-note { margin: 0; font-size: 15px; line-height: 1.55; color: var(--studio-soft); }
+body.studio .door-bar { height: 8px; overflow: hidden; border-radius: 4px; background: #2E2A33; }
+body.studio .door-bar span { display: block; width: 0; height: 100%; background: var(--studio-red); transition: width 120ms var(--studio-ease); }
+body.studio .door-table { display: grid; grid-template-columns: 80px minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 16px; background: var(--studio-page); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--studio-soft); }
+body.studio .door-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .door-week, body.studio .door-more { color: var(--studio-muted); }
+body.studio .door-more { grid-column: 2 / -1; }
+body.studio .door-choice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+body.studio .door-go { height: 52px; padding: 0 28px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font: 700 18px/1 var(--studio-display); }
+body.studio .door-other { height: 44px; padding: 0 22px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 15px; font-weight: 600; }
+body.studio .door-why { flex: 1 1 200px; margin: 0; font-size: 13px; line-height: 1.4; color: var(--studio-muted); }
+/* A phone: the title and the table take what room there is. */
+@media (max-width: 560px) {
+  body.studio .door-card { padding: 22px 18px; }
+  body.studio h2.door-title { font-size: 30px; }
+  body.studio .door-table { grid-template-columns: 60px minmax(0, 1fr) minmax(0, 1fr); font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { body.studio .door-bar span { transition: none; } }
+
 body.studio .studio-shell { display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); height: 100vh; height: 100dvh; }
 body.studio .studio-icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 

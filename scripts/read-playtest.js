@@ -37,6 +37,9 @@ const GROUPS = [
   ['weeks 1-4', (name) => /^week [1-4]$/.test(name)],
   ['weeks 5-11', (name) => /^week (5|6|7|8|9|10|11)$/.test(name)],
   ['end screen', (name) => name === 'end screen'],
+  // Before a game opens (the switch-over, part 1): the offer, the replay, a
+  // game the simulator changed under, and one it could not open at all.
+  ['front door', (name) => ['resume offer', 'restoring', 'replay changed', 'restore failed'].includes(name)],
   ['other', () => true],
 ];
 
