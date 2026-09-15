@@ -27,11 +27,12 @@ import {
   PRICE_TIERS, PURPOSES, POSITION_ECONOMICS, PURPOSE_MODIFIERS,
   RETURN_RATE_CLAMP_MAX, CAPEX_TIER_CURVE, CAPEX_PHOTOGRAPHY_CURVE, CAPEX_ALLOCATION_PAISE,
   CAPEX_LANDING_PAGE_MAX_POINTS, REPOSITION_ROUND,
-  HOUR_PROFILES, HOURLY_INTENT_CURVE, CONV_RATE_CLAMP,
+  HOUR_PROFILES, HOURLY_INTENT_CURVE, CONV_RATE_CLAMP, LOCATION_TIERS,
 } from './constants.js';
 import { clamp, lerp } from './num.js';
 import { mulRate } from './money.js';
 import { homeCell } from './querySet.js';
+import { locationEffects, refusalRateFor, rtoShareOfReturns } from './locations.js';
 
 // ---------------------------------------------------------------------------
 // The grid
@@ -136,6 +137,146 @@ export function businessFor(position, capex, round) {
     orderConfirmationEffect: orderConfirmation,
     returnWindowRounds: tier.returnWindowRounds,
   };
+}
+
+/**
+ * What comes back from one order bought at one place: every return, and the
+ * part of it refused at the door.
+ *
+ * THE ONE PLACE THIS ARITHMETIC LIVES. `round.js` books an order's returns with
+ * it and `refusalOutlook` forecasts an account's refusal rate with it, so what
+ * the prepaid card says and what the week then does cannot drift apart. Until
+ * 2026-09-15 the card had a formula of its own, and it missed order
+ * confirmation, purpose and the place gradient (I29, I34).
+ *
+ * @param {object} args
+ * @param {object} args.business from `businessFor`: the return level before the
+ *   size guide, and both capital effects
+ * @param {number} args.queryReturnMultiplier the search's own multiplier; 1
+ *   where the caller may not know it (16.1)
+ * @param {number} args.placeReturnMultiplier
+ *   `locationEffects(...).returnMultiplier[tierIndex]`
+ * @param {string} args.price a `PRICE_TIERS` entry
+ * @param {number} args.tierIndex into `LOCATION_TIERS`
+ * @param {number} [args.discountPaise] the prepaid discount, 0 for none
+ * @returns {{returned: number, refused: number}} per order, with
+ *   refused <= returned <= RETURN_RATE_CLAMP_MAX
+ */
+export function returnHalves({
+  business, queryReturnMultiplier, placeReturnMultiplier, price, tierIndex, discountPaise = 0,
+}) {
+  // The return rate for this query BEFORE the size guide was divided into
+  // it, which is what the per-location split below has to start from.
+  // `retentionRate` is still the right function for anything that wants
+  // the headline figure; this path needs the two halves separately.
+  // Clamped twice, as the round always has: once for the search, once for the
+  // place.
+  const gross = Math.min(
+    RETURN_RATE_CLAMP_MAX,
+    Math.min(RETURN_RATE_CLAMP_MAX, business.returnRateBeforeSizeGuide * queryReturnMultiplier)
+      * placeReturnMultiplier,
+  );
+
+  // I28 BUILD 2: THE SIZE GUIDE ONLY REACHES HALF OF THIS.
+  //
+  // A refusal at the door and a send-back after delivery are different
+  // events, and a size guide fixes only the second — nobody's fit chart
+  // stops a customer changing their mind on the doorstep. So the return
+  // rate is rebuilt from its two halves here, where the location is
+  // known, rather than taken from `business.returnRate`, which has
+  // already divided the whole thing by the capex effect.
+  //
+  // The consequence is a real strategic lever and it falls out of
+  // numbers the player can already see: the more of your orders are cash
+  // on delivery, the less a size guide is worth to you.
+  //
+  // EACH TARGET REDUCES ITS OWN HALF AND ONLY ITS OWN HALF (I29).
+  // Order confirmation stops the parcel that never got through the door;
+  // the size guide fixes the one that was delivered and did not fit.
+  // Neither converts into the other — an order that is confirmed rather
+  // than refused simply does not come back.
+  //
+  // I34: THE DISCOUNT REMOVES REFUSALS, IT DOES NOT RELABEL THEM.
+  //
+  // The first version read one share for both halves, so lowering the
+  // refusal share raised the send-back share by exactly as much and the
+  // total return rate never moved — the discount bought a change of
+  // door, not a kept sale. Measured, that made it strictly dominated:
+  // "no discount" won in all six cells because the only saving left was
+  // ₹200 of freight against a margin lost either way.
+  //
+  // It is also wrong about the world. Prepaid RTO runs 5-10% against
+  // COD's 25-35%, and a customer who has already paid mostly does not
+  // send it back either — the sale survives. So send-backs are computed
+  // from the mix BEFORE the discount, and the refusals it prevents leave
+  // the account instead of reappearing.
+  //
+  // AND IT REMOVES THEM AT THE SOURCED RATE (2026-09-15). The second version
+  // took refusals as the refused SHARE at the discounted mix times the total
+  // before it. That share is worked out against a total in which the newly
+  // delivered parcels are sent back at POST_DELIVERY_RETURN_RATE — the
+  // relabelling this comment says was removed — so it falls more slowly than
+  // the refusal rate, and about a quarter of the refusals the discount should
+  // prevent stayed: 100 mid orders in the towns gave 17.9 refusals, ₹30 should
+  // leave 16.7, and the round booked 17.0. Measured over 72 accounts, the
+  // prepaid card promised 5.8-6.8% fewer and the round delivered 4.5-4.9%. So
+  // the refused half falls by exactly the ratio of the two refusal rates, and
+  // with no discount that ratio is exactly 1, which keeps every account
+  // without one to the paisa.
+  const refusedShare = rtoShareOfReturns(price, tierIndex, 0);
+  const cut = refusalRateFor(price, tierIndex, discountPaise) / refusalRateFor(price, tierIndex, 0);
+  const refused = (gross * refusedShare * cut) / business.orderConfirmationEffect;
+  const sentBack = (gross * (1 - refusedShare)) / business.sizeGuideEffect;
+  const returned = Math.min(RETURN_RATE_CLAMP_MAX, refused + sentBack);
+  return { returned, refused: Math.min(returned, refused) };
+}
+
+/**
+ * The refusal rate an account will run at next week, per order, at its own
+ * places — the figure the prepaid card shows (I34).
+ *
+ * `returnHalves` at each place, weighted by where the account buys, so it
+ * carries everything the round will apply: the price tier's cash mix, purpose's
+ * return level, the place gradient, order confirmation once it is live, and the
+ * discount.
+ *
+ * ONE THING IT LEAVES OUT, BY RULE: each search's own return multiplier, which
+ * every view withholds (16.1). So it is exact for an account whose searches sit
+ * at 1 and close otherwise — measured 2026-09-15 over 72 played accounts at
+ * 0.91x to 1.02x of what the round booked, where the card's old cash-mix formula
+ * was up to 4.3 points high once order confirmation was live.
+ *
+ * @param {object} args
+ * @param {{price: string, purpose: string}} args.position
+ * @param {{committed: object, pending?: object[]}} args.capex the account's own
+ *   capital block, pending tranches included, so money still being built is not
+ *   counted
+ * @param {number} args.round the round about to be played
+ * @param {number} [args.discountPaise] 0 for none
+ * @param {number[]} args.placeWeights one per `LOCATION_TIERS` entry, any scale:
+ *   the account's clicks by place, say
+ * @returns {number} refusals per order, 0..1
+ * @throws {RangeError} when the weights are the wrong length or hold nothing —
+ *   which place an account with no clicks should be shown is the caller's call
+ */
+export function refusalOutlook({ position, capex, round, discountPaise = 0, placeWeights }) {
+  const total = (placeWeights ?? []).reduce((a, w) => a + w, 0);
+  if (placeWeights?.length !== LOCATION_TIERS.length || !(total > 0)) {
+    throw new RangeError(`placeWeights must be ${LOCATION_TIERS.length} weights with something in them`);
+  }
+  const business = businessFor(position, capex, round);
+  // Normalised to the price tier's own country, as the round's are. With a
+  // price named, `locationEffects` does not read the query set.
+  const places = locationEffects(null, position.price).returnMultiplier;
+  let refused = 0;
+  for (let t = 0; t < placeWeights.length; t++) {
+    if (placeWeights[t] <= 0) continue;
+    refused += placeWeights[t] * returnHalves({
+      business, queryReturnMultiplier: 1, placeReturnMultiplier: places[t],
+      price: position.price, tierIndex: t, discountPaise,
+    }).refused;
+  }
+  return refused / total;
 }
 
 /**

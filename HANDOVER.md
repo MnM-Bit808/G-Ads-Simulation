@@ -1543,7 +1543,10 @@ F13's rejected volume option has to come back.
 - **Two of the four capital targets still have no surface at all.** Photography
   and order confirmation move a number and no screen says so. The landing page
   has a visible score and the size guide now shows up on *What came back* (I31)
-  as the send-back half, so the gap has halved rather than closed. Same shape as
+  as the send-back half, so the gap has halved rather than closed. Since
+  2026-09-15 order confirmation moves the prepaid card's refusal figure from the
+  week it goes live (I29, I34), but nothing names it as the cause, so it has
+  half a surface, not one. Same shape as
   I16, which put "your copy is not live yet" on the dashboard after measuring
   that the round it lands is the largest single movement in a game.
 
@@ -1575,13 +1578,16 @@ F13's rejected volume option has to come back.
   leaving it where it is — a conversion-rate lever genuinely is the highest-
   leverage thing in performance marketing, and 1.5x may be the lesson.
 
-- **The prepaid discount is a real lever and a modest one.** ₹30 is right in four
-  cells of six and the gain is 0.2% to 1.4%; what it teaches properly is the
-  penalty, since ₹100 loses everywhere by up to 3.2%. If the modesty is a
+- **The prepaid discount is a real lever and a modest one.** Since the round
+  takes its refusals off at the sourced rate (I34, 2026-09-15), ₹50 is best in
+  five cells and ₹70 in the sixth, for +1.7% to +4.7% of final profit on the
+  committed harness (`node scripts/market-harness.js prepaid <label>`). ₹100 is
+  worse than ₹50 everywhere and no longer worse than nothing, so the penalty the
+  lever used to teach is now only the diminishing return. If the modesty is a
   problem, the lever to pull is letting it lift conversion rate — excluded on
   purpose so it has one effect, and I34 says why. **Do not reach that by retuning
   `PREPAID_DISCOUNT_CURVE`**, which is built from published deltas rather than
-  chosen.
+  chosen. And no rival has ever pulled it (I34, open).
 
 - ~~The two positioning axes have swapped.~~ **Settled as F13, below.** Kept for
   the measurements, which are the reason the decision could be made.
@@ -1948,7 +1954,9 @@ at all.
   smoke test of the build played round 0 into week 1 and got an error: the
   prepaid discount card read a `ctx.price` nothing ever set. 1348 tests passed
   throughout. Fixed and recorded in I34 — and a reminder that "the build works"
-  means playing it, not loading it.
+  means playing it, not loading it. That fix mended one of three keys the card
+  read and nothing set; the other two failed quietly, showing every account the
+  towns' refusal rate, until 2026-09-15 (I34, and *Verifying the interface*).
 - **A plain static server let the browser keep a stale module through a hard
   reload.** With no bundler every module is cached on its own, so a returning
   player could pair new files with old ones after a deploy. The build writes a
@@ -2312,6 +2320,26 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   preview, the month arithmetic, the reading-back of `decisionLog` — is an
   exported function with tests, and only the drawing needs a browser. That is
   what made 47 of this session's tests possible at all.
+- **A key the form's context lacks is not an error, and a fallback hides it.**
+  The prepaid card read `ctx.history` and `ctx.playerId`, which the dashboard
+  never set, and `?? []` turned the gap into "no weeks played": every account
+  read the towns' refusal rate from the day the card shipped (2026-09-10) until
+  2026-09-15, in a card that had already crashed once over a third missing key,
+  `ctx.price` (I34). The context's data half is now `formContext(game)` in
+  `ui/dashboard.js`, built without a page, so a card's figures can be tested
+  through the context the screen really hands it, as `tests/dashboard.test.js`
+  does for `prepaidReading`. A card that reads a new key deserves the same
+  test. And the context carries the player's own rows, never `state.history`,
+  which holds all nine advertisers' reports.
+- **Calling one engine function is not asking the engine.** The prepaid card
+  imported `refusalRateFor`, so it named no constant and passed
+  `tests/ui.test.js`, and it still worked out only part of what the round does:
+  no order confirmation, purpose or place gradient, up to 4.3 points high once
+  order confirmation was live (I34, 2026-09-15). A figure a card shows should
+  come from a function the round itself calls — here `refusalOutlook`, which
+  shares `returnHalves` with `round.js` — and its test should hold it against
+  what the round BOOKED through the report, not against the function the card
+  calls.
 - **Resizing the browser pane reloads the page, and the game is in memory.**
   Four played rounds vanish and you are back at round 0 with no error and no
   clue. Set the viewport BEFORE opening the game, not after — and if a

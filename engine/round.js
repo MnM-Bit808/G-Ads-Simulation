@@ -34,7 +34,7 @@
 import {
   ADVERTISER_COUNT, ROUNDS_PER_MONTH, POSITION_CTR_MULTIPLIERS, TOP_SLOTS,
   AUCTIONS_PER_QUERY_HOUR, MAX_SLOTS, ATTRIBUTION_LAG_DISTRIBUTION,
-  LOCATION_TIERS, RETURN_RATE_CLAMP_MAX, MIN_BID_PAISE,
+  LOCATION_TIERS, MIN_BID_PAISE,
   REPOSITION_COST_PAISE,
 } from './constants.js';
 import { assertPaise, mulRate, allocate } from './money.js';
@@ -42,9 +42,9 @@ import { substream } from './rng.js';
 import { searches, DAYS_PER_WEEK, HOURS_PER_DAY } from './querySet.js';
 import { isBlocked, findMatches, selectAdGroup, normalise } from './matching.js';
 import { qualitySignalBase, applyHourAndNoise } from './quality.js';
-import { businessFor, landingPageBonus } from './positions.js';
+import { businessFor, landingPageBonus, returnHalves } from './positions.js';
 import {
-  locationSharesFor, locationEffects, rtoShareOfReturns, codShareFor,
+  locationSharesFor, locationEffects, codShareFor,
 } from './locations.js';
 import { resolveAuction } from './auction.js';
 import { estimatedConvRate, effectiveBidPaise, locationMultiplier } from './strategies.js';
@@ -485,15 +485,7 @@ function recordAuction({
       });
       if (convRate > 0) {
         const base = sampleOrderValuePaise(business[i], query, perAdvertiserRng[i], mode);
-        // The return rate for this query BEFORE the size guide was divided into
-        // it, which is what the per-location split below has to start from.
-        // `retentionRate` is still the right function for anything that wants
-        // the headline figure; this path needs the two halves separately.
         const discountPaise = advertisers[i].campaign?.prepaidDiscountPaise ?? 0;
-        const queryReturnGross = Math.min(
-          RETURN_RATE_CLAMP_MAX,
-          business[i].returnRateBeforeSizeGuide * (query.returnRateMultiplier ?? 1),
-        );
         const converted = clicks * convRate;
         // ONE BUCKET PER QUERY AND LOCATION. The basket and the return rate are
         // both per location, and they are the only two things location changes -
@@ -522,52 +514,23 @@ function recordAuction({
             0, base * effects.aovMultiplier[t] - discountPaise * prepaidShare,
           );
 
-          // I28 BUILD 2: THE SIZE GUIDE ONLY REACHES HALF OF THIS.
-          //
-          // A refusal at the door and a send-back after delivery are different
-          // events, and a size guide fixes only the second — nobody's fit chart
-          // stops a customer changing their mind on the doorstep. So the return
-          // rate is rebuilt from its two halves here, where the location is
-          // known, rather than taken from `business.returnRate`, which has
-          // already divided the whole thing by the capex effect.
-          //
-          // The consequence is a real strategic lever and it falls out of
-          // numbers the player can already see: the more of your orders are cash
-          // on delivery, the less a size guide is worth to you.
-          const gross = Math.min(
-            RETURN_RATE_CLAMP_MAX, queryReturnGross * effects.returnMultiplier[t],
-          );
-          // EACH TARGET REDUCES ITS OWN HALF AND ONLY ITS OWN HALF (I29).
-          // Order confirmation stops the parcel that never got through the door;
-          // the size guide fixes the one that was delivered and did not fit.
-          // Neither converts into the other — an order that is confirmed rather
-          // than refused simply does not come back.
-          // I34: THE DISCOUNT REMOVES REFUSALS, IT DOES NOT RELABEL THEM.
-          //
-          // The first version read one share for both halves, so lowering the
-          // refusal share raised the send-back share by exactly as much and the
-          // total return rate never moved — the discount bought a change of
-          // door, not a kept sale. Measured, that made it strictly dominated:
-          // "no discount" won in all six cells because the only saving left was
-          // ₹200 of freight against a margin lost either way.
-          //
-          // It is also wrong about the world. Prepaid RTO runs 5-10% against
-          // COD's 25-35%, and a customer who has already paid mostly does not
-          // send it back either — the sale survives. So send-backs are computed
-          // from the mix BEFORE the discount, and the refusals it prevents leave
-          // the account instead of reappearing.
-          const price = advertisers[i].position.price;
-          const baseShare = rtoShareOfReturns(price, t, 0);
-          const paidShare = rtoShareOfReturns(price, t, discountPaise);
-          const refusedHere = (gross * paidShare) / business[i].orderConfirmationEffect;
-          const sentBackHere = (gross * (1 - baseShare)) / business[i].sizeGuideEffect;
-          const rate = Math.min(RETURN_RATE_CLAMP_MAX, refusedHere + sentBackHere);
-
-          bucket.returnWeighted += here * rate;
+          // What comes back from these orders, refused at the door or sent back
+          // after it, each half with its own lever (I28, I29, I34). The arithmetic
+          // is `returnHalves`, so the prepaid card's forecast is this line and
+          // not a copy of it.
+          const back = returnHalves({
+            business: business[i],
+            queryReturnMultiplier: query.returnRateMultiplier ?? 1,
+            placeReturnMultiplier: effects.returnMultiplier[t],
+            price: advertisers[i].position.price,
+            tierIndex: t,
+            discountPaise,
+          });
+          bucket.returnWeighted += here * back.returned;
           // Carried so the freight on a refused parcel can be charged to the
           // round that earned it. Weighted the same way, because a bucket is a
           // cohort and not a single order.
-          bucket.refusedWeighted += here * Math.min(rate, refusedHere);
+          bucket.refusedWeighted += here * back.refused;
           convAccum[i].set(key, bucket);
         }
         // Kept separately from the money buckets, which are per query because

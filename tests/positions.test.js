@@ -4,14 +4,16 @@ import {
   businessFor, breakEvenCpcPaise, grossBreakEvenCpcPaise, marginPerOrderPaise,
   capexEffect, liveCapexPaise, landingPageBonus,
   canReposition, isOneStep, reposition,
-  realisedBreakEvenCpcPaise, territoryQueries,
+  realisedBreakEvenCpcPaise, territoryQueries, returnHalves, refusalOutlook,
 } from '../engine/positions.js';
+import { refusalRateFor, rtoShareOfReturns } from '../engine/locations.js';
 import { homeCell } from '../engine/querySet.js';
 import { QUERY_SET } from '../content/querySet.js';
 import {
   PRICE_TIERS, PURPOSES, POSITION_ECONOMICS, PURPOSE_MODIFIERS,
   CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
   CAPEX_LANDING_PAGE_MAX_POINTS, REPOSITION_ROUND, REPOSITION_COST_PAISE,
+  LOCATION_TIERS, RETURN_RATE_CLAMP_MAX,
 } from '../engine/constants.js';
 
 const pos = (price, purpose) => ({ price, purpose, setAtRound: 0, repositionedAtRound: null });
@@ -608,5 +610,93 @@ describe('order confirmation acts on refusals and nothing else', () => {
     };
     expect(businessFor(cell, pending, 6).orderConfirmationEffect).toBe(1);
     expect(businessFor(cell, pending, 9).orderConfirmationEffect).toBeGreaterThan(1);
+  });
+});
+
+describe('what comes back from an order at a place (I28, I29, I34)', () => {
+  const MID = { price: 'mid', purpose: 'performance' };
+  const EMPTY = { committed: {}, pending: [] };
+  const full = (target) => ({ committed: { [target]: 8000000 }, pending: [] });
+  const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].effect;
+  const at = (over = {}) => returnHalves({
+    business: businessFor(MID, EMPTY, 1), queryReturnMultiplier: 1, placeReturnMultiplier: 1,
+    price: 'mid', tierIndex: 2, discountPaise: 0, ...over,
+  });
+  const sentBack = (x) => x.returned - x.refused;
+
+  test('with nothing bought, it is the whole return level, split at the sourced share', () => {
+    const x = at();
+    expect(x.returned).toBeCloseTo(businessFor(MID, EMPTY, 1).returnRateBeforeSizeGuide, 12);
+    expect(x.refused / x.returned).toBeCloseTo(rtoShareOfReturns('mid', 2, 0), 12);
+  });
+
+  test('order confirmation divides refusals and nothing else', () => {
+    const x = at({ business: businessFor(MID, full('orderConfirmation'), 1) });
+    expect(x.refused).toBeCloseTo(at().refused / top, 12);
+    expect(sentBack(x)).toBeCloseTo(sentBack(at()), 12);
+  });
+
+  test('the size guide divides send-backs and nothing else', () => {
+    const x = at({ business: businessFor(MID, full('sizeGuide'), 1) });
+    expect(x.refused).toBeCloseTo(at().refused, 12);
+    expect(sentBack(x)).toBeCloseTo(sentBack(at()) / top, 12);
+  });
+
+  test('a discount takes refusals off at the sourced rate, and leaves send-backs where they were', () => {
+    for (let t = 0; t < LOCATION_TIERS.length; t++) {
+      const none = at({ tierIndex: t });
+      const paid = at({ tierIndex: t, discountPaise: 3000 });
+      expect(paid.refused / none.refused, `place ${t}`)
+        .toBeCloseTo(refusalRateFor('mid', t, 3000) / refusalRateFor('mid', t, 0), 12);
+      expect(sentBack(paid), `place ${t}`).toBeCloseTo(sentBack(none), 12);
+    }
+  });
+
+  test('nothing comes back past the clamp, and refusals never exceed returns', () => {
+    const x = at({ queryReturnMultiplier: 5, placeReturnMultiplier: 5 });
+    expect(x.returned).toBeLessThanOrEqual(RETURN_RATE_CLAMP_MAX);
+    expect(x.refused).toBeLessThanOrEqual(x.returned);
+  });
+});
+
+describe('the refusal rate an account will run at (I34)', () => {
+  const MID = { price: 'mid', purpose: 'performance' };
+  const EMPTY = { committed: {}, pending: [] };
+  const outlook = (over = {}) => refusalOutlook({
+    position: MID, capex: EMPTY, round: 1, discountPaise: 0, placeWeights: [0, 0, 1], ...over,
+  });
+
+  test('it weights the places by where the account buys, at any scale', () => {
+    const each = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map((w) => outlook({ placeWeights: w }));
+    expect(outlook({ placeWeights: [2, 3, 5] })).toBeCloseTo((2 * each[0] + 3 * each[1] + 5 * each[2]) / 10, 12);
+    expect(outlook({ placeWeights: [20, 30, 50] })).toBeCloseTo(outlook({ placeWeights: [2, 3, 5] }), 12);
+  });
+
+  test('an account with no clicks is refused, not guessed at', () => {
+    // Which place to show an account that has bought nothing is the card's
+    // choice, and the card makes it; a quiet default here would hide it.
+    expect(() => outlook({ placeWeights: [0, 0, 0] })).toThrow(RangeError);
+    expect(() => outlook({ placeWeights: [1, 1] })).toThrow(RangeError);
+  });
+
+  test('order confirmation counts from the week it is live, and not before', () => {
+    const building = {
+      committed: { orderConfirmation: 8000000 },
+      pending: [{ target: 'orderConfirmation', paise: 8000000, liveAtRound: 1 + CAPEX_DELAY_ROUNDS }],
+    };
+    const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].effect;
+    expect(outlook({ capex: building, round: CAPEX_DELAY_ROUNDS })).toBeCloseTo(outlook(), 12);
+    expect(outlook({ capex: building, round: 1 + CAPEX_DELAY_ROUNDS })).toBeCloseTo(outlook() / top, 12);
+  });
+
+  test('it carries purpose: lifestyle returns more than performance, by the modifiers', () => {
+    const lifestyle = outlook({ position: { price: 'mid', purpose: 'lifestyle' } });
+    expect(lifestyle / outlook())
+      .toBeCloseTo(PURPOSE_MODIFIERS.lifestyle.ret / PURPOSE_MODIFIERS.performance.ret, 12);
+  });
+
+  test('and a discount, at the sourced rate', () => {
+    expect(outlook({ discountPaise: 3000 }) / outlook())
+      .toBeCloseTo(refusalRateFor('mid', 2, 3000) / refusalRateFor('mid', 2, 0), 12);
   });
 });
