@@ -670,6 +670,106 @@ body.studio .wt-remove { display: grid; flex-shrink: 0; place-items: center; wid
   body.studio .wt-blocker { padding: 14px; }
 }
 
+/* --- Your money, a played week (design/your-money/, the owner's choice 2026-09-15) --- */
+body.studio .wm { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .wm h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
+body.studio .wm p { margin: 0; }
+body.studio .wm-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .wm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
+body.studio .wm-titles { display: flex; flex-direction: column; gap: 2px; }
+body.studio .wm-card[data-slot="budget"] h3 { font-size: 20px; }
+body.studio .wm-read { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .wm-read strong { color: var(--studio-text); }
+body.studio .wm-small { font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .wm-warn { font-size: 12px; line-height: 1.45; color: var(--studio-amber); }
+body.studio .wm-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .wm-num { font-variant-numeric: tabular-nums; }
+body.studio .wm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+body.studio .wm-chip { padding: 5px 12px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; font-weight: 600; white-space: nowrap; }
+body.studio .wm-chip[aria-pressed="true"] { border-color: var(--studio-text); background: var(--studio-text); color: var(--studio-page); }
+body.studio .wm-chip:disabled { border-color: #26232A; color: #68636B; cursor: not-allowed; }
+
+/* this week only: the one-off window, on the panel colour round 0 uses */
+body.studio .wm-window { display: flex; flex-direction: column; gap: 12px; padding: 18px 22px; border: 1px solid var(--studio-panel-edge); border-radius: 20px; background: var(--studio-panel); }
+body.studio .wm-window .wm-head { justify-content: flex-start; }
+body.studio .wm-window h3 { font: 800 22px/1.1 var(--studio-display); }
+body.studio .wm-window .wm-read { max-width: 900px; }
+body.studio .wm-split { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+body.studio .wm-split > :only-child { grid-column: 1 / -1; }
+body.studio .wm-column, body.studio .wm-part { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+body.studio .wm-column { gap: 16px; }
+body.studio .wm-target { display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; border-radius: 14px; background: var(--studio-card); }
+body.studio .wm-target-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 14px; }
+/* Committing capital is the player's change, so it is red; the rest joins the ads. */
+body.studio .wm-window .wm-chip[aria-pressed="true"] { border-color: var(--studio-red); background: var(--studio-red); color: var(--studio-on-red); }
+body.studio .wm-capbar { display: flex; height: 12px; overflow: hidden; border-radius: 6px; background: var(--studio-line); }
+body.studio .wm-committed { background: var(--studio-red); }
+body.studio .wm-joins { background: #7A7480; }
+body.studio .wm-capfigures { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--studio-soft); }
+body.studio .wm-yours { color: var(--studio-red-text); }
+body.studio .wm-cells { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+body.studio .wm-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; border: 1px solid var(--studio-line); border-radius: 12px; background: var(--studio-card); color: var(--studio-soft); font-size: 11px; text-align: left; }
+body.studio .wm-cell strong { font-size: 13px; color: var(--studio-text); }
+body.studio .wm-cell[aria-pressed="true"] { border-color: var(--studio-red); background: #2A1216; }
+/* A cell out of reach is muted rather than faded, for What people typed's
+   reason: faded, its figures would fall under 4.5:1. */
+body.studio .wm-cell:disabled { cursor: not-allowed; }
+body.studio .wm-cell:disabled :is(strong, span) { color: var(--studio-muted); }
+body.studio .wm-page { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--studio-line-strong); border-radius: 12px; }
+body.studio .wm-strip { margin: 6px 8px; padding: 7px; border-radius: 8px; background: var(--studio-raised); font-size: 11px; text-align: center; color: var(--studio-soft); }
+
+/* the month, one bar: a line between two weeks moves money between them */
+body.studio .wm-bar { position: relative; }
+body.studio .wm-segs { display: flex; min-height: 62px; }
+/* The gap between weeks is each week's own transparent right edge, so a week's
+   width is exactly its share and a line sits exactly where the next begins. */
+body.studio .wm-seg { display: flex; flex: 0 1 auto; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; overflow: hidden; box-sizing: border-box; border-right: 3px solid transparent; border-radius: 10px; background-clip: padding-box; font-size: 12px; white-space: nowrap; }
+body.studio .wm-seg:last-child { border-right: 0; }
+body.studio .wm-seg > * { padding: 0 10px; }
+body.studio .wm-seg.spent { background-color: var(--studio-line); color: var(--studio-muted); }
+body.studio .wm-seg.next { background-color: var(--studio-text); color: var(--studio-page); }
+body.studio .wm-seg.planned { background-color: #5E5963; color: var(--studio-text); }
+/* Money no week is given is lost at the month's end: amber, and dashed, so it
+   does not read as a week. */
+body.studio .wm-seg.unplanned { outline: 1.5px dashed var(--studio-amber); outline-offset: -1.5px; color: var(--studio-amber); }
+body.studio .wm-lines { position: absolute; inset: 0; pointer-events: none; }
+body.studio .wm-line { position: absolute; top: -4px; bottom: -4px; width: 18px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: ew-resize; pointer-events: auto; touch-action: none; transform: translateX(calc(-50% - 1.5px)); }
+body.studio .wm-line::after { content: ''; position: absolute; top: 50%; left: 50%; width: 4px; height: 55%; border-radius: 2px; background: var(--studio-text); box-shadow: 0 0 0 2px var(--studio-card); transform: translate(-50%, -50%); }
+body.studio .wm-line:hover::after, body.studio .wm-line:focus-visible::after { width: 6px; }
+body.studio .wm-line:focus-visible { outline: 2px solid var(--studio-red-text); outline-offset: 0; }
+
+/* bidding and what week 8 decides, side by side */
+body.studio .wm-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+body.studio .wm-targetbox { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #1F1C22; }
+body.studio .wm-targetbox .wm-target-head { font-size: 13px; color: var(--studio-soft); }
+body.studio .wm-targetbox strong { color: var(--studio-text); }
+body.studio .wm-slider { width: 100%; accent-color: var(--studio-red); }
+body.studio .wm-bid { display: flex; flex-direction: column; gap: 6px; }
+body.studio .wm-ladder { display: flex; flex-direction: column; gap: 4px; }
+body.studio .wm-rung { display: grid; grid-template-columns: 34px minmax(0, 1fr) 80px 56px; gap: 8px; align-items: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+body.studio .wm-rung > :first-child { color: var(--studio-muted); }
+body.studio .wm-rung > :nth-child(3), body.studio .wm-rung > :last-child { text-align: right; }
+body.studio .wm-track { height: 8px; overflow: hidden; border-radius: 4px; background: var(--studio-raised); }
+body.studio .wm-track span { display: block; height: 100%; border-radius: 4px; background: #7A7480; }
+body.studio .wm-rung.average { font-weight: 700; }
+body.studio .wm-rung.average .wm-track span { background: var(--studio-muted); }
+body.studio .wm-rung.you { font-weight: 700; color: var(--studio-text); }
+body.studio .wm-rung.you > :first-child { color: var(--studio-red-text); }
+body.studio .wm-rung.you .wm-track span { background: var(--studio-red); }
+
+/* A section under 900px wide: one column. */
+@container (max-width: 900px) {
+  body.studio .wm-split, body.studio .wm-row { grid-template-columns: minmax(0, 1fr); }
+}
+/* A phone: a week's figure wraps inside its piece of the bar. */
+@container (max-width: 560px) {
+  body.studio .wm-window, body.studio .wm-card { padding: 14px; }
+  body.studio .wm-seg { justify-content: flex-start; padding-block: 8px; font-size: 11px; white-space: normal; }
+  body.studio .wm-seg > * { padding: 0 6px; }
+  body.studio .wm-cells { grid-template-columns: minmax(0, 1fr); }
+  body.studio .wm-rung { grid-template-columns: 30px minmax(0, 1fr) 72px 44px; }
+}
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */

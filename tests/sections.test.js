@@ -54,6 +54,13 @@ describe('every card on today\'s page has one place in the new layout', () => {
     }
   });
 
+  test('Your money draws its own capital, month, bidding and week 8, so the guide can still open all five', () => {
+    for (const slot of ['window', 'budget', 'split', 'bidding', 'deadline']) {
+      expect(RETIRED_SLOTS, slot).toContain(slot);
+      expect(sectionOf(slot).key, slot).toBe('money');
+    }
+  });
+
   test('Your week draws its own figures, chart and impressions, so the guide can still open all three', () => {
     for (const slot of ['headline', 'share', 'revised']) {
       expect(RETIRED_SLOTS, slot).toContain(slot);

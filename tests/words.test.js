@@ -31,6 +31,7 @@ import { AD } from '../ui/words/ad.js';
 import { WHERE } from '../ui/words/where.js';
 import { WEEK } from '../ui/words/week.js';
 import { TYPED } from '../ui/words/typed.js';
+import { MONEY } from '../ui/words/money.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -480,6 +481,61 @@ describe('What people typed', () => {
   });
 });
 
+describe('Your money', () => {
+  const FIGURES = {
+    amount: '₹1,20,000', rung: 'measured', week: 5, price: 'mid', purpose: 'performance', order: '₹2,400',
+    margin: '52%', searches: '1,86,000', month: 2, base: '₹1,68,000', joins: '₹1,20,000', move: '₹1,00,000',
+    left: '₹2,16,000', from: 6, to: 8, state: 'planned', strategy: 'Target CPA', bid: '₹31', keyword: 'gym leggings',
+    need: '₹12', conversions: '41.6', rate: '1.85%', n: 2, roas: '2.72', times: 4, position: 3, of: 9,
+    usual: '₹1,68,000', percent: '10%', up: true, gap: '₹1,00,800', next: 'week 6', rest: '₹72,000',
+  };
+  // The targets and strategies are named in groups, as the form names them.
+  const entries = (object, prefix = '') => Object.entries(object).flatMap(([name, entry]) => (
+    typeof entry === 'function' ? [[`${prefix}${name}`, entry]] : entries(entry, `${name}.`)));
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of entries(MONEY)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of entries(MONEY)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of entries(MONEY)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('the month at week 5 says where its money came from, as the mock-up did', () => {
+    expect(MONEY.monthWindow(FIGURES)).toBe('₹1,68,000 for the month, and the ₹1,20,000 of capital you have '
+      + 'not committed, less ₹1,00,000 for the move');
+    expect(MONEY.monthWindow({ base: '₹1,68,000', joins: '', move: '' })).toBe('₹1,68,000 for the month');
+    expect(MONEY.monthLeft({ left: '₹42,000', from: 8, to: 8 })).toBe('₹42,000 left for week 8');
+    expect(MONEY.monthLeft(FIGURES)).toBe('₹2,16,000 left for weeks 6 to 8');
+  });
+
+  test('one week reads as one', () => {
+    expect(MONEY.weeksLeft({ n: 1, week: 8 })).toBe('1 week left · week 8 is the cut-off');
+    expect(MONEY.learningNow({ n: 1 })).toMatch(/^Learning: 1 week more/);
+  });
+
+  test('the ladder reads first to ninth, and above or below the average', () => {
+    expect([1, 2, 3, 4, 9, 11, 12, 13, 21].map((n) => MONEY.finish({ n })))
+      .toEqual(['1st', '2nd', '3rd', '4th', '9th', '11th', '12th', '13th', '21st']);
+    expect(MONEY.versus({ percent: '30%', up: true })).toBe('+30%');
+    expect(MONEY.versus({ percent: '30%', up: false })).toBe('−30%');
+  });
+
+  test('a reading says what is true, never what to do (I13)', () => {
+    for (const [name, entry] of entries(MONEY)) {
+      expect(entry(FIGURES), name).not.toMatch(/\byou should\b/i);
+    }
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -510,7 +566,7 @@ describe('the new screens draw, and do not write', () => {
   const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
-    'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js'];
+    'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js', 'ui/money/render.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

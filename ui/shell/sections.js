@@ -53,8 +53,11 @@ export const SECTIONS = Object.freeze([
   // Read-only (the owner, 2026-09-15): the ad is written in round 0 and runs as
   // it is (I9). It draws itself (ui/ad/render.js); the classic page has no ad card.
   { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, slots: [] },
+  // Rebuilt (the owner's choice, 2026-09-15, design/your-money/): this month as
+  // one bar, with the week-5 window on top and bidding and week 8 beside each
+  // other (ui/money/render.js); the classic five cards are retired.
   { key: 'money', area: 'brand', label: 'Your money', icon: ICONS.money,
-    slots: ['window', 'budget', 'split', 'bidding', 'deadline'] },
+    slots: [], draws: ['window', 'budget', 'split', 'bidding', 'deadline'] },
   // Rebuilt (the owner's choice, 2026-09-15, design/where-when/): it draws its
   // own bars and map (ui/where/render.js), and the classic two cards are retired.
   { key: 'where', area: 'brand', label: 'Where and when', icon: ICONS.where, slots: [], draws: ['places', 'hours'] },
@@ -71,6 +74,7 @@ export const SECTIONS = Object.freeze([
 /** Cards the new screens draw instead: the tray replaces *Next week*; the rebuilt sections draw their own. */
 export const RETIRED_SLOTS = Object.freeze([
   'keywords', 'next', 'places', 'hours', 'headline', 'share', 'revised', 'terms', 'negatives',
+  'window', 'budget', 'split', 'bidding', 'deadline',
 ]);
 
 /** @returns {object|null} the section a card's slot lives in */
