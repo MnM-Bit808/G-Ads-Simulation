@@ -2129,6 +2129,16 @@ tooling and one untested claim.
   someone who did not build it.~~ **Both done, once.** A full twelve rounds played
   by hand with a DOM recorder running; see *What playing it as a learner found*
   and the two entries at the top of this list.
+- ~~The search terms mark and the block warning test for an exact zero.~~
+  **Fixed 2026-09-15** (I8's addendum): a search is marked when a sale there
+  costs over twice the account's average, or when it has spent an average sale
+  and sold nothing; the block preview warns only when it would catch a search
+  selling at or under that average. Seed 1's Vella & Co. at week 6 went from
+  none of 33 searches marked to 3. **Two twins are left:** the Studio's What
+  people typed (`ui/typed/read.js`, on `makeover`) still leaves a search with
+  no sale unmarked, and can import `isDear` once `main` is merged in; and the
+  rivals' `wastefulQueries` still blocks only a search with no conversions at
+  all, which changes the market and wants the harness before and after.
 
 ---
 
@@ -2585,6 +2595,12 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   shares `returnHalves` with `round.js` — and its test should hold it against
   what the round BOOKED through the report, not against the function the card
   calls.
+- **A class name is not a colour.** The search terms report's returns mark
+  (I32) gave a figure the class `bad` from 2026-09-10, and no rule in
+  `ui/style.css` styled it, so the mark was hover text on an ordinary figure
+  until 2026-09-15. It was found only because a second mark was meant to match
+  it. When checking a mark in the browser, read its computed colour
+  (`getComputedStyle`), not its class list.
 - **Resizing the browser pane reloads the page, and the game is in memory.**
   Four played rounds vanish and you are back at round 0 with no error and no
   clue. Set the viewport BEFORE opening the game, not after — and if a
