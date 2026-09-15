@@ -30,7 +30,10 @@ export default [
   // dist/ is the built site: copies of files already linted where they live,
   // under paths none of the rules below match — so linted again there, every
   // `document` in ui/ reads as undefined. 78 false errors on the first build.
-  { ignores: ['node_modules/**', 'engine-audit.test.mjs', 'dist/**'] },
+  // .claude/ holds other sessions' worktrees, whole checkouts of this repo that
+  // lint themselves: one mid-merge there once failed this checkout's `npm test`
+  // with a conflict marker in a file it never had (2026-09-15).
+  { ignores: ['node_modules/**', 'engine-audit.test.mjs', 'dist/**', '.claude/**'] },
 
   js.configs.recommended,
 
