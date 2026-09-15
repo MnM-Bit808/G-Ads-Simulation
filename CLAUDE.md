@@ -58,8 +58,10 @@ These come from the spec and are not negotiable without changing the spec first.
    at display.
 4. **Nothing in `engine/` may read `reportedScore`.** It is output only.
 5. **Controllers receive views, never state.** A policy or model is passed its own
-   `AdvertiserRoundReport` plus `getPublicView()` output. `GameState` never reaches
-   a controller. This is architectural — you cannot test that something ignored a
+   `AdvertiserRoundReport` for the week just played, `getSelfView()` and
+   `getPublicView()` output, and its own report for every week played, as
+   revised since (R3a, amended 2026-09-16 by C9). `GameState` never reaches a
+   controller. This is architectural — you cannot test that something ignored a
    field it was handed.
 6. **One advertiser type.** No privileged player path anywhere.
 7. **Every unsourced number goes in `constants.js`** with a provenance tag

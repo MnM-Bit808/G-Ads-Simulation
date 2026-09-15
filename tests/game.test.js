@@ -21,27 +21,71 @@ const noop = () => null;
 const everyone = (fn) => Object.fromEntries(STATE.advertisers.map((a) => [a.id, fn]));
 
 describe('controllers receive views, never state (R3a)', () => {
-  test('a controller is handed exactly three things', async () => {
+  test('a controller is handed exactly four things', async () => {
     let seen = null;
     await playRound(STATE, { [PLAYER_ID]: (...args) => { seen = args; return null; } },
       { mode: 'expected' });
-    expect(seen).toHaveLength(3);
-    const [self, report, view] = seen;
+    expect(seen).toHaveLength(4);
+    const [self, report, view, history] = seen;
     expect(self.id).toBe(PLAYER_ID);
     expect(report).toBeNull();           // round 1 has no previous report
     expect(view.advertisers).toBeDefined();
+    expect(history).toEqual([]);         // and no weeks played yet
   });
 
-  test('none of the three is GameState, or contains it', async () => {
+  test('the fourth is its own weeks, every one played, as revised since', async () => {
+    // The week just played never carries a return: a week's returns land two
+    // to five weeks after its clicks and are written back into that week's
+    // report. A controller handed only that week cannot learn what comes back,
+    // and three rival rules read zero because of it (DECISIONS C9).
+    let state = STATE;
+    let before = null;
+    let seen = null;
+    for (let r = 1; r <= 3; r++) {
+      before = state;
+      const controllers = { [PLAYER_ID]: (...args) => { seen = args; return null; } };
+      state = (await playRound(state, controllers, { mode: 'expected' })).nextGameState;
+    }
+    // Handed at the start of week 3: weeks 1 and 2, each its own slice of the
+    // history as it stood then.
+    const [, report, , history] = seen;
+    expect(history.map((week) => week.round)).toEqual([1, 2]);
+    expect(history).toEqual(before.history.map((h) => advertiserReport(h, PLAYER_ID)));
+    // Revised, not as first reported: week 1 has had week 2's late conversions.
+    expect(history[0].revisedAtRound).toBe(2);
+    // The week just played is the same week the second argument carries.
+    expect(history.at(-1)).toEqual(report);
+  });
+
+  test('and nothing of anyone else\'s', async () => {
+    let state = STATE;
+    let seen = null;
+    for (let r = 1; r <= 3; r++) {
+      const controllers = { [PLAYER_ID]: (...args) => { seen = args; return null; } };
+      state = (await playRound(state, controllers, { mode: 'expected' })).nextGameState;
+    }
+    const others = STATE.advertisers.map((a) => a.id).filter((id) => id !== PLAYER_ID);
+    for (const week of seen[3]) {
+      expect(week).not.toHaveProperty('byAdvertiser');
+      // No rival's id anywhere in it, as a key or a value.
+      const text = JSON.stringify(week);
+      for (const id of others) expect(text.includes(`"${id}"`), id).toBe(false);
+    }
+  });
+
+  test('none of the four is GameState, or contains it', async () => {
     // The rule that cannot be tested behaviourally (W12) and so is tested by
     // shape: GameState's own top-level keys must not be reachable from
     // anything a controller was handed.
+    let state = STATE;
     let seen = null;
-    await playRound(STATE, { [PLAYER_ID]: (...args) => { seen = args; return null; } },
-      { mode: 'expected' });
-    for (const arg of seen) {
+    for (let r = 1; r <= 2; r++) {
+      const controllers = { [PLAYER_ID]: (...args) => { seen = args; return null; } };
+      state = (await playRound(state, controllers, { mode: 'expected' })).nextGameState;
+    }
+    for (const arg of [...seen.slice(0, 3), ...seen[3]]) {
       if (arg == null) continue;
-      for (const key of ['rootSeed', 'budgetSchedule', 'decisionLog', 'schemaVersion']) {
+      for (const key of ['rootSeed', 'budgetSchedule', 'decisionLog', 'schemaVersion', 'history']) {
         expect(arg, key).not.toHaveProperty(key);
       }
     }

@@ -614,6 +614,100 @@ Played on the dev server into week 5, the two `spender` rivals, which keep their
 allocation as ads, rose in the player's Auction Insights: one from 97% overlap
 and 53% above the player to 100% and 88%, the other from 28% overlap to 49%.
 
+### C9. A rival is handed only the week just played, and no return is ever in it — `OPEN` (2026-09-16)
+
+**Found while fixing the rivals' prepaid discount (I34)**, whose rule counted the
+refusals in the report a rival is handed and in play never saw one. The same is
+true of every rule that reads returns.
+
+**What happens.** `playRound` hands each controller its own slice of the week just
+played (R3a), fresh from `runRound`. Returns are counted by CLICK week: a fresh
+report carries `returned`, `refused` and `returnedRevenuePaise` at zero, and
+`reviseReports` adds each return to its click week later. A conversion lands 0–3
+rounds after the click (`ATTRIBUTION_LAG_DISTRIBUTION`) and its return two rounds
+after that (`returnWindowRounds`), so no return can be in the week just played.
+Measured over 18 markets (`playMarket`, seeds 1–3, all six cells): 1,584 reports
+handed to rivals, **none carrying a return or a refusal, and none revised before
+it was read.**
+
+**Three rival rules read zero because of it:**
+
+1. **`observedReturnRate` never observed a return.** It read `returned` off the
+   week handed and fell back to `ASSUMED_RETURN_RATE` (0.40) while that was zero,
+   which was always. What every rival believed it could afford was the briefing's
+   guess in all 1,584 reports; the settled rates it never saw ran 35.9–46.4%
+   (median 42.4%). Its docstring said the guess holds "until enough has settled to
+   argue otherwise". Nothing ever settled.
+2. **`grossOptimiser`'s geography was `disciplined`'s.** `locationTilt` with
+   `net: true` subtracted `returnedRevenuePaise`, always zero, so it computed
+   exactly what `net: false` does: identical in all 1,188 readings. Read off the
+   settled version of the same weeks the two differ in every one, by a median 30
+   points of place adjustment. G4's rival — one that "leans toward the metros first
+   and then discovers, several rounds in, what the towns actually cost it" — did
+   not exist, and `HANDOVER.md` described it as existing.
+3. **The prepaid discount**, fixed first and separately (I34) by stating each
+   place's refusal rate on the report.
+
+**Why no test caught the first two.** `tests/policies.test.js` handed policies
+reports built by hand, carrying `returned: 2` and the like, a shape play never
+produces; "its belief moves as its own history arrives" passed a null report.
+Every test was green and every rule was reading zero.
+
+**AND A THIRD DEFECT IN THE SAME FUNCTION: THE SEE-SAW.** `locationTilt` set each
+week's place adjustments from scratch off that one week's value per click, with no
+limit on the move — keyword bids have `MAX_BID_MOVE`, place adjustments had
+nothing. And a place's value per click is not the place's alone: it depends on the
+rival's own bid there. With a low towns bid a rival wins only its best towns
+searches and a click reads ₹52–55; the rule raises the bid, the rival wins weaker
+searches too, a click reads ₹39–42, and the rule cuts again, each swing about 0.9
+of the last. Traced on seed 8 (player at premium · performance), `disciplined`'s
+towns adjustment ran −48, −44, −10, −56, −17, −58, −12, −54, −26, −52, −38, and its
+towns clicks 1,302 / 386 / 1,766 / 401 / 1,444 / 374 / 1,212 / 387 / 1,131. Over
+72 markets (seeds 1–12, six cells) the mean weekly move in the towns adjustment is
+a median of 1.9 points for `disciplined` (90th percentile 10.1), 1.6 (3.4) for
+`grossOptimiser`, 3.2 (31.6) for `spender` and 1.9 (6.2) for `cautious`: a tail,
+not the rule. It is what made a rival's prepaid rung flip ₹50 / ₹30 until I34
+weighted the rate by eligible searches.
+
+**WHAT WAS PUT TO THE OWNER**, after prototyping each fix outside the repo and
+playing it over those 72 markets:
+
+- **(B) hand every controller its own past reports, as revised.** Amends R3a and
+  hard rule 5, and shapes what the future `llmPolicy` is handed. No engine change.
+  It had been declined for the prepaid lever alone; with three rules and a
+  character's lesson failing from one cause, and the next rule to need settled
+  weeks (the rivals' `wastefulQueries`, an LLM rival) certain to hit the same
+  wall, the balance was different.
+- (C) the engine keeps a settled running tally in the self view, like
+  `bidding.observedConvRate`. The same information and so the same rival
+  behaviour as B, at the price of engine state that copies what history already
+  holds, a change to `round.js` on two lines that already differ there, and older
+  browser saves without it.
+- (D) leave the behaviour and correct the docs. Fair for the first rule alone —
+  0.40 sits inside the true range, and correcting it moves a rival's ceiling
+  between −18% and +9% — but not for the second, which leaves `grossOptimiser`
+  with no geography of its own.
+
+A stated rate, the way I34 was fixed, was not an option: a modelled return rate is
+exactly the truth D2 withholds.
+
+For the see-saw, a cap like `MAX_BID_MOVE` was measured and does not cure it. At
+25 points a week the 90th percentile went 10.1 → 9.5 and the reversals stayed,
+because a cap bites only on swings bigger than itself and the see-saw carries on
+inside it; at 10 points, 6.3 with two or three reversals left. **Moving halfway
+toward each week's reading** took every character's reversals to zero and left
+where each comes to rest unchanged.
+
+**The owner chose B, and moving halfway.**
+
+**Step 1, the rule (R3a, hard rule 5).** A controller is handed a fourth thing:
+its own report for every week played, as revised since, each week cut by
+`advertiserReport`, the function that cuts the first, so nothing of any other
+advertiser can come with it. `game.test.js` holds it to four things, to the
+controller's own weeks as they stood when it decided, and to no rival's id
+anywhere in them. The self view is untouched: `history` stays in
+`FORBIDDEN_IN_SELF_VIEW`, because the history there would be everyone's.
+
 ## D. Budget, bidding and capital
 
 ### D1. Budget model was outdated — `FIXED v0.3`
