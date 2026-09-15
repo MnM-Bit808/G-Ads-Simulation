@@ -4278,6 +4278,13 @@ paired market by market against the code before the change:
 rest. The stated rate on its own, before the rule read it, moved nothing
 (`market` mode byte-identical), and I1's solo account, which runs on
 `disciplined`, measured the same to three decimals.
+When it merged into `main` (2026-09-16), I2 and I3 were measured as well, by
+replaying the calibration file's own games and printing their figures, since
+its tests assert only bounds. I2's single round and I3's six settled profits at
+both budgets came out identical, the profits to the paisa, and I1 again, so
+F14's calibration table stands as recorded: I1 lostToBudget 10.5%, I2 median
+CPC ₹15.84, I3 11.3% worst deviation (7.8% at the raised budget), lifestyle ÷
+performance 1.012. No `CALIBRATE` constant moves.
 The player's table above still stands with rivals discounting: re-measured on
 `prepaid` mode, every cell's best rung and every win count are unchanged, and
 one figure moved — value/lifestyle at ₹100, from 2.4% to 2.6%. Measured on the
