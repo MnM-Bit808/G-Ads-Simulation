@@ -74,6 +74,19 @@ describe('performance (spec 19)', () => {
     expect(ms, `${ms}ms against a 1500ms spec budget`).toBeLessThan(2200);
   });
 
+  test('and so does the three-auction path, which a played week mostly takes', () => {
+    // Rivals bid by place (agents/policies.js), so once one tilts, every
+    // auction resolves once per place, and that is what a played week costs.
+    // The flat fixture above never takes that path. A millionth of a percent
+    // on one place sends the round down it without moving a bid (G4).
+    const tilted = makeGameState();
+    tilted.advertisers[1].campaign.locationAdjustments = [0, 0, 0.0001];
+    const ms = medianMs(() => runRound(
+      tilted, { mode: 'sampled', seed: 3, counterfactualFor: [CONSTRAINED] },
+    ), 3);
+    expect(ms, `${ms}ms against a 1500ms spec budget`).toBeLessThan(2200);
+  });
+
   test('sampled mode costs about what its sub-auction count implies', () => {
     // AUCTIONS_PER_QUERY_HOUR is 1 expected, 6 sampled (11.5), so sampled
     // should cost roughly six times expected and not dramatically more. If it
