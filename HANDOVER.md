@@ -127,11 +127,10 @@ engine does: the page's parts marked "week 4", its description graded now.
    multiplier of 1; and the prepaid discount card quotes the smaller towns'
    refusal rate for every account, because the dashboard never hands the
    form its history. The market harness's `compare` reads only `writer` runs;
-   compare `market` runs by their summaries or files. And `MAX_BID_MULTIPLE`
-   (four times the keyword bid, `INVENTED`) has no DECISIONS entry of its own,
-   which R7 asks for, though Where and when now shows it to players ("No bid
-   goes past 4 times your keyword bid"); it wants one, and perhaps a line in
-   the `hours` and `cashOnDelivery` chapters' game halves.
+   compare `market` runs by their summaries or files. The bid's floor and cap
+   (`MIN_BID_PAISE`, `MAX_BID_MULTIPLE`) now have their entry, D13, with
+   Google's own combined cap for comparison (ten times against the game's
+   four), and the `hours` and `cashOnDelivery` chapters say it.
 
 **Decided about the makeover, not to re-open:**
 - a sidebar shell like Claude's app, not the real Google Ads layout;

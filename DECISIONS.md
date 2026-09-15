@@ -1066,6 +1066,37 @@ on the committed harness**, whose player has its round-0 money: before C8's fix
 and after it, the best investment against keeping the money keeps its sign in
 every cell, so the capital card's premise stands (C8 has the figures).
 
+### D13. A bid lies between ₹1 and four times its keyword bid — `OPEN`, recorded 2026-09-15
+
+**What the game does.** Every bid, whatever the strategy and however the hour's
+and the place's adjustments stack, is clamped once between `MIN_BID_PAISE`
+(₹1) and `MAX_BID_MULTIPLE` (4) × the keyword's bid (`clampBidPaise`,
+`engine/strategies.js`; G4's dated note for the single clamp). So under manual
+bidding an adjustment past +300% changes nothing on its own, and under Maximise
+clicks, which already bids `MAX_CLICKS_AGGRESSION` (1.6) × the keyword, past
++150%. The Studio's Where and when bars stop there and say why, and the `hours`
+and `cashOnDelivery` chapters say it.
+
+**In Google Ads**, bid adjustments are "typically multiplied together", and
+"combined bid adjustments can't exceed a 900% bid increase", with −90% the
+lowest combined adjustment; a location or ad-schedule adjustment alone runs
+−90% to +900% (Google Ads Help, *About bid adjustments*,
+https://support.google.com/google-ads/answer/2732132, fetched 2026-09-15). The
+page names no cap relative to the keyword's own bid. So Google's ceiling is a
+combined ten times the bid and the game's is four: stricter, and of the same
+shape since G4's single clamp. Google's floor is −90%, where the game's −100%
+is a bid of one rupee, which D11 and G4 already record.
+
+**Why four is not known.** Both bounds arrived with the bid strategies
+(`ba3f227`, 2026-09-03) as `INVENTED`, and no reason was recorded, which R7
+asks for; this entry is written after the fact, when Where and when first
+showed the cap to players. What the ceiling does is keep a strategy that sets
+its own bid from a forecast (Target CPA and Target ROAS multiply a target by an
+estimated rate, D2) or from stacked adjustments from bidding far past anything
+the player set. Nothing measured sets it at four rather than Google's ten, and
+moving it moves the market, rivals' target strategies and place tilts included,
+so a change is measured on `scripts/market-harness.js` first.
+
 ---
 
 ## E. Queries, keywords and matching

@@ -23,6 +23,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { CHAPTERS, CONTENTS, chapter } from '../ui/guide/chapters.js';
 import { guideFigures } from '../ui/guide/figures.js';
+import { MAX_BID_MULTIPLE } from '../engine/constants.js';
 
 const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 const DECISIONS = read('DECISIONS.md');
@@ -140,6 +141,16 @@ describe('the chapters', () => {
 
   test.each(entries)('%s: related chapters exist', (_, c) => {
     for (const id of c.related) expect(Object.keys(CHAPTERS), id).toContain(id);
+  });
+
+  test('the chapters with a bid adjustment say no bid passes the cap, and cite it (D13)', () => {
+    // Where and when's bars stop at the cap and say so (2026-09-15); the guide
+    // behind their "why?" links has to agree, from the constant itself.
+    expect(FIGURES.bidCap).toBe(`${MAX_BID_MULTIPLE} times`);
+    for (const id of ['hours', 'cashOnDelivery']) {
+      expect(CHAPTERS[id].game(FIGURES), id).toContain(`${FIGURES.bidCap} your keyword bid`);
+      expect(CHAPTERS[id].cites, id).toContain('D13');
+    }
   });
 });
 

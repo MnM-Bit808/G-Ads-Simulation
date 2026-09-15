@@ -207,15 +207,17 @@ export const CHAPTERS = Object.freeze({
       + 'place: you can raise or lower bids by location, from −90% to +900%, though not under '
       + 'Smart Bidding strategies.',
     realSources: [INDIA.firstResort, INDIA.unicommerce, GOOGLE.bidAdjustments],
-    game: () => 'The game makes cash commoner outside the metros and at lower prices, so '
+    needs: ['bidCap'],
+    game: ({ bidCap }) => 'The game makes cash commoner outside the metros and at lower prices, so '
       + 'orders from smaller cities and towns come back more often and cost more to carry. '
-      + 'The Where you advertise card is the lever: it shows what a click kept in each place '
-      + 'after returns, and lets you bid up or down there. It departs in two ways: an '
+      + 'Where you advertise is the lever: it shows what a click kept in each place '
+      + 'after returns, and lets you bid up or down there. It departs in three ways: an '
       + 'adjustment can switch a place off entirely, where Google’s lowest adjustment still '
-      + 'leaves it on; and it applies under every bidding strategy, including the automated '
-      + 'ones Google does not allow it with. How cash varies by price is the game’s own '
-      + 'estimate.',
-    cites: ['G4', 'I28', 'D11'],
+      + 'leaves it on; it applies under every bidding strategy, including the automated '
+      + `ones Google does not allow it with; and no bid goes past ${bidCap} your keyword bid, `
+      + 'however the place’s and the hour’s adjustments stack. How cash varies by price is '
+      + 'the game’s own estimate.',
+    cites: ['G4', 'I28', 'D11', 'D13'],
     yourAccount: 'places',
     related: ['returnsSplit'],
   }),
@@ -373,19 +375,22 @@ export const CHAPTERS = Object.freeze({
   hours: chapter({
     title: 'Bidding by the hour',
     real: () => 'Google Ads lets you raise or lower your bids by day and hour through the ad '
-      + 'schedule, from −90% to +900%. Your ads follow the days and times the schedule sets, '
+      + 'schedule, from −90% to +900%. Adjustments usually multiply, and together they cannot raise a '
+      + 'bid by more than 900%. Your ads follow the days and times the schedule sets, '
       + 'so to stop showing at an hour you leave it out. With Smart Bidding strategies such as '
       + 'Target CPA, Target ROAS and Maximise conversions, schedule adjustments are not used at '
       + 'all: Smart Bidding already sets each bid from performance by time of day.',
     realSources: [GOOGLE.bidAdjustments, GOOGLE.smartBidding],
-    game: () => 'Here searches peak at one time of day and buying at another, which is what '
+    needs: ['bidCap'],
+    game: ({ bidCap }) => 'Here searches peak at one time of day and buying at another, which is what '
       + 'makes an hour adjustment pay: it can move money toward the hours that convert rather '
-      + 'than the hours that are busy. It departs twice. The lowest setting takes you out of an '
-      + 'hour altogether, where Google’s lowest still leaves you in it. And the adjustment '
+      + 'than the hours that are busy. It departs three times. The lowest setting takes you out '
+      + 'of an hour altogether, where Google’s lowest still leaves you in it. The adjustment '
       + 'works under every strategy: under the ones that predict conversions it lands on top '
       + 'of the strategy’s own lean by hour, so the hour counts twice, which Google does not '
-      + 'allow.',
-    cites: ['D11', 'H4', 'D2'],
+      + `allow. And no bid goes past ${bidCap} your keyword bid, however the hour’s and the `
+      + 'place’s adjustments stack.',
+    cites: ['D11', 'H4', 'D2', 'D13'],
     yourAccount: 'hours',
     related: ['smartBidding'],
   }),
