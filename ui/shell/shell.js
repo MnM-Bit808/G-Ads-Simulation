@@ -2,17 +2,15 @@
  * The Studio layout (plans/2026-09-13-studio-makeover.md, sections 2 and 5):
  * the icon strip, the section list, one section at a time, and the tray.
  *
- * TODAY'S CARDS ARE SHOWN, NEVER MOVED. The decision form redraws its cards
- * into its own region on every change, and the dashboard's refreshes find their
- * cards by querying its root. So the dashboard is drawn exactly as the classic
- * look draws it, and a section is a filter over it: `data-section` on the root,
- * and the stylesheet from ./sections.js hiding every other section's cards. A
- * card moved out of its region would leave the next redraw drawing into nothing.
+ * Every section draws its own parts (ui/<section>/render.js) over one context
+ * the shell builds (./context.js). It used to show today's cards, filtered by
+ * section, from the classic page drawn hidden on every week; since the
+ * switch-over's part 1 that page is not drawn at all.
  */
 
 import { el, add, rupees } from '../dom.js';
-import { renderDashboard } from '../dashboard.js';
 import { changes } from '../decisions.js';
+import { studioContext } from './context.js';
 import { TOTAL_ROUNDS, ROUNDS_PER_MONTH } from '../../engine/constants.js';
 import {
   AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots, slotOpen, areaEntry,
@@ -74,7 +72,6 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
   };
   let game = null;
   let ctx = null;
-  let dashboard = null;
   // Your keywords draws its own cards over the same context (ui/keywords/render.js),
   // and Where and when its own bars and map (ui/where/render.js).
   let keywords = null;
@@ -280,10 +277,10 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
     } else if (s.key === 'rivals' && rivals) {
       rivals.refresh();
       shown = rivals.node;
-    } else {
-      dashboard.dataset.section = s.key;
-      shown = dashboard;
     }
+    // Every section draws itself (tests/sections.test.js); one that did not
+    // would otherwise show the word "undefined".
+    if (!shown) throw new RangeError(s.key);
     if (view.firstOpen === s.key) arrive(s, shown);
     content.replaceChildren(shown);
     body.scrollTop = 0;
@@ -451,11 +448,7 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
       });
     }
     override = null;
-    dashboard = renderDashboard(game, () => drawTray(), {
-      openGuide,
-      onContext: (c) => { ctx = c; },
-    });
-    dashboard.classList.add('studio-cards');
+    ctx = studioContext(game, { onChange: () => drawTray() });
     keywords = renderKeywordsSection({
       game, ctx, openGuide, openSection: open, setTrayOverride, refreshTray: drawTray,
     });

@@ -631,12 +631,14 @@ function renderRevised(root, game) {
  * history is the copy that gets REVISED (11.4): a round's conversions keep
  * arriving for three more rounds and its returns resolve two after that.
  * Summing the reports as first issued would understate every settled week.
+ * Exported for the Studio's own context (ui/shell/context.js).
  *
  * @param {object} game
  * @param {'byQuery'|'byKeyword'} which
  * @param {'week'|'all'} range
+ * @returns {Record<string, object>} summed rows, keyed by query or keyword id
  */
-function accumulate(game, which, range) {
+export function accumulate(game, which, range) {
   const rounds = range === 'week' ? game.state.history.slice(-1) : game.state.history;
 
   const out = {};

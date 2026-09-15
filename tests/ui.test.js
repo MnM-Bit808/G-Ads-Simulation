@@ -217,6 +217,7 @@ describe('every interface module at least loads', () => {
     'shell/sections.js': () => import('../ui/shell/sections.js'),
     'shell/tray.js': () => import('../ui/shell/tray.js'),
     'shell/shell.js': () => import('../ui/shell/shell.js'),
+    'shell/context.js': () => import('../ui/shell/context.js'),
     'words/shell.js': () => import('../ui/words/shell.js'),
     'roundzero/rules.js': () => import('../ui/roundzero/rules.js'),
     'kit/controls.js': () => import('../ui/kit/controls.js'),

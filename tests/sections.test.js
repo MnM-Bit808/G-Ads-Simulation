@@ -121,6 +121,23 @@ describe('every card on today\'s page has one place in the new layout', () => {
   test('what only a simulation can tell you is shown where its replays are, after the last week', () => {
     expect(sectionOf(CHAPTERS.counterfactuals.studioAccount).area).toBe('results');
   });
+
+  // The switch-over, part 1: the shell no longer draws the classic page, so a
+  // section with nothing of its own would draw nothing.
+  test('every section is one the shell draws itself', () => {
+    const shell = read('ui/shell/shell.js');
+    for (const s of SECTIONS) {
+      const drawn = s.area === 'results' || shell.includes(`s.key === '${s.key}'`)
+        || (s.draws?.includes('keywords') && shell.includes("s.draws?.includes('keywords')"));
+      expect(drawn, s.key).toBe(true);
+    }
+  });
+
+  test('and the shell builds its own context rather than the classic page', () => {
+    const shell = read('ui/shell/shell.js');
+    expect(shell).toContain('studioContext(game');
+    expect(shell).not.toContain('renderDashboard');
+  });
 });
 
 // Found drawing the Guide as a page (2026-09-15): the rail's area buttons always
