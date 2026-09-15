@@ -1,0 +1,82 @@
+{
+  "pages": [
+    {
+      "id": "guide",
+      "name": "The Guide"
+    },
+    {
+      "id": "not-chosen",
+      "name": "Not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "A · A chapter as a page",
+      "page": "guide",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 960
+    },
+    {
+      "file": "Contents.dc.html",
+      "title": "A · The contents",
+      "page": "guide",
+      "is_interactive": true,
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1060
+    },
+    {
+      "file": "Beside.dc.html",
+      "title": "B · A chapter beside your account",
+      "page": "not-chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1000
+    }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "page": "guide",
+      "x": 0,
+      "y": -560,
+      "w": 1440,
+      "text": "The Guide as a page: the last item in the makeover's order (section 7: \"Results, then the Guide as a page\"). Today the rail's Guide button opens the field guide's drawer at its contents, a narrow panel over whichever section you were in. The layout table (section 2) gives the Guide area \"the field guide as its own page; 'why?' links still open it from any section.\"\nEvery chapter here is the game's own: its two halves, its sources and its figures, through the drawer's own reader. The list on the left is the Guide area's, the thirteen chapters in their reading order. B's figures are the makeover canvas's game (seed 1, Vella & Co. at mid-price performance, \"cheap\" blocked at week 4, ₹55,000 to the size guide at week 5), read after week 6.\nEverything clicks: the list, the contents cards, \"Read beside it\", previous and next, and Show me."
+    },
+    {
+      "id": "a",
+      "page": "guide",
+      "x": 1560,
+      "y": -560,
+      "w": 1440,
+      "text": "Chosen by the owner, 2026-09-15, with: chapter 12's Show me pointing at Results' \"what if\" replays after week 12 and hidden before; \"Read beside it\" kept after a read-through of every chapter's related list; \"why?\" still the drawer.\nA · The guide as a book. The contents: the thirteen chapters as cards, each with its number, the section it explains and its first sentence. A chapter: its two halves side by side, In real Google Ads with its sources and In this game; the section it explains, with Show me in your account (it opens that section at the figure, and should mark it: see finding 1); the chapters to read beside it; previous and next. \"why?\" in any section still opens the drawer beside you.\nFor: a chapter reads at full width, the two halves side by side, and the whole book is on one screen. Every chapter's words already exist; the page adds a handful of labels (finding 5).\nAgainst: a chapter is words only. Your own figure is one click away, behind Show me.\nMy pick: A."
+    },
+    {
+      "id": "b",
+      "page": "not-chosen",
+      "x": 0,
+      "y": -420,
+      "w": 1440,
+      "text": "B · Beside your account. A's page, with a panel at the top of a chapter holding that chapter's figure in your account now. 1 · Why this week’s numbers keep moving: Your week's revision chart. 2 · Refused at the door, or sent back: week 1's settled refusal and send-back rates. 4 · Lost to rank, or lost to budget: this week's share and where you showed on the page. 5 · How far broad match wanders: the searches broad match alone reached. Drawn for these four; the other nine would each need their own, or say nothing.\nFor: the idea and your own figure on one screen.\nAgainst: every panel is a second drawing of a figure that lives in a section one click away, and has to be kept in agreement with it (the revision chart here already drops the bar values and the replay). \"why?\" already puts the chapter beside the real figure."
+    },
+    {
+      "id": "found",
+      "page": "guide",
+      "x": 0,
+      "y": 1200,
+      "w": 3000,
+      "text": "What drawing it found (a second reader checked every chapter, figure and claim against the code)\n1. Show me marks nothing in the Studio today. It opens the right section and scrolls to the part, but the ring that marks it is drawn only on the classic cards, and focus looks for a card's main heading, which Studio parts do not have. So in every rebuilt section, \"Show me on the card\" lands with nothing to catch the eye. The build fixes it for the drawer and the page alike: the ring on any part a chapter points at, and focus on that part's own heading.\n2. Three chapters point at a place that does not show what they explain. 7 · Who writes the ad shows \"Explains: Your keywords\": the writer is drawn in Your ad, whose own \"why?\" opens this chapter, but Your ad has no place Show me can find (the classic page has no ad card). 8 · Defending your own name points at Rivals, where nothing is about your own name; What people typed tags those searches \"your name\". 12 · What only a simulation can tell you points at Your money's month bar, which has no \"what if\"; both what-ifs appear only after week 12, in Results (and on the classic end screen). I'd point the first two at Your ad and What people typed, and ask you about the third.\n3. Two chapters name a classic card. 2 · Refused at the door, or sent back: \"Here the returns card is your shop's own books\". 4 · Lost to rank, or lost to budget: \"The share card splits every week the same way\". In the Studio, returns are a section of their own, the share is Your week's \"Where the impressions went\" card, and in Rivals it is your line in the market card. I'd reword both to name the figure rather than the card, so they read true in both looks until the switch-over. Words only: what each chapter cites does not change. (3 · Cash on delivery, and where you advertise says \"Where you advertise is the lever\", and that is still the title of the places half of Where and when, so it stays.)\n4. No way back to where you were. The rail's Brand button always opens Your week, so a player who leaves Where and when for the Guide comes back to the wrong section. I'd have each area remember its last section: Brand returns you to Where and when, and the Guide to the chapter you were reading.\n5. New labels. The contents' introduction, \"Chapter 4 of 13\", \"Explains:\", \"Show me in your account\" and \"Read beside it:\" are new words, written into the game's words files like every other label. The drawer's \"Show me on the card\" would read \"Show me in your account\" in the Studio too.\n6. \"why?\" stays the drawer. It keeps you beside the figure you asked about; jumping to the Guide page would lose your place. I read the layout table's \"'why?' links still open it\" as the drawer, as today. The rail's Guide button opens the page instead, and the drawer's own Contents link points at the page. Round 0's Guide button opens the drawer as today, and Show me stays hidden until week 1. In weeks 1 to 5, Show me on the returns chapter would open Returns while it is still locked: it should wait. Chapters carry no dots.\n7. \"Read beside it\" has never been on screen: the chapters' related lists were written, but only a test reads them. They need a read-through first (3 · Cash on delivery, and where you advertise and 10 · Bidding by the hour share the bid cap departure but do not point at each other). Or drop the chips and keep previous and next.\n8. A contents card's line is the first sentence of the chapter's real half, so nothing new is written. A few are thin (\"Google Ads budgets by the day.\", \"An order can come back in two ways.\"). A one-line summary per chapter would read better, but it is thirteen new sentences to keep true; I'd keep the first sentence.\n9. Narrower windows (not drawn). Each Studio section stacks by its own width, not the window's. On a 1280px laptop this page is about 900px wide, so the halves should stay side by side down to about 720px and stack below that; the contents cards go from four columns to two.\n10. If B: its returns figures are shares of all week-1 orders (sent back 23.5%), while the chapter beside them says 30% of delivered orders; this account's is 28.0% of delivered, because places scale send-backs (F14 lists that as open). The panel says \"of orders\", and I'd make the chapter say its 30% is the rate before places. Figures here will also move when the throttled-slot fix lands."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "guide"
+  }
+}

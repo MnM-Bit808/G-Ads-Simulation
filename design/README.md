@@ -284,6 +284,39 @@ chose to fix both replays first and to say the other two plainly on the
 screens; the mock-ups show the corrected answers and those sentences. Still
 open: keeping round 0's notes for the reveal.
 
+## `guide/`: the Guide as a page (2026-09-15)
+
+An eleventh canvas, https://claude.ai/code/artifact/5a912577-a5cc-4107-9923-c351e61837fd,
+the last item on the makeover design's section 7 list. Today the rail's Guide
+button opens the field guide's drawer at its contents, over whichever section
+the player was in; the layout table gives the Guide area "the field guide as its
+own page".
+
+- **Page 1**, `Main.dc.html` and `Contents.dc.html` (A · the guide as a book),
+  **chosen by the owner on 2026-09-15**: the Guide area's list is Contents and
+  the thirteen numbered chapters; the contents are thirteen cards (number, the
+  section each explains, title, the first sentence of its real half); a chapter
+  is its two halves side by side with the sources, the section it explains with
+  Show me in your account, the chapters to read beside it, and previous and next.
+- **Page 2**, `Beside.dc.html` (B · beside your account): A's page with a panel
+  of the chapter's own figure in the player's account, drawn for four chapters.
+
+Every chapter is the game's own, read through the drawer's `guideView`; B's
+figures come from the makeover canvas's game after week 6. A second reader
+checked every chapter, figure and claim against the code. It found B's
+broad-match panel listing phrase match's longer searches as broad match's
+wandering (redrawn with only what broad match alone reached), and five things
+the build must answer, recorded on the canvas: Show me marks nothing in the
+Studio (the ring exists only on the classic cards, and focus looks for their
+heading); three chapters point where their idea is not shown ("Who writes the
+ad" at Your keywords, "Defending your own name" at Rivals, "What only a
+simulation can tell you" at a month bar with no "what if"); two chapters name a
+classic card; the rail's area buttons always open the first section, so a trip
+to the Guide loses the player's place; and the page needs a handful of new
+labels. The owner also chose: chapter 12's Show me points at Results' replays
+after week 12 and is hidden before; "Read beside it" stays after a read-through
+of every related list; "why?" still opens the drawer.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.
