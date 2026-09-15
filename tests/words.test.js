@@ -89,6 +89,25 @@ describe('the returns card', () => {
       expect(entry(FIGURES), name).not.toMatch(/undefined|NaN/);
     }
   });
+
+  // Found drawing the Studio's Returns: the note named three levers, written
+  // before the discount existed (I34), and said capital "opens only before week
+  // 1 and before week 5" in weeks when both had passed.
+  test('the levers name the prepaid discount, open every week like two others', () => {
+    expect(RETURNS.levers()).toMatch(/prepaid discount/i);
+    expect(RETURNS.leversHead()).toBe('Four things move it, and three of them are open every week.');
+  });
+
+  test('capital is said to open again, or to have closed, never to open in a week gone by', () => {
+    expect(RETURNS.capitalLater(FIGURES)).toBe('Capital is the fourth: it is shut, and opens again before week 1 and before week 5.');
+    expect(RETURNS.capitalClosed()).toBe('Capital is the fourth, and it has closed for the rest of the game.');
+    expect(Object.keys(RETURNS)).not.toContain('capitalShut');
+  });
+
+  test('one week counted reads as one', () => {
+    expect(RETURNS.countedWeeks({ first: 1, last: 1 })).toMatch(/^Only week 1 is counted above;/);
+    expect(RETURNS.countedWeeks({ first: 1, last: 4 })).toMatch(/^Only weeks 1 to 4 are counted above;/);
+  });
 });
 
 describe('the debrief', () => {

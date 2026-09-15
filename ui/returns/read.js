@@ -16,6 +16,25 @@ import { RTO_FREIGHT_PAISE } from '../../engine/constants.js';
 const sum = (rows, fn) => rows.reduce((a, r) => a + fn(r), 0);
 
 /**
+ * Whether capital, one of the levers on returns, is open this round, shut
+ * until a later window, or closed for the game.
+ *
+ * Found drawing the Studio's Returns: the card said capital "opens only before
+ * week 1 and before week 5" in every week it drew, and it draws only once a
+ * week has settled, week 6 at the soonest, when both windows had passed.
+ *
+ * @param {number[]} [allocationRounds] - `budgetSchedule.capexAllocationRounds`
+ * @param {number} round - the round about to be played
+ * @returns {{state: 'open'|'later'|'closed', later: number[]}} and the windows still to come
+ */
+export function capitalWindow(allocationRounds, round) {
+  const rounds = allocationRounds ?? [];
+  if (rounds.includes(round)) return { state: 'open', later: [] };
+  const later = rounds.filter((r) => r > round);
+  return { state: later.length > 0 ? 'later' : 'closed', later };
+}
+
+/**
  * Every week's returns, the counted totals, and what one refusal costs this
  * account.
  *

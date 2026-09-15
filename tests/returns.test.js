@@ -12,7 +12,7 @@ import { homeCell } from '../engine/querySet.js';
 import { businessFor, realisedBreakEvenCpcPaise } from '../engine/positions.js';
 import { POSITION_ECONOMICS, RTO_FREIGHT_PAISE } from '../engine/constants.js';
 import { SETTLES_AFTER_ROUNDS } from '../ui/dashboard.js';
-import { returnsReading } from '../ui/returns/read.js';
+import { returnsReading, capitalWindow } from '../ui/returns/read.js';
 
 const POSITION = { price: 'mid', purpose: 'performance' };
 
@@ -91,6 +91,13 @@ describe('what came back, read from the account\'s own weeks', () => {
     const shares = Object.values(rowOf(state.history[0], playerId).breakdown.byLocation).map((l) => l.codShare);
     expect(r.codShare).toBeGreaterThan(Math.min(...shares));
     expect(r.codShare).toBeLessThan(Math.max(...shares));
+  });
+
+  test('capital is open in its week, shut until the next, and closed once the last has gone', () => {
+    expect(capitalWindow([1, 5], 5)).toEqual({ state: 'open', later: [] });
+    expect(capitalWindow([1, 5], 3)).toEqual({ state: 'later', later: [5] });
+    expect(capitalWindow([1, 5], 7)).toEqual({ state: 'closed', later: [] });
+    expect(capitalWindow(undefined, 7)).toEqual({ state: 'closed', later: [] });
   });
 
   test('before any week has settled, nothing is counted', () => {

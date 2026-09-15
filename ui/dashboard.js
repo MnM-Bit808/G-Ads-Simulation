@@ -31,7 +31,7 @@ import { rankOf } from './ending.js';
 import { renderTrends, insightMovers, marketChange } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
 import { RETURNS } from './words/returns.js';
-import { returnsReading } from './returns/read.js';
+import { returnsReading, capitalWindow } from './returns/read.js';
 import { MARKET } from './words/market.js';
 import { whyButton } from './guide/drawer.js';
 import { tagKeywordOffline } from '../agents/keywordTagger.js';
@@ -455,17 +455,17 @@ function renderReturns(root, game, openGuide) {
     margin: rupees(reading.marginPaise),
   })} `));
 
-  // I33: THREE LEVERS, AND WHICH OF THEM IS AVAILABLE THIS WEEK. The card was
+  // I33: THE LEVERS, AND WHICH OF THEM IS AVAILABLE THIS WEEK. The card was
   // a statistic without this — a player watched a number they had no way to
-  // move, because capital closes at round 5 and nothing named the two levers
+  // move, because capital closes at round 5 and nothing named the levers
   // that never close. Same complaint I24 makes about the location card:
-  // it states a fact and names none.
-  const allocations = game.state.budgetSchedule?.capexAllocationRounds ?? [];
-  const capexOpen = allocations.includes(game.state.round);
+  // it states a fact and names none. Four since the discount (I34).
+  const capital = capitalWindow(game.state.budgetSchedule?.capexAllocationRounds, game.state.round);
+  let capitalSaid = RETURNS.capitalClosed();
+  if (capital.state === 'open') capitalSaid = RETURNS.capitalOpen();
+  else if (capital.state === 'later') capitalSaid = RETURNS.capitalLater({ window: allocationWindowPhrase(capital.later) });
   note.append(el('strong', null, `${RETURNS.leversHead()} `));
-  note.append(document.createTextNode(`${RETURNS.levers()} ${capexOpen
-    ? RETURNS.capitalOpen()
-    : RETURNS.capitalShut({ window: allocationWindowPhrase(allocations) })}`));
+  note.append(document.createTextNode(`${RETURNS.levers()} ${capitalSaid}`));
 
   note.append(document.createTextNode(` ${RETURNS.countedWeeks({
     first: reading.countedFrom,
