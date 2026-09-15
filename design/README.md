@@ -218,6 +218,33 @@ before week 5" once it has closed for the game; and, with order confirmation
 live, ₹30 saves about ₹1,796 a week against ₹1,436 while ₹50 costs more than
 it saves, so the section draws the trade rather than naming a rung.
 
+## `market/`: the Market area, rivals as players (2026-09-15)
+
+A ninth canvas, https://claude.ai/code/artifact/230864af-39a1-4789-8631-158a34316d7a,
+the Market area on the makeover design's section 7 list, replacing today's
+Auction insights, Week by week (the trends chart) and The market cards. Both
+options make it one section, Rivals, with the market's four public figures and
+the player's own share on top; the owner agreed to the one section.
+
+- **Page 1**, `Main.dc.html` (A · the field, rival by rival), **chosen by the
+  owner on 2026-09-15**: each rival you meet as a card, how often they are in
+  your auctions with every week so far as small bars, their ad as searchers see
+  it, and who comes out above; sorted by how often you meet, one you never meet
+  a line at the end.
+- **Page 2**, `Grid.dc.html` (B · week by week, every rival at once): a row a
+  rival and a bar a week for the figure picked, and the picked rival's ad and
+  figures beside it.
+
+Only what a player may see (R3): names, sites and ads from the public view, the
+player's own Auction Insights, and the market's public totals. Its numbers come
+from the makeover canvas's game (seed 1, Vella & Co. at mid-price performance,
+its keywords), after week 6 and week 9. Mapping today's cards found the reading
+naming the rival "above you most often when you meet" by that rate alone, which
+picked one in 2% of the player's auctions; the mock-ups name the rival above
+the player in the most of all the auctions it shows in. A second read fixed
+five wordings, recorded on the canvas. Left for the owner: a results page for
+one search (a DECISIONS entry first), and keeping round 0's notes on rivals.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.
