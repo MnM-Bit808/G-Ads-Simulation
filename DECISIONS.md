@@ -4465,9 +4465,16 @@ F17 with this rule:
 | the player: final net / median rank / loses money in | ₹11,90,785 / 5th / 0 of 72 | ₹11,90,787 / 5th / 0 of 72 |
 | largest rival move into week 5 · week 9 | 4.40× · 4.29× | 4.40× · 4.19× |
 
-The same small shift as before F17, and the player's figures stay put. Not
-re-measured on this market: the per-rival rows of the table above (who offers,
-refusals, freight, net) and the player's prepaid table, `prepaid` mode.
+The same small shift as before F17, and the player's figures stay put. The
+per-rival rows of the table above, re-measured the same way on this market
+(each rival's own history, paired market by market): 144 of 144 still offer
+₹50 from week 2 and hold it; their refused share of settled orders 16.6% →
+15.3%; freight on refused parcels −8.1%; gross revenue, weeks 1–7, −0.6%; net
+profit, whole game, **+1.7%** median, −1.6% to +6.3%, up in 141 of 144
+(`disciplined` 70 of 72, `grossOptimiser` 71); the other six rivals 0.0%
+median, ₹126 either way. I1's solo account measured the same to three decimals
+here too. Not re-measured on this market: the player's prepaid table,
+`prepaid` mode.
 
 **Found on the way, not fixed here:** `observedReturnRate` and `locationTilt`'s
 net-of-returns reading read returns off the same one-week report and are dead the
