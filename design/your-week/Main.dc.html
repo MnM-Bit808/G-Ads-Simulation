@@ -129,29 +129,29 @@
       </div>
       <div style="display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 16px; align-items: start;">
         <div style="padding: 16px 20px 14px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
-            <div style="display: flex; align-items: baseline; gap: 10px;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
               <div class="display" style="font-weight: 700; font-size: 18px;">Every week so far</div>
-              <div style="font-size: 12px; color: #A19A94;">net profit · outlined is what you saw at week 5</div>
+              <div style="font-size: 12px; color: #A19A94;">net profit by week · the dashed tick is where it stood when you last looked</div>
             </div>
-            <div class="pick" onClick="{{replay}}" style="font-size: 12px; color: #CFC9C3; border: 1px solid #3A363E; border-radius: 999px; padding: 4px 10px;">replay the revision</div>
+            <div class="pick" onClick="{{replay}}" style="flex-shrink: 0; font-size: 12px; color: #CFC9C3; border: 1px solid #3A363E; border-radius: 999px; padding: 4px 10px; white-space: nowrap;">replay the revision</div>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) repeat(6, minmax(0, 0.45fr)); gap: 8px; align-items: end; height: 234px; padding-top: 6px;">
+          <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) repeat(6, minmax(0, 0.45fr)); gap: 10px; align-items: end; height: 252px; padding-top: 6px;">
             <sc-for list="{{weeks}}" as="w" hint-placeholder-count="12">
               <div style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch;">
                 <sc-if value="{{w.played}}" hint-placeholder-val="{{true}}">
-                  <div class="fade num" style="position: absolute; left: -6px; right: -6px; bottom: {{w.labelNow}}px; text-align: center; font-size: 11px; font-weight: 700; opacity: {{w.nowOpacity}};">{{w.netText}}</div>
+                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: 36px; height: {{w.sawH}}px; border-radius: 5px 5px 0 0; background: #7A7480; opacity: {{w.sawOpacity}};"></div>
                   <div class="fade num" style="position: absolute; left: -6px; right: -6px; bottom: {{w.labelSaw}}px; text-align: center; font-size: 11px; font-weight: 700; color: #A19A94; opacity: {{w.sawOpacity}};">{{w.sawText}}</div>
-                  <div style="position: absolute; left: 0; right: 0; bottom: 26px; height: {{w.sawH}}px; border: 1px dashed #A19A94; border-radius: 6px 6px 0 0; box-sizing: border-box;"></div>
-                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: 26px; height: {{w.nowH}}px; border-radius: 5px 5px 0 0; background: {{w.fill}}; opacity: {{w.nowOpacity}};"></div>
-                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: 26px; height: {{w.sawH}}px; border-radius: 5px 5px 0 0; background: #68636B; opacity: {{w.sawOpacity}};"></div>
+                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: 36px; height: {{w.nowH}}px; border-radius: 5px 5px 0 0; background: #EDE8E3; opacity: {{w.nowOpacity}};"></div>
+                  <div class="fade" style="position: absolute; left: -3px; right: -3px; bottom: {{w.tickBottom}}px; border-top: 2px dashed #8A847E; opacity: {{w.tickOpacity}};"></div>
+                  <div class="fade num" style="position: absolute; left: -6px; right: -6px; bottom: {{w.labelNow}}px; text-align: center; font-size: 11px; font-weight: 700; opacity: {{w.nowOpacity}};">{{w.netText}}</div>
                 </sc-if>
                 <sc-if value="{{w.future}}" hint-placeholder-val="{{false}}">
-                  <div style="position: absolute; left: 3px; right: 3px; bottom: 26px; height: 10px; border-radius: 5px; border: 1px dashed #3A363E; box-sizing: border-box;"></div>
+                  <div style="position: absolute; left: 3px; right: 3px; bottom: 36px; height: 10px; border-radius: 5px; border: 1px dashed #3A363E; box-sizing: border-box;"></div>
                 </sc-if>
-                <div style="height: 26px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px;">
-                  <div class="num" style="font-size: 11px; font-weight: 700; color: {{w.deltaColor}};">{{w.delta}}</div>
-                  <div style="font-size: 11px; color: #8A847E;">{{w.label}}</div>
+                <div style="height: 36px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px;">
+                  <div style="font-size: 11px; font-weight: {{w.labelWeight}}; color: {{w.labelColor}};">{{w.label}}</div>
+                  <div class="fade num" style="font-size: 11px; color: {{w.deltaColor}}; font-weight: {{w.deltaWeight}}; white-space: nowrap; opacity: {{w.deltaOpacity}};">{{w.delta}}</div>
                 </div>
               </div>
             </sc-for>
@@ -160,21 +160,22 @@
         </div>
         <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 12px;">
           <div class="display" style="font-weight: 700; font-size: 18px;">Where the impressions went</div>
-          <div style="display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: #221F25;">
+          <div style="display: flex; gap: 2px; height: 14px; border-radius: 7px; overflow: hidden; background: #221F25;">
             <div style="width: 57%; background: #EDE8E3;"></div>
-            <div style="width: 43%; background: #F2A53A;"></div>
+            <div style="width: 43%; background: #7A7480;"></div>
+            <div style="width: 0%; background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px);"></div>
           </div>
           <div class="num" style="display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px;">
-            <div><b style="font-weight: 700;">57%</b> <span style="color: #A19A94;">shown</span></div>
-            <div style="color: #F2A53A;"><b style="font-weight: 700;">−43%</b> lost to budget</div>
-            <div><b style="font-weight: 700;">0%</b> <span style="color: #A19A94;">lost to rank</span></div>
+            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 10px; height: 10px; border-radius: 2px; background: #EDE8E3;"></div><b style="font-weight: 700;">57%</b> <span style="color: #A19A94;">shown</span></div>
+            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 10px; height: 10px; border-radius: 2px; background: #7A7480;"></div><b style="font-weight: 700;">43%</b> <span style="color: #A19A94;">lost to budget</span></div>
+            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 10px; height: 10px; border-radius: 2px; background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px); box-shadow: inset 0 0 0 1px #7A7480;"></div><b style="font-weight: 700;">0%</b> <span style="color: #A19A94;">lost to rank</span></div>
           </div>
           <div style="font-size: 12px; color: #A19A94;">where you showed on the page</div>
           <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: end; height: 70px;">
             <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 44%; min-height: 3px; border-radius: 4px 4px 0 0; background: #EDE8E3;"></div></div>
-            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 3%; min-height: 3px; border-radius: 4px 4px 0 0; background: #68636B;"></div></div>
-            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 51%; min-height: 3px; border-radius: 4px 4px 0 0; background: #68636B;"></div></div>
-            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 3%; min-height: 3px; border-radius: 4px 4px 0 0; background: #68636B;"></div></div>
+            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 3%; min-height: 3px; border-radius: 4px 4px 0 0; background: #7A7480;"></div></div>
+            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 51%; min-height: 3px; border-radius: 4px 4px 0 0; background: #7A7480;"></div></div>
+            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 3%; min-height: 3px; border-radius: 4px 4px 0 0; background: #7A7480;"></div></div>
           </div>
           <div class="num" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: #A19A94; text-align: center;">
             <div><b style="color: #EDE8E3; font-weight: 700;">44%</b><br>top</div>
@@ -198,10 +199,13 @@
 <script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
 /*
  * Your week, option A: money first. The week's six figures, then every week's
- * net profit, the bar as it is now and an outline where it stood when you
- * last looked (week 5). Opening the section plays the revision: each week
- * shows what you saw, then crossfades to what it is now (250ms, opacity only,
- * never a counting ticker). Real figures: seed 1, weeks 1-6.
+ * net profit in solid bone, a faint dashed tick where it stood when you last
+ * looked (week 5), and the change under the week in the dashboard's grey with
+ * its + or − (the owner's choice, 2026-09-15: no yellow or green, nothing the
+ * rest of the Studio does not already do). Opening the section
+ * plays the revision: each week shows what you saw, then crossfades to what
+ * it is now (250ms, opacity only, never a counting ticker). Real figures:
+ * seed 1, weeks 1-6.
  */
 const WEEKS = [{"round":1,"net":84894,"netSaw":89914,"conv":192.6,"pending":0,"convFirst":106,"convSaw":192.6,"pendingSaw":0,"spend":"₹55,939","clicks":"4,284","cpc":"₹13","roas":"5.05","roasSaw":"5.22","cpa":"₹290"},{"round":2,"net":44054,"netSaw":54206,"conv":162.3,"pending":0,"convFirst":89.2,"convSaw":162.3,"pendingSaw":0,"spend":"₹78,250","clicks":"3,400","cpc":"₹23","roas":"3.13","roasSaw":"3.36","cpa":"₹482"},{"round":3,"net":46629,"netSaw":60317,"conv":157.6,"pending":0,"convFirst":86.7,"convSaw":149.7,"pendingSaw":7.9,"spend":"₹78,250","clicks":"3,352","cpc":"₹23","roas":"3.18","roasSaw":"3.48","cpa":"₹496"},{"round":4,"net":54464,"netSaw":76747,"conv":144.7,"pending":7.6,"convFirst":83.8,"convSaw":126.4,"pendingSaw":25.9,"spend":"₹78,250","clicks":"3,195","cpc":"₹24","roas":"3.33","roasSaw":"3.81","cpa":"₹541"},{"round":5,"net":86047,"netSaw":32730,"conv":129.3,"pending":26.5,"convFirst":85.7,"convSaw":85.7,"pendingSaw":70.1,"spend":"₹72,000","clicks":"3,261","cpc":"₹22","roas":"4.22","roasSaw":"2.80","cpa":"₹557"},{"round":6,"net":29753,"netSaw":null,"conv":83.3,"pending":68.1,"convFirst":83.3,"convSaw":null,"pendingSaw":null,"spend":"₹72,000","clicks":"3,170","cpc":"₹23","roas":"2.72","roasSaw":null,"cpa":"₹865"}];
 const MAX = 89914;
@@ -227,24 +231,29 @@ class Component extends DCLogic {
     const { revealed } = this.state;
     const weeks = Array.from({ length: 12 }, (_, i) => {
       const w = WEEKS[i];
-      if (!w) return { played: false, future: true, label: `wk ${i + 1}`, delta: '', deltaColor: '#8A847E' };
-      const nowH = Math.round((H * Math.max(0, w.net)) / MAX);
-      const sawH = w.netSaw === null ? 0 : Math.round((H * Math.max(0, w.netSaw)) / MAX);
-      const change = w.netSaw === null ? null : w.net - w.netSaw;
-      let delta = 'new';
-      let deltaColor = '#CFC9C3';
-      if (change !== null) {
-        delta = revealed ? signed(change) : '';
-        deltaColor = change >= 0 ? '#9FD3B5' : '#F2A53A';
+      if (!w) {
+        return { played: false, future: true, label: String(i + 1), labelWeight: 400, labelColor: '#68636B' };
       }
+      const nowH = Math.round((H * Math.max(0, w.net)) / MAX);
+      const current = w.netSaw === null;
+      const sawH = current ? 0 : Math.round((H * Math.max(0, w.netSaw)) / MAX);
+      // The Studio's own idiom for an old value (the bid slider's was-marker):
+      // solid bone bars, a faint dashed tick where the week stood when you
+      // last looked, poking out either side of the bar, and the change in the
+      // dashboard's muted grey under the week (the owner's choice, 2026-09-15).
       return {
-        played: true, future: false, label: `wk ${w.round}`,
-        netText: rupees(w.net), sawText: w.netSaw === null ? '' : rupees(w.netSaw),
-        nowH, sawH, labelNow: nowH + 30, labelSaw: sawH + 30,
-        fill: w.round === 6 ? '#D7262F' : '#EDE8E3',
-        nowOpacity: revealed || w.netSaw === null ? 1 : 0,
-        sawOpacity: revealed || w.netSaw === null ? 0 : 1,
-        delta, deltaColor,
+        played: true, future: false, label: String(w.round),
+        labelWeight: current ? 700 : 400, labelColor: current ? '#EDE8E3' : '#8A847E',
+        netText: rupees(w.net), sawText: current ? '' : rupees(w.netSaw),
+        nowH, sawH, tickBottom: 35 + sawH,
+        labelNow: 40 + Math.max(nowH, sawH), labelSaw: 40 + sawH,
+        nowOpacity: revealed || current ? 1 : 0,
+        sawOpacity: revealed || current ? 0 : 1,
+        tickOpacity: !current && revealed ? 1 : 0,
+        delta: current ? 'this week' : signed(w.net - w.netSaw),
+        deltaColor: current ? '#EDE8E3' : '#A19A94',
+        deltaWeight: current ? 700 : 400,
+        deltaOpacity: revealed || current ? 1 : 0,
       };
     });
     return { weeks, replay: () => this.play() };

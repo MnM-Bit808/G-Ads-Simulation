@@ -98,11 +98,21 @@ revised figures visibly give way. Two options, each opening by playing the
 revision (every earlier week shows what you saw when you last looked, then
 crossfades to what it is now, 250ms, opacity only):
 
-- `Main.dc.html` (A · money first): the week's six figures, then every week's
-  net profit against an outline of what you saw, gains and losses marked.
-- `DelayFirst.dc.html` (B · the delay first): every week's conversions, landed
-  against still to arrive with a tick where you read them; tap a week for its
-  six figures.
+- **Page 1**, `Main.dc.html` (A · money first), **chosen by the owner on
+  2026-09-15**: the week's six figures, then every week's net profit as a bone
+  bar, a faint dashed tick where it stood when you last looked, and the change
+  in grey under the week with its plus or minus.
+- **Page 2**, `DelayFirst.dc.html` (B · the delay first): every week's
+  conversions, landed against still to arrive with a tick where you read them;
+  tap a week for its six figures.
+
+The colours took three tries, and the note on page 1 keeps the reasoning. Mint
+and amber on the changes looked out of place; hatched caps with dark figures
+did not mesh with the rest of the dashboard. What stayed uses only what the
+Studio already does: bone and greys, and the keyword slider's "was" marker
+made for a bar. It sets aside the palette's "a loss is amber" on this one
+screen, because a week revised down is a correction to what you were told,
+not money leaving now.
 
 Its numbers come from one game played six weeks with the engine (seed 1,
 Vella & Co. at mid-price performance, manual bids), with every week's figures
