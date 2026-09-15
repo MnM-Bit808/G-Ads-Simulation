@@ -306,7 +306,7 @@ export function changes(draft) {
     rows.push({
       id: 'position',
       kind: 'position',
-      label: `Position: ${cellOf(draft.base.position)} → ${cellOf(draft.position)}`,
+      label: `Position: ${cellName(draft.base.position)} → ${cellName(draft.position)}`,
       detail: `costs ${rupees(REPOSITION_COST_PAISE)} from this month, restarts the `
         + 'learning period, and any keyword you replace starts with no Quality Score',
       undo: () => setPosition(draft, cellOf(draft.base.position)),
@@ -653,6 +653,8 @@ export function lastMonthBudget(history, playerId, round) {
 
 const capexSpent = (draft) => Object.values(draft.capex).reduce((a, b) => a + b, 0);
 const cellOf = (position) => cellKey(position.price, position.purpose);
+/** A cell as the cards name it; `cellOf` is the engine's key for it. */
+const cellName = (position) => `${position.price} · ${position.purpose}`;
 
 function movedPosition(draft) {
   const from = draft.base.position;

@@ -659,6 +659,17 @@ describe('capital and position, one round each (13.3, 4.5)', () => {
     expect(row.detail).toMatch(/Quality Score/i);
   });
 
+  // Found playing Your money: the tray said "mid|performance", the engine's
+  // key for the cell, where both looks' cells say "mid · performance".
+  test('the tray names a move the way the cells do', () => {
+    const draft = draftAt(atFive());
+    const from = draft.base.position;
+    const step = allCells().map(parseCell).find((c) => isOneStep(from, c));
+    setPosition(draft, cellKey(step.price, step.purpose));
+    const row = changes(draft).find((r) => r.kind === 'position');
+    expect(row.label).toBe(`Position: ${from.price} · ${from.purpose} → ${step.price} · ${step.purpose}`);
+  });
+
   test('moving back to where you started decides nothing', () => {
     const draft = draftAt(atFive());
     const from = draft.base.position;
