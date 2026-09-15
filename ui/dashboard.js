@@ -15,8 +15,8 @@
  *        them. "Changed since you looked" is a panel, not a footnote.
  *
  *   15.2 The search terms report is the only tool for writing negatives, so it
- *        is a primary surface rather than a buried table, and rows that took
- *        clicks and returned nothing are marked.
+ *        is a primary surface rather than a buried table, and a search whose
+ *        sales cost over twice the account's average is marked.
  */
 
 import { el, add, table, figure, rupees, whole, pct, ratio } from './dom.js';
@@ -26,6 +26,7 @@ import { briefing } from '../setup.js';
 import {
   renderDecisions, addNegative, blocksTerm, effectiveGrades, termsOutlook,
   locationRows, locationOutlook, setLocation, lastMonthBudget,
+  averagePerSalePaise, isDear,
 } from './decisions.js';
 import { rankOf } from './ending.js';
 import { renderTrends, insightMovers, marketChange } from './chart.js';
@@ -725,6 +726,7 @@ function renderTerms(root, game, ctx) {
     { conv: 0, ret: 0 },
   );
   const accountReturnRate = totals.conv > 0 ? totals.ret / totals.conv : 0;
+  const averagePaise = averagePerSalePaise(ctx.terms);
   const rows = Object.entries(ctx.terms)
     .filter(([, r]) => r.impressions > 0)
     .sort((a, b) => b[1].costPaise - a[1].costPaise)
@@ -786,14 +788,35 @@ function renderTerms(root, game, ctx) {
           + `${rupees(r.returnedRevenuePaise)} of revenue`
           + (worse ? `. That is worse than your account's ${pct(accountReturnRate, 0)}.` : '');
 
+      // What a sale cost on this search, marked beside the returns and in the
+      // same way: against this account, not a fixed line. It replaced "five
+      // clicks and no conversion", which the game's fractional sales only ever
+      // met on a search nobody buys from (`isDear`, DECISIONS I8).
+      const dear = isDear(r, averagePaise);
+      const perSale = el('span', dear ? 'bad' : null);
+      perSale.textContent = r.conversions > 0 ? rupees(r.costPaise / r.conversions) : 'no sale';
+      if (averagePaise === null) {
+        perSale.title = 'nothing in this report has sold yet, so there is no average to hold it against';
+      } else if (r.conversions > 0) {
+        perSale.title = `${rupees(r.costPaise / r.conversions)} a sale, `
+          + (dear ? 'over twice' : 'against')
+          + ` your average of ${rupees(averagePaise)}`;
+      } else {
+        perSale.title = dear
+          ? `${rupees(r.costPaise)} and no sale, more than a sale costs you on average `
+            + `(${rupees(averagePaise)})`
+          : `no sale yet, on less than a sale costs you on average (${rupees(averagePaise)})`;
+      }
+
       return {
-        className: blocked ? 'blocked-row' : (r.clicks >= 5 && r.conversions === 0 ? 'wasted' : null),
+        className: blocked ? 'blocked-row' : null,
         cells: [
           label,
           whole(r.impressions),
           whole(r.clicks),
           rupees(r.costPaise),
           r.conversions > 0 ? r.conversions.toFixed(1) : '0',
+          perSale,
           returns,
           r.clicks > 0 ? rupees(r.costPaise / r.clicks) : '—',
           button,
@@ -805,7 +828,8 @@ function renderTerms(root, game, ctx) {
     root.querySelector('[data-slot="terms-table"]'),
     ['Search term', { label: 'Impr', num: true }, { label: 'Clicks', num: true },
       { label: 'Cost', num: true }, { label: 'Conv', num: true },
-      { label: 'Came back', num: true }, { label: 'CPC', num: true }, ''],
+      { label: 'Per sale', num: true }, { label: 'Came back', num: true },
+      { label: 'CPC', num: true }, ''],
     rows,
   );
 
