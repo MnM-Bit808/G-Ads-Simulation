@@ -105,6 +105,41 @@ export function retentionRate(business, query) {
 }
 
 /**
+ * What one order on this search is worth before any noise: the catalogue's
+ * mean basket times the search's own value multiplier.
+ *
+ * Fixed for an advertiser and a search for the whole round, so the round
+ * works it out once per pair rather than once per auction it records.
+ *
+ * @param {{aovMeanPaise: number}} business
+ * @param {{valueMultiplier: number}} query
+ * @returns {number} integer paise
+ */
+export function expectedOrderValuePaise(business, query) {
+  return mulRate(business.aovMeanPaise, query.valueMultiplier);
+}
+
+/**
+ * One order's value: the expected basket in expected mode, and a lognormal
+ * draw around it in sampled mode, so the spread is realistic, the mean is kept
+ * exactly and a value can never come out negative.
+ *
+ * @param {number} basePaise from expectedOrderValuePaise
+ * @param {{aovSpread: number}} business
+ * @param {(() => number)|null} rng
+ * @param {'expected'|'sampled'} mode
+ * @returns {number} integer paise
+ */
+export function orderValuePaise(basePaise, business, rng, mode) {
+  if (mode !== 'sampled') return basePaise;
+  if (typeof rng !== 'function') {
+    throw new TypeError('sampled mode needs an rng: the engine never reaches for one (R1)');
+  }
+  const s = business.aovSpread;
+  return Math.max(1, mulRate(basePaise, Math.exp(normal(rng) * s - (s * s) / 2)));
+}
+
+/**
  * What one order is worth.
  *
  * Sampled mode draws lognormally around the mean, so the spread is realistic,
@@ -118,13 +153,7 @@ export function retentionRate(business, query) {
  * @returns {number} integer paise
  */
 export function sampleOrderValuePaise(business, query, rng, mode) {
-  const base = mulRate(business.aovMeanPaise, query.valueMultiplier);
-  if (mode !== 'sampled') return base;
-  if (typeof rng !== 'function') {
-    throw new TypeError('sampled mode needs an rng: the engine never reaches for one (R1)');
-  }
-  const s = business.aovSpread;
-  return Math.max(1, mulRate(base, Math.exp(normal(rng) * s - (s * s) / 2)));
+  return orderValuePaise(expectedOrderValuePaise(business, query), business, rng, mode);
 }
 
 /**

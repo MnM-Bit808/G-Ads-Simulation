@@ -56,7 +56,7 @@ import {
 } from './pacing.js';
 import { buildRoundOutput, reviseReports } from './report.js';
 import {
-  effectiveConvRate, sampleOrderValuePaise,
+  effectiveConvRate, expectedOrderValuePaise, orderValuePaise,
   queueConversions, landDueConversions, queueReturns, resolveReturns,
 } from './attribution.js';
 
@@ -333,7 +333,7 @@ export function runRound(gameState, options = {}) {
  * 226,800 and the round misses its budget.
  */
 function buildEntryPlans(advertisers, business, queries, round) {
-  return advertisers.map((advertiser) => {
+  return advertisers.map((advertiser, i) => {
     const bonus = landingPageBonus(advertiser.capex, round);
     return queries.map((query) => {
       if (isBlocked(query, advertiser.campaign.negatives)) return null;
@@ -365,6 +365,9 @@ function buildEntryPlans(advertisers, business, queries, round) {
         // Only searches that literally were the keyword count toward the
         // reported score (spec 9.3, A4).
         literal: normalise(query.text) === normalise(chosen.keyword.text),
+        // The basket before any noise. Fixed for this advertiser and search
+        // all round, so worked out here once rather than at every record.
+        orderValuePaise: expectedOrderValuePaise(business[i], query),
       };
     });
   });
@@ -493,7 +496,7 @@ function recordAuction({
         advertiserId: advertisers[i].id, hour,
       });
       if (convRate > 0) {
-        const base = sampleOrderValuePaise(business[i], query, perAdvertiserRng[i], mode);
+        const base = orderValuePaise(e._plan.orderValuePaise, business[i], perAdvertiserRng[i], mode);
         const discountPaise = advertisers[i].campaign?.prepaidDiscountPaise ?? 0;
         const converted = clicks * convRate;
         // ONE BUCKET PER QUERY AND LOCATION. The basket and the return rate are
