@@ -191,7 +191,8 @@ export const CHAPTERS = Object.freeze({
     game: ({ rtoCod, rtoPrepaid, postDelivery, freight }) => 'Here the game shows your returns from '
       + 'your shop’s own books, which Google Ads would show only if you uploaded them. Every order '
       + `can be refused at the door, ${rtoCod} of the time when paid in cash and ${rtoPrepaid} `
-      + `when prepaid, and ${postDelivery} of delivered orders are sent back. Each refused `
+      + `when prepaid, and ${postDelivery} of delivered orders across the country are sent back, `
+      + 'more or less for you depending on where you sell. Each refused '
       + `parcel also costs ${freight} in freight. The two halves have different fixes: a size `
       + 'guide reaches only send-backs, while order confirmation and a prepaid discount reach '
       + 'only refusals. The refusal rates come from one named study; newer reports put cash '

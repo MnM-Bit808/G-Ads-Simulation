@@ -150,6 +150,17 @@ describe('the chapters', () => {
     expect(c.game(FIGURES)).not.toMatch(/\bcards?\b/i);
   });
 
+  // Places scale an account's returns (LOCATION_RETURN_MULTIPLIER, normalised
+  // to the country; F14 holds its effect on send-backs open). Drawing the Guide
+  // page put this chapter beside an account sending back 28.0% of delivered
+  // orders against its 30% (2026-09-15).
+  test('the returns chapter gives the send-back rate as the country\'s, which where you sell moves', () => {
+    const game = CHAPTERS.returnsSplit.game(FIGURES);
+    expect(game).toContain(`${FIGURES.postDelivery} of delivered orders across the country`);
+    expect(game).toContain('depending on where you sell');
+    expect(CHAPTERS.returnsSplit.cites).toContain('F14');
+  });
+
   test('the chapters with a bid adjustment say no bid passes the cap, and cite it (D13)', () => {
     // Where and when's bars stop at the cap and say so (2026-09-15); the guide
     // behind their "why?" links has to agree, from the constant itself.
