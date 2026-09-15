@@ -349,6 +349,36 @@ function arrivalChart(game) {
 }
 
 /**
+ * How much of the orders in some weeks were paid at the door.
+ *
+ * The returns card asks it of its SETTLED weeks, the ones its refused and
+ * sent-back figures count, and weights by the same orders, so the reason for
+ * the split describes the orders the split is of. Each week carries the share
+ * it was sold at (I34): read over every week played, a discount started this
+ * week would show at once beside refusals that cannot move until its weeks
+ * settle, and look like a discount that did nothing.
+ *
+ * @param {object[]} history every report, revised
+ * @param {string} playerId
+ * @param {number[]} rounds the weeks to count
+ * @returns {number|null} 0..1, or null when those weeks hold no orders
+ */
+export function paidAtDoorShare(history, playerId, rounds) {
+  const counted = new Set(rounds);
+  let orders = 0;
+  let weighted = 0;
+  for (const h of history ?? []) {
+    if (!counted.has(h.round)) continue;
+    for (const row of Object.values(h.byAdvertiser[playerId]?.breakdown?.byLocation ?? {})) {
+      if (row.codShare == null) continue;
+      orders += row.conversions ?? 0;
+      weighted += (row.conversions ?? 0) * row.codShare;
+    }
+  }
+  return orders > 0 ? weighted / orders : null;
+}
+
+/**
  * What came back, what it cost, and whether it is getting better (I31).
  *
  * WHY THIS CARD EXISTS. Build 2 charged ₹200 on every parcel refused at the
@@ -414,21 +444,11 @@ function renderReturns(root, game, openGuide) {
   const sentBack = sum(settled, (w) => w.sentBack);
   const rate = (n) => (conv > 0 ? n / conv : 0);
 
+  const codShare = paidAtDoorShare(history, game.playerId, settled.map((w) => w.round));
+
   // What one refused parcel is actually worth, from this account's own figures
   // rather than from a constant — the arithmetic the player would otherwise do
   // by hand. Margin is recovered from the gross figures, which carry no freight.
-  let codClicks = 0;
-  let codWeighted = 0;
-  for (const h of history) {
-    const rows = h.byAdvertiser[game.playerId]?.breakdown?.byLocation ?? {};
-    for (const row of Object.values(rows)) {
-      if (row.codShare == null) continue;
-      codClicks += row.clicks ?? 0;
-      codWeighted += (row.clicks ?? 0) * row.codShare;
-    }
-  }
-  const codShare = codClicks > 0 ? codWeighted / codClicks : null;
-
   const grossRev = sum(settled, (w) => w.grossRevenuePaise);
   const grossProfit = sum(settled, (w) => w.grossProfitPaise);
   const spend = sum(settled, (w) => w.costPaise);

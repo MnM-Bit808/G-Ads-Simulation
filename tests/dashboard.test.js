@@ -25,7 +25,9 @@
 import { describe, test, expect } from 'vitest';
 import {
   creativeOutlook, allocationWindowPhrase, rankSentence, profitSubLabel, formContext,
+  paidAtDoorShare, SETTLES_AFTER_ROUNDS,
 } from '../ui/dashboard.js';
+import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 import { createDraft, prepaidReading } from '../ui/decisions.js';
 import { startGame } from '../setup.js';
 import { getSelfView } from '../engine/insights.js';
@@ -386,5 +388,62 @@ describe('the prepaid card shows the refusal rate this account runs at (I29, I34
     const ctx = formContext(played());
     const handed = JSON.stringify({ ...ctx, places: ctx.places() });
     expect(handed).not.toMatch(/byAdvertiser/);
+  });
+});
+
+/**
+ * The returns card's "Paid at door" is the cash share of the orders its
+ * refusal figures count.
+ *
+ * Those figures read only SETTLED weeks, because a recent week has not had its
+ * returns yet. The cash share read every week played, which made no difference
+ * while every week had the same one. Now each week carries its own (I34), and
+ * read over every week a discount started this week would show at once, beside
+ * refusals that cannot move until its weeks settle: a discount that seemed to do
+ * nothing.
+ */
+describe('the returns card\'s cash share covers the weeks its refusals do (I34)', { timeout: 60_000 }, () => {
+  const games = new Map();
+  // ₹30 from week 3 on, or never; the history as it stood after weeks 7 and 8.
+  const played = (discounted) => {
+    if (games.has(discounted)) return games.get(discounted);
+    let state = makeGameState({ round: 1 });
+    const after = {};
+    for (let week = 1; week <= 8; week++) {
+      const decisions = discounted && week === 3
+        ? { [PLAYER_ID]: { campaign: { prepaidDiscountPaise: 3000 } } } : {};
+      state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
+      after[week] = state.history;
+    }
+    games.set(discounted, after);
+    return after;
+  };
+  // What the card reads: the settled weeks, as `renderReturns` picks them.
+  const card = (history) => {
+    const latest = history[history.length - 1].round;
+    const settled = history.filter((h) => latest - h.round >= SETTLES_AFTER_ROUNDS).map((h) => h.round);
+    return paidAtDoorShare(history, PLAYER_ID, settled);
+  };
+
+  test('while the discounted weeks are settling, it reads as if there were no discount', () => {
+    // After week 7 only weeks 1 and 2 have settled, and both were sold without it.
+    expect(card(played(true)[7])).toBeCloseTo(card(played(false)[7]), 12);
+  });
+
+  test('and it falls from the week the first of them settles', () => {
+    // After week 8, week 3 has settled too: the refusals it prevented arrive with it.
+    expect(card(played(true)[8])).toBeLessThan(card(played(false)[8]) - 0.005);
+  });
+
+  test('weighted by orders, over the weeks it is given and no others', () => {
+    const week = (round, byLocation) => ({ round, byAdvertiser: { [PLAYER_ID]: { breakdown: { byLocation } } } });
+    const history = [
+      week(1, { 0: { clicks: 900, conversions: 10, codShare: 0.6 }, 1: { clicks: 100, conversions: 30, codShare: 0.72 } }),
+      week(2, { 0: { clicks: 100, conversions: 5, codShare: 0.54 } }),
+      week(3, { 0: { clicks: 500, conversions: 50, codShare: 0.1 } }),
+    ];
+    // (10 x 0.60 + 30 x 0.72 + 5 x 0.54) / 45, week 3 left out.
+    expect(paidAtDoorShare(history, PLAYER_ID, [1, 2])).toBeCloseTo(30.3 / 45, 12);
+    expect(paidAtDoorShare(history, PLAYER_ID, [])).toBeNull();
   });
 });

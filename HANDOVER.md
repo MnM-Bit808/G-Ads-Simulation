@@ -1476,6 +1476,17 @@ F13's rejected volume option has to come back.
     building from them.
   - **F13 is now 1.73x**, from 1.58x on the same harness. See F13's F14 note.
 
+- **A revision re-prices old weeks at the account's current margin** (found
+  2026-09-15, measured once, not yet tested). `reviseReports` recomputes an
+  earlier week's money with `businessFor` at the CURRENT round, and `marginPct`
+  follows the price tier, so a move from mid to premium at week 5 lifted week 1's
+  booked gross profit from ₹15,410 to ₹20,791 (seed 20260902, one exact keyword).
+  Spec 11.3 snapshots order value and return rate on each order so a
+  repositioning cannot rewrite a sale; margin was never snapshotted. Gross profit
+  ranks month 3's budgets (13.3), so a mover's history may move its rank. Flagged
+  as its own task; measure with `scripts/market-harness.js` before and after any
+  fix.
+
 - **Deployment, a database and a backend are planned, in that order** (agreed
   2026-09-08). Everything runs in the player's browser, so there is no backend,
   database or auth yet. Each earns its place:
@@ -2356,6 +2367,16 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   until 2026-09-15. It was found only because a second mark was meant to match
   it. When checking a mark in the browser, read its computed colour
   (`getComputedStyle`), not its class list.
+- **A report is rewritten for five weeks, by whoever the account is by then.**
+  `reviseReports` is handed THIS round's advertisers while it edits earlier
+  reports, so anything it works out from the advertiser rather than adding up
+  from the orders describes the account as it is now, not as the week was sold.
+  The cash share on each place row was worked out that way, and a week-5 price
+  move rewrote four weeks of it (I34, 2026-09-15); it is now recorded once, when
+  the week's report is built. Anything a report carries that is not a sum of
+  orders belongs in `buildRoundReport`, or on the order itself, as `valuePaise`
+  and `returnRate` are (11.3). The same pass found profit margin worked out the
+  same way: see *Still open*.
 - **Resizing the browser pane reloads the page, and the game is in memory.**
   Four played rounds vanish and you are back at round 0 with no error and no
   clue. Set the viewport BEFORE opening the game, not after — and if a
