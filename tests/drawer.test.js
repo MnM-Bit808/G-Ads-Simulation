@@ -71,6 +71,13 @@ describe('"Show me" marks what it lands on, in the Studio too', () => {
     expect(read('ui/guide/drawer.js')).toContain("querySelector('h2, h3')");
   });
 
+  // Found playing it: What people typed's list and Results' note on the replays
+  // have no heading, and focus fell to the page there.
+  test('and to the part itself when it has none, so a keyboard player keeps their place', () => {
+    expect(read('ui/guide/drawer.js')).toContain("card.querySelector('h2, h3') ?? card");
+    expect(read('ui/studio.css')).toMatch(/body\.studio \[data-slot\]\[tabindex="-1"\]:focus \{ outline: none; \}/);
+  });
+
   test('in the Studio it says "in your account", where a part is often not a card of its own', () => {
     expect(read('ui/guide/drawer.js')).toContain('GUIDE.showAccount()');
   });

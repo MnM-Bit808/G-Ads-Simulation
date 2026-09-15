@@ -215,7 +215,8 @@ export function createGuide({ figures, reveal: revealCard = null, canShowCard = 
   // something, so the eye lands on it without the mark lingering. Focus goes to
   // the card's heading, not back to the "why?": a keyboard player pressing Tab
   // would otherwise be thrown back to wherever they started. A classic card's
-  // heading is an h2; a Studio section's part draws its own as an h3.
+  // heading is an h2; a Studio section's part draws its own as an h3, and a
+  // part with none (a list, a note) takes focus itself.
   function showCard(slot) {
     close({ restoreFocus: false });
     // In the Studio layout the card may sit in a section that is not open.
@@ -225,11 +226,9 @@ export function createGuide({ figures, reveal: revealCard = null, canShowCard = 
     if (!card) return;
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     card.scrollIntoView({ block: 'start', behavior: still ? 'auto' : 'smooth' });
-    const heading = card.querySelector('h2, h3');
-    if (heading) {
-      heading.tabIndex = -1;
-      heading.focus({ preventScroll: true });
-    }
+    const heading = card.querySelector('h2, h3') ?? card;
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
     card.classList.add(MARKED);
     const clear = () => {
       card.classList.remove(MARKED);

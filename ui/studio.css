@@ -128,6 +128,7 @@ body.studio [data-slot] { position: relative; scroll-margin-top: 16px; }
 body.studio [data-slot]::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; box-shadow: 0 0 0 2px var(--studio-red-text); opacity: 0; pointer-events: none; transition: opacity 200ms var(--studio-ease); }
 body.studio [data-slot].guide-marked::after { opacity: 1; }
 body.studio [data-slot] :is(h2, h3)[tabindex="-1"]:focus { outline: none; }
+body.studio [data-slot][tabindex="-1"]:focus { outline: none; }
 
 /* A class that sets display outranks the browser's own rule for hidden, so the
    Studio says it once for everything it hides (tests/kit.test.js). */
