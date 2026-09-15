@@ -143,6 +143,17 @@ describe('the chapters', () => {
     for (const id of c.related) expect(Object.keys(CHAPTERS), id).toContain(id);
   });
 
+  // The Guide page shows `related` as "Read beside it", so the owner asked for a
+  // read-through first (2026-09-15). Its one rule: chapters that rest on the same
+  // departure read beside each other, as the two under the bid cap now do.
+  test('the chapters that cite the bid cap read beside each other (D13)', () => {
+    const capped = entries.filter(([, c]) => c.cites.includes('D13')).map(([id]) => id);
+    expect(capped.length).toBeGreaterThan(1);
+    for (const id of capped) {
+      for (const other of capped) if (other !== id) expect(CHAPTERS[id].related, id).toContain(other);
+    }
+  });
+
   // Found drawing the Guide as a page (2026-09-15): two chapters named a classic
   // card ("the returns card", "The share card") that the Studio does not draw.
   // What the game does is said of the figure, so it reads true in both looks.

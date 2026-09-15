@@ -174,7 +174,8 @@ export const CHAPTERS = Object.freeze({
       + 'advertiser shares one fixed shape, counted in weeks because each turn is a week.',
     cites: ['I27', '§11.3', '§11.4'],
     yourAccount: 'revised',
-    related: ['returnsSplit'],
+    // Smart bidding learns only from conversions that have landed.
+    related: ['returnsSplit', 'smartBidding'],
   }),
 
   returnsSplit: chapter({
@@ -224,7 +225,8 @@ export const CHAPTERS = Object.freeze({
       + 'the game’s own estimate.',
     cites: ['G4', 'I28', 'D11', 'D13'],
     yourAccount: 'places',
-    related: ['returnsSplit'],
+    // A place and an hour are both bid adjustments, under the one cap (D13).
+    related: ['returnsSplit', 'hours'],
   }),
 
   counterfactuals: chapter({
@@ -247,6 +249,8 @@ export const CHAPTERS = Object.freeze({
     yourAccount: 'budget',
     // Both replays are drawn after the last week, in Results' What you learned.
     studioAccount: 'results-moments',
+    // The budget "what if" answers lost to budget.
+    related: ['rankOrBudget'],
   }),
 
   kindMarket: chapter({
@@ -309,6 +313,8 @@ export const CHAPTERS = Object.freeze({
       + 'under any strategy.',
     cites: ['E8', 'E9', 'H5', 'H6', '§8.2'],
     yourAccount: 'terms',
+    // A poorer fit lowers your ad rank.
+    related: ['qualityScore'],
   }),
 
   qualityScore: chapter({
@@ -334,7 +340,8 @@ export const CHAPTERS = Object.freeze({
       + 'three ratings through a table this game invented.',
     cites: ['A1', 'A2', 'A5', 'A6'],
     yourAccount: 'keywords',
-    related: ['broadMatch'],
+    // The writer sets two of the score's three parts.
+    related: ['broadMatch', 'writers'],
   }),
 
   ownName: chapter({
@@ -401,7 +408,7 @@ export const CHAPTERS = Object.freeze({
       + 'place’s adjustments stack.',
     cites: ['D11', 'H4', 'D2', 'D13'],
     yourAccount: 'hours',
-    related: ['smartBidding'],
+    related: ['smartBidding', 'cashOnDelivery'],
   }),
 
   writers: chapter({
