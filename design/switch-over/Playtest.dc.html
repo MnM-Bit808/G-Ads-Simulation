@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .pick { cursor: pointer; user-select: none; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg><div style="font-size: 10px; font-weight: 600; color: #8A8389;">Brand</div></div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M16 14.2c2.9.4 5 2.8 5 5.8"></path></svg><div style="font-size: 10px; font-weight: 600; color: #8A8389;">Market</div></div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg><div style="font-size: 10px; font-weight: 600; color: #8A8389;">Guide</div></div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: #2A1216; display: flex; flex-direction: column; align-items: center; gap: 4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg><div style="font-size: 10px; font-weight: 600; color: #F3EEEA;">Results</div></div>
+    <div style="margin-top: auto; width: 60px; padding: 8px 0 6px; display: flex; flex-direction: column; align-items: center; gap: 4px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"></path><path d="M14 3v5h5"></path><path d="M10 13h6M10 17h6"></path></svg><div style="font-size: 10px; font-weight: 600; color: #8A8389;">Playtest</div></div>
+  </div>
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">mid · performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Results</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #CFC9C3;">Twelve weeks</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #CFC9C3;">What you learned</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #CFC9C3;">Where they sat</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #CFC9C3;">Everyone’s books</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; background: #1F1C22; color: #F3EEEA; font-weight: 700; box-shadow: 0 0 0 1px #2E2A33;">Before you go<div style="width: 8px; height: 8px; border-radius: 50%; background: #D7262F; opacity: 0;"></div></div>
+  </div>
+  <div style="display: flex; flex-direction: column; min-width: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 14px; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div class="display" style="font-weight: 700; font-size: 20px;">Week 12 of 12</div>
+      <div style="display: flex; gap: 6px;"><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div><div style="width: 9px; height: 9px; border-radius: 50%; background: #D7262F;"></div></div>
+      <div style="font-size: 13px; color: #8A847E;">saved</div>
+    </div>
+    <div style="flex-grow: 1; padding: 22px 40px 24px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 16px;">
+        <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Before you go</div>
+        <div style="font-size: 14px; color: #8A847E;">for the playtest only</div>
+      </div>
+      <div style="max-width: 760px; display: flex; flex-direction: column; gap: 18px; padding: 22px 24px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 14px; font-weight: 600; color: #CFC9C3;">What three things did this game teach you? In your own words.</div>
+          <div style="height: 118px; border: 1px solid #68636B; border-radius: 12px; background: #141216;"></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="font-size: 14px; font-weight: 600; color: #CFC9C3;">What confused or annoyed you?</div>
+          <div style="height: 74px; border: 1px solid #68636B; border-radius: 12px; background: #141216;"></div>
+        </div>
+        <div style="font-size: 13px; line-height: 1.5; color: #A19A94;">The file holds how long you spent on each screen, what you clicked, how many keys you pressed (not what they were), your answers, your saved game and your browser and screen size. Nothing has been sent anywhere: download it and send it back.</div>
+        <div><div style="height: 52px; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: inline-flex; align-items: center; font: 700 18px/1 'Bricolage Grotesque', sans-serif; white-space: nowrap;">Download the playtest file</div></div>
+      </div>
+      <div style="max-width: 760px; display: flex; align-items: center; gap: 14px; padding-top: 6px;">
+        <div style="height: 44px; padding: 0 22px; border: 1px solid #3A363E; border-radius: 999px; color: #CFC9C3; display: inline-flex; align-items: center; font-size: 15px; font-weight: 600; white-space: nowrap;">Play again</div>
+        <div style="font-size: 13px; line-height: 1.4; color: #A19A94;">Moved here from Everyone’s books on the playtest link, after the file: starting again clears the saved game the file carries.</div>
+      </div>
+    </div>
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <div style="font-size: 14px; color: #A19A94;">The 12 weeks are done.</div>
+      <div style="height: 52px; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: inline-flex; align-items: center; font: 700 18px/1 'Bricolage Grotesque', sans-serif; white-space: nowrap; background: #221F25; color: #68636B;">Game over</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

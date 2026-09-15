@@ -317,6 +317,35 @@ labels. The owner also chose: chapter 12's Show me points at Results' replays
 after week 12 and is hidden before; "Read beside it" stays after a read-through
 of every related list; "why?" still opens the drawer.
 
+## `switch-over/`: the switch-over (2026-09-16)
+
+A twelfth canvas, https://claude.ai/code/artifact/54dadd5c-e4db-43fd-90ef-dd8117aa2c19,
+for section 7's last item: the new look becomes the default and the old
+screens and their code are removed. It draws what the Studio never drew and
+maps what goes live.
+
+- **Page 1**, `Main.dc.html` (A · the front door on its own), **chosen by the
+  owner on 2026-09-16**: before a game opens, one card with the brand, the
+  twelve weeks as dots and the choices, in every state the door has (the
+  resume offer, restoring, a game that has changed, a game this version cannot
+  open, a finished game), with the playtest file on the playtest link; and
+  `Playtest.dc.html`, the playtest questions as a fifth Results section,
+  "Before you go", with Play again after the file.
+- **Page 2**, `Release.dc.html`, what goes live: every branch waiting, what it
+  brings, and what it does to a game a tester has saved on the live site.
+- **Page 3**, `Shell.dc.html` (B · the door in the Studio's frame), not chosen.
+
+With the pick the owner chose the classic look removed, as the makeover design
+recommended, and F17 and the rival prepaid fix in the release. Measured, with
+saves made on the live site's code: a hired writer's six weeks, a self-written
+ad's six weeks and a finished twelve all replay exactly on `makeover`; F17
+changes almost any game whose budget ran short (week 1's Rs 55,939 on 4,284
+clicks becomes Rs 78,247 on 6,536). A second reader checked the words, the
+figures and every branch against the code and git: "Try again" went from the
+door that cannot open a game (a replay fails the same way every time), the
+changed game lists only the weeks that differ as saved against replayed now,
+and the release's housekeeping is on the canvas.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.
