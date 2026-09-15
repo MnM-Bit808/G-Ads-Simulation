@@ -1525,6 +1525,57 @@ describe('the location card says what a click kept, not only what it sold', () =
   });
 });
 
+/**
+ * "Paid at door" is the cash share of the orders the Refused column counts.
+ *
+ * Each week's report now carries the share it was sold at (I34), so weeks can
+ * differ, and the table has to say which it means. It used to take whichever
+ * week came last, which would put a discount started this week beside refusals
+ * from every week before it. The Refused column divides refusals by orders over
+ * every week played, so the share beside it is weighted by those orders.
+ */
+describe('the places table\'s cash share covers the orders its refusals do (I34)', () => {
+  const week = (round, codShare, clicks, conversions) => ({
+    round,
+    byAdvertiser: { [PLAYER_ID]: { breakdown: { byLocation: { 0: { clicks, conversions, codShare } } } } },
+  });
+
+  test('weighted by orders over every week, not the latest week and not clicks', () => {
+    // Chosen so the three readings disagree: latest 0.54, by clicks 0.555,
+    // by orders (10 x 0.60 + 5 x 0.54) / 15 = 0.58.
+    const d = createDraft(selfView());
+    const [metros] = locationRows(d, [week(1, 0.6, 100, 10), week(2, 0.54, 300, 5)], PLAYER_ID);
+    expect(metros.codShare).toBeCloseTo(0.58, 10);
+  });
+
+  test('a place with no orders has no figure, as its Refused column has none', () => {
+    const d = createDraft(selfView());
+    const [metros] = locationRows(d, [week(1, 0.6, 40, 0)], PLAYER_ID);
+    expect(metros.refusedRate).toBeNull();
+    expect(metros.codShare).toBeNull();
+  });
+
+  test('a discount run for one week shows as part of the mix, and stays shown', () => {
+    // Played, so the rows are the engine's own. ₹30 in week 1 only: by week 3
+    // the latest week is undiscounted, which is all the old table showed.
+    let state = makeGameState({ round: 1 });
+    const plays = [{ [PLAYER_ID]: { campaign: { prepaidDiscountPaise: 3000 } } },
+      { [PLAYER_ID]: { campaign: { prepaidDiscountPaise: 0 } } }, {}];
+    for (const decisions of plays) state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
+    const rows = locationRows(createDraft(getSelfView(state, PLAYER_ID)), state.history, PLAYER_ID);
+    let checked = 0;
+    for (const [tier, row] of rows.entries()) {
+      const weekly = state.history.map((h) => h.byAdvertiser[PLAYER_ID].breakdown.byLocation[tier]);
+      if (!weekly.every((w) => w?.conversions > 0)) continue;
+      checked += 1;
+      expect(weekly[0].codShare, `${row.label}: the discount week`).toBeLessThan(weekly[2].codShare);
+      expect(row.codShare, row.label).toBeGreaterThan(weekly[0].codShare);
+      expect(row.codShare, row.label).toBeLessThan(weekly[2].codShare);
+    }
+    expect(checked, 'a place sold in all three weeks').toBeGreaterThan(0);
+  });
+});
+
 describe('a keyword added between weeks is tagged by the tagger it is handed (stage A3)', () => {
   // The form works from the PUBLIC view of the query set, which carries no tags
   // (16.1), so it cannot look a search's tags up itself and must not. The
