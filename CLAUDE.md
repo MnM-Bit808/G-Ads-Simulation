@@ -203,6 +203,14 @@ number in the simulation without ever throwing an error.
   refusals and nothing else. A size guide that reduced refusals would be claiming
   a fit chart stops someone changing their mind at the door — the first build of
   I28 did exactly that.
+- **In expected mode a sale is a fraction, so almost nothing is exactly
+  zero.** A search's sales are its clicks times a conversion rate; only a
+  search nobody buys from reads 0. A rule asking `conversions === 0` fires on
+  zero-intent searches alone, and one asking `> 0` fires on nearly everything:
+  the search terms mark and the block warning did one each, with every test
+  green because their fixtures used whole zeros (I8's addendum). Compare a
+  search against the account instead, and test on a played game. The rivals'
+  `wastefulQueries` still asks for a zero.
 - **"The build works" means playing it, not loading it.** The dashboard crashed
   after week 1 for two days with 1348 tests green; only a smoke test that played
   round 0 into week 1 found it (I34). Open the browser and play a week.

@@ -226,8 +226,11 @@ table[data-slot="places-table"] th { white-space: pre-line; vertical-align: bott
 table.negatives th { white-space: pre-line; vertical-align: bottom; }
 .scroll thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
 .terms td:first-child { width: 40%; }
-.wasted td { color: var(--bad); }
-.wasted td:first-child::after { content: " ← no conversions"; color: var(--muted); font-size: 0.72rem; }
+/* A marked figure in the search terms report: a search returning worse than
+   the account (I32), or selling at over twice its average (I8). The returns
+   mark carried this class from the day it was written with no rule behind it,
+   so it was never red. */
+.terms .bad { color: var(--bad); }
 
 .tag-row { margin-top: 0.2rem; }
 /* How far a keyword reaches on its match type (E8), under the match select. */
@@ -932,7 +935,12 @@ p.problems { padding-left: 0.8rem; }
 .neg-preview table { margin-top: 0.5rem; }
 .neg-headline { margin: 0; font-size: 0.86rem; }
 .neg-headline strong { font-family: var(--mono); color: var(--warn); }
-tr.costly td { color: var(--bad); }
+/* The same mark as the search terms report's (I8), on the searches a block
+   would catch. Its headers break onto two lines, as the negatives list's do:
+   "Per sale" beside "Your cost" and "Your conv" took the table 49px past a
+   375px phone. */
+.neg-preview .bad { color: var(--bad); }
+.neg-preview th { white-space: pre-line; vertical-align: bottom; }
 
 /* --- keywords ------------------------------------------------------------ */
 

@@ -2523,6 +2523,65 @@ Phrase counts as loose. "leggings" on phrase reaches 45 of this set's 151
 queries, five of them informational, so treating phrase as tight would tell a
 player they were safe when they were not.
 
+#### Addendum: marked by what a sale cost, not by an exact zero (2026-09-15)
+
+**The sentence quoted above could not be said truthfully, and the card said it
+anyway.** "Five clicks or more and returned nothing" was a test for an exact zero,
+and the game is played in `mode: 'expected'`, where a search's sales are its
+clicks times a conversion rate: a fraction, never exactly zero unless nobody
+searching it ever buys. So the mark on the search terms report, and the card's
+count, fired only for the zero-intent searches. Found while drawing the Studio's
+What people typed, on seed 1, Vella & Co. at `mid|performance` with the makeover
+keywords, six weeks in: 33 searches, none marked, and the card saying that none
+of them "is taking clicks without returning anything", while `how to wash gym
+leggings` had cost ₹3,566 for 0.8 of a sale (₹4,355 a sale) and `are gym
+leggings squat proof` ₹3,050 for 0.7, against an account average of ₹488.
+
+The block preview had the same fault from the other side. It warned "This would
+also block searches that converted for you" whenever the searches caught had sold
+anything, which in expected mode is almost always: phrase `how to` warned over
+0.8 of a sale.
+
+**What replaced them, chosen with the owner:**
+
+- **A search is dear** when each of its sales cost over twice the account's
+  average cost per sale, taken over the same rows the report is showing, once it
+  has spent at least one average sale. A search that sold nothing is marked on the
+  same terms. The mark sits on a new Per sale column, beside the returns mark,
+  and the Negatives card counts dear searches ("3 of your 33 searches are selling
+  at over twice your average of ₹488 a sale, or not at all").
+- **The preview warns only when the block would catch a search whose sales cost no
+  more than the account's average**, and names the first three. Otherwise it is
+  quiet, and each search it lists carries the same mark as the report.
+
+**Measured**, with `gym` and `leggings` added on broad to the same account (71
+searches, ₹418 a sale):
+
+| rule | searches marked |
+|---|---|
+| five clicks and no sale (the old one) | 3, the zero-intent `gym near me`, `free gym diet chart`, `gym membership price` |
+| over twice the average (the Studio's) | 12, and not those three: with no sale there is no price per sale to compare |
+| over twice the average, counting no sale, once it has spent one average sale | 15 |
+
+And the preview, on the same account: broad `gym`, written to stop `gym near me`,
+now warns that it would also block 12 searches selling at or under ₹418; `how to`,
+`cheap` and `free` are quiet. The Studio drops the warning altogether; the owner
+chose to keep one that fires only when it is true.
+
+**The two thresholds are display choices, not model figures.** Twice the average
+(`DEAR_TIMES` in `ui/decisions.js`) and one average sale's spend as enough
+evidence are `INVENTED`, like I32's 1.15; neither changes what the engine does,
+which is why they live beside the cards that use them rather than in
+`constants.js`. The second does the job the five clicks did: short of one
+average sale's spend, a search has not had the money to sell, whatever it shows.
+
+**Still open.** The Studio's What people typed (on `makeover`) leaves a search
+with no sale unmarked, and once `main` is merged in it can take this rule. The
+rival policies' `wastefulQueries` (`agents/policies.js`) blocks only a search
+with no conversions at all, the same exact-zero test: in expected mode a rival
+blocks only zero-intent searches. Changing it moves the market, so it waits for
+the harness, before and after.
+
 ### I9. The landing page is built, not described — `FIXED`
 
 Round 0 used to hold a free-text box for the landing page, and its own hint said
@@ -4059,6 +4118,11 @@ made on, and it adapts to whatever cell the player chose.
 **The column is called `Came back` and not `Sent back`.** The returns card uses
 `Sent back` for the post-delivery half specifically, against `Refused`; this
 column is both. Two surfaces using one word for two quantities is I19's lesson.
+
+**The highlight was never drawn** (found 2026-09-15, I8's addendum). The figure
+was given the class `bad`, and no rule in `ui/style.css` styled it, so "flagged"
+above meant a line of hover text on an ordinary-coloured figure. It is red now,
+beside the cost-per-sale mark that exposed it.
 
 ### I33. The week-8 deadline, and the levers the returns card was not naming — `FIXED`
 

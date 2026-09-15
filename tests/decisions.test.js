@@ -25,6 +25,7 @@ import {
   removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
   prepaidOutlook, setPrepaidDiscount, locationRows, locationOutlook, qualityWindowPhrase,
   setLocation, weekBudgetsAtRun,
+  averagePerSalePaise, isDear,
 } from '../ui/decisions.js';
 import { rupees } from '../ui/dom.js';
 
@@ -170,6 +171,80 @@ describe('negatives (8.2)', () => {
   });
 });
 
+describe('a search is marked by what a sale cost there, not by an exact zero', () => {
+  // The game is played in expected mode, where a search's sales are its clicks
+  // times a conversion rate: a fraction, and never exactly zero unless nobody
+  // searching it ever buys. The first rule, five clicks and no sale, therefore
+  // saw only the zero-intent searches. Found drawing the Studio's What people
+  // typed (2026-09-15): "how to wash gym leggings" at ₹3,566 for 0.8 of a sale,
+  // against an account average of ₹488, went unmarked.
+  const row = (costPaise, conversions) => ({ impressions: 400, clicks: 60, costPaise, conversions });
+
+  test('the average is what the account spent over what it sold', () => {
+    expect(averagePerSalePaise({ a: row(60000, 3), b: row(40000, 2) })).toBe(20000);
+  });
+
+  test('with nothing sold anywhere there is no average, and nothing is marked', () => {
+    expect(averagePerSalePaise({ a: row(90000, 0) })).toBeNull();
+    expect(averagePerSalePaise({})).toBeNull();
+    expect(isDear(row(90000, 0), null)).toBe(false);
+  });
+
+  test('a fraction of a sale at over twice the average is marked', () => {
+    // The row that went unmarked: ₹4,458 a sale against ₹488.
+    expect(isDear(row(356600, 0.8), 48800)).toBe(true);
+  });
+
+  test('the line is twice the average', () => {
+    expect(isDear(row(95000, 1), 50000)).toBe(false);
+    expect(isDear(row(105000, 1), 50000)).toBe(true);
+  });
+
+  test('no sale at all is marked once it has spent what a sale costs on average, not before', () => {
+    expect(isDear(row(50000, 0), 50000)).toBe(true);
+    expect(isDear(row(49900, 0), 50000)).toBe(false);
+  });
+
+  test('a search that has spent less than one average sale is not judged yet', () => {
+    // ₹300 for a tenth of a sale is ₹3,000 a sale, but on ₹300 of spend.
+    expect(isDear(row(30000, 0.1), 50000)).toBe(false);
+  });
+
+  test('in a played game, where sales are fractions, a dear search is still marked', () => {
+    // The fixture's player with "leggings" added on broad, through the form,
+    // for three weeks: it reaches 54 searches at ₹416 a sale on average, and
+    // the informational ones cost about ₹5,100 a sale (measured 2026-09-15).
+    let state = STATE;
+    const draft = createDraft(getSelfView(state, PLAYER_ID));
+    addKeyword(draft, { text: 'leggings', matchType: 'broad', bidPaise: 3000 },
+      { tag: (k) => tagKeywordOffline(k, QUERY_SET) });
+    state = submitRound(state, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' }).nextGameState;
+    for (let i = 0; i < 2; i++) state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+
+    // The report as the dashboard adds it up, over every week played.
+    const terms = {};
+    for (const stored of state.history) {
+      for (const [id, r] of Object.entries(stored.byAdvertiser[PLAYER_ID].breakdown.byQuery)) {
+        const acc = terms[id] ?? (terms[id] = { impressions: 0, clicks: 0, costPaise: 0, conversions: 0 });
+        acc.impressions += r.impressions;
+        acc.clicks += r.clicks;
+        acc.costPaise += r.costPaise;
+        acc.conversions += r.conversions ?? 0;
+      }
+    }
+    const average = averagePerSalePaise(terms);
+    const idOf = (text) => QUERY_SET.queries.find((q) => q.text === text).id;
+
+    const howTo = terms[idOf('how to wash gym leggings')];
+    expect(howTo.clicks).toBeGreaterThanOrEqual(5);
+    expect(howTo.conversions).toBeGreaterThan(0);
+    expect(howTo.conversions).toBeLessThan(1);
+    expect(isDear(howTo, average)).toBe(true);
+    // And a search from the player's own keywords is not.
+    expect(isDear(terms[idOf('gym wear sale')], average)).toBe(false);
+  });
+});
+
 describe('whether negatives are worth your attention at all', () => {
   // The question asked while playing was "do I even need to pay attention to
   // this, or just let it be" — and it has a real answer that depends entirely
@@ -221,6 +296,21 @@ describe('whether negatives are worth your attention at all', () => {
     expect(state.worthIt).toBe(true);
   });
 
+  test('a search that sold a fraction at over twice the average is counted', () => {
+    // ₹1,60,000 over 5.5 sales is ₹290.91 a sale on average; the second search
+    // took ₹600 for half a sale, ₹1,200 a sale.
+    const draft = createDraft(selfView());
+    for (const k of draft.keywords) updateKeyword(draft, k.id, { matchType: 'exact' });
+    const state = negativesOutlook(draft, {
+      good: { impressions: 900, clicks: 60, costPaise: 100000, conversions: 5 },
+      dear: { impressions: 700, clicks: 30, costPaise: 60000, conversions: 0.5 },
+    });
+    expect(state.wasteful).toBe(1);
+    expect(state.wastedPaise).toBe(60000);
+    expect(state.averagePaise).toBeCloseTo(160000 / 5.5, 6);
+    expect(state.worthIt).toBe(true);
+  });
+
   test('an unplayed account is not told it is fine, only that it is unplayed', () => {
     const state = negativesOutlook(createDraft(selfView()), {});
     expect(state.searches).toBe(0);
@@ -236,6 +326,7 @@ describe('whether negatives are worth your attention at all', () => {
 
 describe('the preview, because a decision must be previewable before it is committed', () => {
   const spent = { q_x: { impressions: 100, clicks: 10, costPaise: 5000, conversions: 0.4 } };
+  const idOf = (text) => QUERY_SET.queries.find((q) => q.text === text).id;
 
   test('it names exactly what the engine would block, and never guesses', () => {
     // Not a reimplementation of the matcher — it calls the engine's. This test
@@ -256,9 +347,10 @@ describe('the preview, because a decision must be previewable before it is commi
 
   test('it warns with money and conversions, not with a count', () => {
     const negative = { text: 'free', matchType: 'broad' };
-    const wrinkle = QUERY_SET.queries.find((q) => q.text === 'wrinkle free travel co ord');
     const terms = {
-      [wrinkle.id]: { impressions: 900, clicks: 40, costPaise: 120000, conversions: 1.7 },
+      [idOf('wrinkle free travel co ord')]: { impressions: 900, clicks: 40, costPaise: 120000, conversions: 1.7 },
+      // Not blocked by "free": the rest of the account, at ₹1,000 a sale.
+      [idOf('gym leggings')]: { impressions: 9000, clicks: 700, costPaise: 2000000, conversions: 20 },
     };
     const preview = previewNegative(negative, { queries: publicQueries(), terms });
 
@@ -266,8 +358,43 @@ describe('the preview, because a decision must be previewable before it is commi
     expect(preview.spent[0].text).toBe('wrinkle free travel co ord');
     expect(preview.totals).toEqual({ clicks: 40, costPaise: 120000, conversions: 1.7 });
     // The whole point: this negative reads as pure waste and takes a
-    // converting commercial search with it.
-    expect(preview.costsConversions).toBe(true);
+    // commercial search with it that sells at ₹706 a sale, under the
+    // account's ₹977.
+    expect(preview.sellsWell.map((r) => r.text)).toEqual(['wrinkle free travel co ord']);
+  });
+
+  test('it does not warn over a block that catches only dear searches', () => {
+    // The warning used to fire whenever a blocked search had sold anything,
+    // and in expected mode almost every search has sold a fraction: "how to"
+    // on phrase warned of "searches that converted for you" over 0.8 of a sale
+    // at ₹4,458 each, against the account's ₹540.
+    const terms = {
+      [idOf('how to wash gym leggings')]: { impressions: 3000, clicks: 284, costPaise: 356600, conversions: 0.8 },
+      [idOf('gym leggings')]: { impressions: 20000, clicks: 1442, costPaise: 2946200, conversions: 60.4 },
+    };
+    const preview = previewNegative({ text: 'how to', matchType: 'phrase' },
+      { queries: publicQueries(), terms });
+
+    expect(preview.spent.map((r) => r.text)).toEqual(['how to wash gym leggings']);
+    expect(preview.spent[0].dear).toBe(true);
+    expect(preview.sellsWell).toEqual([]);
+  });
+
+  test('it warns when a block catches a search selling at or under your average, and names it', () => {
+    // Broad "gym", written to stop "gym near me", takes "gym leggings" with it:
+    // ₹488 a sale against the account's ₹530 (₹60,829 over 114.8 sales).
+    const terms = {
+      [idOf('gym near me')]: { impressions: 5000, clicks: 908, costPaise: 498700, conversions: 0 },
+      [idOf('gym leggings')]: { impressions: 20000, clicks: 1442, costPaise: 2946200, conversions: 60.4 },
+      [idOf('workout leggings')]: { impressions: 18000, clicks: 1300, costPaise: 2638000, conversions: 54.4 },
+    };
+    const preview = previewNegative({ text: 'gym', matchType: 'broad' },
+      { queries: publicQueries(), terms });
+
+    expect(preview.averagePaise).toBeCloseTo(6082900 / 114.8, 6);
+    expect(preview.sellsWell.map((r) => r.text)).toEqual(['gym leggings']);
+    expect(preview.spent.find((r) => r.text === 'gym near me').dear).toBe(true);
+    expect(preview.spent.find((r) => r.text === 'gym leggings').dear).toBe(false);
   });
 
   test('searches it would block that you have never bought are shown separately', () => {
@@ -292,7 +419,7 @@ describe('the preview, because a decision must be previewable before it is commi
     const preview = previewNegative({ text: 'zzzz nothing', matchType: 'broad' },
       { queries: publicQueries(), terms: {} });
     expect(preview.blocked).toEqual([]);
-    expect(preview.costsConversions).toBe(false);
+    expect(preview.sellsWell).toEqual([]);
   });
 });
 
