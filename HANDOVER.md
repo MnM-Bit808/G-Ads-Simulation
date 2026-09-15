@@ -1901,6 +1901,19 @@ tooling and one untested claim.
   no sale unmarked, and can import `isDear` once `main` is merged in; and the
   rivals' `wastefulQueries` still blocks only a search with no conversions at
   all, which changes the market and wants the harness before and after.
+- ~~A revision re-prices the weeks sold before a price move.~~ **Fixed
+  2026-09-16** (F18, on `claude/zen-ishizaka-845fa6`, not merged or pushed):
+  each week's report records the margin its orders were sold at
+  (`money.marginPct`), and every revision uses it. A week-5 move had been
+  re-pricing all of month 1 at the new tier's margin, which moved the week-8
+  rank and the end screen for a player who moved; F18 has the before and after.
+  The harness has a `move` mode for it. **Two things for whoever merges:**
+  `claude/ecstatic-stonebraker-d1dfa1` (the cash share) carries a *Still open*
+  bullet, "A revision re-prices old weeks at the account's current margin",
+  which is this one: drop it, and the last sentence of its trap "A report is
+  rewritten for five weeks" with it. And F17 (on `makeover`) sits just before
+  I6, where F18 does too: keep both, F17 first. `makeover` carries the same
+  `reviseReports`, so it wants this fix as well.
 
 ---
 
