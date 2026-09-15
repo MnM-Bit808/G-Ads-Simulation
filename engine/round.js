@@ -72,6 +72,7 @@ const COMPONENTS = ['expectedCtr', 'adRelevance', 'landingPage'];
  * @param {object} [options.decisions] pre-computed, keyed by advertiser id (R2)
  * @param {string[]} [options.counterfactualFor] advertiser ids; see 11.2
  * @param {boolean} [options._isCounterfactual] internal guard (L13)
+ * @param {string} [options._liftWeekFor] internal: the counterfactual's advertiser
  * @returns {{round: number, raw: object, nextGameState: object}}
  */
 export function runRound(gameState, options = {}) {
@@ -81,6 +82,7 @@ export function runRound(gameState, options = {}) {
     decisions = {},
     counterfactualFor = [],
     _isCounterfactual = false,
+    _liftWeekFor = null,
   } = options;
 
   if (mode !== 'expected' && mode !== 'sampled') {
@@ -93,6 +95,7 @@ export function runRound(gameState, options = {}) {
   const advertisers = gameState.advertisers
     .map((a) => applyDecision(a, decisions[a.id]))
     .map((a) => applyBudgetAdjustments(a, round, gameState.budgetSchedule))
+    .map((a) => (a.id === _liftWeekFor ? liftWeek(a) : a))
     .filter((a) => a.active !== false);
 
   const n = advertisers.length;
@@ -780,40 +783,53 @@ function finaliseQualityRows(rows, round) {
  * passes was 2.2s against a 1.5s ceiling.
  */
 function runCounterfactual(gameState, options, advertiserId) {
-  const lifted = {
-    ...gameState,
-    advertisers: gameState.advertisers.map((a) => {
-      if (a.id !== advertiserId) return a;
-      // THE REMAINING pot, not the whole one. Spec 11.2 and DECISIONS G1 both
-      // say "raised to its remaining monthly pot", and this used to zero
-      // monthSpentPaise instead - which hands back the entire month and asks
-      // what the advertiser could have earned with money it does not have.
-      // In week four of a month that is 90% spent, that is ten times the real
-      // answer, and missedToBudget is a teaching output whose whole value is
-      // being believable.
-      //
-      // Keeping monthSpentPaise intact also keeps the month cap binding during
-      // the pass (13.2), so the hypothetical obeys the one ceiling that is not
-      // negotiable.
-      const remaining = Math.max(
-        0, a.campaign.monthlyBudgetPaise - (a.campaign.monthSpentPaise ?? 0),
-      );
-      return {
-        ...a,
-        campaign: {
-          ...a.campaign,
-          weeklySplitPaise: new Array(ROUNDS_PER_MONTH).fill(remaining),
-        },
-      };
-    }),
-  };
-  const { raw } = runRound(lifted, {
+  const { raw } = runRound(gameState, {
     ...options,
     mode: 'expected',
     counterfactualFor: [],
     _isCounterfactual: true,
+    _liftWeekFor: advertiserId,
   });
   return raw.byAdvertiser[advertiserId];
+}
+
+/**
+ * The counterfactual's one change: this week may spend the rest of the month.
+ *
+ * AFTER THE ROUND'S OWN CHANGES, not before them. It used to be written onto
+ * the state before `runRound` merged the week's decision and applied its
+ * budget adjustments, and both of those rewrite the weekly split: a decision
+ * that sent a plan replaced the lift with it, and at an allocation round the
+ * capital rollover re-spread the month over the lifted weights, which gave
+ * every week a quarter of the month again. Either way the week was told it
+ * missed nothing. Found drawing Results (2026-09-15): week 5 lost 46% of its
+ * impressions to budget and reported no extra clicks.
+ *
+ * THE REMAINING pot, not the whole one. Spec 11.2 and DECISIONS G1 both say
+ * "raised to its remaining monthly pot", and this used to zero monthSpentPaise
+ * instead - which hands back the entire month and asks what the advertiser
+ * could have earned with money it does not have. In week four of a month that
+ * is 90% spent, that is ten times the real answer, and missedToBudget is a
+ * teaching output whose whole value is being believable.
+ *
+ * Keeping monthSpentPaise intact also keeps the month cap binding during the
+ * pass (13.2), so the hypothetical obeys the one ceiling that is not
+ * negotiable.
+ *
+ * @param {object} advertiser after its decision and budget adjustments
+ * @returns {object} the advertiser with this week allowed the rest of the month
+ */
+function liftWeek(advertiser) {
+  const remaining = Math.max(
+    0, advertiser.campaign.monthlyBudgetPaise - (advertiser.campaign.monthSpentPaise ?? 0),
+  );
+  return {
+    ...advertiser,
+    campaign: {
+      ...advertiser.campaign,
+      weeklySplitPaise: new Array(ROUNDS_PER_MONTH).fill(remaining),
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------

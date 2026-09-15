@@ -1,5 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { runRound } from '../engine/round.js';
+import { allocate } from '../engine/money.js';
 import { LOCATION_TIERS } from '../engine/constants.js';
 import { locationSharesFor, refusalRateFor } from '../engine/locations.js';
 import { businessFor, realisedBreakEvenCpcPaise, refusalOutlook } from '../engine/positions.js';
@@ -352,6 +353,40 @@ describe('the counterfactual (spec 11.2, W4, L13)', () => {
     const report = out.report.byAdvertiser[CONSTRAINED];
     expect(report.missedToBudget.impressions).toBe(0);
     expect(report.missedToBudget.clicks).toBe(0);
+  });
+
+  test('a week that capital joins the budget keeps its lift', () => {
+    // Found drawing Results (2026-09-15). The lift went onto the state BEFORE
+    // the round applied its budget adjustments, and at an allocation round the
+    // rollover re-spreads the month over the week's weights, which were the
+    // lifted ones: every week got a quarter of the month again, and a week
+    // that lost 46% of its impressions to budget was told it missed nothing.
+    // Where the capital arrived cannot change what the rest of the month buys,
+    // so the answer must be the one for a month already raised.
+    const rolling = deformed(STATE, (x) => {
+      x.advertisers.find((a) => a.id === CONSTRAINED).capex.remainingUnallocatedPaise = CAPEX_ALLOCATION_PAISE;
+    });
+    const raised = deformed(STATE, (x) => {
+      const campaign = x.advertisers.find((a) => a.id === CONSTRAINED).campaign;
+      campaign.monthlyBudgetPaise += CAPEX_ALLOCATION_PAISE;
+      campaign.weeklySplitPaise = allocate(campaign.monthlyBudgetPaise, campaign.weeklySplitPaise);
+    });
+    const a = runRound(rolling, { mode: 'expected', counterfactualFor: [CONSTRAINED] }).raw.byAdvertiser[CONSTRAINED];
+    const b = runRound(raised, { mode: 'expected', counterfactualFor: [CONSTRAINED] }).raw.byAdvertiser[CONSTRAINED];
+    expect(a.costPaise).toBe(b.costPaise);
+    expect(a.lostToBudget).toBeGreaterThan(0);
+    expect(a.counterfactual.costPaise).toBeGreaterThan(a.costPaise);
+    expect(a.counterfactual.impressions).toBeCloseTo(b.counterfactual.impressions, 6);
+  });
+
+  test('and so does a week whose own decision re-plans the split', () => {
+    // The decision was merged over the lifted split too, so a player who sent
+    // a plan that week undid the lift the same way.
+    const split = [...STATE.advertisers.find((a) => a.id === CONSTRAINED).campaign.weeklySplitPaise];
+    const decisions = { [CONSTRAINED]: { campaign: { weeklySplitPaise: split } } };
+    const planned = runRound(STATE, { mode: 'expected', decisions, counterfactualFor: [CONSTRAINED] });
+    expect(planned.raw.byAdvertiser[CONSTRAINED].counterfactual.impressions)
+      .toBeCloseTo(target.counterfactual.impressions, 6);
   });
 
   test('it does not recurse (L13)', () => {
