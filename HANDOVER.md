@@ -82,7 +82,7 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     No Studio screen shows a classic card any more. Then the Guide as a page
     (`ui/guide/page.js`), from `design/guide/`: the field guide as a book,
     with Show me fixed to mark what it opens in every rebuilt section.
-  - On `makeover`: 2227 tests pass, 1 todo, and the build publishes 108 files.
+  - On `makeover`: 2242 tests pass, 1 todo, and the build publishes 108 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -241,8 +241,8 @@ engine does: the page's parts marked "week 4", its description graded now.
    The two replay fixes are on `makeover` only: `main`'s end screen still
    gives the old answers.
 9. **FIXED 2026-09-15 (DECISIONS F17), built on the branch
-   `claude/lucid-bhabha-395dd1` and merged into `makeover` on 2026-09-16
-   (the owner's call), not pushed:** the round's two paths through the auction disagreed with equal
+   `claude/lucid-bhabha-395dd1`, merged into `makeover` and pushed on
+   2026-09-16 (the owner's call; `main` does not have it):** the round's two paths through the auction disagreed with equal
    bids, and the test meant to hold them together never took the second path.
    The cause was deeper: a budget-throttled advertiser held its slot, and
    priced the advertiser above it, in searches it was not in. It now takes part
