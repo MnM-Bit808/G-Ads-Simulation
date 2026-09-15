@@ -4594,6 +4594,57 @@ The design, decided with the owner one question at a time on a canvas, is
 `plans/2026-09-14-round-zero-redesign.md`; the build and its play record are
 `plans/2026-09-14-round-zero-redesign-plan.md`.
 
+### I36. An old week's late sales went to whichever keyword caught the search when they landed — `FIXED` (2026-09-16)
+
+Found while tracing F18, and the same shape: a revision reading the account as
+it is now rather than as the week was sold.
+
+**Sim, before.** A week's late sales and returns are added to its breakdown
+rows as they arrive (11.4). Each order carried its search and its place, so the
+search terms rows and the place rows were right. The keyword row was found by
+asking which keyword catches that search in the week the sale LANDS
+(`keywordForQuery`, the revising round's own map), so it was right only while
+the keywords stayed as they were. Changing them broke the weeks before the
+change, in two ways:
+- **A search nothing catches any more** had its late sales and returns reach no
+  keyword row. The commonest way in is the search terms report's own lesson:
+  block a search with a negative, and its keyword stays and still matches it,
+  but nothing catches it. One game (seed 20260902, the phrase keyword
+  "leggings", "gym leggings" blocked at week 3): week 2's keyword row held
+  159.30 of the week's 163.27 sales and 61.29 of its 64.64 returns. Removing a
+  keyword does the same: with two exact keywords and one removed at week 3,
+  week 2's row for it stopped at 11.29 of the 20.52 sales its search made, and
+  none of its 7.79 returns.
+- **A search a broader keyword took over** had them credited to that keyword,
+  a row the week does have, so the rows still added up to the week and were
+  wrong. The existing test that holds keyword rows to the week's returns could
+  not see either: its game never changes a keyword.
+
+**Who saw it.** The keywords table adds up every revised week, so a player who
+blocked a search, or removed or replaced a keyword, saw that keyword's old weeks
+come up short, and whatever took over its searches credited with sales it never
+caught. The search terms report was right throughout, so the two tables
+disagreed about the same weeks. No rival reads an old week's keyword rows: a
+controller is handed only its latest report, which no revision has touched yet.
+
+**The fix.** Each order carries the keyword that caught its click
+(`keywordId`), snapshotted with its search and its place (spec 11.3). The
+round's per-search bucket records it, since an advertiser catches a search with
+one keyword for the whole round (8.6); `queueConversions` stores it,
+`queueReturns` carries it to the return, and both places in `report.js` that
+credit a keyword row read it from the entry. `keywordForQuery` had no reader
+left and is gone. `tests/report.test.js` plays both ways in: an exact keyword a
+phrase keyword in the same ad group takes over at week 3 and one nothing else
+catches, and a search blocked by a negative at week 3. Weeks 1 and 2's keyword
+rows now add up to the week's sales and returns, and each removed keyword keeps
+what its one search earned. The negative game was also run against the engine
+before the fix, and failed there.
+
+**Measured.** The market harness before and after: identical, all 72 rows and
+every field. Rivals block searches too, so their own old keyword rows did
+change; nothing in the market reads an old week's keyword rows, so nothing it
+decides moved.
+
 ### F14. The engine contradicts itself about returns — `FIXED`
 
 **RESOLVED 2026-09-11, and it took four constants rather than three numbers.**
@@ -5388,9 +5439,10 @@ week reads exactly like late sales, which is what every screen says a revision
 is.
 
 **The same shape elsewhere.** The cash share on each place row was worked out
-from the advertiser at revision too (I34). Anything a revision works out from the
-advertiser, rather than adding up from orders, belongs on the report when it is
-built or on the order (CLAUDE.md, known traps).
+from the advertiser at revision too (I34), and so was the keyword a late sale is
+credited to (I36). Anything a revision works out from the advertiser, rather
+than adding up from orders, belongs on the report when it is built or on the
+order (CLAUDE.md, known traps).
 
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
