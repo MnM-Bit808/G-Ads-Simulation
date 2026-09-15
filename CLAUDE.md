@@ -202,13 +202,16 @@ number in the simulation without ever throwing an error.
   guesses the folder to publish on every deploy, and a wrong guess publishes the
   repository — docs and tests — while still reporting success.
   `tests/build.test.js` holds it, and holds `dist/` to exactly the files the
-  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 89 on the
-  branch `makeover` since Where and when (2026-09-15), whose stylesheet and
+  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 92 on the
+  branch `makeover` since Your week (2026-09-15), whose stylesheet and
   fonts the build finds by following `url()` inside CSS.
 - **The Studio makeover filters today's cards, it never moves them.** The
   decision form redraws every card it owns into its own region on each change,
   so a card moved into a sidebar section is redrawn into nothing. The shell
-  shows a section's cards by CSS on `data-slot`. Everything new sits under
+  shows a section's cards by CSS on `data-slot`; a rebuilt section (Your
+  keywords, Where and when, Your week) draws its own and retires the classic
+  cards in the Studio, keeping their slot names on its parts so the guide's
+  "show me on the card" still finds them. Everything new sits under
   `body.studio` (`?look=studio`) until the switch-over, and red there is the
   player's colour, so losses and warnings are amber with a minus sign.
 - **Round 0's rules live in `ui/roundzero/rules.js`, and both looks read them.**
@@ -222,7 +225,7 @@ number in the simulation without ever throwing an error.
 - **A new screen's drawing module holds no sentence, and joins the drawing
   guard.** Every sentence is a `line` in `ui/words/`; the guard in
   `tests/words.test.js` lists each drawing module (the shell, the kit, the map,
-  round 0's steps, Your keywords) and fails any string of three words. So a
+  round 0's steps, each rebuilt section) and fails any string of three words. So a
   class list holds at most two names in one string: add a third with
   `classList.add`, as `ui/roundzero/studio.js` does.
 - **The browser pane's page reports itself hidden.** Animations, smooth

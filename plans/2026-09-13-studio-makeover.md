@@ -490,8 +490,24 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   round 0's redraws its chips on every change; the strip scrolls to the line
   just made. A section's first visit plays once and staggers top to bottom, and
   its dot waits, on a phone, until the list behind the menu is seen. Row 2, the
-  revised figures, waits for Your week. `/review-animations` was not available,
-  and `improve-animations` reviewed the motion instead.
+  revised figures, plays in Your week (below). `/review-animations` was not
+  available, and `improve-animations` reviewed the motion instead.
+- **Your week (section 7, item 1)** is built as the owner chose from the
+  mock-ups on `design/your-week/` (2026-09-15): the week's six figures, every
+  week's net profit as a bar with a dashed tick where it stood before this week
+  ran and the change in grey under it, one sentence on what moved, and where
+  the impressions went. It draws itself (`ui/week/`), and the classic three
+  cards are retired in the Studio. The engine keeps only the revised history,
+  so the interface keeps the one from before the latest week (`ui/app.js`,
+  `ui/save.js`). Three choices came from seeing it: the tick says "before week
+  N ran", since the game cannot know when you looked; a losing week hangs below
+  a zero line in amber, while the changes stay grey; and the palette's "a loss
+  is amber" is set aside for the changes, because a week revised down is a
+  correction, not money leaving. Row 2's motion plays the first time the section
+  is seen after a week has run, and on "replay the revision"; `improve-animations`
+  reviewed it, and the one finding taken hides where a week stood from screen
+  readers, which read it at opacity 0 as a second current figure. On a phone
+  the chart scrolls sideways in its own box rather than shortening its figures.
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.

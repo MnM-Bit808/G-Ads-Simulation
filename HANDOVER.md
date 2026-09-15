@@ -64,8 +64,10 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     the mock-ups on `design/where-when/`. Drawing those found the round
     clamping a place's bid adjustment separately from the hour's; one clamp
     now covers both (DECISIONS G4's dated note, the market measured
-    identical).
-  - On `makeover`: 1947 tests pass, 1 todo, and the build publishes 89 files.
+    identical). Then *Your week* (`ui/week/`), chosen from the mock-ups on
+    `design/your-week/`: every week's net profit against a dashed tick where it
+    stood before this week ran, the revision played once a week.
+  - On `makeover`: 1981 tests pass, 1 todo, and the build publishes 92 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -105,21 +107,29 @@ engine does: the page's parts marked "week 4", its description graded now.
    https://claude.ai/code/artifact/84535b5e-0d58-4228-b2b5-fbfcf8d7383b: the
    three kinds of place as rows with a bar each beside the India map, and the
    hours as the day drawn to scale. Bars stop where a bid stops, +300% under
-   manual bidding and +150% under Maximise clicks. Next, the rest of the
-   makeover design's section 7 list, one section at a time, and the
-   switch-over.
-4. **The message project** (the round 0 design, section 11): angles that change
+   manual bidding and +150% under Maximise clicks.
+4. **DONE 2026-09-15: Your week** (`ui/week/`), from the canvas
+   https://claude.ai/code/artifact/ae97f8b4-111a-451d-b37a-e8e237b4866f: the
+   week's six figures; every week's net profit with a dashed tick where it
+   stood before this week ran, the change in grey under it, a losing week in
+   amber below a zero line; one sentence on what moved, whose "as" is said only
+   when its count moved; and where the impressions went. The engine keeps only
+   the revised history, so `ui/app.js` and `ui/save.js` keep the one from
+   before the latest week. Next, the rest of the makeover design's section 7
+   list, one section at a time (What people typed, Your money, Returns, the
+   Market area, Results, the Guide as a page), and the switch-over.
+5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.
-5. **Then the playtests**, below, on whatever the makeover has become.
-6. **Still open for the owner, none blocking:** from the pilot's play-through,
+6. **Then the playtests**, below, on whatever the makeover has become.
+7. **Still open for the owner, none blocking:** from the pilot's play-through,
    whether sixty keywords want the compact list view (a click redraws in 274ms,
    and the section runs to twenty screens), whether to trim the cards' repeated
    words (158 against about 120), and whether Redo round 0 should start from the
    last choices rather than afresh, in both looks. Older: A9, F15 (b)/(c) and
    E8's formula (item 5 below), and whether round 0's rival guesses carry into
    the end reveal (the round 0 design, section 12).
-7. **Found 2026-09-15 and put to the owner as their own tasks, not fixed:**
+8. **Found 2026-09-15 and put to the owner as their own tasks, not fixed:**
    the round's two paths through the auction disagree with equal bids, by up
    to 5% of one rival's impressions, and the test meant to hold them together
    (`tests/round.test.js`, *the two paths through the auction agree*) never
