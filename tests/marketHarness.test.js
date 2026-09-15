@@ -1,10 +1,14 @@
 import { describe, test, expect } from 'vitest';
 import {
   harnessPlayer, playMarket, writerGates, PLAYER, CELLS, prepaidDecision, RUNGS,
+  movesFrom, moveDecision,
 } from '../scripts/market-harness.js';
 import { gradeAdOffline, validateAdCopy } from '../agents/grader.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
-import { MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE, CREATIVE_ALLOCATION_PAISE } from '../engine/constants.js';
+import {
+  MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE, CREATIVE_ALLOCATION_PAISE, REPOSITION_COST_PAISE,
+} from '../engine/constants.js';
+import { isOneStep, parseCell } from '../engine/positions.js';
 import { writerTier } from '../content/writers.js';
 
 /**
@@ -42,6 +46,26 @@ describe('the market harness plays a real player (DECISIONS C8)', { timeout: 60_
     expect(state.advertisers.find((a) => a.id === PLAYER).campaign.prepaidDiscountPaise).toBe(3000);
     const budget = (round) => state.history.find((h) => h.round === round).byAdvertiser[PLAYER].budget.monthlyBudgetPaise;
     expect(budget(5)).toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE);
+  });
+
+  test('the move mode goes everywhere spec 4.5 allows, and nowhere else', () => {
+    for (const cell of CELLS) {
+      for (const to of movesFrom(cell)) expect(isOneStep(parseCell(cell), parseCell(to)), `${cell} to ${to}`).toBe(true);
+    }
+    // Two or three from every cell: one purpose step, and a price step either way
+    // that the grid has room for.
+    expect(CELLS.flatMap(movesFrom)).toHaveLength(14);
+  });
+
+  test('the move mode moves at week 5 and still sends week 5\'s capital (4.5, C8)', async () => {
+    const { state } = await playMarket({
+      seed: 1, cell: 'value|performance', rounds: 5,
+      playerDecision: moveDecision({ price: 'mid', purpose: 'performance' }),
+    });
+    expect(state.advertisers.find((a) => a.id === PLAYER).position)
+      .toMatchObject({ price: 'mid', purpose: 'performance', repositionedAtRound: 5 });
+    const budget = (round) => state.history.find((h) => h.round === round).byAdvertiser[PLAYER].budget.monthlyBudgetPaise;
+    expect(budget(5)).toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE - REPOSITION_COST_PAISE);
   });
 });
 
