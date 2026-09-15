@@ -12,12 +12,16 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, end of 2026-09-13.** `main` is at the latest push and is the only
-branch; the game is live and invite-only; 1656 tests pass, 1 todo; the build
-publishes 54 files. Nothing is waiting on code. **The next step is the owner's:
-the stranger playtests** (*Deployment → Running a playtest* has the steps and the
-invite). Everything else below either waits on their files or on the owner's
-judgement.
+**Current state, 2026-09-16.** `main` is at the latest push and the game is
+live and invite-only; 1703 tests pass, 1 todo; the build publishes 54 files.
+`main` is no longer the only branch: `makeover`, pushed for a preview but not
+merged, carries the new look (`plans/2026-09-13-studio-makeover.md`) and F17,
+a fix to how an advertiser low on budget is ranked; its own HANDOVER says where
+both stand. The owner put the stranger playtests on hold on 2026-09-13 for that
+makeover, so the list below is as it stood that day: **the next step was the
+owner's, the stranger playtests** (*Deployment → Running a playtest* has the
+steps and the invite), and everything else waits on their files or on the
+owner's judgement.
 
 **What to do next, in order:**
 1. **Run the stranger playtests on the live site.** Owner: pick three people
