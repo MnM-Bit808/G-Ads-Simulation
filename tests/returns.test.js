@@ -21,6 +21,7 @@ import {
 import {
   returnsReading, capitalWindow, liveMarks, stepReading, placeReturns, discountTrade,
 } from '../ui/returns/read.js';
+import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 
 const POSITION = { price: 'mid', purpose: 'performance' };
 
@@ -94,7 +95,7 @@ describe('what came back, read from the account\'s own weeks', () => {
     expect(r.marginPaise / tier).toBeLessThan(1.1);
   });
 
-  test('paid at the door is weighted by where the clicks went', () => {
+  test('paid at the door is weighted by where the orders came from', () => {
     const { state, playerId } = played();
     const r = returnsReading(state.history, playerId, SETTLES_AFTER_ROUNDS);
     const shares = Object.values(rowOf(state.history[0], playerId).breakdown.byLocation).map((l) => l.codShare);
@@ -219,5 +220,69 @@ describe('what a discount saves against what it costs', () => {
     expect(t.savedPerWeekPaise).toBeCloseTo(t.avoidedPerWeek * r.perRefusalPaise, 6);
     expect(t.costPerWeekPaise).toBeCloseTo(rungs[1].paise * rungs[1].prepaidShare * perWeek, 6);
     expect(t.prepaidOrdersPerWeek).toBeCloseTo(rungs[1].prepaidShare * perWeek, 9);
+  });
+});
+
+/**
+ * Paid at the door, over the orders the refusals beside it count (I34).
+ *
+ * Each week's report now carries the cash share it was sold at, so weeks can
+ * differ. The Returns card counts refusals over its settled weeks only, while
+ * the account's share read every week played and each place's share read the
+ * latest week, which made no difference while every week had the same one. A
+ * discount started this week would have shown at once in both, beside refusals
+ * that cannot move until its weeks settle: a discount that seemed to do nothing.
+ */
+describe('paid at the door covers the weeks the refusals do (I34)', { timeout: 60_000 }, () => {
+  const games = new Map();
+  // ₹30 from week 3 on, or never; the history as it stood after weeks 7 and 8.
+  const playedWith = (discounted) => {
+    if (games.has(discounted)) return games.get(discounted);
+    let state = makeGameState({ round: 1 });
+    const after = {};
+    for (let week = 1; week <= 8; week++) {
+      const decisions = discounted && week === 3
+        ? { [PLAYER_ID]: { campaign: { prepaidDiscountPaise: 3000 } } } : {};
+      state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
+      after[week] = state.history;
+    }
+    games.set(discounted, after);
+    return after;
+  };
+  const read = (history) => {
+    const r = returnsReading(history, PLAYER_ID, SETTLES_AFTER_ROUNDS);
+    return { account: r.codShare, places: placeReturns(history, PLAYER_ID, r.settled).map((p) => p.codShare) };
+  };
+
+  test('while the discounted weeks are settling, the account and each place read as if there were none', () => {
+    // After week 7 only weeks 1 and 2 have settled, and both were sold without it.
+    const [some, none] = [read(playedWith(true)[7]), read(playedWith(false)[7])];
+    expect(some.account).toBeCloseTo(none.account, 12);
+    some.places.forEach((share, t) => expect(share, `place ${t}`).toBeCloseTo(none.places[t], 12));
+  });
+
+  test('and both fall from the week the first of them settles', () => {
+    // After week 8, week 3 has settled too: the refusals it prevented arrive with it.
+    const [some, none] = [read(playedWith(true)[8]), read(playedWith(false)[8])];
+    expect(some.account).toBeLessThan(none.account - 0.005);
+    some.places.forEach((share, t) => expect(share, `place ${t}`).toBeLessThan(none.places[t]));
+  });
+
+  test('weighted by orders, over the settled weeks and no others', () => {
+    const week = (round, byLocation) => ({ round, byAdvertiser: { [PLAYER_ID]: { breakdown: { byLocation } } } });
+    const history = [
+      week(1, { 0: { clicks: 900, conversions: 10, codShare: 0.6 }, 1: { clicks: 100, conversions: 30, codShare: 0.72 } }),
+      week(2, { 0: { clicks: 100, conversions: 5, codShare: 0.54 } }),
+      week(3, { 0: { clicks: 500, conversions: 50, codShare: 0.1 } }),
+    ];
+    // Settling after one week, so weeks 1 and 2 count and week 3 does not.
+    const r = returnsReading(history, PLAYER_ID, 1);
+    expect(r.settled.map((w) => w.round)).toEqual([1, 2]);
+    // (10 x 0.60 + 30 x 0.72 + 5 x 0.54) / 45; by clicks it would be 0.605.
+    expect(r.codShare).toBeCloseTo(30.3 / 45, 12);
+    // Metros: (10 x 0.60 + 5 x 0.54) / 15; the latest week alone would be 0.54.
+    const places = placeReturns(history, PLAYER_ID, r.settled);
+    expect(places[0].codShare).toBeCloseTo(0.58, 12);
+    expect(places[1].codShare).toBeCloseTo(0.72, 12);
   });
 });

@@ -1132,3 +1132,119 @@ describe('refusals as a played week books them (I29, I34)', { timeout: 60_000 },
     }
   });
 });
+
+/**
+ * "Paid at the door" on a week's report is the mix that week was sold at.
+ *
+ * `codShare` is the one figure on a location row that the report WORKS OUT from
+ * the advertiser rather than adding up from the orders. It was worked out without
+ * the discount, so ₹30 moved a tenth of cash buyers to prepaid in the round and
+ * not at all on the returns card or the places table. And it was worked out again
+ * at every revision (11.4), from the account as it stood that week, so a week
+ * already sold could be rewritten by a decision taken after it.
+ *
+ * Checked against what the round BOOKED, not against `codShareFor`. The discount
+ * is paid on prepaid orders only, so on the same seed a discounted week's revenue
+ * per order is lower by the discount times its prepaid share, and that share can
+ * be read back off the revenue. The block above holds the orders themselves equal
+ * with and without a discount; paise rounding leaves the read-back within 0.0001.
+ * Six weeks, because week 1's last return resolves in week 6.
+ */
+describe('a report says what share of its own week\'s orders were paid at the door (I34)', { timeout: 60_000 }, () => {
+  const POSITION = { price: 'mid', purpose: 'performance' };
+  const SEARCH = QUERY_SET.queries
+    .filter((q) => homeCell(q) === 'mid|performance' && q.returnRateMultiplier === 1 && q.intent !== 'brand')
+    .sort((a, b) => b.volumeShareBp - a.volumeShareBp)[0];
+  const DISCOUNT = 3000;
+  const games = new Map();
+  // `decide(week, id)` is what the player sends that week, or nothing.
+  const played = (label, decide) => {
+    if (games.has(label)) return games.get(label);
+    const breakEven = realisedBreakEvenCpcPaise(
+      businessFor(POSITION, { committed: {}, pending: [] }, 1), QUERY_SET, POSITION,
+    );
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: POSITION,
+        capex: { orderConfirmation: 8000000 },
+        keywords: [{ text: SEARCH.text, matchType: 'exact', bidPaise: Math.round(breakEven * 1.2) }],
+        ad: {
+          headlines: ['Activewear Built To Train In', 'Free Delivery Across India', 'Sizes XS To XXL'],
+          descriptions: [
+            'Leggings, tights and sports bras that hold through 4 sessions a week.',
+            'Easy returns within 30 days, and cash on delivery everywhere.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    const id = state.advertisers[0].id;
+    // Each week's report as `submitRound` handed it over, before any revision.
+    const firstBuilt = [];
+    for (let week = 1; week <= 6; week++) {
+      const decision = decide(week, id);
+      const out = submitRound(state, decision ? { [id]: decision } : {}, { mode: 'expected' });
+      firstBuilt.push(out.report);
+      state = out.nextGameState;
+    }
+    const game = { state, id, firstBuilt };
+    games.set(label, game);
+    return game;
+  };
+  const untouched = () => played('untouched', () => null);
+  // ₹30 for week 1 only, as a player trying it might: so week 1 is revised for
+  // five weeks by an account with no discount.
+  const triedOnce = () => played('triedOnce', (week) => (
+    week === 1 ? { campaign: { prepaidDiscountPaise: DISCOUNT } }
+      : week === 2 ? { campaign: { prepaidDiscountPaise: 0 } } : null));
+  const moved = () => played('moved', (week) => (week === REPOSITION_ROUND
+    ? { position: { price: 'premium', purpose: POSITION.purpose } } : null));
+
+  const place = (report, id, t) => report.byAdvertiser[id].breakdown.byLocation[t];
+  const settled = (game, week, t) => place(game.state.history[week - 1], game.id, t);
+  // The share of week 1's orders at place t that the round sold as cash on
+  // delivery, read off the revenue it booked.
+  const soldAtDoor = (t) => {
+    const perOrder = (row) => row.grossRevenuePaise / row.conversions;
+    return 1 - (perOrder(settled(untouched(), 1, t)) - perOrder(settled(triedOnce(), 1, t))) / DISCOUNT;
+  };
+
+  test('the week the discount ran, as its report is first built', () => {
+    expect(SEARCH, 'a mid|performance search at multiplier 1').toBeTruthy();
+    for (let t = 0; t < LOCATION_TIERS.length; t++) {
+      expect(settled(untouched(), 1, t).conversions, `place ${t} has sales to measure`).toBeGreaterThan(1);
+      // Or the test proves nothing: the discount has to have moved the mix.
+      expect(settled(untouched(), 1, t).codShare - soldAtDoor(t), `place ${t}`).toBeGreaterThan(0.03);
+      expect(place(triedOnce().firstBuilt[0], triedOnce().id, t).codShare, `place ${t}`)
+        .toBeCloseTo(soldAtDoor(t), 3);
+    }
+  });
+
+  test('and after five weeks of revision by an account that has dropped it', () => {
+    for (let t = 0; t < LOCATION_TIERS.length; t++) {
+      expect(settled(triedOnce(), 1, t).codShare, `place ${t}`).toBeCloseTo(soldAtDoor(t), 3);
+    }
+  });
+
+  test('while the week after, sold without it, reads as a week that never had one', () => {
+    for (let t = 0; t < LOCATION_TIERS.length; t++) {
+      expect(settled(triedOnce(), 2, t).codShare, `place ${t}`)
+        .toBe(settled(untouched(), 2, t).codShare);
+    }
+  });
+
+  test('a move to another price tier at week 5 leaves the weeks sold before it alone', () => {
+    // Weeks 1-4 are the same account in both games, so their reports must say
+    // the same thing; premium's cash mix is not the mid one those orders had.
+    for (let week = 1; week < REPOSITION_ROUND; week++) {
+      for (let t = 0; t < LOCATION_TIERS.length; t++) {
+        expect(settled(moved(), week, t).codShare, `week ${week}, place ${t}`)
+          .toBe(settled(untouched(), week, t).codShare);
+      }
+    }
+  });
+});
