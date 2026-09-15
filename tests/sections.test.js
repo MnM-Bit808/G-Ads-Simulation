@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  AREAS, SECTIONS, RETIRED_SLOTS, sectionOf, sectionsIn, sectionState, visibilityRules,
+  AREAS, SECTIONS, RETIRED_SLOTS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots,
 } from '../ui/shell/sections.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 import { SETTLES_AFTER_ROUNDS } from '../ui/dashboard.js';
@@ -109,6 +109,30 @@ describe('a section opens when it has something true to say', () => {
 
   test('every area but the guide has sections; the guide opens its drawer instead', () => {
     for (const area of AREAS) expect(sectionsIn(area.key).length > 0, area.key).toBe(area.key !== 'guide');
+  });
+});
+
+// Found planning Returns: rebuilding Your money took its week-5 entrance away,
+// because the shell looked for the section's cards among the classic ones only.
+describe('a first visit enters the parts the section shows', () => {
+  const find = (key) => SECTIONS.find((s) => s.key === key);
+
+  test('a rebuilt section enters the parts it draws; a classic one its cards', () => {
+    expect(entranceSlots(find('money'))).toEqual(['window', 'budget', 'split', 'bidding', 'deadline']);
+    expect(entranceSlots(find('rivals'))).toEqual(['insights', 'trends']);
+  });
+
+  test('every section that can be visited fresh has something to enter', () => {
+    const fresh = SECTIONS.filter((s) => s.opensAt || s.key === 'money');
+    for (const s of fresh.filter((x) => x.key !== 'results')) {
+      expect(entranceSlots(s).length, s.key).toBeGreaterThan(0);
+    }
+  });
+
+  test('the shell enters a rebuilt section\'s own parts, not only the classic cards', () => {
+    const shell = read('ui/shell/shell.js');
+    expect(shell).toMatch(/entranceSlots\(/);
+    expect(shell).not.toMatch(/s\.slots\.map\(\(slot\) => `\[data-slot/);
   });
 });
 

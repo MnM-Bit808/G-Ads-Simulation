@@ -15,7 +15,7 @@ import { renderDashboard } from '../dashboard.js';
 import { changes } from '../decisions.js';
 import { TOTAL_ROUNDS, ROUNDS_PER_MONTH } from '../../engine/constants.js';
 import {
-  AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, visibilityRules,
+  AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots,
 } from './sections.js';
 import { trayLines } from './tray.js';
 import { SHELL } from '../words/shell.js';
@@ -229,26 +229,31 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       money.refresh();
       shown = money.node;
     } else {
-      if (view.firstOpen === s.key) arrive(s);
       dashboard.dataset.section = s.key;
       shown = dashboard;
     }
+    if (view.firstOpen === s.key) arrive(s, shown);
     content.replaceChildren(shown);
     body.scrollTop = 0;
   }
 
   /**
-   * A section's first visit, once: its cards come out of display: none, so
-   * @starting-style gives them an entrance, 40ms apart and at most six (spec
+   * A section's first visit, once: its cards come out of display: none, or a
+   * rebuilt section's parts are drawn fresh, so @starting-style gives them an
+   * entrance, 40ms apart and at most six (spec
    * section 3, row 3). Spent as it plays, or the next redraw for any reason
    * (the menu, a week's figures) would play it again.
    */
-  function arrive(s) {
+  function arrive(s, root) {
     view.firstOpen = null;
+    const slots = entranceSlots(s);
+    if (slots.length === 0) return;
     // One query, so the cards come in the page's order and the stagger reads top
-    // to bottom; by the section's slot list, Your money's top card came last.
-    const selector = s.slots.map((slot) => `[data-slot="${slot}"]`).join(', ');
-    const cards = [...dashboard.querySelectorAll(selector)].slice(0, 6);
+    // to bottom; by the section's slot list, Your money's top card came last. A
+    // part inside another (Your money's bar, in its month) enters with it.
+    const selector = slots.map((slot) => `[data-slot="${slot}"]`).join(', ');
+    const found = [...root.querySelectorAll(selector)];
+    const cards = found.filter((c) => !found.some((o) => o !== c && o.contains(c))).slice(0, 6);
     cards.forEach((card, i) => {
       card.classList.add('arriving');
       card.style.transitionDelay = `${i * ARRIVE_STAGGER_MS}ms`;

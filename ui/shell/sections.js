@@ -82,6 +82,20 @@ export function sectionOf(slot) {
   return SECTIONS.find((s) => s.slots.includes(slot) || s.draws?.includes(slot)) ?? null;
 }
 
+/**
+ * The parts a section's first visit brings in (spec section 3, row 3): a
+ * rebuilt section's own, which it draws, or a classic one's cards.
+ *
+ * Found planning Returns: the shell looked for the cards among the classic
+ * ones only, so rebuilding Your money quietly took its week-5 entrance away.
+ *
+ * @param {object} section
+ * @returns {string[]} data-slot names
+ */
+export function entranceSlots(section) {
+  return section.slots.length > 0 ? section.slots : (section.draws ?? []);
+}
+
 /** @returns {object[]} an area's sections, in order */
 export function sectionsIn(area) {
   return SECTIONS.filter((s) => s.area === area);
