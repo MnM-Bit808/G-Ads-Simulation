@@ -1418,13 +1418,19 @@ export function blocksTerm(draft, text) {
  * @param {{text: string, matchType: string}} negative
  * @param {{queries: Array<{id: string, text: string, volumeShareBp: number}>,
  *          terms: Object<string, {clicks: number, costPaise: number, conversions: number}>}} context
- * @returns {object}
+ * @returns {object} `blocked`, `spent` (most spent first) and `unspent`, each
+ *   row marked `dear` as the search terms report marks it; `totals` over the
+ *   spent ones; `averagePaise`, the account's cost of a sale over all of
+ *   `terms`; and `sellsWell`, the spent searches whose sales cost no more than
+ *   that average
  */
 export function previewNegative(negative, { queries, terms }) {
+  const averagePaise = averagePerSalePaise(terms);
   const empty = {
     blocked: [], spent: [], unspent: [],
     totals: { clicks: 0, costPaise: 0, conversions: 0 },
-    costsConversions: false,
+    averagePaise,
+    sellsWell: [],
   };
   if (!NEGATIVE_TYPES.includes(negative?.matchType)) return empty;
   if (tokenise(negative.text ?? '').length === 0) return empty;
@@ -1446,6 +1452,7 @@ export function previewNegative(negative, { queries, terms }) {
       costPaise: stats?.costPaise ?? 0,
       conversions: stats?.conversions ?? 0,
     };
+    row.dear = isDear(row, averagePaise);
     blocked.push(row);
     if (stats && (stats.impressions > 0 || stats.clicks > 0)) {
       spent.push(row);
@@ -1459,7 +1466,15 @@ export function previewNegative(negative, { queries, terms }) {
 
   spent.sort((a, b) => b.costPaise - a.costPaise);
   unspent.sort((a, b) => b.volumeShareBp - a.volumeShareBp);
-  return { blocked, spent, unspent, totals, costsConversions: totals.conversions > 0 };
+
+  // What the block would cost you that is earning its keep: searches whose
+  // sales cost no more than the account's average. The warning is about these
+  // and no others. It used to fire over any sale at all, and in expected mode
+  // almost every search has sold a fraction, so it fired on nearly every block.
+  const sellsWell = averagePaise === null ? [] : spent.filter(
+    (r) => r.conversions > 0 && r.costPaise <= averagePaise * r.conversions,
+  );
+  return { blocked, spent, unspent, totals, averagePaise, sellsWell };
 }
 
 // ---------------------------------------------------------------------------
@@ -2679,11 +2694,17 @@ function previewBody(negative, ctx) {
   ));
   out.push(headline);
 
-  if (preview.costsConversions) {
+  // Only when it is true: a search this would block is selling at or under
+  // your average. Warning over any sale at all fired on almost every block,
+  // because in expected mode almost every search has sold a fraction of one.
+  if (preview.sellsWell.length > 0) {
+    const n = preview.sellsWell.length;
+    const named = preview.sellsWell.slice(0, 3).map((row) => `“${row.text}”`).join(', ');
     out.push(el('p', 'problems',
-      'This would also block searches that converted for you. A negative does '
-      + 'not know what you meant by it — it blocks every search carrying those '
-      + 'words.'));
+      `This would also block ${n === 1 ? 'a search that sells' : `${n} searches that sell`} `
+      + `for you at or under your average of ${rupees(preview.averagePaise)} a sale: `
+      + `${named}${n > 3 ? ` and ${n - 3} more` : ''}. A negative does not know what `
+      + 'you meant by it — it blocks every search carrying those words.'));
   } else if (preview.unspent.length > 0) {
     // The softer half of the same warning. A negative is not only a refund on
     // what you have wasted; it also closes searches you have never run, and
@@ -2694,18 +2715,28 @@ function previewBody(negative, ctx) {
       + 'them really is somebody else\'s customer.'));
   }
 
+  // Two-line headers keep four columns inside a 375px phone, as the negatives
+  // list above does; the wrapper is for a long search, which can still widen it.
   const list = el('table', 'mini');
   table(list,
-    ['Search it would block', { label: 'Your cost', num: true }, { label: 'Your conv', num: true }],
-    [...preview.spent, ...preview.unspent].slice(0, 12).map((row) => ({
-      className: row.conversions > 0 ? 'costly' : null,
-      cells: [
-        row.text,
-        row.clicks > 0 ? rupees(row.costPaise) : '—',
-        row.conversions > 0 ? row.conversions.toFixed(1) : '—',
-      ],
-    })));
-  out.push(list);
+    ['Search it would block', { label: 'Your\ncost', num: true }, { label: 'Your\nconv', num: true },
+      { label: 'Per\nsale', num: true }],
+    [...preview.spent, ...preview.unspent].slice(0, 12).map((row) => {
+      // Marked as the search terms report marks it, so red means one thing in
+      // both places: a search selling at over twice your average, or not at all.
+      const perSale = el('span', row.dear ? 'bad' : null);
+      if (row.conversions > 0) perSale.textContent = rupees(row.costPaise / row.conversions);
+      else perSale.textContent = row.clicks > 0 ? 'no sale' : '—';
+      return {
+        cells: [
+          row.text,
+          row.clicks > 0 ? rupees(row.costPaise) : '—',
+          row.conversions > 0 ? row.conversions.toFixed(1) : '—',
+          perSale,
+        ],
+      };
+    }));
+  out.push(scrollX(list));
   return out;
 }
 
