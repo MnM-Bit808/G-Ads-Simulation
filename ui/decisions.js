@@ -847,7 +847,7 @@ export function locationRows(draft, history, playerId) {
   const totals = LOCATION_TIERS.map(() => ({
     impressions: 0, clicks: 0, costPaise: 0, conversions: 0,
     grossRevenuePaise: 0, returned: 0, returnedRevenuePaise: 0, eligibleAuctions: 0,
-    refused: 0, sentBack: 0, codShare: null,
+    refused: 0, sentBack: 0, codOrders: 0, codWeighted: 0,
   }));
 
   for (const report of history ?? []) {
@@ -866,13 +866,20 @@ export function locationRows(draft, history, playerId) {
       // I28: which of those returns never made it through the door.
       at.refused += row.refused ?? 0;
       at.sentBack += row.sentBack ?? 0;
-      if (row.codShare != null) at.codShare = row.codShare;
+      // Each week carries the cash share it was sold at (I34), so weeks differ.
+      // Weighted by the orders `refusedRate` divides by, so the share beside the
+      // Refused column is the share of the same orders: the latest week alone
+      // would put this week's discount beside refusals from weeks without it.
+      if (row.codShare != null) {
+        at.codOrders += row.conversions ?? 0;
+        at.codWeighted += (row.conversions ?? 0) * row.codShare;
+      }
       at.eligibleAuctions += row.eligibleAuctions ?? 0;
     }
   }
 
   return LOCATION_TIERS.map((id, index) => {
-    const at = totals[index];
+    const { codOrders, codWeighted, ...at } = totals[index];
     const place = LOCATIONS[index];
     const netRevenuePaise = at.grossRevenuePaise - at.returnedRevenuePaise;
     // What a click here LEFT the player: the engine's own profit arithmetic on
@@ -909,7 +916,7 @@ export function locationRows(draft, history, playerId) {
       refusedRate: at.conversions > 0 ? at.refused / at.conversions : null,
       sentBackRate: at.conversions > 0 ? at.sentBack / at.conversions : null,
       refusedShare: at.returned > 0 ? at.refused / at.returned : null,
-      codShare: at.codShare ?? null,
+      codShare: codOrders > 0 ? codWeighted / codOrders : null,
       impressionShare: at.eligibleAuctions > 0 ? at.impressions / at.eligibleAuctions : null,
     };
   });
