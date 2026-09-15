@@ -66,8 +66,10 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     now covers both (DECISIONS G4's dated note, the market measured
     identical). Then *Your week* (`ui/week/`), chosen from the mock-ups on
     `design/your-week/`: every week's net profit against a dashed tick where it
-    stood before this week ran, the revision played once a week.
-  - On `makeover`: 1981 tests pass, 1 todo, and the build publishes 92 files.
+    stood before this week ran, the revision played once a week. Then *What
+    people typed* (`ui/typed/`), from `design/what-people-typed/`: the search
+    terms as one list by spend, with Block words beside it.
+  - On `makeover`: 2004 tests pass, 1 todo, and the build publishes 95 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -115,9 +117,17 @@ engine does: the page's parts marked "week 4", its description graded now.
    amber below a zero line; one sentence on what moved, whose "as" is said only
    when its count moved; and where the impressions went. The engine keeps only
    the revised history, so `ui/app.js` and `ui/save.js` keep the one from
-   before the latest week. Next, the rest of the makeover design's section 7
-   list, one section at a time (What people typed, Your money, Returns, the
-   Market area, Results, the Guide as a page), and the switch-over.
+   before the latest week.
+   **DONE 2026-09-15: What people typed** (`ui/typed/`), from the canvas
+   https://claude.ai/code/artifact/9564f078-b493-4538-94aa-90b6c035ffc0: every
+   search bought, most spent first, with what a sale cost there and how many
+   came back, and Block words beside it, whose preview shows what a block
+   would catch before it is made. A sale costing over twice the account's
+   average is marked, because today's "five clicks, no sale" never fires on
+   the game's fractional sales (the classic look's fix is its own task).
+   Next, the rest of the makeover design's section 7 list, one section at a
+   time (Your money, Returns, the Market area, Results, the Guide as a page),
+   and the switch-over.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.

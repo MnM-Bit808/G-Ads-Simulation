@@ -508,6 +508,19 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   reviewed it, and the one finding taken hides where a week stood from screen
   readers, which read it at opacity 0 as a second current figure. On a phone
   the chart scrolls sideways in its own box rather than shortening its figures.
+- **What people typed (section 7, item 2)** is built as the owner chose from
+  the mock-ups on `design/what-people-typed/` (2026-09-15): every search the
+  account bought in one list, most spent first, with its sales, what a sale
+  cost there and how many came back, and Block words beside it, whose preview
+  outlines the rows a block would catch as it is typed. It draws itself
+  (`ui/typed/`) and retires the classic two cards in the Studio; every block
+  goes through the form's own staging, so the tray words it. Not chosen: the
+  searches grouped under the keyword that bought each, which would have needed
+  the engine to keep that keyword. Drawing it found that today's "five
+  clicks, no sale" mark never fires on the game's fractional sales, so a sale
+  costing over twice the account's average is marked instead; the classic
+  look's fix is its own task. A blocked row is muted grey rather than faded,
+  which measured under 4.5:1.
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.
