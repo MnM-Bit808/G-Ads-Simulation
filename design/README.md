@@ -90,6 +90,26 @@ option's case and cost, and two findings for the owner: the hours box accepts
 +900% though nothing past +300% changes a bid, and the engine applies a place
 adjustment without the four-times cap its own comment describes.
 
+## `your-week/`: the Your week overview (2026-09-15)
+
+A fifth canvas, https://claude.ai/code/artifact/ae97f8b4-111a-451d-b37a-e8e237b4866f,
+the first section on the makeover design's section 7 list: the overview, where
+revised figures visibly give way. Two options, each opening by playing the
+revision (every earlier week shows what you saw when you last looked, then
+crossfades to what it is now, 250ms, opacity only):
+
+- `Main.dc.html` (A · money first): the week's six figures, then every week's
+  net profit against an outline of what you saw, gains and losses marked.
+- `DelayFirst.dc.html` (B · the delay first): every week's conversions, landed
+  against still to arrive with a tick where you read them; tap a week for its
+  six figures.
+
+Its numbers come from one game played six weeks with the engine (seed 1,
+Vella & Co. at mid-price performance, manual bids), with every week's figures
+captured before and after week 6 ran: week 5's profit rose ₹53,317 as its
+conversions landed, and weeks 1 to 4 fell ₹51,143 between them as returns
+came back.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.
