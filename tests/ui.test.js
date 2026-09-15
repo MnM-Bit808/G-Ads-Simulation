@@ -239,6 +239,7 @@ describe('every interface module at least loads', () => {
     'words/money.js': () => import('../ui/words/money.js'),
     'money/read.js': () => import('../ui/money/read.js'),
     'money/render.js': () => import('../ui/money/render.js'),
+    'returns/read.js': () => import('../ui/returns/read.js'),
     'reserve.js': () => import('../ui/reserve.js'),
     'map/india.js': () => import('../ui/map/india.js'),
     'roundzero/studio.js': () => import('../ui/roundzero/studio.js'),

@@ -31,6 +31,7 @@ import { rankOf } from './ending.js';
 import { renderTrends, insightMovers, marketChange } from './chart.js';
 import { brandNamedIn } from '../content/brands.js';
 import { RETURNS } from './words/returns.js';
+import { returnsReading } from './returns/read.js';
 import { MARKET } from './words/market.js';
 import { whyButton } from './guide/drawer.js';
 import { tagKeywordOffline } from '../agents/keywordTagger.js';
@@ -372,35 +373,15 @@ function arrivalChart(game) {
  * would be teaching the opposite of W11.
  */
 function renderReturns(root, game, openGuide) {
-  const history = game.state.history ?? [];
-  const latest = history.length > 0 ? history[history.length - 1].round : 0;
-
-  const weeks = history.map((h) => {
-    const row = h.byAdvertiser[game.playerId];
-    const c = row?.conversions ?? {};
-    return {
-      round: h.round,
-      conversions: c.final ?? 0,
-      refused: c.refused ?? 0,
-      sentBack: c.sentBack ?? 0,
-      freightPaise: row?.money?.rtoFreightPaise ?? 0,
-      grossRevenuePaise: row?.money?.grossRevenuePaise ?? 0,
-      grossProfitPaise: row?.money?.grossProfitPaise ?? 0,
-      costPaise: row?.traffic?.costPaise ?? 0,
-      // A click in round R is final at R+5 (3 for the order, 2 for the window).
-      settled: latest - h.round >= SETTLES_AFTER_ROUNDS,
-    };
-  });
+  // The arithmetic is ui/returns/read.js's, which the Studio's Returns reads too.
+  const reading = returnsReading(game.state.history, game.playerId, SETTLES_AFTER_ROUNDS);
+  const { weeks, settled } = reading;
 
   const figures = root.querySelector('[data-slot="returns-figures"]');
   const body = root.querySelector('[data-slot="returns-weeks"]');
   const note = root.querySelector('[data-slot="returns-note"]');
   figures.replaceChildren();
   body.replaceChildren();
-
-  const settled = weeks.filter((w) => w.settled);
-  const sum = (rows, fn) => rows.reduce((a, r) => a + fn(r), 0);
-  const freightAll = sum(weeks, (w) => w.freightPaise);
 
   if (settled.length === 0) {
     note.textContent = RETURNS.nothingSettled({
@@ -411,32 +392,12 @@ function renderReturns(root, game, openGuide) {
     return;
   }
 
-  const conv = sum(settled, (w) => w.conversions);
-  const refused = sum(settled, (w) => w.refused);
-  const sentBack = sum(settled, (w) => w.sentBack);
+  // What one refused parcel is actually worth comes from this account's own
+  // figures rather than a constant: the arithmetic the player would otherwise
+  // do by hand (returnsReading).
+  const { orders: conv, refused, sentBack, codShare } = reading;
+  const freightAll = reading.freightPaise;
   const rate = (n) => (conv > 0 ? n / conv : 0);
-
-  // What one refused parcel is actually worth, from this account's own figures
-  // rather than from a constant — the arithmetic the player would otherwise do
-  // by hand. Margin is recovered from the gross figures, which carry no freight.
-  let codClicks = 0;
-  let codWeighted = 0;
-  for (const h of history) {
-    const rows = h.byAdvertiser[game.playerId]?.breakdown?.byLocation ?? {};
-    for (const row of Object.values(rows)) {
-      if (row.codShare == null) continue;
-      codClicks += row.clicks ?? 0;
-      codWeighted += (row.clicks ?? 0) * row.codShare;
-    }
-  }
-  const codShare = codClicks > 0 ? codWeighted / codClicks : null;
-
-  const grossRev = sum(settled, (w) => w.grossRevenuePaise);
-  const grossProfit = sum(settled, (w) => w.grossProfitPaise);
-  const spend = sum(settled, (w) => w.costPaise);
-  const marginPct = grossRev > 0 ? (grossProfit + spend) / grossRev : 0;
-  const aovPaise = conv > 0 ? grossRev / conv : 0;
-  const perRefusal = aovPaise * marginPct + RTO_FREIGHT_PAISE;
 
   add(
     figures,
@@ -488,10 +449,10 @@ function renderReturns(root, game, openGuide) {
   body.append(wrap);
 
   note.replaceChildren();
-  note.append(el('strong', null, RETURNS.refusalCost({ perRefusal: rupees(perRefusal) })));
+  note.append(el('strong', null, RETURNS.refusalCost({ perRefusal: rupees(reading.perRefusalPaise) })));
   note.append(document.createTextNode(` ${RETURNS.refusalCostParts({
     freight: rupees(RTO_FREIGHT_PAISE),
-    margin: rupees(aovPaise * marginPct),
+    margin: rupees(reading.marginPaise),
   })} `));
 
   // I33: THREE LEVERS, AND WHICH OF THEM IS AVAILABLE THIS WEEK. The card was
@@ -507,8 +468,8 @@ function renderReturns(root, game, openGuide) {
     : RETURNS.capitalShut({ window: allocationWindowPhrase(allocations) })}`));
 
   note.append(document.createTextNode(` ${RETURNS.countedWeeks({
-    first: settled[0].round,
-    last: latest - SETTLES_AFTER_ROUNDS,
+    first: reading.countedFrom,
+    last: reading.countedTo,
   })}`));
   add(note, whyButton(RETURNS.countedWeeks, openGuide));
 }
