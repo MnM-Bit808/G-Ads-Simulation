@@ -188,8 +188,8 @@ export const CHAPTERS = Object.freeze({
       + 'on ad spend it shows you is before returns.',
     realSources: [INDIA.pragmaRto, GOOGLE.adjustments],
     needs: ['rtoCod', 'rtoPrepaid', 'postDelivery', 'freight'],
-    game: ({ rtoCod, rtoPrepaid, postDelivery, freight }) => 'Here the returns card is your '
-      + 'shop’s own books, which Google Ads would show only if you uploaded them. Every order '
+    game: ({ rtoCod, rtoPrepaid, postDelivery, freight }) => 'Here the game shows your returns from '
+      + 'your shop’s own books, which Google Ads would show only if you uploaded them. Every order '
       + `can be refused at the door, ${rtoCod} of the time when paid in cash and ${rtoPrepaid} `
       + `when prepaid, and ${postDelivery} of delivered orders are sent back. Each refused `
       + `parcel also costs ${freight} in freight. The two halves have different fixes: a size `
@@ -278,7 +278,7 @@ export const CHAPTERS = Object.freeze({
       + 'were eligible for. Google presents the figure as telling you whether your ads might '
       + 'reach more people with a higher bid or a bigger budget.',
     realSources: [GOOGLE.impressionShareData, GOOGLE.impressionShare],
-    game: () => 'The share card splits every week the same way, but exactly, because this game '
+    game: () => 'This game splits every week’s missed searches the same way, but exactly, because it '
       + 'counts every auction you could have entered. The two point at different fixes. Lost to '
       + 'budget means the money ran out first: more money helps, and so do cheaper clicks, while '
       + 'a higher bid makes each click dearer and the money runs out sooner. Lost to rank means '

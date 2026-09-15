@@ -143,6 +143,13 @@ describe('the chapters', () => {
     for (const id of c.related) expect(Object.keys(CHAPTERS), id).toContain(id);
   });
 
+  // Found drawing the Guide as a page (2026-09-15): two chapters named a classic
+  // card ("the returns card", "The share card") that the Studio does not draw.
+  // What the game does is said of the figure, so it reads true in both looks.
+  test.each(entries)('%s: what the game does names no card', (_, c) => {
+    expect(c.game(FIGURES)).not.toMatch(/\bcards?\b/i);
+  });
+
   test('the chapters with a bid adjustment say no bid passes the cap, and cite it (D13)', () => {
     // Where and when's bars stop at the cap and say so (2026-09-15); the guide
     // behind their "why?" links has to agree, from the constant itself.
