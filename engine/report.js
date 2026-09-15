@@ -100,6 +100,11 @@ export function buildRoundReport({ round, raw, advertisers }) {
       },
       money: {
         ...money,
+        // The margin every order in this report was sold at: they were all
+        // clicked this round, at this round's price. Kept for the revisions,
+        // which must not ask the advertiser, whose price may have moved by
+        // then (F18).
+        marginPct: business.marginPct,
         // Captured once. Never revised. This is what you saw at the time.
         grossRoasAsFirstReported: money.grossRoas,
         netRoasAsFirstReported: money.netRoas,
@@ -165,7 +170,13 @@ function missedToBudget(r, business) {
 /**
  * Apply this round's late arrivals to the earlier reports that earned them.
  *
- * @param {object[]} history reports, oldest first
+ * Each report is revised at the margin it was built with, never the
+ * advertiser's current one. Every order in a report was sold in that report's
+ * round, and spec 11.3 holds an order to the account as it was when it was
+ * sold. Asking the advertiser instead re-priced every week of month 1 after a
+ * week-5 move (F18).
+ *
+ * @param {object[]} history reports, oldest first, each carrying `money.marginPct`
  * @param {object} args
  * @param {number} args.currentRound
  * @param {object} args.raw this round's raw output
@@ -173,10 +184,6 @@ function missedToBudget(r, business) {
  * @returns {object[]} a new history array
  */
 export function reviseReports(history, { currentRound, raw, advertisers }) {
-  const marginByAdvertiser = new Map(advertisers.map((a) => [
-    a.id, businessFor(a.position, a.capex, currentRound),
-  ]));
-
   return history.map((report) => {
     let touched = false;
     const byAdvertiser = { ...report.byAdvertiser };
@@ -194,7 +201,6 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
       if (lateLanded.length === 0 && lateReturns.length === 0) continue;
 
       touched = true;
-      const business = marginByAdvertiser.get(advertiser.id);
       const conversions = existing.conversions.final + sum(lateLanded, (e) => e.count);
       const returned = existing.conversions.returned + sum(lateReturns, (e) => e.count);
       // I28 build 2: how many of those never got through the door, from the
@@ -211,7 +217,7 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
         conversions,
         grossRevenuePaise,
         returnedRevenuePaise,
-        marginPct: business.marginPct,
+        marginPct: existing.money.marginPct,
         refused,
       });
 
@@ -231,6 +237,8 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
         },
         money: {
           ...money,
+          // Carried, not looked up, for the reason it was recorded.
+          marginPct: existing.money.marginPct,
           // The twins survive every revision. That is the point of them.
           grossRoasAsFirstReported: existing.money.grossRoasAsFirstReported,
           netRoasAsFirstReported: existing.money.netRoasAsFirstReported,

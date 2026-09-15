@@ -16,6 +16,7 @@ import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
+import { businessFor, realisedBreakEvenCpcPaise } from '../engine/positions.js';
 
 const STATE = makeGameState();
 const R1 = runRound(STATE, { mode: 'expected', counterfactualFor: ['halcyon'] });
@@ -260,6 +261,77 @@ describe('reports are revised, and remember what they first said (spec 11.4)', (
   test('history grows by one report per round', () => {
     expect(R1.nextGameState.history).toHaveLength(1);
     expect(R2.nextGameState.history).toHaveLength(2);
+  });
+});
+
+/**
+ * A move at week 5 and the weeks sold before it.
+ *
+ * Spec 11.3 snapshots each order's value and return rate at click time "so a
+ * repositioning (4.5) cannot retroactively change an order that was already
+ * sold". The margin laid over those orders was never snapshotted: a revision
+ * took it from the advertiser as it stood in the revising week. So a move from
+ * mid to premium lifted week 1's gross profit from ₹15,410 to ₹20,791 with not
+ * one order changed, and every week of month 1 with it, because each is revised
+ * at least once after week 5 while its returns come back.
+ *
+ * Three games, the same to the end of week 4: one stays, one moves up, one moves
+ * down. Nine weeks, so week 4's last return has resolved. The money block is
+ * compared whole, because nothing in it may know about a move that came after.
+ */
+describe('a later price move does not re-price the weeks already sold (spec 11.3)', { timeout: 120_000 }, () => {
+  const POSITION = { price: 'mid', purpose: 'performance' };
+  const SEARCH = QUERY_SET.queries
+    .filter((q) => homeCell(q) === 'mid|performance' && q.returnRateMultiplier === 1 && q.intent !== 'brand')
+    .sort((a, b) => b.volumeShareBp - a.volumeShareBp)[0];
+  const games = new Map();
+  const played = (movePrice) => {
+    if (games.has(movePrice)) return games.get(movePrice);
+    const breakEven = realisedBreakEvenCpcPaise(
+      businessFor(POSITION, { committed: {}, pending: [] }, 1), QUERY_SET, POSITION,
+    );
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: POSITION,
+        capex: { orderConfirmation: 8000000 },
+        keywords: [{ text: SEARCH.text, matchType: 'exact', bidPaise: Math.round(breakEven * 1.2) }],
+        ad: {
+          headlines: ['Activewear Built To Train In', 'Free Delivery Across India', 'Sizes XS To XXL'],
+          descriptions: [
+            'Leggings, tights and sports bras that hold through 4 sessions a week.',
+            'Easy returns within 30 days, and cash on delivery everywhere.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    const id = state.advertisers[0].id;
+    for (let week = 1; week <= 9; week++) {
+      const decisions = week === 5 && movePrice
+        ? { [id]: { position: { price: movePrice, purpose: POSITION.purpose } } } : {};
+      state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
+    }
+    const game = { state, id };
+    games.set(movePrice, game);
+    return game;
+  };
+  const money = ({ state, id }, week) => state.history[week - 1].byAdvertiser[id].money;
+
+  test.each(['premium', 'value'])('weeks 1-4 read the same after a move to %s as with no move', (price) => {
+    const stayed = played(null);
+    const moved = played(price);
+    // Or this proves nothing: the move happened, and every week of month 1 was
+    // revised after it.
+    expect(moved.state.advertisers[0].position).toMatchObject({ price, repositionedAtRound: 5 });
+    for (let week = 1; week <= 4; week++) {
+      expect(moved.state.history[week - 1].revisedAtRound, `week ${week}`).toBeGreaterThanOrEqual(5);
+      expect(money(stayed, week).grossProfitPaise, `week ${week} sold something`).toBeGreaterThan(0);
+      expect(money(moved, week), `week ${week}`).toEqual(money(stayed, week));
+    }
   });
 });
 
