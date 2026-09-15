@@ -27,12 +27,12 @@ import {
   PRICE_TIERS, PURPOSES, POSITION_ECONOMICS, PURPOSE_MODIFIERS,
   RETURN_RATE_CLAMP_MAX, CAPEX_TIER_CURVE, CAPEX_PHOTOGRAPHY_CURVE, CAPEX_ALLOCATION_PAISE,
   CAPEX_LANDING_PAGE_MAX_POINTS, REPOSITION_ROUND,
-  HOUR_PROFILES, HOURLY_INTENT_CURVE, CONV_RATE_CLAMP,
+  HOUR_PROFILES, HOURLY_INTENT_CURVE, CONV_RATE_CLAMP, LOCATION_TIERS,
 } from './constants.js';
 import { clamp, lerp } from './num.js';
 import { mulRate } from './money.js';
 import { homeCell } from './querySet.js';
-import { refusalRateFor, rtoShareOfReturns } from './locations.js';
+import { locationEffects, refusalRateFor, rtoShareOfReturns } from './locations.js';
 
 // ---------------------------------------------------------------------------
 // The grid
@@ -229,6 +229,54 @@ export function returnHalves({
   const sentBack = (gross * (1 - refusedShare)) / business.sizeGuideEffect;
   const returned = Math.min(RETURN_RATE_CLAMP_MAX, refused + sentBack);
   return { returned, refused: Math.min(returned, refused) };
+}
+
+/**
+ * The refusal rate an account will run at next week, per order, at its own
+ * places — the figure the prepaid card shows (I34).
+ *
+ * `returnHalves` at each place, weighted by where the account buys, so it
+ * carries everything the round will apply: the price tier's cash mix, purpose's
+ * return level, the place gradient, order confirmation once it is live, and the
+ * discount.
+ *
+ * ONE THING IT LEAVES OUT, BY RULE: each search's own return multiplier, which
+ * every view withholds (16.1). So it is exact for an account whose searches sit
+ * at 1 and close otherwise — measured 2026-09-15 over 72 played accounts at
+ * 0.91x to 1.02x of what the round booked, where the card's old cash-mix formula
+ * was up to 4.3 points high once order confirmation was live.
+ *
+ * @param {object} args
+ * @param {{price: string, purpose: string}} args.position
+ * @param {{committed: object, pending?: object[]}} args.capex the account's own
+ *   capital block, pending tranches included, so money still being built is not
+ *   counted
+ * @param {number} args.round the round about to be played
+ * @param {number} [args.discountPaise] 0 for none
+ * @param {number[]} args.placeWeights one per `LOCATION_TIERS` entry, any scale:
+ *   the account's clicks by place, say
+ * @returns {number} refusals per order, 0..1
+ * @throws {RangeError} when the weights are the wrong length or hold nothing —
+ *   which place an account with no clicks should be shown is the caller's call
+ */
+export function refusalOutlook({ position, capex, round, discountPaise = 0, placeWeights }) {
+  const total = (placeWeights ?? []).reduce((a, w) => a + w, 0);
+  if (placeWeights?.length !== LOCATION_TIERS.length || !(total > 0)) {
+    throw new RangeError(`placeWeights must be ${LOCATION_TIERS.length} weights with something in them`);
+  }
+  const business = businessFor(position, capex, round);
+  // Normalised to the price tier's own country, as the round's are. With a
+  // price named, `locationEffects` does not read the query set.
+  const places = locationEffects(null, position.price).returnMultiplier;
+  let refused = 0;
+  for (let t = 0; t < placeWeights.length; t++) {
+    if (placeWeights[t] <= 0) continue;
+    refused += placeWeights[t] * returnHalves({
+      business, queryReturnMultiplier: 1, placeReturnMultiplier: places[t],
+      price: position.price, tierIndex: t, discountPaise,
+    }).refused;
+  }
+  return refused / total;
 }
 
 /**
