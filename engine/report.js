@@ -121,7 +121,13 @@ export function buildRoundReport({ round, raw, advertisers }) {
       quality: {},
       missedToBudget: missedToBudget(r, business),
       warnings: [...(r.warnings ?? [])],
-      breakdown: withRefusals(attributeConversions(r, ownLanded), advertiser.position?.price),
+      // The advertiser `runRound` played this round with, so its price and
+      // discount are this week's own — the only moment they are (I34).
+      breakdown: withRefusals(
+        attributeConversions(r, ownLanded),
+        advertiser.position?.price,
+        advertiser.campaign?.prepaidDiscountPaise ?? 0,
+      ),
     };
   }
 
@@ -217,9 +223,14 @@ export function reviseReports(history, { currentRound, raw, advertisers }) {
 
       byAdvertiser[advertiser.id] = {
         ...existing,
-        breakdown: withRefusals(reviseBreakdown(
+        // Not `withRefusals`. The rows already carry both halves, which
+        // `reviseBreakdown` adds to, and the cash share of the week they cover.
+        // Working that share out again here used THIS week's advertiser: a
+        // discount dropped at week 2 or a move at week 5 rewrote weeks already
+        // sold (I34).
+        breakdown: reviseBreakdown(
           existing.breakdown, r.keywordForQuery ?? new Map(), lateLanded, lateReturns,
-        ), advertiser.position?.price),
+        ),
         conversions: {
           ...existing.conversions,
           final: conversions,
@@ -372,16 +383,24 @@ function attributeConversions(r, landed) {
  * "59% of your returns were refusals" only means something beside "78% of your
  * orders here are paid at the door".
  *
- * @param {object} byLocation rows keyed by `LOCATION_TIERS` id
- * @param {string} price the advertiser's own price tier
- * @returns {object} a new map, each row carrying refused, sentBack and codShare
+ * ONCE, WHEN THE WEEK'S REPORT IS BUILT, and never on a revision. Every other
+ * figure on the row is added up from orders that carry their own week; the cash
+ * share is the one worked out from the advertiser, so it has to be worked out
+ * from the advertiser the week was sold by. A ₹30 discount moves a tenth of cash
+ * buyers to prepaid, and the first version, given no discount, said it moved
+ * none (I34).
+ *
+ * @param {object} breakdown byKeyword, byQuery and byLocation
+ * @param {string} price the advertiser's price tier this round
+ * @param {number} discountPaise its prepaid discount this round, 0 for none
+ * @returns {object} a new breakdown, each location row carrying refused, sentBack and codShare
  */
-function withRefusals(breakdown, price) {
+function withRefusals(breakdown, price, discountPaise) {
   if (!price) return breakdown;
-  return { ...breakdown, byLocation: splitRefusals(breakdown.byLocation, price) };
+  return { ...breakdown, byLocation: splitRefusals(breakdown.byLocation, price, discountPaise) };
 }
 
-function splitRefusals(byLocation, price) {
+function splitRefusals(byLocation, price, discountPaise) {
   const out = {};
   for (const [key, row] of Object.entries(byLocation ?? {})) {
     // KEYED BY INDEX, not by tier id. `round.js` writes `locationTier:
@@ -399,7 +418,7 @@ function splitRefusals(byLocation, price) {
       refused: row.refused ?? 0,
       sentBack: row.sentBack ?? (returned - (row.refused ?? 0)),
       // The reason the two differ, which the card cannot say the split without.
-      codShare: codShareFor(price, index),
+      codShare: codShareFor(price, index, discountPaise),
     };
   }
   return out;
