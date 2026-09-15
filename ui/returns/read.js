@@ -79,14 +79,19 @@ export function returnsReading(history, playerId, settlesAfter) {
   const settled = weeks.filter((w) => w.settled);
   const orders = sum(settled, (w) => w.conversions);
 
-  // Paid at the door, across where the clicks actually went.
-  let codClicks = 0;
+  // Paid at the door, of the same orders the refusals are counted from. Each
+  // week carries the share it was sold at (I34), so read over every week played
+  // a discount started this week would show at once, beside refusals that cannot
+  // move until its weeks settle.
+  const counted = new Set(settled.map((w) => w.round));
+  let codOrders = 0;
   let codWeighted = 0;
   for (const h of rows) {
+    if (!counted.has(h.round)) continue;
     for (const place of Object.values(h.byAdvertiser[playerId]?.breakdown?.byLocation ?? {})) {
       if (place.codShare == null) continue;
-      codClicks += place.clicks ?? 0;
-      codWeighted += (place.clicks ?? 0) * place.codShare;
+      codOrders += place.conversions ?? 0;
+      codWeighted += (place.conversions ?? 0) * place.codShare;
     }
   }
 
@@ -104,7 +109,7 @@ export function returnsReading(history, playerId, settlesAfter) {
     refused: sum(settled, (w) => w.refused),
     sentBack: sum(settled, (w) => w.sentBack),
     freightPaise: sum(weeks, (w) => w.freightPaise),
-    codShare: codClicks > 0 ? codWeighted / codClicks : null,
+    codShare: codOrders > 0 ? codWeighted / codOrders : null,
     marginPaise,
     perRefusalPaise: marginPaise + RTO_FREIGHT_PAISE,
     countedFrom: settled[0]?.round ?? null,
@@ -183,19 +188,27 @@ export function stepReading(reading, marks) {
  */
 export function placeReturns(history, playerId, settled) {
   const counted = new Set(settled.map((w) => w.round));
-  const places = LOCATION_TIERS.map(() => ({ orders: 0, refused: 0, sentBack: 0, codShare: null }));
+  const places = LOCATION_TIERS.map(() => ({ orders: 0, refused: 0, sentBack: 0, codOrders: 0, codWeighted: 0 }));
   for (const h of history ?? []) {
+    if (!counted.has(h.round)) continue;
     for (const [tier, row] of Object.entries(h.byAdvertiser[playerId]?.breakdown?.byLocation ?? {})) {
       const place = places[tier];
       if (!place) continue;
-      if (row.codShare != null) place.codShare = row.codShare;
-      if (!counted.has(h.round)) continue;
       place.orders += row.conversions ?? 0;
       place.refused += row.refused ?? 0;
       place.sentBack += row.sentBack ?? 0;
+      // Of these same orders (I34): the latest week alone would put a discount
+      // started this week beside refusals from weeks sold without it.
+      if (row.codShare != null) {
+        place.codOrders += row.conversions ?? 0;
+        place.codWeighted += (row.conversions ?? 0) * row.codShare;
+      }
     }
   }
-  return places;
+  return places.map(({ codOrders, codWeighted, ...place }) => ({
+    ...place,
+    codShare: codOrders > 0 ? codWeighted / codOrders : null,
+  }));
 }
 
 /**
