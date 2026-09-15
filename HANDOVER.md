@@ -21,15 +21,17 @@ the new look and called it horrid, and they then played its five new steps and
 said "it feels alive". The weekly *Your keywords* followed, the makeover pilot's
 own section; the owner played it on 2026-09-15 and said "Alive".
 
-- **Live site unchanged**, at `387baf1`.
-- **`main` is at `80d41e6`, not pushed.** It holds the makeover's design doc
-  (`plans/2026-09-13-studio-makeover.md`), the canvas sources
-  (`design/makeover/`, drawn at
+- **The live site runs `main`**: Cloudflare deploys each push to it that
+  passes `npm run ci`. On 2026-09-16 `main` stood at `2044072` (rivals pulling
+  the prepaid discount, I34) on this computer and on GitHub alike. It holds
+  the makeover's design doc (`plans/2026-09-13-studio-makeover.md`), the canvas
+  sources (`design/makeover/`, drawn at
   https://claude.ai/code/artifact/d881fe56-251c-4ded-9173-b8616924bbc4) and the
-  11-task build plan (`plans/2026-09-13-studio-makeover-plan.md`).
-- **The branch `makeover` holds all of it.** The owner had it pushed on
-  2026-09-15, so Cloudflare builds it a preview behind the same sign-in;
-  `main` is still unpushed, and pushing it is what deploys.
+  11-task build plan (`plans/2026-09-13-studio-makeover-plan.md`), and none of
+  the makeover itself: no Studio look, and no F17.
+- **The branch `makeover` holds all of it.** Cloudflare builds it a preview,
+  behind the same sign-in, whenever it is pushed; only a push to `main`
+  deploys.
   - Makeover Tasks 1–6: `?look=studio` and the Red signal colours, the two
     typefaces, the sidebar layout (sections, the tray's order and the shell,
     played through twelve weeks), and the Quality Score chapter.
@@ -82,7 +84,8 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     No Studio screen shows a classic card any more. Then the Guide as a page
     (`ui/guide/page.js`), from `design/guide/`: the field guide as a book,
     with Show me fixed to mark what it opens in every rebuilt section.
-  - On `makeover`: 2242 tests pass, 1 todo, and the build publishes 108 files.
+  - On `makeover` (2026-09-16, with the cash share fix): 2273 tests pass, 1
+    todo, and the build publishes 108 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
