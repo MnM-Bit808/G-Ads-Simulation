@@ -386,6 +386,123 @@ body.studio .yad-strip.coming { border-color: var(--studio-muted); border-style:
 body.studio .yad-quote { margin: 0; font-size: 14px; line-height: 1.5; color: var(--studio-text); }
 @media (max-width: 900px) { body.studio .yad-row, body.studio .yad-page { grid-template-columns: minmax(0, 1fr); } }
 
+/* --- Where and when, a played week (design/where-when/, the owner's choice 2026-09-15) --- */
+/* Sized by the section's own width, not the window's: the sidebar takes 300px
+   whatever the window, so a laptop's section is narrower than a phone rule knows. */
+body.studio .ww { display: flex; flex-direction: column; gap: 30px; container-type: inline-size; }
+body.studio .ww-part { display: flex; flex-direction: column; gap: 14px; }
+body.studio .ww-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+body.studio .ww-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+body.studio .ww-title h3 { margin: 0; font: 700 22px/1.2 var(--studio-display); }
+body.studio .ww-sub { font-size: 13px; color: var(--studio-muted); }
+body.studio .ww-hint { font-size: 12px; color: var(--studio-muted); }
+body.studio .ww-note { max-width: 760px; margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
+body.studio .ww-small { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .ww-notes { display: flex; flex-direction: column; gap: 6px; }
+body.studio .ww-track:focus-visible, body.studio .ww-block:focus-visible { outline: 2px solid var(--studio-text); outline-offset: 3px; }
+
+/* where you advertise: three rows, each with its bar, beside the map */
+body.studio .ww-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 460px); gap: 28px; align-items: start; }
+body.studio .ww-left, body.studio .ww-rows { display: flex; flex-direction: column; gap: 12px; }
+body.studio .ww-row { display: flex; flex-direction: column; gap: 8px; padding: 14px 18px 10px; border: 1px solid var(--studio-line); border-radius: 18px; background: var(--studio-card); transition: border-color 150ms ease; }
+body.studio .ww-row.lit { border-color: #4A454F; }
+body.studio .ww-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+body.studio .ww-named { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+body.studio .ww-named strong { font: 700 18px/1.2 var(--studio-display); white-space: nowrap; }
+body.studio .ww-cities { overflow: hidden; font-size: 12px; color: var(--studio-muted); text-overflow: ellipsis; white-space: nowrap; }
+body.studio .ww-now { display: flex; flex-shrink: 0; align-items: baseline; gap: 8px; }
+body.studio .ww-setting { font: 800 18px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .ww-times { font-size: 12px; color: var(--studio-soft); font-variant-numeric: tabular-nums; }
+body.studio .ww-row[data-tone="even"] .ww-setting { color: var(--studio-muted); }
+body.studio .ww-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 22px; }
+body.studio .ww-figure { display: flex; align-items: baseline; gap: 6px; }
+body.studio .ww-figure strong { font: 800 24px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .ww-figure .ww-paid { color: var(--studio-soft); }
+body.studio .ww-figure span { font-size: 12px; color: var(--studio-muted); }
+body.studio .ww-figures .ww-small { flex: 1 1 260px; text-align: right; }
+body.studio .ww-track { position: relative; height: 30px; cursor: ew-resize; touch-action: none; border-radius: 8px; }
+body.studio .ww-track::before { position: absolute; top: 10px; right: 0; left: 0; height: 10px; border-radius: 5px; background: var(--studio-raised); content: ''; }
+body.studio .ww-fill { position: absolute; top: 10px; left: 0; height: 10px; border-radius: 5px; background: #7A7480; transition: width 120ms var(--studio-ease); }
+body.studio .ww-row[data-tone="up"] .ww-fill { background: var(--studio-red); }
+/* Lowered is striped red: apart from raised by more than its colour, and each
+   stripe clears 3:1 on the track. */
+body.studio .ww-row[data-tone="down"] .ww-fill { background: repeating-linear-gradient(135deg, var(--studio-red) 0 4px, transparent 4px 8px); }
+body.studio .ww-even { position: absolute; top: 5px; height: 20px; border-left: 2px solid var(--studio-muted); transform: translateX(-1px); }
+body.studio .ww-knob { position: absolute; top: 3px; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%; background: var(--studio-text); box-shadow: 0 0 0 4px var(--studio-card); transition: left 120ms var(--studio-ease); }
+body.studio .ww-scale { position: relative; height: 14px; font-size: 11px; color: var(--studio-muted); }
+body.studio .ww-scale span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+body.studio .ww-scale span:first-child { transform: none; }
+body.studio .ww-scale .ww-tick-top { transform: translateX(-100%); }
+body.studio .ww-scale .ww-tick-even { font-weight: 700; color: var(--studio-soft); }
+body.studio .ww-map { display: flex; flex-direction: column; gap: 10px; }
+body.studio .ww-map .r0-map { max-width: 460px; }
+
+/* hours of the day: each block as wide as its hours, as tall as the bid */
+body.studio .ww-day { display: grid; grid-template-columns: 64px minmax(0, 1fr); padding: 20px 24px 16px 12px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .ww-yscale { position: relative; height: 280px; }
+body.studio .ww-yscale span { position: absolute; right: 12px; font-size: 11px; color: var(--studio-muted); white-space: nowrap; transform: translateY(50%); }
+body.studio .ww-yscale .ww-y-even { font-size: 12px; font-weight: 700; color: var(--studio-text); }
+body.studio .ww-yscale .ww-y-hourly { top: calc(100% + 34px); bottom: auto; line-height: 1.25; text-align: right; white-space: normal; transform: none; }
+body.studio .ww-chart { display: flex; flex-direction: column; min-width: 0; }
+body.studio .ww-plot { position: relative; height: 280px; border-bottom: 1px solid var(--studio-line-strong); }
+body.studio .ww-top-line { position: absolute; top: 0; right: 0; left: 0; border-top: 1px dashed #68636B; }
+body.studio .ww-even-line { position: absolute; right: 0; left: 0; z-index: 1; border-top: 1px solid var(--studio-muted); pointer-events: none; }
+body.studio .ww-block { position: absolute; top: 0; bottom: 0; left: var(--x); width: var(--w); border-radius: 10px 10px 0 0; cursor: ns-resize; touch-action: none; }
+body.studio .ww-block:hover { background: #1F1C22; }
+body.studio .ww-bar { position: absolute; right: 3px; bottom: 0; left: 3px; box-sizing: border-box; border-top: 3px solid #68636B; border-radius: 8px 8px 0 0; background: #2A272D; transition: height 120ms var(--studio-ease); }
+body.studio .ww-block[data-tone="up"] .ww-bar { border-top-color: var(--studio-red-text); background: var(--studio-red); }
+body.studio .ww-block[data-tone="down"] .ww-bar { border-top-color: var(--studio-red); background: repeating-linear-gradient(135deg, var(--studio-red) 0 4px, transparent 4px 10px); }
+body.studio .ww-block[data-tone="off"] .ww-bar { border: 1px dashed #68636B; background: none; }
+body.studio .ww-read { position: absolute; right: 0; left: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding-bottom: 8px; pointer-events: none; transition: bottom 120ms var(--studio-ease); }
+body.studio .ww-read strong { font: 800 16px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .ww-read span { font-size: 11px; color: var(--studio-soft); white-space: nowrap; }
+body.studio .ww-block[data-tone="even"] .ww-read strong { color: var(--studio-muted); }
+body.studio .ww-hourly { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); align-items: end; gap: 6px; height: 86px; padding: 10px 3px 0; box-sizing: border-box; }
+/* The day's clicks are read from these, so they clear 3:1 on the card; the
+   block under the pointer lifts its own hours. */
+body.studio .ww-hour { border-radius: 3px 3px 0 0; background: #68636B; }
+body.studio .ww-hour.mine { background: var(--studio-soft); }
+body.studio .ww-axis { position: relative; height: 20px; border-top: 1px solid var(--studio-line-strong); font-size: 11px; color: var(--studio-muted); }
+body.studio .ww-axis span { position: absolute; top: 4px; transform: translateX(-50%); }
+body.studio .ww-axis span:first-child { transform: none; }
+body.studio .ww-axis span:last-child { transform: translateX(-100%); }
+body.studio .ww-labels { position: relative; height: 58px; margin-top: 6px; }
+body.studio .ww-label { position: absolute; top: 0; left: var(--x); width: var(--w); display: flex; flex-direction: column; gap: 2px; padding: 0 6px; box-sizing: border-box; font-size: 12px; color: var(--studio-muted); }
+body.studio .ww-label strong { font-size: 13px; color: var(--studio-text); white-space: nowrap; }
+body.studio .ww-label span { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* A rate built on hours with too few clicks to trust: muted, and marked. */
+body.studio .ww-label .ww-thin::after { color: var(--studio-amber); content: ' ·'; }
+/* A drag moves the bar under the pointer, so nothing may lag behind it. */
+body.studio .ww.dragging :is(.ww-bar, .ww-read, .ww-fill, .ww-knob) { transition: none; }
+/* A section under 1000px wide: the map narrows beside the rows, and a
+   three-hour block, under 80px, takes its name on two lines. */
+@container (max-width: 1000px) {
+  body.studio .ww-split { grid-template-columns: minmax(0, 1fr) minmax(0, 300px); }
+  body.studio .ww-labels { height: 80px; }
+  body.studio .ww-label { padding: 0 4px; font-size: 11px; }
+  body.studio .ww-label strong { white-space: normal; }
+}
+@container (max-width: 700px) { body.studio .ww-split { grid-template-columns: minmax(0, 1fr); } }
+/* On a phone the three-hour blocks are a finger wide: the readout keeps only
+   the setting, and the block names move into a grid under the chart. */
+@container (max-width: 560px) {
+  body.studio .ww-day { grid-template-columns: 38px minmax(0, 1fr); padding: 14px 12px 12px 4px; }
+  body.studio .ww-yscale, body.studio .ww-plot { height: 220px; }
+  body.studio .ww-yscale span { right: 6px; }
+  body.studio .ww-yscale .ww-y-hourly { display: none; }
+  body.studio .ww-read span { display: none; }
+  body.studio .ww-read strong { font-size: 12px; }
+  body.studio .ww-hourly { gap: 2px; height: 60px; }
+  body.studio .ww-labels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; height: auto; }
+  body.studio .ww-label { position: static; width: auto; padding: 0; }
+  body.studio .ww-label strong { white-space: normal; }
+  body.studio .ww-figures .ww-small { text-align: left; }
+  body.studio .ww-named { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.studio :is(.ww-bar, .ww-read, .ww-fill, .ww-knob, .ww-row) { transition: none; }
+}
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */
@@ -397,6 +514,8 @@ body.studio .r0-ring { fill: none; stroke: var(--studio-soft); stroke-width: 1.5
 body.studio .r0-label { fill: var(--studio-text); font: 600 11px var(--studio-body); opacity: 0; pointer-events: none; }
 body.studio .r0-place.lit .r0-label { opacity: 1; }
 body.studio .r0-place.lit .r0-city { fill: var(--studio-text); }
+/* A kind of place bid off: hollow, since it is still eligible there (ui/map/india.js, dotFor). */
+body.studio .r0-city.off { fill: none; stroke: var(--studio-soft); stroke-width: 1.2; }
 body.studio .r0-place.dim { opacity: 0.45; }
 @keyframes r0-ring { from { opacity: 0.7; transform: scale(0.5); } to { opacity: 0; transform: scale(2.4); } }
 @media (prefers-reduced-motion: reduce) { body.studio .r0-ring { animation: none; } }

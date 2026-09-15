@@ -22,6 +22,7 @@ import { SHELL } from '../words/shell.js';
 import { icon, button } from '../kit/controls.js';
 import { renderKeywordsSection } from '../keywords/render.js';
 import { renderAdSection } from '../ad/render.js';
+import { renderWhereSection } from '../where/render.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
@@ -55,8 +56,10 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
   let game = null;
   let ctx = null;
   let dashboard = null;
-  // Your keywords draws its own cards over the same context (ui/keywords/render.js).
+  // Your keywords draws its own cards over the same context (ui/keywords/render.js),
+  // and Where and when its own bars and map (ui/where/render.js).
   let keywords = null;
+  let where = null;
   let ending = null;
   let extras = { saved: null, canRedo: false };
   let running = false;
@@ -198,6 +201,9 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       // moved the report's range while it was away.
       keywords.refresh();
       shown = keywords.node;
+    } else if (s.key === 'where' && where) {
+      where.refresh();
+      shown = where.node;
     } else {
       if (view.firstOpen === s.key) arrive(s);
       dashboard.dataset.section = s.key;
@@ -242,6 +248,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
         take();
         ctx.refresh();
         if (view.section === 'keywords') keywords?.refresh();
+        if (view.section === 'where') where?.refresh();
       }, UNDO_FADE_MS);
     });
     chip.append(text, undo);
@@ -337,6 +344,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     keywords = renderKeywordsSection({
       game, ctx, openGuide, openSection: open, setTrayOverride, refreshTray: drawTray,
     });
+    where = renderWhereSection({ game, ctx, openGuide, refreshTray: drawTray });
     if (ending && !view.resultsShown) {
       view.resultsShown = true;
       view.area = 'results';

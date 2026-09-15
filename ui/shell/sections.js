@@ -50,7 +50,9 @@ export const SECTIONS = Object.freeze([
   { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, slots: [] },
   { key: 'money', area: 'brand', label: 'Your money', icon: ICONS.money,
     slots: ['window', 'budget', 'split', 'bidding', 'deadline'] },
-  { key: 'where', area: 'brand', label: 'Where and when', icon: ICONS.where, slots: ['places', 'hours'] },
+  // Rebuilt (the owner's choice, 2026-09-15, design/where-when/): it draws its
+  // own bars and map (ui/where/render.js), and the classic two cards are retired.
+  { key: 'where', area: 'brand', label: 'Where and when', icon: ICONS.where, slots: [], draws: ['places', 'hours'] },
   // Opens the week the first returns settle: the returns card's own rule
   // (ui/dashboard.js, SETTLES_AFTER_ROUNDS), never a typed week.
   { key: 'returns', area: 'brand', label: 'Returns', icon: ICONS.returns,
@@ -61,8 +63,8 @@ export const SECTIONS = Object.freeze([
     slots: [], opensAt: TOTAL_ROUNDS },
 ]);
 
-/** Cards the new screens draw instead: the tray replaces *Next week*; Your keywords draws its own. */
-export const RETIRED_SLOTS = Object.freeze(['keywords', 'next']);
+/** Cards the new screens draw instead: the tray replaces *Next week*; Your keywords and Where and when draw their own. */
+export const RETIRED_SLOTS = Object.freeze(['keywords', 'next', 'places', 'hours']);
 
 /** @returns {object|null} the section a card's slot lives in */
 export function sectionOf(slot) {

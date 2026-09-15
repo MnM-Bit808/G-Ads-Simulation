@@ -40,6 +40,13 @@ describe('every card on today\'s page has one place in the new layout', () => {
     expect(sectionOf('keywords').key).toBe('keywords');
   });
 
+  test('Where and when draws its own bars, so the guide can still open both', () => {
+    for (const slot of ['places', 'hours']) {
+      expect(RETIRED_SLOTS, slot).toContain(slot);
+      expect(sectionOf(slot).key, slot).toBe('where');
+    }
+  });
+
   // CLAUDE.md's trap: "show me on the card" must land on something that exists.
   test.each(Object.entries(CHAPTERS))('the guide\'s %s can open the section holding its card', (_, c) => {
     expect(sectionOf(c.yourAccount), c.yourAccount).not.toBeNull();

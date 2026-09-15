@@ -28,6 +28,7 @@ import { SHELL } from '../ui/words/shell.js';
 import { KEYWORDS } from '../ui/words/keywords.js';
 import { R0 } from '../ui/words/roundZero.js';
 import { AD } from '../ui/words/ad.js';
+import { WHERE } from '../ui/words/where.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -345,6 +346,41 @@ describe('the weekly Your ad', () => {
   });
 });
 
+describe('Where and when', () => {
+  const FIGURES = {
+    n: 8, names: 'Mumbai, Delhi NCR, Bengaluru, Hyderabad', more: 4, clicks: '3,123', cod: '60%',
+    refused: '7.8%', sentBack: '13.5%', best: 'metros', bestKept: '₹47', bestPaid: '₹15', worst: 'smaller cities and towns',
+    worstKept: '₹34', worstPaid: '₹23', from: 1, to: 6, rate: '4.86%', min: 25, value: '1.3', times: 4, top: '+300%',
+    already: 1.6, name: 'Afternoon',
+  };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(WHERE)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of Object.entries(WHERE)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(WHERE)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('one week, and one thin block, read as one', () => {
+    expect(WHERE.over({ from: 1, to: 1 })).toBe('clicks and sales from week 1');
+    expect(WHERE.thin({ n: 1, min: 25 })).toMatch(/^1 block rests/);
+    expect(WHERE.thin({ n: 2, min: 25 })).toMatch(/^2 blocks rest /);
+  });
+
+  test('the place figures say where to look, never what to do (I13)', () => {
+    expect(WHERE.outlook(FIGURES)).not.toMatch(/\byou should\b|\bbid (more|less) in\b/i);
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -375,7 +411,7 @@ describe('the new screens draw, and do not write', () => {
   const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
-    'ui/ad/render.js'];
+    'ui/ad/render.js', 'ui/where/render.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

@@ -6,7 +6,9 @@ import { describe, test, expect } from 'vitest';
 import { briefing } from '../setup.js';
 import { studioRule, studioToken, rgb, contrast } from './fixtures/studioCss.js';
 import { QUERY_SET } from '../content/querySet.js';
-import { sharesFor, pulsePeriods, pulseDelay, FASTEST_PULSE_S } from '../ui/map/india.js';
+import {
+  sharesFor, pulsePeriods, pulseDelay, FASTEST_PULSE_S, dotFor, DOT_RADIUS,
+} from '../ui/map/india.js';
 
 const brief = briefing(QUERY_SET);
 const shares = (basis) => sharesFor(brief.locations, brief.weeklySearchesByTier, basis);
@@ -51,6 +53,29 @@ describe('the pulse is the share', () => {
       expect(new Set(delays.map((d) => d.toFixed(2))).size, 'a kind\'s cities still ring out of step')
         .toBeGreaterThan(1);
     }
+  });
+});
+
+describe('a city\'s dot shows the bid there (Where and when, 2026-09-15)', () => {
+  test('at an even bid, the dot round 0 draws', () => {
+    expect(dotFor(1)).toEqual({ r: DOT_RADIUS, off: false });
+  });
+
+  test('its area grows with the bid, so twice the bid is twice the ink', () => {
+    for (const multiplier of [0.5, 2, 4]) {
+      expect((dotFor(multiplier).r / DOT_RADIUS) ** 2, `x${multiplier}`).toBeCloseTo(multiplier, 10);
+    }
+  });
+
+  test('off is drawn hollow, not as nothing: the city is still eligible there', () => {
+    const off = dotFor(0);
+    expect(off.off).toBe(true);
+    expect(off.r).toBeGreaterThan(0);
+  });
+
+  test('an off city can be made out on the land', () => {
+    const land = rgb(studioRule('.r0-land', 'fill'));
+    expect(contrast(rgb(studioRule('.r0-city.off', 'stroke')), land)).toBeGreaterThanOrEqual(3);
   });
 });
 

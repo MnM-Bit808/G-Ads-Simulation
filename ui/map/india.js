@@ -17,7 +17,24 @@ import { MAP_VIEWBOX, INDIA_PATH, CITY_POINTS, BACKDROP, labelPlace } from '../i
 /** The busiest kind of place rings once every this many seconds. */
 export const FASTEST_PULSE_S = 1.6;
 
+/** A city's dot at an even bid, in the map's viewBox units. */
+export const DOT_RADIUS = 3.5;
+
 const NS = 'http://www.w3.org/2000/svg';
+
+/**
+ * A city's dot for the bid its kind of place carries (Where and when): its
+ * AREA grows with the bid, so twice the bid is twice the ink, and a kind
+ * switched off (−100%, a bid of one rupee) is drawn hollow at the smallest
+ * size rather than removed, because it is still eligible there.
+ *
+ * @param {number} multiplier - the place's bid multiplier, 0 for off
+ * @returns {{r: number, off: boolean}} radius in viewBox units
+ */
+export function dotFor(multiplier) {
+  if (multiplier <= 0) return { r: DOT_RADIUS * 0.6, off: true };
+  return { r: DOT_RADIUS * Math.sqrt(multiplier), off: false };
+}
 
 /**
  * Each kind of place's share of searches, for one price level or for all.
@@ -86,9 +103,13 @@ function make(tag, attrs = {}) {
  * @param {Record<string, number>} args.shares - from `sharesFor`
  * @param {string|null} [args.lit] - a location id to light, or null for none
  * @param {(id: string) => void} args.onPick - a city was tapped
+ * @param {Record<string, number>|null} [args.bids] - each kind's bid
+ *   multiplier, to size its dots (`dotFor`); null draws every dot even, as
+ *   round 0 does. Each kind's group carries `data-place`, so a drag can resize
+ *   its dots in place with `sizeDots` rather than redraw the map.
  * @returns {SVGElement}
  */
-export function drawIndia({ locations, shares, lit = null, onPick }) {
+export function drawIndia({ locations, shares, lit = null, onPick, bids = null }) {
   const svg = make('svg', { viewBox: MAP_VIEWBOX, class: 'r0-map', 'aria-hidden': 'true' });
   svg.append(make('path', { d: INDIA_PATH, class: 'r0-land' }));
 
@@ -101,7 +122,7 @@ export function drawIndia({ locations, shares, lit = null, onPick }) {
     let state = '';
     if (lit === place.id) state = ' lit';
     else if (lit) state = ' dim';
-    const group = make('g', { class: `r0-place${state}` });
+    const group = make('g', { class: `r0-place${state}`, 'data-place': place.id });
     place.examples.forEach((name, i) => {
       const point = CITY_POINTS[name];
       if (!point) return;
@@ -114,7 +135,8 @@ export function drawIndia({ locations, shares, lit = null, onPick }) {
         ring.style.animationDelay = `${pulseDelay(i, period).toFixed(2)}s`;
         pin.append(ring);
       }
-      pin.append(make('circle', { cx: x, cy: y, r: 3.5, class: 'r0-city' }));
+      const dot = make('circle', { cx: x, cy: y, r: DOT_RADIUS, class: 'r0-city' });
+      pin.append(dot);
       // Which side the name sits is LABEL_SIDE (ui/india-map.js), checked in
       // this map's type by tests/locations.test.js.
       const at = labelPlace(name, point, 7);
@@ -126,5 +148,22 @@ export function drawIndia({ locations, shares, lit = null, onPick }) {
     });
     svg.append(group);
   }
+  if (bids) sizeDots(svg, bids);
   return svg;
+}
+
+/**
+ * Size each kind's dots for its bid, in place.
+ *
+ * @param {SVGElement} svg - from `drawIndia`
+ * @param {Record<string, number>} bids - bid multiplier by location id
+ */
+export function sizeDots(svg, bids) {
+  for (const [id, multiplier] of Object.entries(bids)) {
+    const { r, off } = dotFor(multiplier);
+    for (const dot of svg.querySelectorAll(`[data-place="${id}"] .r0-city`)) {
+      dot.setAttribute('r', r.toFixed(2));
+      dot.classList.toggle('off', off);
+    }
+  }
 }
