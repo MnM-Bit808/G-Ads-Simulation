@@ -7,14 +7,22 @@
  *
  * WHAT A POLICY IS
  *
- * A pure function of three views:
+ * A pure function of four views:
  *
- *     policy(selfView, report, publicView) -> decision | null
+ *     policy(selfView, report, publicView, history) -> decision | null
  *
- * and nothing else. No `GameState`, no other advertiser's record, no engine
- * imports at all — this file imports nothing from `engine/`, which makes the
- * structural guard absolute rather than a denylist somebody has to remember to
- * extend. Anything a policy knows, it was handed.
+ * and nothing else. `report` is its own week just played; `history` is its own
+ * report for every week played, as revised since (R3a, C9). No `GameState`, no
+ * other advertiser's record, no engine imports at all — this file imports
+ * nothing from `engine/`, which makes the structural guard absolute rather than
+ * a denylist somebody has to remember to extend. Anything a policy knows, it
+ * was handed.
+ *
+ * THE WEEK JUST PLAYED NEVER CARRIES A RETURN. Returns are written back into
+ * the week whose clicks earned them, two to five weeks later. So anything that
+ * reads returns reads `history`, where they arrive, and never `report`, where
+ * they are always zero. Three rules here read `report` for returns and read
+ * zero in every game played until 2026-09-16 (C9).
  *
  * WHAT IT CANNOT KNOW, AND WHY THAT SHAPES EVERY RULE BELOW
  *
@@ -47,7 +55,7 @@
  * category-wide" (17.2) and withholds the rest, so two in five is what a
  * disciplined rival assumes too. It is wrong in both directions — Value-
  * Lifestyle really returns 46.5%, Premium-Performance 36% — and it is corrected
- * from the report as soon as returns start resolving.
+ * from the rival's own history once a week has finished coming back.
  *
  * Was 0.25, when the briefing said a quarter. F14 raised the engine's return
  * level to the sourced total and the briefing followed; this follows the
@@ -55,6 +63,17 @@
  * player's is not playing the same game.
  */
 const ASSUMED_RETURN_RATE = 0.40;
+
+/**
+ * How many weeks after its own a week's returns take to finish arriving: three
+ * for its sales to land, two more for what comes back. What a competent
+ * operator learns from watching its own reports revise, and the reason the
+ * first week anyone can read in full is week 7 (C9).
+ */
+const WEEKS_TO_SETTLE = 5;
+
+/** Fewer settled sales than this and a return rate is noise; the briefing holds. */
+const MIN_SETTLED_CONVERSIONS = 5;
 
 /**
  * The conversion rate to assume before any has been observed.
@@ -325,8 +344,8 @@ export function locationTilt(self, report, lean = LOCATION_LEAN, { net = true } 
   });
 }
 
-function disciplinedAccount(self, report, view) {
-  const affordable = affordableCpcPaise(self, report);
+function disciplinedAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
 
   // Round 1: no evidence yet, so open at the margin of safety and wait.
   if (!report) {
@@ -371,17 +390,17 @@ function disciplinedAccount(self, report, view) {
  *
  * It knows its order value and margin. It does NOT know its conversion rate or
  * its return rate, so both are estimated — the conversion rate from observed
- * history, the return rate from whatever has actually come back. Early on both
- * estimates are poor and this figure is badly wrong, which is the point.
+ * history, the return rate from the weeks that have finished coming back. Early
+ * on both estimates are poor and this figure is badly wrong, which is the point.
  *
  * @param {object} self
- * @param {object|null} report
+ * @param {object[]} [history] its own reports, every week played, as revised
  * @returns {number} integer paise
  */
-export function affordableCpcPaise(self, report) {
+export function affordableCpcPaise(self, history = []) {
   const { aovMeanPaise, marginPct } = self.catalogue;
   return Math.round(
-    aovMeanPaise * marginPct * (1 - observedReturnRate(report)) * assumedConvRate(self),
+    aovMeanPaise * marginPct * (1 - observedReturnRate(self, history)) * assumedConvRate(self),
   );
 }
 
@@ -398,17 +417,26 @@ function assumedConvRate(self) {
 }
 
 /**
- * The return rate this advertiser has actually seen.
+ * The return rate this advertiser has actually seen, over the weeks that have
+ * finished coming back.
  *
- * Returns resolve two rounds after a conversion lands, so early reports show
- * conversions with nothing returned yet and this reads 0 — which would make the
- * advertiser believe it can afford more than it can. So the briefing's two in
- * five holds until enough has settled to argue otherwise.
+ * A younger week shows its sales with only some of their returns, which would
+ * make the advertiser believe it can afford more than it can. So it reads only
+ * weeks `WEEKS_TO_SETTLE` behind the last one played, and the briefing's two in
+ * five holds until the first of them — week 1, read at week 7.
+ *
+ * It used to read the week just played, which never carries a return, so it
+ * held the briefing's guess all game in every game (C9).
+ *
+ * @param {object} self
+ * @param {object[]|null} history its own reports, as revised
+ * @returns {number} 0..0.9
  */
-function observedReturnRate(report) {
-  if (!report) return ASSUMED_RETURN_RATE;
-  const { final, returned } = report.conversions;
-  if (!(final > 0) || !(returned > 0)) return ASSUMED_RETURN_RATE;
+function observedReturnRate(self, history) {
+  const settled = (history ?? []).filter((week) => week.round + WEEKS_TO_SETTLE < self.round);
+  const final = settled.reduce((a, week) => a + (week.conversions?.final ?? 0), 0);
+  const returned = settled.reduce((a, week) => a + (week.conversions?.returned ?? 0), 0);
+  if (!(final >= MIN_SETTLED_CONVERSIONS)) return ASSUMED_RETURN_RATE;
   return clamp(returned / final, 0, 0.9);
 }
 
@@ -502,8 +530,8 @@ function wastefulQueries(report, view, existing) {
  * nothing on broad (8.4), so broadening one would silently remove it from the
  * auction — which would make this rival quieter, not louder.
  */
-function spenderAccount(self, report) {
-  const affordable = affordableCpcPaise(self, report);
+function spenderAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
   // Leans harder than anyone on the same reading everybody else gets. It is not
   // better informed, it is less patient.
   const locationAdjustments = locationTilt(self, report, SPENDER_LOCATION_LEAN);
@@ -548,8 +576,8 @@ function spenderAccount(self, report) {
  * It is also the account where attribution lag hurts least, because it barely
  * spends — which is a genuinely misleading lesson, and is meant to be.
  */
-function cautiousAccount(self, report) {
-  const affordable = affordableCpcPaise(self, report);
+function cautiousAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
   const target = Math.round(affordable * CAUTIOUS_MARGIN_OF_SAFETY);
 
   if (!report) {
@@ -605,8 +633,8 @@ function cautiousAccount(self, report) {
  * Re-sending them every round would trigger a learning period every round
  * (12.3), which is a caricature rather than a lesson.
  */
-function automatorAccount(self, report) {
-  const affordable = affordableCpcPaise(self, report);
+function automatorAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
 
   if (!report) {
     return {
@@ -757,8 +785,8 @@ export function grossAffordableCpcPaise(self) {
  * the nine and silently missed the one whose name has more than a word in it —
  * the kind of gap that hides until the roster changes.
  */
-function brandDefenderAccount(self, report, view) {
-  const affordable = affordableCpcPaise(self, report);
+function brandDefenderAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
   const names = (view.advertisers ?? [])
     .map((a) => ({ id: a.id, token: brandToken(a.name) }))
     .filter((n) => n.token);
@@ -915,8 +943,8 @@ const habit = (self) => (
 
 /** A policy: its account rule, plus its capital rule in a capital round. */
 function withCapital(account, capital) {
-  return (self, report, view) => {
-    const decision = account(self, report, view);
+  return (self, report, view, history = []) => {
+    const decision = account(self, report, view, history);
     if (!capitalWindow(self)) return decision;
     return { ...(decision ?? {}), capex: capital(self, report) };
   };

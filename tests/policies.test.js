@@ -20,7 +20,7 @@ const SRC = readFileSync(fileURLToPath(new URL('../agents/policies.js', import.m
 const CODE = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 const everyone = Object.fromEntries(STATE.advertisers.map((a) => [a.id, disciplined]));
 
-describe('a policy is a pure function of three views (R3a, R6)', () => {
+describe('a policy is a pure function of four views (R3a, R6)', () => {
   test('every registered policy is a function', () => {
     for (const [id, policy] of Object.entries(POLICIES)) {
       expect(typeof policy, id).toBe('function');
@@ -124,6 +124,32 @@ describe('disciplined estimates what it is not told', () => {
     const bid = decision.adGroups[0].keywords[0].bidPaise;
     expect(bid).toBeLessThan(affordableCpcPaise(self, null));
     expect(decision.campaign.strategy).toBe('manual');
+  });
+
+  test('it believes the briefing about returns until a week has finished coming back', () => {
+    // A week's sales land over the three rounds after its clicks and their
+    // returns two rounds after that, so at week 6 no week is complete. Reading
+    // an unfinished one would count its sales before their returns (C9).
+    const self = { ...getSelfView(STATE, PLAYER_ID), round: 6 };
+    const young = [1, 2, 3, 4, 5].map((round) => ({ round, conversions: { final: 30, returned: 3 } }));
+    expect(affordableCpcPaise(self, young)).toBe(affordableCpcPaise(self));
+  });
+
+  test('then it reads its own return rate off the weeks that have', () => {
+    // At week 8, weeks 1 and 2 are complete: 18 of their 60 sales came back,
+    // 30% against the briefing's 40%, so it believes a click is worth 0.70/0.60
+    // of what it believed. The younger weeks' partial returns do not count.
+    const self = { ...getSelfView(STATE, PLAYER_ID), round: 8 };
+    const weeks = [1, 2, 3, 4, 5, 6, 7].map((round) => ({
+      round, conversions: { final: 30, returned: round <= 2 ? 9 : 1 },
+    }));
+    expect(affordableCpcPaise(self, weeks) / affordableCpcPaise(self)).toBeCloseTo(0.70 / 0.60, 2);
+  });
+
+  test('but not off a handful of sales, which is noise', () => {
+    const self = { ...getSelfView(STATE, PLAYER_ID), round: 8 };
+    const thin = [1, 2].map((round) => ({ round, conversions: { final: 2, returned: 2 } }));
+    expect(affordableCpcPaise(self, thin)).toBe(affordableCpcPaise(self));
   });
 
   test('its belief moves as its own history arrives', async () => {
