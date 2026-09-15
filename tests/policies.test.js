@@ -352,3 +352,47 @@ describe('rivals pull the prepaid discount too (DECISIONS I34, R6)', { timeout: 
     expect(offered.some((a) => a.campaign.prepaidDiscountPaise > 0)).toBe(true);
   });
 });
+
+describe('a rival steps its discount down only once refusals are clearly lighter (I34)', () => {
+  // A rival whose stated rate sat on the 12% line flipped between ₹50 and ₹30
+  // as its clicks moved between places: 8 of 144 rival-games, one of them seven
+  // times in eleven weeks. It now steps up at the line and down only a point
+  // under it.
+  let played;
+  const at = (rate, held) => {
+    const self = getSelfView(played, PLAYER_ID);
+    self.campaign.prepaidDiscountPaise = held;
+    const report = advertiserReport(played.history.at(-1), PLAYER_ID);
+    const byLocation = Object.fromEntries(Object.entries(report.breakdown.byLocation)
+      .map(([tier, row]) => [tier, { ...row, refusalRate: rate }]));
+    const decision = disciplined(self, { ...report, breakdown: { ...report.breakdown, byLocation } },
+      getPublicView(played, PLAYER_ID));
+    return decision.campaign.prepaidDiscountPaise;
+  };
+
+  test('set up: a real report, the shape a rival is handed after a week', async () => {
+    ({ finalState: played } = await playGame(STATE, everyone, { mode: 'expected', rounds: 1 }));
+    const rows = Object.values(advertiserReport(played.history.at(-1), PLAYER_ID).breakdown.byLocation);
+    expect(rows.some((r) => r.clicks > 0 && Number.isFinite(r.refusalRate))).toBe(true);
+  });
+
+  test('it steps up at the line', () => {
+    expect(at(0.121, 0)).toBe(5000);
+    expect(at(0.121, 3000)).toBe(5000);
+    expect(at(0.115, 0)).toBe(3000);
+  });
+
+  test('holding ₹50, a rate just under the line changes nothing', () => {
+    // No change is sent at all, which is what an unchanged decision looks like.
+    expect(at(0.115, 5000)).toBeUndefined();
+  });
+
+  test('a rate clearly under the line steps it down', () => {
+    expect(at(0.105, 5000)).toBe(3000);
+  });
+
+  test('the same margin holds at the lower rung', () => {
+    expect(at(0.055, 3000)).toBeUndefined();
+    expect(at(0.045, 3000)).toBe(0);
+  });
+});

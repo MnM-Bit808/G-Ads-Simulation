@@ -90,6 +90,25 @@ const CPA_OVERSHOOT = 1.15;
 /** Clicks on one query with no conversions at all before it gets blocked. */
 const NEGATIVE_CLICK_THRESHOLD = 40;
 
+/**
+ * The prepaid rungs a rival offers, highest first, and the refusal rate that
+ * earns each (I34). ₹30 is the rung the sources call the one that does most of
+ * the work; ₹50 only where refusals are genuinely heavy.
+ */
+const PREPAID_RUNGS = Object.freeze([
+  { paise: 5000, above: 0.12 },
+  { paise: 3000, above: 0.06 },
+]);
+
+/**
+ * How far under a rung's line the rate must fall before a rival steps off it.
+ *
+ * Without it, a rival whose rate sat on the 12% line flipped between ₹50 and
+ * ₹30 as its clicks moved between places — 8 of 144 rival-games, one of them
+ * seven times in eleven weeks. Stepping UP still happens at the line.
+ */
+const PREPAID_STEP_DOWN_MARGIN = 0.01;
+
 /** Floor and ceiling on any bid this policy will write, in paise. */
 const MIN_BID_PAISE = 100;
 const MAX_BID_PAISE = 20000;
@@ -188,7 +207,8 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
  * lands on depends on where the rival buys and what it has built: ₹50 where
  * refusals are heavy, ₹30 where they are lighter, and never none, because
  * nowhere runs under 6%. The thresholds are a character's opinion (C7), not a
- * reading of the table.
+ * reading of the table. It steps down only `PREPAID_STEP_DOWN_MARGIN` under a
+ * line, so a rate sitting on one does not flip the rung week to week.
  *
  * One rung, not a search. A policy that hill-climbed the curve every week would
  * out-optimise a player who gets one look at it, and 5.2 wants a competent
@@ -202,9 +222,12 @@ function prepaidNudge(self, report) {
 
   const rate = rows.reduce((a, r) => a + r.clicks * r.refusalRate, 0) / clicks;
   const held = self.campaign?.prepaidDiscountPaise ?? 0;
-  // The rung the sources call the one that does most of the work, and a bigger
-  // one only where refusals are genuinely heavy.
-  const want = rate > 0.12 ? 5000 : rate > 0.06 ? 3000 : 0;
+  // Up at the line, down only once clearly under it: the rung already held
+  // keeps its place until the rate is a margin below the line that earned it.
+  const rung = PREPAID_RUNGS.find(({ paise, above }) => (
+    rate > (paise === held ? above - PREPAID_STEP_DOWN_MARGIN : above)
+  ));
+  const want = rung ? rung.paise : 0;
   return want === held ? null : want;
 }
 
