@@ -4454,6 +4454,21 @@ one figure moved — value/lifestyle at ₹100, from 2.4% to 2.6%. Measured on t
 makeover line and again on `main`: the market before and after, and every
 rival's figures, came out identical market by market.
 
+*Re-measured with F17 (2026-09-16),* after the owner merged both into
+`makeover`. Every figure above was taken on the market before F17, whose
+throttled rivals held slots they were not in. Same harness, F17 alone against
+F17 with this rule:
+
+| | F17 alone | with rivals discounting |
+|---|---|---|
+| all eight rivals, weeks 1–7: returned / net ROAS / profit per ₹ | 41.4% / 6.17 / 1.94 | 40.9% / 6.20 / 1.96 |
+| the player: final net / median rank / loses money in | ₹11,90,785 / 5th / 0 of 72 | ₹11,90,787 / 5th / 0 of 72 |
+| largest rival move into week 5 · week 9 | 4.40× · 4.29× | 4.40× · 4.19× |
+
+The same small shift as before F17, and the player's figures stay put. Not
+re-measured on this market: the per-rival rows of the table above (who offers,
+refusals, freight, net) and the player's prepaid table, `prepaid` mode.
+
 **Found on the way, not fixed here:** `observedReturnRate` and `locationTilt`'s
 net-of-returns reading read returns off the same one-week report and are dead the
 same way — a rival's belief about returns never leaves the briefing's 40%, and

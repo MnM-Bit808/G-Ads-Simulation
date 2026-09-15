@@ -263,7 +263,12 @@ engine does: the page's parts marked "week 4", its description graded now.
    compare `market` runs by their summaries or files. The bid's floor and cap
    (`MIN_BID_PAISE`, `MAX_BID_MULTIPLE`) now have their entry, D13, with
    Google's own combined cap for comparison (ten times against the game's
-   four), and the `hours` and `cashOnDelivery` chapters say it.
+   four), and the `hours` and `cashOnDelivery` chapters say it. Rivals now
+   offer the prepaid discount too (I34: none ever had), merged into `makeover`
+   on 2026-09-16 (`7096b96`, not pushed; `main`'s twin
+   `claude/rival-prepaid-main` is unmerged). Measured on top of F17, it moves
+   rivals' returns half a point and the player's figures not at all (I34's
+   dated note).
 
 **Decided about the makeover, not to re-open:**
 - a sidebar shell like Claude's app, not the real Google Ads layout;
