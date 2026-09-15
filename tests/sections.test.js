@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   AREAS, SECTIONS, RETIRED_SLOTS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots, slotOpen,
+  areaEntry,
 } from '../ui/shell/sections.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 import { SETTLES_AFTER_ROUNDS } from '../ui/dashboard.js';
@@ -119,6 +120,27 @@ describe('every card on today\'s page has one place in the new layout', () => {
 
   test('what only a simulation can tell you is shown where its replays are, after the last week', () => {
     expect(sectionOf(CHAPTERS.counterfactuals.studioAccount).area).toBe('results');
+  });
+});
+
+// Found drawing the Guide as a page (2026-09-15): the rail's area buttons always
+// opened an area's first section, so a player who left Where and when for the
+// Guide came back to Your week.
+describe('an area remembers where the player was', () => {
+  test('its rail button opens the section last open there, or its first', () => {
+    expect(areaEntry('brand', {})).toBe('week');
+    expect(areaEntry('brand', { brand: 'where' })).toBe('where');
+    expect(areaEntry('market', { brand: 'where' })).toBe('rivals');
+  });
+
+  test('and never a section from another area', () => {
+    expect(areaEntry('brand', { brand: 'twelve' })).toBe('week');
+  });
+
+  test('the shell asks it on every rail button but the Guide\'s, which keeps its chapter', () => {
+    const shell = read('ui/shell/shell.js');
+    expect(shell).toContain('open(areaEntry(area.key, view.lastIn))');
+    expect(shell).toMatch(/view\.lastIn\[s\.area\] = key;/);
   });
 });
 

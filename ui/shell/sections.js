@@ -120,6 +120,20 @@ export function sectionsIn(area) {
 }
 
 /**
+ * The section an area's rail button opens: the one last open there, so a trip
+ * to the Guide or the Market comes back to where the player was (found drawing
+ * the Guide as a page, 2026-09-15), or else the area's first.
+ *
+ * @param {string} area
+ * @param {Record<string, string>} [lastIn] - the section last open, by area
+ * @returns {string} a section key in that area
+ */
+export function areaEntry(area, lastIn = {}) {
+  const inArea = sectionsIn(area);
+  return inArea.find((s) => s.key === lastIn[area])?.key ?? inArea[0].key;
+}
+
+/**
  * Whether a section can be opened, and whether it carries a dot.
  *
  * A dot marks something new, once: a section the week it unlocks, and Your

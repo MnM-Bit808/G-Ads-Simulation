@@ -15,7 +15,7 @@ import { renderDashboard } from '../dashboard.js';
 import { changes } from '../decisions.js';
 import { TOTAL_ROUNDS, ROUNDS_PER_MONTH } from '../../engine/constants.js';
 import {
-  AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots, slotOpen,
+  AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots, slotOpen, areaEntry,
 } from './sections.js';
 import { trayLines } from './tray.js';
 import { SHELL } from '../words/shell.js';
@@ -69,6 +69,8 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
     // Where the Guide area is open: 'contents' or a chapter's id. Kept while
     // the player is elsewhere, so the rail's Guide goes back to it.
     chapter: 'contents',
+    // And the section last open in each other area, for the same reason.
+    lastIn: {},
   };
   let game = null;
   let ctx = null;
@@ -145,7 +147,7 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
       b.disabled = area.key === 'results' && played() < TOTAL_ROUNDS;
       b.addEventListener('click', () => {
         if (area.key === 'guide') { openChapter(view.chapter); return; }
-        open(sectionsIn(area.key)[0].key);
+        open(areaEntry(area.key, view.lastIn));
       });
       rail.append(b);
     }
@@ -394,6 +396,7 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
     if (view.section === 'keywords' && key !== 'keywords') keywords?.leave();
     view.area = s.area;
     view.section = key;
+    view.lastIn[s.area] = key;
     view.menuOpen = false;
     view.firstOpen = st.fresh ? key : null;
     if (st.fresh) view.seen[st.seenKey] = true;
