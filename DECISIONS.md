@@ -4140,17 +4140,89 @@ was the obvious fix: it holds all nine advertisers' reports, and the form may
 only know what a controller could. A second test fails if it is handed over.
 The curve, its rule and the lever are unchanged.
 
-**STILL NOT THE WHOLE RATE, AND OPEN.** The card works refusals out from the
-payment mix alone, while the engine also divides them by order confirmation
-(I29, `round.js`), so an account that bought it does not see that reduction on
-the card. Found in the code on 2026-09-15; not yet measured.
+**A QUARTER SHORT OF ITS OWN FIGURES, AND A CARD THAT COULD NOT SEE CAPITAL —
+`FIXED` 2026-09-15.** Measured rather than argued: 144 games on the committed
+harness's player (F15's, rivals live, expected mode), six cells × seeds 1–6 ×
+{no capital, ₹80,000 of order confirmation at round 0} × {no discount, ₹30},
+refusals read as refused ÷ orders over settled weeks. Two faults, found together.
+
+*The card's figure was not the account's rate.* It worked refusals out from the
+cash mix alone, so it read the same whether or not the player had bought order
+confirmation, and it knew nothing of purpose (`PURPOSE_MODIFIERS.ret`) or the
+place gradient (`LOCATION_RETURN_MULTIPLIER`). Weeks 4–7, no discount:
+
+| cell | card | engine, no capital | engine, full order confirmation |
+|---|---|---|---|
+| value / performance | 18.1% | 17.3% | 13.8% |
+| value / lifestyle | 18.2% | 19.7% | 15.8% |
+| mid / performance | 16.9% | 16.3% | 13.1% |
+| mid / lifestyle | 16.9% | 18.6% | 14.9% |
+| premium / performance | 13.8% | 14.1% | 11.3% |
+| premium / lifestyle | 13.9% | 15.6% | 12.5% |
+
+Without capital the pieces roughly cancelled — lifestyle read 1.5 to 1.7 points
+low, performance up to 0.9 high — which is how it looked right. With order
+confirmation live it was 1.4 to 4.3 points high, and a player could read two
+different refusal rates on one page: the returns card's measured one, and this.
+
+*The round delivered about three quarters of what a discount's sourced figures
+say.* It took refusals as the refused SHARE at the discounted cash mix times the
+return total before the discount. That share is computed against a total in
+which the newly delivered parcels are sent back at `POST_DELIVERY_RETURN_RATE` —
+the relabelling the fix above removed from the other half — so it falls more
+slowly than the refusal rate. 100 mid orders in the towns give 17.9 refusals; ₹30
+moves a tenth of the cash buyers to prepaid, which by `RTO_RATE_COD` and
+`RTO_RATE_PREPAID` leaves 16.7; the round booked 17.0. The card said 5.8–6.8%
+fewer at ₹30 and the round delivered 4.5–4.9%, with or without capital. Here the
+card was right and the engine short: CLAUDE.md's "a split of a fixed total can
+never move the total", again, in a milder form.
+
+*Fixed as one arithmetic with two callers* (decided with the owner: the card
+and the engine share one function, and the engine moves to the sourced rate).
+`returnHalves` in `positions.js` is what comes back from one order at one place,
+and the round books with it; `refusalOutlook` weights it by the account's own
+places for the card, so the two cannot drift. The refused half now falls by the
+ratio of the two refusal rates, which is exactly 1 with no discount, so no
+account without one moved: the committed harness's `market` mode came out
+byte-identical before and after. The forecast leaves out each search's own
+return multiplier, which every view withholds (16.1). It matches the round to
+six decimals on a search at 1 (`round.test.js`) and measured 0.91× to 1.02× of
+the booked rate over the 72 accounts above. On a mid/performance account with
+the top rung, the card now reads 15.6% for weeks 2 and 3 and 12.5% from the week
+order confirmation goes live, against 12.9% booked.
+
+*What the discount is worth now*, on the committed harness
+(`node scripts/market-harness.js prepaid <label> 6`: 72 markets, seeds 1–12, the
+median gain in final net profit over no discount, before → after):
+
+| cell | ₹30 | ₹50 | ₹70 | ₹100 | best |
+|---|---|---|---|---|---|
+| value / performance | 1.5 → 2.7% | 1.5 → 3.0% | 0.8 → 2.5% | −0.6 → 1.2% | ₹30 → ₹50 |
+| value / lifestyle | 2.2 → 3.5% | 2.3 → 4.0% | 1.8 → 3.7% | 0.6 → 2.4% | ₹50 |
+| mid / performance | 2.4 → 3.8% | 2.8 → 4.7% | 2.4 → 4.5% | 1.1 → 3.2% | ₹50 |
+| mid / lifestyle | 2.3 → 3.4% | 2.8 → 4.3% | 2.7 → 4.4% | 1.9 → 3.5% | ₹50 → ₹70 |
+| premium / performance | 1.0 → 1.5% | 1.2 → 1.8% | 1.0 → 1.7% | 0.5 → 1.2% | ₹50 |
+| premium / lifestyle | 0.9 → 1.3% | 1.1 → 1.7% | 1.0 → 1.6% | 0.6 → 1.3% | ₹50 |
+
+₹30, ₹50 and ₹70 win in 71 of 72 markets before and after; ₹100 went from 56 of
+72 to 71, and no longer loses at value/performance. Measured on `main` and again
+on the makeover line, whose bid clamp (D13) binds nowhere in these markets: both
+tables, and the market before and after, came out byte-identical on the two. So the lever is about half
+as large again and still a few percent, and "a lot hurts" now holds against
+₹50 rather than against doing nothing: ₹100 is worse than ₹50 in every cell and
+better than none in every cell. The curve is unchanged.
+
+*One consequence, accepted:* a saved game whose player used a discount shows
+slightly fewer refusals once this build replays it. The save's fingerprint
+checks cost and clicks, which do not move, so no warning fires.
 
 **LESS MODEST SINCE F14, without touching the curve.** The return level rose to
 the sourced total, so there are more refusals to prevent everywhere. On F14's
 harness ₹50 is now best in all six cells for +1.2% to +2.7%, where the same
 harness gave ₹30 in five of six for +0.0% to +1.2% before; ₹100 loses only at
 value/performance. Still one lever with one effect — the curve and the rule
-below are unchanged.
+below are unchanged. (Measured on F14's harness, which recorded no player that
+can be rebuilt; superseded by the committed harness's table above.)
 
 **Not strengthened, deliberately.** The obvious way to make it bigger is to let
 it lift conversion rate, which a discount genuinely does and which was excluded
@@ -4164,6 +4236,12 @@ constant, one rung and not a hill-climb: 5.2 wants a competent operator, not a
 solver. And `submitRound` REJECTS an out-of-range discount rather than clamping
 — a clamp would let a controller ask for ₹500 and be quietly charged for ₹100,
 which is the shape of bug that survives a whole game.
+
+**Not in play, found 2026-09-15, and open.** In 1,728 rival decisions over 18
+games of the committed harness, no rival offered a discount. `prepaidNudge`
+(`agents/policies.js`) reads the week just played, whose refusals have not come
+back yet, so it sees about 0% and holds none. It is also why the fix above left
+the market byte-identical: nobody in it discounts but a player who chooses to.
 
 ### I35. Round 0 is five steps in the sidebar layout, and the brand is drawn — `FIXED` (2026-09-14)
 
