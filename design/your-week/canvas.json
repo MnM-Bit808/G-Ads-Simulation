@@ -21,6 +21,26 @@
       "h": 900
     },
     {
+      "file": "LossAmber.dc.html",
+      "title": "A losing week · amber (chosen)",
+      "page": "chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 1320,
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "file": "LossBone.dc.html",
+      "title": "A losing week · bone",
+      "page": "not-chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 1320,
+      "w": 1440,
+      "h": 900
+    },
+    {
       "file": "DelayFirst.dc.html",
       "title": "B · The delay first",
       "page": "not-chosen",
@@ -38,7 +58,23 @@
       "x": 1560,
       "y": 0,
       "w": 480,
-      "text": "Colours, drawn back to the Studio palette at the owner's word (2026-09-15). Bone for every figure and every bar, this week included, which says \"this week\" in words rather than in red. Greys for what is past or unused: what you saw before the revision plays, the impressions lost to budget, the lower positions. No yellow or green, and nothing the rest of the Studio does not already do (the owner, 2026-09-15, after trying hatching and black figures): each bar is solid bone, a faint dashed tick marks where the week stood when you last looked (the bid slider's was-marker, made for a bar), and the change sits under the week in the dashboard's grey with its plus or minus, so no meaning rests on colour. This screen sets aside the palette's \"a loss is amber\": a week revised down is a correction to what you were told, not money leaving now. Red only where it means you: the Run week button and the \"why?\" links."
+      "text": "Colours, drawn back to the Studio palette at the owner's word (2026-09-15). Bone for every figure and every bar, this week included, which says \"this week\" in words rather than in red. Greys for what is past or unused: what you saw before the revision plays, the impressions lost to budget, the lower positions. No yellow or green, and nothing the rest of the Studio does not already do (the owner, 2026-09-15, after trying hatching and black figures): each bar is solid bone, a faint dashed tick marks where the week stood before this week ran (the bid slider's was-marker, made for a bar), and the change sits under the week in the dashboard's grey with its plus or minus, so no meaning rests on colour. This screen sets aside the palette's \"a loss is amber\" for the changes: a week revised down is a correction to what you were told, not money leaving now. A week that itself lost money keeps it: amber, below a zero line, with its minus sign (the owner's choice after seeing both, below). Red only where it means you: the Run week button and the \"why?\" links."
+    },
+    {
+      "id": "losing",
+      "page": "chosen",
+      "x": 0,
+      "y": 1040,
+      "w": 1440,
+      "text": "A week that lost money. Chosen by the owner after seeing both, 2026-09-15: amber. The same game with every bid raised from ₹33 to ₹82.50 at week 5, as an over-eager player might, played by the engine: week 6 is −₹20,570, and week 5, −₹17,265 before week 6 ran, is now ₹10,600 as its late conversions landed. The losing bar hangs below a zero line in the Studio's colour for money lost, with its minus sign, as everywhere else in the Studio, and so does the net profit above it when the week is a loss; the changes under the weeks stay grey, since a change is a correction, not money leaving."
+    },
+    {
+      "id": "losing-bone",
+      "page": "not-chosen",
+      "x": 0,
+      "y": 1040,
+      "w": 1440,
+      "text": "A week that lost money, in bone: not chosen (the owner chose amber, 2026-09-15). The same game with every bid raised from ₹33 to ₹82.50 at week 5, as an over-eager player might, played by the engine: week 6 is −₹20,570, and week 5, −₹17,265 before week 6 ran, is now ₹10,600 as its late conversions landed. Here the loss is the same colour as every other bar, told only by its place below the line and its minus sign."
     },
     {
       "id": "brief",
@@ -46,7 +82,7 @@
       "x": 0,
       "y": -470,
       "w": 2040,
-      "text": "Your week, the overview: two ways to draw it, replacing today's three cards (The week, Where the impressions went, Changed since you looked). Each opens by playing the revision the makeover design asked for: every earlier week shows what you saw when you last looked, then crossfades to what it is now, 250ms, opacity only, never a counting ticker. \"Replay the revision\" plays it again.\nReal figures from the engine: seed 1, Vella & Co. at mid-price performance, after week 6. While week 6 ran, every earlier week moved: week 5's profit rose as its conversions landed, and weeks 1 to 4 fell as their returns came back. Nothing is forecast: \"still to arrive\" is the engine's own count of conversions not yet landed."
+      "text": "Your week, the overview: two ways to draw it, replacing today's three cards (The week, Where the impressions went, Changed since you looked). Each opens by playing the revision the makeover design asked for: every earlier week shows where it stood before this week ran, then crossfades to what it is now, 250ms, opacity only, never a counting ticker. \"Replay the revision\" plays it again.\nReal figures from the engine: seed 1, Vella & Co. at mid-price performance, after week 6. While week 6 ran, every earlier week moved: week 5's profit rose as its conversions landed, and weeks 1 to 4 fell as their returns came back. Nothing is forecast: \"still to arrive\" is the engine's own count of conversions not yet landed."
     },
     {
       "id": "a",
@@ -54,7 +90,7 @@
       "x": 0,
       "y": -250,
       "w": 1440,
-      "text": "Chosen by the owner, 2026-09-15. A · Money first. The week's six figures on top, then every week's net profit, a dashed tick where each week stood when you last looked, and the change under the week in grey. One sentence says what moved and why.\nFor: the question a player asks first is \"am I making money\", and the revision is shown in money, where it both rises and falls.\nAgainst: the delay itself, sales arriving over three weeks, is told in the sentence rather than drawn."
+      "text": "Chosen by the owner, 2026-09-15. A · Money first. The week's six figures on top, then every week's net profit, a dashed tick where each week stood before this week ran (the owner's wording: the game knows that, not when you looked), and the change under the week in grey. One sentence says what moved and why.\nFor: the question a player asks first is \"am I making money\", and the revision is shown in money, where it both rises and falls.\nAgainst: the delay itself, sales arriving over three weeks, is told in the sentence rather than drawn."
     },
     {
       "id": "b",

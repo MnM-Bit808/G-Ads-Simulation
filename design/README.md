@@ -100,19 +100,30 @@ crossfades to what it is now, 250ms, opacity only):
 
 - **Page 1**, `Main.dc.html` (A · money first), **chosen by the owner on
   2026-09-15**: the week's six figures, then every week's net profit as a bone
-  bar, a faint dashed tick where it stood when you last looked, and the change
-  in grey under the week with its plus or minus.
+  bar, a faint dashed tick where it stood before this week ran, and the change
+  in grey under the week with its plus or minus. Beneath it,
+  `LossAmber.dc.html`: a week that lost money, hanging below a zero line in
+  amber, the owner's choice after seeing it beside bone.
 - **Page 2**, `DelayFirst.dc.html` (B · the delay first): every week's
   conversions, landed against still to arrive with a tick where you read them;
-  tap a week for its six figures.
+  tap a week for its six figures. Beneath it, `LossBone.dc.html`, the losing
+  week in bone.
+
+The tick says "before week 6 ran" rather than "when you last looked", at the
+owner's word: the game knows the figures before a week ran, not when you
+looked. The losing week comes from the same game with one mistake made in it,
+every bid raised from ₹33 to ₹82.50 at week 5: week 6 lost ₹20,570, and week
+5, a loss of ₹17,265 before week 6 ran, is a profit of ₹10,600 once its late
+conversions landed.
 
 The colours took three tries, and the note on page 1 keeps the reasoning. Mint
 and amber on the changes looked out of place; hatched caps with dark figures
 did not mesh with the rest of the dashboard. What stayed uses only what the
 Studio already does: bone and greys, and the keyword slider's "was" marker
 made for a bar. It sets aside the palette's "a loss is amber" on this one
-screen, because a week revised down is a correction to what you were told,
-not money leaving now.
+screen for the changes, because a week revised down is a correction to what
+you were told, not money leaving now; a week that itself lost money stays
+amber.
 
 Its numbers come from one game played six weeks with the engine (seed 1,
 Vella & Co. at mid-price performance, manual bids), with every week's figures

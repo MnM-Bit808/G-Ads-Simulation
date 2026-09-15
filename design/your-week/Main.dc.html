@@ -132,22 +132,23 @@
           <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
             <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
               <div class="display" style="font-weight: 700; font-size: 18px;">Every week so far</div>
-              <div style="font-size: 12px; color: #A19A94;">net profit by week · the dashed tick is where it stood when you last looked</div>
+              <div style="font-size: 12px; color: #A19A94;">net profit by week · the dashed tick is where it stood before week 6 ran</div>
             </div>
             <div class="pick" onClick="{{replay}}" style="flex-shrink: 0; font-size: 12px; color: #CFC9C3; border: 1px solid #3A363E; border-radius: 999px; padding: 4px 10px; white-space: nowrap;">replay the revision</div>
           </div>
           <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) repeat(6, minmax(0, 0.45fr)); gap: 10px; align-items: end; height: 252px; padding-top: 6px;">
             <sc-for list="{{weeks}}" as="w" hint-placeholder-count="12">
               <div style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch;">
+                <div style="position: absolute; left: -5px; right: -5px; bottom: {{w.zero}}px; border-top: 1px solid #3A363E; opacity: {{w.zeroOpacity}};"></div>
                 <sc-if value="{{w.played}}" hint-placeholder-val="{{true}}">
-                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: 36px; height: {{w.sawH}}px; border-radius: 5px 5px 0 0; background: #7A7480; opacity: {{w.sawOpacity}};"></div>
+                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: {{w.sawBottom}}px; height: {{w.sawH}}px; border-radius: {{w.sawRadius}}; background: #7A7480; opacity: {{w.sawOpacity}};"></div>
                   <div class="fade num" style="position: absolute; left: -6px; right: -6px; bottom: {{w.labelSaw}}px; text-align: center; font-size: 11px; font-weight: 700; color: #A19A94; opacity: {{w.sawOpacity}};">{{w.sawText}}</div>
-                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: 36px; height: {{w.nowH}}px; border-radius: 5px 5px 0 0; background: #EDE8E3; opacity: {{w.nowOpacity}};"></div>
+                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: {{w.nowBottom}}px; height: {{w.nowH}}px; border-radius: {{w.nowRadius}}; background: {{w.nowColor}}; opacity: {{w.nowOpacity}};"></div>
                   <div class="fade" style="position: absolute; left: -3px; right: -3px; bottom: {{w.tickBottom}}px; border-top: 2px dashed #8A847E; opacity: {{w.tickOpacity}};"></div>
-                  <div class="fade num" style="position: absolute; left: -6px; right: -6px; bottom: {{w.labelNow}}px; text-align: center; font-size: 11px; font-weight: 700; opacity: {{w.nowOpacity}};">{{w.netText}}</div>
+                  <div class="fade num" style="position: absolute; left: -6px; right: -6px; bottom: {{w.labelNow}}px; text-align: center; font-size: 11px; font-weight: 700; color: {{w.netColor}}; opacity: {{w.nowOpacity}};">{{w.netText}}</div>
                 </sc-if>
                 <sc-if value="{{w.future}}" hint-placeholder-val="{{false}}">
-                  <div style="position: absolute; left: 3px; right: 3px; bottom: 36px; height: 10px; border-radius: 5px; border: 1px dashed #3A363E; box-sizing: border-box;"></div>
+                  <div style="position: absolute; left: 3px; right: 3px; bottom: {{w.zero}}px; height: 10px; border-radius: 5px; border: 1px dashed #3A363E; box-sizing: border-box;"></div>
                 </sc-if>
                 <div style="height: 36px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px;">
                   <div style="font-size: 11px; font-weight: {{w.labelWeight}}; color: {{w.labelColor}};">{{w.label}}</div>
@@ -156,7 +157,7 @@
               </div>
             </sc-for>
           </div>
-          <div style="font-size: 13px; line-height: 1.5; color: #CFC9C3; max-width: 680px;">Since you last looked, week 5 rose ₹53,317 as 44 more conversions landed, and weeks 1 to 4 fell ₹51,143 between them as returns came back. <span class="why">why?</span></div>
+          <div style="font-size: 13px; line-height: 1.5; color: #CFC9C3; max-width: 680px;">While week 6 ran, week 5 rose ₹53,317 as 44 more conversions landed, and weeks 1 to 4 fell ₹51,143 between them as returns came back. <span class="why">why?</span></div>
         </div>
         <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 12px;">
           <div class="display" style="font-weight: 700; font-size: 18px;">Where the impressions went</div>
@@ -199,8 +200,8 @@
 <script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
 /*
  * Your week, option A: money first. The week's six figures, then every week's
- * net profit in solid bone, a faint dashed tick where it stood when you last
- * looked (week 5), and the change under the week in the dashboard's grey with
+ * net profit in solid bone, a faint dashed tick where it stood before this
+ * week ran, and the change under the week in the dashboard's grey with
  * its + or − (the owner's choice, 2026-09-15: no yellow or green, nothing the
  * rest of the Studio does not already do). Opening the section
  * plays the revision: each week shows what you saw, then crossfades to what
@@ -208,10 +209,24 @@
  * seed 1, weeks 1-6.
  */
 const WEEKS = [{"round":1,"net":84894,"netSaw":89914,"conv":192.6,"pending":0,"convFirst":106,"convSaw":192.6,"pendingSaw":0,"spend":"₹55,939","clicks":"4,284","cpc":"₹13","roas":"5.05","roasSaw":"5.22","cpa":"₹290"},{"round":2,"net":44054,"netSaw":54206,"conv":162.3,"pending":0,"convFirst":89.2,"convSaw":162.3,"pendingSaw":0,"spend":"₹78,250","clicks":"3,400","cpc":"₹23","roas":"3.13","roasSaw":"3.36","cpa":"₹482"},{"round":3,"net":46629,"netSaw":60317,"conv":157.6,"pending":0,"convFirst":86.7,"convSaw":149.7,"pendingSaw":7.9,"spend":"₹78,250","clicks":"3,352","cpc":"₹23","roas":"3.18","roasSaw":"3.48","cpa":"₹496"},{"round":4,"net":54464,"netSaw":76747,"conv":144.7,"pending":7.6,"convFirst":83.8,"convSaw":126.4,"pendingSaw":25.9,"spend":"₹78,250","clicks":"3,195","cpc":"₹24","roas":"3.33","roasSaw":"3.81","cpa":"₹541"},{"round":5,"net":86047,"netSaw":32730,"conv":129.3,"pending":26.5,"convFirst":85.7,"convSaw":85.7,"pendingSaw":70.1,"spend":"₹72,000","clicks":"3,261","cpc":"₹22","roas":"4.22","roasSaw":"2.80","cpa":"₹557"},{"round":6,"net":29753,"netSaw":null,"conv":83.3,"pending":68.1,"convFirst":83.3,"convSaw":null,"pendingSaw":null,"spend":"₹72,000","clicks":"3,170","cpc":"₹23","roas":"2.72","roasSaw":null,"cpa":"₹865"}];
-const MAX = 89914;
+const TOP = 89914;
+const LOW = 0;
 const H = 190;
+const GUTTER = 0;
+const LOSS = '#EDE8E3';
+const SCALE = (H - GUTTER) / (TOP + LOW);
+const ZERO = 36 + GUTTER + Math.round(LOW * SCALE);
+const px = (v) => Math.round(Math.abs(v) * SCALE);
+// Where a value's bar sits: up from the zero line, or hanging below it.
+const bar = (v) => {
+  const h = px(v);
+  return v >= 0
+    ? { bottom: ZERO, h, radius: '5px 5px 0 0', end: ZERO + h, label: ZERO + h + 4 }
+    : { bottom: ZERO - h, h, radius: '0 0 5px 5px', end: ZERO - h, label: ZERO - h - 15 };
+};
 const rupees = (r) => `₹${Math.round(r).toLocaleString('en-IN')}`;
 const signed = (r) => (r >= 0 ? `+${rupees(r)}` : `−${rupees(-r)}`);
+const money = (r) => (r < 0 ? `−${rupees(-r)}` : rupees(r));
 
 class Component extends DCLogic {
   constructor(...args) {
@@ -231,22 +246,30 @@ class Component extends DCLogic {
     const { revealed } = this.state;
     const weeks = Array.from({ length: 12 }, (_, i) => {
       const w = WEEKS[i];
+      const zero = { zero: ZERO, zeroOpacity: LOW > 0 ? 1 : 0 };
       if (!w) {
-        return { played: false, future: true, label: String(i + 1), labelWeight: 400, labelColor: '#68636B' };
+        return { ...zero, played: false, future: true, label: String(i + 1), labelWeight: 400, labelColor: '#68636B' };
       }
-      const nowH = Math.round((H * Math.max(0, w.net)) / MAX);
       const current = w.netSaw === null;
-      const sawH = current ? 0 : Math.round((H * Math.max(0, w.netSaw)) / MAX);
+      const now = bar(w.net);
+      const saw = current ? { bottom: ZERO, h: 0, radius: '0', end: ZERO, label: ZERO } : bar(w.netSaw);
+      // The label clears the old bar too, on whichever side of the line it sits.
+      const clears = !current && (w.netSaw >= 0) === (w.net >= 0) && saw.h > now.h;
       // The Studio's own idiom for an old value (the bid slider's was-marker):
-      // solid bone bars, a faint dashed tick where the week stood when you
-      // last looked, poking out either side of the bar, and the change in the
+      // solid bone bars, a faint dashed tick where the week stood before this
+      // week ran, poking out either side of the bar, and the change in the
       // dashboard's muted grey under the week (the owner's choice, 2026-09-15).
       return {
+        ...zero,
         played: true, future: false, label: String(w.round),
         labelWeight: current ? 700 : 400, labelColor: current ? '#EDE8E3' : '#8A847E',
-        netText: rupees(w.net), sawText: current ? '' : rupees(w.netSaw),
-        nowH, sawH, tickBottom: 35 + sawH,
-        labelNow: 40 + Math.max(nowH, sawH), labelSaw: 40 + sawH,
+        netText: money(w.net), sawText: current ? '' : money(w.netSaw),
+        netColor: w.net < 0 ? LOSS : '#EDE8E3',
+        nowColor: w.net < 0 ? LOSS : '#EDE8E3',
+        nowBottom: now.bottom, nowH: now.h, nowRadius: now.radius,
+        sawBottom: saw.bottom, sawH: saw.h, sawRadius: saw.radius,
+        tickBottom: saw.end - 1,
+        labelNow: clears ? saw.label : now.label, labelSaw: saw.label,
         nowOpacity: revealed || current ? 1 : 0,
         sawOpacity: revealed || current ? 0 : 1,
         tickOpacity: !current && revealed ? 1 : 0,
