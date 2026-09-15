@@ -1907,13 +1907,26 @@ tooling and one untested claim.
   (`money.marginPct`), and every revision uses it. A week-5 move had been
   re-pricing all of month 1 at the new tier's margin, which moved the week-8
   rank and the end screen for a player who moved; F18 has the before and after.
-  The harness has a `move` mode for it. **Two things for whoever merges:**
-  `claude/ecstatic-stonebraker-d1dfa1` (the cash share) carries a *Still open*
-  bullet, "A revision re-prices old weeks at the account's current margin",
-  which is this one: drop it, and the last sentence of its trap "A report is
-  rewritten for five weeks" with it. And F17 (on `makeover`) sits just before
-  I6, where F18 does too: keep both, F17 first. `makeover` carries the same
-  `reviseReports`, so it wants this fix as well.
+  The harness has a `move` mode for it.
+- ~~An old week's late sales go to whichever keyword catches the search when
+  they land.~~ **Fixed 2026-09-16** (I36, same branch): each order now carries
+  the keyword that caught its click (`keywordId`), as it carries its search and
+  place, and `keywordForQuery` is gone. It hit every player who blocked a
+  search with a negative, since nothing catches a blocked search any more;
+  removing or replacing a keyword did it too. The keywords table showed it,
+  the search terms report never did, and the market harness came out identical.
+- **For whoever merges those two fixes:**
+  - `claude/ecstatic-stonebraker-d1dfa1` (the cash share) carries a *Still
+    open* bullet, "A revision re-prices old weeks at the account's current
+    margin", which is F18: drop it, and the last sentence of its trap "A report
+    is rewritten for five weeks" with it.
+  - It also rewrites the `reviseBreakdown` call in `reviseReports`, and so does
+    I36. The merged line is both changes, with no `withRefusals` and no map:
+    `breakdown: reviseBreakdown(existing.breakdown, lateLanded, lateReturns),`.
+  - `makeover` has F17 just before I6, where F18 sits too, and I35 just after
+    I34, where I36 sits: keep both each time, the lower number first.
+  - `makeover` carries the same `reviseReports` and `keywordForQuery`, so it
+    wants both fixes.
 
 ---
 

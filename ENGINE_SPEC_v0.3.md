@@ -935,6 +935,10 @@ Conversions are queued into `pendingConversions` with `dueRound` drawn from
 `returnRate` at click time, so a repositioning (4.5) cannot retroactively change
 an order that was already sold.
 
+Each entry also carries the search it came from, the keyword that caught the
+click and where it was bought, so a late sale reaches the breakdown rows of its
+own week (15.2) whatever the keywords have become since (`DECISIONS.md` I36).
+
 The margin those orders earn is kept one level up, on the report: each records
 `money.marginPct` when it is built (15.2), and every revision (11.4) uses it.
 Every order in a report was clicked in that report's round, at that round's

@@ -234,10 +234,13 @@ number in the simulation without ever throwing an error.
   advertisers, so anything it works out from the advertiser, rather than
   adding up from the orders, describes the wrong week. The margin did: a
   week-5 price move re-priced all of month 1 and moved the week-8 rank in 63
-  of 96 moving games (F18). The cash share on each place row did too (I34).
+  of 96 moving games (F18). The cash share on each place row did too (I34),
+  and so did the keyword a late sale is credited to, after any negative (I36).
   Record such a figure when the week's report is built, or on the order, as
-  `valuePaise` and `returnRate` are (11.3). The harness's `market` mode
-  never moves anyone, so it cannot see this; its `move` mode can.
+  `valuePaise`, `returnRate` and `keywordId` are (11.3). The harness's
+  `market` mode cannot see this kind of fault: nobody in it moves, and nothing
+  it measures reads an old week's rows. Its `move` mode sees the margin; a
+  test that changes the account and then reads an earlier week sees the rest.
 - **Don't re-propose a calendar event without new data.** A January surge and a
   festive season were both measured from Google Trends for India and rejected
   (F16): January is one of training's quietest months, and the festive rise
