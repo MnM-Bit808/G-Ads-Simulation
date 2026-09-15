@@ -229,6 +229,18 @@ const MOST_MOVERS = 3;
 const printed = (rate) => Math.round(100 * rate);
 
 /**
+ * Whether a rival's rate moved enough to name: five points as printed. Shared
+ * so the Studio's rival cards mark a move exactly when the sentence names one.
+ *
+ * @param {number} from - last week's rate, 0..1
+ * @param {number} to - this week's
+ * @returns {boolean}
+ */
+export function isMove(from, to) {
+  return Math.abs(printed(to) - printed(from)) >= MIN_MOVE;
+}
+
+/**
  * The rivals whose presence in the player's auctions moved most since last week.
  *
  * Read at week 9, when month 3's budgets take effect (DECISIONS D12, C8): rivals
@@ -249,7 +261,7 @@ export function insightMovers(insights, playerId, names) {
   return Object.keys(after)
     .filter((id) => id in before)
     .map((id) => ({ id, name: names?.get(id) ?? id, from: before[id].overlapRate, to: after[id].overlapRate }))
-    .filter((m) => Math.abs(printed(m.to) - printed(m.from)) >= MIN_MOVE)
+    .filter((m) => isMove(m.from, m.to))
     .sort((a, b) => Math.abs(printed(b.to) - printed(b.from)) - Math.abs(printed(a.to) - printed(a.from)))
     .slice(0, MOST_MOVERS);
 }

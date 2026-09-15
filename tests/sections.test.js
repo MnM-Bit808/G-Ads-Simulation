@@ -61,6 +61,14 @@ describe('every card on today\'s page has one place in the new layout', () => {
     }
   });
 
+  test('the Market area is one section, Rivals, drawing the market\'s figures and the rival cards', () => {
+    expect(sectionsIn('market').map((s) => s.key)).toEqual(['rivals']);
+    for (const slot of ['insights', 'trends', 'market']) expect(RETIRED_SLOTS, slot).toContain(slot);
+    // "Defending your own name" shows the player the rivals, by this slot.
+    expect(sectionOf('insights').key).toBe('rivals');
+    expect(sectionOf('market').key).toBe('rivals');
+  });
+
   test('Returns draws its own figures, weeks, discount and levers, so the guide can still open it', () => {
     for (const slot of ['returns', 'prepaid']) {
       expect(RETIRED_SLOTS, slot).toContain(slot);
@@ -128,7 +136,9 @@ describe('a first visit enters the parts the section shows', () => {
 
   test('a rebuilt section enters the parts it draws; a classic one its cards', () => {
     expect(entranceSlots(find('money'))).toEqual(['window', 'budget', 'split', 'bidding', 'deadline']);
-    expect(entranceSlots(find('rivals'))).toEqual(['insights', 'trends']);
+    // Since the Market area was rebuilt no section shows a classic card, so
+    // the classic branch is held by a section of that shape.
+    expect(entranceSlots({ slots: ['insights', 'trends'] })).toEqual(['insights', 'trends']);
   });
 
   test('every section that can be visited fresh has something to enter', () => {

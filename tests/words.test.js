@@ -20,6 +20,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { line, KINDS } from '../ui/words/line.js';
 import { RETURNS, RETURNS_STUDIO } from '../ui/words/returns.js';
+import { RIVALS } from '../ui/words/rivals.js';
 import { DEBRIEF } from '../ui/words/debrief.js';
 import { CAPITAL } from '../ui/words/capital.js';
 import { MARKET } from '../ui/words/market.js';
@@ -625,6 +626,51 @@ describe('Returns in the Studio', () => {
   });
 });
 
+describe('Rivals in the Studio', () => {
+  const FIGURES = {
+    value: '₹4,18,404', share: '26%', budget: '74%', rank: '0%', name: 'Kestrel', overlap: '96%', above: '67%',
+    other: 'Torvi', from: '45%', names: ['Auren'],
+  };
+  const entries = (object, prefix = '') => Object.entries(object).flatMap(([name, entry]) => (
+    typeof entry === 'function' ? [[`${prefix}${name}`, entry]] : entries(entry, `${name}.`)));
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of entries(RIVALS)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of entries(RIVALS)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of entries(RIVALS)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('the rival above you is said to be above you in all the auctions you show in', () => {
+    expect(RIVALS.meetSame(FIGURES)).toBe('You meet Kestrel most, in 96% of the auctions you show in, and it ranks '
+      + 'above you in 67% of all of them.');
+    expect(RIVALS.meetOther(FIGURES)).toMatch(/but Torvi ranks above you in more of them: 67% of all the auctions/);
+  });
+
+  test('rivals never met read as a list', () => {
+    expect(RIVALS.never({ names: ['Auren'] })).toBe('Auren never appeared in your auctions this week.');
+    expect(RIVALS.never({ names: ['Auren', 'Halcyon', 'Nira'] }))
+      .toBe('Auren, Halcyon and Nira never appeared in your auctions this week.');
+  });
+
+  test('how often you meet is said not to be spend, as Auction Insights must (spec 16)', () => {
+    expect(RIVALS.notSpend()).toMatch(/not market share, and not spend/);
+  });
+
+  test('a reading says what is true, never what to do (I13)', () => {
+    for (const [name, entry] of entries(RIVALS)) expect(entry(FIGURES), name).not.toMatch(/\byou should\b/i);
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -656,7 +702,7 @@ describe('the new screens draw, and do not write', () => {
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
     'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js', 'ui/money/render.js',
-    'ui/returns/render.js'];
+    'ui/returns/render.js', 'ui/rivals/render.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

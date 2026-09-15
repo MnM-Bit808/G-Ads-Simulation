@@ -67,8 +67,11 @@ export const SECTIONS = Object.freeze([
   // and levers (ui/returns/render.js); the classic two cards are retired.
   { key: 'returns', area: 'brand', label: 'Returns', icon: ICONS.returns,
     slots: [], draws: ['returns-figures', 'returns', 'prepaid', 'returns-levers'], opensAt: SETTLES_AFTER_ROUNDS + 1 },
-  { key: 'rivals', area: 'market', label: 'Rivals', icon: ICONS.rivals, slots: ['insights', 'trends'] },
-  { key: 'marketMoves', area: 'market', label: 'The market', icon: ICONS.market, slots: ['market'] },
+  // Rebuilt (the owner's choice, 2026-09-15, design/market/): one section, the
+  // market's public figures on top and each rival you meet as a card
+  // (ui/rivals/render.js); the classic three cards are retired, and the
+  // market card no longer has a section of its own.
+  { key: 'rivals', area: 'market', label: 'Rivals', icon: ICONS.rivals, slots: [], draws: ['market', 'insights'] },
   { key: 'results', area: 'results', label: 'After the last week', icon: ICONS.results,
     slots: [], opensAt: TOTAL_ROUNDS },
 ]);
@@ -76,7 +79,7 @@ export const SECTIONS = Object.freeze([
 /** Cards the new screens draw instead: the tray replaces *Next week*; the rebuilt sections draw their own. */
 export const RETIRED_SLOTS = Object.freeze([
   'keywords', 'next', 'places', 'hours', 'headline', 'share', 'revised', 'terms', 'negatives',
-  'window', 'budget', 'split', 'bidding', 'deadline', 'returns', 'prepaid',
+  'window', 'budget', 'split', 'bidding', 'deadline', 'returns', 'prepaid', 'insights', 'trends', 'market',
 ]);
 
 /** @returns {object|null} the section a card's slot lives in */

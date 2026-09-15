@@ -860,6 +860,53 @@ body.studio .wr-go::after { content: ' →'; }
   body.studio .wr-places { grid-template-columns: minmax(0, 1fr) 58px 64px 70px; }
 }
 
+/* --- Rivals, the Market area (design/market/, the owner's choice 2026-09-15) --- */
+body.studio .rv { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .rv h3 { margin: 0; font: 800 20px/1.1 var(--studio-display); }
+body.studio .rv p { margin: 0; }
+body.studio .rv-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rv-small { font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .rv-read { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .rv-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .rv-num { font-variant-numeric: tabular-nums; }
+body.studio .rv-value { font: 800 26px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+
+/* the market, and you */
+body.studio .rv-figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; }
+body.studio .rv-figure { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+body.studio .rv-you { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 13px; font-variant-numeric: tabular-nums; }
+body.studio .rv-pair { display: inline-flex; align-items: baseline; gap: 5px; }
+
+/* the rivals, a card each */
+body.studio .rv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+body.studio .rv-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+body.studio .rv-meet { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: end; }
+body.studio .rv-big { display: flex; flex-direction: column; gap: 2px; }
+body.studio .rv-big .rv-value { font-size: 30px; }
+/* How often you met, a bar a week: past weeks grey, this week bone, weeks to
+   come a bare line. */
+body.studio .rv-bars { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; align-items: end; height: 34px; border-bottom: 1px solid var(--studio-line-strong); }
+body.studio .rv-bars span { display: block; border-radius: 2px 2px 0 0; background: #7A7480; }
+body.studio .rv-bars span.now { background: var(--studio-text); }
+body.studio .rv-bars span.future { background: none; }
+body.studio .rv-card .kserp { padding: 10px 12px; border-radius: 14px; background: var(--studio-sidebar); }
+body.studio .rv-card .kserp-head { font-size: 14px; }
+body.studio .rv-card .kserp-desc { font-size: 12px; }
+body.studio .rv-line { display: grid; grid-template-columns: 150px minmax(0, 1fr) 44px; gap: 10px; align-items: center; }
+body.studio .rv-line strong { text-align: right; font-size: 12px; }
+body.studio .rv-track { display: block; height: 6px; overflow: hidden; border-radius: 3px; background: var(--studio-raised); }
+body.studio .rv-track span { display: block; height: 100%; border-radius: 3px; background: var(--studio-muted); }
+
+/* A section under 900px wide: the cards one to a row, the figures two. */
+@container (max-width: 900px) {
+  body.studio .rv-grid { grid-template-columns: minmax(0, 1fr); }
+  body.studio .rv-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 560px) {
+  body.studio .rv-card { padding: 14px; }
+  body.studio .rv-line { grid-template-columns: minmax(0, 1fr) 70px 40px; }
+}
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */

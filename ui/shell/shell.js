@@ -27,6 +27,7 @@ import { renderWeekSection } from '../week/render.js';
 import { renderTypedSection } from '../typed/render.js';
 import { renderMoneySection } from '../money/render.js';
 import { renderReturnsSection } from '../returns/render.js';
+import { renderRivalsSection } from '../rivals/render.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
@@ -70,8 +71,10 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
   // Your money its month, capital, bidding and week 8 (ui/money/render.js).
   let typed = null;
   let money = null;
-  // And Returns its weeks, discount and levers (ui/returns/render.js).
+  // And Returns its weeks, discount and levers (ui/returns/render.js), and the
+  // Market area's Rivals its cards (ui/rivals/render.js).
   let returns = null;
+  let rivals = null;
   let ending = null;
   let extras = { saved: null, canRedo: false };
   let running = false;
@@ -234,6 +237,9 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     } else if (s.key === 'returns' && returns) {
       returns.refresh();
       shown = returns.node;
+    } else if (s.key === 'rivals' && rivals) {
+      rivals.refresh();
+      shown = rivals.node;
     } else {
       dashboard.dataset.section = s.key;
       shown = dashboard;
@@ -386,6 +392,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     typed = renderTypedSection({ game, ctx, openGuide, refreshTray: drawTray });
     money = renderMoneySection({ game, ctx, openGuide, refreshTray: drawTray });
     returns = renderReturnsSection({ game, ctx, openGuide, openSection: open, refreshTray: drawTray });
+    rivals = renderRivalsSection({ game, ctx, openGuide });
     if (ending && !view.resultsShown) {
       view.resultsShown = true;
       view.area = 'results';
