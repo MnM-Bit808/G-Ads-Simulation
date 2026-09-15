@@ -1,0 +1,532 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .why { color: #FF6166; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+    .pick { cursor: pointer; user-select: none; }
+    input[type=range] { width: 100%; accent-color: #D7262F; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 1760px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: #2A1216; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #F3EEEA;">Brand</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M16 14.2c2.9.4 5 2.8 5 5.8"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Market</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Guide</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#68636B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #68636B;">Results</div>
+    </div>
+  </div>
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">mid · performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Your brand</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M11 20V5M17 20v-6M3 20h18"></path></svg>
+      <div style="flex-grow: 1;">Your week</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8L3 12z"></path><path d="M6 7.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path></svg>
+      <div style="flex-grow: 1;">Your keywords</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a6 6 0 1 0 12 0a6 6 0 1 0 -12 0"></path><path d="M20 20l-4.5-4.5"></path></svg>
+      <div style="flex-grow: 1;">What people typed</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4h4l6 4V6L7 10H3z"></path><path d="M16.5 9a4 4 0 0 1 0 6"></path></svg>
+      <div style="flex-grow: 1;">Your ad</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; background: #1F1C22; color: #F3EEEA; box-shadow: 0 0 0 1px #2E2A33;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M3 10h18M16 14.5h2"></path></svg>
+      <div style="flex-grow: 1;">Your money</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><path d="M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path></svg>
+      <div style="flex-grow: 1;">Where and when</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4V8z"></path><path d="M4 8l8 4 8-4M12 12v8"></path></svg>
+      <div style="flex-grow: 1;">Returns</div>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="display" style="font-weight: 700; font-size: 20px;">{{topWeek}}</div>
+        <div style="font-size: 13px; color: #8A847E;">saved</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 13px;">
+        <div style="color: #A19A94;">{{topLabel}}</div>
+        <div class="num" style="font-weight: 700;">{{topMonth}}</div>
+      </div>
+    </div>
+    <div style="flex-grow: 1; min-height: 0; padding: 22px 40px 20px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;">
+        <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Your money</div>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8A847E;">mock-up, show
+          <sc-for list="{{weeks}}" as="w" hint-placeholder-count="2">
+            <div class="pick" onClick="{{w.pick}}" style="padding: 4px 10px; border-radius: 999px; border: 1px solid {{w.border}}; background: {{w.bg}}; color: {{w.color}}; font-size: 12px; font-weight: 600;">{{w.label}}</div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <div class="display" style="font-weight: 700; font-size: 20px;">Twelve weeks of budget</div>
+              <div style="font-size: 12px; color: #A19A94;">outlined: a week's budget · filled: what it spent · shaded: month 3, set by where you finish at week 8</div>
+            </div>
+            <div style="font-size: 12px; color: #A19A94;">drag a week still to run to give it more or less <span class="why">why?</span></div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px;">
+            <div style="padding-bottom: 4px; border-bottom: 1px solid #2A272D; color: #A19A94;">Month 1 · ₹3,13,000</div>
+            <div style="padding-bottom: 4px; border-bottom: 1px solid #A19A94; font-weight: 700;">{{monthHead}}</div>
+            <div style="padding-bottom: 4px; border-bottom: 1px solid #2A272D; color: #A19A94;">Month 3 · ₹1,17,600 to ₹2,18,400, decided at week 8</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 8px; height: 214px;">
+            <sc-for list="{{columns}}" as="c" hint-placeholder-count="12">
+              <div onPointerDown="{{c.down}}" style="position: relative; cursor: {{c.grab}}; touch-action: none;">
+                <sc-if value="{{c.band}}" hint-placeholder-val="{{false}}">
+                  <div style="position: absolute; left: 2px; right: 2px; bottom: calc(30px + {{c.bandLow}}px); height: {{c.bandH}}px; border-radius: 6px; background: repeating-linear-gradient(135deg, #3A363E 0 3px, transparent 3px 7px);"></div>
+                  <div style="position: absolute; left: -4px; right: -4px; bottom: calc(30px + {{c.avgAt}}px); border-top: 1px dashed #8A847E;"></div>
+                </sc-if>
+                <sc-if value="{{c.showPlan}}" hint-placeholder-val="{{true}}">
+                  <div style="position: absolute; left: 2px; right: 2px; bottom: 30px; height: {{c.planH}}px; box-sizing: border-box; border: 1.5px solid {{c.planBorder}}; border-radius: 6px 6px 0 0; background: {{c.planBg}};"></div>
+                </sc-if>
+                <sc-if value="{{c.showSpent}}" hint-placeholder-val="{{true}}">
+                  <div style="position: absolute; left: 2px; right: 2px; bottom: 30px; height: {{c.spentH}}px; border-radius: 6px 6px 0 0; background: #7A7480;"></div>
+                </sc-if>
+                <div class="num" style="position: absolute; left: -6px; right: -6px; bottom: {{c.amountBottom}}px; text-align: center; font-size: 11px; font-weight: 700; color: {{c.amountColor}}; white-space: nowrap;">{{c.amount}}</div>
+                <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 28px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; font-size: 11px;">
+                  <div style="color: {{c.weekColor}}; font-weight: {{c.weekWeight}};">{{c.week}}</div>
+                  <div style="color: {{c.subColor}}; white-space: nowrap;">{{c.sub}}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 12px; color: #A19A94;">A month's budget is spent in its own four weeks: whatever is left when it ends is lost.</div>
+        </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start;">
+        <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+          <sc-if value="{{five}}" hint-placeholder-val="{{true}}">
+        <div style="padding: 18px 22px; border: 1px solid #4A1A1F; border-radius: 20px; background: #1A0C0F; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+            <div class="display" style="font-weight: 800; font-size: 22px;">This week only</div>
+            <div style="font-size: 13px; color: #CFC9C3;">capital to invest, and your one chance to move</div>
+          </div>
+          <div style="font-size: 13px; line-height: 1.5; color: #CFC9C3; max-width: 900px;"><b style="color: #EDE8E3;">{{lastMonth}}</b> {{turnsOn}} <span class="why">why?</span></div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start;">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E;">{{capitalHead}}</div>
+              <sc-for list="{{targets}}" as="t" hint-placeholder-count="4">
+                <div style="display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; border-radius: 14px; background: #17161A;">
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+                    <div style="font-weight: 700; font-size: 14px;">{{t.name}}</div>
+                    <div style="font-size: 12px; color: #A19A94;">{{t.at}}</div>
+                  </div>
+                  <div style="font-size: 12px; color: #A19A94; line-height: 1.4;">{{t.reason}}</div>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <sc-for list="{{t.chips}}" as="ch" hint-placeholder-count="3">
+                      <div class="pick" onClick="{{ch.pick}}" style="padding: 4px 10px; border-radius: 999px; border: 1px solid {{ch.border}}; background: {{ch.bg}}; color: {{ch.color}}; font-size: 12px; font-weight: 600; cursor: {{ch.cursor}};">{{ch.label}}</div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+              <div style="display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: #2A272D;">
+                <div style="width: {{capBarCommitted}}; background: #D7262F;"></div>
+                <div style="width: {{capBarJoins}}; background: #7A7480;"></div>
+              </div>
+              <div class="num" style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;"><div style="color: #FF6166;">{{capCommitted}}</div><div style="color: #CFC9C3;">{{capJoins}}</div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E;">Position · one step, once, for ₹1,00,000</div>
+              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+                <sc-for list="{{cells}}" as="cl" hint-placeholder-count="6">
+                  <div class="pick" onClick="{{cl.pick}}" style="padding: 8px 10px; border-radius: 12px; border: 1px solid {{cl.border}}; background: {{cl.bg}}; opacity: {{cl.opacity}}; cursor: {{cl.cursor}}; display: flex; flex-direction: column; gap: 2px;">
+                    <div style="font-weight: 700; font-size: 13px;">{{cl.name}}</div>
+                    <div class="num" style="font-size: 11px; color: #CFC9C3;">{{cl.econ}}</div>
+                    <div class="num" style="font-size: 11px; color: #A19A94;">{{cl.vol}}</div>
+                    <div style="font-size: 11px; color: #A19A94;">{{cl.note}}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{moved}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; line-height: 1.45; color: #F2A53A;">{{moveNote}}</div></sc-if>
+              <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E;">What they would land on</div>
+              <div style="border: 1px solid #3A363E; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 5px 10px; background: #221F25; font-size: 11px; color: #A19A94;">vella.in</div>
+                <sc-for list="{{strips}}" as="s" hint-placeholder-count="2">
+                  <div style="margin: 6px 8px; padding: 7px; border-radius: 8px; background: #221F25; font-size: 11px; text-align: center; color: #CFC9C3;">{{s}}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+          <sc-if value="{{notFive}}" hint-placeholder-val="{{false}}"><div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+          <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;"><div class="display" style="font-weight: 700; font-size: 18px;">Bidding</div><div style="font-size: 12px; color: #A19A94;">how your bid is decided, every hour <span class="why">why?</span></div></div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <sc-for list="{{strategies}}" as="st" hint-placeholder-count="5"><div class="pick" onClick="{{st.pick}}" style="padding: 5px 12px; border-radius: 999px; border: 1px solid {{st.border}}; background: {{st.bg}}; color: {{st.color}}; font-size: 12px; font-weight: 600; white-space: nowrap;">{{st.label}}</div></sc-for>
+          </div>
+          <div style="font-size: 13px; color: #CFC9C3; line-height: 1.45;">{{strategyDesc}}</div>
+          <sc-if value="{{hasTarget}}" hint-placeholder-val="{{false}}">
+            <div style="display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #1F1C22;">
+              <div style="display: flex; justify-content: space-between; font-size: 13px;"><div style="color: #CFC9C3;">{{target.label}}</div><div class="num" style="font-weight: 700;">{{target.value}}</div></div>
+              <input type="range" min="{{target.min}}" max="{{target.max}}" step="{{target.step}}" value="{{target.at}}" onChange="{{onTarget}}">
+              <div style="font-size: 12px; color: #A19A94;">{{target.hint}}</div>
+            </div>
+          </sc-if>
+          <div style="font-size: 13px; line-height: 1.45;">{{outlook}}</div>
+          <sc-if value="{{predicts}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; color: #A19A94;">{{observed}}</div></sc-if>
+          <sc-if value="{{hasLearning}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; line-height: 1.45; color: #F2A53A;">{{learning}}</div></sc-if>
+          <div style="font-size: 12px; color: #A19A94; line-height: 1.45;">{{ceiling}}</div>
+        </div></sc-if>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+          <sc-if value="{{five}}" hint-placeholder-val="{{true}}"><div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+          <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;"><div class="display" style="font-weight: 700; font-size: 18px;">Bidding</div><div style="font-size: 12px; color: #A19A94;">how your bid is decided, every hour <span class="why">why?</span></div></div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <sc-for list="{{strategies}}" as="st" hint-placeholder-count="5"><div class="pick" onClick="{{st.pick}}" style="padding: 5px 12px; border-radius: 999px; border: 1px solid {{st.border}}; background: {{st.bg}}; color: {{st.color}}; font-size: 12px; font-weight: 600; white-space: nowrap;">{{st.label}}</div></sc-for>
+          </div>
+          <div style="font-size: 13px; color: #CFC9C3; line-height: 1.45;">{{strategyDesc}}</div>
+          <sc-if value="{{hasTarget}}" hint-placeholder-val="{{false}}">
+            <div style="display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #1F1C22;">
+              <div style="display: flex; justify-content: space-between; font-size: 13px;"><div style="color: #CFC9C3;">{{target.label}}</div><div class="num" style="font-weight: 700;">{{target.value}}</div></div>
+              <input type="range" min="{{target.min}}" max="{{target.max}}" step="{{target.step}}" value="{{target.at}}" onChange="{{onTarget}}">
+              <div style="font-size: 12px; color: #A19A94;">{{target.hint}}</div>
+            </div>
+          </sc-if>
+          <div style="font-size: 13px; line-height: 1.45;">{{outlook}}</div>
+          <sc-if value="{{predicts}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; color: #A19A94;">{{observed}}</div></sc-if>
+          <sc-if value="{{hasLearning}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; line-height: 1.45; color: #F2A53A;">{{learning}}</div></sc-if>
+          <div style="font-size: 12px; color: #A19A94; line-height: 1.45;">{{ceiling}}</div>
+        </div></sc-if>
+          <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+          <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;"><div class="display" style="font-weight: 700; font-size: 18px;">What week 8 decides</div></div>
+          <div class="num" style="font-size: 14px;"><b>{{deadlineHead}}</b></div>
+          <div style="font-size: 12px; color: #A19A94;">{{deadlineLeft}}</div>
+          <div style="font-size: 12px; line-height: 1.45; color: #CFC9C3;">{{ladderNote}}</div>
+        </div>
+        </div>
+      </div>
+    </div>
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <sc-if value="{{emptyTray}}" hint-placeholder-val="{{false}}">
+        <div style="font-size: 14px; color: #A19A94;">No changes yet. Anything you change, in any section, lands here.</div>
+      </sc-if>
+      <sc-if value="{{hasTray}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; overflow: hidden;">
+          <div style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #D7262F; color: #FFF5F4; display: grid; place-items: center; font-size: 13px; font-weight: 700;">{{trayN}}</div>
+          <div style="font-size: 15px; font-weight: 600; white-space: nowrap;">{{trayWord}}</div>
+          <sc-for list="{{tray}}" as="t" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">
+              <div>{{t.text}}</div>
+              <sc-if value="{{t.hasUndo}}" hint-placeholder-val="{{true}}"><div class="pick" onClick="{{t.undo}}" style="width: 20px; height: 20px; border-radius: 50%; background: #2E2A33; color: #A19A94; display: grid; place-items: center; font-size: 12px;">✕</div></sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div class="display" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"></path></svg>
+        <div>{{runLabel}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1760}}'>
+/*
+ * Your money, option B: twelve weeks at a glance. Real figures: seed 1, Vella & Co. at mid-price
+ * performance, the makeover canvas's keywords; after week 4 (week 5 about to
+ * run, with its capital and position window open) and after week 5 (the
+ * capital left uncommitted, so it joined month 2). Every bid a strategy shows
+ * is the engine's own (bidOutlook), computed for each target a slider reaches.
+ */
+const DATA = {"monthStart":5,"totalWeeks":12,"snapshot":8,"month":2,"capital":120000,"moveCost":100000,"liveWeek":8,"here":"mid|performance","w5":{"base":168000,"spentByWeek":[],"top":{"label":"Month 1","text":"₹2,96,535 of ₹3,13,000 spent"},"deadline":{"counted":436541,"through":4,"weeksLeft":4}},"w6":{"total":288000,"spentByWeek":[72000],"top":{"label":"Month 2","text":"₹72,000 of ₹2,88,000 spent"},"deadline":{"counted":562811,"through":5,"weeksLeft":3}},"history":[{"round":1,"spend":61786,"planned":78250,"lostToBudget":0.000015153272089379365},{"round":2,"spend":78250,"planned":78250,"lostToBudget":0.5673040138013871},{"round":3,"spend":78250,"planned":78250,"lostToBudget":0.587786836970664},{"round":4,"spend":78250,"planned":78250,"lostToBudget":0.49754169255806263}],"lastMonth":"Last month you spent ₹2,96,535 of ₹3,13,000 and lost 41% of your impressions to budget.","turnsOn":"Whether this money does more as advertising or as capital turns on that figure. While the budget is what keeps you out of auctions, advertising money buys more of them; while it is not, extra advertising money goes unspent and is lost when the month ends.","targets":[{"key":"landingPage","name":"The page itself","reason":"Better quality, so a cheaper click. Worth most in the middle.","at":"plain","rungs":[{"label":"faster","amount":25000},{"label":"reviews","amount":55000},{"label":"built around the search","amount":80000}]},{"key":"sizeGuide","name":"Size guide","reason":"Fewer parcels sent back after delivery. Worth most at the cheap end, and to anything sold on how it looks.","at":"none","rungs":[{"label":"a chart","amount":25000},{"label":"measured","amount":55000},{"label":"fit finder","amount":80000}]},{"key":"photography","name":"Photography","reason":"More of your visitors buy. Worth most where the decision is considered.","at":"none","rungs":[{"label":"product shots","amount":50000},{"label":"on real bodies","amount":110000},{"label":"video","amount":160000}]},{"key":"orderConfirmation","name":"Order confirmation","reason":"Fewer parcels refused at the door. Worth most where cash on delivery is commonest, which is the cheap end and the small towns.","at":"none","rungs":[{"label":"an SMS","amount":25000},{"label":"WhatsApp confirm","amount":55000},{"label":"confirm and verify","amount":80000}]}],"cells":[{"key":"value|lifestyle","price":"value","purpose":"lifestyle","econ":"₹1,200 order · 40% margin","vol":"2,23,600 searches a week","reachable":false},{"key":"value|performance","price":"value","purpose":"performance","econ":"₹1,200 order · 40% margin","vol":"2,23,600 searches a week","reachable":true},{"key":"mid|lifestyle","price":"mid","purpose":"lifestyle","econ":"₹2,400 order · 52% margin","vol":"1,20,400 searches a week","reachable":true},{"key":"mid|performance","price":"mid","purpose":"performance","econ":"₹2,400 order · 52% margin","vol":"1,20,400 searches a week","reachable":true},{"key":"premium|lifestyle","price":"premium","purpose":"lifestyle","econ":"₹4,800 order · 62% margin","vol":"86,000 searches a week","reachable":false},{"key":"premium|performance","price":"premium","purpose":"performance","econ":"₹4,800 order · 62% margin","vol":"86,000 searches a week","reachable":true}],"strategies":[{"id":"manual","name":"Manual CPC","desc":"Bids exactly what you set, every hour, whatever the data says.","predicts":false},{"id":"maxClicks","name":"Maximise clicks","desc":"Buys as much traffic as the budget allows. It does not care what converts.","predicts":false},{"id":"maxConv","name":"Maximise conversions","desc":"Like maximise clicks, but leaning toward the hours its history says convert.","predicts":true},{"id":"targetCpa","name":"Target CPA","desc":"Bids for a cost per conversion you name, from what it has learned converts.","predicts":true},{"id":"targetRoas","name":"Target ROAS","desc":"Bids for a return on ad spend you name, using your own order value.","predicts":true}],"outlooks":{"manual":{"x":{"bidPaise":3300,"needPaise":445,"willShow":true}},"maxClicks":{"x":{"bidPaise":5280,"needPaise":445,"willShow":true}},"maxConv":{"x":{"bidPaise":6426,"needPaise":445,"willShow":true}},"targetCpa":{"20000":{"bidPaise":920,"needPaise":445,"willShow":true},"25000":{"bidPaise":1150,"needPaise":445,"willShow":true},"30000":{"bidPaise":1380,"needPaise":445,"willShow":true},"35000":{"bidPaise":1611,"needPaise":445,"willShow":true},"40000":{"bidPaise":1841,"needPaise":445,"willShow":true},"45000":{"bidPaise":2071,"needPaise":445,"willShow":true},"50000":{"bidPaise":2301,"needPaise":445,"willShow":true},"55000":{"bidPaise":2531,"needPaise":445,"willShow":true},"60000":{"bidPaise":2761,"needPaise":445,"willShow":true},"65000":{"bidPaise":2991,"needPaise":445,"willShow":true},"70000":{"bidPaise":3221,"needPaise":445,"willShow":true},"75000":{"bidPaise":3451,"needPaise":445,"willShow":true},"80000":{"bidPaise":3681,"needPaise":445,"willShow":true},"85000":{"bidPaise":3911,"needPaise":445,"willShow":true},"90000":{"bidPaise":4141,"needPaise":445,"willShow":true},"95000":{"bidPaise":4371,"needPaise":445,"willShow":true},"100000":{"bidPaise":4602,"needPaise":445,"willShow":true}},"targetRoas":{"2":{"bidPaise":5522,"needPaise":445,"willShow":true},"3":{"bidPaise":3681,"needPaise":445,"willShow":true},"4":{"bidPaise":2761,"needPaise":445,"willShow":true},"5":{"bidPaise":2209,"needPaise":445,"willShow":true},"6":{"bidPaise":1841,"needPaise":445,"willShow":true},"7":{"bidPaise":1578,"needPaise":445,"willShow":true},"8":{"bidPaise":1380,"needPaise":445,"willShow":true},"2.5":{"bidPaise":4417,"needPaise":445,"willShow":true},"3.5":{"bidPaise":3155,"needPaise":445,"willShow":true},"4.5":{"bidPaise":2454,"needPaise":445,"willShow":true},"5.5":{"bidPaise":2008,"needPaise":445,"willShow":true},"6.5":{"bidPaise":1699,"needPaise":445,"willShow":true},"7.5":{"bidPaise":1472,"needPaise":445,"willShow":true}}},"keyword":"gym leggings","cpaSoFar":508,"roasLast":2.6906694417046495,"observed":{"conversions":584.3001107295107,"rate":0.03780818696671944,"learning":0},"learningWeeks":2,"maxBid":4,"ladder":[{"finish":"1st","budget":218400,"vs":"+30%"},{"finish":"2nd","budget":204960,"vs":"+22%"},{"finish":"3rd","budget":193200,"vs":"+15%"},{"finish":"4th","budget":179760,"vs":"+7%"},{"finish":"5th","budget":168000,"vs":"average"},{"finish":"6th","budget":156240,"vs":"−7%"},{"finish":"7th","budget":142800,"vs":"−15%"},{"finish":"8th","budget":131040,"vs":"−22%"},{"finish":"9th","budget":117600,"vs":"−30%"}]};
+const VIEW = 'timeline';
+const AMBER = '#F2A53A';
+const RED = '#D7262F';
+const rupees = (r) => '₹' + Math.round(r).toLocaleString('en-IN');
+const sum = (xs) => xs.reduce((a, b) => a + b, 0);
+const TARGET_NAMES = { landingPage: 'the page itself', sizeGuide: 'size guide', photography: 'photography', orderConfirmation: 'order confirmation' };
+
+function drag(e, apply, done) {
+  e.preventDefault();
+  const rect = e.currentTarget.getBoundingClientRect();
+  apply(e, rect, true);
+  const move = (ev) => apply(ev, rect, false);
+  const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); done(); };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+}
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = {
+      week: 5, capex: { landingPage: 0, sizeGuide: 0, photography: 0, orderConfirmation: 0 },
+      cell: DATA.here, strategy: 'manual', cpa: 40000, roas: 4,
+      shape5: [1, 1, 1, 1], shape6: [1, 1, 1],
+    };
+  }
+
+  money() {
+    const s = this.state;
+    const five = s.week === 5;
+    const w = five ? DATA.w5 : DATA.w6;
+    const committed = five ? sum(Object.values(s.capex)) : 0;
+    const joins = five ? DATA.capital - committed : 0;
+    const moved = five && s.cell !== DATA.here;
+    const total = five ? DATA.w5.base + joins - (moved ? DATA.moveCost : 0) : DATA.w6.total;
+    const spent = w.spentByWeek;
+    const left = Math.max(0, total - sum(spent));
+    const shape = five ? s.shape5 : s.shape6;
+    const plan = shape.map((x) => (sum(shape) > 0 ? (left * x) / sum(shape) : left / shape.length));
+    return { five, w, committed, joins, moved, total, spent, left, shape, plan };
+  }
+
+  setShape(plan) {
+    const key = this.state.week === 5 ? 'shape5' : 'shape6';
+    this.setState({ [key]: plan.map((x) => Math.max(0, x)) });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const m = this.money();
+    const firstWeek = DATA.monthStart;
+    const playedInMonth = m.spent.length;
+
+    // The month, one bar (option A): what has run, and the plan for the rest.
+    const segs = [];
+    m.spent.forEach((v, i) => segs.push({ week: firstWeek + i, amount: v, played: true }));
+    m.plan.forEach((v, i) => segs.push({ week: firstWeek + playedInMonth + i, amount: v, played: false }));
+    const bar = segs.map((g, i) => {
+      const next = !g.played && i === playedInMonth;
+      return {
+        width: Math.max(0.5, (100 * g.amount) / m.total) + '%',
+        bg: g.played ? '#2A272D' : next ? '#EDE8E3' : '#7A7480',
+        color: g.played ? '#A19A94' : next ? '#0D0C0E' : '#EDE8E3',
+        label: 'week ' + g.week,
+        amount: rupees(g.amount),
+        sub: g.played ? 'spent' : next ? 'about to run' : 'planned',
+      };
+    });
+    const barDown = (e) => {
+      if (m.plan.length < 2) return;
+      const spentTotal = sum(m.spent);
+      let pick = null;
+      drag(e, (ev, rect, first) => {
+        const at = ((ev.clientX - rect.left) / rect.width) * m.total - spentTotal;
+        const plan = [...this.money().plan];
+        if (first) {
+          let acc = 0;
+          let best = Infinity;
+          for (let i = 0; i < plan.length - 1; i++) {
+            acc += plan[i];
+            if (Math.abs(acc - at) < best) { best = Math.abs(acc - at); pick = i; }
+          }
+        }
+        const before = sum(plan.slice(0, pick));
+        const pair = plan[pick] + plan[pick + 1];
+        const a = Math.max(0, Math.min(pair, Math.round((at - before) / 1000) * 1000));
+        plan[pick] = a;
+        plan[pick + 1] = pair - a;
+        this.setShape(plan);
+      }, () => {});
+    };
+
+    // Twelve weeks (option B): each week's budget against what it spent, the
+    // month-3 band the week-8 finish decides, and the weeks still to plan.
+    const scale = Math.max(78250, ...m.plan, 60000) * 1.15;
+    const columns = [];
+    for (let week = 1; week <= DATA.totalWeeks; week++) {
+      const hist = week < firstWeek ? DATA.history.find((h) => h.round === week) : null;
+      const inMonth = week >= firstWeek && week < firstWeek + 4;
+      const idx = week - firstWeek;
+      const planned = hist ? hist.planned : inMonth ? (idx < playedInMonth ? m.spent[idx] : m.plan[idx - playedInMonth]) : null;
+      const spentHere = hist ? hist.spend : inMonth && idx < playedInMonth ? m.spent[idx] : null;
+      const future = inMonth && idx >= playedInMonth;
+      const band = week >= firstWeek + 4;
+      const next = inMonth && idx === playedInMonth;
+      const planH = planned !== null ? Math.round((150 * planned) / scale) : 0;
+      const spentH = spentHere !== null ? Math.round((150 * spentHere) / scale) : 0;
+      columns.push({
+        amountBottom: 30 + Math.max(planH, spentH),
+        sub: [hist && hist.lostToBudget > 0.1 ? 'ran out' : next ? 'next' : '',
+          week === 5 && m.five ? 'capital' : week === DATA.snapshot ? 'cut-off' : ''].filter(Boolean).join(' · '),
+        subColor: next ? '#EDE8E3' : '#A19A94',
+        week: String(week),
+        weekColor: next ? '#EDE8E3' : '#8A847E', weekWeight: next ? 700 : 400,
+        showPlan: planned !== null, planH: planned !== null ? Math.round((150 * planned) / scale) : 0,
+        planBorder: future ? (next ? '#EDE8E3' : '#A19A94') : '#68636B',
+        planBg: future ? (next ? 'rgba(237,232,227,0.14)' : 'rgba(161,154,148,0.10)') : 'transparent',
+        showSpent: spentHere !== null, spentH: spentHere !== null ? Math.round((150 * spentHere) / scale) : 0,
+        capped: hist ? hist.lostToBudget > 0.1 : false,
+        amount: planned !== null ? rupees(planned) : '',
+        amountColor: future ? '#EDE8E3' : '#A19A94',
+        band, bandLow: Math.round((150 * DATA.ladder[8].budget / 4) / scale), bandH: Math.round((150 * (DATA.ladder[0].budget - DATA.ladder[8].budget) / 4) / scale),
+        avgAt: Math.round((150 * DATA.ladder[4].budget / 4) / scale),
+        mark: week === 5 && m.five ? 'capital' : week === DATA.snapshot ? 'cut-off' : '',
+        hasMark: (week === 5 && m.five) || week === DATA.snapshot,
+        grab: future ? 'ns-resize' : 'default',
+        down: future ? (e) => {
+          const i = idx - playedInMonth;
+          drag(e, (ev, rect) => {
+            const value = Math.max(0, Math.min(m.left, Math.round(((rect.bottom - ev.clientY) / rect.height) * scale / 1000) * 1000));
+            const plan = [...this.money().plan];
+            const others = plan.map((x, j) => (j === i ? 0 : x));
+            const rest = sum(others);
+            const spare = m.left - value;
+            // The rest share what is left in their own proportions, in whole
+            // thousands, the odd rupees on the largest, so the month adds up.
+            const next = plan.map((x, j) => (j === i ? value
+              : Math.round((rest > 0 ? (spare * x) / rest : spare / (plan.length - 1)) / 1000) * 1000));
+            const largest = next.reduce((b, x, j) => (j !== i && (b < 0 || x > next[b]) ? j : b), -1);
+            if (largest >= 0) next[largest] += m.left - sum(next);
+            this.setShape(next);
+          }, () => {});
+        } : () => {},
+      });
+    }
+
+    // Bidding, the same in both.
+    const strategies = DATA.strategies.map((st) => ({
+      label: st.name, bg: st.id === s.strategy ? '#EDE8E3' : 'transparent', color: st.id === s.strategy ? '#0D0C0E' : '#CFC9C3',
+      border: st.id === s.strategy ? '#EDE8E3' : '#3A363E', pick: () => this.setState({ strategy: st.id }),
+    }));
+    const chosen = DATA.strategies.find((st) => st.id === s.strategy);
+    const key = s.strategy === 'targetCpa' ? String(s.cpa) : s.strategy === 'targetRoas' ? String(s.roas) : 'x';
+    const look = DATA.outlooks[s.strategy][key];
+    const outlook = look.willShow
+      ? chosen.name + ' bids about ' + rupees(look.bidPaise / 100) + ' at best, on ' + DATA.keyword + '. Your quality needs ' + rupees(look.needPaise / 100) + ' to appear at all, so this shows.'
+      : 'This shows nowhere: ' + chosen.name + ' bids ' + rupees(look.bidPaise / 100) + ' at best, and your quality needs ' + rupees(look.needPaise / 100) + '.';
+    const changedBid = s.strategy !== 'manual' || (s.strategy === 'targetCpa' && s.cpa !== 40000) || (s.strategy === 'targetRoas' && s.roas !== 4);
+    const learning = !changedBid ? '' : chosen.predicts
+      ? 'This restarts the learning period: for ' + DATA.learningWeeks + ' weeks its guesses at what converts are much wider while it re-learns.'
+      : 'This still starts a ' + DATA.learningWeeks + '-week learning period, but it costs ' + chosen.name + ' nothing: it never predicts conversions.';
+    const target = s.strategy === 'targetCpa'
+      ? { label: 'Target CPA', value: rupees(s.cpa / 100), min: 20000, max: 100000, step: 5000, at: s.cpa, hint: 'You have paid ' + rupees(DATA.cpaSoFar) + ' a conversion over the weeks played.' }
+      : s.strategy === 'targetRoas'
+        ? { label: 'Target ROAS', value: s.roas.toFixed(1), min: 2, max: 8, step: 0.5, at: s.roas, hint: 'Your net return last week was ' + DATA.roasLast.toFixed(2) + ', and it is still being revised.' }
+        : null;
+    const onTarget = (e) => {
+      const v = Number(e.target.value);
+      if (s.strategy === 'targetCpa') this.setState({ cpa: v });
+      else this.setState({ roas: v });
+    };
+
+    // Week 5 only: capital and position.
+    const remaining = DATA.capital - m.committed;
+    const targets = DATA.targets.map((t) => ({
+      name: t.name, reason: t.reason, at: 'now: ' + t.at,
+      chips: t.rungs.map((r) => {
+        const on = s.capex[t.key] === r.amount;
+        const affordable = r.amount <= remaining + s.capex[t.key];
+        return {
+          label: r.label + ' · ' + rupees(r.amount),
+          bg: on ? RED : 'transparent', color: on ? '#FFF5F4' : affordable ? '#CFC9C3' : '#68636B',
+          border: on ? RED : affordable ? '#3A363E' : '#26232A', cursor: affordable ? 'pointer' : 'not-allowed',
+          pick: () => {
+            if (!affordable && !on) return;
+            this.setState({ capex: { ...this.state.capex, [t.key]: on ? 0 : r.amount } });
+          },
+        };
+      }),
+    }));
+    const strips = ['your product', ...DATA.targets.filter((t) => t.key !== 'orderConfirmation' && s.capex[t.key] > 0)
+      .map((t) => t.rungs.find((r) => r.amount === s.capex[t.key]).label)];
+    const cells = DATA.cells.map((c) => {
+      const chosenCell = c.key === s.cell;
+      return {
+        name: c.price + ' · ' + c.purpose, econ: c.econ, vol: c.vol,
+        note: c.key === DATA.here ? 'you are here' : c.reachable ? '' : 'more than one step',
+        bg: chosenCell ? '#2A1216' : '#17161A', border: chosenCell ? RED : '#2A272D',
+        opacity: c.reachable ? 1 : 0.45, cursor: c.reachable ? 'pointer' : 'not-allowed',
+        pick: () => { if (c.reachable) this.setState({ cell: c.key }); },
+      };
+    });
+
+    // The tray.
+    const tray = [];
+    if (m.five) {
+      const parts = Object.entries(s.capex).filter(([, v]) => v > 0).map(([k, v]) => rupees(v) + ' to ' + TARGET_NAMES[k]);
+      tray.push({ text: parts.length ? 'Capital: ' + parts.join(', ') : 'Capital: nothing committed to the business', hasUndo: parts.length > 0,
+        undo: () => this.setState({ capex: { landingPage: 0, sizeGuide: 0, photography: 0, orderConfirmation: 0 } }) });
+      if (m.moved) tray.push({ text: 'Position: ' + DATA.here.replace('|', ' · ') + ' → ' + s.cell.replace('|', ' · '), hasUndo: true, undo: () => this.setState({ cell: DATA.here }) });
+    }
+    if (s.strategy !== 'manual') tray.push({ text: 'Bidding: Manual CPC → ' + chosen.name, hasUndo: true, undo: () => this.setState({ strategy: 'manual' }) });
+    const even = m.left / m.plan.length;
+    m.plan.forEach((v, i) => {
+      if (Math.abs(v - even) >= 1000) {
+        tray.push({ text: 'Week ' + (firstWeek + playedInMonth + i) + ' budget ' + rupees(even) + ' → ' + rupees(v), hasUndo: true,
+          undo: () => this.setShape(m.plan.map(() => 1)) });
+      }
+    });
+    const nextWeek = firstWeek + playedInMonth;
+    const deadline = m.five ? DATA.w5.deadline : DATA.w6.deadline;
+    const weekChip = (w) => ({
+      label: 'week ' + w, bg: s.week === w ? '#EDE8E3' : 'transparent', color: s.week === w ? '#0D0C0E' : '#CFC9C3',
+      border: s.week === w ? '#EDE8E3' : '#3A363E', pick: () => this.setState({ week: w }),
+    });
+
+    return {
+      weeks: [weekChip(5), weekChip(6)],
+      topWeek: 'Week ' + (nextWeek - 1) + ' of 12', runLabel: 'Run week ' + nextWeek,
+      // The Studio's top bar shows the month just played.
+      topLabel: m.w.top.label, topMonth: m.w.top.text,
+      five: m.five, notFive: !m.five,
+      lastMonth: DATA.lastMonth, turnsOn: DATA.turnsOn,
+      capitalHead: 'Capital · ' + rupees(DATA.capital) + ', and it does not carry forward',
+      targets, strips,
+      capBarCommitted: (100 * m.committed) / DATA.capital + '%', capBarJoins: (100 * m.joins) / DATA.capital + '%',
+      capCommitted: rupees(m.committed) + ' to the business, live in week ' + DATA.liveWeek,
+      capJoins: rupees(m.joins) + ' joins this month\'s ads',
+      cells, moveNote: m.moved ? 'Moving takes ' + rupees(DATA.moveCost) + ' from this month and restarts the learning period; every keyword you replace starts with no Quality Score.' : '',
+      moved: m.moved,
+      monthHead: 'Month ' + DATA.month + ' · ' + rupees(m.total) + ' to advertise',
+      monthSub: m.five
+        ? rupees(DATA.w5.base) + ' for the month' + (m.joins ? ', and the ' + rupees(m.joins) + ' of capital you have not committed' : '') + (m.moved ? ', less ' + rupees(DATA.moveCost) + ' for the move' : '')
+        : rupees(m.left) + ' left for weeks ' + nextWeek + ' to ' + (firstWeek + 3),
+      bar, barDown,
+      columns, months: DATA.monthsBand,
+      strategies, strategyDesc: chosen.desc, outlook, learning, hasLearning: learning !== '',
+      hasTarget: Boolean(target), target: target || { label: '', value: '', min: 0, max: 1, step: 1, at: 0, hint: '' }, onTarget,
+      predicts: chosen.predicts, observed: 'Seen so far: ' + DATA.observed.conversions.toFixed(1) + ' conversions, a ' + (100 * DATA.observed.rate).toFixed(2) + '% rate.',
+      ceiling: 'Your keyword bids stay the ceiling: no strategy bids more than ' + DATA.maxBid + ' times a keyword\'s bid.',
+      deadlineHead: rupees(deadline.counted) + ' gross profit counted, weeks 1 to ' + deadline.through,
+      deadlineLeft: deadline.weeksLeft + ' weeks left · week ' + DATA.snapshot + ' is the cut-off',
+      ladder: DATA.ladder.map((l, i) => ({
+        finish: l.finish, budget: rupees(l.budget), vs: l.vs,
+        width: Math.round((100 * l.budget) / DATA.ladder[0].budget) + '%',
+        bg: i === 4 ? '#A19A94' : '#7A7480', weight: i === 4 ? 700 : 400,
+      })),
+      ladderNote: rupees(DATA.ladder[0].budget - DATA.ladder[8].budget) + ' separates first from last in month 3, on a pool that does not change size. At week ' + DATA.snapshot + ' you learn your own rank, and nobody else\'s.',
+      tray, hasTray: tray.length > 0, emptyTray: tray.length === 0, trayN: String(tray.length), trayWord: tray.length === 1 ? 'change' : 'changes',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

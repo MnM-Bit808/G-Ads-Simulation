@@ -1,0 +1,72 @@
+{
+  "pages": [
+    {
+      "id": "chosen",
+      "name": "Your money"
+    },
+    {
+      "id": "not-chosen",
+      "name": "Not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "A · This month, as one bar (chosen)",
+      "page": "chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1760
+    },
+    {
+      "file": "Timeline.dc.html",
+      "title": "B · Twelve weeks at a glance",
+      "page": "not-chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1760
+    }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "page": "chosen",
+      "x": 0,
+      "y": -560,
+      "w": 1440,
+      "text": "Your money: two ways to draw it, replacing today's five cards (This week only, Budget, This month's budget, Bidding, What week 8 decides), as the makeover design merges them. Both open at the moment the section matters most: week 4 played, week 5 about to run, with the one-off capital and the one chance to move on top; the switch top right shows an ordinary week 6 instead. Try it: pick rungs for the capital and watch the month change, move a cell, change strategy, drag the weeks.\nReal figures from the engine: seed 1, Vella & Co. at mid-price performance, the makeover canvas's keywords. Month 1 was ₹3,13,000 and ran out in weeks 2 to 4, losing 41% of impressions to budget; month 2 is ₹1,68,000, or ₹2,88,000 with the capital left for ads. Every bid a strategy shows is the engine's own."
+    },
+    {
+      "id": "a",
+      "page": "chosen",
+      "x": 1560,
+      "y": 0,
+      "w": 480,
+      "text": "Chosen by the owner, 2026-09-15. A · This month, as one bar. The month you are spending is one bar, its four weeks as segments you move money between by dragging the lines; bidding and what week 8 decides sit side by side below, week 8 with the whole ladder of month-3 budgets. At week 5 the capital card is on top, and what you leave uncommitted visibly joins the bar.\nFor: the decision in front of you is this month, and dragging keeps the plan equal to the money: nothing unplanned, nothing overplanned.\nAgainst: last month and month 3 are sentences and a table, not a picture."
+    },
+    {
+      "id": "b",
+      "page": "not-chosen",
+      "x": 0,
+      "y": -300,
+      "w": 1440,
+      "text": "B · Twelve weeks at a glance. All three months in one picture: each week's budget outlined and what it spent filled, month 1's weeks that ran out marked, the weeks still to run dragged up or down, and month 3 shaded from ₹1,17,600 to ₹2,18,400 because week 8 decides it. Capital and bidding sit below.\nFor: the game's money calendar is drawn, so why week 8 matters and that a month does not carry over are seen rather than read.\nAgainst: more on screen, and the weeks you can change are four narrow columns among twelve."
+    },
+    {
+      "id": "found",
+      "page": "chosen",
+      "x": 0,
+      "y": 1860,
+      "w": 1440,
+      "text": "Found while mapping today's cards: after week 8 the rank sentence is printed twice in this section (the Budget card and What week 8 decides); \"counted so far\" is re-added from revised history, so after week 8 it can drift from the as-reported figure the engine ranked on; and the capital and split cards still type \"four\" and carry ₹1,00,000 in two comments and the spec, from before the allocation became ₹1,20,000. Both options print each figure once, from one place."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "chosen"
+  }
+}

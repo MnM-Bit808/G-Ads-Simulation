@@ -159,6 +159,34 @@ preview's warning about searches that sold nearly always does. Both options
 mark instead a sale that costs over twice the account's average, and show the
 sales a block would stop.
 
+## `your-money/`: budget, bidding, week 8 and capital (2026-09-15)
+
+A seventh canvas, https://claude.ai/code/artifact/6f331294-d17c-48e9-9804-b7b37227e2c8,
+the third section on the makeover design's section 7 list, merging today's
+five cards (This week only, Budget, This month's budget, Bidding, What week 8
+decides). Both options open at week 5 with the capital and position window
+on top; a switch shows an ordinary week 6. Every bid a strategy shows is the
+engine's own (`bidOutlook`, computed for each target the slider reaches).
+
+- **Page 1**, `Main.dc.html` (A · this month, as one bar), **chosen by the
+  owner on 2026-09-15**: the month as one bar whose four weeks you move money
+  between by dragging the lines, so the plan always equals the money; bidding
+  and what week 8 decides side by side below, with the whole ladder of month-3
+  budgets; at week 5 the capital card on top, its uncommitted money visibly
+  joining the month.
+- **Page 2**, `Timeline.dc.html` (B · twelve weeks at a glance): all three
+  months as one chart, each week's budget against what it spent, the weeks
+  that ran out marked, and month 3 shaded because week 8 decides it.
+
+Its numbers come from the game the makeover canvas's keywords played (seed 1,
+Vella & Co. at mid-price performance), after week 4 and after week 5 with the
+capital left for ads: month 1 was ₹3,13,000 and ran out in weeks 2 to 4,
+losing 41% of impressions to budget; month 2 is ₹1,68,000, or ₹2,88,000 with
+the capital. Mapping today's cards found the rank sentence printed twice
+after week 8, "counted so far" re-added from revised history (so it can drift
+from the figure the engine ranked on), and ₹1,00,000 left in comments and the
+spec from before the allocation became ₹1,20,000.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.
