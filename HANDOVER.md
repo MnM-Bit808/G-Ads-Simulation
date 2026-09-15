@@ -1916,6 +1916,12 @@ tooling and one untested claim.
   removing or replacing a keyword did it too. The keywords table showed it,
   the search terms report never did, and the market harness came out identical.
 - **For whoever merges those two fixes:**
+  - `main` moved while they were built (the rivals' prepaid discount,
+    `2044072`). Merging it gives one conflict, in `engine/report.js`, where
+    main's new `statedRefusals` sits just above `reviseBreakdown`: keep
+    `statedRefusals`, then this branch's comment and signature for
+    `reviseBreakdown`. Tried in a throwaway worktree on 2026-09-16, and the
+    merged tree passed, 1,704 tests.
   - `claude/ecstatic-stonebraker-d1dfa1` (the cash share) carries a *Still
     open* bullet, "A revision re-prices old weeks at the account's current
     margin", which is F18: drop it, and the last sentence of its trap "A report
@@ -1923,6 +1929,7 @@ tooling and one untested claim.
   - It also rewrites the `reviseBreakdown` call in `reviseReports`, and so does
     I36. The merged line is both changes, with no `withRefusals` and no map:
     `breakdown: reviseBreakdown(existing.breakdown, lateLanded, lateReturns),`.
+    And its I34 addendum ends where I36 begins: keep both, the addendum first.
   - `makeover` has F17 just before I6, where F18 sits too, and I35 just after
     I34, where I36 sits: keep both each time, the lower number first.
   - `makeover` carries the same `reviseReports` and `keywordForQuery`, so it
