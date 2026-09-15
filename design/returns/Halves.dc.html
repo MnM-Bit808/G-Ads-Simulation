@@ -1,0 +1,293 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #FF6166; } a:hover { color: #FF8A8E; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .why { color: #FF6166; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+    .pick { cursor: pointer; user-select: none; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 1220px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: #2A1216; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #F3EEEA;">Brand</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M16 14.2c2.9.4 5 2.8 5 5.8"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Market</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Guide</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#68636B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #68636B;">Results</div>
+    </div>
+  </div>
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">mid · performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Your brand</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M11 20V5M17 20v-6M3 20h18"></path></svg>
+      <div style="flex-grow: 1;">Your week</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8L3 12z"></path><path d="M6 7.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path></svg>
+      <div style="flex-grow: 1;">Your keywords</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a6 6 0 1 0 12 0a6 6 0 1 0 -12 0"></path><path d="M20 20l-4.5-4.5"></path></svg>
+      <div style="flex-grow: 1;">What people typed</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4h4l6 4V6L7 10H3z"></path><path d="M16.5 9a4 4 0 0 1 0 6"></path></svg>
+      <div style="flex-grow: 1;">Your ad</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M3 10h18M16 14.5h2"></path></svg>
+      <div style="flex-grow: 1;">Your money</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><path d="M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path></svg>
+      <div style="flex-grow: 1;">Where and when</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; background: #1F1C22; color: #F3EEEA; box-shadow: 0 0 0 1px #2E2A33;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4V8z"></path><path d="M4 8l8 4 8-4M12 12v8"></path></svg>
+      <div style="flex-grow: 1;">Returns</div>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="display" style="font-weight: 700; font-size: 20px;">{{topWeek}}</div>
+        <div style="font-size: 13px; color: #8A847E;">saved</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 13px;">
+        <div style="color: #A19A94;">{{topLabel}}</div>
+        <div class="num" style="font-weight: 700;">{{topMonth}}</div>
+      </div>
+    </div>
+    <div style="flex-grow: 1; min-height: 0; padding: 22px 40px 20px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;">
+        <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Returns</div>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8A847E;">mock-up, show
+          <sc-for list="{{views}}" as="w" hint-placeholder-count="2">
+            <div class="pick" onClick="{{w.pick}}" style="padding: 4px 10px; border-radius: 999px; border: 1px solid {{w.border}}; background: {{w.bg}}; color: {{w.color}}; font-size: 12px; font-weight: 600;">{{w.label}}</div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;"><div class="num" style="font-size: 15px; font-weight: 700;">{{cameBackLine}}</div><div style="font-size: 12px; color: #A19A94;">{{counted}} <span class="why">why?</span></div></div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; align-items: start;">
+        <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 3px; background: #F2A53A; opacity: 1;"></div><div class="display" style="font-weight: 700; font-size: 18px;">Refused at the door</div><span class="why" style="font-size: 12px;">why?</span></div>
+          <div style="display: flex; align-items: baseline; gap: 12px;"><div class="display num" style="font-weight: 800; font-size: 34px; line-height: 1;">{{refusedBig}}</div><div class="num" style="font-size: 12px; color: #A19A94;">{{refusedSub}}</div></div>
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; height: 118px; align-items: end; padding: 0 4px; border-bottom: 1px solid #3A363E;">
+            <sc-for list="{{refusedCols}}" as="c" hint-placeholder-count="12">
+              <div style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px;">
+                <sc-if value="{{c.mark}}" hint-placeholder-val="{{false}}">
+                  <div style="position: absolute; left: -6px; top: 0; height: 118px; border-left: 1.5px dashed #8A847E;"></div>
+                  <div style="position: absolute; left: -2px; top: -2px; font-size: 11px; color: #CFC9C3; white-space: nowrap;">order confirmation live</div>
+                </sc-if>
+                <div class="num" style="font-size: 11px; font-weight: 700;">{{c.total}}</div>
+                <div style="width: 100%; max-width: 30px; height: {{c.h}}px; background: #F2A53A; border-radius: 5px 5px 0 0; opacity: {{c.opacity}};"></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; padding: 0 4px;">
+            <sc-for list="{{refusedCols}}" as="c" hint-placeholder-count="12">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: 11px;">
+                <div class="num" style="color: {{c.weekColor}};">{{c.week}}</div>
+                <div style="color: #A19A94; white-space: nowrap; min-height: 14px;">{{c.sub}}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 13px; line-height: 1.45; color: #CFC9C3;">{{refusedReading}}</div>
+          <div style="font-size: 12px; line-height: 1.45; color: #A19A94;">{{perRefusal}}</div>
+          <div style="font-size: 12px; line-height: 1.45; color: #A19A94;">{{paidAtDoor}} <span class="why">why?</span></div>
+          <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; padding-top: 10px; border-top: 1px solid #2A272D;">Only this half</div>
+          <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;"><div style="font-weight: 700; font-size: 14px;">Prepaid discount</div><div style="font-size: 12px; color: #A19A94;">open every week</div></div>
+          <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px;">
+            <sc-for list="{{rungs}}" as="r" hint-placeholder-count="5">
+              <div class="pick" onClick="{{r.pick}}" style="padding: 8px 10px; border-radius: 14px; border: 1px solid {{r.border}}; background: {{r.bg}}; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+                <div class="display" style="font-weight: 700; font-size: 16px; color: {{r.color}};">{{r.label}}</div>
+                <div style="display: flex; flex-direction: column; gap: 3px;">
+                  <div style="height: 5px; border-radius: 3px; background: #221F25;"><div style="width: {{r.saveW}}; height: 100%; border-radius: 3px; background: #9FD3B5;"></div></div>
+                  <div style="height: 5px; border-radius: 3px; background: #221F25;"><div style="width: {{r.costW}}; height: 100%; border-radius: 3px; background: #F2A53A;"></div></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{isNone}}" hint-placeholder-val="{{true}}">
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45; color: #CFC9C3;">
+              <div>{{noneLine}}</div>
+              <div style="font-size: 12px; color: #A19A94;">{{noneShape}} Pick a rung to see what it saves and what it costs.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{isRung}}" hint-placeholder-val="{{false}}">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div class="num" style="font-size: 13px; font-weight: 700;">{{rungRate}}</div>
+              <div style="display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 4px 12px; align-items: center; font-size: 13px;">
+                <div class="num" style="font-weight: 600;">{{rungSaves}}</div>
+                <div style="height: 8px; border-radius: 4px; background: #221F25;"><div style="width: {{rungSaveW}}; height: 100%; border-radius: 4px; background: #9FD3B5;"></div></div>
+                <div></div>
+                <div class="num" style="font-size: 12px; color: #A19A94;">{{rungSavesSub}}</div>
+                <div class="num" style="font-weight: 600;">{{rungCosts}}</div>
+                <div style="height: 8px; border-radius: 4px; background: #221F25;"><div style="width: {{rungCostW}}; height: 100%; border-radius: 4px; background: #F2A53A;"></div></div>
+                <div></div>
+                <div class="num" style="font-size: 12px; color: #A19A94;">{{rungCostsSub}}</div>
+              </div>
+              <div class="num" style="font-size: 12px; color: #A19A94;">{{rungFoot}}</div>
+            </div>
+          </sc-if>
+          <div style="font-size: 13px; color: #CFC9C3;">{{capitalRefused}} <span style="color: #A19A94;">Capital closed after week 5.</span></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+          <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px;"><div style="width: 10px; height: 10px; border-radius: 3px; background: #7A7480; opacity: 1;"></div><div class="display" style="font-weight: 700; font-size: 18px;">Sent back after delivery</div></div>
+          <div style="display: flex; align-items: baseline; gap: 12px;"><div class="display num" style="font-weight: 800; font-size: 34px; line-height: 1;">{{sentBig}}</div><div class="num" style="font-size: 12px; color: #A19A94;">{{sentSub}}</div></div>
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; height: 118px; align-items: end; padding: 0 4px; border-bottom: 1px solid #3A363E;">
+            <sc-for list="{{sentCols}}" as="c" hint-placeholder-count="12">
+              <div style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px;">
+                
+                <div class="num" style="font-size: 11px; font-weight: 700;">{{c.total}}</div>
+                <div style="width: 100%; max-width: 30px; height: {{c.h}}px; background: #7A7480; border-radius: 5px 5px 0 0; opacity: {{c.opacity}};"></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; padding: 0 4px;">
+            <sc-for list="{{sentCols}}" as="c" hint-placeholder-count="12">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: 11px;">
+                <div class="num" style="color: {{c.weekColor}};">{{c.week}}</div>
+                <div style="color: #A19A94; white-space: nowrap; min-height: 14px;">{{c.sub}}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 13px; line-height: 1.45; color: #CFC9C3;">{{sentReading}}</div>
+          <div style="font-size: 12px; line-height: 1.45; color: #A19A94;">{{perSendBack}}</div>
+          <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; padding-top: 10px; border-top: 1px solid #2A272D;">Only this half</div>
+          <div style="font-size: 13px; color: #CFC9C3;">{{capitalSent}} <span style="color: #A19A94;">Capital closed after week 5.</span></div>
+        </div>
+          <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0; gap: 12px;">
+          <div class="display" style="font-weight: 700; font-size: 18px;">Both halves</div>
+          <div style="font-weight: 700; font-size: 14px;">Where you advertise</div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 76px 76px 96px; gap: 4px 12px; font-size: 12px; align-items: baseline;">
+              <div></div><div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; text-align: right;">refused</div><div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; text-align: right;">sent back</div><div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; text-align: right;">paid at door</div>
+              <sc-for list="{{places}}" as="p" hint-placeholder-count="3">
+                <div style="color: #CFC9C3;">{{p.name}}</div>
+                <div class="num" style="text-align: right;">{{p.refused}}</div>
+                <div class="num" style="text-align: right;">{{p.sentBack}}</div>
+                <div class="num" style="text-align: right; color: #A19A94;">{{p.cod}}</div>
+              </sc-for>
+            </div>
+          <div style="align-self: flex-start; padding: 4px 10px; border: 1px solid #3A363E; border-radius: 999px; font-size: 12px; font-weight: 600; color: #CFC9C3; white-space: nowrap;">Where and when →</div>
+          <div style="font-weight: 700; font-size: 14px; padding-top: 6px;">Blocking a search</div>
+          <div style="font-size: 13px; line-height: 1.45; color: #CFC9C3;">A search whose orders come back more than the rest of your account's is marked, with Block beside it.</div>
+          <div style="align-self: flex-start; padding: 4px 10px; border: 1px solid #3A363E; border-radius: 999px; font-size: 12px; font-weight: 600; color: #CFC9C3; white-space: nowrap;">What people typed →</div>
+        </div>
+        </div>
+      </div>
+    </div>
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <sc-if value="{{emptyTray}}" hint-placeholder-val="{{true}}">
+        <div style="font-size: 14px; color: #A19A94;">No changes yet. Anything you change, in any section, lands here.</div>
+      </sc-if>
+      <sc-if value="{{hasTray}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; overflow: hidden;">
+          <div style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: #D7262F; color: #FFF5F4; display: grid; place-items: center; font-size: 13px; font-weight: 700;">{{trayN}}</div>
+          <div style="font-size: 15px; font-weight: 600; white-space: nowrap;">{{trayWord}}</div>
+          <sc-for list="{{tray}}" as="t" hint-placeholder-count="1">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">
+              <div>{{t.text}}</div>
+              <div class="pick" onClick="{{t.undo}}" style="width: 20px; height: 20px; border-radius: 50%; background: #2E2A33; color: #A19A94; display: grid; place-items: center; font-size: 12px;">✕</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <div class="display" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"></path></svg>
+        <div>{{runLabel}}</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1220}}'>
+/*
+ * Returns, option B: two halves. Real figures: seed 1, Vella & Co. at mid-price
+ * performance, the makeover canvas's keywords, with ₹80,000 of round-0 capital
+ * on order confirmation (live from week 4); read after week 6, when the
+ * section opens, and after week 11. Every rate a discount shows is the
+ * round's own arithmetic (refusalOutlook, on the branch that fixes I34).
+ */
+const DATA = {"views":{"6":{"topWeek":"Week 6 of 12","runLabel":"Run week 7","topLabel":"Month 2","topMonth":"₹1,44,000 of ₹2,88,000 spent","figures":[{"label":"Came back","value":"39.4%","sub":"81 of 206 orders","hasSwatch":false,"swatch":"","why":false},{"label":"Refused at the door","value":"16.0%","sub":"33 never delivered","hasSwatch":true,"swatch":"#F2A53A","why":false},{"label":"Sent back","value":"23.5%","sub":"48 after delivery","hasSwatch":true,"swatch":"#7A7480","why":false},{"label":"Freight paid","value":"₹14,962","sub":"₹200 a refused parcel, all weeks","hasSwatch":false,"swatch":"","why":false},{"label":"Paid at the door","value":"74%","sub":"where your clicks came from","hasSwatch":false,"swatch":"","why":true}],"counted":"Week 1 is counted: a week settles 5 weeks after it runs.","columns":[{"week":"1","refused":60,"sentBack":89,"opacity":1,"total":"39%","sub":"","weekColor":"#A19A94","mark":false,"refusedH":60,"sentH":89},{"week":"2","refused":58,"sentBack":85,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"refusedH":58,"sentH":85},{"week":"3","refused":52,"sentBack":75,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"refusedH":52,"sentH":75},{"week":"4","refused":29,"sentBack":53,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":true,"refusedH":29,"sentH":53},{"week":"5","refused":0,"sentBack":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"refusedH":0,"sentH":0},{"week":"6","refused":0,"sentBack":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"refusedH":0,"sentH":0},{"week":"7","refused":0,"sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"refusedH":0,"sentH":0},{"week":"8","refused":0,"sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"refusedH":0,"sentH":0},{"week":"9","refused":0,"sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"refusedH":0,"sentH":0},{"week":"10","refused":0,"sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"refusedH":0,"sentH":0},{"week":"11","refused":0,"sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"refusedH":0,"sentH":0},{"week":"12","refused":0,"sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"refusedH":0,"sentH":0}],"reading":"Only week 1 has settled: 16.0% of its orders refused and 23.5% sent back. Weeks 2 to 6 are still coming back, so they read lower than they will end.","refusedCols":[{"week":"1","refused":77,"opacity":1,"total":"16.0%","sub":"","weekColor":"#A19A94","mark":false,"h":77},{"week":"2","refused":74,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":74},{"week":"3","refused":66,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":66},{"week":"4","refused":37,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":true,"h":37},{"week":"5","refused":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":0},{"week":"6","refused":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":0},{"week":"7","refused":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"8","refused":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"9","refused":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"10","refused":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"11","refused":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"12","refused":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0}],"sentCols":[{"week":"1","sentBack":75,"opacity":1,"total":"23.5%","sub":"","weekColor":"#A19A94","mark":false,"h":75},{"week":"2","sentBack":72,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":72},{"week":"3","sentBack":64,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":64},{"week":"4","sentBack":45,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":true,"h":45},{"week":"5","sentBack":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":0},{"week":"6","sentBack":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":0},{"week":"7","sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"8","sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"9","sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"10","sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"11","sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0},{"week":"12","sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0}],"refusedReading":"Only week 1 has settled. Weeks 2 to 6 are still coming back.","sentReading":"Only week 1 has settled. Weeks 2 to 6 are still coming back.","refusedBig":"16.0%","refusedSub":"33 of 206 orders never delivered","sentBig":"23.5%","sentSub":"48 of 206 orders sent back after delivery","cameBackLine":"39.4% of your orders came back · ₹14,962 of freight paid, all weeks","perRefusal":"Each costs about ₹1,464: ₹200 of freight for the trip out and back, and ₹1,264 of margin on a sale that never happened.","perSendBack":"Each costs about ₹1,264 of margin, on a sale that did not stick.","paidAtDoor":"74% of your orders are paid at the door, and a cash order is refused 3.6 times as often as a prepaid one.","places":[{"name":"Metros","refused":"11.3%","sentBack":"19.4%","cod":"60%"},{"name":"Large cities","refused":"15.2%","sentBack":"22.8%","cod":"72%"},{"name":"Smaller cities and towns","refused":"19.0%","sentBack":"26.2%","cod":"80%"}],"capitalRefused":"Order confirmation: confirm and verify, live since week 4.","capitalSent":"Size guide: nothing built.","capitalBoth":"Closed for the rest of the game after week 5. Order confirmation, which reaches refusals only, is at confirm and verify and live since week 4; the size guide, which reaches send-backs only, has nothing.","noneLine":"No discount: about 12.8% of next week's orders refused.","noneShape":"The rungs get worse as they get bigger: the first does most of the work.","rungs":[{"label":"none","hasBars":false,"saveW":"0%","costW":"0%","rate":"Next week about 12.8% of orders refused with no discount, 12.8% at none: 0.0% fewer.","saves":"Saves about ₹0 a week","savesSub":"0.0 refused parcels kept, each ₹200 of freight and ₹1,264 of margin","costs":"Costs about ₹0 a week","costsSub":"none off about 53 prepaid orders, the ones already paying first included"},{"label":"₹30","hasBars":true,"saveW":"32.838850167374446%","costW":"26.291917937226692%","rate":"Next week about 12.8% of orders refused with no discount, 12.0% at ₹30: 6.6% fewer.","saves":"Saves about ₹2,565 a week","savesSub":"1.8 refused parcels kept, each ₹200 of freight and ₹1,264 of margin","costs":"Costs about ₹2,053 a week","costsSub":"₹30 off about 68 prepaid orders, the ones already paying first included"},{"label":"₹50","hasBars":true,"saveW":"45.31761323097679%","costW":"47.54756477329808%","rate":"Next week about 12.8% of orders refused with no discount, 11.7% at ₹50: 9.1% fewer.","saves":"Saves about ₹3,539 a week","savesSub":"2.4 refused parcels kept, each ₹200 of freight and ₹1,264 of margin","costs":"Costs about ₹3,714 a week","costsSub":"₹50 off about 74 prepaid orders, the ones already paying first included"},{"label":"₹70","hasBars":true,"saveW":"50.90021775943052%","costW":"68.90130901843753%","rate":"Next week about 12.8% of orders refused with no discount, 11.5% at ₹70: 10.3% fewer.","saves":"Saves about ₹3,975 a week","savesSub":"2.7 refused parcels kept, each ₹200 of freight and ₹1,264 of margin","costs":"Costs about ₹5,381 a week","costsSub":"₹70 off about 77 prepaid orders, the ones already paying first included"},{"label":"₹100","hasBars":true,"saveW":"53.52732577282051%","costW":"100.00000000000001%","rate":"Next week about 12.8% of orders refused with no discount, 11.4% at ₹100: 10.8% fewer.","saves":"Saves about ₹4,181 a week","savesSub":"2.9 refused parcels kept, each ₹200 of freight and ₹1,264 of margin","costs":"Costs about ₹7,810 a week","costsSub":"₹100 off about 78 prepaid orders, the ones already paying first included"}],"rungFoot":"At the 206 orders week 1 had."},"11":{"topWeek":"Week 11 of 12","runLabel":"Run week 12","topLabel":"Month 3","topMonth":"₹1,17,180 of ₹1,56,240 spent","figures":[{"label":"Came back","value":"38.8%","sub":"338 of 871 orders","hasSwatch":false,"swatch":"","why":false},{"label":"Refused at the door","value":"14.8%","sub":"129 never delivered","hasSwatch":true,"swatch":"#F2A53A","why":false},{"label":"Sent back","value":"24.0%","sub":"209 after delivery","hasSwatch":true,"swatch":"#7A7480","why":false},{"label":"Freight paid","value":"₹33,883","sub":"₹200 a refused parcel, all weeks","hasSwatch":false,"swatch":"","why":false},{"label":"Paid at the door","value":"74%","sub":"where your clicks came from","hasSwatch":false,"swatch":"","why":true}],"counted":"Weeks 1 to 6 are counted: a week settles 5 weeks after it runs.","columns":[{"week":"1","refused":60,"sentBack":89,"opacity":1,"total":"39%","sub":"","weekColor":"#A19A94","mark":false,"refusedH":60,"sentH":89},{"week":"2","refused":61,"sentBack":89,"opacity":1,"total":"40%","sub":"","weekColor":"#A19A94","mark":false,"refusedH":61,"sentH":89},{"week":"3","refused":63,"sentBack":91,"opacity":1,"total":"41%","sub":"","weekColor":"#A19A94","mark":false,"refusedH":63,"sentH":91},{"week":"4","refused":51,"sentBack":91,"opacity":1,"total":"38%","sub":"","weekColor":"#A19A94","mark":true,"refusedH":51,"sentH":91},{"week":"5","refused":51,"sentBack":92,"opacity":1,"total":"38%","sub":"","weekColor":"#A19A94","mark":false,"refusedH":51,"sentH":92},{"week":"6","refused":51,"sentBack":92,"opacity":1,"total":"38%","sub":"","weekColor":"#A19A94","mark":false,"refusedH":51,"sentH":92},{"week":"7","refused":48,"sentBack":87,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"refusedH":48,"sentH":87},{"week":"8","refused":42,"sentBack":76,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"refusedH":42,"sentH":76},{"week":"9","refused":29,"sentBack":53,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"refusedH":29,"sentH":53},{"week":"10","refused":0,"sentBack":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"refusedH":0,"sentH":0},{"week":"11","refused":0,"sentBack":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"refusedH":0,"sentH":0},{"week":"12","refused":0,"sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"refusedH":0,"sentH":0}],"reading":"Refused fell from 16.2% of orders in weeks 1 to 3 to 13.5% from week 4, when order confirmation went live. Sent back held at about 24%.","refusedCols":[{"week":"1","refused":77,"opacity":1,"total":"16.0%","sub":"","weekColor":"#A19A94","mark":false,"h":77},{"week":"2","refused":78,"opacity":1,"total":"16.2%","sub":"","weekColor":"#A19A94","mark":false,"h":78},{"week":"3","refused":79,"opacity":1,"total":"16.6%","sub":"","weekColor":"#A19A94","mark":false,"h":79},{"week":"4","refused":64,"opacity":1,"total":"13.4%","sub":"","weekColor":"#A19A94","mark":true,"h":64},{"week":"5","refused":65,"opacity":1,"total":"13.5%","sub":"","weekColor":"#A19A94","mark":false,"h":65},{"week":"6","refused":65,"opacity":1,"total":"13.5%","sub":"","weekColor":"#A19A94","mark":false,"h":65},{"week":"7","refused":61,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":61},{"week":"8","refused":53,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":53},{"week":"9","refused":37,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":37},{"week":"10","refused":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":0},{"week":"11","refused":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":0},{"week":"12","refused":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0}],"sentCols":[{"week":"1","sentBack":75,"opacity":1,"total":"23.5%","sub":"","weekColor":"#A19A94","mark":false,"h":75},{"week":"2","sentBack":76,"opacity":1,"total":"23.6%","sub":"","weekColor":"#A19A94","mark":false,"h":76},{"week":"3","sentBack":77,"opacity":1,"total":"24.0%","sub":"","weekColor":"#A19A94","mark":false,"h":77},{"week":"4","sentBack":77,"opacity":1,"total":"24.2%","sub":"","weekColor":"#A19A94","mark":true,"h":77},{"week":"5","sentBack":78,"opacity":1,"total":"24.3%","sub":"","weekColor":"#A19A94","mark":false,"h":78},{"week":"6","sentBack":78,"opacity":1,"total":"24.3%","sub":"","weekColor":"#A19A94","mark":false,"h":78},{"week":"7","sentBack":74,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":74},{"week":"8","sentBack":64,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":64},{"week":"9","sentBack":45,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":45},{"week":"10","sentBack":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":0},{"week":"11","sentBack":0,"opacity":0.32,"total":"","sub":"still in","weekColor":"#A19A94","mark":false,"h":0},{"week":"12","sentBack":0,"opacity":0,"total":"","sub":"","weekColor":"#4A454F","mark":false,"h":0}],"refusedReading":"16.2% in weeks 1 to 3, 13.5% from week 4, when order confirmation went live.","sentReading":"About 24% every week: order confirmation does not reach this half.","refusedBig":"14.8%","refusedSub":"129 of 871 orders never delivered","sentBig":"24.0%","sentSub":"209 of 871 orders sent back after delivery","cameBackLine":"38.8% of your orders came back · ₹33,883 of freight paid, all weeks","perRefusal":"Each costs about ₹1,447: ₹200 of freight for the trip out and back, and ₹1,247 of margin on a sale that never happened.","perSendBack":"Each costs about ₹1,247 of margin, on a sale that did not stick.","paidAtDoor":"74% of your orders are paid at the door, and a cash order is refused 3.6 times as often as a prepaid one.","places":[{"name":"Metros","refused":"10.2%","sentBack":"19.3%","cod":"60%"},{"name":"Large cities","refused":"13.9%","sentBack":"22.7%","cod":"72%"},{"name":"Smaller cities and towns","refused":"16.8%","sentBack":"26.2%","cod":"80%"}],"capitalRefused":"Order confirmation: confirm and verify, live since week 4.","capitalSent":"Size guide: nothing built.","capitalBoth":"Closed for the rest of the game after week 5. Order confirmation, which reaches refusals only, is at confirm and verify and live since week 4; the size guide, which reaches send-backs only, has nothing.","noneLine":"No discount: about 12.9% of next week's orders refused.","noneShape":"The rungs get worse as they get bigger: the first does most of the work.","rungs":[{"label":"none","hasBars":false,"saveW":"0%","costW":"0%","rate":"Next week about 12.9% of orders refused with no discount, 12.9% at none: 0.0% fewer.","saves":"Saves about ₹0 a week","savesSub":"0.0 refused parcels kept, each ₹200 of freight and ₹1,247 of margin","costs":"Costs about ₹0 a week","costsSub":"none off about 37 prepaid orders, the ones already paying first included"},{"label":"₹30","hasBars":true,"saveW":"32.84670270217098%","costW":"26.261405581851253%","rate":"Next week about 12.9% of orders refused with no discount, 12.0% at ₹30: 6.6% fewer.","saves":"Saves about ₹1,796 a week","savesSub":"1.2 refused parcels kept, each ₹200 of freight and ₹1,247 of margin","costs":"Costs about ₹1,436 a week","costsSub":"₹30 off about 48 prepaid orders, the ones already paying first included"},{"label":"₹50","hasBars":true,"saveW":"45.32844972899596%","costW":"47.527384644081515%","rate":"Next week about 12.9% of orders refused with no discount, 11.7% at ₹50: 9.1% fewer.","saves":"Saves about ₹2,479 a week","savesSub":"1.7 refused parcels kept, each ₹200 of freight and ₹1,247 of margin","costs":"Costs about ₹2,599 a week","costsSub":"₹50 off about 52 prepaid orders, the ones already paying first included"},{"label":"₹70","hasBars":true,"saveW":"50.912389188364976%","costW":"68.89226832054851%","rate":"Next week about 12.9% of orders refused with no discount, 11.6% at ₹70: 10.3% fewer.","saves":"Saves about ₹2,784 a week","savesSub":"1.9 refused parcels kept, each ₹200 of freight and ₹1,247 of margin","costs":"Costs about ₹3,768 a week","costsSub":"₹70 off about 54 prepaid orders, the ones already paying first included"},{"label":"₹100","hasBars":true,"saveW":"53.54012540453871%","costW":"100%","rate":"Next week about 12.9% of orders refused with no discount, 11.5% at ₹100: 10.8% fewer.","saves":"Saves about ₹2,928 a week","savesSub":"2.0 refused parcels kept, each ₹200 of freight and ₹1,247 of margin","costs":"Costs about ₹5,469 a week","costsSub":"₹100 off about 55 prepaid orders, the ones already paying first included"}],"rungFoot":"At the 145 orders a week that weeks 1 to 6 averaged."}}};
+const RED = '#D7262F';
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = { view: '11', rung: 0 };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const v = DATA.views[s.view];
+    const rung = v.rungs[s.rung];
+    // The account's own setting (none, in this game) is bone, as a chosen chip
+    // is everywhere in the Studio; a rung you change to is red, your change.
+    const rungs = v.rungs.map((r, i) => {
+      const on = i === s.rung;
+      const base = i === 0;
+      let bg = 'transparent';
+      let border = '#3A363E';
+      let color = '#CFC9C3';
+      if (on && base) { bg = '#EDE8E3'; border = '#EDE8E3'; color = '#0D0C0E'; }
+      else if (on) { bg = '#2A1216'; border = RED; color = '#FFF5F4'; }
+      return {
+        label: r.label, saveW: r.saveW, costW: r.costW, hasBars: r.hasBars,
+        bg, border, color, pick: () => this.setState({ rung: i }),
+      };
+    });
+    const viewChip = (key, label) => ({
+      label, bg: s.view === key ? '#EDE8E3' : 'transparent', color: s.view === key ? '#0D0C0E' : '#CFC9C3',
+      border: s.view === key ? '#EDE8E3' : '#3A363E', pick: () => this.setState({ view: key }),
+    });
+    const tray = s.rung === 0 ? [] : [{
+      text: 'Prepaid discount none → ' + rung.label, undo: () => this.setState({ rung: 0 }),
+    }];
+    return {
+      views: [viewChip('6', 'after week 6'), viewChip('11', 'after week 11')],
+      topWeek: v.topWeek, topLabel: v.topLabel, topMonth: v.topMonth, runLabel: v.runLabel,
+      figures: v.figures, counted: v.counted, columns: v.columns, reading: v.reading,
+      refusedCols: v.refusedCols, sentCols: v.sentCols, refusedReading: v.refusedReading, sentReading: v.sentReading,
+      refusedBig: v.refusedBig, refusedSub: v.refusedSub, sentBig: v.sentBig, sentSub: v.sentSub,
+      cameBackLine: v.cameBackLine, perRefusal: v.perRefusal, perSendBack: v.perSendBack, paidAtDoor: v.paidAtDoor,
+      places: v.places, capitalRefused: v.capitalRefused, capitalSent: v.capitalSent, capitalBoth: v.capitalBoth,
+      rungs, isNone: s.rung === 0, isRung: s.rung !== 0,
+      noneLine: v.noneLine, noneShape: v.noneShape,
+      rungRate: rung.rate, rungSaves: rung.saves, rungSavesSub: rung.savesSub, rungCosts: rung.costs,
+      rungCostsSub: rung.costsSub, rungSaveW: rung.saveW, rungCostW: rung.costW, rungFoot: v.rungFoot,
+      tray, hasTray: tray.length > 0, emptyTray: tray.length === 0,
+      trayN: String(tray.length), trayWord: tray.length === 1 ? 'change' : 'changes',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

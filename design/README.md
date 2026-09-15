@@ -187,6 +187,37 @@ after week 8, "counted so far" re-added from revised history (so it can drift
 from the figure the engine ranked on), and ₹1,00,000 left in comments and the
 spec from before the allocation became ₹1,20,000.
 
+## `returns/`: what came back, and the prepaid discount (2026-09-15)
+
+An eighth canvas, https://claude.ai/code/artifact/ca2f5ce0-0c5c-4935-8179-55337e6fc9c5,
+the fourth section on the makeover design's section 7 list, replacing today's
+What came back and Prepaid discount cards. Both options open at week 6, when
+the section unlocks, and a switch shows week 11. Pick a discount rung and it
+draws what it saves a week against what it costs, from the round's own
+arithmetic.
+
+- **Page 1**, `Main.dc.html` (A · week by week), **chosen by the owner on
+  2026-09-15**: the five figures, one chart of every week split into refused
+  at the door and sent back, the week order confirmation went live marked and
+  unsettled weeks faint; below, the discount's five rungs, and what else moves
+  returns with the half each reaches.
+- **Page 2**, `Halves.dc.html` (B · two halves): refused and sent back as two
+  cards, each with its own weeks and only the levers that reach it. Its two
+  strips sat side by side on different scales, which invites comparing bars
+  that do not mean the same.
+
+Its numbers come from the makeover canvas's player (seed 1, Vella & Co. at
+mid-price performance, the same keywords) with ₹80,000 of round-0 capital on
+order confirmation, live from week 4, so the weeks show the step: refused fell
+from 16.2% of orders to 13.5%, sent back held at about 24%. The discount
+figures are `refusalOutlook`'s, from the prepaid fix on the branch
+`claude/refusal-outlook-makeover`, which the owner chose to merge before the
+build. Mapping today's cards found the returns note naming three levers but
+not the discount beside it, and saying capital "opens only before week 1 and
+before week 5" once it has closed for the game; and, with order confirmation
+live, ₹30 saves about ₹1,796 a week against ₹1,436 while ₹50 costs more than
+it saves, so the section draws the trade rather than naming a rung.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.
