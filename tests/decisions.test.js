@@ -296,6 +296,7 @@ describe('whether negatives are worth your attention at all', () => {
 
 describe('the preview, because a decision must be previewable before it is committed', () => {
   const spent = { q_x: { impressions: 100, clicks: 10, costPaise: 5000, conversions: 0.4 } };
+  const idOf = (text) => QUERY_SET.queries.find((q) => q.text === text).id;
 
   test('it names exactly what the engine would block, and never guesses', () => {
     // Not a reimplementation of the matcher — it calls the engine's. This test
@@ -316,9 +317,10 @@ describe('the preview, because a decision must be previewable before it is commi
 
   test('it warns with money and conversions, not with a count', () => {
     const negative = { text: 'free', matchType: 'broad' };
-    const wrinkle = QUERY_SET.queries.find((q) => q.text === 'wrinkle free travel co ord');
     const terms = {
-      [wrinkle.id]: { impressions: 900, clicks: 40, costPaise: 120000, conversions: 1.7 },
+      [idOf('wrinkle free travel co ord')]: { impressions: 900, clicks: 40, costPaise: 120000, conversions: 1.7 },
+      // Not blocked by "free": the rest of the account, at ₹1,000 a sale.
+      [idOf('gym leggings')]: { impressions: 9000, clicks: 700, costPaise: 2000000, conversions: 20 },
     };
     const preview = previewNegative(negative, { queries: publicQueries(), terms });
 
@@ -326,8 +328,43 @@ describe('the preview, because a decision must be previewable before it is commi
     expect(preview.spent[0].text).toBe('wrinkle free travel co ord');
     expect(preview.totals).toEqual({ clicks: 40, costPaise: 120000, conversions: 1.7 });
     // The whole point: this negative reads as pure waste and takes a
-    // converting commercial search with it.
-    expect(preview.costsConversions).toBe(true);
+    // commercial search with it that sells at ₹706 a sale, under the
+    // account's ₹977.
+    expect(preview.sellsWell.map((r) => r.text)).toEqual(['wrinkle free travel co ord']);
+  });
+
+  test('it does not warn over a block that catches only dear searches', () => {
+    // The warning used to fire whenever a blocked search had sold anything,
+    // and in expected mode almost every search has sold a fraction: "how to"
+    // on phrase warned of "searches that converted for you" over 0.8 of a sale
+    // at ₹4,458 each, against the account's ₹540.
+    const terms = {
+      [idOf('how to wash gym leggings')]: { impressions: 3000, clicks: 284, costPaise: 356600, conversions: 0.8 },
+      [idOf('gym leggings')]: { impressions: 20000, clicks: 1442, costPaise: 2946200, conversions: 60.4 },
+    };
+    const preview = previewNegative({ text: 'how to', matchType: 'phrase' },
+      { queries: publicQueries(), terms });
+
+    expect(preview.spent.map((r) => r.text)).toEqual(['how to wash gym leggings']);
+    expect(preview.spent[0].dear).toBe(true);
+    expect(preview.sellsWell).toEqual([]);
+  });
+
+  test('it warns when a block catches a search selling at or under your average, and names it', () => {
+    // Broad "gym", written to stop "gym near me", takes "gym leggings" with it:
+    // ₹488 a sale against the account's ₹530 (₹60,829 over 114.8 sales).
+    const terms = {
+      [idOf('gym near me')]: { impressions: 5000, clicks: 908, costPaise: 498700, conversions: 0 },
+      [idOf('gym leggings')]: { impressions: 20000, clicks: 1442, costPaise: 2946200, conversions: 60.4 },
+      [idOf('workout leggings')]: { impressions: 18000, clicks: 1300, costPaise: 2638000, conversions: 54.4 },
+    };
+    const preview = previewNegative({ text: 'gym', matchType: 'broad' },
+      { queries: publicQueries(), terms });
+
+    expect(preview.averagePaise).toBeCloseTo(6082900 / 114.8, 6);
+    expect(preview.sellsWell.map((r) => r.text)).toEqual(['gym leggings']);
+    expect(preview.spent.find((r) => r.text === 'gym near me').dear).toBe(true);
+    expect(preview.spent.find((r) => r.text === 'gym leggings').dear).toBe(false);
   });
 
   test('searches it would block that you have never bought are shown separately', () => {
@@ -352,7 +389,7 @@ describe('the preview, because a decision must be previewable before it is commi
     const preview = previewNegative({ text: 'zzzz nothing', matchType: 'broad' },
       { queries: publicQueries(), terms: {} });
     expect(preview.blocked).toEqual([]);
-    expect(preview.costsConversions).toBe(false);
+    expect(preview.sellsWell).toEqual([]);
   });
 });
 
