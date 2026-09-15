@@ -47,7 +47,9 @@ export const SECTIONS = Object.freeze([
   // Rebuilt: it draws its own cards (ui/keywords/render.js) and the classic
   // keywords card is retired in the Studio; `draws` lets the guide open it.
   { key: 'keywords', area: 'brand', label: 'Your keywords', icon: ICONS.keywords, slots: [], draws: ['keywords'] },
-  { key: 'typed', area: 'brand', label: 'What people typed', icon: ICONS.typed, slots: ['terms', 'negatives'] },
+  // Rebuilt (the owner's choice, 2026-09-15, design/what-people-typed/): one
+  // list and Block words (ui/typed/render.js); the classic two cards are retired.
+  { key: 'typed', area: 'brand', label: 'What people typed', icon: ICONS.typed, slots: [], draws: ['terms', 'negatives'] },
   // Read-only (the owner, 2026-09-15): the ad is written in round 0 and runs as
   // it is (I9). It draws itself (ui/ad/render.js); the classic page has no ad card.
   { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, slots: [] },
@@ -66,8 +68,10 @@ export const SECTIONS = Object.freeze([
     slots: [], opensAt: TOTAL_ROUNDS },
 ]);
 
-/** Cards the new screens draw instead: the tray replaces *Next week*; Your keywords, Where and when and Your week draw their own. */
-export const RETIRED_SLOTS = Object.freeze(['keywords', 'next', 'places', 'hours', 'headline', 'share', 'revised']);
+/** Cards the new screens draw instead: the tray replaces *Next week*; the rebuilt sections draw their own. */
+export const RETIRED_SLOTS = Object.freeze([
+  'keywords', 'next', 'places', 'hours', 'headline', 'share', 'revised', 'terms', 'negatives',
+]);
 
 /** @returns {object|null} the section a card's slot lives in */
 export function sectionOf(slot) {

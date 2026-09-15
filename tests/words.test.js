@@ -30,6 +30,7 @@ import { R0 } from '../ui/words/roundZero.js';
 import { AD } from '../ui/words/ad.js';
 import { WHERE } from '../ui/words/where.js';
 import { WEEK } from '../ui/words/week.js';
+import { TYPED } from '../ui/words/typed.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -435,6 +436,50 @@ describe('Your week', () => {
   });
 });
 
+describe('What people typed', () => {
+  const FIGURES = {
+    n: 33, keywords: 7, each: '4.7', text: 'squat proof', name: 'Pulse', amount: '₹4,357', average: '₹488',
+    rate: '26%', type: 'broad', bought: 2, spent: '₹8,526', sales: '12.9', never: 1,
+    list: 'best squat proof leggings india', more: 0,
+  };
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of Object.entries(TYPED)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of Object.entries(TYPED)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(TYPED)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('the preview says what the block catches, as the mock-up did', () => {
+    expect(TYPED.someBought(FIGURES)).toBe('Blocks 33 searches: 2 you have bought, ₹8,526 and 12.9 sales, '
+      + 'and 1 you never have.');
+    expect(TYPED.someBought({ ...FIGURES, n: 2, never: 0 })).toBe('Blocks 2 searches: 2 you have bought, '
+      + '₹8,526 and 12.9 sales.');
+    expect(TYPED.noneBought({ n: 1 })).toBe('Blocks 1 search, none of them bought yet.');
+  });
+
+  test('a mark says where to look, never what to do (I13)', () => {
+    for (const entry of [TYPED.legend, TYPED.legendNoReturns, TYPED.dearTitle, TYPED.worseTitle]) {
+      expect(entry(FIGURES)).not.toMatch(/\byou should\b|\bblock (it|this|them)\b/i);
+    }
+  });
+
+  test('one search reads as one', () => {
+    expect(TYPED.blockThese({ n: 1 })).toBe('Block 1 search');
+    expect(TYPED.catches({ n: 7 })).toBe('7 searches');
+    expect(TYPED.allWeeks({ n: 1 })).toBe('all 1 week');
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -465,7 +510,7 @@ describe('the new screens draw, and do not write', () => {
   const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
-    'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js'];
+    'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

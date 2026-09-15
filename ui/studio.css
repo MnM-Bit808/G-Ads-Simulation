@@ -600,6 +600,76 @@ body.studio .yw-posfig b { font-weight: 700; color: var(--studio-text); }
   body.studio .yw-chart { min-width: 600px; }
 }
 
+/* --- What people typed, a played week (design/what-people-typed/, the owner's choice 2026-09-15) --- */
+body.studio .wt { display: flex; flex-direction: column; gap: 14px; container-type: inline-size; }
+body.studio .wt h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
+body.studio .wt-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+body.studio .wt-summary { margin: 0; font-size: 14px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .wt-range { display: flex; flex-wrap: wrap; gap: 6px; }
+body.studio .wt-chip { padding: 5px 12px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; font-weight: 600; }
+body.studio .wt-chip[aria-pressed="true"] { border-color: var(--studio-text); background: var(--studio-text); color: var(--studio-page); }
+body.studio .wt-split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+body.studio .wt-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 14px 12px 12px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .wt-blocker { gap: 10px; padding: 16px 18px; }
+
+/* the list: one row a search, the money down it */
+body.studio .wt-row { display: grid; grid-template-columns: minmax(0, 1fr) 128px 48px 72px 82px 64px; gap: 10px; align-items: center; padding: 6px 8px; border-radius: 10px; }
+body.studio .wt-cols { padding-block: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; color: var(--studio-faint); }
+body.studio .wt-rows { display: flex; flex-direction: column; gap: 2px; }
+body.studio .wt-term { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+body.studio .wt-text { font-size: 13px; }
+body.studio .wt-tag { padding: 1px 7px; border: 1px solid #6A646E; border-radius: 999px; font-size: 10px; font-weight: 700; white-space: nowrap; color: var(--studio-soft); }
+body.studio .wt-spent { display: flex; align-items: center; gap: 8px; }
+body.studio .wt-track { flex: 1; height: 6px; overflow: hidden; border-radius: 3px; background: var(--studio-raised); }
+body.studio .wt-track span { display: block; height: 100%; background: var(--studio-text); }
+body.studio .wt-num { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; color: var(--studio-soft); }
+body.studio .wt-spent .wt-num { width: 58px; color: var(--studio-text); }
+/* Where to look (I13): a sale costing over twice the account's average, or
+   more of its sales come back than the account's. Bold too, and the figure's
+   title says which, so the mark does not rest on colour alone. */
+body.studio .wt-num.mark { font-weight: 700; color: var(--studio-amber); }
+body.studio .wt-act { justify-self: end; padding: 0; border: 0; background: none; font-size: 12px; white-space: nowrap; color: var(--studio-red-text); cursor: pointer; }
+body.studio span.wt-act { color: var(--studio-muted); cursor: default; }
+/* A blocked search greys out and is struck through, all but its undo. Grey
+   rather than faded: at the planned 0.45 opacity its figures measured 3.21:1
+   on the card; muted is 6.49:1. */
+body.studio .wt-row.blocked :is(.wt-text, .wt-num, .wt-tag) { font-weight: 400; color: var(--studio-muted); }
+body.studio .wt-row.blocked .wt-track span { background: #68636B; }
+body.studio .wt-row.blocked .wt-text { text-decoration: line-through; }
+/* The rows the block being typed would catch. */
+body.studio .wt-row.caught { background: #1F1C22; box-shadow: inset 0 0 0 1px var(--studio-muted); }
+body.studio .wt-legend { margin: 0; padding: 2px 8px 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+
+/* Block words */
+body.studio .wt-small { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .wt-input { height: 40px; padding: 0 14px; border: 1px solid var(--studio-line-strong); border-radius: 12px; background: var(--studio-page); color: var(--studio-text); font: inherit; font-size: 14px; }
+body.studio .wt-input::placeholder { color: var(--studio-muted); }
+body.studio .wt-preview { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: #1F1C22; }
+body.studio .wt-preview[hidden] { display: none; }
+body.studio .wt-headline { margin: 0; font-size: 13px; line-height: 1.45; }
+body.studio .wt-caught { display: flex; flex-direction: column; gap: 4px; }
+body.studio .wt-hit { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; }
+body.studio .wt-hit .wt-text { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; color: var(--studio-soft); }
+body.studio .wt-go { align-self: flex-start; padding: 7px 14px; border: 1px solid #4A454F; border-radius: 999px; background: none; color: var(--studio-text); font-size: 13px; font-weight: 600; }
+body.studio .wt-label { margin: 4px 0 0; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .wt-blocks { display: flex; flex-direction: column; gap: 6px; }
+body.studio .wt-block { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 12px; border-radius: 12px; background: #1F1C22; }
+body.studio .wt-block .wt-text { flex: 1; min-width: 0; }
+body.studio .wt-remove { display: grid; flex-shrink: 0; place-items: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: #2E2A33; color: var(--studio-muted); font-size: 11px; }
+
+/* A section under 960px wide: Block words goes under the list. */
+@container (max-width: 960px) { body.studio .wt-split { grid-template-columns: minmax(0, 1fr); } }
+/* On a phone a row takes two lines: the search, then its figures under the
+   column names, which fold the same way. */
+@container (max-width: 560px) {
+  body.studio .wt-row { grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)) auto; row-gap: 4px; }
+  body.studio .wt-row > :first-child { grid-column: 1 / -1; }
+  body.studio .wt-cols { font-size: 10px; letter-spacing: 0.02em; white-space: normal; }
+  body.studio .wt-track { display: none; }
+  body.studio .wt-spent .wt-num { width: auto; text-align: left; }
+  body.studio .wt-blocker { padding: 14px; }
+}
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */

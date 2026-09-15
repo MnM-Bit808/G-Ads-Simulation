@@ -24,6 +24,7 @@ import { renderKeywordsSection } from '../keywords/render.js';
 import { renderAdSection } from '../ad/render.js';
 import { renderWhereSection } from '../where/render.js';
 import { renderWeekSection } from '../week/render.js';
+import { renderTypedSection } from '../typed/render.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
@@ -63,6 +64,8 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
   // and Where and when its own bars and map (ui/where/render.js).
   let keywords = null;
   let where = null;
+  // And What people typed its list and Block words (ui/typed/render.js).
+  let typed = null;
   let ending = null;
   let extras = { saved: null, canRedo: false };
   let running = false;
@@ -216,6 +219,9 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     } else if (s.key === 'where' && where) {
       where.refresh();
       shown = where.node;
+    } else if (s.key === 'typed' && typed) {
+      typed.refresh();
+      shown = typed.node;
     } else {
       if (view.firstOpen === s.key) arrive(s);
       dashboard.dataset.section = s.key;
@@ -261,6 +267,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
         ctx.refresh();
         if (view.section === 'keywords') keywords?.refresh();
         if (view.section === 'where') where?.refresh();
+        if (view.section === 'typed') typed?.refresh();
       }, UNDO_FADE_MS);
     });
     chip.append(text, undo);
@@ -357,6 +364,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       game, ctx, openGuide, openSection: open, setTrayOverride, refreshTray: drawTray,
     });
     where = renderWhereSection({ game, ctx, openGuide, refreshTray: drawTray });
+    typed = renderTypedSection({ game, ctx, openGuide, refreshTray: drawTray });
     if (ending && !view.resultsShown) {
       view.resultsShown = true;
       view.area = 'results';

@@ -47,6 +47,13 @@ describe('every card on today\'s page has one place in the new layout', () => {
     }
   });
 
+  test('What people typed draws its own list and Block words, so the guide can still open both', () => {
+    for (const slot of ['terms', 'negatives']) {
+      expect(RETIRED_SLOTS, slot).toContain(slot);
+      expect(sectionOf(slot).key, slot).toBe('typed');
+    }
+  });
+
   test('Your week draws its own figures, chart and impressions, so the guide can still open all three', () => {
     for (const slot of ['headline', 'share', 'revised']) {
       expect(RETIRED_SLOTS, slot).toContain(slot);
