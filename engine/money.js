@@ -198,9 +198,19 @@ export function formatINR(paise, opts = {}) {
  * wrong way. Snapping to 12 significant decimals first removes that class of
  * surprise without affecting any value the engine legitimately produces.
  *
+ * ONLY WHERE IT CAN MATTER. The snap is a string conversion, and since F17 the
+ * round rounds a price for every advertiser that shows in any share of a
+ * slice, so it was a fifth of a round's time. It moves a value by at most half
+ * a unit in the twelfth digit, which is under |v| x 1e-11, so it can change the
+ * answer only for a value that close to a half. Any other rounds the same
+ * without it. `money.test.js` holds this to the snap-then-round rule at every
+ * scale, right at the edges.
+ *
  * @param {number} v
  * @returns {number} integer
  */
 function roundHalfUp(v) {
+  const fromHalf = Math.abs(Math.abs(v % 1) - 0.5);
+  if (fromHalf > Math.abs(v) * 1e-11 + 1e-9) return Math.round(v);
   return Math.round(Number(v.toPrecision(12)));
 }
