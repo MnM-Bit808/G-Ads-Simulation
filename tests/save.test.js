@@ -168,6 +168,49 @@ describe('loading is strict, and never throws at the interface', () => {
     }
   });
 
+  test('round 0\'s notes travel with the save, and come back (the owner, 2026-09-15)', async () => {
+    // What the reveal scores after the last week: where the player read each
+    // rival from its ad before the first auction.
+    const game = await play(1);
+    const [rival] = game.initial.advertisers.filter((a) => a.id !== PLAYER);
+    const storage = memoryStorage();
+    const withNotes = (notes) => makeSave({
+      initial: game.initial,
+      decisionLog: game.state.decisionLog,
+      playerId: PLAYER,
+      weeksPlayed: game.reports.length,
+      fingerprint: fingerprintOf(game.reports, PLAYER),
+      notes,
+    });
+    writeSave(storage, withNotes({ [rival.id]: 'premium|lifestyle' }));
+    expect(readSave(storage).notes).toEqual({ [rival.id]: 'premium|lifestyle' });
+    // Noting nothing is kept as nothing noted, which is not the same as no notes.
+    writeSave(storage, withNotes({}));
+    expect(readSave(storage).notes).toEqual({});
+  });
+
+  test('a save without notes loads with none, and so does one whose notes are not this game\'s', async () => {
+    // Display only: they cannot make a replay wrong, so a bad set is dropped
+    // and the reveal asks at the end, rather than losing the game over them.
+    const game = await play(1);
+    const good = JSON.parse(JSON.stringify(saveOf(game)));
+    const [rival] = game.initial.advertisers.filter((a) => a.id !== PLAYER);
+    const cases = {
+      'written before notes existed': good,
+      'a note on the player': { ...good, notes: { [PLAYER]: 'mid|lifestyle' } },
+      'a note on nobody': { ...good, notes: { nobody: 'mid|lifestyle' } },
+      'a square that is not one': { ...good, notes: { [rival.id]: 'cheap|fast' } },
+      'not a set of notes': { ...good, notes: ['mid|lifestyle'] },
+    };
+    for (const [label, save] of Object.entries(cases)) {
+      const storage = memoryStorage();
+      storage.setItem(SAVE_KEY, JSON.stringify(save));
+      const back = readSave(storage);
+      expect(back, label).not.toBeNull();
+      expect(back.notes, label).toBeNull();
+    }
+  });
+
   test('storage that refuses is a failed save and an empty load, not a crash', async () => {
     expect(writeSave(refusing, saveOf(await play(1)))).toBe(false);
     expect(readSave(refusing)).toBeNull();

@@ -49,7 +49,8 @@ const NEED = { keyword: R0.needKeyword, ad: R0.needAd, split: R0.needSplit };
  *   draw, or the one a redo kept. Step 2 lets the player choose another.
  * @param {Function} args.openGuide - `guide.open`
  * @param {(trigger: HTMLElement) => void} args.openContents
- * @param {(choices: {playerBrandId: string, player: object}) => Promise<void>} args.onGo
+ * @param {(choices: {playerBrandId: string, player: object, guesses: object}) => Promise<void>} args.onGo
+ *   `guesses` are the player's notes on the rivals, by name, for the save
  * @param {(() => void)|null} [args.onPlaytest] - on the playtest link only. The
  *   Studio hides the page's header, which carries the playtest button, so a
  *   playtester who stops during round 0 sends the file from the icon strip, as
@@ -195,7 +196,8 @@ export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, 
       go.textContent = R0.running({ hours: HOURS_PER_WEEK });
       // Let the label paint before the week holds the thread.
       await new Promise((resolve) => { setTimeout(resolve, 0); });
-      await onGo(startChoices(draft));
+      // The notes go beside the account, never into it (`notesFor`).
+      await onGo({ ...startChoices(draft), guesses: { ...draft.guesses } });
     });
     box.append(checks, el('p', 'r0-redo', R0.redoNote({ round: 0, week: REDO_DEADLINE_ROUND })), go);
     return box;

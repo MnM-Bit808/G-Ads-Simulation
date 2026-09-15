@@ -39,6 +39,7 @@ import { guideFigures } from './guide/figures.js';
 import { lookMode } from './look.js';
 import { createStudio } from './shell/shell.js';
 import { createRoundZero } from './roundzero/studio.js';
+import { notesFor } from './roundzero/rules.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -124,12 +125,16 @@ let roundZeroTouched = false;
  */
 let rewinding = null;
 
-async function begin({ playerBrandId, player }) {
+async function begin({ playerBrandId, player, guesses = null }) {
   const state = rewinding
     ? redoRoundZero(rewinding, { playerBrandId, player })
     : startGame({ rootSeed, playerBrandId, player, querySet: QUERY_SET });
   rewinding = null;
   openGame(state, playerBrandId);
+  // Round 0's notes on the rivals, kept for the reveal after the last week
+  // (the owner, 2026-09-15). Only the Studio's round 0 takes them; a game
+  // opened on the classic page has none, and the reveal asks at the end.
+  game.notes = guesses ? notesFor(guesses, state.advertisers, playerBrandId) : null;
 
   // AND RUN THE FIRST WEEK, rather than rendering an account with no rounds in
   // it. There used to be a screen between here and the dashboard carrying one
@@ -180,6 +185,9 @@ function openGame(state, playerId) {
     // does not keep: running a week rewrites the earlier ones (11.4). Your
     // week's dashed tick is drawn from it (ui/save.js keeps it on a reload).
     historyBefore: [],
+    // Round 0's notes on where each rival sits, rival id to square, or null.
+    // Display only; the save carries them for the reveal.
+    notes: null,
     draft: null,
     // Display preferences, which the view is allowed to keep. Nothing the
     // engine owns lives here.
@@ -227,6 +235,7 @@ function persist() {
     playerId: game.playerId,
     weeksPlayed: game.reports.length,
     fingerprint: fingerprintOf(game.reports, game.playerId),
+    notes: game.notes,
   }));
 }
 
@@ -557,6 +566,7 @@ async function resume(saved) {
 
   rootSeed = saved.initialState.rootSeed;
   openGame(saved.initialState, saved.playerId);
+  game.notes = saved.notes;
   game.state = restored.state;
   game.reports = restored.reports;
   game.insights = restored.insights;

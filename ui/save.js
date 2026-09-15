@@ -23,7 +23,7 @@
 
 import { serialise, deserialise } from '../engine/serialise.js';
 import { replayRound } from '../game.js';
-import { SCHEMA_VERSION, TOTAL_ROUNDS } from '../engine/constants.js';
+import { SCHEMA_VERSION, TOTAL_ROUNDS, PRICE_TIERS, PURPOSES } from '../engine/constants.js';
 
 /** The one key this site stores under. */
 export const SAVE_KEY = 'g-ads-simulation:save';
@@ -54,9 +54,11 @@ export function fingerprintOf(reports, playerId) {
  * @param {string} game.playerId
  * @param {number} game.weeksPlayed
  * @param {Array<[number, number]>} game.fingerprint - from `fingerprintOf`
+ * @param {Record<string, string>|null} [game.notes] - round 0's notes on the
+ *   rivals, rival id to square key (`notesFor` in ui/roundzero/rules.js)
  * @returns {object} a plain object, ready for JSON
  */
-export function makeSave({ initial, decisionLog, playerId, weeksPlayed, fingerprint }) {
+export function makeSave({ initial, decisionLog, playerId, weeksPlayed, fingerprint, notes = null }) {
   return {
     format: SAVE_FORMAT,
     schemaVersion: SCHEMA_VERSION,
@@ -67,7 +69,30 @@ export function makeSave({ initial, decisionLog, playerId, weeksPlayed, fingerpr
     // save never reaches storage.
     initial: serialise(initial),
     decisionLog,
+    // Round 0's notes on where each rival sits, for the reveal after the last
+    // week (the owner, 2026-09-15). Only when there are some to keep: a game
+    // opened on the classic page never had them.
+    ...(notes ? { notes } : {}),
   };
+}
+
+/**
+ * Round 0's notes as a save carries them, or null when they are not this
+ * game's: an entry for anyone but a rival, or a square that is not one.
+ *
+ * DROPPED, NOT REFUSED. Everything else a save holds can make a replay wrong,
+ * so anything unexpected there reads as no save at all. Notes are display
+ * only: a bad set costs the reveal its round-0 answers, never the game, and
+ * the reveal then asks at the end, as it does for a save written before
+ * notes were kept.
+ */
+function notesIn(save, initialState) {
+  const notes = save.notes;
+  if (!notes || typeof notes !== 'object' || Array.isArray(notes)) return null;
+  const rivals = new Set(initialState.advertisers.filter((a) => a.id !== save.playerId).map((a) => a.id));
+  const squares = new Set(PRICE_TIERS.flatMap((price) => PURPOSES.map((purpose) => `${price}|${purpose}`)));
+  const fits = Object.entries(notes).every(([id, cell]) => rivals.has(id) && squares.has(cell));
+  return fits ? notes : null;
 }
 
 /**
@@ -110,7 +135,7 @@ export function readSave(storage) {
 
     const initialState = deserialise(save.initial);
     if (!initialState.advertisers.some((a) => a.id === save.playerId)) return null;
-    return { ...save, initialState };
+    return { ...save, initialState, notes: notesIn(save, initialState) };
   } catch {
     return null;
   }

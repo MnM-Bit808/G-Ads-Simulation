@@ -634,6 +634,32 @@ export function guessedIn(draft, cell) {
 }
 
 /**
+ * The player's notes, by rival, for the reveal after the last week.
+ *
+ * KEPT, NOT SENT (the owner, 2026-09-15). They never reach the account Go
+ * opens (`startChoices`), but they travel with the save, so the reveal can
+ * score what the player read from the ads before the first auction rather
+ * than asking again once twelve weeks of auctions have told them more.
+ *
+ * By id, because the game's records name rivals by id, and only for the
+ * rivals of the game Go opened: a note on the player's own name, or on a
+ * name the game does not have, is dropped.
+ *
+ * @param {Record<string, string>} guesses - the draft's, rival name to square key
+ * @param {object[]} advertisers - the started game's
+ * @param {string} playerId
+ * @returns {Record<string, string>} rival id to square key
+ */
+export function notesFor(guesses, advertisers, playerId) {
+  const ids = new Map(advertisers.filter((a) => a.id !== playerId).map((a) => [a.name, a.id]));
+  const notes = {};
+  for (const [name, cell] of Object.entries(guesses ?? {})) {
+    if (ids.has(name)) notes[ids.get(name)] = cell;
+  }
+  return notes;
+}
+
+/**
  * What Go waits for. `need` names what is missing, for the tray's words.
  *
  * @returns {Array<{key: string, done: boolean, need: string|null}>}
@@ -671,7 +697,8 @@ export function stepsDone(draft, visited) {
 
 /**
  * What Go sends: exactly the shape the classic page's Go sends, so the account
- * opens the same way from either look. Guesses are not part of it.
+ * opens the same way from either look. Guesses are not part of it: they go
+ * beside it, to the save (`notesFor`).
  *
  * @returns {{playerBrandId: string, player: object}}
  */
