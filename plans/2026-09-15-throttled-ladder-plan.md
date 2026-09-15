@@ -1257,10 +1257,16 @@ function recordQualityRows(acc, result, entrants, volume) {
 - [ ] **Step 1: DECISIONS F17**, after F16, titled
   `### F17. A throttled advertiser held its place in every search — \`FIXED\` (2026-09-15)`.
   Its sections, in this project's usual order:
-  - **Real:** Google's budget pacing enters an advertiser in some of the
-    auctions it is eligible for; in the rest, its ad is not there. (Check
-    Google's own help page on "Limited by budget" before writing this line,
-    and cite it. Never from memory: CLAUDE.md, the field guide rule.)
+  - **Real:** Google Ads Help, *How to fix Google Ads campaigns not running
+    or low traffic* (https://support.google.com/google-ads/answer/12092760),
+    under *6. Low budget*, fetched 2026-09-15: "When you have a low budget,
+    your ads may not serve as often while Google Ads ensures your campaign
+    doesn't spend more than your spending limit." That is all Google says
+    about the mechanism. Its *Fix "Limited by budget" status* page
+    (answer 6385220) says only that the campaign "is underperforming". So the
+    entry quotes that one sentence, and says in the game's own voice that an
+    ad not served in an auction takes no place in it. Do not attribute the
+    ladder to Google.
   - **Sim, before:** *What was found* above, with its numbers.
   - **The fix:** *The method* above: the independence decision, why
     enumeration and not a draw or a cutoff, why position and price average
@@ -1382,11 +1388,92 @@ I3 at 500000, worst deviation: 19.6%
 
 `npm run test:perf` passed all five, the new three-auction test included.
 
+### What Task 6 found, and what changed from the plan
+
+- **The branch had moved.** `makeover` gained 36 commits while this was
+  planned, among them the prepaid fix (I34), which moved the round's returns
+  arithmetic into `returnHalves`. The plan's `recordConversions` was corrected
+  to call it before any code was written; as first written it would have
+  reverted I34.
+- **The recording arrangement went back to the prototype's.** The plan had
+  `recordSlice` called once per place, to make even the pair counts agree to
+  the last digit. The timing suite showed what that cost: flat sampled rounds
+  1.9x the old engine. The prototype's arrangement (one call per resolution,
+  places looped inside, Auction Insights once over the whole slice) keeps every
+  advertiser's numbers added in the same order, so the two paths still agree
+  to the paisa, and the pair counts to far better than the test's nine
+  decimals. It moved no number.
+- **Two claim tests restated, with the owner.** The fixture's player used to
+  sit first in 55% of its impressions, with nearly-spent rivals holding slots
+  above it; now 73%, so it clicks more and spends its whole week (6,061 of its
+  40,420 eligible searches lost to its own budget, where it had been 67).
+  *An open cell is not a free ride* now holds the whole gap to playing alone
+  to the player's own budget; *turning a location down* holds that the metros
+  never win more searches than the metros have, and never lose by freeing
+  money (they gain 17.6%, all 4,850 metro searches).
+- **Two speed-ups, with the owner, each moving no number** (whole reports
+  identical in both modes and on both paths): `roundHalfUp` skips the
+  `toPrecision` string conversion unless a value is close enough to a half
+  for it to matter (`702ab76`), and each search's return halves and each
+  advertiser's prepaid share per place are worked out once in the entry plan
+  (`ab91115`).
+- **The machine was loaded while all this was timed.** Another session's
+  processes held the CPU at 94%; the old engine itself read 2,041–2,437ms on
+  the three-auction path, over the 2,200ms bound. Times are compared old
+  against new back to back, and the timing gate is read on a quiet machine.
+
 ### After (Task 7)
 
-*(the same three, after)*
+On this branch at `3bcfa35` (F17, its two speed-ups and the timing bound),
+2026-09-15.
+
+**Harness**, `node scripts/market-harness.js market after-f17 6`, rows in
+`%TEMP%/harness-after-f17-market.json`:
+
+```
+72 markets
+player, settled weeks 1-7: CTR 10.1%  CPC ₹12.0  conversion 5.0%  gross ROAS 11.14  net ROAS 6.45  profit per ₹ 1.90  returned 41.9%
+rivals, settled weeks 1-7: CTR 7.1%  CPC ₹10.0  conversion 5.1%  gross ROAS 10.48  net ROAS 6.17  profit per ₹ 1.94  returned 41.4%
+player final net profit: median ₹11,90,785; loses money in 0 of 72
+player final rank: median 5; 1:1 2:3 3:5 4:18 5:14 6:19 7:12 8:0 9:0
+player month-2 budget: median ₹2,88,000
+rivals' month-2 budgets: median ₹2,48,000, from ₹1,68,000 to ₹2,88,000
+largest rival move against an ordinary week: into week 5 4.40x, into week 9 4.29x
+```
+
+**The week-5 and week-9 ratio taken apart** (gate 9), on 24 of the markets
+(seeds 1-4, the six cells), old engine (`2b85f71`) against new, medians in
+impression-share points: an ordinary week's largest rival move 8.55 → 6.98;
+into week 5 15.02 → 26.26; into week 9 25.35 → 34.09. Ordinary weeks are
+calmer, but the ratio doubled mostly because the two budget events move the
+market more: a rival whose budget changes no longer keeps phantom slots, so
+the change turns straight into impressions taken or given up.
+
+**Calibration figures**: I1 and I3 identical to the last digit (they play one
+entrant per auction, which F17 cannot reach). I2:
+
+```
+I2 median CPC and the Value realised break-even: 1474 2822        (was 1584)
+I2 lost to rank: vella 0.000, kestrel 0.036, marlow 0.000, satva 0.000, halcyon 0.000,
+                 lumen 0.000, nira 0.069, torvi 0.005, auren 0.000  (kestrel was 0.379, nira 0.240, torvi 0.021)
+I2 best impression share: value 0.931, mid 0.463, premium 1.000   (was 0.998, 0.540, 1.000)
+```
+
+**Times** on a quiet machine, plain Node, medians: flat 89–90ms expected and
+672–685ms sampled with a counterfactual; three-auction 183–190ms and
+1,417–1,465ms (old engine alongside: 81–82, 586–589, 168–172, 1,316–1,338).
+`npm run test:perf`: all five pass, the three-auction test against 2,800ms.
 
 ### Gates (Task 7)
 
 | gate | before | after | result |
 |---|---|---|---|
+| 1. resolveSlice equals every combination, 300 auctions, to 1e-9 | — | worst 1.9e-15 in the prototype; the test passes | PASS |
+| 2. the two paths agree, a tilt that moves no bid | 5.1% of impressions, 12.9% of cost | 0 paise; impressions, clicks, lost to rank to 6 dp; Auction Insights to 9 dp; both modes | PASS |
+| 3. `npm test` green | 2,080 passed | 2,095 passed | PASS (one run of three on identical code failed one test, most likely a time limit under another session's load; that run's output was not kept, so which test is not known) |
+| 4. `npm run test:perf` | all pass | all pass, after the owner set the three-auction bound to 2,800ms | PASS |
+| 5. calibration | all pass | all pass; I1, I3 identical | PASS |
+| 6. player's median rank moves more than one place | 5 | 5 | holds |
+| 7. player loses money in more markets | 0 of 72 | 0 of 72 | holds |
+| 8. a median CTR, CPC or profit per ₹ moves more than 25% | player 8.2%, ₹19.6, 1.05; rivals 5.5%, ₹11.7, 1.39 | player 10.1% (+23%), ₹12.0 (−39%), 1.90 (+81%); rivals 7.1% (+29%), ₹10.0 (−15%), 1.94 (+40%) | **FIRED** (player CPC and profit per ₹; rivals CTR and profit per ₹) |
+| 9. the week-5 or week-9 move changes by more than half | 2.23x, 2.40x | 4.40x (+97%), 4.29x (+79%) | **FIRED** |
