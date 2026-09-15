@@ -16,6 +16,7 @@
 import { describe, test, expect } from 'vitest';
 import {
   MAX_MOMENTS, MATERIAL_LOSS, moments, windowDifference, budgetWeeks, lessons, revealRows,
+  replayWithoutChange,
 } from '../ui/debrief/read.js';
 import { summariseDecisions, finalStandings } from '../ui/ending.js';
 import { startGame } from '../setup.js';
@@ -116,10 +117,27 @@ describe('what a moment shows', () => {
     expect(flags).toEqual([[2, false, false], [5, true, true], [9, true, false], [11, false, false]]);
   });
 
-  test('the window ends the week before the next decision, or at the last week', () => {
+  test('every window runs to the last week', () => {
+    // It used to end the week before the next decision, as if every later
+    // decision carried the removed change back in. Only a later decision that
+    // sends the same list does, and the replay now keeps it out even then;
+    // and a change can move the week-8 ranking, and month 3's budget with it,
+    // long after it is sent again (found drawing Results, 2026-09-15).
     const history = Array.from({ length: 12 }, (_, i) => week(i + 1));
     const log = [3, 7].map((round, i) => blocking(round, ...'ab'.slice(0, i + 1)));
-    expect(moments({ ...BASE, history, decisionLog: log }).map((m) => m.windowEnd)).toEqual([6, 12]);
+    expect(moments({ ...BASE, history, decisionLog: log }).map((m) => m.windowEnd)).toEqual([12, 12]);
+  });
+
+  test('a capital card left untouched is not a change', () => {
+    // The form sends capital at week 5 whether or not the player touched the
+    // card (C8), so every game logged a week-5 "decision" to take the whole
+    // allocation as budget. Replayed without it, the game is the same game.
+    const history = Array.from({ length: 12 }, (_, i) => week(i + 1));
+    const capital = (capex) => ({ round: 5, advertiserId: P, source: 'player', decision: { capex } });
+    expect(moments({ ...BASE, history, decisionLog: [capital({})] })).toEqual([]);
+    expect(moments({ ...BASE, history, decisionLog: [capital({ sizeGuide: 0, photography: 0 })] })).toEqual([]);
+    expect(moments({ ...BASE, history, decisionLog: [capital({ sizeGuide: 5_500_000 })] }).map((m) => m.round))
+      .toEqual([5]);
   });
 });
 
@@ -454,7 +472,7 @@ describe('on a real played game', { timeout: 60_000 }, () => {
       expect(m.after.costPaise).toBe(row.traffic.costPaise);
       expect(m.after.impressionShare).toBe(row.share.impressionShare);
     }
-    expect(picked.map((m) => m.windowEnd)).toEqual([5, 8]);
+    expect(picked.map((m) => m.windowEnd)).toEqual([8, 8]);
   });
 
   test('asking for the budget "what if" changes nothing else about the game', async () => {
@@ -494,5 +512,106 @@ describe('on a real played game', { timeout: 60_000 }, () => {
     expect(read.ranOut).toBe(reported.length);
     expect([...read.paidFor, ...read.didNotPay].map((w) => w.round).sort((a, b) => a - b))
       .toEqual(reported.map((r) => r.round));
+  });
+});
+
+// "What if I hadn't?" as it replays the game (found drawing Results,
+// 2026-09-15). The form sends only what moved, and a keyword list or a list of
+// blocked words whole, so a later list carries every earlier change in it; and
+// at week 5 it always sends capital. Deleting a week from the log therefore
+// brought its change back with the next list, and at week 5 made the second
+// allocation vanish: blocking a word read as worth a ninth of what it was, and
+// the size guide's answer came out reversed.
+describe('a week replayed without its change', { timeout: 120_000 }, () => {
+  const PLAYER = BRAND_IDENTITIES[0].id;
+  const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|performance').slice(0, 4);
+  const start = startGame({
+    rootSeed: 20260915,
+    playerBrandId: PLAYER,
+    querySet: QUERY_SET,
+    player: {
+      position: { price: 'mid', purpose: 'performance' },
+      capex: {},
+      keywords: own.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: 3000 })),
+      ad: {
+        headlines: ['Gym Leggings That Stay Put', 'Squat Proof Training Tights', 'Sizes XS To XXL'],
+        descriptions: [
+          'Leggings and sports bras built for four sessions a week.',
+          'Free delivery over Rs 1,499 and 30-day returns.',
+        ],
+        landingPageDescription: 'A plain product page.',
+      },
+      writerTier: 'agency',
+    },
+  });
+  const group = start.advertisers.find((a) => a.id === PLAYER).adGroups[0];
+  const kw = group.keywords;
+  const withBid = (list, id, bidPaise) => list.map((k) => (k.id === id ? { ...k, bidPaise } : k));
+  const cut = withBid(kw, kw[0].id, 1500);
+  const cutAndRaise = withBid(cut, kw[1].id, 4500);
+  // Week 3 cuts one bid; week 5 commits capital and raises another bid, so its
+  // list still holds week 3's cut; weeks 4 and 6 block words, the second list
+  // holding the first word.
+  const scripted = {
+    3: { adGroups: [{ ...group, keywords: cut }] },
+    4: { campaign: { negatives: [{ text: 'gym', matchType: 'broad' }] } },
+    5: { capex: { sizeGuide: 5_500_000 }, adGroups: [{ ...group, keywords: cutAndRaise }] },
+    6: { campaign: { negatives: [{ text: 'gym', matchType: 'broad' }, { text: 'cheap', matchType: 'broad' }] } },
+  };
+
+  let played = null;
+  const game = async () => {
+    if (played) return played;
+    const controllers = Object.fromEntries(start.advertisers.map((a) => [
+      a.id, a.id === PLAYER ? (self) => scripted[self.round] ?? null : controllerFor(a.policyId),
+    ]));
+    let state = start;
+    while (state.round <= 7) state = (await playRound(state, controllers, { mode: 'expected' })).nextGameState;
+    played = state;
+    return played;
+  };
+  const without = async (round, throughRound) => {
+    const state = await game();
+    return replayWithoutChange({
+      initial: start,
+      decisionLog: state.decisionLog,
+      history: state.history,
+      playerId: PLAYER,
+      round,
+      allocationRounds: state.budgetSchedule.capexAllocationRounds,
+    }, throughRound);
+  };
+  const account = (state) => state.advertisers.find((a) => a.id === PLAYER);
+  const bids = (state) => new Map(account(state).adGroups[0].keywords.map((k) => [k.id, k.bidPaise]));
+
+  test('a later keyword list does not carry a removed bid back in', async () => {
+    const after = await without(3, 6);
+    expect(bids(after).get(kw[0].id)).toBe(3000);
+    // Week 5's own change still happens.
+    expect(bids(after).get(kw[1].id)).toBe(4500);
+  });
+
+  test('a later list of blocked words does not carry a removed word back in', async () => {
+    const after = await without(4, 6);
+    expect(account(after).campaign.negatives.map((n) => n.text)).toEqual(['cheap']);
+  });
+
+  test('at week 5 the capital card is left alone, so the month keeps its money', async () => {
+    const state = await game();
+    const after = await without(5, 5);
+    const month = (s) => s.history[4].byAdvertiser[PLAYER].budget.monthlyBudgetPaise;
+    // Nothing committed: the ₹55,000 is ad budget, not gone.
+    expect(month(after) - month(state)).toBe(5_500_000);
+    expect(account(after).capex.committed.sizeGuide ?? 0).toBe(0);
+    // Week 5's raise is out; week 3's cut, which week 5's list carried, stays.
+    expect(bids(after).get(kw[0].id)).toBe(1500);
+    expect(bids(after).get(kw[1].id)).toBe(3000);
+  });
+
+  test('taking out a week the player changed nothing in gives back the game as played', async () => {
+    const state = await game();
+    const after = await without(2, 7);
+    const net = (s) => JSON.stringify(s.history.map((r) => r.byAdvertiser[PLAYER].money.netProfitPaise));
+    expect(net(after)).toBe(net(state));
   });
 });

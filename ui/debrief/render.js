@@ -16,17 +16,21 @@ import { DEBRIEF } from '../words/debrief.js';
 import { whyButton } from '../guide/drawer.js';
 import { serpBlock } from '../round-zero.js';
 import { STRATEGY_NAMES } from '../ending.js';
-import { replayRound, logWithout } from '../../game.js';
+import { replayRound } from '../../game.js';
 import {
-  moments, windowDifference, budgetWeeks, lessons, revealRows, MATERIAL_LOSS,
+  moments, windowDifference, budgetWeeks, lessons, revealRows, logWithoutChange, MATERIAL_LOSS,
 } from './read.js';
 import { ROUNDS_PER_MONTH, PRICE_TIERS, PURPOSES } from '../../engine/constants.js';
 
-/** Replay the game from its start, one week at a time, saying how far it has got. */
-async function replay(initial, decisionLog, throughRound, options, onWeek) {
+/**
+ * Replay the game from its start, one week at a time, saying how far it has
+ * got. `logAt` gives the decision log for the round about to run: the played
+ * log as it is, or, for "What if I hadn't?", with one week's change kept out.
+ */
+async function replay(initial, logAt, throughRound, options, onWeek) {
   let state = initial;
   while (state.round <= throughRound) {
-    const out = replayRound(state, decisionLog, { mode: 'expected', ...options });
+    const out = replayRound(state, logAt(state), { mode: 'expected', ...options });
     state = out.nextGameState;
     onWeek?.(out.round, throughRound);
     await new Promise((resolve) => { setTimeout(resolve, 0); });
@@ -125,13 +129,20 @@ function momentsSection(ctx, busy) {
       busy(true);
       const progress = el('p', 'note', DEBRIEF.replaying({ week: 1, of: lastRound }));
       result.replaceChildren(progress);
-      const log = logWithout(state.decisionLog, { advertiserId: playerId, round: m.round });
-      const without = await replay(ctx.initial, log, lastRound, {}, (week, of) => {
+      const spec = {
+        initial: ctx.initial,
+        decisionLog: state.decisionLog,
+        history: state.history,
+        playerId,
+        round: m.round,
+        allocationRounds: state.budgetSchedule?.capexAllocationRounds ?? [],
+      };
+      const without = await replay(ctx.initial, (s) => logWithoutChange(s, spec), lastRound, {}, (week, of) => {
         progress.textContent = DEBRIEF.replaying({ week, of });
       });
       const diff = windowDifference(state.history, without.history, playerId, { from: m.round, to: m.windowEnd });
       result.replaceChildren(
-        el('p', 'whatif-window', DEBRIEF.window({ from: m.round, to: m.windowEnd, toEnd: m.windowEnd === lastRound })),
+        el('p', 'whatif-window', DEBRIEF.window({ from: m.round, to: m.windowEnd })),
         el('p', null, DEBRIEF.withoutIt({
           clicks: whole(Math.abs(diff.clicks)),
           clicksSign: signOf(diff.clicks, 0.5),
@@ -166,7 +177,7 @@ function budgetSection(ctx, busy) {
     result.replaceChildren(progress);
     // The engine works the budget "what if" out only when asked, and nothing
     // asked during play (DECISIONS G1); so the game is replayed asking.
-    const replayed = await replay(ctx.initial, ctx.state.decisionLog, lastRound,
+    const replayed = await replay(ctx.initial, () => ctx.state.decisionLog, lastRound,
       { counterfactualFor: [ctx.playerId] },
       (week, of) => { progress.textContent = DEBRIEF.replaying({ week, of }); });
     const read = budgetWeeks(replayed.history, ctx.playerId);

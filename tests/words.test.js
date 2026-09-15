@@ -142,6 +142,11 @@ describe('the debrief', () => {
     }
   });
 
+  test('"What if I hadn\'t?" always reads to the end of the game', () => {
+    expect(DEBRIEF.window({ from: 4, to: 12 })).toBe('Weeks 4–12, to the end of the game, still settling.');
+    expect(DEBRIEF.window({ from: 12, to: 12 })).toBe('Week 12, to the end of the game, still settling.');
+  });
+
   test('a difference reads the right way round: the game WITHOUT the change', () => {
     // Played minus without: positive clicks means the game without it had fewer.
     expect(DEBRIEF.withoutIt({ clicks: '10', clicksSign: 1, cost: '₹5', costSign: 1, kept: '₹7', keptSign: -1 }))

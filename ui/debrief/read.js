@@ -18,6 +18,8 @@
 
 import { summariseDecisions, finalStandings } from '../ending.js';
 import { brandNamedIn } from '../../content/brands.js';
+import { replayRound } from '../../game.js';
+import { allocate } from '../../engine/money.js';
 import { LEARNING_ROUNDS } from '../../engine/constants.js';
 import { STRATEGIES } from '../../engine/strategies.js';
 
@@ -55,14 +57,35 @@ function moved(after, before) {
 }
 
 /**
+ * A capital card the player left alone: capital sent, every target at nothing.
+ *
+ * The form sends capital in an allocation round whether or not the card was
+ * touched (C8), so this is in every game's log at week 5. It is not a change:
+ * replayed without it, the card is left alone, and the game is the same game.
+ *
+ * @param {object} [decision]
+ * @returns {boolean}
+ */
+export function onlyUntouchedCapital(decision) {
+  const keys = Object.keys(decision ?? {});
+  return keys.length === 1 && keys[0] === 'capex'
+    && Object.values(decision.capex ?? {}).every((paise) => !paise);
+}
+
+/**
  * The weeks the player changed something, each with the week before and the
  * week after.
  *
  * A candidate is a round with a player entry in the decision log that the
- * "What you did" log has words for, and a week before it to compare with.
- * `windowEnd` is the week before the player's NEXT decision, or the last
- * week: a removed change only stays removed until then, because keyword and
- * negative lists are submitted whole and carry it back in.
+ * "What you did" log has words for, and a week before it to compare with; a
+ * capital card left alone is not one (`onlyUntouchedCapital`).
+ *
+ * `windowEnd` is always the last week. It used to be the week before the
+ * player's next decision, as if every later decision carried the removed
+ * change back in; only a later decision that sends the same list does, the
+ * replay now keeps the change out even then (`logWithoutChange`), and a
+ * change can move the week-8 ranking, and month 3's budget with it, long
+ * after (found drawing Results, 2026-09-15).
  *
  * @param {object} game
  * @param {object[]} game.history - reports, revised, oldest first
@@ -82,17 +105,16 @@ export function moments({
 }, { max = MAX_MOMENTS } = {}) {
   const byRound = new Map((history ?? []).map((report) => [report.round, report]));
   const decided = [...new Set((decisionLog ?? [])
-    .filter((entry) => entry.advertiserId === playerId)
+    .filter((entry) => entry.advertiserId === playerId && !onlyUntouchedCapital(entry.decision))
     .map((entry) => entry.round))].sort((a, b) => a - b);
   const words = new Map(summariseDecisions(decisionLog, playerId, opening)
     .map((row) => [row.round, row.lines]));
 
   const all = [];
-  for (const [i, round] of decided.entries()) {
+  for (const round of decided) {
     const before = trafficOf(byRound.get(round - 1), playerId);
     const after = trafficOf(byRound.get(round), playerId);
     if (!before || !after || !words.has(round)) continue;
-    const next = decided[i + 1];
     all.push({
       round,
       lines: words.get(round),
@@ -101,7 +123,7 @@ export function moments({
       change: Math.max(moved(after.clicks, before.clicks), moved(after.cpcPaise ?? 0, before.cpcPaise ?? 0)),
       newMonth: round > 1 && (round - 1) % roundsPerMonth === 0,
       capitalLanded: allocationRounds.includes(round),
-      windowEnd: next === undefined ? lastRound : next - 1,
+      windowEnd: lastRound,
     });
   }
 
@@ -144,6 +166,163 @@ export function windowDifference(actual, without, playerId, { from, to }) {
     costPaise: a.costPaise - w.costPaise,
     netProfitPaise: a.netProfitPaise - w.netProfitPaise,
   };
+}
+
+// ---------------------------------------------------------------------------
+// The game replayed without one week's change ("What if I hadn't?")
+// ---------------------------------------------------------------------------
+
+/**
+ * The lists the form sends whole (`toDecision` in ui/decisions.js): a later
+ * decision that sends one carries every earlier change in it.
+ */
+const LISTS = ['keywords', 'negatives', 'daypartAdjustments', 'locationAdjustments'];
+
+function listsSent(decision) {
+  const out = {};
+  const keywords = decision?.adGroups?.[0]?.keywords;
+  if (keywords) out.keywords = keywords;
+  for (const field of LISTS.slice(1)) {
+    if (decision?.campaign?.[field]) out[field] = decision.campaign[field];
+  }
+  return out;
+}
+
+function listsHeld(advertiser) {
+  return {
+    keywords: advertiser?.adGroups?.[0]?.keywords ?? [],
+    negatives: advertiser?.campaign?.negatives ?? [],
+    daypartAdjustments: advertiser?.campaign?.daypartAdjustments ?? [],
+    locationAdjustments: advertiser?.campaign?.locationAdjustments ?? [],
+  };
+}
+
+const negativeKey = (n) => `${n.matchType}::${String(n.text).trim().toLowerCase()}`;
+
+/**
+ * What a later list changed from the list before it, put onto the list the
+ * replay holds instead. A keyword is matched by id and a blocked word by its
+ * text and match type; hours and places are one number a slot.
+ */
+function carryOwnChange(field, sent, before, held) {
+  if (field === 'keywords') {
+    const was = new Map(before.map((k) => [k.id, k]));
+    const now = new Map(sent.map((k) => [k.id, k]));
+    const out = held
+      .filter((k) => !(was.has(k.id) && !now.has(k.id)))
+      .map((k) => {
+        const old = was.get(k.id);
+        const next = now.get(k.id);
+        if (!old || !next) return k;
+        const carried = { ...k };
+        for (const f of ['bidPaise', 'matchType', 'active']) if (next[f] !== old[f]) carried[f] = next[f];
+        return carried;
+      });
+    for (const k of sent) if (!was.has(k.id) && !out.some((h) => h.id === k.id)) out.push(k);
+    return out;
+  }
+  if (field === 'negatives') {
+    const was = new Set(before.map(negativeKey));
+    const now = new Set(sent.map(negativeKey));
+    const out = held.filter((n) => !(was.has(negativeKey(n)) && !now.has(negativeKey(n))));
+    for (const n of sent) {
+      if (!was.has(negativeKey(n)) && !out.some((h) => negativeKey(h) === negativeKey(n))) out.push(n);
+    }
+    return out;
+  }
+  return held.map((value, i) => (sent[i] !== before[i] ? sent[i] : value));
+}
+
+/**
+ * The decision log to replay one round of "What if I hadn't?" with: the
+ * played log, with the player's own entries changed so that one week's change
+ * is never made and stays out.
+ *
+ * THREE THINGS DELETING THE WEEK GOT WRONG (found drawing Results,
+ * 2026-09-15), each of which this answers:
+ * - A later decision that sends a whole list (keywords, blocked words, hours,
+ *   places) carries the removed change back in. Here a later list carries
+ *   only what it changed itself, put onto the list the replay holds.
+ * - At an allocation round the form always sends capital (C8). Deleting that
+ *   week sent none, so the allocation vanished, which no player can do. Here
+ *   the week becomes the card left alone, `{capex: {}}`.
+ * - A later plan for the month is in paise that add up to the played month.
+ *   Where the replay's month differs, the plan keeps its shape over the
+ *   replay's money, or the difference could never be spent. An allocation
+ *   round is left to the engine, which re-spreads the month there itself.
+ *
+ * @param {object} state - the replay's state before the round it is about to run
+ * @param {object} without
+ * @param {object} without.initial - the state before week 1
+ * @param {object[]} without.decisionLog - the played game's
+ * @param {object[]} without.history - the played game's reports, for each month's money
+ * @param {string} without.playerId
+ * @param {number} without.round - the week whose change is taken out
+ * @param {number[]} [without.allocationRounds]
+ * @returns {object[]} a decision log for `replayRound` at `state.round`
+ */
+export function logWithoutChange(state, {
+  initial, decisionLog, history, playerId, round: removed, allocationRounds = [],
+}) {
+  const log = decisionLog ?? [];
+  const round = state.round;
+  if (round < removed) return log;
+  const isMine = (entry) => entry.advertiserId === playerId && entry.round === round;
+  const entry = log.find(isMine);
+  const others = log.filter((e) => !isMine(e));
+
+  if (round === removed) {
+    if (!allocationRounds.includes(round)) return others;
+    return [...others, { ...(entry ?? { round, advertiserId: playerId, source: 'player' }), decision: { capex: {} } }];
+  }
+  if (!entry?.decision) return log;
+
+  // The lists as the PLAYED game held them before this round: the opening
+  // account, then every list the player sent before it, removed week included.
+  const before = listsHeld(initial.advertisers.find((a) => a.id === playerId));
+  for (const e of [...log].filter((x) => x.advertiserId === playerId && x.round < round).sort((x, y) => x.round - y.round)) {
+    Object.assign(before, listsSent(e.decision));
+  }
+  const account = state.advertisers.find((a) => a.id === playerId);
+  const held = listsHeld(account);
+  const sent = listsSent(entry.decision);
+
+  const decision = { ...entry.decision };
+  if (sent.keywords) {
+    decision.adGroups = entry.decision.adGroups.map((group, i) => (i === 0
+      ? { ...group, keywords: carryOwnChange('keywords', sent.keywords, before.keywords, held.keywords) }
+      : group));
+  }
+  for (const field of LISTS.slice(1)) {
+    if (!sent[field]) continue;
+    decision.campaign = { ...decision.campaign, [field]: carryOwnChange(field, sent[field], before[field], held[field]) };
+  }
+  const plan = entry.decision.campaign?.weeklySplitPaise;
+  const playedMonth = history?.[round - 1]?.byAdvertiser?.[playerId]?.budget?.monthlyBudgetPaise;
+  const month = account?.campaign?.monthlyBudgetPaise;
+  if (plan && !allocationRounds.includes(round) && playedMonth > 0 && month !== playedMonth && plan.some((p) => p > 0)) {
+    const planned = plan.reduce((a, b) => a + b, 0);
+    decision.campaign = { ...decision.campaign, weeklySplitPaise: allocate(Math.round((planned * month) / playedMonth), plan) };
+  }
+  return [...others, { ...entry, decision }];
+}
+
+/**
+ * The whole game replayed without one week's change, through a given round.
+ * The end screen runs the same loop a week at a time, pausing to say how far
+ * it has got (ui/debrief/render.js).
+ *
+ * @param {object} without - as for `logWithoutChange`
+ * @param {number} throughRound
+ * @param {object} [options] - passed to `replayRound`; mode defaults to expected
+ * @returns {object} the state after `throughRound`
+ */
+export function replayWithoutChange(without, throughRound, options = {}) {
+  let state = without.initial;
+  while (state.round <= throughRound) {
+    state = replayRound(state, logWithoutChange(state, without), { mode: 'expected', ...options }).nextGameState;
+  }
+  return state;
 }
 
 /**

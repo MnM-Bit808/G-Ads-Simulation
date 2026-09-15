@@ -54,9 +54,12 @@ export const DEBRIEF = Object.freeze({
   }),
   whatIf: line('label', 'What if I hadn’t?'),
   replaying: line('reading', ({ week, of }) => `Replaying week ${week} of ${of}…`),
-  window: line('reading', ({ from, to, toEnd }) => {
+  // Always to the end of the game: a change stays out of the replay after it,
+  // and can move the week-8 ranking and month 3's budget (found drawing
+  // Results, 2026-09-15). It used to stop "until your next change".
+  window: line('reading', ({ from, to }) => {
     const span = from === to ? `Week ${from}` : `Weeks ${from}–${to}`;
-    return toEnd ? `${span}, to the end of the game, still settling.` : `${span}, until your next change.`;
+    return `${span}, to the end of the game, still settling.`;
   }),
   withoutIt: line('reading', ({ clicks, clicksSign, cost, costSign, kept, keptSign }) => {
     if (clicksSign === 0 && costSign === 0 && keptSign === 0) {
