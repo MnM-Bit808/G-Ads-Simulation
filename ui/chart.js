@@ -191,10 +191,17 @@ export function marketOutlook(insights, playerId, names) {
 
   // Two different rivals answering two different questions: who you are
   // actually competing with, and who is winning the auctions you share.
+  //
+  // WINNING THEM IN THE MOST OF YOUR AUCTIONS, not the most often when you
+  // meet. Ranked by `positionAboveRate` alone it named a rival in 2% of the
+  // player's auctions, above it in 74% of that 2%, over one in 96% of them and
+  // above in 70% (found drawing the Market area). Overlap times position-above
+  // is the share of all the auctions you showed in where that rival sat above
+  // you, and both figures are Auction Insights'.
   const rivals = Object.entries(latest.rivals ?? {});
-  const best = (key) => rivals.reduce(
-    (top, [id, r]) => (top === null || r[key] > top.rate
-      ? { id, name: names?.get(id) ?? id, rate: r[key] }
+  const best = (value) => rivals.reduce(
+    (top, [id, r]) => (top === null || value(r) > top.rate
+      ? { id, name: names?.get(id) ?? id, rate: value(r) }
       : top),
     null,
   );
@@ -205,18 +212,33 @@ export function marketOutlook(insights, playerId, names) {
     lostToRank,
     lostToBudget,
     change,
-    meetMost: best('overlapRate'),
-    beatsYouMost: best('positionAboveRate'),
+    meetMost: best((r) => r.overlapRate),
+    aboveYouMost: best((r) => r.overlapRate * r.positionAboveRate),
   };
 }
 
 /**
  * The smallest change in a rival's overlap worth naming: five points of the
- * player's auctions. Below it, a week-to-week wobble. A display threshold, kept
- * in the view (DECISIONS I6).
+ * player's auctions, AS PRINTED. Below it, a week-to-week wobble. A display
+ * threshold, kept in the view (DECISIONS I6). Judged on the rounded figures the
+ * screen shows, so a rival shown going from 45% to 40% is never said to have
+ * stayed put (found drawing the Market area: 0.4498 to 0.402 was "no move").
  */
-const MIN_MOVE = 0.05;
+const MIN_MOVE = 5;
 const MOST_MOVERS = 3;
+const printed = (rate) => Math.round(100 * rate);
+
+/**
+ * Whether a rival's rate moved enough to name: five points as printed. Shared
+ * so the Studio's rival cards mark a move exactly when the sentence names one.
+ *
+ * @param {number} from - last week's rate, 0..1
+ * @param {number} to - this week's
+ * @returns {boolean}
+ */
+export function isMove(from, to) {
+  return Math.abs(printed(to) - printed(from)) >= MIN_MOVE;
+}
 
 /**
  * The rivals whose presence in the player's auctions moved most since last week.
@@ -230,7 +252,7 @@ const MOST_MOVERS = 3;
  * @param {string} playerId
  * @param {Map<string, string>} names
  * @returns {{id: string, name: string, from: number, to: number}[]} largest move
- *   first, at most three, only moves of at least five points
+ *   first, at most three, only moves of at least five points as printed
  */
 export function insightMovers(insights, playerId, names) {
   const before = insights?.[insights.length - 2]?.[playerId]?.rivals;
@@ -239,8 +261,8 @@ export function insightMovers(insights, playerId, names) {
   return Object.keys(after)
     .filter((id) => id in before)
     .map((id) => ({ id, name: names?.get(id) ?? id, from: before[id].overlapRate, to: after[id].overlapRate }))
-    .filter((m) => Math.abs(m.to - m.from) >= MIN_MOVE)
-    .sort((a, b) => Math.abs(b.to - b.from) - Math.abs(a.to - a.from))
+    .filter((m) => isMove(m.from, m.to))
+    .sort((a, b) => Math.abs(printed(b.to) - printed(b.from)) - Math.abs(printed(a.to) - printed(a.from)))
     .slice(0, MOST_MOVERS);
 }
 
@@ -302,12 +324,12 @@ function readingOf(ctx) {
       + 'you appear in',
     ));
     node.append(document.createTextNode(
-      out.beatsYouMost && out.beatsYouMost.id !== out.meetMost.id
-        ? `, but it is ${out.beatsYouMost.name} that is above you most often when you `
-          + `meet, ${pct(out.beatsYouMost.rate)} of the time.`
+      out.aboveYouMost && out.aboveYouMost.id !== out.meetMost.id
+        ? `, but it is ${out.aboveYouMost.name} that ranks above you in more of them: `
+          + `${pct(out.aboveYouMost.rate)} of all the auctions you appear in.`
         // Same advertiser on both counts: it is who you meet AND who beats you.
-        : `, and it is above you ${pct(out.beatsYouMost?.rate ?? 0)} of the times you `
-          + 'both appear.',
+        : `, and it ranks above you in ${pct(out.aboveYouMost?.rate ?? 0)} of all the `
+          + 'auctions you appear in.',
     ));
   }
 

@@ -14,7 +14,9 @@
  *          entries and spec sections it rests on. It types no number: figures
  *          arrive from `ui/guide/figures.js`, named in `needs`.
  *
- * Then `yourAccount`, the card where the player can watch it happen.
+ * Then `yourAccount`, the card where the player can watch it happen, and
+ * `studioAccount` where the Studio shows it in a part the classic page has no
+ * card for (found drawing the Guide as a page, 2026-09-15).
  *
  * WHEN A CITED DECISIONS ENTRY CHANGES, re-read the chapters that cite it.
  * `tests/guide.test.js` proves a citation exists, not that the chapter agrees.
@@ -36,11 +38,13 @@ const CITATION = /^([A-Z]\d+[a-z]?|§\d+(\.\d+)*)$/;
  * @param {(figures: object) => string} spec.game - in this game
  * @param {string[]} spec.cites
  * @param {string} spec.yourAccount - the card's `data-slot`
+ * @param {string|null} [spec.studioAccount] - the Studio part's `data-slot`,
+ *   where it differs: a part only the Studio draws
  * @param {string[]} [spec.related]
  */
 export function chapter({
   title, real, realSources = [], device = false, needs = [], game, cites = [],
-  yourAccount, related = [],
+  yourAccount, studioAccount = null, related = [],
 }) {
   if (!title) throw new TypeError('a chapter needs a title');
   if (typeof real !== 'function') throw new TypeError(`"${title}" needs its real half`);
@@ -55,7 +59,7 @@ export function chapter({
   if (!yourAccount) throw new TypeError(`"${title}" needs a card in your account`);
   return Object.freeze({
     title, real, realSources: Object.freeze(realSources), device, needs: Object.freeze(needs),
-    game, cites: Object.freeze(cites), yourAccount, related: Object.freeze(related),
+    game, cites: Object.freeze(cites), yourAccount, studioAccount, related: Object.freeze(related),
   });
 }
 
@@ -170,7 +174,8 @@ export const CHAPTERS = Object.freeze({
       + 'advertiser shares one fixed shape, counted in weeks because each turn is a week.',
     cites: ['I27', '§11.3', '§11.4'],
     yourAccount: 'revised',
-    related: ['returnsSplit'],
+    // Smart bidding learns only from conversions that have landed.
+    related: ['returnsSplit', 'smartBidding'],
   }),
 
   returnsSplit: chapter({
@@ -184,10 +189,11 @@ export const CHAPTERS = Object.freeze({
       + 'on ad spend it shows you is before returns.',
     realSources: [INDIA.pragmaRto, GOOGLE.adjustments],
     needs: ['rtoCod', 'rtoPrepaid', 'postDelivery', 'freight'],
-    game: ({ rtoCod, rtoPrepaid, postDelivery, freight }) => 'Here the returns card is your '
-      + 'shop’s own books, which Google Ads would show only if you uploaded them. Every order '
+    game: ({ rtoCod, rtoPrepaid, postDelivery, freight }) => 'Here the game shows your returns from '
+      + 'your shop’s own books, which Google Ads would show only if you uploaded them. Every order '
       + `can be refused at the door, ${rtoCod} of the time when paid in cash and ${rtoPrepaid} `
-      + `when prepaid, and ${postDelivery} of delivered orders are sent back. Each refused `
+      + `when prepaid, and ${postDelivery} of delivered orders across the country are sent back, `
+      + 'more or less for you depending on where you sell. Each refused '
       + `parcel also costs ${freight} in freight. The two halves have different fixes: a size `
       + 'guide reaches only send-backs, while order confirmation and a prepaid discount reach '
       + 'only refusals. The refusal rates come from one named study; newer reports put cash '
@@ -219,7 +225,8 @@ export const CHAPTERS = Object.freeze({
       + 'the game’s own estimate.',
     cites: ['G4', 'I28', 'D11', 'D13'],
     yourAccount: 'places',
-    related: ['returnsSplit'],
+    // A place and an hour are both bid adjustments, under the one cap (D13).
+    related: ['returnsSplit', 'hours'],
   }),
 
   counterfactuals: chapter({
@@ -240,6 +247,10 @@ export const CHAPTERS = Object.freeze({
       + 'impossible outside it.',
     cites: ['G1', 'G1a'],
     yourAccount: 'budget',
+    // Both replays are drawn after the last week, in Results' What you learned.
+    studioAccount: 'results-moments',
+    // The budget "what if" answers lost to budget.
+    related: ['rankOrBudget'],
   }),
 
   kindMarket: chapter({
@@ -272,7 +283,7 @@ export const CHAPTERS = Object.freeze({
       + 'were eligible for. Google presents the figure as telling you whether your ads might '
       + 'reach more people with a higher bid or a bigger budget.',
     realSources: [GOOGLE.impressionShareData, GOOGLE.impressionShare],
-    game: () => 'The share card splits every week the same way, but exactly, because this game '
+    game: () => 'This game splits every week’s missed searches the same way, but exactly, because it '
       + 'counts every auction you could have entered. The two point at different fixes. Lost to '
       + 'budget means the money ran out first: more money helps, and so do cheaper clicks, while '
       + 'a higher bid makes each click dearer and the money runs out sooner. Lost to rank means '
@@ -302,6 +313,8 @@ export const CHAPTERS = Object.freeze({
       + 'under any strategy.',
     cites: ['E8', 'E9', 'H5', 'H6', '§8.2'],
     yourAccount: 'terms',
+    // A poorer fit lowers your ad rank.
+    related: ['qualityScore'],
   }),
 
   qualityScore: chapter({
@@ -327,7 +340,8 @@ export const CHAPTERS = Object.freeze({
       + 'three ratings through a table this game invented.',
     cites: ['A1', 'A2', 'A5', 'A6'],
     yourAccount: 'keywords',
-    related: ['broadMatch'],
+    // The writer sets two of the score's three parts.
+    related: ['broadMatch', 'writers'],
   }),
 
   ownName: chapter({
@@ -347,7 +361,9 @@ export const CHAPTERS = Object.freeze({
       + 'contest it and the owner can afford to bid higher, not because searchers prefer the '
       + 'name they typed.',
     cites: ['A9', '§12.1'],
-    yourAccount: 'insights',
+    // The search terms, where a search for the player's own name is marked as
+    // theirs; the auction insights say nothing about a name.
+    yourAccount: 'terms',
   }),
 
   smartBidding: chapter({
@@ -392,7 +408,7 @@ export const CHAPTERS = Object.freeze({
       + 'place’s adjustments stack.',
     cites: ['D11', 'H4', 'D2', 'D13'],
     yourAccount: 'hours',
-    related: ['smartBidding'],
+    related: ['smartBidding', 'cashOnDelivery'],
   }),
 
   writers: chapter({
@@ -415,7 +431,9 @@ export const CHAPTERS = Object.freeze({
       + 'page is built with capital. Where it departs: Google’s Quality Score has no part for '
       + 'who wrote the ad.',
     cites: ['I11', 'I10', 'I25', 'I9'],
+    // The classic page draws the ad on no card; the Studio's Your ad does.
     yourAccount: 'keywords',
+    studioAccount: 'writer',
     related: ['qualityScore'],
   }),
 

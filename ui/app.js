@@ -39,6 +39,7 @@ import { guideFigures } from './guide/figures.js';
 import { lookMode } from './look.js';
 import { createStudio } from './shell/shell.js';
 import { createRoundZero } from './roundzero/studio.js';
+import { notesFor } from './roundzero/rules.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -64,12 +65,21 @@ let studio = null;
  * a week never removes it; the dashboard's "why?" buttons and the header's
  * Field guide button all open this one drawer. In the Studio layout, "show me
  * on the card" first opens the section the card sits in, and before week 1,
- * when there is no card, it is not offered.
+ * when there is no card, it is not offered; nor, in the Studio, while the
+ * section is still locked. The Studio's Guide page reads the same chapters
+ * with the same figures, and its Contents is that page.
  */
+const GUIDE_FIGURES = guideFigures();
 const guide = createGuide({
-  figures: guideFigures(),
+  figures: GUIDE_FIGURES,
   reveal: (slot) => studio?.reveal(slot) ?? false,
-  canShowCard: () => Boolean(game),
+  canShowCard: (slot) => Boolean(game) && (studio ? studio.canReveal(slot) : true),
+  inStudio: () => look === 'studio',
+  contentsPage: () => {
+    if (!studio || !game) return false;
+    studio.openChapter('contents');
+    return true;
+  },
 });
 document.body.append(guide.node);
 guideButton.addEventListener('click', () => guide.openContents(guideButton));
@@ -124,12 +134,16 @@ let roundZeroTouched = false;
  */
 let rewinding = null;
 
-async function begin({ playerBrandId, player }) {
+async function begin({ playerBrandId, player, guesses = null }) {
   const state = rewinding
     ? redoRoundZero(rewinding, { playerBrandId, player })
     : startGame({ rootSeed, playerBrandId, player, querySet: QUERY_SET });
   rewinding = null;
   openGame(state, playerBrandId);
+  // Round 0's notes on the rivals, kept for the reveal after the last week
+  // (the owner, 2026-09-15). Only the Studio's round 0 takes them; a game
+  // opened on the classic page has none, and the reveal asks at the end.
+  game.notes = guesses ? notesFor(guesses, state.advertisers, playerBrandId) : null;
 
   // AND RUN THE FIRST WEEK, rather than rendering an account with no rounds in
   // it. There used to be a screen between here and the dashboard carrying one
@@ -180,6 +194,9 @@ function openGame(state, playerId) {
     // does not keep: running a week rewrites the earlier ones (11.4). Your
     // week's dashed tick is drawn from it (ui/save.js keeps it on a reload).
     historyBefore: [],
+    // Round 0's notes on where each rival sits, rival id to square, or null.
+    // Display only; the save carries them for the reveal.
+    notes: null,
     draft: null,
     // Display preferences, which the view is allowed to keep. Nothing the
     // engine owns lives here.
@@ -227,6 +244,7 @@ function persist() {
     playerId: game.playerId,
     weeksPlayed: game.reports.length,
     fingerprint: fingerprintOf(game.reports, game.playerId),
+    notes: game.notes,
   }));
 }
 
@@ -360,15 +378,21 @@ function render() {
       onRun: runWeek,
       onRedo: redo,
       openGuide: guide.open,
-      openContents: (trigger) => guide.openContents(trigger),
+      showCard: guide.showCard,
+      figures: GUIDE_FIGURES,
       onPlaytest: recorder ? sendPlaytestFile : null,
     });
-    let endingNode = null;
-    if (game.reports.length >= TOTAL_ROUNDS) {
-      endingNode = el('div', 'studio-results');
-      endingNode.append(...endingNodes());
-    }
-    studio.draw(game, { saved: game.saved, canRedo: canRedoRoundZero(game.state), endingNode });
+    // After the last week the shell draws Results itself (ui/results/render.js,
+    // the owner's choice 2026-09-15); it is handed only what it cannot reach:
+    // starting over, and on the playtest link the questions, asked once the
+    // whole game has been seen.
+    const ending = game.reports.length >= TOTAL_ROUNDS ? {
+      onRestart: restart,
+      playtest: recorder
+        ? () => renderPlaytestPanel({ recorder, onDownload: () => downloadPlaytestFile(recorder, storage) })
+        : null,
+    } : null;
+    studio.draw(game, { saved: game.saved, canRedo: canRedoRoundZero(game.state), ending });
     app.replaceChildren(studio.node);
     return;
   }
@@ -557,6 +581,7 @@ async function resume(saved) {
 
   rootSeed = saved.initialState.rootSeed;
   openGame(saved.initialState, saved.playerId);
+  game.notes = saved.notes;
   game.state = restored.state;
   game.reports = restored.reports;
   game.insights = restored.insights;

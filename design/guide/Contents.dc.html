@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .pick { cursor: pointer; user-select: none; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 1060px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Brand</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M16 14.2c2.9.4 5 2.8 5 5.8"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Market</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: #2A1216; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #F3EEEA;">Guide</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#68636B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #68636B;">Results</div>
+    </div>
+  </div>
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; overflow: hidden;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">mid · performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Field guide</div>
+    <sc-for list="{{items}}" as="i" hint-placeholder-count="14">
+      <div class="pick" onClick="{{i.pick}}" style="min-height: 38px; padding: 7px 10px; border-radius: 12px; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.3; font-weight: {{i.weight}}; background: {{i.bg}}; color: {{i.color}}; box-shadow: {{i.ring}}; box-sizing: border-box;">
+        <sc-if value="{{i.hasN}}" hint-placeholder-val="{{true}}"><div class="num" style="flex-shrink: 0; width: 20px; height: 20px; border: 1.5px solid {{i.nBorder}}; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700;">{{i.n}}</div></sc-if>
+        <div style="padding-top: 2px;">{{i.title}}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="display" style="font-weight: 700; font-size: 20px;">Week 6 of 12</div>
+        <div style="font-size: 13px; color: #8A847E;">saved</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 13px;">
+        <div style="color: #A19A94;">Month 2</div>
+        <div class="num" style="font-weight: 700;">₹1,16,500 of ₹2,33,000 spent</div>
+      </div>
+    </div>
+    <div style="flex-grow: 1; min-height: 0; padding: 22px 40px 24px; display: flex; flex-direction: column; gap: 16px;">
+      <sc-if value="{{isContents}}" hint-placeholder-val="{{false}}">
+        <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Field guide</div>
+        <div style="font-size: 14px; line-height: 1.5; color: #CFC9C3; max-width: 760px;">Thirteen chapters, each in two halves: what real Google Ads does, and what this game does and where it departs. Read them in order, or open the one beside what you are looking at. A "why?" anywhere in the game opens its chapter beside you.</div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;">
+          <sc-for list="{{cards}}" as="c" hint-placeholder-count="13">
+            <div class="pick" onClick="{{c.pick}}" style="padding: 18px 22px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0; gap: 8px; padding: 16px 18px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+                <div class="display num" style="font-weight: 800; font-size: 22px; color: #8A847E;">{{c.n}}</div>
+                <div style="font-size: 11px; color: #A19A94;">{{c.section}}</div>
+              </div>
+              <div class="display" style="font-weight: 700; font-size: 17px; line-height: 1.2;">{{c.title}}</div>
+              <div style="font-size: 12px; line-height: 1.45; color: #A19A94; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;">{{c.teaser}}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{isChapter}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="font-size: 12px; color: #8A847E;">{{chapterOf}}</div>
+          <div class="display" style="font-weight: 800; font-size: 42px; line-height: 1; letter-spacing: -0.02em;">{{title}}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+          <div style="font-size: 13px; color: #A19A94;">Explains: <b style="color: #EDE8E3; font-weight: 700;">{{section}}</b></div>
+          <div class="pick" onClick="{{show}}" style="padding: 7px 14px; border: 1px solid #3A363E; border-radius: 999px; font-size: 13px; font-weight: 600; color: #CFC9C3;">Show me in your account →</div>
+          <sc-if value="{{shown}}" hint-placeholder-val="{{false}}"><div style="font-size: 12px; color: #8A847E;">mock-up: {{shownNote}}</div></sc-if>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start;">
+          <div style="padding: 18px 22px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E;">In real Google Ads</div>
+            <div style="font-size: 14px; line-height: 1.6; color: #CFC9C3;">{{real}}</div>
+            <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px solid #2A272D;">
+              <div style="font-size: 11px; color: #8A847E;">Sources</div>
+              <sc-for list="{{sources}}" as="s" hint-placeholder-count="2"><div style="font-size: 12px; line-height: 1.4; color: #FF6166; text-decoration: underline; text-underline-offset: 3px;">{{s.label}}</div></sc-for>
+            </div>
+          </div>
+          <div style="padding: 18px 22px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+            <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E;">In this game</div>
+            <div style="font-size: 14px; line-height: 1.6; color: #CFC9C3;">{{game}}</div>
+          </div>
+        </div>
+        <sc-if value="{{hasRelated}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <div style="font-size: 12px; color: #8A847E;">Read beside it:</div>
+            <sc-for list="{{related}}" as="r" hint-placeholder-count="1"><div class="pick" onClick="{{r.pick}}" style="padding: 4px 11px; border: 1px solid #3A363E; border-radius: 999px; font-size: 12px; color: #CFC9C3;">{{r.label}}</div></sc-for>
+          </div>
+        </sc-if>
+        <div style="display: flex; justify-content: space-between; gap: 16px; padding-top: 14px; border-top: 1px solid #26232A;">
+          <div class="pick" onClick="{{toPrev}}" style="font-size: 14px; font-weight: 600; color: #CFC9C3;"><sc-if value="{{hasPrev}}" hint-placeholder-val="{{true}}">{{prevLabel}}</sc-if></div>
+          <div class="pick" onClick="{{toNext}}" style="font-size: 14px; font-weight: 700; color: #FF6166; text-align: right;"><sc-if value="{{hasNext}}" hint-placeholder-val="{{true}}">{{nextLabel}}</sc-if></div>
+        </div>
+      </sc-if>
+    </div>
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <div style="font-size: 14px; color: #A19A94;">No changes yet. Anything you change, in any section, lands here.</div>
+      <div class="display" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"></path></svg>
+        <div>Run week 7</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1060}}'>
+/*
+ * The Guide as a page, option A: the contents. Every chapter's words are the game's own
+ * (ui/guide/chapters.js through guideView, with guideFigures); option B's
+ * figures come from the makeover canvas's game after week 6.
+ */
+const DATA = {"chapters":[{"id":"attributionLag","n":1,"title":"Why this week’s numbers keep moving","real":"Google Ads dates a conversion by the click that led to it, not by the day of the sale. Someone who clicks on Monday and buys on Friday adds a conversion to Monday, on Friday. So your newest days always look weakest: their spend is counted in full, but many of their buyers have not bought yet. Depending on the conversion window you set, a sale can still be added up to 90 days after the click.","game":"This game keeps the same rule, a week at a time. Each week’s report belongs to the week of its clicks and is rewritten as orders arrive: 55% this week, then 28%, then 12% and then 5%. Returns then need their own time to come back, so a week is final about 5 weeks after it happens. Where it departs: a real account’s delay depends on what you sell and how you set it up, while here every advertiser shares one fixed shape, counted in weeks because each turn is a week.","sources":["Google Ads Help: Understand your conversion tracking data","Google Ads Help: Find out how long it takes for your customers to convert"],"section":"Your week","related":[{"id":"returnsSplit","n":2,"title":"Refused at the door, or sent back"}],"teaser":"Google Ads dates a conversion by the click that led to it, not by the day of the sale."},{"id":"returnsSplit","n":2,"title":"Refused at the door, or sent back","real":"An order can come back in two ways. A parcel that is not delivered, for instance because it was refused at the door, goes back to the seller; Indian e-commerce calls this RTO, return to origin, and there was never a sale. A delivered order can also be sent back later, and clothing is the most-returned category, at roughly 25–40%. Google Ads counts the purchase when it happens and learns of neither unless you upload an adjustment that retracts or restates it. Until then, the return on ad spend it shows you is before returns.","game":"Here the returns card is your shop’s own books, which Google Ads would show only if you uploaded them. Every order can be refused at the door, 20.9% of the time when paid in cash and 5.8% when prepaid, and 30% of delivered orders are sent back. Each refused parcel also costs ₹200 in freight. The two halves have different fixes: a size guide reaches only send-backs, while order confirmation and a prepaid discount reach only refusals. The refusal rates come from one named study; newer reports put cash refusals higher.","sources":["Pragma: Understanding Return to Origin (RTO) charges","Google Ads Help: About conversion adjustments"],"section":"Returns","related":[{"id":"cashOnDelivery","n":3,"title":"Cash on delivery, and where you advertise"},{"id":"attributionLag","n":1,"title":"Why this week’s numbers keep moving"}],"teaser":"An order can come back in two ways."},{"id":"cashOnDelivery","n":3,"title":"Cash on delivery, and where you advertise","real":"Most Indian online orders are still paid in cash at the door, 58–65% by ClickPost’s count, and cash parcels are refused far more often than prepaid ones: GoKwik reports about 26% against under 2%, and in one festive quarter Unicommerce saw 58% of cash orders come back against under 15% of prepaid ones. A refused parcel costs ₹150–300 in freight. Google Ads cannot see how a customer pays. What it offers is place: you can raise or lower bids by location, from −90% to +900%, though not under Smart Bidding strategies.","game":"The game makes cash commoner outside the metros and at lower prices, so orders from smaller cities and towns come back more often and cost more to carry. Where you advertise is the lever: it shows what a click kept in each place after returns, and lets you bid up or down there. It departs in three ways: an adjustment can switch a place off entirely, where Google’s lowest adjustment still leaves it on; it applies under every bidding strategy, including the automated ones Google does not allow it with; and no bid goes past 4 times your keyword bid, however the place’s and the hour’s adjustments stack. How cash varies by price is the game’s own estimate.","sources":["First Resort: E-commerce returns and RTO in Indian fashion, 2026 (quoting ClickPost, GoKwik and Unicommerce)","Unicommerce: India D2C Report 2026","Google Ads Help: About bid adjustments"],"section":"Where and when","related":[{"id":"returnsSplit","n":2,"title":"Refused at the door, or sent back"}],"teaser":"Most Indian online orders are still paid in cash at the door, 58–65% by ClickPost’s count, and cash parcels are refused far more often than prepaid ones."},{"id":"rankOrBudget","n":4,"title":"Lost to rank, or lost to budget","real":"Google Ads splits the searches your ad missed in two. Search lost impression share to budget is the share it missed because your budget ran short; lost to rank is the share it missed because its Ad Rank was too low in the auction. Both rest on an estimate: impression share divides the impressions you got by the estimated number you were eligible for. Google presents the figure as telling you whether your ads might reach more people with a higher bid or a bigger budget.","game":"The share card splits every week the same way, but exactly, because this game counts every auction you could have entered. The two point at different fixes. Lost to budget means the money ran out first: more money helps, and so do cheaper clicks, while a higher bid makes each click dearer and the money runs out sooner. Lost to rank means your ad rank, your bid weighed by your ad’s quality, was too low: a better ad or a higher bid helps, and more money does not.","sources":["Google Ads Help: Get impression share data","Google Ads Help: About impression share"],"section":"Your week","related":[{"id":"counterfactuals","n":12,"title":"What only a simulation can tell you"}],"teaser":"Google Ads splits the searches your ad missed in two."},{"id":"broadMatch","n":5,"title":"How far broad match wanders","real":"Exact match reaches searches with the same meaning or intent as your keyword, phrase match those that include its meaning, and broad match searches related to it, which can include ones that do not carry its meaning at all. Google says it is critical to use Smart Bidding with broad match. The search terms report shows the searches your ad actually appeared on, and a term that is not yours becomes a negative keyword. Negatives do not match close variants, so plurals and synonyms have to be added separately.","game":"Here exact and phrase match are word matches, and broad match reaches a search when enough of the concept tags the two were given from their words are shared. A distant search costs twice: it rarely buys, and a poorer fit lowers your ad rank on it. Broadening also lowers impression share while raising impressions, because it adds searches faster than it wins them. Negatives are plain word matches, never tags. Where it departs: how far broad reaches depends on how a keyword was tagged, and broad works under any strategy.","sources":["Google Ads Help: About keyword matching options","Google Ads Help: About the search terms report","Google Ads Help: About negative keywords"],"section":"What people typed","related":[],"teaser":"Exact match reaches searches with the same meaning or intent as your keyword, phrase match those that include its meaning, and broad match searches related to it, which can include ones that do not carry its meaning at all."},{"id":"qualityScore","n":6,"title":"What the Quality Score is, and is not","real":"Google Ads gives each keyword a Quality Score from 1 to 10, a diagnostic of how your ad quality compares to other advertisers. Three parts make it up: expected clickthrough rate, the likelihood your ad is clicked when shown; ad relevance, how closely your ad matches the intent behind a search; and landing page experience, how relevant and useful your page is to people who click. Each is rated above average, average or below average, against advertisers whose ads showed for the exact same search over the last 90 days. Google says it is not an input in the ad auction. A dash means too few searches exactly match the keyword to score it.","game":"Here too the score is a report, never an input: the auction weighs your ad’s quality afresh on every search, and the score is worked out afterwards. It counts only the keyword’s own literal search, in finished weeks, so a better ad counts in the very next auction, in your position and its price, while the score catches up late or never. Each part has three levels against everyone on the same search, so a real improvement can leave it unmoved, and landing page reads above average only rarely. A keyword has no score until its own search earns 500 impressions. Where it departs: the overall score comes from the three ratings through a table this game invented.","sources":["Google Ads Help: About Quality Score for Search campaigns"],"section":"Your keywords","related":[{"id":"broadMatch","n":5,"title":"How far broad match wanders"}],"teaser":"Google Ads gives each keyword a Quality Score from 1 to 10, a diagnostic of how your ad quality compares to other advertisers."},{"id":"writers","n":7,"title":"Who writes the ad","real":"A search ad in Google Ads is built from headlines and descriptions: up to 15 headlines of up to 30 characters and 4 descriptions of up to 90, which Google assembles into combinations, testing them to learn which are most relevant. At least one headline and one description show at a time. Two of Quality Score’s three parts are about the ad: expected clickthrough rate, the likelihood it is clicked when shown, and ad relevance, how closely it matches the intent behind a search. The third, landing page experience, is how relevant and useful your page is to people who click.","game":"Before the first week you choose who writes the ad, which sets two of Quality Score’s three parts: expected click-through and ad relevance. A hired writer’s ad runs at the writer’s level whatever the words say, because this game cannot judge professional writing. Writing it yourself costs nothing, and the game’s grader scores your words by rules, not taste: echoing your own keywords counts for more than reading well. Both run from the first week, and what the writer does not cost goes to your ads, so the fee buys not having to write, and insurance against writing badly. The landing page is built with capital. Where it departs: Google’s Quality Score has no part for who wrote the ad.","sources":["Google Ads Help: About responsive search ads","Google Ads Help: About Quality Score for Search campaigns"],"section":"Your keywords","related":[{"id":"qualityScore","n":6,"title":"What the Quality Score is, and is not"}],"teaser":"A search ad in Google Ads is built from headlines and descriptions."},{"id":"ownName","n":8,"title":"Defending your own name","real":"Google’s trademark policy does not restrict using a trademark as a keyword, so a rival may bid on your brand’s name and appear when people search for it. What the policy restricts is the ad itself: a direct competitor using your trademark in its ad text, or any ad using it in a confusing or misleading way, subject to local trademark law. So your own name is an auction like any other, and one you can lose.","game":"Every brand here has its own search, and any advertiser may bid on it. Someone searching your name buys from you at 2.5 times the usual rate, and from a rival that poaches it at 0.25 times that rate. Nothing else knows whose name it is: the searcher is no likelier to click your ad than a rival’s with the same grades. Defending it is cheap here because few rivals contest it and the owner can afford to bid higher, not because searchers prefer the name they typed.","sources":["Google Ads policy: Trademarks"],"section":"Rivals","related":[],"teaser":"Google’s trademark policy does not restrict using a trademark as a keyword, so a rival may bid on your brand’s name and appear when people search for it."},{"id":"smartBidding","n":9,"title":"Smart bidding has to learn","real":"Smart Bidding, which covers Target CPA, Target ROAS, Maximise conversions and Maximise conversion value, sets a bid for every auction from signals such as the device, the place, the time and the search itself. After a new strategy or a changed setting it shows as learning, and Google says it can take up to around 50 conversions or 3 conversion cycles to calibrate. It suggests judging results over a month or longer, with at least 30 conversions.","game":"Here the strategies that predict conversions estimate each click’s chance of a sale from your own conversions that have already landed, never from the truth, so they start out wrong and improve with volume. Switching strategy, changing its target or moving position starts a learning period of 2 weeks in which their predictions go wrong 2.5 times as much. Bid, keyword and budget changes do not. Where it departs: learning lasts a fixed number of weeks rather than until enough conversions arrive.","sources":["Google Ads Help: About Smart Bidding","Google Ads Help: Duration of the learning period for campaigns"],"section":"Your money","related":[{"id":"attributionLag","n":1,"title":"Why this week’s numbers keep moving"},{"id":"hours","n":10,"title":"Bidding by the hour"}],"teaser":"Smart Bidding, which covers Target CPA, Target ROAS, Maximise conversions and Maximise conversion value, sets a bid for every auction from signals such as the device, the place, the time and the search itself."},{"id":"hours","n":10,"title":"Bidding by the hour","real":"Google Ads lets you raise or lower your bids by day and hour through the ad schedule, from −90% to +900%. Adjustments usually multiply, and together they cannot raise a bid by more than 900%. Your ads follow the days and times the schedule sets, so to stop showing at an hour you leave it out. With Smart Bidding strategies such as Target CPA, Target ROAS and Maximise conversions, schedule adjustments are not used at all: Smart Bidding already sets each bid from performance by time of day.","game":"Here searches peak at one time of day and buying at another, which is what makes an hour adjustment pay: it can move money toward the hours that convert rather than the hours that are busy. It departs three times. The lowest setting takes you out of an hour altogether, where Google’s lowest still leaves you in it. The adjustment works under every strategy: under the ones that predict conversions it lands on top of the strategy’s own lean by hour, so the hour counts twice, which Google does not allow. And no bid goes past 4 times your keyword bid, however the hour’s and the place’s adjustments stack.","sources":["Google Ads Help: About bid adjustments","Google Ads Help: About Smart Bidding"],"section":"Where and when","related":[{"id":"smartBidding","n":9,"title":"Smart bidding has to learn"}],"teaser":"Google Ads lets you raise or lower your bids by day and hour through the ad schedule, from −90% to +900%."},{"id":"weeklySplit","n":11,"title":"Splitting the month into weeks","real":"Google Ads budgets by the day: you set an average daily budget for each campaign, the average amount it spends per day. On a particular day it may spend up to twice that, for most campaigns, because Google leans spend toward the days of the month when you are more likely to get clicks and conversions. Across a month it stays within 30.4 times the daily figure.","game":"Here each month’s money is a fixed amount you divide across its four weeks, evenly unless you change the split, and within a week it is paced across the days and hours. A week spends what it was given and no more, and money left when the month ends is lost: nothing carries over, so hoarding cannot win. Where it departs: Google works from a daily average and moves spend between days for you; here the shape of the month is yours to set, which is why the split exists, and yours to read afterwards.","sources":["Google Ads Help: About average daily budgets"],"section":"Your money","related":[{"id":"rankOrBudget","n":4,"title":"Lost to rank, or lost to budget"}],"teaser":"Google Ads budgets by the day."},{"id":"counterfactuals","n":12,"title":"What only a simulation can tell you","real":"Google Ads never sees what would have happened. When your budget runs out, it reports the share of searches you missed because of it, as impression share lost to budget, and even the searches you were eligible for are an estimate. Its bid and budget simulators go further, estimating from the last 7 days of auction data how your ads might have performed with more money, and they warn that conversions are the hardest part to estimate. Everything it tells you about the road not taken is a projection.","game":"This game can re-run a week exactly. The budget \"what if\" re-runs each week with only your own budget lifted to what was left of the month, everyone else unchanged, and reports the extra traffic and whether it would have paid; orders that never happened are costed at your expected return rate. \"What if I hadn’t?\" replays the game without one of your changes, with every rival making the moves it made in your game, though a real market might have answered differently. Both are exact inside the game and impossible outside it.","sources":["Google Ads Help: Get impression share data","Google Ads Help: About impression share","Google Ads Help: Estimate your results with bid, budget and target simulators"],"section":"Your money","related":[],"teaser":"Google Ads never sees what would have happened."},{"id":"kindMarket","n":13,"title":"How kind this market is","real":"Published benchmarks for apparel search ads do not agree, even on one page. One industry page gives apparel search ads a click-through rate of 3.2% and a conversion rate of 3.8% in its table by campaign type, but 6.8% and 4.0% as its headline averages, with a return on ad spend of 4.2×. An Indian agency reports ₹8–40 a click on category searches for D2C brands, and returns of 4.5–8× on its own campaigns. Neither is Indian search data from a named dataset, so treat every one of these as a rough range rather than a fact.","game":"Measured across many markets, ads here are clicked, and clicks buy, at least as often as those benchmarks, and a player bidding sensibly earns returns at the top of the Indian range and made money in every market measured. Three choices make it kinder than a real market: the results page holds nothing but ads, so no organic results or shopping units compete for the click; the base conversion rate is the game’s own estimate; and there is no lifetime value, so the first order must carry everything, and here it does so easily. A careless player can still lose money.","sources":["PPC Chief: Apparel and fashion Google Ads benchmarks (its own accounts, WordStream and Store Growers)","Balistro: Performance marketing channels ranked for D2C in India (its own campaigns, 2024–26)"],"section":"Your week","related":[],"teaser":"Published benchmarks for apparel search ads do not agree, even on one page."}],"panels":{},"words":{"contents":"Contents"}};
+const START = 'contents';
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = { at: START, shown: false };
+  }
+
+  renderVals() {
+    const s = this.state;
+    const chapters = DATA.chapters;
+    const index = chapters.findIndex((c) => c.id === s.at);
+    const c = index >= 0 ? chapters[index] : null;
+    const prev = index > 0 ? chapters[index - 1] : null;
+    const nextOne = index >= 0 && index < chapters.length - 1 ? chapters[index + 1] : null;
+    const go = (id) => () => this.setState({ at: id, shown: false });
+    const items = [{ id: 'contents', n: '', title: DATA.words.contents }, ...chapters].map((x) => {
+      const on = x.id === s.at;
+      return {
+        n: x.n ? String(x.n) : '',
+        hasN: Boolean(x.n),
+        title: x.title,
+        bg: on ? '#1F1C22' : 'transparent',
+        color: on ? '#F3EEEA' : '#CFC9C3',
+        weight: on ? 700 : 500,
+        ring: on ? '0 0 0 1px #2E2A33' : 'none',
+        nBorder: on ? '#F3EEEA' : '#4A454F',
+        pick: go(x.id),
+      };
+    });
+    const panel = c ? DATA.panels[c.id] ?? null : null;
+    return {
+      items,
+      isContents: s.at === 'contents',
+      isChapter: Boolean(c),
+      cards: chapters.map((x) => ({ ...x, pick: go(x.id) })),
+      chapterOf: c ? `Chapter ${c.n} of ${chapters.length}` : '',
+      title: c ? c.title : DATA.words.contents,
+      real: c?.real ?? '',
+      game: c?.game ?? '',
+      sources: (c?.sources ?? []).map((label) => ({ label })),
+      section: c?.section ?? '',
+      related: (c?.related ?? []).map((r) => ({ label: `${r.n} · ${r.title}`, pick: go(r.id) })),
+      hasRelated: Boolean(c?.related?.length),
+      hasPrev: Boolean(prev),
+      hasNext: Boolean(nextOne),
+      prevLabel: prev ? `← ${prev.n} · ${prev.title}` : '',
+      nextLabel: nextOne ? `${nextOne.n} · ${nextOne.title} →` : '',
+      toPrev: prev ? go(prev.id) : () => {},
+      toNext: nextOne ? go(nextOne.id) : () => {},
+      show: () => this.setState({ shown: true }),
+      shown: s.shown,
+      shownNote: c ? `In the game this opens ${c.section} and marks the card the chapter explains.` : '',
+      // Option B: the chapter's own figure in this account, now.
+      hasPanel: Boolean(panel),
+      noPanel: Boolean(c) && !panel,
+      isLag: panel?.kind === 'lag',
+      isReturns: panel?.kind === 'returns',
+      isShare: panel?.kind === 'share',
+      isTerms: panel?.kind === 'terms',
+      panel: panel ?? { bars: [], top: [], figures: [], share: {}, key: [], positions: [], onThePage: '', text: '', sub: '' },
+    };
+  }
+}
+
+</script>
+</body>
+</html>

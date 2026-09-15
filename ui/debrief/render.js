@@ -16,17 +16,21 @@ import { DEBRIEF } from '../words/debrief.js';
 import { whyButton } from '../guide/drawer.js';
 import { serpBlock } from '../round-zero.js';
 import { STRATEGY_NAMES } from '../ending.js';
-import { replayRound, logWithout } from '../../game.js';
+import { replayRound } from '../../game.js';
 import {
-  moments, windowDifference, budgetWeeks, lessons, revealRows, MATERIAL_LOSS,
+  moments, windowDifference, budgetWeeks, lessons, revealRows, logWithoutChange, MATERIAL_LOSS,
 } from './read.js';
 import { ROUNDS_PER_MONTH, PRICE_TIERS, PURPOSES } from '../../engine/constants.js';
 
-/** Replay the game from its start, one week at a time, saying how far it has got. */
-async function replay(initial, decisionLog, throughRound, options, onWeek) {
+/**
+ * Replay the game from its start, one week at a time, saying how far it has
+ * got. `logAt` gives the decision log for the round about to run: the played
+ * log as it is, or, for "What if I hadn't?", with one week's change kept out.
+ */
+async function replay(initial, logAt, throughRound, options, onWeek) {
   let state = initial;
   while (state.round <= throughRound) {
-    const out = replayRound(state, decisionLog, { mode: 'expected', ...options });
+    const out = replayRound(state, logAt(state), { mode: 'expected', ...options });
     state = out.nextGameState;
     onWeek?.(out.round, throughRound);
     await new Promise((resolve) => { setTimeout(resolve, 0); });
@@ -125,13 +129,20 @@ function momentsSection(ctx, busy) {
       busy(true);
       const progress = el('p', 'note', DEBRIEF.replaying({ week: 1, of: lastRound }));
       result.replaceChildren(progress);
-      const log = logWithout(state.decisionLog, { advertiserId: playerId, round: m.round });
-      const without = await replay(ctx.initial, log, lastRound, {}, (week, of) => {
+      const spec = {
+        initial: ctx.initial,
+        decisionLog: state.decisionLog,
+        history: state.history,
+        playerId,
+        round: m.round,
+        allocationRounds: state.budgetSchedule?.capexAllocationRounds ?? [],
+      };
+      const without = await replay(ctx.initial, (s) => logWithoutChange(s, spec), lastRound, {}, (week, of) => {
         progress.textContent = DEBRIEF.replaying({ week, of });
       });
       const diff = windowDifference(state.history, without.history, playerId, { from: m.round, to: m.windowEnd });
       result.replaceChildren(
-        el('p', 'whatif-window', DEBRIEF.window({ from: m.round, to: m.windowEnd, toEnd: m.windowEnd === lastRound })),
+        el('p', 'whatif-window', DEBRIEF.window({ from: m.round, to: m.windowEnd })),
         el('p', null, DEBRIEF.withoutIt({
           clicks: whole(Math.abs(diff.clicks)),
           clicksSign: signOf(diff.clicks, 0.5),
@@ -152,6 +163,36 @@ function momentsSection(ctx, busy) {
   return section;
 }
 
+/**
+ * The budget question's answer, in the order a player reads it: how often the
+ * money ran out, then what the rest of the month would have done in those
+ * weeks, then the weeks with none of their month left.
+ *
+ * @param {ReturnType<typeof budgetWeeks>} read
+ * @returns {string[]}
+ */
+export function budgetLines(read) {
+  if (read.ranOut === 0) return [DEBRIEF.budgetNeverRanOut()];
+  const lines = [DEBRIEF.budgetRanOut({ ranOut: read.ranOut, played: read.played })];
+  if (read.best) {
+    lines.push(DEBRIEF.budgetPaid({
+      count: read.paidFor.length,
+      round: read.best.round,
+      clicks: whole(read.best.clicks),
+      kept: rupees(read.best.profitIfFundedPaise),
+    }));
+  }
+  if (read.brokeEven.length > 0) {
+    lines.push(DEBRIEF.budgetBrokeEven({ count: read.brokeEven.length, weeks: read.brokeEven.map((w) => w.round) }));
+  }
+  if (read.lostMoney.length > 0) {
+    const all = read.paidFor.length + read.brokeEven.length + read.nothingLeft.length === 0;
+    lines.push(DEBRIEF.budgetLost({ count: read.lostMoney.length, all }));
+  }
+  if (read.nothingLeft.length > 0) lines.push(DEBRIEF.budgetNothingLeft({ weeks: read.nothingLeft }));
+  return lines;
+}
+
 function budgetSection(ctx, busy) {
   const section = el('section', 'debrief-part');
   section.append(el('h3', 'debrief-head', DEBRIEF.budgetHead()));
@@ -166,28 +207,10 @@ function budgetSection(ctx, busy) {
     result.replaceChildren(progress);
     // The engine works the budget "what if" out only when asked, and nothing
     // asked during play (DECISIONS G1); so the game is replayed asking.
-    const replayed = await replay(ctx.initial, ctx.state.decisionLog, lastRound,
+    const replayed = await replay(ctx.initial, () => ctx.state.decisionLog, lastRound,
       { counterfactualFor: [ctx.playerId] },
       (week, of) => { progress.textContent = DEBRIEF.replaying({ week, of }); });
-    const read = budgetWeeks(replayed.history, ctx.playerId);
-
-    const lines = [];
-    if (read.ranOut === 0) {
-      lines.push(DEBRIEF.budgetNeverRanOut());
-    } else {
-      lines.push(DEBRIEF.budgetRanOut({ ranOut: read.ranOut, played: read.played }));
-      if (read.best) {
-        lines.push(DEBRIEF.budgetPaid({
-          count: read.paidFor.length,
-          round: read.best.round,
-          clicks: whole(read.best.clicks),
-          kept: rupees(read.best.profitIfFundedPaise),
-        }));
-      }
-      if (read.didNotPay.length > 0) {
-        lines.push(DEBRIEF.budgetDidNotPay({ count: read.didNotPay.length, all: read.paidFor.length === 0 }));
-      }
-    }
+    const lines = budgetLines(budgetWeeks(replayed.history, ctx.playerId));
     result.replaceChildren(el('p', null, lines.join(' ')), disclosure(DEBRIEF.budgetExact, ctx.openGuide));
     ask.remove();
     busy(false);
@@ -196,8 +219,14 @@ function budgetSection(ctx, busy) {
   return section;
 }
 
-/** The sentence for one lesson, met or not. */
-function lessonSentence(lesson) {
+/**
+ * The sentence for one lesson, met or not, as its words and figures. The
+ * Studio's What you learned draws the same (ui/results/render.js).
+ *
+ * @param {{id: string, met: boolean, figures: object|null}} lesson - from `lessons`
+ * @returns {[Function, object]|null} the words' entry, and the figures to call it with
+ */
+export function lessonSentence(lesson) {
   const f = lesson.figures ?? {};
   switch (lesson.id) {
     case 'numbersMove':
@@ -210,7 +239,7 @@ function lessonSentence(lesson) {
         { round: f.round, share: pct(f.share) }];
     case 'broadMatch':
       return lesson.met
-        ? [DEBRIEF.broadMatch, { terms: whole(f.unwrittenTerms), negatives: whole(f.negatives) }]
+        ? [DEBRIEF.broadMatch, { terms: whole(f.unwrittenTerms), negatives: whole(f.negatives), blocked: f.negatives }]
         : [DEBRIEF.broadMatchNot, {}];
     case 'returns':
       return [DEBRIEF.returns, {

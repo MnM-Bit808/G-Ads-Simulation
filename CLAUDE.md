@@ -202,18 +202,22 @@ number in the simulation without ever throwing an error.
   guesses the folder to publish on every deploy, and a wrong guess publishes the
   repository — docs and tests — while still reporting success.
   `tests/build.test.js` holds it, and holds `dist/` to exactly the files the
-  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 100 on the
-  branch `makeover` since Returns (2026-09-15), whose stylesheet and
+  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 108 on the
+  branch `makeover` since the Guide page (2026-09-15), whose stylesheet and
   fonts the build finds by following `url()` inside CSS.
 - **The Studio makeover filters today's cards, it never moves them.** The
   decision form redraws every card it owns into its own region on each change,
   so a card moved into a sidebar section is redrawn into nothing. The shell
   shows a section's cards by CSS on `data-slot`; a rebuilt section (Your
-  keywords, Where and when, Your week, What people typed, Your money, Returns)
-  draws its own and retires the classic
+  keywords, Where and when, Your week, What people typed, Your money, Returns,
+  the Market area's Rivals, and Results' four sections after the last week, so
+  no Studio screen shows a classic card now) draws its own and retires the classic
   cards in the Studio, keeping their slot names on its parts so the guide's
   "show me on the card" still finds them, and naming them in `draws` so a
-  first visit brings them in (`entranceSlots`). Everything new sits under
+  first visit brings them in (`entranceSlots`). Show me rings any Studio part
+  carrying a slot (`studio.css`) and focuses its own heading, an h3 there;
+  until 2026-09-15 the ring existed on classic cards only, so it marked
+  nothing in any rebuilt section. Everything new sits under
   `body.studio` (`?look=studio`) until the switch-over, and red there is the
   player's colour, so losses and warnings are amber with a minus sign.
 - **Round 0's rules live in `ui/roundzero/rules.js`, and both looks read them.**
@@ -269,4 +273,9 @@ number in the simulation without ever throwing an error.
   quoting it (the apparel page F15 cited gives search click-through as 3.2% and
   6.8%). A chapter's `yourAccount` must be a slot that exists once the page is
   drawn: the decision form replaces the page's `decisions` placeholder, so its
-  cards set their own `dataset.slot`, and the guide test checks both.
+  cards set their own `dataset.slot`, and the guide test checks both. Where
+  the Studio shows an idea on a part the classic page has no card for, the
+  chapter names it as `studioAccount` too (Your ad's writer, Results'
+  replays), and `tests/sections.test.js` checks the section's own module
+  draws it. The Studio's Guide page shows each chapter's `related` list as
+  "Read beside it", so a chapter's links are read by players now.

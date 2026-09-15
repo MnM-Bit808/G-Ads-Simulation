@@ -74,8 +74,15 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     the capital and the one move on top. Then *Returns* (`ui/returns/`), from
     `design/returns/`: every week split into refused and sent back, and the
     prepaid discount's rungs, each drawing what it saves against what it
-    costs, on the prepaid fix (I34) merged in for it.
-  - On `makeover`: 2080 tests pass, 1 todo, and the build publishes 100 files.
+    costs, on the prepaid fix (I34) merged in for it. Then the Market area as
+    one section, *Rivals* (`ui/rivals/`), from `design/market/`: the market's
+    public figures and your share on top, each rival you meet as a card with
+    its ad. Then *Results* after the last week (`ui/results/`), from
+    `design/results/`, as four sections, on fixes to both end-of-game replays.
+    No Studio screen shows a classic card any more. Then the Guide as a page
+    (`ui/guide/page.js`), from `design/guide/`: the field guide as a book,
+    with Show me fixed to mark what it opens in every rebuilt section.
+  - On `makeover`: 2227 tests pass, 1 todo, and the build publishes 108 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -155,8 +162,63 @@ engine does: the page's parts marked "week 4", its description graded now.
    `ui/returns/read.js` for both looks; the classic note now names the discount
    and says capital has closed; and a first visit's entrance restored for
    rebuilt sections, which rebuilding Your money had quietly taken away.
-   Next, the rest of the makeover design's section 7 list, one section at a
-   time (the Market area, Results, the Guide as a page), and the switch-over.
+   **DONE 2026-09-15: the Market area** (`ui/rivals/`), from the canvas
+   https://claude.ai/code/artifact/230864af-39a1-4789-8631-158a34316d7a: one
+   section, Rivals (the owner's choice, merging today's Rivals and The market):
+   the market's four public figures this week beside last, the median click in
+   paise; your share and one reading; each rival you meet as a card, most met
+   first, with how often you met week by week, its ad, above-you and
+   you-outrank, and a five-point move marked. Only what R3 allows. Two fixes to
+   the shared market reading came first, for both looks: it names the rival
+   above you in the most of your auctions (overlap times position-above), where
+   it had named one in 2% of them; and a move is judged on the printed figures.
+   Left for the owner: a results page for one search (a DECISIONS entry
+   first).
+   **DONE 2026-09-15: Results** (`ui/results/`), from the canvas
+   https://claude.ai/code/artifact/e03ab7c2-eeb8-473b-b80c-d67e1932a5b7: four
+   sections after the last week (the owner's choice, over one long page).
+   *Twelve weeks*: the figures, every week's net profit against its first
+   report with the weeks you changed something marked, a strip for the week
+   tapped. *What you learned*: the six lessons, the weeks you changed
+   something with "What if I hadn't?", the budget question. *Where they sat*:
+   round 0's ads and squares, scored on round 0's notes where the save has them.
+   *Everyone's books*: every brand by net profit, gross as an outline, your
+   three ranks, Play again. Drawing it found both end-of-game replays wrong,
+   and the owner chose to fix them first: "What if I hadn't?" deleted the week
+   and stopped at the next decision of any kind, so a later list carried the
+   change back, capital vanished at week 5, and the week-8 ranking's knock-on
+   was cut off (blocking "cheap" read Rs 8,067, worth Rs 75,021; the size
+   guide's answer reversed), now `logWithoutChange`, to the end of the game;
+   and the budget question's raise was undone by the capital rollover and by a
+   plan sent that week (`liftWeek` in `engine/round.js`, the harness
+   byte-identical). The budget question now sorts weeks into paid, about broke
+   even (within a rupee a click) and lost money, and names a week with nothing
+   left in its month; "Numbers keep moving" reads net profit; round 0's notes
+   are kept in the save (`notesFor`; an older save asks at the end, as today).
+   Said plainly on the screens, by the owner's choice, not fixed: net profit
+   never counts capital, and the last five weeks read high because their
+   returns come back after the game ends (item 8).
+   **DONE 2026-09-15: the Guide as a page** (`ui/guide/book.js`,
+   `ui/guide/page.js`), from the canvas
+   https://claude.ai/code/artifact/5a912577-a5cc-4107-9923-c351e61837fd: the
+   Guide area is the field guide as a book (the owner's choice, over a panel
+   of the player's own figure on each chapter). Its list is Contents and the
+   thirteen chapters by number; the contents a card a chapter, with the
+   section it explains; a chapter its two halves side by side, Show me in
+   your account, "Read beside it" and previous and next. "why?" still opens
+   the drawer, and its Contents opens the page; the classic look and round 0
+   keep the drawer's own list. Checking the mock-ups found, and the build
+   fixed first: Show me marked nothing in any rebuilt section (the ring was
+   drawn on classic cards only, and focus looked for their h2); three
+   chapters pointed where their idea is not shown ("Who writes the ad" at
+   Your keywords, now Your ad's writer; "Defending your own name" at the
+   auction insights, now the search terms; "What only a simulation can tell
+   you" at a month bar, now Results' replays after week 12); Show me now
+   waits while its section is locked; two chapters named a classic card, and
+   the returns chapter's 30% is now the country's, which places move; six
+   related links from the owner's read-through; and each area remembers its
+   last section, so the rail goes back to where the player was.
+   Next: the switch-over.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.
@@ -166,9 +228,19 @@ engine does: the page's parts marked "week 4", its description graded now.
    and the section runs to twenty screens), whether to trim the cards' repeated
    words (158 against about 120), and whether Redo round 0 should start from the
    last choices rather than afresh, in both looks. Older: A9, F15 (b)/(c) and
-   E8's formula (item 5 below), and whether round 0's rival guesses carry into
-   the end reveal (the round 0 design, section 12).
-8. **Found 2026-09-15 and put to the owner as their own tasks, not fixed:**
+   E8's formula (item 5 below). Round 0's rival guesses now carry into the end
+   reveal (the round 0 design, section 12; the owner, 2026-09-15).
+8. **Found drawing Results (2026-09-15), said plainly on the screens and left
+   for the owner's rules:** net profit never counts capital spent on the
+   business (`engine/report.js`, `moneyBlock`), so capital is free in every
+   end-of-game figure, the books' ranking and D12's measurement (the size
+   guide's Rs 28,625 against the clicks becomes Rs 83,625 counted), which wants
+   a DECISIONS entry; and a return comes back two weeks after its sale, so the
+   last five weeks read high and weeks 11 and 12 count no returns, which
+   settling at the game's end would fix, as an engine change measured first.
+   The two replay fixes are on `makeover` only: `main`'s end screen still
+   gives the old answers.
+9. **Found 2026-09-15 and put to the owner as their own tasks, not fixed:**
    the round's two paths through the auction disagree with equal bids, by up
    to 5% of one rival's impressions, and the test meant to hold them together
    (`tests/round.test.js`, *the two paths through the auction agree*) never

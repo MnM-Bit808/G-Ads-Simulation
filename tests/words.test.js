@@ -20,6 +20,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { line, KINDS } from '../ui/words/line.js';
 import { RETURNS, RETURNS_STUDIO } from '../ui/words/returns.js';
+import { RIVALS } from '../ui/words/rivals.js';
 import { DEBRIEF } from '../ui/words/debrief.js';
 import { CAPITAL } from '../ui/words/capital.js';
 import { MARKET } from '../ui/words/market.js';
@@ -32,6 +33,8 @@ import { WHERE } from '../ui/words/where.js';
 import { WEEK } from '../ui/words/week.js';
 import { TYPED } from '../ui/words/typed.js';
 import { MONEY } from '../ui/words/money.js';
+import { RESULTS, TARGET_WORDS } from '../ui/words/results.js';
+import { GUIDE } from '../ui/words/guide.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -122,7 +125,7 @@ describe('the debrief', () => {
     terms: 14, negatives: 3, rank: 3, grossRank: 1,
     own: '₹10', other: '₹18', strategy: 'Maximise conversions', learning: 2,
     price: 'mid', purpose: 'lifestyle', cell: 'mid · lifestyle',
-    exact: 5, half: 2, names: ['Marlow', 'Nira'],
+    exact: 5, half: 2, names: ['Marlow', 'Nira'], weeks: [5, 11],
   };
 
   test('every entry is a line of a kind the screen may carry', () => {
@@ -139,6 +142,25 @@ describe('the debrief', () => {
     for (const [name, entry] of Object.entries(DEBRIEF)) {
       expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
     }
+  });
+
+  test('the budget question names the weeks it cannot put a rupee on', () => {
+    expect(DEBRIEF.budgetBrokeEven({ count: 2, weeks: [5, 11] }))
+      .toBe('In 2 of them, weeks 5 and 11, spending the rest of the month there and then would about have broken even.');
+    expect(DEBRIEF.budgetBrokeEven({ count: 1, weeks: [11] })).toMatch(/^In one of them, week 11, /);
+    expect(DEBRIEF.budgetNothingLeft({ weeks: [8, 12] })).toBe('Weeks 8 and 12 had nothing left in their month to spend.');
+    expect(DEBRIEF.budgetNothingLeft({ weeks: [8] })).toBe('Week 8 had nothing left in its month to spend.');
+  });
+
+  test('broad match does not take the blame for phrase match\'s longer searches', () => {
+    expect(DEBRIEF.broadMatch({ terms: '26', negatives: '1', blocked: 1 }))
+      .toMatch(/26 different searches .* phrase match’s longer searches\. By the end you were blocking one word\.$/);
+    expect(DEBRIEF.broadMatch({ terms: '26', negatives: '3', blocked: 3 })).toMatch(/blocking 3 words\.$/);
+  });
+
+  test('"What if I hadn\'t?" always reads to the end of the game', () => {
+    expect(DEBRIEF.window({ from: 4, to: 12 })).toBe('Weeks 4–12, to the end of the game, still settling.');
+    expect(DEBRIEF.window({ from: 12, to: 12 })).toBe('Week 12, to the end of the game, still settling.');
   });
 
   test('a difference reads the right way round: the game WITHOUT the change', () => {
@@ -230,7 +252,7 @@ describe('the decision form', () => {
 
 describe('the Studio layout', () => {
   const FIGURES = { played: 4, total: 12, month: 1, spent: '₹2,96,535', budget: '₹3,13,000',
-    n: 2, week: 5, hours: 168, round: 0 };
+    n: 2, week: 5, hours: 168, round: 0, weeks: 12 };
 
   test('every entry is a line of a kind the screen may carry', () => {
     for (const [name, entry] of Object.entries(SHELL)) expect(KINDS, name).toContain(entry.kind);
@@ -625,6 +647,96 @@ describe('Returns in the Studio', () => {
   });
 });
 
+describe('Rivals in the Studio', () => {
+  const FIGURES = {
+    value: '₹4,18,404', share: '26%', budget: '74%', rank: '0%', name: 'Kestrel', overlap: '96%', above: '67%',
+    other: 'Torvi', from: '45%', names: ['Auren'],
+  };
+  const entries = (object, prefix = '') => Object.entries(object).flatMap(([name, entry]) => (
+    typeof entry === 'function' ? [[`${prefix}${name}`, entry]] : entries(entry, `${name}.`)));
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of entries(RIVALS)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of entries(RIVALS)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of entries(RIVALS)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('the rival above you is said to be above you in all the auctions you show in', () => {
+    expect(RIVALS.meetSame(FIGURES)).toBe('You meet Kestrel most, in 96% of the auctions you show in, and it ranks '
+      + 'above you in 67% of all of them.');
+    expect(RIVALS.meetOther(FIGURES)).toMatch(/but Torvi ranks above you in more of them: 67% of all the auctions/);
+  });
+
+  test('rivals never met read as a list', () => {
+    expect(RIVALS.never({ names: ['Auren'] })).toBe('Auren never appeared in your auctions this week.');
+    expect(RIVALS.never({ names: ['Auren', 'Halcyon', 'Nira'] }))
+      .toBe('Auren, Halcyon and Nira never appeared in your auctions this week.');
+  });
+
+  test('how often you meet is said not to be spend, as Auction Insights must (spec 16)', () => {
+    expect(RIVALS.notSpend()).toMatch(/not market share, and not spend/);
+  });
+
+  test('a reading says what is true, never what to do (I13)', () => {
+    for (const [name, entry] of entries(RIVALS)) expect(entry(FIGURES), name).not.toMatch(/\byou should\b/i);
+  });
+});
+
+describe('Results, after the last week (design/results/)', () => {
+  // One of every figure the four sections' lines quote, as the render formats them.
+  const FIGURES = {
+    section: 'What you learned', amount: '₹55,000', n: 3, of: 12, from: 8, to: 12,
+    spent: '₹44,940', clicks: '1,695', shown: '26%', budget: '74%', rank: 6, grossRank: 5,
+    first: '₹3,86,307', now: '₹4,91,661', weeks: 5, arriving: [10, 11, 12], pending: '53.6', window: 2,
+    cutoff: 10, none: 'weeks 11 and 12', list: [11, 12], target: 'the size guide', targets: ['the size guide'],
+    round: 5, live: 8, kind: 'budget', share: '74%', sign: 1, gap: '₹83,625', noted: 5, rest: 3,
+    placed: 2, total: 8, cell: 'Mid · Lifestyle', how: 'Right on price, wrong on purpose',
+    said: 'Mid · Performance', exact: 3, half: 2, name: 'Kestrel', rate: '95%', month: 3, snapshot: 8,
+    place: 4, middle: '₹1,68,000', last: '₹1,17,600', conversions: '1,543.1', each: '₹460',
+    roas: '₹3.38', gross: '₹12,15,977', week: 8,
+  };
+
+  test('every entry is a line of a kind the screen may carry, and every why names a chapter', () => {
+    for (const [name, entry] of Object.entries({ ...RESULTS, ...TARGET_WORDS })) {
+      expect(KINDS, name).toContain(entry.kind);
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(RESULTS)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('the two things the owner chose to say plainly are said (2026-09-15)', () => {
+    expect(RESULTS.notCounted({ amount: '₹55,000' })).toMatch(/^Net profit counts what clicks cost, never capital/);
+    expect(RESULTS.readHigh({ weeks: 5, arriving: [10, 11, 12], pending: '53.6', window: 2, cutoff: 10, none: 'weeks 11 and 12' }))
+      .toBe('The last 5 weeks are not settled, and they read high. Weeks 10 to 12 still have 53.6 conversions to arrive, '
+        + 'but a return comes back 2 weeks after its sale lands, so nothing sold after week 10 comes back inside the '
+        + 'game: weeks 11 and 12 count no returns at all.');
+    expect(RESULTS.readHigh({ weeks: 2, arriving: [], pending: '0', window: 2, cutoff: 10, none: 'weeks 11 and 12' }))
+      .toMatch(/read high\. A return comes back/);
+  });
+
+  test('a capital week\'s answer says which game ends ahead with the capital counted', () => {
+    const args = { amount: '₹55,000', targets: ['the size guide'], gap: '₹83,625' };
+    expect(RESULTS.capitalCounted({ ...args, sign: 1 })).toMatch(/the game without it ends ₹83,625 ahead\.$/);
+    expect(RESULTS.capitalCounted({ ...args, sign: -1 })).toMatch(/your game still ends ₹83,625 ahead\.$/);
+    expect(RESULTS.capitalCounted({ ...args, sign: 0 })).toMatch(/the two end level\.$/);
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -649,6 +761,23 @@ describe('a card that has moved draws, and no longer writes', () => {
   });
 });
 
+describe('the Guide page says its own labels whole (ui/words/guide.js)', () => {
+  // The Guide as a page (the owner's choice, 2026-09-15, design/guide/).
+  const FIGURES = { n: 4, of: 13, title: 'Lost to rank, or lost to budget' };
+
+  test('each renders with the figures it is given', () => {
+    for (const [name, entry] of Object.entries(GUIDE)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN/);
+    }
+    expect(GUIDE.chapterOf(FIGURES)).toBe('Chapter 4 of 13');
+    expect(GUIDE.numbered(FIGURES)).toBe('4 · Lost to rank, or lost to budget');
+  });
+
+  test('the contents\' introduction counts no chapters, so a new one cannot make it wrong', () => {
+    expect(GUIDE.intro()).not.toMatch(/\d|thirteen|twelve|fourteen/i);
+  });
+});
+
 describe('the new screens draw, and do not write', () => {
   // A "word" here must hold two letters in a row, so icon paths and class
   // lists are not counted.
@@ -656,7 +785,7 @@ describe('the new screens draw, and do not write', () => {
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
     'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js', 'ui/money/render.js',
-    'ui/returns/render.js'];
+    'ui/returns/render.js', 'ui/rivals/render.js', 'ui/results/render.js', 'ui/guide/page.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

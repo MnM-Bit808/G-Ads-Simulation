@@ -556,6 +556,48 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   reach "held"; the section reads that half before and after instead, since
   the mix of places can move it. The rung you move to is red, your change; the
   account's own setting is bone, as a chosen chip is everywhere else.
+- **The Market area (section 7, item 6)** is built as the owner chose from the
+  mock-ups on `design/market/` (2026-09-15), and is one section, Rivals, where
+  section 2's table had two: the market card alone did not fill a section.
+  The market's four public figures and the player's own share sit on top;
+  each rival you meet is a card with how often you meet, week by week, its ad,
+  and who comes out above. Not chosen: one grid of every rival's weeks. Left
+  out on purpose: the trends chart's per-advertiser lines (impression share,
+  top of page, absolute top) for rivals, which read as a leaderboard, the
+  thing that chart warns against. Mapping today's cards found the market
+  reading naming the rival "above you most often when you meet" by that rate
+  alone, which picked one in 2% of the player's auctions; it now names the
+  rival above the player in the most of all its auctions, in both looks. A
+  second read of the mock-ups found a move judged on unrounded figures while
+  the screen printed rounded ones; moves are judged as printed. With this
+  section no Studio section shows a classic card, and the dashboard behind the
+  Studio is drawn only for the form's context. Still for the owner: a results
+  page for one search, which needs a DECISIONS entry before any design.
+- **Results (section 7, item 8)** is built as the owner chose from the mock-ups
+  on `design/results/` (2026-09-15): four sections after the last week, where
+  section 2's table had one, because the end screen was today's longest page
+  (about 5,000px drawn as one; not chosen). Twelve weeks, What you learned,
+  Where they sat and Everyone's books, each with a dot until opened and a link
+  to the next; the Every week table and the What you did list become the
+  chart's weeks, tapped. Drawing it with real replays found both end-of-game
+  replays teaching false answers, fixed first at the owner's word, in both
+  looks: "What if I hadn't?" keeps the change out and runs to the end, and the
+  budget question's raise survives capital. It also found two things the
+  game counts that the owner chose to say plainly rather than change for now:
+  net profit never counts capital, and the last weeks' returns come back after
+  the game ends. Round 0's notes on the rivals are now kept for the reveal,
+  which reopens section 12 of the round 0 design in the direction it asked.
+- **The Guide as a page (section 7, item 8)** is built as the owner chose from
+  the mock-ups on `design/guide/` (2026-09-15): the Guide area's list is
+  Contents and the numbered chapters, the contents a card a chapter, and a
+  chapter its two halves side by side with the section it explains, Show me,
+  the chapters to read beside it, and previous and next. Section 2's "'why?'
+  links still open it from any section" is kept as the drawer, whose Contents
+  now opens the page. Checking the mock-ups found Show me marking nothing in
+  any rebuilt section (the ring was the classic cards' alone), three chapters
+  pointing where their idea is not shown, two naming a classic card, and the
+  rail losing the player's place; all fixed first. A chapter may now name a
+  part only the Studio draws (`studioAccount`).
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.

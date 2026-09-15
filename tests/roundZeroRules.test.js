@@ -287,7 +287,7 @@ describe('keywords in round 0', () => {
   });
 });
 
-describe('guesses are the player\'s notes, and never leave round 0', () => {
+describe('guesses are the player\'s notes: never in the account, kept for the reveal', () => {
   test('tapping a square notes it, tapping it again takes it back', () => {
     const d = fresh();
     rules.setGuess(d, 'Marlow', 'value|lifestyle');
@@ -296,10 +296,28 @@ describe('guesses are the player\'s notes, and never leave round 0', () => {
     expect(rules.guessedIn(d, 'value|lifestyle')).toEqual([]);
   });
 
-  test('Go sends no guess', () => {
+  test('the account Go opens holds no guess', () => {
     const d = fresh();
     rules.setGuess(d, 'Marlow', 'value|lifestyle');
     expect(JSON.stringify(rules.startChoices(d))).not.toContain('Marlow');
+  });
+
+  test('they are kept by rival, for the reveal after the last week (the owner, 2026-09-15)', () => {
+    // The reveal scores what the player read from the ads before the first
+    // auction; asked again at the end, a player guesses with twelve weeks of
+    // meeting them in auctions behind them. Kept by id, because the game's
+    // records name rivals by id, and only for the rivals of the game Go opened.
+    const d = fresh();
+    rules.addSetupKeyword(d, 'gym leggings');
+    const state = startGame({ ...rules.startChoices(d), rootSeed: SEED, querySet: QUERY_SET });
+    const [first, second] = state.advertisers.filter((a) => a.id !== d.playerBrandId);
+    const you = state.advertisers.find((a) => a.id === d.playerBrandId);
+    rules.setGuess(d, first.name, 'value|lifestyle');
+    rules.setGuess(d, second.name, 'premium|performance');
+    rules.setGuess(d, you.name, 'mid|performance');
+    rules.setGuess(d, 'Nobody Here', 'mid|lifestyle');
+    expect(rules.notesFor(d.guesses, state.advertisers, d.playerBrandId))
+      .toEqual({ [first.id]: 'value|lifestyle', [second.id]: 'premium|performance' });
   });
 });
 

@@ -27,6 +27,8 @@ export const ICONS = Object.freeze({
   where: ['M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z', 'M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0'],
   returns: ['M4 8l8-4 8 4v8l-8 4-8-4V8z', 'M4 8l8 4 8-4M12 12v8'],
   rivals: ['M7 7h12l-3-3', 'M17 17H5l3 3'],
+  learned: ['M9 18h6', 'M10 21h4', 'M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'],
+  squares: ['M3 6h18v12H3z', 'M3 12h18', 'M9 6v12', 'M15 6v12'],
   menu: ['M4 7h16M4 12h16M4 17h16'],
   close: ['M6 6l12 12M18 6L6 18'],
   file: ['M6 3h8l4 4v14H6z', 'M14 3v4h4'],
@@ -52,7 +54,8 @@ export const SECTIONS = Object.freeze([
   { key: 'typed', area: 'brand', label: 'What people typed', icon: ICONS.typed, slots: [], draws: ['terms', 'negatives'] },
   // Read-only (the owner, 2026-09-15): the ad is written in round 0 and runs as
   // it is (I9). It draws itself (ui/ad/render.js); the classic page has no ad card.
-  { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, slots: [] },
+  // Its writer carries a slot so the guide's "Who writes the ad" can show it.
+  { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, slots: [], draws: ['writer'] },
   // Rebuilt (the owner's choice, 2026-09-15, design/your-money/): this month as
   // one bar, with the week-5 window on top and bidding and week 8 beside each
   // other (ui/money/render.js); the classic five cards are retired.
@@ -67,16 +70,29 @@ export const SECTIONS = Object.freeze([
   // and levers (ui/returns/render.js); the classic two cards are retired.
   { key: 'returns', area: 'brand', label: 'Returns', icon: ICONS.returns,
     slots: [], draws: ['returns-figures', 'returns', 'prepaid', 'returns-levers'], opensAt: SETTLES_AFTER_ROUNDS + 1 },
-  { key: 'rivals', area: 'market', label: 'Rivals', icon: ICONS.rivals, slots: ['insights', 'trends'] },
-  { key: 'marketMoves', area: 'market', label: 'The market', icon: ICONS.market, slots: ['market'] },
-  { key: 'results', area: 'results', label: 'After the last week', icon: ICONS.results,
-    slots: [], opensAt: TOTAL_ROUNDS },
+  // Rebuilt (the owner's choice, 2026-09-15, design/market/): one section, the
+  // market's public figures on top and each rival you meet as a card
+  // (ui/rivals/render.js); the classic three cards are retired, and the
+  // market card no longer has a section of its own.
+  { key: 'rivals', area: 'market', label: 'Rivals', icon: ICONS.rivals, slots: [], draws: ['market', 'insights'] },
+  // Rebuilt (the owner's choice, 2026-09-15, design/results/): four sections
+  // after the last week, drawn by ui/results/render.js, in the order they are
+  // read; each carries a dot until opened and ends by pointing at the next.
+  // The classic end screen still draws for the classic look.
+  { key: 'twelve', area: 'results', label: 'Twelve weeks', icon: ICONS.week,
+    slots: [], draws: ['results-figures', 'results-weeks', 'results-built'], opensAt: TOTAL_ROUNDS },
+  { key: 'learned', area: 'results', label: 'What you learned', icon: ICONS.learned,
+    slots: [], draws: ['results-lessons', 'results-moments', 'results-budget'], opensAt: TOTAL_ROUNDS },
+  { key: 'reveal', area: 'results', label: 'Where they sat', icon: ICONS.squares,
+    slots: [], draws: ['results-reveal', 'results-squares'], opensAt: TOTAL_ROUNDS },
+  { key: 'books', area: 'results', label: 'Everyone’s books', icon: ICONS.results,
+    slots: [], draws: ['results-books', 'results-finish'], opensAt: TOTAL_ROUNDS },
 ]);
 
 /** Cards the new screens draw instead: the tray replaces *Next week*; the rebuilt sections draw their own. */
 export const RETIRED_SLOTS = Object.freeze([
   'keywords', 'next', 'places', 'hours', 'headline', 'share', 'revised', 'terms', 'negatives',
-  'window', 'budget', 'split', 'bidding', 'deadline', 'returns', 'prepaid',
+  'window', 'budget', 'split', 'bidding', 'deadline', 'returns', 'prepaid', 'insights', 'trends', 'market',
 ]);
 
 /** @returns {object|null} the section a card's slot lives in */
@@ -104,6 +120,20 @@ export function sectionsIn(area) {
 }
 
 /**
+ * The section an area's rail button opens: the one last open there, so a trip
+ * to the Guide or the Market comes back to where the player was (found drawing
+ * the Guide as a page, 2026-09-15), or else the area's first.
+ *
+ * @param {string} area
+ * @param {Record<string, string>} [lastIn] - the section last open, by area
+ * @returns {string} a section key in that area
+ */
+export function areaEntry(area, lastIn = {}) {
+  const inArea = sectionsIn(area);
+  return inArea.find((s) => s.key === lastIn[area])?.key ?? inArea[0].key;
+}
+
+/**
  * Whether a section can be opened, and whether it carries a dot.
  *
  * A dot marks something new, once: a section the week it unlocks, and Your
@@ -121,6 +151,21 @@ export function sectionState(section, { played, seen = {}, windowOpen = false })
   if (!locked && opensAt !== null) seenKey = `${section.key}:opened`;
   else if (section.key === 'money' && windowOpen) seenKey = `money:window:${played}`;
   return { locked, opensAt, fresh: seenKey !== null && !seen[seenKey], seenKey };
+}
+
+/**
+ * Whether the guide's "Show me" can open the part a slot names: a section holds
+ * it, and that section is open (the owner, 2026-09-15). Before week 6 Returns
+ * is locked, and Results before week 12; a button that opens a locked section
+ * shows nothing, so it waits.
+ *
+ * @param {string} slot
+ * @param {{played: number}} at
+ * @returns {boolean}
+ */
+export function slotOpen(slot, at) {
+  const section = sectionOf(slot);
+  return section !== null && !sectionState(section, at).locked;
 }
 
 /**

@@ -15,7 +15,8 @@
 
 import { describe, test, expect } from 'vitest';
 import {
-  MAX_MOMENTS, MATERIAL_LOSS, moments, windowDifference, budgetWeeks, lessons, revealRows,
+  MAX_MOMENTS, MATERIAL_LOSS, BROKE_EVEN_PER_CLICK_PAISE, moments, windowDifference, budgetWeeks, lessons,
+  revealRows, replayWithoutChange,
 } from '../ui/debrief/read.js';
 import { summariseDecisions, finalStandings } from '../ui/ending.js';
 import { startGame } from '../setup.js';
@@ -29,13 +30,15 @@ import { ROUNDS_PER_MONTH, LEARNING_ROUNDS } from '../engine/constants.js';
 const P = 'player';
 
 /** One week's report for the player, holding only what the readings use. */
-function week(round, { clicks = 100, costPaise = 100_000, impressionShare = 0.5, netProfitPaise = 0, missed = null } = {}) {
+function week(round, {
+  clicks = 100, costPaise = 100_000, impressionShare = 0.5, netProfitPaise = 0, missed = null, lostToBudget = 0,
+} = {}) {
   return {
     round,
     byAdvertiser: {
       [P]: {
         traffic: { impressions: clicks * 10, clicks, costPaise },
-        share: { impressionShare, lostToRank: 0, lostToBudget: 0 },
+        share: { impressionShare, lostToRank: 0, lostToBudget },
         money: { netProfitPaise },
         missedToBudget: missed,
       },
@@ -116,10 +119,27 @@ describe('what a moment shows', () => {
     expect(flags).toEqual([[2, false, false], [5, true, true], [9, true, false], [11, false, false]]);
   });
 
-  test('the window ends the week before the next decision, or at the last week', () => {
+  test('every window runs to the last week', () => {
+    // It used to end the week before the next decision, as if every later
+    // decision carried the removed change back in. Only a later decision that
+    // sends the same list does, and the replay now keeps it out even then;
+    // and a change can move the week-8 ranking, and month 3's budget with it,
+    // long after it is sent again (found drawing Results, 2026-09-15).
     const history = Array.from({ length: 12 }, (_, i) => week(i + 1));
     const log = [3, 7].map((round, i) => blocking(round, ...'ab'.slice(0, i + 1)));
-    expect(moments({ ...BASE, history, decisionLog: log }).map((m) => m.windowEnd)).toEqual([6, 12]);
+    expect(moments({ ...BASE, history, decisionLog: log }).map((m) => m.windowEnd)).toEqual([12, 12]);
+  });
+
+  test('a capital card left untouched is not a change', () => {
+    // The form sends capital at week 5 whether or not the player touched the
+    // card (C8), so every game logged a week-5 "decision" to take the whole
+    // allocation as budget. Replayed without it, the game is the same game.
+    const history = Array.from({ length: 12 }, (_, i) => week(i + 1));
+    const capital = (capex) => ({ round: 5, advertiserId: P, source: 'player', decision: { capex } });
+    expect(moments({ ...BASE, history, decisionLog: [capital({})] })).toEqual([]);
+    expect(moments({ ...BASE, history, decisionLog: [capital({ sizeGuide: 0, photography: 0 })] })).toEqual([]);
+    expect(moments({ ...BASE, history, decisionLog: [capital({ sizeGuide: 5_500_000 })] }).map((m) => m.round))
+      .toEqual([5]);
   });
 });
 
@@ -145,21 +165,44 @@ describe('the difference a removed decision made', () => {
 describe('the budget weeks', () => {
   const missed = (clicks, profitIfFundedPaise) => ({ clicks, profitIfFundedPaise });
 
-  test('weeks that ran out split by whether the extra traffic would have paid for itself', () => {
+  test('weeks that ran out split by what the rest of the month would have done there', () => {
+    // A rupee a click either way is breaking even (BROKE_EVEN_PER_CLICK_PAISE).
     const history = [
       week(1),
       week(2, { missed: missed(300, 50_000) }),
       week(3, { missed: missed(200, -20_000) }),
-      week(4, { missed: missed(0, 0) }),
+      week(4, { missed: missed(0, 0), lostToBudget: 0.4 }),
       week(5, { missed: missed(500, 90_000) }),
       week(6, { missed: missed(100, 0) }),
+      week(7, { missed: missed(1977, 3600) }),
     ];
     const read = budgetWeeks(history, P);
-    expect(read.played).toBe(6);
-    expect(read.ranOut).toBe(4);
+    expect(BROKE_EVEN_PER_CLICK_PAISE).toBe(100);
+    expect(read.played).toBe(7);
+    expect(read.ranOut).toBe(6);
     expect(read.paidFor.map((w) => w.round)).toEqual([2, 5]);
-    expect(read.didNotPay.map((w) => w.round)).toEqual([3, 6]);
+    expect(read.brokeEven.map((w) => w.round)).toEqual([6, 7]);
+    expect(read.lostMoney.map((w) => w.round)).toEqual([3]);
+    expect(read.nothingLeft).toEqual([4]);
     expect(read.best).toEqual({ round: 5, clicks: 500, profitIfFundedPaise: 90_000 });
+  });
+
+  test('₹36 on 1,977 more clicks is breaking even, not paying for itself', () => {
+    // Found drawing Results (2026-09-15): the line called it "paid for itself".
+    const read = budgetWeeks([week(11, { missed: missed(1977, 3600) })], P);
+    expect(read.paidFor).toEqual([]);
+    expect(read.brokeEven.map((w) => w.round)).toEqual([11]);
+    expect(read.best).toBeNull();
+  });
+
+  test('a week that lost impressions to budget with nothing left in its month still ran out', () => {
+    // The question asks what the rest of the month would have bought that
+    // week; in a month's last week there is none, so it imagines nothing. The
+    // week ran out all the same, and the lesson beside it says so.
+    const read = budgetWeeks([week(8, { missed: missed(0, 0), lostToBudget: MATERIAL_LOSS }),
+      week(9, { missed: missed(0, 0), lostToBudget: 0.05 })], P);
+    expect(read.ranOut).toBe(1);
+    expect(read.nothingLeft).toEqual([8]);
   });
 
   test('what rounds to nothing on screen counts as nothing', () => {
@@ -172,18 +215,19 @@ describe('the budget weeks', () => {
     ];
     const read = budgetWeeks(history, P);
     expect(read.ranOut).toBe(2);
-    expect(read.paidFor.map((w) => w.round)).toEqual([3]);
-    expect(read.didNotPay.map((w) => w.round)).toEqual([2]);
+    expect(read.paidFor).toEqual([]);
+    expect(read.brokeEven.map((w) => w.round)).toEqual([2, 3]);
   });
 
   test('it is never a total: the weeks spend the same remaining month', () => {
     const read = budgetWeeks([week(1, { missed: missed(300, 50_000) })], P);
-    expect(Object.keys(read).sort()).toEqual(['best', 'didNotPay', 'paidFor', 'played', 'ranOut']);
+    expect(Object.keys(read).sort())
+      .toEqual(['best', 'brokeEven', 'lostMoney', 'nothingLeft', 'paidFor', 'played', 'ranOut']);
   });
 
   test('a budget that never ran out has no best week', () => {
     const read = budgetWeeks([week(1), week(2)], P);
-    expect(read).toMatchObject({ ranOut: 0, paidFor: [], didNotPay: [], best: null });
+    expect(read).toMatchObject({ ranOut: 0, paidFor: [], brokeEven: [], lostMoney: [], nothingLeft: [], best: null });
   });
 });
 
@@ -251,9 +295,14 @@ describe('the six lessons', () => {
       .toEqual(['numbersMove', 'rankOrBudget', 'broadMatch', 'returns', 'ownName', 'smartBidding']);
   });
 
-  test('numbers keep moving: week 1 as first reported against as it stands', () => {
-    const { numbersMove } = lessonsFor({ history: [fullWeek(1, { gross: 90_000, firstGross: 40_000 }), fullWeek(2)] });
-    expect(numbersMove).toMatchObject({ met: true, figures: { round: 1, firstReportedPaise: 40_000, nowPaise: 90_000 } });
+  test('numbers keep moving: week 1\'s net profit as first reported against as it stands', () => {
+    // Net, like the Results chart beside it (the owner, 2026-09-15). A first
+    // report counts no returns yet, so its net profit is its gross; the
+    // played-game test below holds that.
+    const { numbersMove } = lessonsFor({
+      history: [fullWeek(1, { gross: 90_000, firstGross: 40_000, net: 70_000 }), fullWeek(2)],
+    });
+    expect(numbersMove).toMatchObject({ met: true, figures: { round: 1, firstReportedPaise: 40_000, nowPaise: 70_000 } });
   });
 
   test('rank or budget: met at 10%, naming the worst week and which kind of loss', () => {
@@ -454,7 +503,7 @@ describe('on a real played game', { timeout: 60_000 }, () => {
       expect(m.after.costPaise).toBe(row.traffic.costPaise);
       expect(m.after.impressionShare).toBe(row.share.impressionShare);
     }
-    expect(picked.map((m) => m.windowEnd)).toEqual([5, 8]);
+    expect(picked.map((m) => m.windowEnd)).toEqual([8, 8]);
   });
 
   test('asking for the budget "what if" changes nothing else about the game', async () => {
@@ -491,8 +540,121 @@ describe('on a real played game', { timeout: 60_000 }, () => {
     const reported = state.history.filter((r) => (r.byAdvertiser[PLAYER].missedToBudget?.clicks ?? 0) >= 0.5);
     // The premise: this game's budget does run out, or the test proves nothing.
     expect(reported.length).toBeGreaterThan(0);
-    expect(read.ranOut).toBe(reported.length);
-    expect([...read.paidFor, ...read.didNotPay].map((w) => w.round).sort((a, b) => a - b))
+    expect(read.ranOut).toBe(reported.length + read.nothingLeft.length);
+    expect([...read.paidFor, ...read.brokeEven, ...read.lostMoney].map((w) => w.round).sort((a, b) => a - b))
       .toEqual(reported.map((r) => r.round));
+  });
+
+  test('a week\'s first report counts no returns, so its net profit then was its gross', async () => {
+    // What lets "Numbers keep moving" and the Results chart read a week's net
+    // profit as first reported from the one twin the report keeps. Returns
+    // are queued and resolved in later rounds, never in the round of the sale.
+    const { start, state } = await spendingGame();
+    const issued = replayLog(start, state.decisionLog, { mode: 'expected', throughRound: 8 }).reports;
+    for (const [i, report] of issued.entries()) {
+      expect(report.byAdvertiser[PLAYER].money.netProfitPaise, `week ${i + 1}`)
+        .toBe(state.history[i].byAdvertiser[PLAYER].money.grossProfitAsFirstReportedPaise);
+    }
+  });
+});
+
+// "What if I hadn't?" as it replays the game (found drawing Results,
+// 2026-09-15). The form sends only what moved, and a keyword list or a list of
+// blocked words whole, so a later list carries every earlier change in it; and
+// at week 5 it always sends capital. Deleting a week from the log therefore
+// brought its change back with the next list, and at week 5 made the second
+// allocation vanish: blocking a word read as worth a ninth of what it was, and
+// the size guide's answer came out reversed.
+describe('a week replayed without its change', { timeout: 120_000 }, () => {
+  const PLAYER = BRAND_IDENTITIES[0].id;
+  const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|performance').slice(0, 4);
+  const start = startGame({
+    rootSeed: 20260915,
+    playerBrandId: PLAYER,
+    querySet: QUERY_SET,
+    player: {
+      position: { price: 'mid', purpose: 'performance' },
+      capex: {},
+      keywords: own.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: 3000 })),
+      ad: {
+        headlines: ['Gym Leggings That Stay Put', 'Squat Proof Training Tights', 'Sizes XS To XXL'],
+        descriptions: [
+          'Leggings and sports bras built for four sessions a week.',
+          'Free delivery over Rs 1,499 and 30-day returns.',
+        ],
+        landingPageDescription: 'A plain product page.',
+      },
+      writerTier: 'agency',
+    },
+  });
+  const group = start.advertisers.find((a) => a.id === PLAYER).adGroups[0];
+  const kw = group.keywords;
+  const withBid = (list, id, bidPaise) => list.map((k) => (k.id === id ? { ...k, bidPaise } : k));
+  const cut = withBid(kw, kw[0].id, 1500);
+  const cutAndRaise = withBid(cut, kw[1].id, 4500);
+  // Week 3 cuts one bid; week 5 commits capital and raises another bid, so its
+  // list still holds week 3's cut; weeks 4 and 6 block words, the second list
+  // holding the first word.
+  const scripted = {
+    3: { adGroups: [{ ...group, keywords: cut }] },
+    4: { campaign: { negatives: [{ text: 'gym', matchType: 'broad' }] } },
+    5: { capex: { sizeGuide: 5_500_000 }, adGroups: [{ ...group, keywords: cutAndRaise }] },
+    6: { campaign: { negatives: [{ text: 'gym', matchType: 'broad' }, { text: 'cheap', matchType: 'broad' }] } },
+  };
+
+  let played = null;
+  const game = async () => {
+    if (played) return played;
+    const controllers = Object.fromEntries(start.advertisers.map((a) => [
+      a.id, a.id === PLAYER ? (self) => scripted[self.round] ?? null : controllerFor(a.policyId),
+    ]));
+    let state = start;
+    while (state.round <= 7) state = (await playRound(state, controllers, { mode: 'expected' })).nextGameState;
+    played = state;
+    return played;
+  };
+  const without = async (round, throughRound) => {
+    const state = await game();
+    return replayWithoutChange({
+      initial: start,
+      decisionLog: state.decisionLog,
+      history: state.history,
+      playerId: PLAYER,
+      round,
+      allocationRounds: state.budgetSchedule.capexAllocationRounds,
+    }, throughRound);
+  };
+  const account = (state) => state.advertisers.find((a) => a.id === PLAYER);
+  const bids = (state) => new Map(account(state).adGroups[0].keywords.map((k) => [k.id, k.bidPaise]));
+
+  test('a later keyword list does not carry a removed bid back in', async () => {
+    const after = await without(3, 6);
+    expect(bids(after).get(kw[0].id)).toBe(3000);
+    // Week 5's own change still happens.
+    expect(bids(after).get(kw[1].id)).toBe(4500);
+  });
+
+  test('a later list of blocked words does not carry a removed word back in', async () => {
+    const after = await without(4, 6);
+    expect(account(after).campaign.negatives.map((n) => n.text)).toEqual(['cheap']);
+  });
+
+  test('at week 5 the capital card is left alone, so the month keeps its money', async () => {
+    const state = await game();
+    const after = await without(5, 5);
+    const month = (s) => s.history[4].byAdvertiser[PLAYER].budget.monthlyBudgetPaise;
+    // Nothing committed: the ₹55,000 is ad budget, not gone.
+    expect(month(after) - month(state)).toBe(5_500_000);
+    expect(account(after).capex.committed.sizeGuide ?? 0).toBe(0);
+    // Week 5's raise is out; week 3's cut, which week 5's list carried, stays.
+    expect(bids(after).get(kw[0].id)).toBe(1500);
+    expect(bids(after).get(kw[1].id)).toBe(3000);
+  });
+
+  test('taking out a week the player changed nothing in gives back the game as played', async () => {
+    const state = await game();
+    const after = await without(2, 7);
+    const net = (s) => JSON.stringify(s.history.map((r) => r.byAdvertiser[PLAYER].money.netProfitPaise));
+    expect(net(after)).toBe(net(state));
   });
 });
