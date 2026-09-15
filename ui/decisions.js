@@ -34,7 +34,6 @@ import { blockedBy, normalise, tokenise } from '../engine/matching.js';
 import { STRATEGIES, daypartMultiplier, effectiveBidPaise } from '../engine/strategies.js';
 import { minimumBidToShowPaise } from '../engine/auction.js';
 import { qualitySignalBase } from '../engine/quality.js';
-import { refusalRateFor } from '../engine/locations.js';
 // Derived from the hour curves rather than declared, so it lives with them.
 import { HOURS_PER_DAY } from '../engine/querySet.js';
 import { featureAt, pageShape, capexChoices } from './landing-page.js';
@@ -44,7 +43,7 @@ import { whyButton } from './guide/drawer.js';
 import { LOCATIONS } from '../content/locations.js';
 import { moneyBlock } from '../engine/report.js';
 import {
-  canReposition, isOneStep, allCells, parseCell, cellKey, landingPageBonus,
+  canReposition, isOneStep, allCells, parseCell, cellKey, landingPageBonus, refusalOutlook,
 } from '../engine/positions.js';
 import {
   LEARNING_ROUNDS, MAX_BID_MULTIPLE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
@@ -2123,9 +2122,17 @@ function ownRoasHint(ctx) {
 /**
  * The refusal rate this account runs at, with and without its prepaid discount.
  *
+ * FROM THE ROUND'S OWN ARITHMETIC. `refusalOutlook` is the line the round books
+ * refusals with, so the figure carries what next week will apply: order
+ * confirmation from the week it is live, purpose, and the place gradient. Until
+ * 2026-09-15 the card worked it out from the cash mix alone, which read the same
+ * whether or not the player had bought order confirmation — up to 4.3 points
+ * high once it was live — and promised a third more from a discount than the
+ * round delivered (I29, I34).
+ *
  * Weighted by where the account actually bought clicks once it has bought any,
- * and at the towns' mix before then — the most cash-heavy place, so the card
- * never opens by understating what the discount is for.
+ * and at the towns before then — the most cash-heavy place, so the card never
+ * opens by understating what the discount is for.
  *
  * THE PRICE TIER COMES FROM THE DRAFT. The card first read it from `ctx.price`,
  * which nothing ever set, so it asked for the cash mix of tier "undefined" and
@@ -2133,16 +2140,19 @@ function ownRoasHint(ctx) {
  * deployment smoke test played one. The draft's position is the staged one, so
  * a player about to move tier sees the rate the next week will actually run at.
  *
- * @param {object} draft from `createDraft`
+ * @param {object} draft from `createDraft`: its position, capital block, round
+ *   and discount
  * @param {object[]} rows from `locationRows`, one per location tier
- * @returns {{now: number, none: number}} refusal rates, 0..1
+ * @returns {{now: number, none: number}} refusals per order, 0..1
  */
 export function prepaidOutlook(draft, rows) {
-  const price = draft.position?.price;
-  const clicks = rows.reduce((a, r) => a + (r.clicks ?? 0), 0);
-  const at = (paise) => (clicks > 0
-    ? rows.reduce((a, r, i) => a + (r.clicks ?? 0) * refusalRateFor(price, i, paise), 0) / clicks
-    : refusalRateFor(price, LOCATION_TIERS.length - 1, paise));
+  const clicks = rows.map((r) => r.clicks ?? 0);
+  const placeWeights = clicks.some((c) => c > 0)
+    ? clicks
+    : LOCATION_TIERS.map((_, i) => (i === LOCATION_TIERS.length - 1 ? 1 : 0));
+  const at = (discountPaise) => refusalOutlook({
+    position: draft.position, capex: draft.capexBlock, round: draft.round, discountPaise, placeWeights,
+  });
   return { now: at(draft.prepaidDiscountPaise), none: at(0) };
 }
 

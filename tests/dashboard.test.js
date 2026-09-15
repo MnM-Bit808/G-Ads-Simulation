@@ -40,6 +40,7 @@ import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
+import { businessFor, realisedBreakEvenCpcPaise, refusalOutlook } from '../engine/positions.js';
 import {
   DEFAULT_UNGRADED_QUALITY, MONTHLY_BUDGET_PAISE, RANK_BUDGET_MULTIPLIERS,
   LOCATION_TIERS, COD_SHARE_BY_PRICE_LOCATION, RTO_RATE_COD, RTO_RATE_PREPAID,
@@ -298,38 +299,48 @@ describe('the month the rank sentence quotes is the month the rank bought', () =
 /**
  * The prepaid card, read through the context the dashboard hands the form.
  *
- * The card asked that context for `history` and `playerId`, and the dashboard
- * packed neither. A missing key is not an error — it reads as undefined — so
- * the card saw an account with no weeks played and fell back to the smaller
- * towns' mix, the most cash-heavy place, for every account in every week.
- * Nothing threw and every figure looked plausible: a premium account buying
- * 38% of its clicks in the metros read 15.6% refusals where its own mix runs
- * 13.8%. The same card once read a `ctx.price` nobody set (I34); that one
- * crashed, this one did not, and `prepaidOutlook`'s own tests could never see
- * either, because both lived in what the card was handed.
+ * TWO FAULTS, AND BOTH SHOWED A PLAUSIBLE NUMBER. The card asked its context for
+ * `history` and `playerId`, which the dashboard never packed, so it read the
+ * towns' rate for every account, every week. Then, with its own places, it
+ * worked the rate out from the cash mix alone, which knows nothing of order
+ * confirmation, purpose or the place gradient: on this account, with order
+ * confirmation live, it read 16.9% where the week booked 12.9% (I29, I34). It
+ * now asks `refusalOutlook`, the round's own arithmetic.
+ *
+ * Checked against what the engine BOOKED, through the report, and not against
+ * the function the card calls: an expectation built by the code under test agrees
+ * with it whatever it does. The forecast leaves out each search's own return
+ * multiplier (16.1 withholds it), so this holds it to a point, not to the digit;
+ * `round.test.js` holds it to the digit where the multiplier is 1.
  */
-describe('the prepaid card reads this account\'s own places, not the towns\'', () => {
-  const PRICE = 'premium';
-  const OWN = QUERY_SET.queries.filter((q) => homeCell(q) === `${PRICE}|lifestyle`).slice(0, 5);
+describe('the prepaid card shows the refusal rate this account runs at (I29, I34)', { timeout: 60_000 }, () => {
+  const POSITION = { price: 'mid', purpose: 'performance' };
 
-  // The game as ui/app.js holds it after four weeks: the state, each week's
-  // report, and the draft rebuilt from the account the last week produced.
+  // The game as ui/app.js holds it after nine weeks: the state, each week's
+  // report, and the draft rebuilt from the account the last week produced. Nine,
+  // so week 4 — the first with order confirmation live — has settled.
   let shared = null;
   const played = () => {
     if (shared) return shared;
+    const breakEven = realisedBreakEvenCpcPaise(
+      businessFor(POSITION, { committed: {}, pending: [] }, 1), QUERY_SET, POSITION,
+    );
+    const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|performance')
+      .sort((a, b) => b.volumeShareBp - a.volumeShareBp).slice(0, 5);
     let state = startGame({
       rootSeed: 20260902,
       playerBrandId: BRAND_IDENTITIES[0].id,
       querySet: QUERY_SET,
       player: {
-        position: { price: PRICE, purpose: 'lifestyle' },
-        capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
-        keywords: OWN.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: 3000 })),
+        position: POSITION,
+        // The top rung from round 0, live from week 4.
+        capex: { orderConfirmation: 8000000 },
+        keywords: own.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: Math.round(breakEven * 0.7) })),
         ad: {
-          headlines: ['Premium Athleisure', 'Designer Leggings', 'Luxury Loungewear'],
+          headlines: ['Activewear Built To Train In', 'Free Delivery Across India', 'Sizes XS To XXL'],
           descriptions: [
-            'Built to hold through 4 sessions a week, wash after wash.',
-            'Sizes XS to XXL with free delivery and easy returns.',
+            'Leggings, tights and sports bras that hold through 4 sessions a week.',
+            'Easy returns within 30 days, and cash on delivery everywhere.',
           ],
           landingPageDescription: 'A plain product page.',
         },
@@ -338,7 +349,7 @@ describe('the prepaid card reads this account\'s own places, not the towns\'', (
     });
     const playerId = state.advertisers[0].id;
     const reports = [];
-    for (let week = 0; week < 4; week++) {
+    for (let week = 0; week < 9; week++) {
       const out = submitRound(state, {}, { mode: 'expected' });
       reports.push(out.report);
       state = out.nextGameState;
@@ -350,29 +361,34 @@ describe('the prepaid card reads this account\'s own places, not the towns\'', (
     return shared;
   };
 
-  // Worked out here, from the account's own report and the engine's sourced
-  // rates, rather than by `locationRows` or `prepaidOutlook`, which are what
-  // the card calls: an expectation built by the code under test agrees with it
-  // whatever it does.
-  const refusalRate = (tier) => {
-    const cash = COD_SHARE_BY_PRICE_LOCATION[PRICE][tier];
-    return cash * RTO_RATE_COD + (1 - cash) * RTO_RATE_PREPAID;
+  const booked = (game) => {
+    const c = game.state.history[3].byAdvertiser[game.playerId].conversions;
+    return c.refused / c.final;
   };
-  const ownMix = (game) => {
+  // The card's old figure, worked out here from the sourced constants: the cash
+  // mix alone, at this account's places.
+  const cashMix = (game) => {
     const clicks = LOCATION_TIERS.map((_, tier) => game.state.history.reduce(
       (a, h) => a + (h.byAdvertiser[game.playerId].breakdown.byLocation[tier]?.clicks ?? 0), 0,
     ));
     const total = clicks.reduce((a, c) => a + c, 0);
-    return clicks.reduce((a, c, tier) => a + c * refusalRate(tier), 0) / total;
+    return clicks.reduce((a, c, tier) => {
+      const cash = COD_SHARE_BY_PRICE_LOCATION[POSITION.price][tier];
+      return a + c * (cash * RTO_RATE_COD + (1 - cash) * RTO_RATE_PREPAID);
+    }, 0) / total;
   };
 
-  test('with weeks played, it is the refusal rate of the places this account bought', () => {
+  test('with order confirmation live, it is within a point of what the week booked', () => {
     const game = played();
-    const towns = refusalRate(LOCATION_TIERS.length - 1);
-    expect(ownMix(game), 'this account buys too many towns for the two to differ, so the test proves nothing')
-      .toBeLessThan(towns - 0.01);
+    // Neither of the card's old readings passes, or this would prove nothing.
+    expect(Math.abs(cashMix(game) - booked(game)), 'the cash mix alone').toBeGreaterThan(0.03);
+    const towns = refusalOutlook({
+      position: POSITION, capex: game.draft.capexBlock, round: game.draft.round,
+      placeWeights: LOCATION_TIERS.map((_, i) => (i === LOCATION_TIERS.length - 1 ? 1 : 0)),
+    });
+    expect(Math.abs(towns - booked(game)), 'the towns\' places, not this account\'s').toBeGreaterThan(0.015);
 
-    expect(prepaidReading(formContext(game)).none).toBeCloseTo(ownMix(game), 6);
+    expect(Math.abs(prepaidReading(formContext(game)).none - booked(game))).toBeLessThan(0.01);
   });
 
   test('and the form is handed no other advertiser\'s figures to do it', () => {
