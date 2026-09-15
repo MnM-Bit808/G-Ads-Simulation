@@ -100,7 +100,12 @@ export function runRound(gameState, options = {}) {
 
   // --- precompute -----------------------------------------------------------
   const business = advertisers.map((a) => businessFor(a.position, a.capex, round));
-  const entryPlan = buildEntryPlans(advertisers, business, queries, round);
+  // Per advertiser, because each position is centred on its own country: a value
+  // brand's territory is mostly towns and a premium brand's is mostly metros, and
+  // measuring both against the market's average moved profit between them.
+  // Worked out before the entry plans, which read each search's returns off it.
+  const effectsByAdvertiser = advertisers.map((a) => locationEffects(querySet, a.position?.price));
+  const entryPlan = buildEntryPlans(advertisers, business, queries, round, effectsByAdvertiser);
   const bids = buildBidTable(advertisers, business, entryPlan, queries, perAdvertiserRng, mode);
   const budgets = buildBudgets(advertisers, round);
 
@@ -130,10 +135,6 @@ export function runRound(gameState, options = {}) {
   // the market keeps the return rate and basket size F8 documents - see
   // locations.js for what applying the raw tables would have cost.
   const shares = queries.map((query) => locationSharesFor(query));
-  // Per advertiser, because each position is centred on its own country: a value
-  // brand's territory is mostly towns and a premium brand's is mostly metros, and
-  // measuring both against the market's average moved profit between them.
-  const effectsByAdvertiser = advertisers.map((a) => locationEffects(querySet, a.position?.price));
   const tiers = LOCATION_TIERS.length;
 
   // WHO IS BIDDING DIFFERENTLY BY PLACE, and therefore which path the loop takes.
@@ -329,14 +330,21 @@ export function runRound(gameState, options = {}) {
 
 /**
  * For every advertiser-query pair: are they eligible, through which ad group,
- * and what is the hour-independent part of their quality signal?
+ * what is the hour-independent part of their quality signal, and what is an
+ * order there worth and how often does it come back, place by place?
  *
  * 1,350 entries for a nine-advertiser, 150-query game. The alternative is
  * 226,800 and the round misses its budget.
  */
-function buildEntryPlans(advertisers, business, queries, round) {
+function buildEntryPlans(advertisers, business, queries, round, effectsByAdvertiser) {
   return advertisers.map((advertiser, i) => {
     const bonus = landingPageBonus(advertiser.capex, round);
+    const price = advertiser.position.price;
+    const discountPaise = advertiser.campaign?.prepaidDiscountPaise ?? 0;
+    // The share of this advertiser's orders in each place that are prepaid,
+    // which is what its discount is paid on (I34). One per advertiser, shared
+    // by all its searches.
+    const prepaidShare = LOCATION_TIERS.map((_, t) => 1 - codShareFor(price, t, discountPaise));
     return queries.map((query) => {
       if (isBlocked(query, advertiser.campaign.negatives)) return null;
       const hits = findMatches(query, advertiser.adGroups);
@@ -370,6 +378,19 @@ function buildEntryPlans(advertisers, business, queries, round) {
         // The basket before any noise. Fixed for this advertiser and search
         // all round, so worked out here once rather than at every record.
         orderValuePaise: expectedOrderValuePaise(business[i], query),
+        // What comes back from an order in each place, refused at the door or
+        // sent back after it, each half with its own lever (I28, I29, I34).
+        // Fixed all round too. The arithmetic is `returnHalves`, so the prepaid
+        // card's forecast is this and not a copy of it.
+        returns: LOCATION_TIERS.map((_, t) => returnHalves({
+          business: business[i],
+          queryReturnMultiplier: query.returnRateMultiplier ?? 1,
+          placeReturnMultiplier: effectsByAdvertiser[i].returnMultiplier[t],
+          price,
+          tierIndex: t,
+          discountPaise,
+        })),
+        prepaidShare,
       };
     });
   });
@@ -570,23 +591,12 @@ function recordConversions({
   // — so it costs the discount times the prepaid share of the mix it
   // just created. Flat rupees, so it is 4.2% of a value basket and 1.0%
   // of a premium one (I34).
-  const prepaidShare = 1 - codShareFor(advertisers[i].position.price, tier, discountPaise);
   bucket.valuePaise += converted * Math.max(
-    0, base * effects.aovMultiplier[tier] - discountPaise * prepaidShare,
+    0, base * effects.aovMultiplier[tier] - discountPaise * e._plan.prepaidShare[tier],
   );
 
-  // What comes back from these orders, refused at the door or sent back
-  // after it, each half with its own lever (I28, I29, I34). The arithmetic
-  // is `returnHalves`, so the prepaid card's forecast is this line and
-  // not a copy of it.
-  const back = returnHalves({
-    business: business[i],
-    queryReturnMultiplier: query.returnRateMultiplier ?? 1,
-    placeReturnMultiplier: effects.returnMultiplier[tier],
-    price: advertisers[i].position.price,
-    tierIndex: tier,
-    discountPaise,
-  });
+  // What comes back from these orders, worked out once in the entry plan.
+  const back = e._plan.returns[tier];
   bucket.returnWeighted += converted * back.returned;
   // Carried so the freight on a refused parcel can be charged to the
   // round that earned it. Weighted the same way, because a bucket is a
