@@ -417,10 +417,10 @@ function splitRefusals(byLocation, price) {
  * rival ever offered a discount until this was stated.
  *
  * FROM THE PREPAID CARD'S OWN FUNCTION. `refusalOutlook` is what the card shows
- * and `returnHalves` under it is what the round books, so a rival decides on the
- * number the player decides on (R6). The cash-mix formula that used to sit here
- * was dropped for leaving out capital, purpose and the place gradient; this is
- * not that formula.
+ * and `returnHalves` under it is what the round books, so a rival reads the
+ * same place figures the player's card is built from (R6). The cash-mix formula
+ * that used to sit here was dropped for leaving out capital, purpose and the
+ * place gradient; this is not that formula.
  *
  * Stated once, when the week is reported, and kept through every revision: it
  * is what the rate was, not a count of what has come back. And with no discount,

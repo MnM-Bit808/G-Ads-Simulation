@@ -359,21 +359,41 @@ describe('a rival steps its discount down only once refusals are clearly lighter
   // times in eleven weeks. It now steps up at the line and down only a point
   // under it.
   let played;
-  const at = (rate, held) => {
+  // What the rule asks for when each place's row of a real report is reshaped.
+  const decide = (reshape, held) => {
     const self = getSelfView(played, PLAYER_ID);
     self.campaign.prepaidDiscountPaise = held;
     const report = advertiserReport(played.history.at(-1), PLAYER_ID);
     const byLocation = Object.fromEntries(Object.entries(report.breakdown.byLocation)
-      .map(([tier, row]) => [tier, { ...row, refusalRate: rate }]));
+      .map(([tier, row]) => [tier, reshape(row, Number(tier))]));
     const decision = disciplined(self, { ...report, breakdown: { ...report.breakdown, byLocation } },
       getPublicView(played, PLAYER_ID));
     return decision.campaign.prepaidDiscountPaise;
   };
+  const at = (rate, held) => decide((row) => ({ ...row, refusalRate: rate }), held);
 
   test('set up: a real report, the shape a rival is handed after a week', async () => {
     ({ finalState: played } = await playGame(STATE, everyone, { mode: 'expected', rounds: 1 }));
-    const rows = Object.values(advertiserReport(played.history.at(-1), PLAYER_ID).breakdown.byLocation);
-    expect(rows.some((r) => r.clicks > 0 && Number.isFinite(r.refusalRate))).toBe(true);
+    const byLocation = advertiserReport(played.history.at(-1), PLAYER_ID).breakdown.byLocation;
+    expect(Object.keys(byLocation).sort()).toEqual(['0', '1', '2']);
+    for (const row of Object.values(byLocation)) {
+      expect(row.eligibleAuctions).toBeGreaterThan(0);
+      expect(Number.isFinite(row.refusalRate)).toBe(true);
+    }
+  });
+
+  test('it weights by the searches it is in, not the clicks its place bids bought', () => {
+    // A rival's place bids see-saw week to week (locationTilt), so its clicks
+    // do too, while the searches it is eligible for stay put. Weighted by
+    // clicks, the metro-heavy week below reads 9.5% and asks for ₹30, and the
+    // town-heavy one 15.1% and ₹50: the flip. Over the same searches, both
+    // weeks are the same week.
+    const byPlace = [0.09, 0.12, 0.16];
+    const week = (clicks) => decide((row, tier) => ({
+      ...row, refusalRate: byPlace[tier], clicks: clicks[tier], eligibleAuctions: 1000,
+    }), 0);
+    expect(week([2000, 100, 100])).toBe(5000);
+    expect(week([100, 100, 2000])).toBe(5000);
   });
 
   test('it steps up at the line', () => {
