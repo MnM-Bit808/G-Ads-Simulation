@@ -28,6 +28,19 @@ function carriesReturns(value) {
   ));
 }
 
+/** Direction changes of at least `points` in one place's adjustment, week to week. */
+function reversals(series, points) {
+  let count = 0;
+  let last = 0;
+  for (let i = 1; i < series.length; i++) {
+    const move = series[i] - series[i - 1];
+    if (Math.abs(move) < points) continue;
+    if (last !== 0 && Math.sign(move) !== last) count++;
+    last = Math.sign(move);
+  }
+  return count;
+}
+
 describe('what a rival learns in a played game (C9)', { timeout: 120_000 }, () => {
   const seen = [];
   let state;
@@ -70,5 +83,25 @@ describe('what a rival learns in a played game (C9)', { timeout: 120_000 }, () =
     const differ = gross.filter((c) => JSON.stringify(disciplined(...c.handed).campaign.locationAdjustments)
       !== JSON.stringify(c.decision.campaign.locationAdjustments));
     expect(differ.length, 'net and gross place bids are identical every week').toBeGreaterThan(0);
+  });
+
+  test('a rival\'s place adjustments settle rather than see-saw', () => {
+    // Traced here: the disciplined rival's towns adjustment went -10, -56, -17,
+    // -58, -12, -54... because a place's value per click falls as its bid
+    // there rises, and the rule jumped all the way to each week's reading.
+    const out = [];
+    for (const a of state.advertisers.filter((x) => x.policyId)) {
+      let held = [0, 0, 0];
+      const weeks = [];
+      for (const c of seen.filter((x) => x.id === a.id).sort((x, y) => x.round - y.round)) {
+        held = c.decision?.campaign?.locationAdjustments ?? held;
+        weeks.push(held);
+      }
+      for (let place = 0; place < 3; place++) {
+        const flips = reversals(weeks.map((w) => w[place]), 10);
+        if (flips > 1) out.push(`${a.id} (${a.policyId}) place ${place}: ${flips} reversals`);
+      }
+    }
+    expect(out).toEqual([]);
   });
 });

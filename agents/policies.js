@@ -214,17 +214,18 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
  * built from.
  *
  * WEIGHTED BY THE SEARCHES IT IS IN, NOT THE CLICKS IT BOUGHT. The card weights
- * by the player's clicks over every week played, which moves slowly. A rival
- * has one week, and its week's clicks follow its place bids, which see-saw
- * (`locationTilt` resets them from each week's reading): weighted by clicks, a
- * rival's rate swung two points week to week and its rung flipped ₹50 / ₹30
- * with it — 8 of 144 rival-games, one seven times in eleven weeks. The
- * searches it is eligible for at each place do not follow its bids.
+ * by the player's clicks over every week played, which moves slowly. This reads
+ * the week just played, whose clicks follow its place bids, and those used to
+ * see-saw: weighted by clicks, a rival's rate swung two points week to week and
+ * its rung flipped ₹50 / ₹30 with it — 8 of 144 rival-games, one seven times in
+ * eleven weeks. The see-saw is gone (`PLACE_STEP`, C9), and the weighting stays,
+ * because the searches it is eligible for at each place do not follow its bids
+ * at all.
  *
  * It used to count the `refused` in those rows, and in play that was always
  * exactly zero. A week's refusals land two to five weeks after its clicks and
- * are written back into that week's report, and a controller is handed only
- * the week just played. Over 18 games not one rival ever offered a discount.
+ * are written back into that week's report, and a controller was handed only
+ * the week just played (C9). Over 18 games not one rival ever offered a discount.
  *
  * The rate is the one BEFORE any discount, so a rival already offering one
  * cannot talk itself back out of it as its own refusals fall.
@@ -280,6 +281,20 @@ const CAUTIOUS_LOCATION_LEAN = 100;
 
 /** Ignore a tier until it has enough clicks to be saying anything. */
 const LOCATION_MIN_CLICKS = 40;
+
+/**
+ * How far toward what its reports say a rival moves a place adjustment in one
+ * week: halfway.
+ *
+ * A place's value per click is not the place's alone. With a low bid there a
+ * rival wins only its best searches and a click reads rich; bid up, it wins
+ * weaker ones too and a click reads poorer. A rival that jumped all the way to
+ * each week's reading bid the towns up, read them worse, cut, read them better,
+ * and see-sawed for twelve weeks, each swing about 0.9 of the last (C9). A cap
+ * like `MAX_BID_MOVE` was measured and only trims the swings bigger than itself.
+ * Halfway ends them, and each rival still comes to rest where it would have.
+ */
+const PLACE_STEP = 0.5;
 
 /**
  * Where this advertiser should bid more, and where less.
@@ -351,15 +366,17 @@ export function locationTilt(self, history, lean = LOCATION_LEAN, { net = true }
   if (!(mean > 0)) return null;
 
   return value.map((v, tier) => {
-    if (v === null || !Number.isFinite(v)) return current[tier] ?? 0;
+    const held = current[tier] ?? 0;
+    if (v === null || !Number.isFinite(v)) return held;
     // Relative to this account's own average, so a premium advertiser and a
     // value one are each judging against their own economics rather than
     // against a number neither of them can see.
     const relative = v / mean - 1;
-    const move = Math.round(relative * lean);
     // Bounded by this character's own lean, so a timid rival cannot be swung
     // hard by one violent week.
-    return clamp(move, -lean, lean);
+    const target = clamp(Math.round(relative * lean), -lean, lean);
+    // And only part of the way there, because moving the bid moves the reading.
+    return held + Math.round((target - held) * PLACE_STEP);
   });
 }
 

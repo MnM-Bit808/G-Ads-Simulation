@@ -199,6 +199,19 @@ describe('where a rival bids, read off every week it has played (G4, C9)', () =>
   test('week 1 has no history to read, so it leaves the places alone', () => {
     expect(locationTilt({ ...self, round: 1 }, [])).toBeNull();
   });
+
+  test('it moves halfway toward what the weeks say, not all the way', () => {
+    // A place's value per click falls as the bid there rises, so a rival that
+    // jumped all the way to each week's reading bid the towns up, read them
+    // worse, cut, read them better, and see-sawed for twelve weeks (C9). All
+    // the way, this history says [35, 9, -43].
+    const history = [week(1, [1000, 2000, 4000]), week(2, [1000, 2000, 4000])];
+    const from = (held) => locationTilt({ ...self, campaign: { ...self.campaign, locationAdjustments: held } }, history);
+    expect(from([0, 0, 0])).toEqual([18, 5, -21]);
+    expect(from([-40, 20, 0])).toEqual([-2, 15, -21]);
+    // Once there, it stays.
+    expect(from([35, 9, -43])).toEqual([35, 9, -43]);
+  });
 });
 
 describe('disciplined reads its search terms report', () => {
