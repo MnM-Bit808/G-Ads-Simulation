@@ -1,7 +1,13 @@
 import { describe, test, expect } from 'vitest';
 import { runRound } from '../engine/round.js';
 import { LOCATION_TIERS } from '../engine/constants.js';
-import { locationSharesFor } from '../engine/locations.js';
+import { locationSharesFor, refusalRateFor } from '../engine/locations.js';
+import { businessFor, realisedBreakEvenCpcPaise } from '../engine/positions.js';
+import { homeCell } from '../engine/querySet.js';
+import { startGame } from '../setup.js';
+import { submitRound } from '../game.js';
+import { QUERY_SET } from '../content/querySet.js';
+import { BRAND_IDENTITIES } from '../content/brands.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
 import {
   ATTRIBUTION_LAG_DISTRIBUTION, MAX_SLOTS, ROUNDS_PER_MONTH,
@@ -970,5 +976,74 @@ describe('turning a location down', () => {
       return now > was;
     });
     expect(gained.length, 'nobody took the traffic that was given up').toBeGreaterThan(0);
+  });
+});
+
+/**
+ * Refusals as a played week books them.
+ *
+ * ONE SEARCH, WHOSE OWN RETURN MULTIPLIER IS EXACTLY 1, so every refusal comes
+ * from position, place, capital and discount and nothing else — which is what
+ * lets these tests hold the engine to the digit. Order confirmation is bought at
+ * round 0 and goes live at week 4 (CAPEX_DELAY_ROUNDS), so weeks 1-3 run without
+ * it and week 4 with it. Nine weeks, so week 4's returns have all come back: up
+ * to three weeks for the sale to land and two for the return.
+ */
+describe('refusals as a played week books them (I29, I34)', { timeout: 60_000 }, () => {
+  const POSITION = { price: 'mid', purpose: 'performance' };
+  const SEARCH = QUERY_SET.queries
+    .filter((q) => homeCell(q) === 'mid|performance' && q.returnRateMultiplier === 1 && q.intent !== 'brand')
+    .sort((a, b) => b.volumeShareBp - a.volumeShareBp)[0];
+  const games = new Map();
+  const played = (discountPaise) => {
+    if (games.has(discountPaise)) return games.get(discountPaise);
+    const breakEven = realisedBreakEvenCpcPaise(
+      businessFor(POSITION, { committed: {}, pending: [] }, 1), QUERY_SET, POSITION,
+    );
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: POSITION,
+        capex: { orderConfirmation: 8000000 },
+        keywords: [{ text: SEARCH.text, matchType: 'exact', bidPaise: Math.round(breakEven * 1.2) }],
+        ad: {
+          headlines: ['Activewear Built To Train In', 'Free Delivery Across India', 'Sizes XS To XXL'],
+          descriptions: [
+            'Leggings, tights and sports bras that hold through 4 sessions a week.',
+            'Easy returns within 30 days, and cash on delivery everywhere.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    const id = state.advertisers[0].id;
+    for (let week = 1; week <= 9; week++) {
+      const decisions = week === 1 && discountPaise > 0
+        ? { [id]: { campaign: { prepaidDiscountPaise: discountPaise } } } : {};
+      state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
+    }
+    const game = { state, id };
+    games.set(discountPaise, game);
+    return game;
+  };
+  const place = ({ state, id }, week, tier) => state.history[week - 1].byAdvertiser[id].breakdown.byLocation[tier];
+
+  test('a discount takes refusals off at the sourced rate, and leaves send-backs and sales alone', () => {
+    // I34 says the refusals a discount prevents leave the account. The first
+    // build scaled them by the refused SHARE at the new cash mix, which falls more
+    // slowly than the refusal RATE, so about a quarter of them stayed.
+    expect(SEARCH, 'a mid|performance search at multiplier 1').toBeTruthy();
+    for (let t = 0; t < LOCATION_TIERS.length; t++) {
+      const none = place(played(0), 1, t);
+      const paid = place(played(3000), 1, t);
+      expect(none.conversions, `place ${t} has sales to measure`).toBeGreaterThan(1);
+      expect(paid.conversions, `place ${t}`).toBeCloseTo(none.conversions, 9);
+      expect((paid.refused / paid.conversions) / (none.refused / none.conversions), `place ${t}`)
+        .toBeCloseTo(refusalRateFor('mid', t, 3000) / refusalRateFor('mid', t, 0), 6);
+      expect(paid.sentBack / paid.conversions, `place ${t}`).toBeCloseTo(none.sentBack / none.conversions, 9);
+    }
   });
 });
