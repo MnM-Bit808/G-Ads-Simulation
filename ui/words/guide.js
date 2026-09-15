@@ -18,5 +18,7 @@ export const GUIDE = Object.freeze({
   game: line('label', 'In this game'),
   sources: line('label', 'Sources:'),
   showCard: line('label', 'Show me on the card'),
+  // The Studio's: what it marks is often one part of a section, not a card.
+  showAccount: line('label', 'Show me in your account'),
   next: line('label', ({ title }) => `Next: ${title}`),
 });

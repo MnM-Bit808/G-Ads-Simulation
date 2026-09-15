@@ -14,7 +14,9 @@
  *          entries and spec sections it rests on. It types no number: figures
  *          arrive from `ui/guide/figures.js`, named in `needs`.
  *
- * Then `yourAccount`, the card where the player can watch it happen.
+ * Then `yourAccount`, the card where the player can watch it happen, and
+ * `studioAccount` where the Studio shows it in a part the classic page has no
+ * card for (found drawing the Guide as a page, 2026-09-15).
  *
  * WHEN A CITED DECISIONS ENTRY CHANGES, re-read the chapters that cite it.
  * `tests/guide.test.js` proves a citation exists, not that the chapter agrees.
@@ -36,11 +38,13 @@ const CITATION = /^([A-Z]\d+[a-z]?|§\d+(\.\d+)*)$/;
  * @param {(figures: object) => string} spec.game - in this game
  * @param {string[]} spec.cites
  * @param {string} spec.yourAccount - the card's `data-slot`
+ * @param {string|null} [spec.studioAccount] - the Studio part's `data-slot`,
+ *   where it differs: a part only the Studio draws
  * @param {string[]} [spec.related]
  */
 export function chapter({
   title, real, realSources = [], device = false, needs = [], game, cites = [],
-  yourAccount, related = [],
+  yourAccount, studioAccount = null, related = [],
 }) {
   if (!title) throw new TypeError('a chapter needs a title');
   if (typeof real !== 'function') throw new TypeError(`"${title}" needs its real half`);
@@ -55,7 +59,7 @@ export function chapter({
   if (!yourAccount) throw new TypeError(`"${title}" needs a card in your account`);
   return Object.freeze({
     title, real, realSources: Object.freeze(realSources), device, needs: Object.freeze(needs),
-    game, cites: Object.freeze(cites), yourAccount, related: Object.freeze(related),
+    game, cites: Object.freeze(cites), yourAccount, studioAccount, related: Object.freeze(related),
   });
 }
 
@@ -240,6 +244,8 @@ export const CHAPTERS = Object.freeze({
       + 'impossible outside it.',
     cites: ['G1', 'G1a'],
     yourAccount: 'budget',
+    // Both replays are drawn after the last week, in Results' What you learned.
+    studioAccount: 'results-moments',
   }),
 
   kindMarket: chapter({
@@ -347,7 +353,9 @@ export const CHAPTERS = Object.freeze({
       + 'contest it and the owner can afford to bid higher, not because searchers prefer the '
       + 'name they typed.',
     cites: ['A9', '§12.1'],
-    yourAccount: 'insights',
+    // The search terms, where a search for the player's own name is marked as
+    // theirs; the auction insights say nothing about a name.
+    yourAccount: 'terms',
   }),
 
   smartBidding: chapter({
@@ -415,7 +423,9 @@ export const CHAPTERS = Object.freeze({
       + 'page is built with capital. Where it departs: Google’s Quality Score has no part for '
       + 'who wrote the ad.',
     cites: ['I11', 'I10', 'I25', 'I9'],
+    // The classic page draws the ad on no card; the Studio's Your ad does.
     yourAccount: 'keywords',
+    studioAccount: 'writer',
     related: ['qualityScore'],
   }),
 

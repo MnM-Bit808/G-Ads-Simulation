@@ -2,13 +2,21 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  AREAS, SECTIONS, RETIRED_SLOTS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots,
+  AREAS, SECTIONS, RETIRED_SLOTS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots, slotOpen,
 } from '../ui/shell/sections.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 import { SETTLES_AFTER_ROUNDS } from '../ui/dashboard.js';
 import { TOTAL_ROUNDS } from '../engine/constants.js';
 
 const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
+
+// Where each Studio section sets the slots its parts carry.
+const DRAWN_BY = {
+  week: 'ui/week/render.js', keywords: 'ui/keywords/render.js', typed: 'ui/typed/render.js',
+  ad: 'ui/ad/render.js', money: 'ui/money/render.js', where: 'ui/where/render.js',
+  returns: 'ui/returns/render.js', rivals: 'ui/rivals/render.js', twelve: 'ui/results/render.js',
+  learned: 'ui/results/render.js', reveal: 'ui/results/render.js', books: 'ui/results/render.js',
+};
 
 // Every card today's page draws, by the slot it carries: the page's own
 // articles, the decision form's cards and the trends chart.
@@ -64,7 +72,7 @@ describe('every card on today\'s page has one place in the new layout', () => {
   test('the Market area is one section, Rivals, drawing the market\'s figures and the rival cards', () => {
     expect(sectionsIn('market').map((s) => s.key)).toEqual(['rivals']);
     for (const slot of ['insights', 'trends', 'market']) expect(RETIRED_SLOTS, slot).toContain(slot);
-    // "Defending your own name" shows the player the rivals, by this slot.
+    // The rival cards keep the classic Auction insights' slot.
     expect(sectionOf('insights').key).toBe('rivals');
     expect(sectionOf('market').key).toBe('rivals');
   });
@@ -89,6 +97,29 @@ describe('every card on today\'s page has one place in the new layout', () => {
   test.each(Object.entries(CHAPTERS))('the guide\'s %s can open the section holding its card', (_, c) => {
     expect(sectionOf(c.yourAccount), c.yourAccount).not.toBeNull();
   });
+
+  // Found drawing the Guide as a page (2026-09-15): three chapters pointed where
+  // their idea is not shown. A chapter may name a part only the Studio draws
+  // (`studioAccount`); the classic page keeps `yourAccount`.
+  test.each(Object.entries(CHAPTERS))('in the Studio, the guide\'s %s lands on a part its section really draws', (_, c) => {
+    const slot = c.studioAccount ?? c.yourAccount;
+    const s = sectionOf(slot);
+    expect(s, slot).not.toBeNull();
+    expect(read(DRAWN_BY[s.key]), `${s.key} draws ${slot}`).toContain(`'${slot}'`);
+  });
+
+  test('who writes the ad is shown where the writer is: Your ad', () => {
+    expect(sectionOf(CHAPTERS.writers.studioAccount).key).toBe('ad');
+  });
+
+  test('defending your own name is shown where searches for your name are marked', () => {
+    expect(sectionOf(CHAPTERS.ownName.yourAccount).key).toBe('typed');
+    expect(read('ui/typed/render.js')).toContain('TYPED.yourName()');
+  });
+
+  test('what only a simulation can tell you is shown where its replays are, after the last week', () => {
+    expect(sectionOf(CHAPTERS.counterfactuals.studioAccount).area).toBe('results');
+  });
 });
 
 describe('a section opens when it has something true to say', () => {
@@ -100,6 +131,17 @@ describe('a section opens when it has something true to say', () => {
     expect(sectionState(returns, { played: SETTLES_AFTER_ROUNDS, seen: {} }).locked).toBe(true);
     expect(sectionState(returns, { played: SETTLES_AFTER_ROUNDS + 1, seen: {} }))
       .toMatchObject({ locked: false, fresh: true });
+  });
+
+  // "Show me" waits for its section (the owner, 2026-09-15): Returns is locked
+  // before week 6, and Results, where the replays are, before week 12.
+  test('"Show me" waits while the section it would open is locked', () => {
+    expect(slotOpen('returns', { played: SETTLES_AFTER_ROUNDS })).toBe(false);
+    expect(slotOpen('returns', { played: SETTLES_AFTER_ROUNDS + 1 })).toBe(true);
+    expect(slotOpen('results-moments', { played: TOTAL_ROUNDS - 1 })).toBe(false);
+    expect(slotOpen('results-moments', { played: TOTAL_ROUNDS })).toBe(true);
+    expect(slotOpen('share', { played: 1 })).toBe(true);
+    expect(slotOpen('no-such-slot', { played: TOTAL_ROUNDS })).toBe(false);
   });
 
   test('its dot goes once it has been opened', () => {

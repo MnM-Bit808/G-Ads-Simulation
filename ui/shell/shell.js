@@ -15,7 +15,7 @@ import { renderDashboard } from '../dashboard.js';
 import { changes } from '../decisions.js';
 import { TOTAL_ROUNDS, ROUNDS_PER_MONTH } from '../../engine/constants.js';
 import {
-  AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots,
+  AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots, slotOpen,
 } from './sections.js';
 import { trayLines } from './tray.js';
 import { SHELL } from '../words/shell.js';
@@ -428,10 +428,15 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     return true;
   }
 
+  /** Whether `reveal(slot)` would open something: never a locked section. */
+  function canReveal(slot) {
+    return Boolean(game) && slotOpen(slot, args());
+  }
+
   function setTrayOverride(next) {
     override = next;
     drawTray();
   }
 
-  return { node, draw, reveal, open, setTrayOverride };
+  return { node, draw, reveal, canReveal, open, setTrayOverride };
 }

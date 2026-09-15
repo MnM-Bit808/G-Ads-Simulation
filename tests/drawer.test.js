@@ -28,6 +28,8 @@ describe('the drawer shows a chapter whole', () => {
     expect(`${view.title} ${view.real} ${view.game}`).not.toMatch(/undefined|NaN/);
     expect(view.sources).toEqual(CHAPTERS[id].realSources.map(({ label, url }) => ({ label, url })));
     expect(view.yourAccount).toBe(CHAPTERS[id].yourAccount);
+    // In the Studio a chapter may point at a part only it draws.
+    expect(view.studioAccount).toBe(CHAPTERS[id].studioAccount ?? CHAPTERS[id].yourAccount);
   });
 
   test('an unknown chapter is refused, not opened empty', () => {
@@ -67,6 +69,10 @@ describe('"Show me" marks what it lands on, in the Studio too', () => {
 
   test('focus goes to the part\'s own heading, which a Studio part draws as an h3', () => {
     expect(read('ui/guide/drawer.js')).toContain("querySelector('h2, h3')");
+  });
+
+  test('in the Studio it says "in your account", where a part is often not a card of its own', () => {
+    expect(read('ui/guide/drawer.js')).toContain('GUIDE.showAccount()');
   });
 });
 

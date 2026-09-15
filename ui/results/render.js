@@ -474,7 +474,13 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
     moved.append(...picked.map(momentCard));
     const out = [el('h3', null, DEBRIEF.lessonsHead()), grid];
     if (picked.length > 0) out.push(el('h3', null, DEBRIEF.momentsHead()), moved);
-    else out.push(el('p', 'rs-read', DEBRIEF.noMoments()));
+    else {
+      // The guide's "What only a simulation can tell you" shows the player here,
+      // so the place the replays would be carries their slot when there are none.
+      const none = el('p', 'rs-read', DEBRIEF.noMoments());
+      none.dataset.slot = 'results-moments';
+      out.push(none);
+    }
     out.push(budgetCard(), next('reveal'));
     parts.learned.replaceChildren(...out);
   }

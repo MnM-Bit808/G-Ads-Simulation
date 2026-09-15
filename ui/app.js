@@ -65,12 +65,14 @@ let studio = null;
  * a week never removes it; the dashboard's "why?" buttons and the header's
  * Field guide button all open this one drawer. In the Studio layout, "show me
  * on the card" first opens the section the card sits in, and before week 1,
- * when there is no card, it is not offered.
+ * when there is no card, it is not offered; nor, in the Studio, while the
+ * section is still locked.
  */
 const guide = createGuide({
   figures: guideFigures(),
   reveal: (slot) => studio?.reveal(slot) ?? false,
-  canShowCard: () => Boolean(game),
+  canShowCard: (slot) => Boolean(game) && (studio ? studio.canReveal(slot) : true),
+  inStudio: () => look === 'studio',
 });
 document.body.append(guide.node);
 guideButton.addEventListener('click', () => guide.openContents(guideButton));

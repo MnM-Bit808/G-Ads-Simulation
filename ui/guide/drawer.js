@@ -20,7 +20,9 @@ import { el } from '../dom.js';
  * @param {string} id - a chapter id
  * @param {Readonly<Record<string, string>>} figures - from `guideFigures()`
  * @returns {{id: string, title: string, real: string, sources: Array<{label: string, url: string}>,
- *   game: string, yourAccount: string, next: {id: string, title: string}|null}}
+ *   game: string, yourAccount: string, studioAccount: string, next: {id: string, title: string}|null}}
+ *   `studioAccount` is where the Studio shows it: the chapter's own Studio part,
+ *   or the same slot as the classic page's
  */
 export function guideView(id, figures) {
   const chapter = CHAPTERS[id];
@@ -34,6 +36,7 @@ export function guideView(id, figures) {
     sources: chapter.realSources.map(({ label, url }) => ({ label, url })),
     game: chapter.game(figures),
     yourAccount: chapter.yourAccount,
+    studioAccount: chapter.studioAccount ?? chapter.yourAccount,
     next: nextId ? { id: nextId, title: CHAPTERS[nextId].title } : null,
   };
 }
@@ -99,11 +102,14 @@ function button(className, label, onClick, iconPaths = null, iconAfter = false) 
  * @param {((slot: string) => boolean)|null} [options.reveal] - in the Studio
  *   layout, opens the section a card sits in before it is shown
  * @param {(slot: string) => boolean} [options.canShowCard] - whether a
- *   chapter's card is on the page to be shown; false before week 1
+ *   chapter's card is on the page to be shown; false before week 1, and in the
+ *   Studio while the section holding it is locked
+ * @param {() => boolean} [options.inStudio] - whether the Studio look is on,
+ *   asked as a chapter opens: it points at the Studio's part, in its words
  * @returns {{node: HTMLElement, open: (id: string, opener?: Element) => void,
  *   openContents: (opener?: Element) => void, close: () => void}}
  */
-export function createGuide({ figures, reveal: revealCard = null, canShowCard = () => true }) {
+export function createGuide({ figures, reveal: revealCard = null, canShowCard = () => true, inStudio = () => false }) {
   const node = el('aside', 'card guide');
   node.id = 'field-guide';
   node.hidden = true;
@@ -167,10 +173,13 @@ export function createGuide({ figures, reveal: revealCard = null, canShowCard = 
     body.replaceChildren(heading(view.title), real, game);
 
     // Before week 1 there is no card to show, and a button that does nothing is
-    // worse than none (plans/2026-09-14-round-zero-redesign-plan.md).
+    // worse than none (plans/2026-09-14-round-zero-redesign-plan.md). In the
+    // Studio what it marks is often one part of a section, not a card.
     foot.replaceChildren();
-    if (canShowCard(view.yourAccount)) {
-      foot.append(button('ghost', GUIDE.showCard(), () => showCard(view.yourAccount), ICONS.back));
+    const studio = inStudio();
+    const slot = studio ? view.studioAccount : view.yourAccount;
+    if (canShowCard(slot)) {
+      foot.append(button('ghost', studio ? GUIDE.showAccount() : GUIDE.showCard(), () => showCard(slot), ICONS.back));
     }
     if (view.next) {
       foot.append(button('guide-next', GUIDE.next({ title: view.next.title }),

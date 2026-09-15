@@ -20,6 +20,8 @@ const width = (value) => `${(100 * value) / GRADE_SCALE}%`;
 
 function whoWrote(writer, openGuide) {
   const box = el('div', 'yad-card');
+  // Where the guide's "Who writes the ad" shows the player (sections.js, draws).
+  box.dataset.slot = 'writer';
   const budget = rupees(CREATIVE_ALLOCATION_PAISE);
   box.append(el('h3', null, AD.whoWrote()),
     el('p', 'yad-writer', writer.hired ? writer.label : AD.you()),

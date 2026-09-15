@@ -54,7 +54,8 @@ export const SECTIONS = Object.freeze([
   { key: 'typed', area: 'brand', label: 'What people typed', icon: ICONS.typed, slots: [], draws: ['terms', 'negatives'] },
   // Read-only (the owner, 2026-09-15): the ad is written in round 0 and runs as
   // it is (I9). It draws itself (ui/ad/render.js); the classic page has no ad card.
-  { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, slots: [] },
+  // Its writer carries a slot so the guide's "Who writes the ad" can show it.
+  { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, slots: [], draws: ['writer'] },
   // Rebuilt (the owner's choice, 2026-09-15, design/your-money/): this month as
   // one bar, with the week-5 window on top and bidding and week 8 beside each
   // other (ui/money/render.js); the classic five cards are retired.
@@ -136,6 +137,21 @@ export function sectionState(section, { played, seen = {}, windowOpen = false })
   if (!locked && opensAt !== null) seenKey = `${section.key}:opened`;
   else if (section.key === 'money' && windowOpen) seenKey = `money:window:${played}`;
   return { locked, opensAt, fresh: seenKey !== null && !seen[seenKey], seenKey };
+}
+
+/**
+ * Whether the guide's "Show me" can open the part a slot names: a section holds
+ * it, and that section is open (the owner, 2026-09-15). Before week 6 Returns
+ * is locked, and Results before week 12; a button that opens a locked section
+ * shows nothing, so it waits.
+ *
+ * @param {string} slot
+ * @param {{played: number}} at
+ * @returns {boolean}
+ */
+export function slotOpen(slot, at) {
+  const section = sectionOf(slot);
+  return section !== null && !sectionState(section, at).locked;
 }
 
 /**
