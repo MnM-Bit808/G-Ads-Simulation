@@ -118,10 +118,15 @@ describe('a section opens when it has something true to say', () => {
       .toBe(false);
   });
 
-  test('Results opens after the last week', () => {
-    const results = find('results');
-    expect(sectionState(results, { played: TOTAL_ROUNDS - 1, seen: {} }).locked).toBe(true);
-    expect(sectionState(results, { played: TOTAL_ROUNDS, seen: {} }).locked).toBe(false);
+  test('Results is four sections, in the order they are read, each opening after the last week', () => {
+    // The owner's choice, 2026-09-15 (design/results/).
+    const results = sectionsIn('results');
+    expect(results.map((s) => s.label)).toEqual(['Twelve weeks', 'What you learned', 'Where they sat', 'Everyone’s books']);
+    for (const s of results) {
+      expect(sectionState(s, { played: TOTAL_ROUNDS - 1, seen: {} }).locked, s.key).toBe(true);
+      // And each carries a dot until it is opened.
+      expect(sectionState(s, { played: TOTAL_ROUNDS, seen: {} }), s.key).toMatchObject({ locked: false, fresh: true });
+    }
   });
 
   test('every area but the guide has sections; the guide opens its drawer instead', () => {
@@ -143,9 +148,7 @@ describe('a first visit enters the parts the section shows', () => {
 
   test('every section that can be visited fresh has something to enter', () => {
     const fresh = SECTIONS.filter((s) => s.opensAt || s.key === 'money');
-    for (const s of fresh.filter((x) => x.key !== 'results')) {
-      expect(entranceSlots(s).length, s.key).toBeGreaterThan(0);
-    }
+    for (const s of fresh) expect(entranceSlots(s).length, s.key).toBeGreaterThan(0);
   });
 
   test('the shell enters a rebuilt section\'s own parts, not only the classic cards', () => {

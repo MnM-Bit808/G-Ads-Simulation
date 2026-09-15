@@ -28,6 +28,7 @@ import { renderTypedSection } from '../typed/render.js';
 import { renderMoneySection } from '../money/render.js';
 import { renderReturnsSection } from '../returns/render.js';
 import { renderRivalsSection } from '../rivals/render.js';
+import { renderResults } from '../results/render.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
@@ -75,7 +76,9 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
   // Market area's Rivals its cards (ui/rivals/render.js).
   let returns = null;
   let rivals = null;
-  let ending = null;
+  // After the last week, the Results area's four sections (ui/results/render.js),
+  // kept for as long as this game, so what they hold survives a redraw.
+  let results = null;
   let extras = { saved: null, canRedo: false };
   let running = false;
   let override = null;
@@ -206,10 +209,10 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     section.dataset.region = s.label;
     section.classList.toggle('first-open', view.firstOpen === s.key);
     let shown;
-    if (st.locked && s.key === 'results') shown = el('p', 'studio-panel', SHELL.resultsLocked());
+    if (st.locked && s.area === 'results') shown = el('p', 'studio-panel', SHELL.resultsLocked());
     else if (st.locked) {
       shown = el('p', 'studio-panel', `${SHELL.opensAt({ week: st.opensAt })} ${SHELL.returnsLocked()}`);
-    } else if (s.key === 'results') shown = ending ?? el('p', 'studio-panel', SHELL.resultsLocked());
+    } else if (s.area === 'results') shown = results ? results.node(s.key) : el('p', 'studio-panel', SHELL.resultsLocked());
     else if (s.key === 'ad') shown = renderAdSection({ game, openGuide }).node;
     else if (s.key === 'week') {
       const week = renderWeekSection({ game, openGuide });
@@ -333,6 +336,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     count.textContent = String(lines.length);
     countWord.textContent = SHELL.changes({ n: lines.length });
     const over = played() >= TOTAL_ROUNDS;
+    empty.textContent = over ? SHELL.done({ weeks: TOTAL_ROUNDS }) : SHELL.empty();
     run.disabled = running || over;
     if (running) run.textContent = SHELL.running({ hours: HOURS_PER_WEEK });
     else if (over) run.textContent = SHELL.gameOver();
@@ -375,10 +379,21 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     }
   }
 
-  function draw(nextGame, { saved = null, canRedo = false, endingNode = null } = {}) {
+  /**
+   * @param {object} nextGame
+   * @param {object} [options]
+   * @param {object|null} [options.ending] - once the last week is played:
+   *   `onRestart(market)`, and `playtest`, the playtest link's questions, or null
+   */
+  function draw(nextGame, { saved = null, canRedo = false, ending = null } = {}) {
     game = nextGame;
     extras = { saved, canRedo };
-    ending = endingNode;
+    if (!ending) results = null;
+    else if (results?.game !== game) {
+      results = renderResults({
+        game, openGuide, openSection: open, onRestart: ending.onRestart, playtest: ending.playtest,
+      });
+    }
     override = null;
     dashboard = renderDashboard(game, () => drawTray(), {
       openGuide,
@@ -393,12 +408,13 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     money = renderMoneySection({ game, ctx, openGuide, refreshTray: drawTray });
     returns = renderReturnsSection({ game, ctx, openGuide, openSection: open, refreshTray: drawTray });
     rivals = renderRivalsSection({ game, ctx, openGuide });
-    if (ending && !view.resultsShown) {
+    if (results && !view.resultsShown) {
       view.resultsShown = true;
       view.area = 'results';
-      view.section = 'results';
-      // Opened for the player, so it is not news: no dot on the section being read.
-      const st = sectionState(SECTIONS.find((x) => x.key === 'results'), args());
+      view.section = sectionsIn('results')[0].key;
+      // Opened for the player, so it is not news: no dot on the section being
+      // read. The other three keep theirs until opened.
+      const st = sectionState(SECTIONS.find((x) => x.key === view.section), args());
       if (st.seenKey) view.seen[st.seenKey] = true;
     }
     view.firstOpen = null;

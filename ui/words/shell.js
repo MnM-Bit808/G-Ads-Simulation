@@ -14,6 +14,8 @@ export const SHELL = Object.freeze({
   spent: line('label', ({ spent, budget }) => `${spent} of ${budget} spent`),
   changes: line('label', ({ n }) => (n === 1 ? 'change waiting' : 'changes waiting')),
   empty: line('instruction', 'No changes yet. Anything you change, in any section, lands here.'),
+  // After the last week there is nothing left to change (design/results/).
+  done: line('reading', ({ weeks }) => `The ${weeks} weeks are done.`),
   run: line('instruction', ({ week }) => `Run week ${week}`),
   running: line('label', ({ hours }) => `running ${hours} hours…`),
   gameOver: line('label', 'Game over'),

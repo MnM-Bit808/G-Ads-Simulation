@@ -907,6 +907,176 @@ body.studio .rv-track span { display: block; height: 100%; border-radius: 3px; b
   body.studio .rv-line { grid-template-columns: minmax(0, 1fr) 70px 40px; }
 }
 
+/* --- Results, after the last week (design/results/, the owner's choice 2026-09-15) --- */
+body.studio .rs { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .rs h3 { margin: 0; font: 700 20px/1.2 var(--studio-display); }
+body.studio .rs h4 { margin: 0; font: 800 20px/1.15 var(--studio-display); }
+body.studio .rs-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rs-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .rs-sub { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .rs-faint { font-size: 11px; color: var(--studio-faint); }
+body.studio .rs-read { margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
+body.studio .rs-quiet { color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .rs-big { font: 800 28px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+/* Money lost is amber, with its minus sign, everywhere in the Studio. */
+body.studio :is(.rs-big, .rs-value, .rs-money, .rs-then strong).loss { color: var(--studio-amber); }
+body.studio .rs-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+body.studio .rs-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* Red is the player and the player's own changes: a week they changed something. */
+body.studio .rs-dot { display: inline-block; flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--studio-red); }
+body.studio .rs-key { display: flex; flex-shrink: 0; align-items: center; gap: 6px; font-size: 12px; color: var(--studio-muted); white-space: nowrap; }
+body.studio .rs-next { align-self: flex-start; padding: 0; border: 0; background: none; font-size: 14px; font-weight: 700; color: var(--studio-red-text); }
+body.studio .rs-next:hover { text-decoration: underline; }
+body.studio .rs-pill { align-self: flex-start; padding: 8px 16px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 13px; font-weight: 600; color: var(--studio-soft); }
+body.studio .rs-pill:hover:not(:disabled) { border-color: #4A454F; }
+body.studio .rs-pill:disabled { opacity: 0.55; }
+body.studio .rs-pairs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+body.studio .rs-pairs.wide { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+
+/* Twelve weeks: the figures, then every week against its first report. */
+body.studio .rs-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rs-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+body.studio .rs-stat .rs-label { font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--studio-muted); }
+body.studio .rs-stat .rs-sub { font-variant-numeric: tabular-nums; }
+body.studio .rs-scroll { overflow-x: auto; }
+body.studio .rs-chart { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; }
+body.studio :is(.rs-brackets, .rs-cols) { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; }
+body.studio .rs-brackets { min-height: 16px; }
+body.studio .rs-bracket { padding-top: 2px; border-top: 1px solid #68636B; font-size: 11px; color: var(--studio-faint); text-align: center; }
+body.studio .rs-col { display: flex; flex-direction: column; min-width: 0; padding: 26px 0 6px; border: 0; border-radius: 10px; background: none; color: inherit; cursor: pointer; }
+body.studio .rs-col:hover { background: #1B191E; }
+body.studio .rs-col.on { background: var(--studio-raised); }
+body.studio .rs-plot { position: relative; height: var(--rs-bars, 200px); }
+body.studio .rs-bar { position: absolute; right: 10px; left: 10px; border-radius: 3px 3px 0 0; background: var(--studio-text); }
+body.studio .rs-bar.below { border-radius: 0 0 3px 3px; }
+body.studio .rs-bar.loss { background: var(--studio-amber); }
+/* Each week's first report: the keyword slider's "was", made for a bar. */
+body.studio .rs-tick { position: absolute; right: 4px; left: 4px; height: 0; border-top: 2px dashed var(--studio-faint); }
+body.studio .rs-zero { position: absolute; right: -5px; left: -5px; border-top: 1px solid #68636B; }
+body.studio .rs-value { position: absolute; right: -6px; left: -6px; font-size: 11px; font-weight: 700; line-height: 1; text-align: center; white-space: nowrap; color: var(--studio-soft); font-variant-numeric: tabular-nums; }
+body.studio .rs-foot { display: flex; flex-direction: column; align-items: center; gap: 3px; padding-top: 7px; font-size: 12px; font-variant-numeric: tabular-nums; }
+body.studio .rs-week { display: inline-flex; align-items: center; gap: 5px; color: var(--studio-muted); }
+body.studio .rs-col.on .rs-week { font-weight: 700; color: var(--studio-text); }
+body.studio .rs-change { font-size: 11px; color: var(--studio-muted); white-space: nowrap; }
+body.studio .rs-strip { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.3fr); gap: 24px; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 14px; background: var(--studio-sidebar); }
+body.studio .rs-block { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+body.studio .rs-then { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+body.studio .rs-pairfig { display: flex; flex-direction: column; gap: 2px; }
+body.studio .rs-pairfig .rs-label { font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+body.studio .rs-pairfig strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+body.studio .rs-pairfig strong.rs-quiet { font-weight: 400; }
+body.studio .rs-did { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+body.studio .rs-did li { display: flex; align-items: baseline; gap: 8px; }
+body.studio .rs-did .rs-dot { transform: translateY(-2px); }
+
+/* What you learned: the lessons, the weeks you changed something, the budget. */
+body.studio .rs-lessons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+body.studio .rs-lesson { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rs-lesson.untried { border-style: dashed; border-color: #4A454F; }
+body.studio .rs-lesson h4 { font-size: 16px; font-weight: 700; }
+body.studio .rs-shares { display: flex; flex-direction: column; gap: 6px; }
+body.studio .rs-sharebar { display: flex; gap: 2px; height: 10px; overflow: hidden; border-radius: 5px; background: var(--studio-raised); }
+body.studio .rs-sharebar .shown { background: var(--studio-text); }
+body.studio .rs-sharebar .budget { background: #7A7480; }
+body.studio .rs-sharebar .rank { background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px); }
+body.studio .rs-sharekeys { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 11px; color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .rs-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+body.studio .rs-compare { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 4px 12px; font-size: 13px; font-variant-numeric: tabular-nums; }
+body.studio .rs-compare > :nth-child(3n + 2), body.studio .rs-compare > :nth-child(3n) { text-align: right; }
+body.studio .rs-compare .rs-label { font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+body.studio .rs-answer { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 13px; }
+body.studio .rs-weeks { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; max-width: 720px; }
+body.studio .rs-weekcell { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--studio-muted); }
+body.studio :is(.rs-weekcell, .rs-legend) i { display: block; box-sizing: border-box; border-radius: 4px; }
+body.studio .rs-weekcell i { width: 100%; height: 18px; }
+body.studio :is(.rs-weekcell, .rs-legend) i.lost { background: #7A7480; }
+body.studio :is(.rs-weekcell, .rs-legend) i.even { border: 2px solid #7A7480; }
+body.studio :is(.rs-weekcell, .rs-legend) i.paid { background: var(--studio-text); }
+body.studio :is(.rs-weekcell, .rs-legend) i.nothing { border: 1px solid #7A7480; background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px); }
+body.studio :is(.rs-weekcell, .rs-legend) i.left { border: 1px dashed #68636B; }
+body.studio .rs-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--studio-muted); }
+body.studio .rs-legend > span { display: flex; align-items: center; gap: 6px; }
+body.studio .rs-legend i { width: 12px; height: 10px; border-radius: 2px; }
+
+/* Where they sat: round 0's ads and squares, guessed, then revealed. */
+body.studio .rs-intro { max-width: 760px; margin: 0; font-size: 14px; line-height: 1.5; color: var(--studio-soft); }
+body.studio .rs-rivals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+body.studio .rs-rival { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+body.studio .rs-rival .kserp { flex: 1; padding: 10px 12px; border: 1px solid var(--studio-line); border-radius: 14px; background: var(--studio-sidebar); }
+body.studio .rs-rival .kserp-head { font-size: 14px; }
+body.studio .rs-rival .kserp-desc { font-size: 12px; }
+body.studio .rs-rivalfoot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; min-height: 44px; }
+body.studio .rs-verdict { margin: 0; font-size: 12px; line-height: 1.4; color: var(--studio-soft); }
+body.studio .rs-verdict.right { color: var(--studio-text); }
+/* The player's mark is red (the Studio's colour for them); the truth, once
+   revealed, is bone, and the player's mark rings it. */
+body.studio .r0-mini-cell.mine { border-color: var(--studio-red); background: var(--studio-red); }
+body.studio .r0-mini-cell.truth { border-color: var(--studio-text); background: var(--studio-text); }
+body.studio .r0-mini-cell.ring { border-color: var(--studio-red); box-shadow: 0 0 0 2px var(--studio-red); }
+/* Locked, not faded: a round-0 note and a revealed answer are read, not
+   greyed (the page's button:disabled would take them to 40%). */
+body.studio .r0-mini-cell:disabled { opacity: 1; cursor: default; }
+body.studio .rs .r0-diagram { margin: 0; }
+body.studio .rs .r0-square { min-height: 96px; cursor: default; }
+body.studio .rs-who { font-size: 13px; font-weight: 700; color: var(--studio-text); }
+body.studio .rs-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+body.studio .rs-reveal { padding: 12px 26px; border: 0; border-radius: 999px; background: var(--studio-red); font: 700 16px/1 var(--studio-display); color: var(--studio-on-red); }
+/* The answers arrive once, 50ms apart, fading up 4px over 200ms
+   (plans/2026-09-13-debrief.md, section 6); reduced motion keeps the fade. */
+body.studio .rs-arrive { transition: opacity 200ms var(--studio-ease), transform 200ms var(--studio-ease); }
+@starting-style { body.studio .rs-arrive { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) {
+  @starting-style { body.studio .rs-arrive { transform: none; } }
+}
+
+/* Everyone's books: the one place R3 is lifted. */
+body.studio .rs-warning { display: flex; flex-direction: column; gap: 6px; max-width: 880px; padding: 14px 18px; border: 1px solid var(--studio-panel-edge); border-radius: 16px; background: var(--studio-panel); }
+body.studio .rs-warning strong { font: 800 18px/1.2 var(--studio-display); }
+body.studio .rs-brand { display: grid; grid-template-columns: 28px 170px 150px minmax(0, 1fr) 110px 92px 90px; gap: 2px 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--studio-raised); font-size: 13px; }
+body.studio .rs-brand.head { padding: 4px 0 8px; border-top: 0; }
+body.studio .rs-brand > :nth-child(n + 5):nth-child(-n + 7) { text-align: right; }
+body.studio .rs-rank { font: 800 18px/1 var(--studio-display); color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .rs-brandname { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 15px; white-space: nowrap; }
+body.studio .rs-track { position: relative; height: 14px; }
+body.studio .rs-gross { position: absolute; top: 0; bottom: 0; left: 0; box-sizing: border-box; border: 1px solid #68636B; border-radius: 3px; }
+body.studio .rs-net { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 3px; background: var(--studio-text); }
+body.studio .rs-brand.you .rs-net { background: var(--studio-red); }
+body.studio .rs-money { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+body.studio .rs-brandline { grid-column: 2 / -1; font-size: 12px; color: var(--studio-faint); font-variant-numeric: tabular-nums; }
+body.studio .rs-ranks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+body.studio .rs-rankbox { display: flex; flex-direction: column; gap: 4px; }
+body.studio .rs-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: none; color: var(--studio-text); text-align: left; }
+body.studio .rs-choice:hover { border-color: var(--studio-red); }
+body.studio .rs-choice strong { font-size: 14px; }
+
+/* A section under 900px wide (a tablet): two of most things to a row, and
+   the books without their bars, which need the width. */
+@container (max-width: 900px) {
+  body.studio .rs-lessons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .rs-rivals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .rs-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.studio :is(.rs-moments, .rs-pairs, .rs-pairs.wide) { grid-template-columns: minmax(0, 1fr); }
+  body.studio .rs-strip { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  body.studio .rs-brand { grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) 100px 76px 76px; }
+  body.studio .rs-brand > .rs-track, body.studio .rs-brand.head > :nth-child(4) { display: none; }
+}
+/* On a phone: one of everything to a row, and the chart scrolls sideways at a
+   width where every week's figures fit, as Your week's does. */
+@container (max-width: 560px) {
+  body.studio :is(.rs-lessons, .rs-rivals) { grid-template-columns: minmax(0, 1fr); }
+  body.studio .rs-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
+  body.studio .rs-big { font-size: 24px; }
+  body.studio :is(.rs-card, .rs-lesson) { padding: 14px; }
+  body.studio .rs-head { flex-wrap: wrap; }
+  body.studio .rs-chart { min-width: 640px; }
+  body.studio .rs-scroll { padding-bottom: 8px; }
+  body.studio .rs-ranks { grid-template-columns: minmax(0, 1fr); }
+  /* The rank, the brand, net profit and where it placed on gross: the trap. */
+  body.studio .rs-brand { grid-template-columns: 22px minmax(0, 1fr) 92px 58px; }
+  body.studio .rs-brand > :nth-child(3), body.studio .rs-brand > :nth-child(6) { display: none; }
+  body.studio .rs-brandline { grid-column: 2 / -1; }
+}
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */

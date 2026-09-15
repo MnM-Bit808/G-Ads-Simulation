@@ -33,6 +33,7 @@ import { WHERE } from '../ui/words/where.js';
 import { WEEK } from '../ui/words/week.js';
 import { TYPED } from '../ui/words/typed.js';
 import { MONEY } from '../ui/words/money.js';
+import { RESULTS, TARGET_WORDS } from '../ui/words/results.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -250,7 +251,7 @@ describe('the decision form', () => {
 
 describe('the Studio layout', () => {
   const FIGURES = { played: 4, total: 12, month: 1, spent: '₹2,96,535', budget: '₹3,13,000',
-    n: 2, week: 5, hours: 168, round: 0 };
+    n: 2, week: 5, hours: 168, round: 0, weeks: 12 };
 
   test('every entry is a line of a kind the screen may carry', () => {
     for (const [name, entry] of Object.entries(SHELL)) expect(KINDS, name).toContain(entry.kind);
@@ -690,6 +691,51 @@ describe('Rivals in the Studio', () => {
   });
 });
 
+describe('Results, after the last week (design/results/)', () => {
+  // One of every figure the four sections' lines quote, as the render formats them.
+  const FIGURES = {
+    section: 'What you learned', amount: '₹55,000', n: 3, of: 12, from: 8, to: 12,
+    spent: '₹44,940', clicks: '1,695', shown: '26%', budget: '74%', rank: 6, grossRank: 5,
+    first: '₹3,86,307', now: '₹4,91,661', weeks: 5, arriving: [10, 11, 12], pending: '53.6', window: 2,
+    cutoff: 10, none: 'weeks 11 and 12', list: [11, 12], target: 'the size guide', targets: ['the size guide'],
+    round: 5, live: 8, kind: 'budget', share: '74%', sign: 1, gap: '₹83,625', noted: 5, rest: 3,
+    placed: 2, total: 8, cell: 'Mid · Lifestyle', how: 'Right on price, wrong on purpose',
+    said: 'Mid · Performance', exact: 3, half: 2, name: 'Kestrel', rate: '95%', month: 3, snapshot: 8,
+    place: 4, middle: '₹1,68,000', last: '₹1,17,600', conversions: '1,543.1', each: '₹460',
+    roas: '₹3.38', gross: '₹12,15,977', week: 8,
+  };
+
+  test('every entry is a line of a kind the screen may carry, and every why names a chapter', () => {
+    for (const [name, entry] of Object.entries({ ...RESULTS, ...TARGET_WORDS })) {
+      expect(KINDS, name).toContain(entry.kind);
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(RESULTS)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('the two things the owner chose to say plainly are said (2026-09-15)', () => {
+    expect(RESULTS.notCounted({ amount: '₹55,000' })).toMatch(/^Net profit counts what clicks cost, never capital/);
+    expect(RESULTS.readHigh({ weeks: 5, arriving: [10, 11, 12], pending: '53.6', window: 2, cutoff: 10, none: 'weeks 11 and 12' }))
+      .toBe('The last 5 weeks are not settled, and they read high. Weeks 10 to 12 still have 53.6 conversions to arrive, '
+        + 'but a return comes back 2 weeks after its sale lands, so nothing sold after week 10 comes back inside the '
+        + 'game: weeks 11 and 12 count no returns at all.');
+    expect(RESULTS.readHigh({ weeks: 2, arriving: [], pending: '0', window: 2, cutoff: 10, none: 'weeks 11 and 12' }))
+      .toMatch(/read high\. A return comes back/);
+  });
+
+  test('a capital week\'s answer says which game ends ahead with the capital counted', () => {
+    const args = { amount: '₹55,000', targets: ['the size guide'], gap: '₹83,625' };
+    expect(RESULTS.capitalCounted({ ...args, sign: 1 })).toMatch(/the game without it ends ₹83,625 ahead\.$/);
+    expect(RESULTS.capitalCounted({ ...args, sign: -1 })).toMatch(/your game still ends ₹83,625 ahead\.$/);
+    expect(RESULTS.capitalCounted({ ...args, sign: 0 })).toMatch(/the two end level\.$/);
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -721,7 +767,7 @@ describe('the new screens draw, and do not write', () => {
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
     'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js', 'ui/money/render.js',
-    'ui/returns/render.js', 'ui/rivals/render.js'];
+    'ui/returns/render.js', 'ui/rivals/render.js', 'ui/results/render.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

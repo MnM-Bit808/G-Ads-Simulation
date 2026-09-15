@@ -219,8 +219,14 @@ function budgetSection(ctx, busy) {
   return section;
 }
 
-/** The sentence for one lesson, met or not. */
-function lessonSentence(lesson) {
+/**
+ * The sentence for one lesson, met or not, as its words and figures. The
+ * Studio's What you learned draws the same (ui/results/render.js).
+ *
+ * @param {{id: string, met: boolean, figures: object|null}} lesson - from `lessons`
+ * @returns {[Function, object]|null} the words' entry, and the figures to call it with
+ */
+export function lessonSentence(lesson) {
   const f = lesson.figures ?? {};
   switch (lesson.id) {
     case 'numbersMove':

@@ -49,6 +49,14 @@ const RANK_SNAPSHOT_ROUND = 8;
  */
 export const SETTLES_AFTER_ROUNDS = ATTRIBUTION_LAG_DISTRIBUTION.length + 1;
 
+/**
+ * The rounds a return takes to come back after its sale lands: the "two to
+ * resolve" in SETTLES_AFTER_ROUNDS. Quoted by Results, where it is why the
+ * game's last weeks read high (tests/results.test.js holds it to every price
+ * level's return window in the engine).
+ */
+export const RETURNS_RESOLVE_AFTER_ROUNDS = SETTLES_AFTER_ROUNDS - (ATTRIBUTION_LAG_DISTRIBUTION.length - 1);
+
 /** "55% this week, then 28%, 12%, 5%", read off the constant it describes. */
 export const ARRIVAL_SHAPE = ATTRIBUTION_LAG_DISTRIBUTION
   .map((share, i) => `${Math.round(100 * share)}%${i === 0 ? ' this week' : ''}`)

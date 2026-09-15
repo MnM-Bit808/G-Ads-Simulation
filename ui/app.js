@@ -372,12 +372,17 @@ function render() {
       openContents: (trigger) => guide.openContents(trigger),
       onPlaytest: recorder ? sendPlaytestFile : null,
     });
-    let endingNode = null;
-    if (game.reports.length >= TOTAL_ROUNDS) {
-      endingNode = el('div', 'studio-results');
-      endingNode.append(...endingNodes());
-    }
-    studio.draw(game, { saved: game.saved, canRedo: canRedoRoundZero(game.state), endingNode });
+    // After the last week the shell draws Results itself (ui/results/render.js,
+    // the owner's choice 2026-09-15); it is handed only what it cannot reach:
+    // starting over, and on the playtest link the questions, asked once the
+    // whole game has been seen.
+    const ending = game.reports.length >= TOTAL_ROUNDS ? {
+      onRestart: restart,
+      playtest: recorder
+        ? () => renderPlaytestPanel({ recorder, onDownload: () => downloadPlaytestFile(recorder, storage) })
+        : null,
+    } : null;
+    studio.draw(game, { saved: game.saved, canRedo: canRedoRoundZero(game.state), ending });
     app.replaceChildren(studio.node);
     return;
   }

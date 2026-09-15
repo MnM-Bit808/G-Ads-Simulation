@@ -49,7 +49,9 @@ export const DEBRIEF = Object.freeze({
   alsoChanged: line('reading', ({ newMonth, capitalLanded }) => {
     const also = ['rivals moved their bids'];
     if (newMonth) also.push('a new month’s budget began');
-    if (capitalLanded) also.push('capital landed');
+    // Not "capital landed": what it paid for goes live weeks later, and the
+    // Results screen beside it says when (the review, 2026-09-15).
+    if (capitalLanded) also.push('the second capital allocation was made');
     return `Other things changed that week too: ${listed(also)}. This shows what changed, not what caused it.`;
   }),
   whatIf: line('label', 'What if I hadn’t?'),
