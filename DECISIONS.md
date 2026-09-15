@@ -4147,6 +4147,39 @@ games of the committed harness, no rival offered a discount. `prepaidNudge`
 back yet, so it sees about 0% and holds none. It is also why the fix above left
 the market byte-identical: nobody in it discounts but a player who chooses to.
 
+**THE MIX THE SCREENS SHOWED NEVER MOVED — `FIXED` 2026-09-15.** "Paid at door"
+on the returns card, the places table and the location note is `codShare`, on
+each location row of a week's report, and it was the one figure there worked out
+from the advertiser rather than added up from orders. It was worked out without
+the discount: a mid account at ₹30 read 60 / 72 / 80% paid at the door, metros to
+towns, where the round sold at 54 / 64.8 / 72%, and after nine weeks the returns
+card read 72.6% whether the player never discounted, discounted every week or
+tried it once. And it was worked out again at every revision, from the account as
+it stood that later week: a move from mid to premium at week 5 rewrote weeks 1–4
+to premium's 42% in the metros, though those orders were sold at mid's 60%. The
+refusal counts beside it were right throughout, because they ride on the orders.
+
+*Fixed in two halves* (decided with the owner: option A). The report records each
+week's share once, when it is built, from that round's price and discount, and a
+revision keeps it. Each screen then reads the share over the same orders as the
+refusals beside it: the returns card over its settled weeks, the places table and
+its note over every week, both weighted by orders. The rejected option fixed the
+report alone. It would have shown a discount on the returns card at once, beside
+refusals that cannot move until its weeks settle, and paired this week's mix with
+every week's refusals in the note.
+
+*What a player now sees*, played in the browser (mid/performance, ₹30 from week
+3): the returns card reads 74% after week 7, the same as with no discount,
+because only weeks 1–2 have settled, and 71% after week 8, when week 3 and the
+refusals it prevented arrive together. The places table reads 56 / 68 / 75%, the
+weeks blended, where it would have shown the latest week's 54 / 65 / 72%. What a
+discount will do is still said at once, by the prepaid card's forecast.
+
+Nothing in `engine/` or `agents/` reads `codShare`, so no economics moved, and a
+save replays onto the corrected figures with its fingerprint unchanged. The tests
+read the share the round used back off the revenue it booked, since the discount
+is paid on prepaid orders only, rather than off `codShareFor`.
+
 ### F14. The engine contradicts itself about returns — `FIXED`
 
 **RESOLVED 2026-09-11, and it took four constants rather than three numbers.**
