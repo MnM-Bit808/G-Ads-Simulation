@@ -43,6 +43,20 @@ const EMPTY = { committed: { sizeGuide: 0, photography: 0, landingPage: 0 }, pen
 const argmax = (a) => a.indexOf(Math.max(...a));
 
 /**
+ * Prints a measured figure when CALIBRATION_FIGURES is set, and nothing
+ * otherwise.
+ *
+ * Every invariant here asserts a bound and says nothing when it passes, so I3
+ * once drifted from 9.5% to 13.2% with every tick green. A change that moves
+ * the market reads these before and after:
+ *
+ *   CALIBRATION_FIGURES=1 npx vitest run tests/calibration.test.js
+ */
+const figure = (label, value) => {
+  if (process.env.CALIBRATION_FIGURES) console.info(`[figure] ${label}: ${value}`);
+};
+
+/**
  * Six advertisers, one per cell, identical in every respect except position —
  * INCLUDING keyword coverage.
  *
@@ -223,6 +237,7 @@ describe('I1 \u2014 budget must bind', () => {
     // test asked only for 50%, which WEEKLY_VOLUME could be cut by 2.5x and
     // still satisfy. It did not govern the constant it was said to govern.
     const solo = await playSolo();
+    figure('I1 solo, share of the month spent', solo.spentFraction.toFixed(4));
     expect(solo.spentFraction).toBeGreaterThan(0.99);
   });
 
@@ -232,6 +247,7 @@ describe('I1 \u2014 budget must bind', () => {
     // evidence the advertiser is overpaying. Against the REALISED ceiling,
     // since the neutral-query figure is not what anybody can pay.
     const solo = await playSolo();
+    figure('I1 solo, CPC over realised break-even', (solo.cpcPaise / solo.breakEven).toFixed(3));
     expect(solo.cpcPaise).toBeLessThan(solo.breakEven);
   });
 
@@ -241,6 +257,7 @@ describe('I1 \u2014 budget must bind', () => {
     // of section 13 does nothing. Spending 99.9% of a month with lostToBudget
     // at 0.0% would pass the first assertion and mean nothing.
     const solo = await playSolo();
+    figure('I1 solo, lost to budget', solo.lostToBudget.toFixed(4));
     expect(solo.lostToBudget).toBeGreaterThan(0.02);
   });
 
@@ -255,6 +272,7 @@ describe('I1 \u2014 budget must bind', () => {
     // before the reserve was lowered: with AD_RANK_FLOOR at 48 the same
     // advertiser reaches 86% of its month and never loses an auction to budget.
     const small = await playSolo(330000);
+    figure('I1 at 330000, spent and lost to budget', `${small.spentFraction.toFixed(3)} ${small.lostToBudget.toFixed(4)}`);
     expect(small.spentFraction).toBeLessThan(0.99);
     expect(small.lostToBudget).toBeLessThan(0.001);
   });
@@ -277,6 +295,7 @@ describe('I2 — the market must be affordable', () => {
     // Against the REALISED ceiling, not breakEvenCpcPaise. The neutral-query
     // figure is 1412 and the real one is 3456, so this bar used to be set at
     // 41% of the right height - passing it said almost nothing.
+    figure('I2 median CPC and the Value realised break-even', `${out.raw.marketContext.medianCpcPaise} ${Math.round(valueBreakEven)}`);
     expect(out.raw.marketContext.medianCpcPaise).toBeLessThan(valueBreakEven);
   });
 
@@ -306,6 +325,7 @@ describe('I2 — the market must be affordable', () => {
     for (const a of state.advertisers) {
       const r = out.raw.byAdvertiser[a.id];
       const lostToRank = r.lostToRank / r.eligibleAuctions;
+      figure(`I2 lost to rank, ${a.id}`, lostToRank.toFixed(3));
       expect(lostToRank, `${a.id} (${a.position.price})`).toBeLessThan(0.55);
     }
     for (const price of ['value', 'mid', 'premium']) {
@@ -315,6 +335,7 @@ describe('I2 — the market must be affordable', () => {
           const r = out.raw.byAdvertiser[a.id];
           return r.impressions / r.eligibleAuctions;
         }));
+      figure(`I2 best impression share, ${price}`, best.toFixed(3));
       expect(best, price).toBeGreaterThan(0.4);
     }
   });
@@ -344,11 +365,13 @@ describe('I3 — positions must balance', () => {
     // keyword choice. Two changes got it here: equal coverage (which removed
     // 90% of the original spread) and allocating each cell's volume by
     // 1/break-even instead of splitting each tier evenly between its purposes.
+    figure('I3 worst deviation', `${(worstDeviation * 100).toFixed(1)}%`);
     expect(worstDeviation, `worst deviation ${(worstDeviation * 100).toFixed(1)}%`)
       .toBeLessThan(0.15);
   });
 
   test('and the best cell is within a third of the worst', () => {
+    figure('I3 spread', `${spread.toFixed(3)}x`);
     expect(spread, `spread ${spread.toFixed(2)}x`).toBeLessThan(1.35);
   });
 
@@ -364,6 +387,7 @@ describe('I3 — positions must balance', () => {
     const vals = CELLS.map((c) => raised.profit[c]);
     const m = vals.reduce((a, b) => a + b, 0) / vals.length;
     const worst = Math.max(...vals.map((v) => Math.abs(v - m))) / Math.abs(m);
+    figure('I3 worst deviation at the raised budget', `${(worst * 100).toFixed(1)}%`);
     expect(worst, `worst deviation at the raised budget ${(worst * 100).toFixed(1)}%`)
       .toBeLessThan(0.15);
   });
@@ -397,6 +421,7 @@ describe('I3 — positions must balance', () => {
     const side = (purpose) => CELLS.filter((c) => c.endsWith(purpose))
       .reduce((a, c) => a + profit[c], 0);
     const tilt = side('lifestyle') / side('performance');
+    figure('I3 lifestyle over performance', `${tilt.toFixed(3)}x`);
     expect(tilt, `lifestyle/performance ${tilt.toFixed(3)}x`).toBeGreaterThan(0.9);
     expect(tilt, `lifestyle/performance ${tilt.toFixed(3)}x`).toBeLessThan(1.1);
     expect(new Set(ranked.slice(0, 3).map((c) => c.split('|')[1])).size).toBe(2);
@@ -429,6 +454,7 @@ describe('I3 — positions must balance', () => {
     const values = CELLS.map((c) => inflated[c]);
     const centre = values.reduce((a, b) => a + b, 0) / values.length;
     const deviation = Math.max(...values.map((v) => Math.abs(v - centre))) / Math.abs(centre);
+    figure('I3 at 500000, worst deviation', `${(deviation * 100).toFixed(1)}%`);
     expect(deviation, `at 500000 the spread is ${(deviation * 100).toFixed(1)}%`)
       .toBeGreaterThan(0.15);
   });
