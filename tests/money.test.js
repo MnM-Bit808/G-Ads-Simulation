@@ -1,7 +1,8 @@
 import { describe, test, expect } from 'vitest';
+import { mulberry32 } from '../engine/rng.js';
 import {
   rupeesToPaise, paiseToRupees, formatINR,
-  mulRate, allocate, sumPaise, isPaise, assertPaise,
+  mulRate, allocate, sumPaise, isPaise, assertPaise, roundPaise,
 } from '../engine/money.js';
 
 describe('paise conversion', () => {
@@ -67,6 +68,44 @@ describe('mulRate', () => {
 
   test('a rate of zero yields zero, not a rounding artefact', () => {
     expect(mulRate(999999, 0)).toBe(0);
+  });
+});
+
+describe('roundPaise: an average price becomes money once, where it is spent (F17)', () => {
+  test('rounds half up, the rule mulRate uses', () => {
+    expect(roundPaise(2.5)).toBe(3);
+    expect(roundPaise(2.4999)).toBe(2);
+    expect(roundPaise(1000.0000000000001)).toBe(1000);
+  });
+  test('agrees with mulRate for a whole price', () => {
+    for (const [paise, rate] of [[1001, 0.37], [385, 12.5], [2883, 0.0413]]) {
+      expect(roundPaise(paise * rate)).toBe(mulRate(paise, rate));
+    }
+  });
+  test('refuses what is not a number', () => {
+    for (const v of [NaN, Infinity, -Infinity]) expect(() => roundPaise(v)).toThrow(TypeError);
+  });
+
+  test('gives exactly what snapping to twelve digits and then rounding gives', () => {
+    // The rule as it was written first. The fast rule may skip the snap only
+    // where the snap cannot change the answer, so it is held to this one
+    // right where they could part: within a hair of a half, at every scale
+    // from a thousandth of a paisa to ten crore rupees, either sign.
+    const slow = (v) => Math.round(Number(v.toPrecision(12)));
+    const values = [];
+    for (let e = -3; e <= 10; e++) {
+      const scale = 10 ** e;
+      for (const k of [0, 1, 2, 3, 7, 12345, 99999]) {
+        const half = Math.floor(k * scale) + 0.5;
+        for (const d of [0, 1e-16, 1e-14, 1e-12, 1e-11, 1e-10, 1e-9, 1e-8, 1e-6, 1e-3]) {
+          for (const v of [half + d * scale, half - d * scale]) values.push(v, -v);
+        }
+      }
+    }
+    const rng = mulberry32(20260915);
+    for (let i = 0; i < 200000; i++) values.push((rng() - 0.5) * 10 ** (rng() * 14 - 3));
+    const parted = values.filter((v) => roundPaise(v) !== slow(v));
+    expect(parted, `first: ${parted.slice(0, 5).join(', ')}`).toEqual([]);
   });
 });
 

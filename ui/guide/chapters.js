@@ -264,13 +264,13 @@ export const CHAPTERS = Object.freeze({
       + 'these as a rough range rather than a fact.',
     realSources: [INDUSTRY.ppcChief, INDIA.balistro],
     game: () => 'Measured across many markets, ads here are clicked, and clicks buy, at least as '
-      + 'often as those benchmarks, and a player bidding sensibly earns returns at the top of the '
+      + 'often as those benchmarks, and a player bidding sensibly earns returns above the '
       + 'Indian range and made money in every market measured. Three choices make it kinder '
       + 'than a real market: the results page holds nothing but ads, so no organic results or '
       + 'shopping units compete for the click; the base conversion rate is the game’s own '
       + 'estimate; and there is no lifetime value, so the first order must carry everything, '
       + 'and here it does so easily. A careless player can still lose money.',
-    cites: ['F15', 'B6', 'F4'],
+    cites: ['F15', 'F17', 'B6', 'F4'],
     yourAccount: 'headline',
   }),
 

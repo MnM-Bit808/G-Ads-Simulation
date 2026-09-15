@@ -74,6 +74,28 @@ describe('performance (spec 19)', () => {
     expect(ms, `${ms}ms against a 1500ms spec budget`).toBeLessThan(2200);
   });
 
+  test('and so does the three-auction path, which a played week mostly takes', () => {
+    // Rivals bid by place (agents/policies.js), so once one tilts, every
+    // auction resolves once per place, and that is what a played week costs.
+    // The flat fixture above never takes that path. A millionth of a percent
+    // on one place sends the round down it without moving a bid (G4).
+    //
+    // 2,800ms, not the 2,200 above, and set from this path's own cost (the
+    // owner, 2026-09-15). F17 resolves every combination of which throttled
+    // advertisers are present, and this fixture throttles five at once, 13.7
+    // ladders a search against 5-8 in played markets. Measured on this machine,
+    // a round here was about 1,750ms before F17 and 2,200-2,550ms after, under
+    // this runner; in plain Node, which is what a browser runs, 8-15% dearer.
+    // The regression this file exists for, 1.3 seconds of redundant work,
+    // would still take it to about 3.5 seconds.
+    const tilted = makeGameState();
+    tilted.advertisers[1].campaign.locationAdjustments = [0, 0, 0.0001];
+    const ms = medianMs(() => runRound(
+      tilted, { mode: 'sampled', seed: 3, counterfactualFor: [CONSTRAINED] },
+    ), 3);
+    expect(ms, `${ms}ms against a 1500ms spec budget`).toBeLessThan(2800);
+  });
+
   test('sampled mode costs about what its sub-auction count implies', () => {
     // AUCTIONS_PER_QUERY_HOUR is 1 expected, 6 sampled (11.5), so sampled
     // should cost roughly six times expected and not dramatically more. If it

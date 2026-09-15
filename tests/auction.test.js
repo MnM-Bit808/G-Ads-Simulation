@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { resolveAuction, adRank, minimumBidToShowPaise } from '../engine/auction.js';
+import { resolveAuction, resolveSlice, adRank, minimumBidToShowPaise } from '../engine/auction.js';
 import { mulberry32 } from '../engine/rng.js';
 import { AD_RANK_FLOOR, MAX_SLOTS, TOP_SLOTS, MIN_INCREMENT_PAISE } from '../engine/constants.js';
 
@@ -388,5 +388,152 @@ describe('the reserve is visible before a week is spent under it (I12)', () => {
   test('it refuses a quality signal that cannot happen', () => {
     expect(() => minimumBidToShowPaise(0)).toThrow(RangeError);
     expect(() => minimumBidToShowPaise(-1)).toThrow(RangeError);
+  });
+});
+
+/** An entrant in a share of the slice's searches. */
+const part = (id, bidPaise, qualitySignal, participation = 1) => ({
+  id, bidPaise, qualitySignal, participation,
+});
+
+/**
+ * The definition, written out plainly: every combination of who is present,
+ * resolved by resolveAuction and weighed by how likely it is. resolveSlice
+ * must equal this; it only gets there faster.
+ */
+function everyCombination(entrants) {
+  const n = entrants.length;
+  const shown = new Array(n).fill(0);
+  const positions = new Array(n * MAX_SLOTS).fill(0);
+  const cpcSum = new Array(n).fill(0);
+  const both = new Array(n * n).fill(0);
+  const above = new Array(n * n).fill(0);
+  const shownNot = new Array(n * n).fill(0);
+  for (let mask = 0; mask < 2 ** n; mask++) {
+    let weight = 1;
+    const here = [];
+    entrants.forEach((entrant, x) => {
+      const isIn = (mask >> x) & 1;
+      weight *= isIn ? entrant.participation : 1 - entrant.participation;
+      if (isIn) here.push({ ...entrant, x });
+    });
+    if (weight === 0 || here.length === 0) continue;
+    const { ladder } = resolveAuction(here);
+    const index = new Map(here.map((entrant) => [entrant.id, entrant.x]));
+    for (const r of ladder) {
+      if (!r.shown) continue;
+      const x = index.get(r.id);
+      shown[x] += weight;
+      positions[x * MAX_SLOTS + r.position - 1] += weight;
+      cpcSum[x] += weight * r.cpcPaise;
+      for (const other of ladder) {
+        if (other.id === r.id) continue;
+        const y = index.get(other.id);
+        if (other.shown) {
+          both[x * n + y] += weight;
+          if (other.position < r.position) above[x * n + y] += weight;
+        } else {
+          shownNot[x * n + y] += weight;
+        }
+      }
+    }
+  }
+  const cpcPaise = cpcSum.map((sum, x) => (shown[x] > 0 ? sum / shown[x] : 0));
+  return { shown, positions, cpcPaise, both, above, shownNot };
+}
+
+describe('a throttled advertiser is in only its share of the searches (F17)', () => {
+  // Quality signals are powers of two, so every price below is exact.
+  const floorPrice = (qualitySignal) => Math.ceil(AD_RANK_FLOOR / qualitySignal) + MIN_INCREMENT_PAISE;
+
+  test('the hand-worked cases below clear the reserve, whatever it is calibrated to', () => {
+    // AD_RANK_FLOOR is CALIBRATE and may move. Every case below assumes an ad
+    // rank of 125 shows; if the floor passes it, these numbers stop meaning
+    // what their names say, so this fails first rather than they pass wrongly.
+    expect(adRank(2000, 0.0625)).toBeGreaterThanOrEqual(AD_RANK_FLOOR);
+  });
+
+  test('in the searches it stays out of, the rival beneath it keeps the top slot', () => {
+    // X outranks Y (ad rank 500 against 125) but takes part in a tenth of the
+    // searches. The old ladder put Y second in every one of them.
+    const r = resolveSlice([part('X', 4000, 0.125, 0.1), part('Y', 2000, 0.0625)]);
+    expect(r.shown[0]).toBeCloseTo(0.1, 12);
+    expect(r.positions[0]).toBeCloseTo(0.1, 12);
+    expect(r.shown[1]).toBeCloseTo(1, 12);
+    expect(r.positions[MAX_SLOTS + 0]).toBeCloseTo(0.9, 12);
+    expect(r.positions[MAX_SLOTS + 1]).toBeCloseTo(0.1, 12);
+  });
+
+  test('and the rival above it pays its price only in the searches it is in', () => {
+    // Y outranks X. A quarter of the time X is beneath it and prices it at
+    // 1001; the rest of the time only the reserve does.
+    const r = resolveSlice([part('Y', 4000, 0.125), part('X', 2000, 0.0625, 0.25)]);
+    const againstX = Math.ceil(125 / 0.125) + MIN_INCREMENT_PAISE;
+    expect(r.cpcPaise[0]).toBeCloseTo(0.25 * againstX + 0.75 * floorPrice(0.125), 9);
+    expect(r.cpcPaise[1]).toBeCloseTo(floorPrice(0.0625), 9);
+    expect(r.positions[MAX_SLOTS + 1]).toBeCloseTo(0.25, 12);
+  });
+
+  test('Auction Insights counts only the searches both were in', () => {
+    // B takes part in half the searches and never clears the reserve.
+    expect(adRank(100, 0.25)).toBeLessThan(AD_RANK_FLOOR);
+    const r = resolveSlice([part('A', 4000, 0.125), part('B', 100, 0.25, 0.5)]);
+    expect(r.shown[1]).toBe(0);
+    expect(r.shownNot[0 * 2 + 1]).toBeCloseTo(0.5, 12);
+    expect(r.both[0 * 2 + 1]).toBe(0);
+  });
+
+  test('it equals every combination resolved by resolveAuction, on random auctions', () => {
+    const rng = mulberry32(20260915);
+    let worst = 0;
+    for (let trial = 0; trial < 300; trial++) {
+      const n = 1 + Math.floor(rng() * 9);
+      const entrants = Array.from({ length: n }, (_, x) => {
+        const roll = rng();
+        return part(
+          `e${x}`,
+          100 + Math.floor(rng() * 4000),
+          0.005 + rng() * 0.12,
+          // Some in every search, some nearly spent, the rest anywhere between.
+          roll < 0.4 ? 1 : roll < 0.5 ? 1e-5 : 1e-3 + rng() * (1 - 2e-3),
+        );
+      });
+      const got = resolveSlice(entrants);
+      const want = everyCombination(entrants);
+      for (const field of ['shown', 'positions', 'both', 'above', 'shownNot']) {
+        want[field].forEach((v, k) => { worst = Math.max(worst, Math.abs(got[field][k] - v)); });
+      }
+      want.cpcPaise.forEach((v, x) => {
+        worst = Math.max(worst, Math.abs(got.cpcPaise[x] - v) / Math.max(1, v));
+      });
+    }
+    expect(worst).toBeLessThan(1e-9);
+  });
+
+  test('with everyone in every search it is resolveAuction, exactly', () => {
+    const rng = mulberry32(7);
+    for (let trial = 0; trial < 200; trial++) {
+      const n = 1 + Math.floor(rng() * 9);
+      const entrants = Array.from({ length: n }, (_, x) => part(
+        `e${x}`, 100 + Math.floor(rng() * 4000), 0.005 + rng() * 0.12,
+      ));
+      const got = resolveSlice(entrants);
+      const { ladder } = resolveAuction(entrants);
+      entrants.forEach((entrant, x) => {
+        const r = ladder.find((l) => l.id === entrant.id);
+        expect(got.shown[x]).toBe(r.shown ? 1 : 0);
+        expect(got.cpcPaise[x]).toBe(r.cpcPaise);
+        for (let k = 0; k < MAX_SLOTS; k++) {
+          expect(got.positions[x * MAX_SLOTS + k]).toBe(r.position === k + 1 ? 1 : 0);
+        }
+      });
+    }
+  });
+
+  test('refuses a participation outside (0, 1], and a duplicate id', () => {
+    for (const p of [0, -0.1, 1.5, NaN, Infinity]) {
+      expect(() => resolveSlice([part('a', 4000, 0.125, p)]), String(p)).toThrow(RangeError);
+    }
+    expect(() => resolveSlice([part('a', 4000, 0.125), part('a', 2000, 0.125)])).toThrow(/a/);
   });
 });

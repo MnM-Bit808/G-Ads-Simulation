@@ -610,6 +610,11 @@ D12 records, which gave no line at 1.51×, now clears its own gate of double at
 2.40×.** That decision was taken on the defective market and is reopened; it
 is the owner's to retake.
 
+*Since F17 (2026-09-15)* the same harness reads 4.40× into week 5 and 4.29×
+into week 9. Ordinary weeks are calmer and both budget events move the market
+more, because a rival whose budget changes no longer keeps phantom slots. F17
+has the figures.
+
 Played on the dev server into week 5, the two `spender` rivals, which keep their
 allocation as ads, rose in the player's Auction Insights: one from 97% overlap
 and 53% above the player to 100% and 88%, the other from 28% overlap to 49%.
@@ -1049,6 +1054,13 @@ step into week 5 was 3.60 times ordinary, which is C8.
 step into week 9 measures 2.40 times ordinary, over the gate. The "no line"
 above was decided on the defective market.
 
+*Since F17 (2026-09-15).* The step into week 9 measures 4.29 times ordinary
+and into week 5 4.40 times (the harness, 72 markets). Taken apart on 24 of
+them, ordinary weeks are 18% calmer and the two moves 75% and 34% larger,
+because a rival whose budget changes no longer keeps phantom slots. The line
+taken below stands with a wider margin. Its spend drop (26.2%) and its count of
+overlap movers (14 of 24 games) were not re-measured.
+
 **And taken, with the owner (2026-09-13).** Total market spend drops a median
 26.2% into week 9 (13.3–31.5% over 24 games), against about 1% in an ordinary
 week and +2.7% into week 5, so week 9 is the one month change worth a line. The
@@ -1350,6 +1362,12 @@ churn, which one resolution per query-hour cannot produce.
 resolution, a single auction can consume most of a day's budget. So pacing throttles
 by reducing *participation fraction*, never by skipping an auction. The obvious
 implementation reproduces exactly the cliff D1 exists to remove.
+
+*Completed 2026-09-15 (F17).* Fractional participation removed the cliff but
+left the throttled advertiser in the ladder for every search, when in any one
+real search it is either there or not. So one resolution was not yet
+statistically equivalent to simulating each search, and a nearly-spent rival
+held slots it was not in. `resolveSlice` makes the claim above true.
 
 ### F3. Order value was a fixed number — `FIXED v0.2`
 Now a distribution via `aovSpread`, which is what ROAS bidding exists to predict.
@@ -2225,11 +2243,28 @@ moment anyone tilts, all three are resolved properly. The risk of two paths is
 that they quietly stop agreeing, so the same round runs both ways and is held to
 the same numbers, breakdown included.
 
+*Corrected 2026-09-15 (F17).* The test named here set every place adjustment to
+0%, a multiplier of exactly 1, so both of its states took the flat path and it
+compared that path with itself. The paths disagreed with equal bids, by up to
+13% of one rival's cost, because a nearly-spent advertiser held a slot in every
+search it entered and a paisa of rounding decided when. They now agree to the
+paisa: the flat path records its one resolution place by place, and the test
+tilts one place by a millionth of a percent, asserting first that this forces
+the second path and moves no bid. This entry's own dated note on the bid cap, a
+rounding step that moved one game by 15% of the player's profit, was the same
+defect.
+
 **One finding from turning a location off**, and it is not a defect: the metros
 gain **0.02%**. Giving up two locations means spending the day's budget more
 slowly, so pacing lets the advertiser participate a little more where it stayed.
 That is the budget following, not the volume — the searches stayed where they
 were, and total impressions more than halve.
+
+*Since F17 (2026-09-15)* the metros gain 17.6% in the same fixture. The player
+now spends its whole week, which had been costing it 15% of its metro
+searches, so freeing the budget gives them back. Still the budget following,
+not the volume: all 4,850 metro searches and not one more, which is the bound
+the test now holds rather than the size.
 
 **ALL NINE STEPS ARE DONE**, and two attempts to shrink the payoff both failed in
 a way worth recording. Narrowing the return spread 1.5 to 1.35 moved value gain
@@ -4772,6 +4807,29 @@ figures and the three choices behind the kindness (B6, the invented base
 conversion rate, F4). Options (b) and (c) still want better data than an
 internally inconsistent industry page.
 
+#### Addendum: F17 made it kinder still (2026-09-15)
+
+F17 removed a defect that had been making the market harsher: a budget-limited
+advertiser held its slot, and priced whoever sat above it, in searches it was
+not in, so ads sat lower and paid more than the model meant. Re-measured on the
+same harness:
+
+| settled weeks 1–7 | click-through | cost per click | conversion | gross ROAS | net ROAS | profit per ₹ spent | returned |
+|---|---|---|---|---|---|---|---|
+| player, before F17 | 8.2% | ₹19.6 | 5.0% | 7.81 | 4.36 | 1.05 | 42% |
+| player, after | 10.1% | ₹12.0 | 5.0% | 11.14 | 6.45 | 1.90 | 42% |
+| all rivals, before | 5.5% | ₹11.7 | 4.9% | 8.63 | 5.04 | 1.39 | 41% |
+| all rivals, after | 7.1% | ₹10.0 | 5.1% | 10.48 | 6.17 | 1.94 | 41% |
+
+**The robust claim above no longer stands as written.** The player's gross ROAS
+is 11.1, above the Indian agency range (4.5–8×) rather than at its top, and its
+click-through is 10.1% against the page's 3.2% and 6.8%. So the defect had been
+hiding part of the click-through excess this entry is about. The end screen and
+the guide chapter now say "above the range". The player still loses money in 0
+of 72 and finishes a median 5th, so "winning is easy" still does not follow.
+Options (b) and (c) matter more than they did. They still want better data, and
+the owner chose not to recalibrate with F17 (2026-09-15).
+
 ### F16. India has no January surge in activewear searches, so the January event is not built — `WONTFIX`, measured (2026-09-13)
 
 **The question.** Route B of the SLC review's recommendation 7, chosen after D12
@@ -4930,6 +4988,105 @@ per click", and nothing on screen says so while it can be acted on (the
 debrief's *Rank or budget* says it after the game). It rests on one scripted
 player bidding 0.7 × realised break-even with rivals untold, so it is a lead to
 measure properly, not yet a claim for the screen.
+
+### F17. A throttled advertiser held its place in every search — `FIXED` (2026-09-15)
+
+**Real:** Google says little about the mechanism. Its help page on campaigns
+not running or getting low traffic, under *6. Low budget*: "When you have a low
+budget, your ads may not serve as often while Google Ads ensures your campaign
+doesn't spend more than your spending limit." Its *Fix "Limited by budget"
+status* page says only that the campaign "is underperforming". The game's
+reading, in its own voice: an ad not served in an auction takes no place in it.
+
+**Sim, before.** Pacing gives each advertiser a participation fraction for each
+auction (spec 13.4, H1): the share of the slice's searches it enters. The round
+billed it for that share, but `resolveAuction` ranked it in all of them. So in
+the searches it was not in, it still held its slot: the rivals beneath it
+dropped a place or off the page, and the one above paid as though it were
+bidding against them. F2's "statistically equivalent to simulating each search"
+was false.
+
+A trigger made it chaotic. An advertiser that has nearly spent its day enters
+with a tiny share, each auction then costs it a fraction of a paisa, which
+rounds to zero, so it never spends its last paisa and holds a slot for the rest
+of the day. Whether it lands on its day target and drops out, or stalls a paisa
+short, is rounding luck. G4's two paths round differently, so with equal bids
+they disagreed by up to 5.1% of one rival's impressions and 12.9% of its cost.
+At the first auction where they parted, marlow had spent 600,000 paise of a
+600,000 day target on one path and 599,999 on the other. The ladder itself
+never differed given the same entrants (0 of 45,774 resolutions). The test
+meant to hold the paths together forced the second path with a 0% adjustment, a
+multiplier of exactly 1, so it never took it.
+
+Against an exact reference, built in scratch copies of the round: the engine
+was up to 58% off in impressions and 105% in cost on the test fixture. In nine
+played markets, 67–95% of auctions had a throttled entrant and the worst-hit
+advertiser's clicks were 30–82% off. A cutoff (ignore participation under
+0.001) made the paths agree but left clicks about 37% off whatever the
+threshold, because advertisers throttled to 25–99% held slots they were not in
+too.
+
+**The fix**, decided with the owner ("only its share"). Each advertiser's share
+comes from its own pacer, so who is present in a search is independent from one
+advertiser to the next. `resolveSlice` (`engine/auction.js`) resolves every
+combination of who is present, each as likely as its members' shares times its
+absentees' complements, by `resolveAuction`'s rules, ranked once because an
+absentee changes nobody else's order. Where an entrant sits depends only on who
+is present above it, and what it pays only on who is present below, so its
+average price is the same whatever slot it lands in, and clicks times that
+price is its expected cost exactly. k throttled entrants cost 2^k ladders: one
+when nobody is throttled, 13.7 a search on the test fixture, 5.4–8.0 in played
+markets. Both paths record a slice place by place, each advertiser's numbers
+added in the same order and rounded at the same points (`roundPaise`), so they
+agree to the paisa. `tests/round.test.js` holds them there with a tilt of a
+millionth of a percent, after asserting that it forces the second path and
+moves no bid. Not a sampled draw of who is present: that would put a whole
+slice's volume on or off one advertiser, the cliff H1 removed.
+
+**What it cost.** A played week (three-auction, sampled, with a counterfactual)
+went from about 1.33s to 1.45s on the development machine: 8–15% dearer in plain
+Node, which is what a browser runs, and about 30% under the test runner. So the
+three-auction timing test, added the same day with a bound copied from the flat
+one, was set from its own cost to 2,800ms (the owner). Two speed-ups that move
+no number came with it: `roundHalfUp` skips its string conversion unless a
+value is close enough to a half for it to matter, and each search's return
+halves and each advertiser's prepaid share per place are worked out once per
+round.
+
+**Measured**, 72 markets on `scripts/market-harness.js`, before and after, with
+gates agreed with the owner first (the plan,
+`plans/2026-09-15-throttled-ladder-plan.md`, has every figure):
+
+| | before | after |
+|---|---|---|
+| player, settled weeks 1–7: CTR · CPC · profit per ₹ | 8.2% · ₹19.6 · 1.05 | 10.1% · ₹12.0 · 1.90 |
+| rivals, the same | 5.5% · ₹11.7 · 1.39 | 7.1% · ₹10.0 · 1.94 |
+| player's gross ROAS · net ROAS | 7.81 · 4.36 | 11.14 · 6.45 |
+| player's final net profit, median | ₹6,57,635 | ₹11,90,785 |
+| player loses money | 0 of 72 | 0 of 72 |
+| player's final rank, median | 5th | 5th |
+| rivals' largest move into week 5 · week 9, against an ordinary week | 2.23× · 2.40× | 4.40× · 4.29× |
+
+The five gates that had to hold held. `resolveSlice` equals every combination
+to 1e-9, the paths agree to the paisa, the suite and the timing suite pass, and
+calibration passes, I1 and I3 to the last digit because they play one entrant
+per auction. Two tripwires fired and the owner accepted both (2026-09-15). The
+market is kinder (F15's addendum), and the budget events at weeks 5 and 9 move
+it more: the week-5 move 75% larger and the week-9 move 34%, against ordinary
+weeks 18% calmer (24 markets; C8 and D12 have notes).
+
+Two claim tests had bounds that assumed the fixture's player barely spent its
+budget. It now sits first in 73% of its impressions rather than 55% and spends
+its whole week, so both were restated with the owner. An open cell costs the
+player nothing through rank, and its whole gap to playing alone is its own
+budget (6,061 impressions). Turning a location down gives the metros only their
+own searches.
+
+**Why it survived.** I1 and I3 play one entrant per auction, so nobody was ever
+in anybody's way. The two-paths test compared one path with itself. And a
+fixture round's numbers looked plausible either way. G4's dated note on the bid
+cap had already seen it without naming it: moving one rounding step changed one
+game by 15% of the player's profit.
 
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 

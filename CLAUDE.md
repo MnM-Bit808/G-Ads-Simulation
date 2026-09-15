@@ -163,6 +163,14 @@ number in the simulation without ever throwing an error.
 - **Pacing throttles by reducing participation fraction, never by skipping an
   auction.** One auction resolution carries a whole slice of an hour's volume, so
   skipping produces exactly the budget cliff the design exists to remove.
+- **A throttled advertiser is in only its share of the searches, and the ladder
+  has to know it.** Participation used to scale what an advertiser paid for but
+  not where it stood, so a nearly-spent rival held a slot, and priced whoever sat
+  above it, in searches it was not in. A paisa of rounding decided when, and the
+  round's two paths disagreed by 13% with equal bids while their test compared
+  one path with itself (F17). `resolveSlice` weighs every combination of who is
+  present. Anything new that enters the ladder enters it with its
+  participation, and a test that means to force a code path asserts that it did.
 - **The counterfactual raises only the focal advertiser's budget.** Raising
   everyone's measures a different, more competitive market and answers the wrong
   question.

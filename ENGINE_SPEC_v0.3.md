@@ -1210,6 +1210,23 @@ lostToBudget  += weighted volume x (1 - participation)
 The obvious implementation — "if throttled, skip this auction" — reproduces exactly
 the cliff 13.4 exists to remove.
 
+**A throttled advertiser is in only its share of the searches (F17).**
+Participation is the share of a slice's searches an advertiser enters, and each
+advertiser's pacer decides its own, so who is present in a search is
+independent from one advertiser to the next. In the searches it stays out of it
+is not in the ladder: it takes no slot and sets nobody's price. One resolution
+weighs every combination of who is present by how likely it is:
+
+```
+shown share    = P(present and shown)
+impressions   += weighted volume x shown share
+clicks        += weighted volume x quality x sum over slots of P(in slot) x slot CTR
+cost          += clicks x average price when shown, rounded to the paisa once
+lostToRank    += weighted volume x (participation - shown share)
+```
+
+With k throttled entrants that is 2^k ladders, and one when nobody is throttled.
+
 ---
 
 ## 14. Returns

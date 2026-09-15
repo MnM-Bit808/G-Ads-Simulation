@@ -240,12 +240,23 @@ engine does: the page's parts marked "week 4", its description graded now.
    settling at the game's end would fix, as an engine change measured first.
    The two replay fixes are on `makeover` only: `main`'s end screen still
    gives the old answers.
-9. **Found 2026-09-15 and put to the owner as their own tasks, not fixed:**
-   the round's two paths through the auction disagree with equal bids, by up
-   to 5% of one rival's impressions, and the test meant to hold them together
-   (`tests/round.test.js`, *the two paths through the auction agree*) never
-   takes the three-auction path, because a 0% place adjustment is a
-   multiplier of 1. The prepaid discount card that quoted the smaller towns'
+9. **FIXED 2026-09-15 (DECISIONS F17), built on the branch
+   `claude/lucid-bhabha-395dd1` and merged into `makeover` on 2026-09-16
+   (the owner's call), not pushed:** the round's two paths through the auction disagreed with equal
+   bids, and the test meant to hold them together never took the second path.
+   The cause was deeper: a budget-throttled advertiser held its slot, and
+   priced the advertiser above it, in searches it was not in. It now takes part
+   in only its share of the searches (`resolveSlice`), and the two paths agree
+   to the paisa. The market is kinder for it, which the owner accepted: the
+   player's cost per click went ₹19.6 to ₹12.0 and its profit per rupee 1.05 to
+   1.90, its rank is still a median 5th, and it still loses money in 0 of 72
+   markets. So the end screen and the guide now say returns sit above the
+   Indian range (F15's addendum). A played week costs 8–15% more time. One
+   full `npm test` run in three failed a single test on identical code during
+   F17, most likely a time limit under another session's load; its output was
+   not kept, so which test is not known. Every figure is in the plan's
+   *Measurements*, `plans/2026-09-15-throttled-ladder-plan.md`.
+   Found the same day and still as it was: the prepaid discount card that quoted the smaller towns'
    refusal rate for every account is fixed on `makeover` since 2026-09-15
    (merged from `claude/refusal-outlook-makeover`, I34); `main`'s twin,
    `claude/refusal-outlook`, is still unmerged. The market harness's `compare` reads only `writer` runs;
@@ -1455,7 +1466,8 @@ are three separate auctions and resolving three costs 531ms against a 400ms budg
 When nobody adjusts by location the ladders are identical, so one resolution
 apportioned is exact — and `round.test.js` runs the same round both ways and holds
 them to the same numbers, because the danger of two paths is that they quietly stop
-agreeing.
+agreeing. (Until 2026-09-15 that test compared one path with itself, and the two
+had stopped agreeing: F17.)
 
 **A rival learns where to bid; it is not told.** `policies.js` imports nothing from
 `engine/`, which is what makes its guard absolute, so a policy cannot read the
