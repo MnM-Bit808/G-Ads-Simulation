@@ -2242,7 +2242,7 @@ function prepaidCard(ctx, refresh) {
   const node = card('Prepaid discount', 'money off, to keep the parcel out of the wrong hands', 'span-2');
   node.dataset.slot = 'prepaid';
   const draft = ctx.draft;
-  const chips = el('div', 'chip-row');
+  const chips = el('div', 'chips');
 
   for (const rung of PREPAID_DISCOUNT_CURVE) {
     const on = draft.prepaidDiscountPaise === rung.paise;
