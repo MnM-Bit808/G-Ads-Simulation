@@ -68,8 +68,11 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     `design/your-week/`: every week's net profit against a dashed tick where it
     stood before this week ran, the revision played once a week. Then *What
     people typed* (`ui/typed/`), from `design/what-people-typed/`: the search
-    terms as one list by spend, with Block words beside it.
-  - On `makeover`: 2004 tests pass, 1 todo, and the build publishes 95 files.
+    terms as one list by spend, with Block words beside it. Then *Your money*
+    (`ui/money/`), from `design/your-money/`: this month as one bar whose
+    weeks you move money between, bidding and week 8 beside it, and at week 5
+    the capital and the one move on top.
+  - On `makeover`: 2034 tests pass, 1 todo, and the build publishes 98 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -125,9 +128,20 @@ engine does: the page's parts marked "week 4", its description graded now.
    would catch before it is made. A sale costing over twice the account's
    average is marked, because today's "five clicks, no sale" never fires on
    the game's fractional sales (the classic look's fix is its own task).
+   **DONE 2026-09-15: Your money** (`ui/money/`), from the canvas
+   https://claude.ai/code/artifact/6f331294-d17c-48e9-9804-b7b37227e2c8: this
+   month as one bar, where a line between two weeks moves money between those
+   two and no others (drag it, or arrow keys); bidding and what week 8 decides
+   side by side, the rank said once after week 8 and nothing summed again; and
+   at week 5 the capital chips, the one step and the page they would build.
+   The bar is what each week will be given, the engine's own re-spread at
+   week 5 (`weekBudgetsAtRun`), and the tray says the same by game week.
+   Still open from the canvas's notes: the classic deadline card prints the
+   rank sentence twice after week 8, and ₹1,00,000 is left in stale comments
+   and spec 13.3.
    Next, the rest of the makeover design's section 7 list, one section at a
-   time (Your money, Returns, the Market area, Results, the Guide as a page),
-   and the switch-over.
+   time (Returns, the Market area, Results, the Guide as a page), and the
+   switch-over.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.

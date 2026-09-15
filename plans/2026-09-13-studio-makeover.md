@@ -521,6 +521,24 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   costing over twice the account's average is marked instead; the classic
   look's fix is its own task. A blocked row is muted grey rather than faded,
   which measured under 4.5:1.
+- **Your money (section 7, item 3)** is built as the owner chose from the
+  mock-ups on `design/your-money/` (2026-09-15): this month as one bar, where
+  a line between two weeks moves money between those two and no others, so a
+  drag can never leave money unplanned or plan more than the month holds;
+  bidding and what week 8 decides side by side; and at week 5 the capital and
+  the one move on top, on the panel colour. It draws itself (`ui/money/`) and
+  retires the classic five cards in the Studio. Not chosen: twelve weeks at a
+  glance, each week's budget against what it spent, with month 3's range
+  shaded (the canvas's *Not chosen* page). Planning it found the tray quoting
+  a plan the week-5 round re-spreads, and naming weeks of the month rather
+  than of the game; both are fixed for both looks. Building it dropped one
+  mock-up sentence, a threshold of thirty conversions the engine never uses
+  (17.2: that consequence is discovered, not read off a card). Committing
+  capital is red, as the player's change; money no week is given is amber and
+  dashed, since the month's end loses it; a cell out of reach is muted rather
+  than faded. After week 8 the card gives the rank alone: history is revised
+  after the snapshot, so a total summed later would not be the one that set
+  month 3.
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.
