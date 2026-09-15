@@ -11,6 +11,7 @@ import {
   CAPEX_TIER_CURVE, CAPEX_PHOTOGRAPHY_CURVE,
 } from '../engine/constants.js';
 import { codShareFor } from '../engine/locations.js';
+import { refusalOutlook } from '../engine/positions.js';
 import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -707,6 +708,69 @@ describe('refusals and send-backs are told apart', () => {
       const fromLocations = Object.values(row.breakdown.byLocation ?? {})
         .reduce((a, r) => a + (r.returned ?? 0), 0);
       expect(fromLocations).toBeCloseTo(row.conversions.returned, 6);
+    }
+  });
+});
+
+/**
+ * The refusal rate each place is STATED at, because no rival can count one (I34).
+ *
+ * A week's refusals land two to five weeks after its clicks, and a controller is
+ * handed only the week just played, so a rival's prepaid rule has nothing to
+ * count. The report states the rate instead, from the prepaid card's own
+ * function, so a rival and the player decide on the same number (R6).
+ */
+describe('each place row states its refusal rate as the prepaid card works it out', () => {
+  const oneHot = (tier) => LOCATION_TIERS.map((_, t) => (t === tier ? 1 : 0));
+  const stated = (state, a, tier, discountPaise = 0) => refusalOutlook({
+    position: a.position, capex: a.capex, round: state.round, discountPaise, placeWeights: oneHot(tier),
+  });
+  const rows = (result, id) => Object.entries(result.report.byAdvertiser[id].breakdown.byLocation ?? {});
+
+  test('for every advertiser and place, the no-discount rate refusalOutlook gives', () => {
+    for (const a of STATE.advertisers) {
+      expect(rows(R1, a.id).length, a.id).toBeGreaterThan(0);
+      for (const [tier, row] of rows(R1, a.id)) {
+        expect(row.refusalRate, `${a.id} tier ${tier}`).toBe(stated(STATE, a, Number(tier)));
+      }
+    }
+  });
+
+  test('weighted by the week\'s clicks, the rows give the card\'s own figure', () => {
+    const a = STATE.advertisers.find((x) => x.id === PLAYER_ID);
+    const byTier = Object.fromEntries(rows(R1, PLAYER_ID));
+    const clicks = LOCATION_TIERS.map((_, t) => byTier[t]?.clicks ?? 0);
+    const total = clicks.reduce((x, y) => x + y, 0);
+    expect(total).toBeGreaterThan(0);
+    const weighted = clicks.reduce((acc, c, t) => acc + c * (byTier[t]?.refusalRate ?? 0), 0) / total;
+    expect(weighted).toBeCloseTo(refusalOutlook({
+      position: a.position, capex: a.capex, round: STATE.round, placeWeights: clicks,
+    }), 12);
+  });
+
+  test('it is the rate before any discount, so a discount cannot argue itself away', () => {
+    const discounted = {
+      ...STATE,
+      advertisers: STATE.advertisers.map((a) => (a.id === PLAYER_ID
+        ? { ...a, campaign: { ...a.campaign, prepaidDiscountPaise: 5000 } } : a)),
+    };
+    const out = runRound(discounted, { mode: 'expected' });
+    const a = discounted.advertisers.find((x) => x.id === PLAYER_ID);
+    for (const [tier, row] of rows(out, PLAYER_ID)) {
+      expect(row.refusalRate, `tier ${tier}`).toBe(stated(discounted, a, Number(tier)));
+      expect(row.refusalRate, `tier ${tier}`).toBeGreaterThan(stated(discounted, a, Number(tier), 5000));
+    }
+  });
+
+  test('stated once: a revision leaves it as the week reported it', () => {
+    const [revised] = reviseReports([R1.report], {
+      currentRound: R2.report.round, raw: R2.raw, advertisers: R2.nextGameState.advertisers,
+    });
+    expect(revised.revisedAtRound).toBe(R2.report.round);
+    const before = Object.fromEntries(rows(R1, PLAYER_ID));
+    for (const [tier, row] of Object.entries(revised.byAdvertiser[PLAYER_ID].breakdown.byLocation)) {
+      expect(Number.isFinite(row.refusalRate), `tier ${tier}`).toBe(true);
+      expect(row.refusalRate, `tier ${tier}`).toBe(before[tier].refusalRate);
     }
   });
 });

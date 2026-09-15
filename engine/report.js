@@ -20,10 +20,10 @@
  * true.
  */
 
-import { businessFor } from './positions.js';
+import { businessFor, refusalOutlook } from './positions.js';
 import { mulRate } from './money.js';
 import { buildInsights } from './insights.js';
-import { SCHEMA_VERSION, RTO_FREIGHT_PAISE } from './constants.js';
+import { SCHEMA_VERSION, RTO_FREIGHT_PAISE, LOCATION_TIERS } from './constants.js';
 import { codShareFor } from './locations.js';
 
 /**
@@ -121,7 +121,10 @@ export function buildRoundReport({ round, raw, advertisers }) {
       quality: {},
       missedToBudget: missedToBudget(r, business),
       warnings: [...(r.warnings ?? [])],
-      breakdown: withRefusals(attributeConversions(r, ownLanded), advertiser.position?.price),
+      breakdown: statedRefusals(
+        withRefusals(attributeConversions(r, ownLanded), advertiser.position?.price),
+        advertiser, round,
+      ),
     };
   }
 
@@ -403,6 +406,48 @@ function splitRefusals(byLocation, price) {
     };
   }
   return out;
+}
+
+/**
+ * What each place's refusal rate was that week, with no discount (I34).
+ *
+ * A rival's prepaid rule reads this, because it cannot count its own refusals: a
+ * week's land two to five weeks after its clicks, and a controller is handed
+ * only the week just played, so a count there is always zero. That is why no
+ * rival ever offered a discount until this was stated.
+ *
+ * FROM THE PREPAID CARD'S OWN FUNCTION. `refusalOutlook` is what the card shows
+ * and `returnHalves` under it is what the round books, so a rival decides on the
+ * number the player decides on (R6). The cash-mix formula that used to sit here
+ * was dropped for leaving out capital, purpose and the place gradient; this is
+ * not that formula.
+ *
+ * Stated once, when the week is reported, and kept through every revision: it
+ * is what the rate was, not a count of what has come back. And with no discount,
+ * whatever the account offers, so a rival already offering one does not read
+ * its own discount back as a reason to stop.
+ *
+ * @param {object} breakdown with `byLocation` rows keyed by `LOCATION_TIERS` index
+ * @param {object} advertiser as it played the week: position and capex
+ * @param {number} round the week the report covers
+ * @returns {object} a new breakdown, each place row carrying `refusalRate`, 0..1
+ */
+function statedRefusals(breakdown, advertiser, round) {
+  const { position, capex } = advertiser;
+  if (!position?.price) return breakdown;
+  const byLocation = {};
+  for (const [key, row] of Object.entries(breakdown.byLocation ?? {})) {
+    const index = Number(key);
+    byLocation[key] = Number.isInteger(index)
+      ? {
+        ...row,
+        refusalRate: refusalOutlook({
+          position, capex, round, placeWeights: LOCATION_TIERS.map((_, t) => (t === index ? 1 : 0)),
+        }),
+      }
+      : row;
+  }
+  return { ...breakdown, byLocation };
 }
 
 /** Add later arrivals to the breakdown rows they belong to. */
