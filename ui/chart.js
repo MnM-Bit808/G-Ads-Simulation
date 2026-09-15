@@ -191,10 +191,17 @@ export function marketOutlook(insights, playerId, names) {
 
   // Two different rivals answering two different questions: who you are
   // actually competing with, and who is winning the auctions you share.
+  //
+  // WINNING THEM IN THE MOST OF YOUR AUCTIONS, not the most often when you
+  // meet. Ranked by `positionAboveRate` alone it named a rival in 2% of the
+  // player's auctions, above it in 74% of that 2%, over one in 96% of them and
+  // above in 70% (found drawing the Market area). Overlap times position-above
+  // is the share of all the auctions you showed in where that rival sat above
+  // you, and both figures are Auction Insights'.
   const rivals = Object.entries(latest.rivals ?? {});
-  const best = (key) => rivals.reduce(
-    (top, [id, r]) => (top === null || r[key] > top.rate
-      ? { id, name: names?.get(id) ?? id, rate: r[key] }
+  const best = (value) => rivals.reduce(
+    (top, [id, r]) => (top === null || value(r) > top.rate
+      ? { id, name: names?.get(id) ?? id, rate: value(r) }
       : top),
     null,
   );
@@ -205,8 +212,8 @@ export function marketOutlook(insights, playerId, names) {
     lostToRank,
     lostToBudget,
     change,
-    meetMost: best('overlapRate'),
-    beatsYouMost: best('positionAboveRate'),
+    meetMost: best((r) => r.overlapRate),
+    aboveYouMost: best((r) => r.overlapRate * r.positionAboveRate),
   };
 }
 
@@ -302,12 +309,12 @@ function readingOf(ctx) {
       + 'you appear in',
     ));
     node.append(document.createTextNode(
-      out.beatsYouMost && out.beatsYouMost.id !== out.meetMost.id
-        ? `, but it is ${out.beatsYouMost.name} that is above you most often when you `
-          + `meet, ${pct(out.beatsYouMost.rate)} of the time.`
+      out.aboveYouMost && out.aboveYouMost.id !== out.meetMost.id
+        ? `, but it is ${out.aboveYouMost.name} that ranks above you in more of them: `
+          + `${pct(out.aboveYouMost.rate)} of all the auctions you appear in.`
         // Same advertiser on both counts: it is who you meet AND who beats you.
-        : `, and it is above you ${pct(out.beatsYouMost?.rate ?? 0)} of the times you `
-          + 'both appear.',
+        : `, and it ranks above you in ${pct(out.aboveYouMost?.rate ?? 0)} of all the `
+          + 'auctions you appear in.',
     ));
   }
 

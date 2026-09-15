@@ -169,20 +169,35 @@ describe('the chart reads the market back to you (I13)', () => {
 
   test('it names who you actually meet, and who actually beats you', () => {
     // Two different rivals and two different problems. The one you overlap with
-    // most is who you are competing against; the one above you most often is
-    // who is winning the auctions you share.
+    // most is who you are competing against; the one above you in the most of
+    // your auctions is who is winning the auctions you share.
     const out = marketOutlook([week(full, {
       kestrel: { overlapRate: 0.9, positionAboveRate: 0.1 },
       lumen: { overlapRate: 0.2, positionAboveRate: 0.8 },
     })], 'me', names);
     expect(out.meetMost.name).toBe('Kestrel');
-    expect(out.beatsYouMost.name).toBe('Lumen');
+    expect(out.aboveYouMost.name).toBe('Lumen');
+  });
+
+  // Found drawing the Market area: ranked by "above you when you meet" alone,
+  // it named Halcyon, above the player 74% of the time in the 2% of its
+  // auctions Halcyon was in, over Kestrel, in 96% of them and above in 70%.
+  test('the rival above you is the one above you in the most of your auctions, not one you hardly meet', () => {
+    const out = marketOutlook([week(full, {
+      kestrel: { overlapRate: 0.96, positionAboveRate: 0.70 },
+      halcyon: { overlapRate: 0.02, positionAboveRate: 0.74 },
+    })], 'me', new Map([['kestrel', 'Kestrel'], ['halcyon', 'Halcyon']]));
+    expect(out.aboveYouMost.name).toBe('Kestrel');
+    // A share of every auction you showed in: how often you meet, times how
+    // often it is above you when you do.
+    expect(out.aboveYouMost.rate).toBeCloseTo(0.96 * 0.70, 12);
+    expect(out).not.toHaveProperty('beatsYouMost');
   });
 
   test('with no rivals in the report it reports none rather than inventing one', () => {
     const out = marketOutlook([week(full)], 'me', names);
     expect(out.meetMost).toBeNull();
-    expect(out.beatsYouMost).toBeNull();
+    expect(out.aboveYouMost).toBeNull();
   });
 
   test('an unplayed game yields nothing', () => {
