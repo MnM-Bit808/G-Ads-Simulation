@@ -552,7 +552,7 @@ function headlineCard(ctx, { all, settled }) {
       : 'Every conversion has arrived, though returns may still be resolving.'));
 
   // Where the player judges their profit, so it is where the market's kindness
-  // is said (F15): returns here sit at the top of the Indian range, and a
+  // is said (F15): returns here sit above the Indian range since F17, and a
   // sensible player made money in every market measured.
   const kinder = el('p', 'note');
   kinder.append(document.createTextNode(DEBRIEF.kinderMarket()));
