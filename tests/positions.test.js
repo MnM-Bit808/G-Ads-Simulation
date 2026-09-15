@@ -4,14 +4,16 @@ import {
   businessFor, breakEvenCpcPaise, grossBreakEvenCpcPaise, marginPerOrderPaise,
   capexEffect, liveCapexPaise, landingPageBonus,
   canReposition, isOneStep, reposition,
-  realisedBreakEvenCpcPaise, territoryQueries,
+  realisedBreakEvenCpcPaise, territoryQueries, returnHalves,
 } from '../engine/positions.js';
+import { refusalRateFor, rtoShareOfReturns } from '../engine/locations.js';
 import { homeCell } from '../engine/querySet.js';
 import { QUERY_SET } from '../content/querySet.js';
 import {
   PRICE_TIERS, PURPOSES, POSITION_ECONOMICS, PURPOSE_MODIFIERS,
   CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS,
   CAPEX_LANDING_PAGE_MAX_POINTS, REPOSITION_ROUND, REPOSITION_COST_PAISE,
+  LOCATION_TIERS, RETURN_RATE_CLAMP_MAX,
 } from '../engine/constants.js';
 
 const pos = (price, purpose) => ({ price, purpose, setAtRound: 0, repositionedAtRound: null });
@@ -608,5 +610,51 @@ describe('order confirmation acts on refusals and nothing else', () => {
     };
     expect(businessFor(cell, pending, 6).orderConfirmationEffect).toBe(1);
     expect(businessFor(cell, pending, 9).orderConfirmationEffect).toBeGreaterThan(1);
+  });
+});
+
+describe('what comes back from an order at a place (I28, I29, I34)', () => {
+  const MID = { price: 'mid', purpose: 'performance' };
+  const EMPTY = { committed: {}, pending: [] };
+  const full = (target) => ({ committed: { [target]: 8000000 }, pending: [] });
+  const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].effect;
+  const at = (over = {}) => returnHalves({
+    business: businessFor(MID, EMPTY, 1), queryReturnMultiplier: 1, placeReturnMultiplier: 1,
+    price: 'mid', tierIndex: 2, discountPaise: 0, ...over,
+  });
+  const sentBack = (x) => x.returned - x.refused;
+
+  test('with nothing bought, it is the whole return level, split at the sourced share', () => {
+    const x = at();
+    expect(x.returned).toBeCloseTo(businessFor(MID, EMPTY, 1).returnRateBeforeSizeGuide, 12);
+    expect(x.refused / x.returned).toBeCloseTo(rtoShareOfReturns('mid', 2, 0), 12);
+  });
+
+  test('order confirmation divides refusals and nothing else', () => {
+    const x = at({ business: businessFor(MID, full('orderConfirmation'), 1) });
+    expect(x.refused).toBeCloseTo(at().refused / top, 12);
+    expect(sentBack(x)).toBeCloseTo(sentBack(at()), 12);
+  });
+
+  test('the size guide divides send-backs and nothing else', () => {
+    const x = at({ business: businessFor(MID, full('sizeGuide'), 1) });
+    expect(x.refused).toBeCloseTo(at().refused, 12);
+    expect(sentBack(x)).toBeCloseTo(sentBack(at()) / top, 12);
+  });
+
+  test('a discount takes refusals off at the sourced rate, and leaves send-backs where they were', () => {
+    for (let t = 0; t < LOCATION_TIERS.length; t++) {
+      const none = at({ tierIndex: t });
+      const paid = at({ tierIndex: t, discountPaise: 3000 });
+      expect(paid.refused / none.refused, `place ${t}`)
+        .toBeCloseTo(refusalRateFor('mid', t, 3000) / refusalRateFor('mid', t, 0), 12);
+      expect(sentBack(paid), `place ${t}`).toBeCloseTo(sentBack(none), 12);
+    }
+  });
+
+  test('nothing comes back past the clamp, and refusals never exceed returns', () => {
+    const x = at({ queryReturnMultiplier: 5, placeReturnMultiplier: 5 });
+    expect(x.returned).toBeLessThanOrEqual(RETURN_RATE_CLAMP_MAX);
+    expect(x.refused).toBeLessThanOrEqual(x.returned);
   });
 });
