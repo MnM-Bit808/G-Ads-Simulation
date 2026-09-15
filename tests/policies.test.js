@@ -13,6 +13,7 @@ import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE } from '../engine/constants.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
+import { playMarket } from '../scripts/market-harness.js';
 
 const STATE = makeGameState();
 const SRC = readFileSync(fileURLToPath(new URL('../agents/policies.js', import.meta.url)), 'utf8');
@@ -330,5 +331,24 @@ describe('week 5: every rival decides its second capital allocation (DECISIONS C
       expect(week5.byAdvertiser[a.id].budget.monthlyBudgetPaise, a.id)
         .toBe(MONTHLY_BUDGET_PAISE + CAPEX_ALLOCATION_PAISE - invested);
     }
+  });
+});
+
+describe('rivals pull the prepaid discount too (DECISIONS I34, R6)', { timeout: 120_000 }, () => {
+  // I34 says they do, and in play none ever did: 18 games, 1,728 rival
+  // decisions, not one discount. A week's refusals land two to five weeks
+  // after its clicks, and the rule read them off the week just played.
+  test('through the door, a rival in a cash-heavy cell offers one at some point', async () => {
+    // Seed 2 seats a rival in the value tier, where most orders are cash on
+    // delivery and refusals cost the most.
+    const { state } = await playMarket({ seed: 2, cell: 'mid|performance' });
+    const cashHeavy = state.advertisers.filter((a) => a.policyId && a.position.price === 'value');
+    expect(cashHeavy.length, 'no rival in a value cell, so this would prove nothing').toBeGreaterThan(0);
+
+    const offered = cashHeavy.filter((a) => state.decisionLog.some((e) => e.advertiserId === a.id
+      && (e.decision?.campaign?.prepaidDiscountPaise ?? 0) > 0));
+    expect(offered.map((a) => a.id), 'no value-tier rival ever offered a discount').not.toEqual([]);
+    // Applied, not only logged.
+    expect(offered.some((a) => a.campaign.prepaidDiscountPaise > 0)).toBe(true);
   });
 });

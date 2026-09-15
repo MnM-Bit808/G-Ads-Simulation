@@ -168,23 +168,39 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
  * market the player thinks they are in — their own restraint would look like
  * skill and their rivals' refusals would be a handicap nobody chose.
  *
- * It reads its OWN report, like every other decision here: the discount is worth
- * offering when refusals are actually costing something, and a rival with few
- * of them should keep the margin. The threshold is its own refusal rate rather
- * than a constant, so a premium advertiser in the metros arrives at "no" and a
- * value one in the towns arrives at "yes" without either being told.
+ * IT READS THE REFUSAL RATE ITS REPORT STATES, NOT ITS OWN REFUSALS. Every
+ * location row carries `refusalRate`: how often an order bought there is
+ * refused with no discount, for this account's price, purpose and capital
+ * (`statedRefusals` in report.js). Weighted by where the account bought its
+ * clicks, that is the figure the player's prepaid card shows, so the rival and
+ * the player decide on the same number.
+ *
+ * It used to count the `refused` in those rows, and in play that was always
+ * exactly zero. A week's refusals land two to five weeks after its clicks and
+ * are written back into that week's report, and a controller is handed only
+ * the week just played. Over 18 games not one rival ever offered a discount.
+ *
+ * The rate is the one BEFORE any discount, so a rival already offering one
+ * cannot talk itself back out of it as its own refusals fall.
+ *
+ * The stated rate runs from about 7% (premium performance in the metros, with
+ * order confirmation built) to 22% (lifestyle in the towns), so the rung this
+ * lands on depends on where the rival buys and what it has built: ₹50 where
+ * refusals are heavy, ₹30 where they are lighter, and never none, because
+ * nowhere runs under 6%. The thresholds are a character's opinion (C7), not a
+ * reading of the table.
  *
  * One rung, not a search. A policy that hill-climbed the curve every week would
  * out-optimise a player who gets one look at it, and 5.2 wants a competent
  * operator rather than a solver.
  */
 function prepaidNudge(self, report) {
-  const rows = Object.values(report?.breakdown?.byLocation ?? {});
-  const conversions = rows.reduce((a, r) => a + (r.conversions ?? 0), 0);
-  const refused = rows.reduce((a, r) => a + (r.refused ?? 0), 0);
-  if (conversions < 5) return null;
+  const rows = Object.values(report?.breakdown?.byLocation ?? {})
+    .filter((r) => (r.clicks ?? 0) > 0 && Number.isFinite(r.refusalRate));
+  const clicks = rows.reduce((a, r) => a + r.clicks, 0);
+  if (clicks === 0) return null;
 
-  const rate = refused / conversions;
+  const rate = rows.reduce((a, r) => a + r.clicks * r.refusalRate, 0) / clicks;
   const held = self.campaign?.prepaidDiscountPaise ?? 0;
   // The rung the sources call the one that does most of the work, and a bigger
   // one only where refusals are genuinely heavy.
