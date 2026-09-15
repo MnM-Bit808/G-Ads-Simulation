@@ -135,18 +135,26 @@ export function clearSave(storage) {
  * Yields between weeks so the page can say how far it has got: a late-game
  * restore replays up to twelve weeks, and a frozen page reads as a crash.
  *
+ * Keeps the history as it stood before the last week ran, because running a
+ * week rewrites the earlier ones and the state keeps only the new version:
+ * Your week's dashed tick is where each week stood before (ui/app.js keeps
+ * the same thing when a week is run live).
+ *
  * @param {object} save - from `readSave`
  * @param {object} [options] `onWeek(week, of)` is called after each week; the
  *   rest is passed through to the round (`mode` included)
- * @returns {Promise<{state: object, reports: object[], insights: object[], exact: boolean}>}
- *   `exact` is false when the replay no longer matches what the player saw
+ * @returns {Promise<{state: object, reports: object[], insights: object[], exact: boolean,
+ *   historyBefore: object[]}>} `exact` is false when the replay no longer matches
+ *   what the player saw
  */
 export async function restoreSave(save, options = {}) {
   const { onWeek, ...runOptions } = options;
   let state = save.initialState;
+  let historyBefore = [];
   const reports = [];
   const insights = [];
   for (let week = 1; week <= save.weeksPlayed; week++) {
+    historyBefore = state.history ?? [];
     const out = replayRound(state, save.decisionLog, runOptions);
     reports.push(out.report);
     insights.push(out.insights);
@@ -156,5 +164,5 @@ export async function restoreSave(save, options = {}) {
   }
   const exact = JSON.stringify(fingerprintOf(reports, save.playerId))
     === JSON.stringify(save.fingerprint);
-  return { state, reports, insights, exact };
+  return { state, reports, insights, exact, historyBefore };
 }

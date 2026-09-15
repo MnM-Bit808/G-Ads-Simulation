@@ -176,6 +176,10 @@ function openGame(state, playerId) {
     state,
     reports: [],
     insights: [],
+    // Every week as it stood before the latest week ran, which the engine
+    // does not keep: running a week rewrites the earlier ones (11.4). Your
+    // week's dashed tick is drawn from it (ui/save.js keeps it on a reload).
+    historyBefore: [],
     draft: null,
     // Display preferences, which the view is allowed to keep. Nothing the
     // engine owns lives here.
@@ -447,6 +451,7 @@ async function runWeek() {
     sources: game.sources,
   });
   const computeMs = performance.now() - started;
+  game.historyBefore = game.state.history;
   game.state = out.nextGameState;
   game.reports.push(out.report);
   game.insights.push(out.insights);
@@ -555,6 +560,7 @@ async function resume(saved) {
   game.state = restored.state;
   game.reports = restored.reports;
   game.insights = restored.insights;
+  game.historyBefore = restored.historyBefore;
   refreshDraft();
   if (restored.exact) {
     game.saved = true;

@@ -198,6 +198,17 @@ describe('restoring rebuilds the game the player was playing', { timeout: 60_000
     expect(restored.insights).toHaveLength(4);
   });
 
+  test('it keeps every week as it stood before the last week ran, for Your week\'s tick', async () => {
+    // Running a week rewrites the earlier ones and the engine keeps only the
+    // new version, so the dashed tick needs the history from a week before.
+    // A reopened game must hand back the same one the live game kept.
+    const game = await play(4);
+    const weekEarlier = await play(3);
+    const restored = await restoreSave(readSaveOf(game), { mode: 'expected' });
+    expect(restored.historyBefore).toHaveLength(3);
+    expect(JSON.stringify(restored.historyBefore)).toBe(JSON.stringify(weekEarlier.state.history));
+  });
+
   test('it reports each week as it replays, so the screen can say how far it has got', async () => {
     const game = await play(3);
     const seen = [];
