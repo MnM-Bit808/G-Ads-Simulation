@@ -3785,6 +3785,14 @@ live decisions, this is one fixed account making no decisions after round 0 — 
 nothing here shows the spread widened. A matched before-and-after would be needed
 to claim that, and it has not been run.
 
+**What the player sees, since 2026-09-15.** Order confirmation now moves the
+prepaid card's "Refusals" figure from the week it goes live, by the ladder's own
+effect (1.25 at the top rung), because the card asks the round's arithmetic
+rather than a formula of its own (I34). Until then the card read the same with
+or without it. Nothing on screen names order confirmation as the cause: the
+figure drops in its live week and says no more, so HANDOVER's "no surface at all"
+is narrowed to that, not closed.
+
 ### I30. Photography climbs a longer, shallower ladder — `FIXED, and not fully`
 
 I29's measurement found that **photography was worth 5.4x the next best target in
