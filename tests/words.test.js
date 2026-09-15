@@ -34,6 +34,7 @@ import { WEEK } from '../ui/words/week.js';
 import { TYPED } from '../ui/words/typed.js';
 import { MONEY } from '../ui/words/money.js';
 import { RESULTS, TARGET_WORDS } from '../ui/words/results.js';
+import { GUIDE } from '../ui/words/guide.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -760,6 +761,23 @@ describe('a card that has moved draws, and no longer writes', () => {
   });
 });
 
+describe('the Guide page says its own labels whole (ui/words/guide.js)', () => {
+  // The Guide as a page (the owner's choice, 2026-09-15, design/guide/).
+  const FIGURES = { n: 4, of: 13, title: 'Lost to rank, or lost to budget' };
+
+  test('each renders with the figures it is given', () => {
+    for (const [name, entry] of Object.entries(GUIDE)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN/);
+    }
+    expect(GUIDE.chapterOf(FIGURES)).toBe('Chapter 4 of 13');
+    expect(GUIDE.numbered(FIGURES)).toBe('4 · Lost to rank, or lost to budget');
+  });
+
+  test('the contents\' introduction counts no chapters, so a new one cannot make it wrong', () => {
+    expect(GUIDE.intro()).not.toMatch(/\d|thirteen|twelve|fourteen/i);
+  });
+});
+
 describe('the new screens draw, and do not write', () => {
   // A "word" here must hold two letters in a row, so icon paths and class
   // lists are not counted.
@@ -767,7 +785,7 @@ describe('the new screens draw, and do not write', () => {
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
     'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js', 'ui/money/render.js',
-    'ui/returns/render.js', 'ui/rivals/render.js', 'ui/results/render.js'];
+    'ui/returns/render.js', 'ui/rivals/render.js', 'ui/results/render.js', 'ui/guide/page.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

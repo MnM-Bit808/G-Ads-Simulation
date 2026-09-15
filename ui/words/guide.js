@@ -1,5 +1,6 @@
 /**
- * The field guide's own labels: the drawer's chrome and the "why?" that opens it.
+ * The field guide's own labels: the drawer's chrome, the "why?" that opens it,
+ * and the Studio's Guide page (ui/guide/page.js).
  *
  * Kept here rather than in `ui/guide/drawer.js` for the same reason every card's
  * words are: `tests/words.test.js` holds this folder to its rules, and the
@@ -21,4 +22,14 @@ export const GUIDE = Object.freeze({
   // The Studio's: what it marks is often one part of a section, not a card.
   showAccount: line('label', 'Show me in your account'),
   next: line('label', ({ title }) => `Next: ${title}`),
+
+  // The Guide as a page, in the Studio (the owner's choice, 2026-09-15,
+  // design/guide/): the contents, and one chapter at a time.
+  intro: line('reading', 'Each chapter comes in two halves: what real Google Ads does, and what this game '
+    + 'does and where it departs. Read them in order, or open the one beside whatever you are looking at: '
+    + 'a “why?” anywhere in the game opens its chapter in a drawer beside you.'),
+  chapterOf: line('label', ({ n, of }) => `Chapter ${n} of ${of}`),
+  explains: line('label', 'Explains:'),
+  readBeside: line('label', 'Read beside it:'),
+  numbered: line('label', ({ n, title }) => `${n} · ${title}`),
 });

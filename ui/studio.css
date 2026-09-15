@@ -1089,6 +1089,63 @@ body.studio .rs-choice strong { font-size: 14px; }
   body.studio .rs-brandline { grid-column: 2 / -1; }
 }
 
+/* --- the Guide as a page (design/guide/, the owner's choice 2026-09-15) --- */
+/* The Guide area's list: a chapter's number sits where a section has its
+   icon, ringed as round 0's steps are and filled red on the one being read,
+   and a long title wraps rather than running under the next. */
+body.studio .studio-item.studio-chapter { align-items: flex-start; height: auto; min-height: 42px; padding-top: 10px; padding-bottom: 10px; line-height: 1.3; }
+body.studio .studio-num { display: grid; flex-shrink: 0; place-items: center; width: 22px; height: 22px; margin-top: -2px; border: 1.5px solid #4A454F; border-radius: 50%; box-sizing: border-box; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--studio-muted); }
+body.studio .studio-item[aria-current="true"] .studio-num { border-color: var(--studio-red); background: var(--studio-red); color: var(--studio-on-red); }
+body.studio .studio-title[tabindex="-1"]:focus { outline: none; }
+body.studio .studio-title[tabindex="-1"]:focus-visible { outline: 2px solid var(--studio-red-text); outline-offset: 4px; }
+
+/* Sized by the page's own width, as every section is. */
+body.studio .gb { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .gb-intro { max-width: 760px; margin: 0; font-size: 14px; line-height: 1.5; color: var(--studio-soft); }
+
+/* the contents: a card a chapter, its first sentence cut at three lines */
+body.studio .gb-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+body.studio .gb-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 18px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); color: var(--studio-text); text-align: left; }
+body.studio .gb-card:hover { border-color: var(--studio-line-strong); }
+body.studio .gb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+body.studio .gb-num { font: 800 22px/1 var(--studio-display); font-variant-numeric: tabular-nums; color: var(--studio-faint); }
+body.studio .gb-where { font-size: 11px; line-height: 1.3; color: var(--studio-muted); text-align: right; }
+body.studio .gb-name { font: 700 17px/1.2 var(--studio-display); }
+body.studio .gb-opening { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+
+/* a chapter: where it sits, its two halves, what to read beside it */
+body.studio .gb-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 13px; color: var(--studio-muted); }
+body.studio .gb-explains b { font-weight: 700; color: var(--studio-text); }
+body.studio .gb-show { padding: 7px 14px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 13px; font-weight: 600; color: var(--studio-soft); }
+body.studio .gb-show:hover { border-color: var(--studio-faint); color: var(--studio-text); }
+body.studio .gb-halves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+body.studio .gb-half { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .gb-half h3 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .gb-half p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--studio-soft); }
+body.studio .gb-sources { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px solid var(--studio-line); font-size: 12px; line-height: 1.4; }
+body.studio .gb-sources span { font-size: 11px; color: var(--studio-faint); }
+body.studio .gb-sources a { color: var(--studio-red-text); text-underline-offset: 3px; }
+body.studio .gb-sources a:hover { color: #FF8A8E; }
+body.studio .gb-related { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: var(--studio-faint); }
+body.studio .gb-chip { padding: 4px 11px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 12px; color: var(--studio-soft); }
+body.studio .gb-chip:hover { border-color: var(--studio-faint); color: var(--studio-text); }
+body.studio .gb-turns { display: flex; justify-content: space-between; gap: 16px; padding-top: 14px; border-top: 1px solid #26232A; }
+body.studio .gb-turn { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--studio-soft); text-align: left; }
+body.studio .gb-turns > .gb-turn:last-child { font-weight: 700; color: var(--studio-red-text); text-align: right; }
+body.studio .gb-turn .studio-icon { flex-shrink: 0; width: 16px; height: 16px; }
+
+/* A page under 1000px wide (a 1280px laptop's is about 900): three cards to a
+   row. Under 720px (a tablet) two, and the halves stack; on a phone, one card. */
+@container (max-width: 1000px) { body.studio .gb-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container (max-width: 720px) {
+  body.studio .gb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .gb-halves { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 440px) {
+  body.studio .gb-grid { grid-template-columns: minmax(0, 1fr); }
+  body.studio .gb-half { padding: 14px; }
+}
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */

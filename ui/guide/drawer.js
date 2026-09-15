@@ -106,10 +106,16 @@ function button(className, label, onClick, iconPaths = null, iconAfter = false) 
  *   Studio while the section holding it is locked
  * @param {() => boolean} [options.inStudio] - whether the Studio look is on,
  *   asked as a chapter opens: it points at the Studio's part, in its words
+ * @param {() => boolean} [options.contentsPage] - opens the Studio's Guide page
+ *   at its contents, and says whether it could; the classic look and round 0
+ *   have no page, so the drawer shows its own list there
  * @returns {{node: HTMLElement, open: (id: string, opener?: Element) => void,
- *   openContents: (opener?: Element) => void, close: () => void}}
+ *   openContents: (opener?: Element) => void, close: () => void, showCard: (slot: string) => void}}
+ *   `showCard` is Show me, which the Guide page uses too
  */
-export function createGuide({ figures, reveal: revealCard = null, canShowCard = () => true, inStudio = () => false }) {
+export function createGuide({
+  figures, reveal: revealCard = null, canShowCard = () => true, inStudio = () => false, contentsPage = () => false,
+}) {
   const node = el('aside', 'card guide');
   node.id = 'field-guide';
   node.hidden = true;
@@ -123,8 +129,14 @@ export function createGuide({ figures, reveal: revealCard = null, canShowCard = 
   const tools = el('div', 'guide-tools');
   const closeButton = button('ghost guide-icon', null, () => close(), ICONS.close);
   closeButton.setAttribute('aria-label', GUIDE.close());
+  // In the Studio the book is a page of its own (the owner's choice,
+  // 2026-09-15), so Contents opens that rather than a second, narrower list.
+  const toContents = () => {
+    if (contentsPage()) close({ restoreFocus: false });
+    else openContents();
+  };
   tools.append(
-    button('ghost', GUIDE.contents(), () => openContents(), ICONS.contents),
+    button('ghost', GUIDE.contents(), toContents, ICONS.contents),
     closeButton,
   );
   top.append(el('span', 'guide-label', GUIDE.name()), tools);
@@ -243,7 +255,7 @@ export function createGuide({ figures, reveal: revealCard = null, canShowCard = 
     if (event.key === 'Escape' && !node.hidden) close();
   });
 
-  return { node, open, openContents, close };
+  return { node, open, openContents, close, showCard };
 }
 
 /**

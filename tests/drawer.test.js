@@ -83,6 +83,21 @@ describe('"Show me" marks what it lands on, in the Studio too', () => {
   });
 });
 
+// The Guide as a page (the owner's choice, 2026-09-15): in the Studio the
+// book is a page of its own, so the drawer's Contents opens that rather than
+// a second, narrower contents; "why?" still opens the drawer.
+describe('in the Studio, the drawer\'s Contents opens the Guide page', () => {
+  test('it asks for the page first, and keeps its own list for the classic look and round 0', () => {
+    const source = read('ui/guide/drawer.js');
+    expect(source).toMatch(/if \(contentsPage\(\)\) close\(\{ restoreFocus: false \}\);\s*else openContents\(\);/);
+  });
+
+  test('the page opens a part through the drawer\'s own Show me, so both mark it the same way', () => {
+    expect(read('ui/guide/drawer.js')).toMatch(/return \{ node, open, openContents, close, showCard \};/);
+    expect(read('ui/app.js')).toContain('showCard: guide.showCard');
+  });
+});
+
 describe('the player sees sources, never the ledger', () => {
   test.each(CONTENTS)('%s carries no DECISIONS citation', (id) => {
     const view = guideView(id, FIGURES);

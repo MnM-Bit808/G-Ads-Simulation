@@ -29,6 +29,10 @@ import { renderMoneySection } from '../money/render.js';
 import { renderReturnsSection } from '../returns/render.js';
 import { renderRivalsSection } from '../rivals/render.js';
 import { renderResults } from '../results/render.js';
+import { CHAPTERS } from '../guide/chapters.js';
+import { chapterList } from '../guide/book.js';
+import { renderGuidePage } from '../guide/page.js';
+import { GUIDE } from '../words/guide.js';
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
@@ -43,11 +47,13 @@ const LIST_BEHIND_MENU = '(max-width: 900px)';
  * @param {object} deps
  * @param {() => Promise<void>} deps.onRun - runs the week and redraws
  * @param {() => void} deps.onRedo
- * @param {Function} deps.openGuide - `guide.open`
- * @param {(trigger: HTMLElement) => void} deps.openContents
+ * @param {Function} deps.openGuide - `guide.open`, for every "why?"
+ * @param {(slot: string) => void} deps.showCard - `guide.showCard`, the Guide
+ *   page's Show me
+ * @param {Readonly<Record<string, string>>} deps.figures - from `guideFigures()`
  * @param {(() => void)|null} [deps.onPlaytest]
  */
-export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytest = null }) {
+export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPlaytest = null }) {
   if (!document.getElementById('studio-sections')) {
     const style = el('style');
     style.id = 'studio-sections';
@@ -60,6 +66,9 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     resultsShown: false, firstOpen: null, dotsShown: new Set(),
     // The week whose revision Your week has played (spec section 3, row 2).
     revisionFor: 0,
+    // Where the Guide area is open: 'contents' or a chapter's id. Kept while
+    // the player is elsewhere, so the rail's Guide goes back to it.
+    chapter: 'contents',
   };
   let game = null;
   let ctx = null;
@@ -96,6 +105,12 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
   const content = el('div', 'studio-content');
   section.append(title, content);
   body.append(section);
+  // The Guide area (the owner's choice, 2026-09-15, design/guide/): the field
+  // guide as a book, a chapter at a time. A link on the page turns it and
+  // puts focus at the top, where a turned page starts.
+  const guidePage = renderGuidePage({
+    figures, onOpen: (id) => openChapter(id, { focus: true }), showSlot: showCard, canShow: canReveal,
+  });
 
   const tray = el('div', 'studio-tray');
   tray.dataset.region = 'Tray';
@@ -129,7 +144,7 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       b.setAttribute('aria-current', String(view.area === area.key));
       b.disabled = area.key === 'results' && played() < TOTAL_ROUNDS;
       b.addEventListener('click', () => {
-        if (area.key === 'guide') { openContents(b); return; }
+        if (area.key === 'guide') { openChapter(view.chapter); return; }
         open(sectionsIn(area.key)[0].key);
       });
       rail.append(b);
@@ -152,6 +167,18 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
       list.append(redo);
     }
     list.append(el('p', 'studio-area-title', AREAS.find((a) => a.key === view.area).title));
+    if (view.area === 'guide') {
+      // Contents, then each chapter by its number where a section has its icon;
+      // chapters carry no dot, since reading one is never news.
+      for (const c of [{ id: 'contents', n: null, title: GUIDE.contents() }, ...chapterList()]) {
+        const mark = c.n ? el('span', 'studio-num', String(c.n)) : icon(ICONS.guide);
+        const item = button('studio-item studio-chapter', mark, el('span', 'grow', c.title));
+        item.setAttribute('aria-current', String(view.chapter === c.id));
+        item.addEventListener('click', () => openChapter(c.id));
+        list.append(item);
+      }
+      return;
+    }
     // A dot's entrance is spent only where it can be seen: on a phone the list
     // sits behind the menu, and the entrance waits for the menu to open. Asked
     // of the width, not the page: the first draw happens before the shell is on it.
@@ -203,6 +230,14 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
   }
 
   function drawSection() {
+    if (view.area === 'guide') {
+      title.textContent = view.chapter === 'contents' ? GUIDE.name() : CHAPTERS[view.chapter].title;
+      section.dataset.region = title.textContent;
+      section.classList.remove('first-open');
+      content.replaceChildren(guidePage.node(view.chapter));
+      body.scrollTop = 0;
+      return;
+    }
     const s = SECTIONS.find((x) => x.key === view.section);
     const st = sectionState(s, args());
     title.textContent = s.label;
@@ -365,6 +400,24 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     drawAll();
   }
 
+  /**
+   * Open the Guide area at 'contents' or a chapter. Asked from the page's own
+   * links, focus goes to the title, so a keyboard player starts the new chapter
+   * at its top rather than on a link that is no longer there.
+   */
+  function openChapter(id, { focus = false } = {}) {
+    if (view.area !== 'guide' && view.section === 'keywords') keywords?.leave();
+    view.area = 'guide';
+    view.chapter = id;
+    view.menuOpen = false;
+    view.firstOpen = null;
+    drawAll();
+    if (focus) {
+      title.tabIndex = -1;
+      title.focus({ preventScroll: true });
+    }
+  }
+
   async function runWeek() {
     if (running || played() >= TOTAL_ROUNDS) return;
     running = true;
@@ -438,5 +491,5 @@ export function createStudio({ onRun, onRedo, openGuide, openContents, onPlaytes
     drawTray();
   }
 
-  return { node, draw, reveal, canReveal, open, setTrayOverride };
+  return { node, draw, reveal, canReveal, open, openChapter, setTrayOverride };
 }

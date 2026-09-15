@@ -66,13 +66,20 @@ let studio = null;
  * Field guide button all open this one drawer. In the Studio layout, "show me
  * on the card" first opens the section the card sits in, and before week 1,
  * when there is no card, it is not offered; nor, in the Studio, while the
- * section is still locked.
+ * section is still locked. The Studio's Guide page reads the same chapters
+ * with the same figures, and its Contents is that page.
  */
+const GUIDE_FIGURES = guideFigures();
 const guide = createGuide({
-  figures: guideFigures(),
+  figures: GUIDE_FIGURES,
   reveal: (slot) => studio?.reveal(slot) ?? false,
   canShowCard: (slot) => Boolean(game) && (studio ? studio.canReveal(slot) : true),
   inStudio: () => look === 'studio',
+  contentsPage: () => {
+    if (!studio || !game) return false;
+    studio.openChapter('contents');
+    return true;
+  },
 });
 document.body.append(guide.node);
 guideButton.addEventListener('click', () => guide.openContents(guideButton));
@@ -371,7 +378,8 @@ function render() {
       onRun: runWeek,
       onRedo: redo,
       openGuide: guide.open,
-      openContents: (trigger) => guide.openContents(trigger),
+      showCard: guide.showCard,
+      figures: GUIDE_FIGURES,
       onPlaytest: recorder ? sendPlaytestFile : null,
     });
     // After the last week the shell draws Results itself (ui/results/render.js,
