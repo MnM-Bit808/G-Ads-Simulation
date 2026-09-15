@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  POLICIES, controllerFor, disciplined, affordableCpcPaise,
+  POLICIES, controllerFor, disciplined, affordableCpcPaise, locationTilt,
   capitalWindow, investment, DISCIPLINED_BUDGET_BOUND,
 } from '../agents/policies.js';
 import { playGame, playRound } from '../game.js';
@@ -160,6 +160,44 @@ describe('disciplined estimates what it is not told', () => {
     const early = affordableCpcPaise(getSelfView(STATE, PLAYER_ID), null);
     const later = affordableCpcPaise(getSelfView(finalState, PLAYER_ID), null);
     expect(later).not.toBe(early);
+  });
+});
+
+describe('where a rival bids, read off every week it has played (G4, C9)', () => {
+  // Three places, the same clicks and the same gross per click in each, and the
+  // towns sending back four times what the metros do. A week at a time.
+  const week = (round, returned) => ({
+    round,
+    breakdown: {
+      byLocation: Object.fromEntries([0, 1, 2].map((tier) => [tier, {
+        clicks: 100, grossRevenuePaise: 10000, returnedRevenuePaise: returned[tier],
+      }])),
+    },
+  });
+  const self = { ...getSelfView(STATE, PLAYER_ID), round: 4 };
+
+  test('reading net, it bids the towns down for what they send back', () => {
+    const history = [week(1, [1000, 2000, 4000]), week(2, [1000, 2000, 4000]), week(3, [0, 0, 0])];
+    const [metros, , towns] = locationTilt(self, history);
+    expect(towns).toBeLessThan(0);
+    expect(metros).toBeGreaterThan(0);
+  });
+
+  test('reading gross, it cannot tell the places apart', () => {
+    // grossOptimiser: section 14's missing subtraction, applied to geography.
+    const history = [week(1, [1000, 2000, 4000]), week(2, [1000, 2000, 4000])];
+    expect(locationTilt(self, history, undefined, { net: false })).toEqual([0, 0, 0]);
+  });
+
+  test('and with nothing yet come back, the two readings agree', () => {
+    // Which is why a net reader leans like a gross one for its first weeks,
+    // and only parts company as the towns' returns arrive.
+    const history = [week(1, [0, 0, 0]), week(2, [0, 0, 0])];
+    expect(locationTilt(self, history)).toEqual(locationTilt(self, history, undefined, { net: false }));
+  });
+
+  test('week 1 has no history to read, so it leaves the places alone', () => {
+    expect(locationTilt({ ...self, round: 1 }, [])).toBeNull();
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from 'vitest';
-import { controllerFor, affordableCpcPaise } from '../agents/policies.js';
+import { controllerFor, disciplined, affordableCpcPaise } from '../agents/policies.js';
 import { playMarket } from '../scripts/market-harness.js';
 
 /**
@@ -58,5 +58,17 @@ describe('what a rival learns in a played game (C9)', { timeout: 120_000 }, () =
     expect(late.filter((c) => carriesReturns(c.handed)), 'no rival was handed a single return').not.toEqual([]);
     const moved = late.filter((c) => affordableCpcPaise(c.handed[0], c.handed[3]) !== affordableCpcPaise(c.handed[0]));
     expect(moved.length, 'every late belief is still the briefing\'s 0.40').toBeGreaterThan(0);
+  });
+
+  test('grossOptimiser, reading gross, places its bids unlike disciplined, reading net', () => {
+    // Same week, same account, two readings: the only difference between the
+    // two is whether returns are subtracted. Once returns have come back the
+    // towns, which return half again as often as the metros (G4), must read
+    // worse net than gross.
+    const gross = seen.filter((c) => c.policyId === 'grossOptimiser' && c.round >= 6);
+    expect(gross.length, 'no grossOptimiser in this market').toBeGreaterThan(0);
+    const differ = gross.filter((c) => JSON.stringify(disciplined(...c.handed).campaign.locationAdjustments)
+      !== JSON.stringify(c.decision.campaign.locationAdjustments));
+    expect(differ.length, 'net and gross place bids are identical every week').toBeGreaterThan(0);
   });
 });

@@ -286,7 +286,7 @@ const LOCATION_MIN_CLICKS = 40;
  *
  * IT LEARNS THIS, IT IS NOT TOLD IT. `policies.js` imports nothing from
  * `engine/` - that is what makes its guard absolute - so a policy cannot read
- * the table that says where its buyers are. It has only its own report, which
+ * the table that says where its buyers are. It has only its own reports, which
  * is exactly what the player has. Anything a policy knows, it was handed.
  *
  * WHAT IT READS IS NET OF RETURNS, and that is the whole reason this is worth
@@ -297,26 +297,45 @@ const LOCATION_MIN_CLICKS = 40;
  * towns actually cost it. That lag IS the lesson, and a rival experiences it on
  * the same terms the player does.
  *
+ * EVERY WEEK PLAYED, SUMMED, as the player's own place card sums them. A
+ * week's returns are written back into it two to five weeks later, so the sum
+ * is net of whatever has come back so far and no more. It used to read the
+ * week just played, which never carries a return, so reading net and reading
+ * gross came to the same thing in every game, and `grossOptimiser` had no
+ * geography of its own (C9).
+ *
  * Tiers with too little traffic to mean anything are left alone rather than
- * guessed at, which keeps a rival from abandoning a location on one thin week.
+ * guessed at, which keeps a rival from abandoning a location on thin evidence.
  *
  * @param {object} self own view
- * @param {object|null} report own report, or null in round 1
+ * @param {object[]} history own reports, every week played, as revised; empty in round 1
  * @param {number} lean how hard this character leans, as a percentage
  * @returns {number[]|null} adjustments, or null to leave them alone
  */
-export function locationTilt(self, report, lean = LOCATION_LEAN, { net = true } = {}) {
+export function locationTilt(self, history, lean = LOCATION_LEAN, { net = true } = {}) {
   const current = self.campaign?.locationAdjustments;
   if (!Array.isArray(current)) return null;
 
-  const rows = report?.breakdown?.byLocation;
-  if (!rows) return null;
+  const rows = current.map(() => ({ clicks: 0, grossRevenuePaise: 0, returnedRevenuePaise: 0 }));
+  let weeks = 0;
+  for (const week of history ?? []) {
+    const byLocation = week.breakdown?.byLocation;
+    if (!byLocation) continue;
+    weeks += 1;
+    for (const [tier, row] of Object.entries(byLocation)) {
+      const at = rows[Number(tier)];
+      if (!at) continue;
+      at.clicks += row.clicks ?? 0;
+      at.grossRevenuePaise += row.grossRevenuePaise ?? 0;
+      at.returnedRevenuePaise += row.returnedRevenuePaise ?? 0;
+    }
+  }
+  if (weeks === 0) return null;
 
   // Net of returns, per click. The two things location changes are the basket
   // and the return rate, so this is the only figure that sees both.
-  const value = current.map((_, tier) => {
-    const row = rows[tier];
-    if (!row || row.clicks < LOCATION_MIN_CLICKS) return null;
+  const value = rows.map((row) => {
+    if (row.clicks < LOCATION_MIN_CLICKS) return null;
     // `net: false` is not a bug, it is a character. `grossOptimiser` manages to
     // gross profit and therefore reads gross revenue here too - so it sees the
     // metros' bigger baskets, leans into them, and never learns what the towns
@@ -362,10 +381,10 @@ function disciplinedAccount(self, report, view, history = []) {
   ];
 
   // Where, as well as how much. A disciplined advertiser reads its own location
-  // report the way it reads its search terms report - and it is reading net of
+  // report the way it reads its search terms report - over every week, net of
   // returns, so it leans toward the metros first and corrects once the towns
   // start sending things back.
-  const locationAdjustments = locationTilt(self, report);
+  const locationAdjustments = locationTilt(self, history);
 
   const prepaid = prepaidNudge(self, report);
 
@@ -534,7 +553,7 @@ function spenderAccount(self, report, view, history = []) {
   const affordable = affordableCpcPaise(self, history);
   // Leans harder than anyone on the same reading everybody else gets. It is not
   // better informed, it is less patient.
-  const locationAdjustments = locationTilt(self, report, SPENDER_LOCATION_LEAN);
+  const locationAdjustments = locationTilt(self, history, SPENDER_LOCATION_LEAN);
 
   return {
     // Negatives stay empty, every round. That is the whole character.
@@ -590,7 +609,7 @@ function cautiousAccount(self, report, view, history = []) {
   // Half the lean of anybody else. Being frightened of a wrong move is this
   // account's whole character, and it costs it here the same way it costs it on
   // price: it is never badly placed and never well placed either.
-  const locationAdjustments = locationTilt(self, report, CAUTIOUS_LOCATION_LEAN);
+  const locationAdjustments = locationTilt(self, history, CAUTIOUS_LOCATION_LEAN);
 
   // It will creep upward, but only on overwhelming evidence, and never past
   // half of what it can afford.
@@ -699,7 +718,7 @@ function paramsFor(strategy, self, affordable, report) {
  * wrong number. A rival that were both sloppy AND gross-optimising would
  * confound the two lessons.
  */
-function grossOptimiserAccount(self, report, view) {
+function grossOptimiserAccount(self, report, view, history = []) {
   const affordable = grossAffordableCpcPaise(self);
   const target = Math.round(affordable * TARGET_MARGIN_OF_SAFETY);
 
@@ -713,8 +732,10 @@ function grossOptimiserAccount(self, report, view) {
   // Reads GROSS revenue per click, like everything else it manages to. So it
   // sees the metros' bigger baskets, leans into them, and never discovers what
   // the towns cost it - because the returns it is ignoring are the whole
-  // difference. Section 14's missing multiplication, applied to geography.
-  const locationAdjustments = locationTilt(self, report, LOCATION_LEAN, { net: false });
+  // difference. Section 14's missing multiplication, applied to geography. It
+  // leans exactly like `disciplined` until the towns' returns come back, and
+  // then only `disciplined` moves.
+  const locationAdjustments = locationTilt(self, history, LOCATION_LEAN, { net: false });
 
   const prepaid = prepaidNudge(self, report);
 
