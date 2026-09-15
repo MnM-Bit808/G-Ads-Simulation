@@ -5,6 +5,8 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { QUERY_SET } from '../content/querySet.js';
 import { startGame } from '../setup.js';
 import { playRound } from '../game.js';
@@ -185,6 +187,17 @@ describe('where the impressions went', () => {
 
   test('no impressions is no share anywhere, never a division by nothing', () => {
     expect(impressions(row()).positions).toEqual([0, 0, 0, 0]);
+  });
+});
+
+describe('what a screen reader hears', () => {
+  // The animation review, 2026-09-15: at opacity 0 the old bar and figure were
+  // still read out, so a week that moved sounded like two current figures.
+  test('where a week stood is drawn for the eye only: the change and the sentence say it in words', () => {
+    const source = readFileSync(fileURLToPath(new URL('../ui/week/render.js', import.meta.url)), 'utf8');
+    const drawn = source.match(/\S*el\('span', '[^']*(?:yw-was|yw-tick)[^']*'/g) ?? [];
+    expect(drawn).toHaveLength(3);
+    for (const call of drawn) expect(call, call).toMatch(/^forTheEye\(el\(/);
   });
 });
 

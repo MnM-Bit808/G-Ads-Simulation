@@ -94,6 +94,16 @@ function atEnd(node, paise, range, gap) {
 }
 const figureGap = (paise) => (paise < 0 ? 2 : 4);
 
+/**
+ * Drawn for the eye only. Where a week stood stays on the page at opacity 0
+ * once it has given way, and a screen reader would read it as a second
+ * current figure; the change under the week and the sentence say it in words.
+ */
+function forTheEye(node) {
+  node.setAttribute('aria-hidden', 'true');
+  return node;
+}
+
 function zeroLine(range) {
   if (range.lowPaise === 0) return null;
   const line = el('span', 'yw-zero');
@@ -111,12 +121,12 @@ function column(b, range) {
   let figureAt = b.netPaise;
   let tick = null;
   if (b.moved) {
-    const was = el('span', 'yw-bar yw-was');
+    const was = forTheEye(el('span', 'yw-bar yw-was'));
     setBar(was, b.beforePaise, range);
-    const wasFigure = el('span', 'yw-value yw-was', money(b.beforePaise));
+    const wasFigure = forTheEye(el('span', 'yw-value yw-was', money(b.beforePaise)));
     atEnd(wasFigure, b.beforePaise, range, figureGap(b.beforePaise));
     plot.append(was, wasFigure);
-    tick = el('span', 'yw-tick');
+    tick = forTheEye(el('span', 'yw-tick'));
     atEnd(tick, b.beforePaise, range, -1);
     const sameSide = (b.beforePaise < 0) === (b.netPaise < 0);
     if (sameSide && Math.abs(b.beforePaise) > Math.abs(b.netPaise)) figureAt = b.beforePaise;
