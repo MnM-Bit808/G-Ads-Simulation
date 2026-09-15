@@ -59,3 +59,100 @@ export const RETURNS = Object.freeze({
     : `Only weeks ${first} to ${last} are counted above; `)
     + 'the rest are still arriving and will read better than they are.', { why: 'attributionLag' }),
 });
+
+/** The two capital targets on returns, as a sentence names them, and the half each reaches (I28, I29). */
+const TARGETS = Object.freeze({
+  orderConfirmation: ['Order confirmation', 'order confirmation', 'refusals'],
+  sizeGuide: ['The size guide', 'the size guide', 'send-backs'],
+});
+const HALVES = Object.freeze({ refused: 'Refused', sentBack: 'Sent back' });
+const VERBS = Object.freeze({ fell: 'fell', rose: 'rose' });
+const weeksOf = (from, to) => (from === to ? `week ${from}` : `weeks ${from} to ${to}`);
+
+/**
+ * The Studio's Returns (design/returns/, chosen by the owner 2026-09-15). The
+ * figures it shares with the classic card keep that card's words (RETURNS);
+ * these are the ones it adds.
+ */
+export const RETURNS_STUDIO = Object.freeze({
+  // The five figures.
+  refusedAtDoor: line('label', 'Refused at the door'),
+  freightSub: line('label', ({ perParcel }) => `${perParcel} a refused parcel, all weeks`),
+  paidAtDoor: line('label', 'Paid at the door', { why: 'cashOnDelivery' }),
+  paidAtDoorSub: line('label', 'where your clicks came from'),
+  counted: line('reading', ({ from, to, settlesAfter }) => (from === to
+    ? `Week ${from} is counted`
+    : `Weeks ${from} to ${to} are counted`) + `: a week settles ${settlesAfter} weeks after it runs.`,
+  { why: 'attributionLag' }),
+
+  // Week by week.
+  chartTitle: line('label', 'Week by week'),
+  keyStill: line('label', 'still coming back'),
+  markLive: line('label', ({ target }) => `${TARGETS[target][1]} live`),
+  markLater: line('label', ({ target }) => `${TARGETS[target][1]} from here`),
+  column: line('label', ({ week, refused, sentBack, still }) => (still
+    ? `Week ${week}, still coming back: ${refused} refused and ${sentBack} sent back so far`
+    : `Week ${week}: ${refused} refused and ${sentBack} sent back`)),
+  step: line('reading', ({ half, direction, before, after, from, to, week, target, otherBefore, otherAfter }) => {
+    const other = HALVES[half === 'refused' ? 'sentBack' : 'refused'];
+    const name = TARGETS[target][1];
+    const change = direction === 'held'
+      ? `${HALVES[half]} held at ${after} of orders from week ${week}, when ${name} went live, as in ${weeksOf(from, to)}.`
+      : `${HALVES[half]} ${VERBS[direction]} from ${before} of orders in ${weeksOf(from, to)} to ${after} from week `
+        + `${week}, when ${name} went live.`;
+    return `${change} ${other}, which it does not reach, went from ${otherBefore} to ${otherAfter}.`;
+  }),
+  onlyOne: line('reading', ({ from, refused, sentBack }) =>
+    `Only week ${from} has settled: ${refused} of its orders refused and ${sentBack} sent back.`),
+  plain: line('reading', ({ from, to, refused, sentBack }) =>
+    `Over weeks ${from} to ${to}, ${refused} of orders were refused at the door and ${sentBack} sent back.`),
+  stillComing: line('reading', ({ next, latest }) => (next === latest
+    ? `Week ${latest} is still coming back, so it reads lower than it will end.`
+    : `Weeks ${next} to ${latest} are still coming back, so they read lower than they will end.`)),
+
+  // The prepaid discount.
+  prepaidTitle: line('label', 'Prepaid discount'),
+  prepaidSub: line('label', 'money off a prepaid order, so fewer of your buyers pay at the door',
+    { why: 'cashOnDelivery' }),
+  none: line('label', 'none'),
+  noneLine: line('reading', ({ rate }) => `No discount: about ${rate} of next week's orders refused.`),
+  noneShape: line('reading', 'The rungs get worse as they get bigger: the first does most of the work.'),
+  pickHint: line('instruction', 'Pick one to see what it saves and what it costs.'),
+  // A forecast of next week, not the weeks counted above, and it says so: the
+  // review of the canvas found it read as a second, different refusal rate.
+  rungRate: line('reading', ({ none, at, rung, fewer }) =>
+    `Next week about ${none} of orders refused with no discount, ${at} at ${rung}: ${fewer} fewer.`),
+  saves: line('label', ({ amount }) => `Saves about ${amount} a week`),
+  savesSub: line('label', ({ parcels, freight, margin }) =>
+    `${parcels} refused parcels kept, each ${freight} of freight and ${margin} of margin`),
+  costs: line('label', ({ amount }) => `Costs about ${amount} a week`),
+  costsSub: line('label', ({ rung, orders }) =>
+    `${rung} off about ${orders} prepaid orders, the ones already paying first included`),
+  rungFoot: line('reading', ({ orders, from, to }) => (from === to
+    ? `At the ${orders} orders week ${from} had.`
+    : `At the ${orders} orders a week that weeks ${from} to ${to} averaged.`)),
+
+  // What else moves it.
+  leversTitle: line('label', 'What else moves it'),
+  placeHead: line('label', 'Where you advertise'),
+  bothHalves: line('label', 'reaches both halves'),
+  colRefused: line('label', 'refused'),
+  colSentBack: line('label', 'sent back'),
+  colPaidAtDoor: line('label', 'paid at door'),
+  blockHead: line('label', 'Blocking a search'),
+  blockText: line('reading', 'A search whose orders come back more than the rest of your account\'s is marked, '
+    + 'with Block beside it.'),
+  capitalHead: line('label', 'Capital'),
+  oneHalfEach: line('label', 'one half each'),
+  capitalOpen: line('reading', 'Open this week, in Your money.'),
+  capitalLater: line('reading', ({ window }) => `Shut, and it opens again ${window}.`),
+  capitalClosed: line('reading', 'Closed for the rest of the game.'),
+  capitalTarget: line('reading', ({ target, rung, since, later, laterWeek }) => {
+    const [name, , reach] = TARGETS[target];
+    const head = `${name}, which reaches ${reach} only: `;
+    if (!rung && !later) return `${head}nothing built.`;
+    const now = rung ? `${rung}, live since week ${since}` : '';
+    const next = later ? `${later} from week ${laterWeek}` : '';
+    return `${head}${[now, next].filter(Boolean).join(', rising to ')}.`;
+  }),
+});

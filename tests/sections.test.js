@@ -61,6 +61,15 @@ describe('every card on today\'s page has one place in the new layout', () => {
     }
   });
 
+  test('Returns draws its own figures, weeks, discount and levers, so the guide can still open it', () => {
+    for (const slot of ['returns', 'prepaid']) {
+      expect(RETIRED_SLOTS, slot).toContain(slot);
+      expect(sectionOf(slot).key, slot).toBe('returns');
+    }
+    expect(entranceSlots(SECTIONS.find((s) => s.key === 'returns')))
+      .toEqual(['returns-figures', 'returns', 'prepaid', 'returns-levers']);
+  });
+
   test('Your week draws its own figures, chart and impressions, so the guide can still open all three', () => {
     for (const slot of ['headline', 'share', 'revised']) {
       expect(RETIRED_SLOTS, slot).toContain(slot);

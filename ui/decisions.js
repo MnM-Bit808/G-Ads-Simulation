@@ -41,6 +41,7 @@ import { CAPITAL } from './words/capital.js';
 import { FORM } from './words/form.js';
 import { whyButton } from './guide/drawer.js';
 import { LOCATIONS } from '../content/locations.js';
+import { codShareFor } from '../engine/locations.js';
 import { moneyBlock } from '../engine/report.js';
 import { allocate } from '../engine/money.js';
 import {
@@ -2175,14 +2176,47 @@ function ownRoasHint(ctx) {
  * @returns {{now: number, none: number}} refusals per order, 0..1
  */
 export function prepaidOutlook(draft, rows) {
-  const clicks = rows.map((r) => r.clicks ?? 0);
-  const placeWeights = clicks.some((c) => c > 0)
-    ? clicks
-    : LOCATION_TIERS.map((_, i) => (i === LOCATION_TIERS.length - 1 ? 1 : 0));
+  const placeWeights = placeWeightsOf(rows);
   const at = (discountPaise) => refusalOutlook({
     position: draft.position, capex: draft.capexBlock, round: draft.round, discountPaise, placeWeights,
   });
   return { now: at(draft.prepaidDiscountPaise), none: at(0) };
+}
+
+/** Where the account bought clicks, or the towns before it has bought any (see above). */
+function placeWeightsOf(rows) {
+  const clicks = rows.map((r) => r.clicks ?? 0);
+  return clicks.some((c) => c > 0)
+    ? clicks
+    : LOCATION_TIERS.map((_, i) => (i === LOCATION_TIERS.length - 1 ? 1 : 0));
+}
+
+/**
+ * Every rung of the discount, each with next week's refusal rate and the share
+ * of orders it would be paid on: the Studio's Returns draws what a rung saves
+ * against what it costs from these (design/returns/, chosen 2026-09-15).
+ *
+ * THE SAME TWO FUNCTIONS THE ROUND USES. The refusal rate is `prepaidOutlook`'s,
+ * at the same places; the prepaid share is `codShareFor`'s, which the round
+ * charges the discount through, on every prepaid order, the ones already
+ * paying first included (I34).
+ *
+ * @param {object} draft from `createDraft`
+ * @param {object[]} rows from `locationRows`, one per location tier
+ * @returns {Array<{paise: number, shifted: number, refusal: number, prepaidShare: number}>}
+ *   in the curve's order, the first rung none; rates 0..1
+ */
+export function prepaidRungs(draft, rows) {
+  const placeWeights = placeWeightsOf(rows);
+  const total = placeWeights.reduce((a, w) => a + w, 0);
+  return PREPAID_DISCOUNT_CURVE.map(({ paise, shifted }) => ({
+    paise,
+    shifted,
+    refusal: refusalOutlook({
+      position: draft.position, capex: draft.capexBlock, round: draft.round, discountPaise: paise, placeWeights,
+    }),
+    prepaidShare: placeWeights.reduce((a, w, t) => a + w * (1 - codShareFor(draft.position.price, t, paise)), 0) / total,
+  }));
 }
 
 /**

@@ -19,7 +19,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { line, KINDS } from '../ui/words/line.js';
-import { RETURNS } from '../ui/words/returns.js';
+import { RETURNS, RETURNS_STUDIO } from '../ui/words/returns.js';
 import { DEBRIEF } from '../ui/words/debrief.js';
 import { CAPITAL } from '../ui/words/capital.js';
 import { MARKET } from '../ui/words/market.js';
@@ -555,6 +555,76 @@ describe('Your money', () => {
   });
 });
 
+describe('Returns in the Studio', () => {
+  const FIGURES = {
+    perParcel: '₹200', from: 1, to: 3, settlesAfter: 5, target: 'orderConfirmation', week: 4, latest: 11,
+    next: 7, refused: '14.8%', sentBack: '24.0%', half: 'refused', direction: 'fell', before: '16.2%', after: '13.5%',
+    otherBefore: '23.7%', otherAfter: '24.3%', rate: '12.9%', none: '12.9%', at: '12.0%', rung: '₹30',
+    fewer: '6.6%', amount: '₹1,796', parcels: '1.2', freight: '₹200', margin: '₹1,247', orders: '145',
+    still: false, since: 4, later: '', laterWeek: 0, window: 'before week 5',
+  };
+  const entries = (object, prefix = '') => Object.entries(object).flatMap(([name, entry]) => (
+    typeof entry === 'function' ? [[`${prefix}${name}`, entry]] : entries(entry, `${name}.`)));
+
+  test('every entry is a line of a kind the screen may carry', () => {
+    for (const [name, entry] of entries(RETURNS_STUDIO)) expect(KINDS, name).toContain(entry.kind);
+  });
+
+  test('every why names a chapter that exists', () => {
+    for (const [name, entry] of entries(RETURNS_STUDIO)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), name).toContain(entry.why);
+    }
+  });
+
+  test('every entry renders without a hole in it', () => {
+    for (const [name, entry] of entries(RETURNS_STUDIO)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+    }
+  });
+
+  test('the step says what the investment did, and what the other half did over the same weeks', () => {
+    expect(RETURNS_STUDIO.step(FIGURES)).toBe('Refused fell from 16.2% of orders in weeks 1 to 3 to 13.5% from '
+      + 'week 4, when order confirmation went live. Sent back, which it does not reach, went from 23.7% to 24.3%.');
+    expect(RETURNS_STUDIO.step({
+      ...FIGURES, half: 'sentBack', direction: 'held', target: 'sizeGuide', from: 2, to: 2, after: '24.0%',
+      otherBefore: '15.0%', otherAfter: '14.1%',
+    })).toBe('Sent back held at 24.0% of orders from week 4, when the size guide went live, as in week 2. '
+      + 'Refused, which it does not reach, went from 15.0% to 14.1%.');
+  });
+
+  test('one week reads as one', () => {
+    expect(RETURNS_STUDIO.counted({ from: 1, to: 1, settlesAfter: 5 })).toBe('Week 1 is counted: a week settles '
+      + '5 weeks after it runs.');
+    expect(RETURNS_STUDIO.stillComing({ next: 6, latest: 6 })).toBe('Week 6 is still coming back, so it reads lower '
+      + 'than it will end.');
+    expect(RETURNS_STUDIO.rungFoot({ orders: '206', from: 1, to: 1 })).toBe('At the 206 orders week 1 had.');
+  });
+
+  test('a rung\'s rates are next week\'s, and said to be (the review of the canvas)', () => {
+    expect(RETURNS_STUDIO.rungRate(FIGURES)).toMatch(/^Next week about 12.9% of orders refused with no discount/);
+    expect(RETURNS_STUDIO.noneLine(FIGURES)).toBe('No discount: about 12.9% of next week\'s orders refused.');
+  });
+
+  test('a capital target says what it reaches, and where it stands', () => {
+    const oc = { target: 'orderConfirmation', rung: 'confirm and verify', since: 4, later: '', laterWeek: 0 };
+    expect(RETURNS_STUDIO.capitalTarget(oc)).toBe('Order confirmation, which reaches refusals only: confirm and '
+      + 'verify, live since week 4.');
+    expect(RETURNS_STUDIO.capitalTarget({ ...oc, target: 'sizeGuide', rung: '', later: 'a chart', laterWeek: 8 }))
+      .toBe('The size guide, which reaches send-backs only: a chart from week 8.');
+    expect(RETURNS_STUDIO.capitalTarget({ ...oc, rung: 'an SMS', later: 'confirm and verify', laterWeek: 8 }))
+      .toBe('Order confirmation, which reaches refusals only: an SMS, live since week 4, rising to confirm and '
+        + 'verify from week 8.');
+    expect(RETURNS_STUDIO.capitalTarget({ ...oc, target: 'sizeGuide', rung: '' })).toBe('The size guide, which '
+      + 'reaches send-backs only: nothing built.');
+  });
+
+  test('a reading says what is true, never what to do (I13)', () => {
+    for (const [name, entry] of entries(RETURNS_STUDIO)) {
+      expect(entry(FIGURES), name).not.toMatch(/\byou should\b/i);
+    }
+  });
+});
+
 describe('no number is typed into a sentence', () => {
   test('digits arrive as figures, never as text', () => {
     for (const file of readdirSync(WORDS).filter((f) => f.endsWith('.js'))) {
@@ -585,7 +655,8 @@ describe('the new screens draw, and do not write', () => {
   const drawing = ['ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',
-    'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js', 'ui/money/render.js'];
+    'ui/ad/render.js', 'ui/where/render.js', 'ui/week/render.js', 'ui/typed/render.js', 'ui/money/render.js',
+    'ui/returns/render.js'];
   test.each(drawing)('%s holds no sentence of its own', (file) => {
     const body = readFileSync(fileURLToPath(new URL(`../${file}`, import.meta.url)), 'utf8');
     for (const literal of literals(body)) {

@@ -770,6 +770,96 @@ body.studio .wm-rung.you .wm-track span { background: var(--studio-red); }
   body.studio .wm-rung { grid-template-columns: 30px minmax(0, 1fr) 72px 44px; }
 }
 
+/* --- Returns, a played week (design/returns/, the owner's choice 2026-09-15) --- */
+body.studio .wr { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .wr h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
+body.studio .wr p { margin: 0; }
+body.studio .wr-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .wr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
+body.studio .wr-small { font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .wr-read, body.studio .wr-reading p { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .wr-num { font-variant-numeric: tabular-nums; }
+/* Refused at the door is amber, money lost at the door with its freight;
+   sent back is the Studio's grey for what is past; a week still coming back
+   is faint, as today's card dims it. */
+body.studio .wr-swatch { display: inline-block; flex-shrink: 0; width: 10px; height: 10px; border-radius: 3px; }
+body.studio .wr-swatch.refused { background: var(--studio-amber); }
+body.studio .wr-swatch.sent { background: #7A7480; }
+body.studio .wr-swatch.still { background: var(--studio-muted); opacity: 0.32; }
+
+/* the five figures */
+body.studio .wr-figures { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px 18px; }
+body.studio .wr-figure { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+body.studio .wr-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+/* The why link is a line taller than the label; held to the label's height, so
+   the five figures below stay on one line (measured 18.3px against 16.5). */
+body.studio .wr-label { min-height: 17px; }
+body.studio .wr-label .why { line-height: 1; letter-spacing: 0; text-transform: none; }
+body.studio .wr-value { font: 800 30px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+
+/* week by week */
+body.studio .wr-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12px; color: var(--studio-muted); }
+body.studio .wr-key { display: inline-flex; align-items: center; gap: 6px; }
+body.studio .wr-scroll { overflow-x: auto; }
+body.studio .wr-chart { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; padding: 0 4px; }
+body.studio .wr-col { display: flex; flex-direction: column; min-width: 0; }
+body.studio .wr-plot { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 206px; border-bottom: 1px solid #68636B; }
+body.studio .wr-total { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+body.studio .wr-stack { display: flex; flex-direction: column; gap: 2px; width: 100%; max-width: 46px; }
+body.studio .wr-stack span { display: block; }
+body.studio .wr-sent { border-radius: 6px 6px 0 0; background: #7A7480; }
+body.studio .wr-refused { background: var(--studio-amber); }
+body.studio .wr-col.still .wr-stack { opacity: 0.32; }
+/* The week an investment went live: a dashed line down the column's left. */
+body.studio .wr-col.marked .wr-plot::before { content: ''; position: absolute; top: 0; bottom: 0; left: -6px; border-left: 1.5px dashed var(--studio-faint); }
+body.studio .wr-mark { position: absolute; top: -2px; left: -2px; padding-right: 4px; background: var(--studio-card); font-size: 11px; white-space: nowrap; color: var(--studio-soft); }
+body.studio .wr-week { display: flex; flex-direction: column; align-items: center; gap: 1px; padding-top: 4px; font-size: 11px; color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .wr-col.future .wr-week { color: var(--studio-faint); }
+body.studio .wr-still { min-height: 15px; white-space: nowrap; }
+body.studio .wr-reading { display: flex; flex-direction: column; gap: 4px; }
+
+/* the prepaid discount, and what else moves it */
+body.studio .wr-row { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+body.studio .wr-rungs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+body.studio .wr-rung { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 10px 12px; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: none; color: var(--studio-soft); text-align: left; }
+body.studio .wr-rung strong { font: 700 16px/1.1 var(--studio-display); }
+/* The account's own setting is bone, as a chosen chip is everywhere in the
+   Studio; a rung you move to is red, your change. */
+body.studio .wr-rung[aria-pressed="true"] { border-color: var(--studio-text); background: var(--studio-text); color: var(--studio-page); }
+body.studio .wr-rung.change[aria-pressed="true"] { border-color: var(--studio-red); background: #2A1216; color: var(--studio-on-red); }
+body.studio .wr-bars { display: flex; flex-direction: column; gap: 3px; }
+body.studio .wr-track { display: block; height: 5px; overflow: hidden; border-radius: 3px; background: var(--studio-raised); }
+body.studio .wr-track span { display: block; height: 100%; border-radius: 3px; }
+body.studio .wr-track .saves { background: var(--studio-mint); }
+body.studio .wr-track .costs { background: var(--studio-amber); }
+body.studio .wr-detail { display: flex; flex-direction: column; gap: 8px; }
+body.studio .wr-trade { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 4px 12px; align-items: center; font-size: 13px; }
+body.studio .wr-trade .wr-track { height: 8px; }
+body.studio .wr-lever { display: flex; flex-direction: column; gap: 8px; }
+body.studio .wr-lever + .wr-lever { padding-top: 12px; border-top: 1px solid var(--studio-line); }
+body.studio .wr-lever-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+body.studio .wr-lever-head strong { font-size: 14px; }
+body.studio .wr-places { display: grid; grid-template-columns: minmax(0, 1fr) 76px 76px 96px; gap: 4px 12px; align-items: baseline; font-size: 12px; color: var(--studio-soft); }
+body.studio .wr-places .wr-num { text-align: right; color: var(--studio-text); }
+body.studio .wr-col-head { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-align: right; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .wr-go { align-self: flex-start; padding: 4px 10px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 12px; font-weight: 600; color: var(--studio-soft); }
+body.studio .wr-go::after { content: ' →'; }
+
+/* A section under 900px wide: the discount and the levers stack. */
+@container (max-width: 900px) {
+  body.studio .wr-row { grid-template-columns: minmax(0, 1fr); }
+  body.studio .wr-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* A phone: the weeks scroll sideways in their own box, as Your week's do. */
+@container (max-width: 560px) {
+  body.studio .wr-card { padding: 14px; }
+  body.studio .wr-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .wr-chart { min-width: 560px; }
+  body.studio .wr-rungs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.studio .wr-trade { grid-template-columns: minmax(0, 1fr); }
+  body.studio .wr-places { grid-template-columns: minmax(0, 1fr) 58px 64px 70px; }
+}
+
 /* --- the map (spec section 7: the pulse is the one named exception) ------- */
 body.studio .r0-map { display: block; width: 100%; height: auto; }
 /* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */

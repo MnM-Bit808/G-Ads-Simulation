@@ -11,9 +11,13 @@
  * is quoted by one interface file only (tests/ui.test.js).
  */
 
-import { RTO_FREIGHT_PAISE } from '../../engine/constants.js';
+import { RTO_FREIGHT_PAISE, LOCATION_TIERS } from '../../engine/constants.js';
 
 const sum = (rows, fn) => rows.reduce((a, r) => a + fn(r), 0);
+/** The two capital targets that reach returns, and the half each reaches (I28, I29). */
+const REACHES = Object.freeze({ orderConfirmation: 'refused', sizeGuide: 'sentBack' });
+/** A rate that moved less than this prints the same, to one decimal of a percent. */
+const HELD = 0.0005;
 
 /**
  * Whether capital, one of the levers on returns, is open this round, shut
@@ -106,4 +110,119 @@ export function returnsReading(history, playerId, settlesAfter) {
     countedFrom: settled[0]?.round ?? null,
     countedTo: latest - settlesAfter,
   };
+}
+
+/**
+ * The weeks order confirmation and the size guide went live, from the
+ * account's own capital: every tranche keeps the round it goes live
+ * (game.js, applyCapex), so the week an investment lands can be drawn as the
+ * step it makes (I31: "the round an investment lands is a step rather than a
+ * smudge").
+ *
+ * @param {{pending?: Array<{target: string, liveAtRound: number}>}} [capexBlock]
+ * @returns {Array<{target: string, week: number}>} by week, one per target and week
+ */
+export function liveMarks(capexBlock) {
+  const marks = [];
+  for (const { target, liveAtRound } of capexBlock?.pending ?? []) {
+    if (!(target in REACHES)) continue;
+    if (!marks.some((m) => m.target === target && m.week === liveAtRound)) marks.push({ target, week: liveAtRound });
+  }
+  return marks.sort((a, b) => a.week - b.week);
+}
+
+/**
+ * What an investment did to the half it reaches, once there are settled weeks
+ * on both sides of the week it went live: the rate before and from then, and
+ * the other half over the same weeks, which it cannot reach. The other half is
+ * read rather than assumed to have held: the mix of places can move it.
+ *
+ * @param {ReturnType<typeof returnsReading>} reading
+ * @param {ReturnType<typeof liveMarks>} marks
+ * @returns {{target: string, week: number, half: 'refused'|'sentBack', before: number,
+ *   after: number, direction: 'fell'|'rose'|'held', otherBefore: number, otherAfter: number,
+ *   beforeFrom: number, beforeTo: number}|null}
+ */
+export function stepReading(reading, marks) {
+  const rate = (weeks, key) => {
+    const orders = sum(weeks, (w) => w.conversions);
+    return orders > 0 ? sum(weeks, (w) => w[key]) / orders : 0;
+  };
+  for (const { target, week } of marks) {
+    const before = reading.settled.filter((w) => w.round < week);
+    const after = reading.settled.filter((w) => w.round >= week);
+    if (before.length === 0 || after.length === 0) continue;
+    const half = REACHES[target];
+    const other = half === 'refused' ? 'sentBack' : 'refused';
+    const was = rate(before, half);
+    const now = rate(after, half);
+    let direction = now < was ? 'fell' : 'rose';
+    if (Math.abs(now - was) < HELD) direction = 'held';
+    return {
+      target, week, half, direction,
+      before: was,
+      after: now,
+      otherBefore: rate(before, other),
+      otherAfter: rate(after, other),
+      beforeFrom: before[0].round,
+      beforeTo: before[before.length - 1].round,
+    };
+  }
+  return null;
+}
+
+/**
+ * Each place's orders and returns over the settled weeks, and how many of its
+ * orders are paid at the door: the account's own report rows, by place.
+ *
+ * @param {object[]} history
+ * @param {string} playerId
+ * @param {Array<{round: number}>} settled - from `returnsReading`
+ * @returns {Array<{orders: number, refused: number, sentBack: number, codShare: number|null}>}
+ *   one per `LOCATION_TIERS` entry
+ */
+export function placeReturns(history, playerId, settled) {
+  const counted = new Set(settled.map((w) => w.round));
+  const places = LOCATION_TIERS.map(() => ({ orders: 0, refused: 0, sentBack: 0, codShare: null }));
+  for (const h of history ?? []) {
+    for (const [tier, row] of Object.entries(h.byAdvertiser[playerId]?.breakdown?.byLocation ?? {})) {
+      const place = places[tier];
+      if (!place) continue;
+      if (row.codShare != null) place.codShare = row.codShare;
+      if (!counted.has(h.round)) continue;
+      place.orders += row.conversions ?? 0;
+      place.refused += row.refused ?? 0;
+      place.sentBack += row.sentBack ?? 0;
+    }
+  }
+  return places;
+}
+
+/**
+ * What each rung of the discount saves a week against what it costs.
+ *
+ * A refusal it prevents keeps the sale and the freight (I34: prevented
+ * refusals leave the account instead of reappearing), so it saves what one
+ * refusal costs; it costs the discount on every prepaid order. Both at the
+ * orders the counted weeks averaged, so this is a forecast, as the rates are.
+ *
+ * @param {Array<{paise: number, refusal: number, prepaidShare: number}>} rungs - from
+ *   `prepaidRungs` in ui/decisions.js; the first is none
+ * @param {{ordersPerWeek: number, perRefusalPaise: number}} at
+ * @returns {Array<object>} each rung with `fewer`, `avoidedPerWeek`, `savedPerWeekPaise`,
+ *   `costPerWeekPaise` and `prepaidOrdersPerWeek`
+ */
+export function discountTrade(rungs, { ordersPerWeek, perRefusalPaise }) {
+  const none = rungs[0].refusal;
+  return rungs.map((rung) => {
+    const avoidedPerWeek = (none - rung.refusal) * ordersPerWeek;
+    return {
+      ...rung,
+      fewer: none > 0 ? 1 - rung.refusal / none : 0,
+      avoidedPerWeek,
+      savedPerWeekPaise: avoidedPerWeek * perRefusalPaise,
+      costPerWeekPaise: rung.paise * rung.prepaidShare * ordersPerWeek,
+      prepaidOrdersPerWeek: rung.prepaidShare * ordersPerWeek,
+    };
+  });
 }
