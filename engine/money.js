@@ -85,6 +85,25 @@ export function mulRate(paise, rate) {
 }
 
 /**
+ * Round an amount that is not yet money to integer paise, half up.
+ *
+ * For a price that is an AVERAGE of whole-paise prices: an advertiser taking
+ * part in only a share of a slice's searches pays each ladder's whole-paise
+ * price weighted by how often that ladder happens, which is rarely whole
+ * (DECISIONS F17). It becomes money here, once, where it is spent, by the same
+ * rule mulRate uses.
+ *
+ * @param {number} value finite
+ * @returns {number} integer paise
+ */
+export function roundPaise(value) {
+  if (!Number.isFinite(value)) {
+    throw new TypeError(`value must be finite, got ${String(value)}`);
+  }
+  return roundHalfUp(value);
+}
+
+/**
  * Sum integer paise, asserting every element on the way through.
  *
  * @param {number[]} values
