@@ -573,6 +573,20 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   section no Studio section shows a classic card, and the dashboard behind the
   Studio is drawn only for the form's context. Still for the owner: a results
   page for one search, which needs a DECISIONS entry before any design.
+- **Results (section 7, item 8)** is built as the owner chose from the mock-ups
+  on `design/results/` (2026-09-15): four sections after the last week, where
+  section 2's table had one, because the end screen was today's longest page
+  (about 5,000px drawn as one; not chosen). Twelve weeks, What you learned,
+  Where they sat and Everyone's books, each with a dot until opened and a link
+  to the next; the Every week table and the What you did list become the
+  chart's weeks, tapped. Drawing it with real replays found both end-of-game
+  replays teaching false answers, fixed first at the owner's word, in both
+  looks: "What if I hadn't?" keeps the change out and runs to the end, and the
+  budget question's raise survives capital. It also found two things the
+  game counts that the owner chose to say plainly rather than change for now:
+  net profit never counts capital, and the last weeks' returns come back after
+  the game ends. Round 0's notes on the rivals are now kept for the reveal,
+  which reopens section 12 of the round 0 design in the direction it asked.
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.
