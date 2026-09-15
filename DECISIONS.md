@@ -4369,17 +4369,97 @@ for itself, which is a different mechanic from this one. If the modesty is a
 problem, that is the lever to pull — and it should be pulled on purpose rather
 than by retuning this curve until the answer flatters the idea.
 
-**Rivals pull it too (R6)**, reading their own refusal rate rather than a
-constant, one rung and not a hill-climb: 5.2 wants a competent operator, not a
-solver. And `submitRound` REJECTS an out-of-range discount rather than clamping
-— a clamp would let a controller ask for ₹500 and be quietly charged for ₹100,
-which is the shape of bug that survives a whole game.
+**Rivals pull it too (R6) — true since 2026-09-15, and false until then.** Two
+of the six characters carry the rule, `disciplined` and `grossOptimiser`, and
+every game deals one of each, so it is two rivals of eight. One rung, not a
+hill-climb: 5.2 wants a competent operator, not a solver. And `submitRound`
+REJECTS an out-of-range discount rather than clamping — a clamp would let a
+controller ask for ₹500 and be quietly charged for ₹100, which is the shape of
+bug that survives a whole game.
 
-**Not in play, found 2026-09-15, and open.** In 1,728 rival decisions over 18
-games of the committed harness, no rival offered a discount. `prepaidNudge`
-(`agents/policies.js`) reads the week just played, whose refusals have not come
-back yet, so it sees about 0% and holds none. It is also why the fix above left
-the market byte-identical: nobody in it discounts but a player who chooses to.
+**AS FIRST BUILT, NO RIVAL EVER OFFERED ONE.** This paragraph said rivals read
+"their own refusal rate", and they did — off the one report a controller is
+handed, the week just played. Refusals are counted by CLICK week: a fresh report
+writes zero, and `reviseReports` adds each refusal to the week its click
+happened, two to five rounds later (an attribution lag of up to three, then the
+two-round return window). So the rate the rule read was exactly zero, every week
+of every game. Measured on the market harness, seeds 1–3 in all six cells: 1,584
+reports handed to rivals and not one carrying a refusal or a return; 1,728 rival
+decisions and not one discount. The same rivals' weeks, once settled, ran 15–19%
+refused, over the rule's own 12% line. It survived because nothing tested it:
+every prepaid test was of the player's card, and no test played a game and asked
+whether a rival ever offered a discount — the check CLAUDE.md's traps ask of
+every decision a rival must make. It is also why the fix above left the market
+byte-identical: nobody in it discounted but a player who chose to.
+
+**WHAT IT READS NOW** (the owner's choice, of four): the `refusalRate` each place
+row of the report states. The fix above had dropped that field for being the
+cash-mix formula alone — no capital, no purpose, no place gradient — with
+nothing reading it; `statedRefusals` in `report.js` puts it back as
+`refusalOutlook` for that one place with no discount: the card's own figure,
+from `returnHalves`, which the round books with. Stated once, when the week is
+reported, and kept by every revision; and before any discount, so a rival
+already offering one cannot talk itself out of it as its refusals fall.
+Declined: handing each controller its own past reports so it could read its
+settled weeks (it amends R3a for one lever, and the first fully settled week is
+week 7); an engine-kept tally in the self view; leaving the rule and correcting
+this paragraph.
+
+**WEIGHTED BY THE SEARCHES IT IS IN, WITH A MARGIN, BECAUSE IT FLIPPED.** First
+built weighted by the week's clicks, as the card weights by the player's, 8 of
+144 rival-games stepped between ₹50 and ₹30 — all `disciplined`, one of them
+seven times in eleven weeks. Traced, that was never the discount: a rival's
+clicks follow its place bids, and `locationTilt` resets those from each week's
+reading with no limit on the move, so they see-saw (on one market the towns
+adjustment alternated about −55% / −15% and the weighted rate 10.5% / 12.4%).
+The card's clicks are every week played and move slowly; a rival has one week.
+So the rule weights each place by its `eligibleAuctions`, which do not follow
+its bids, and it steps up at a line but down only a point under it, so a rate
+on the line is not stepped down by order confirmation going live (every place
+falls to about 0.91 of its rate). A one-point margin on clicks alone stopped 2
+of the 8; the weighting stopped all of them. The see-saw is `locationTilt`'s
+and is left to that function.
+
+**IT LANDS ON ₹50.** The stated rate runs from 7.5% (premium performance in the
+metros, with order confirmation built) to 22.5% (lifestyle in the towns), so ₹30
+is open to a rival whose searches sit where refusals are light — never none,
+since nowhere runs under 6%. Measured, all 144 rival-games offer ₹50 from week 2
+and hold it to the end: ₹50, which the table above has best in five cells of six
+and within 0.1 points of ₹70 in the sixth.
+
+**MEASURED BEFORE AND AFTER** on `scripts/market-harness.js market` (72 markets,
+seeds 1–12, six cells), plus each rival's own figures from the same games'
+history — `conversions.refused` over `conversions.final` for weeks 1–7,
+`money.rtoFreightPaise` and `gameTotals(...).all.netProfitPaise` over the game —
+paired market by market against the code before the change:
+
+| | before | after |
+|---|---|---|
+| the two rivals offering a discount | 0 of 144 | 144 of 144, ₹50 from week 2, held to the end |
+| their refused share of settled orders | 16.5% | 15.2% |
+| their freight on refused parcels, whole game | | −8.1% |
+| their gross revenue, weeks 1–7 | | −0.6% |
+| their net profit, whole game | | **+2.0%** median, −2.9% to +7.7%; up in 142 of 144 |
+| the other six rivals' net profit | | 0.0% median; ₹129 median either way |
+| all eight rivals, weeks 1–7: returned / net ROAS / profit per ₹ | 41.2% / 5.04 / 1.39 | 40.6% / 5.07 / 1.41 |
+| the player: final net / median rank / loses money in | ₹6,57,635 / 5th / 0 of 72 | ₹6,57,676 / 5th / 0 of 72 |
+
+`disciplined` gains in 72 of 72, `grossOptimiser` in 70, losing up to 2.9% in the
+rest. The stated rate on its own, before the rule read it, moved nothing
+(`market` mode byte-identical), and I1's solo account, which runs on
+`disciplined`, measured the same to three decimals.
+The player's table above still stands with rivals discounting: re-measured on
+`prepaid` mode, every cell's best rung and every win count are unchanged, and
+one figure moved — value/lifestyle at ₹100, from 2.4% to 2.6%. Measured on the
+makeover line and again on `main`: the market before and after, and every
+rival's figures, came out identical market by market.
+
+**Found on the way, not fixed here:** `observedReturnRate` and `locationTilt`'s
+net-of-returns reading read returns off the same one-week report and are dead the
+same way — a rival's belief about returns never leaves the briefing's 40%, and
+`grossOptimiser`'s gross reading of place is identical to `disciplined`'s net
+one — and `locationTilt` see-saws as above. Opened together as a separate task,
+2026-09-15.
 
 ### I35. Round 0 is five steps in the sidebar layout, and the brand is drawn — `FIXED` (2026-09-14)
 
