@@ -90,6 +90,26 @@ const CPA_OVERSHOOT = 1.15;
 /** Clicks on one query with no conversions at all before it gets blocked. */
 const NEGATIVE_CLICK_THRESHOLD = 40;
 
+/**
+ * The prepaid rungs a rival offers, highest first, and the refusal rate that
+ * earns each (I34). ₹30 is the rung the sources call the one that does most of
+ * the work; ₹50 only where refusals are genuinely heavy.
+ */
+const PREPAID_RUNGS = Object.freeze([
+  { paise: 5000, above: 0.12 },
+  { paise: 3000, above: 0.06 },
+]);
+
+/**
+ * How far under a rung's line the rate must fall before a rival steps off it.
+ *
+ * So a rate sitting on a line does not step the rung down for a small move: at
+ * 12.3%, say, order confirmation going live takes it to about 11.2% (every
+ * place falls to about 0.91 of its rate), and the rival keeps ₹50. Stepping UP
+ * still happens at the line.
+ */
+const PREPAID_STEP_DOWN_MARGIN = 0.01;
+
 /** Floor and ceiling on any bid this policy will write, in paise. */
 const MIN_BID_PAISE = 100;
 const MAX_BID_PAISE = 20000;
@@ -168,27 +188,54 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
  * market the player thinks they are in — their own restraint would look like
  * skill and their rivals' refusals would be a handicap nobody chose.
  *
- * It reads its OWN report, like every other decision here: the discount is worth
- * offering when refusals are actually costing something, and a rival with few
- * of them should keep the margin. The threshold is its own refusal rate rather
- * than a constant, so a premium advertiser in the metros arrives at "no" and a
- * value one in the towns arrives at "yes" without either being told.
+ * IT READS THE REFUSAL RATE ITS REPORT STATES, NOT ITS OWN REFUSALS. Every
+ * location row carries `refusalRate`: how often an order bought there is
+ * refused with no discount, for this account's price, purpose and capital
+ * (`statedRefusals` in report.js) — the figures the player's prepaid card is
+ * built from.
+ *
+ * WEIGHTED BY THE SEARCHES IT IS IN, NOT THE CLICKS IT BOUGHT. The card weights
+ * by the player's clicks over every week played, which moves slowly. A rival
+ * has one week, and its week's clicks follow its place bids, which see-saw
+ * (`locationTilt` resets them from each week's reading): weighted by clicks, a
+ * rival's rate swung two points week to week and its rung flipped ₹50 / ₹30
+ * with it — 8 of 144 rival-games, one seven times in eleven weeks. The
+ * searches it is eligible for at each place do not follow its bids.
+ *
+ * It used to count the `refused` in those rows, and in play that was always
+ * exactly zero. A week's refusals land two to five weeks after its clicks and
+ * are written back into that week's report, and a controller is handed only
+ * the week just played. Over 18 games not one rival ever offered a discount.
+ *
+ * The rate is the one BEFORE any discount, so a rival already offering one
+ * cannot talk itself back out of it as its own refusals fall.
+ *
+ * The stated rate runs from about 7% (premium performance in the metros, with
+ * order confirmation built) to 22% (lifestyle in the towns), so the rung this
+ * lands on depends on where the rival buys and what it has built: ₹50 where
+ * refusals are heavy, ₹30 where they are lighter, and never none, because
+ * nowhere runs under 6%. The thresholds are a character's opinion (C7), not a
+ * reading of the table. It steps down only `PREPAID_STEP_DOWN_MARGIN` under a
+ * line, so a rate sitting on one does not flip the rung.
  *
  * One rung, not a search. A policy that hill-climbed the curve every week would
  * out-optimise a player who gets one look at it, and 5.2 wants a competent
  * operator rather than a solver.
  */
 function prepaidNudge(self, report) {
-  const rows = Object.values(report?.breakdown?.byLocation ?? {});
-  const conversions = rows.reduce((a, r) => a + (r.conversions ?? 0), 0);
-  const refused = rows.reduce((a, r) => a + (r.refused ?? 0), 0);
-  if (conversions < 5) return null;
+  const rows = Object.values(report?.breakdown?.byLocation ?? {})
+    .filter((r) => (r.eligibleAuctions ?? 0) > 0 && Number.isFinite(r.refusalRate));
+  const searches = rows.reduce((a, r) => a + r.eligibleAuctions, 0);
+  if (searches === 0) return null;
 
-  const rate = refused / conversions;
+  const rate = rows.reduce((a, r) => a + r.eligibleAuctions * r.refusalRate, 0) / searches;
   const held = self.campaign?.prepaidDiscountPaise ?? 0;
-  // The rung the sources call the one that does most of the work, and a bigger
-  // one only where refusals are genuinely heavy.
-  const want = rate > 0.12 ? 5000 : rate > 0.06 ? 3000 : 0;
+  // Up at the line, down only once clearly under it: the rung already held
+  // keeps its place until the rate is a margin below the line that earned it.
+  const rung = PREPAID_RUNGS.find(({ paise, above }) => (
+    rate > (paise === held ? above - PREPAID_STEP_DOWN_MARGIN : above)
+  ));
+  const want = rung ? rung.paise : 0;
   return want === held ? null : want;
 }
 
