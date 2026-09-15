@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { runRound } from '../engine/round.js';
 import { LOCATION_TIERS } from '../engine/constants.js';
 import { locationSharesFor, refusalRateFor } from '../engine/locations.js';
-import { businessFor, realisedBreakEvenCpcPaise } from '../engine/positions.js';
+import { businessFor, realisedBreakEvenCpcPaise, refusalOutlook } from '../engine/positions.js';
 import { homeCell } from '../engine/querySet.js';
 import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
@@ -1002,6 +1002,25 @@ describe('refusals as a played week books them (I29, I34)', { timeout: 60_000 },
       expect((paid.refused / paid.conversions) / (none.refused / none.conversions), `place ${t}`)
         .toBeCloseTo(refusalRateFor('mid', t, 3000) / refusalRateFor('mid', t, 0), 6);
       expect(paid.sentBack / paid.conversions, `place ${t}`).toBeCloseTo(none.sentBack / none.conversions, 9);
+    }
+  });
+
+  test('the forecast is what the week books, place by place, before and after order confirmation', () => {
+    // The card's figure and the round's booking share `returnHalves`. On a search
+    // at multiplier 1 the forecast leaves nothing out, so it must agree to the
+    // digit; if the round ever grows a term the forecast lacks, this fails.
+    for (const discountPaise of [0, 3000]) {
+      const game = played(discountPaise);
+      const capex = game.state.advertisers[0].capex;
+      for (const week of [1, 4]) {
+        for (let t = 0; t < LOCATION_TIERS.length; t++) {
+          const booked = place(game, week, t);
+          const placeWeights = LOCATION_TIERS.map((_, i) => (i === t ? 1 : 0));
+          expect(refusalOutlook({ position: POSITION, capex, round: week, discountPaise, placeWeights }),
+            `₹${discountPaise / 100}, week ${week}, place ${t}`)
+            .toBeCloseTo(booked.refused / booked.conversions, 6);
+        }
+      }
     }
   });
 });

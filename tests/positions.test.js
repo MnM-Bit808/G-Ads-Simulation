@@ -4,7 +4,7 @@ import {
   businessFor, breakEvenCpcPaise, grossBreakEvenCpcPaise, marginPerOrderPaise,
   capexEffect, liveCapexPaise, landingPageBonus,
   canReposition, isOneStep, reposition,
-  realisedBreakEvenCpcPaise, territoryQueries, returnHalves,
+  realisedBreakEvenCpcPaise, territoryQueries, returnHalves, refusalOutlook,
 } from '../engine/positions.js';
 import { refusalRateFor, rtoShareOfReturns } from '../engine/locations.js';
 import { homeCell } from '../engine/querySet.js';
@@ -656,5 +656,47 @@ describe('what comes back from an order at a place (I28, I29, I34)', () => {
     const x = at({ queryReturnMultiplier: 5, placeReturnMultiplier: 5 });
     expect(x.returned).toBeLessThanOrEqual(RETURN_RATE_CLAMP_MAX);
     expect(x.refused).toBeLessThanOrEqual(x.returned);
+  });
+});
+
+describe('the refusal rate an account will run at (I34)', () => {
+  const MID = { price: 'mid', purpose: 'performance' };
+  const EMPTY = { committed: {}, pending: [] };
+  const outlook = (over = {}) => refusalOutlook({
+    position: MID, capex: EMPTY, round: 1, discountPaise: 0, placeWeights: [0, 0, 1], ...over,
+  });
+
+  test('it weights the places by where the account buys, at any scale', () => {
+    const each = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map((w) => outlook({ placeWeights: w }));
+    expect(outlook({ placeWeights: [2, 3, 5] })).toBeCloseTo((2 * each[0] + 3 * each[1] + 5 * each[2]) / 10, 12);
+    expect(outlook({ placeWeights: [20, 30, 50] })).toBeCloseTo(outlook({ placeWeights: [2, 3, 5] }), 12);
+  });
+
+  test('an account with no clicks is refused, not guessed at', () => {
+    // Which place to show an account that has bought nothing is the card's
+    // choice, and the card makes it; a quiet default here would hide it.
+    expect(() => outlook({ placeWeights: [0, 0, 0] })).toThrow(RangeError);
+    expect(() => outlook({ placeWeights: [1, 1] })).toThrow(RangeError);
+  });
+
+  test('order confirmation counts from the week it is live, and not before', () => {
+    const building = {
+      committed: { orderConfirmation: 8000000 },
+      pending: [{ target: 'orderConfirmation', paise: 8000000, liveAtRound: 1 + CAPEX_DELAY_ROUNDS }],
+    };
+    const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].effect;
+    expect(outlook({ capex: building, round: CAPEX_DELAY_ROUNDS })).toBeCloseTo(outlook(), 12);
+    expect(outlook({ capex: building, round: 1 + CAPEX_DELAY_ROUNDS })).toBeCloseTo(outlook() / top, 12);
+  });
+
+  test('it carries purpose: lifestyle returns more than performance, by the modifiers', () => {
+    const lifestyle = outlook({ position: { price: 'mid', purpose: 'lifestyle' } });
+    expect(lifestyle / outlook())
+      .toBeCloseTo(PURPOSE_MODIFIERS.lifestyle.ret / PURPOSE_MODIFIERS.performance.ret, 12);
+  });
+
+  test('and a discount, at the sourced rate', () => {
+    expect(outlook({ discountPaise: 3000 }) / outlook())
+      .toBeCloseTo(refusalRateFor('mid', 2, 3000) / refusalRateFor('mid', 2, 0), 12);
   });
 });
