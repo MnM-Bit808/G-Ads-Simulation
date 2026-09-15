@@ -59,9 +59,13 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     The design doc's section 10 lists every departure.
   - Then, in the owner's order: the brand as a pick in round 0's step 2; each
     Quality Score part's grade out of ten on the Studio keyword card, as I1
-    says and the Studio had dropped; and the weekly *Your ad*, read-only
-    (`ui/ad/`).
-  - On `makeover`: 1921 tests pass, 1 todo, and the build publishes 86 files.
+    says and the Studio had dropped; the weekly *Your ad*, read-only
+    (`ui/ad/`); and *Where and when* as bars to drag (`ui/where/`), chosen from
+    the mock-ups on `design/where-when/`. Drawing those found the round
+    clamping a place's bid adjustment separately from the hour's; one clamp
+    now covers both (DECISIONS G4's dated note, the market measured
+    identical).
+  - On `makeover`: 1947 tests pass, 1 todo, and the build publishes 89 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -97,10 +101,13 @@ engine does: the page's parts marked "week 4", its description graded now.
    auctions use that week with any change to come and its week, and the
    landing page. Rewriting an ad mid-game waits for the message project. The
    keyword card's Quality Score shows each part's grade out of ten again (I1).
-3. **Where and when,** drawn first as mock-ups on the canvas: hours as bars to
-   drag, and places set on the India map, as the makeover design's section 7
-   planned. Then the rest of that section's list, one section at a time, and
-   the switch-over.
+3. **DONE 2026-09-15: Where and when** (`ui/where/`), from the canvas
+   https://claude.ai/code/artifact/84535b5e-0d58-4228-b2b5-fbfcf8d7383b: the
+   three kinds of place as rows with a bar each beside the India map, and the
+   hours as the day drawn to scale. Bars stop where a bid stops, +300% under
+   manual bidding and +150% under Maximise clicks. Next, the rest of the
+   makeover design's section 7 list, one section at a time, and the
+   switch-over.
 4. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.
@@ -112,6 +119,19 @@ engine does: the page's parts marked "week 4", its description graded now.
    last choices rather than afresh, in both looks. Older: A9, F15 (b)/(c) and
    E8's formula (item 5 below), and whether round 0's rival guesses carry into
    the end reveal (the round 0 design, section 12).
+7. **Found 2026-09-15 and put to the owner as their own tasks, not fixed:**
+   the round's two paths through the auction disagree with equal bids, by up
+   to 5% of one rival's impressions, and the test meant to hold them together
+   (`tests/round.test.js`, *the two paths through the auction agree*) never
+   takes the three-auction path, because a 0% place adjustment is a
+   multiplier of 1; and the prepaid discount card quotes the smaller towns'
+   refusal rate for every account, because the dashboard never hands the
+   form its history. The market harness's `compare` reads only `writer` runs;
+   compare `market` runs by their summaries or files. And `MAX_BID_MULTIPLE`
+   (four times the keyword bid, `INVENTED`) has no DECISIONS entry of its own,
+   which R7 asks for, though Where and when now shows it to players ("No bid
+   goes past 4 times your keyword bid"); it wants one, and perhaps a line in
+   the `hours` and `cashOnDelivery` chapters' game halves.
 
 **Decided about the makeover, not to re-open:**
 - a sidebar shell like Claude's app, not the real Google Ads layout;

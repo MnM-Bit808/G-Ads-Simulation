@@ -476,6 +476,16 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   since the classic page has no ad card to filter. Designing it found that the
   Studio's Quality Score panel had dropped the grade out of ten that DECISIONS
   I1 puts beside each rating; the card shows it again.
+- **Where and when (section 7, item 4)** is built as the owner chose from the
+  mock-ups on `design/where-when/` (2026-09-15): the three kinds of place as
+  rows with a bar each beside the India map, a city's dot sized by the bid
+  there, and the hours as the day drawn to scale, each block as wide as its
+  hours with the day's clicks by hour beneath. It draws itself, as Your
+  keywords does, and the classic cards are retired in the Studio. Bars stop
+  where a bid stops (four times the keyword, once over hour and place, G4's
+  dated note), and read "+30% · bids ×1.3". Its layout follows the section's
+  width by container queries rather than the window's, because the sidebar
+  takes 300px of any window.
 - **Motion (section 3).** The tray's entrance is the weekly tray's only, since
   round 0's redraws its chips on every change; the strip scrolls to the line
   just made. A section's first visit plays once and staggers top to bottom, and
