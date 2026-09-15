@@ -539,6 +539,23 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   than faded. After week 8 the card gives the rank alone: history is revised
   after the snapshot, so a total summed later would not be the one that set
   month 3.
+- **Returns (section 7, item 4)** is built as the owner chose from the
+  mock-ups on `design/returns/` (2026-09-15): the five figures over settled
+  weeks, every week as one bar split into refused at the door (amber) and
+  sent back (grey) with a week still coming back faint, the prepaid
+  discount's rungs each drawing what it saves a week against what it costs,
+  and what else moves returns with the half each reaches. It draws itself
+  (`ui/returns/`) and retires the classic two cards in the Studio; it still
+  unlocks at week 6. Not chosen: the two halves as two cards, each with its
+  own weeks and levers, whose two strips sat side by side on different
+  scales. Building it depended on the prepaid fix (I34), merged in first, so
+  every rung's rate is the arithmetic the round books with. Row 3's motion,
+  a first visit's entrance, had only ever played on classic cards: rebuilding
+  Your money had taken its week-5 entrance away, and the shell now enters a
+  rebuilt section's own parts. The mock-up said the half an investment cannot
+  reach "held"; the section reads that half before and after instead, since
+  the mix of places can move it. The rung you move to is red, your change; the
+  account's own setting is bone, as a chosen chip is everywhere else.
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.

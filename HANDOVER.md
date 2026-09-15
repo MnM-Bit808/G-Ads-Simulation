@@ -71,8 +71,11 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     terms as one list by spend, with Block words beside it. Then *Your money*
     (`ui/money/`), from `design/your-money/`: this month as one bar whose
     weeks you move money between, bidding and week 8 beside it, and at week 5
-    the capital and the one move on top.
-  - On `makeover`: 2034 tests pass, 1 todo, and the build publishes 98 files.
+    the capital and the one move on top. Then *Returns* (`ui/returns/`), from
+    `design/returns/`: every week split into refused and sent back, and the
+    prepaid discount's rungs, each drawing what it saves against what it
+    costs, on the prepaid fix (I34) merged in for it.
+  - On `makeover`: 2080 tests pass, 1 todo, and the build publishes 100 files.
     On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
@@ -139,9 +142,21 @@ engine does: the page's parts marked "week 4", its description graded now.
    Still open from the canvas's notes: the classic deadline card prints the
    rank sentence twice after week 8, and ₹1,00,000 is left in stale comments
    and spec 13.3.
+   **DONE 2026-09-15: Returns** (`ui/returns/`), from the canvas
+   https://claude.ai/code/artifact/ca2f5ce0-0c5c-4935-8179-55337e6fc9c5: the
+   five figures over settled weeks; every week split into refused at the door
+   and sent back, the week order confirmation or the size guide went live
+   marked and read before and after; the discount's rungs, each drawing what
+   it saves a week (refusals prevented, at freight plus margin) against what
+   it costs (the discount on every prepaid order), at `refusalOutlook`'s rates,
+   said to be next week's; and what else moves returns. Before building it:
+   the prepaid fix merged into `makeover` (the owner's choice; harness market
+   byte-identical before and after); the returns card's arithmetic lifted into
+   `ui/returns/read.js` for both looks; the classic note now names the discount
+   and says capital has closed; and a first visit's entrance restored for
+   rebuilt sections, which rebuilding Your money had quietly taken away.
    Next, the rest of the makeover design's section 7 list, one section at a
-   time (Returns, the Market area, Results, the Guide as a page), and the
-   switch-over.
+   time (the Market area, Results, the Guide as a page), and the switch-over.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.
@@ -158,9 +173,10 @@ engine does: the page's parts marked "week 4", its description graded now.
    to 5% of one rival's impressions, and the test meant to hold them together
    (`tests/round.test.js`, *the two paths through the auction agree*) never
    takes the three-auction path, because a 0% place adjustment is a
-   multiplier of 1; and the prepaid discount card quotes the smaller towns'
-   refusal rate for every account, because the dashboard never hands the
-   form its history. The market harness's `compare` reads only `writer` runs;
+   multiplier of 1. The prepaid discount card that quoted the smaller towns'
+   refusal rate for every account is fixed on `makeover` since 2026-09-15
+   (merged from `claude/refusal-outlook-makeover`, I34); `main`'s twin,
+   `claude/refusal-outlook`, is still unmerged. The market harness's `compare` reads only `writer` runs;
    compare `market` runs by their summaries or files. The bid's floor and cap
    (`MIN_BID_PAISE`, `MAX_BID_MULTIPLE`) now have their entry, D13, with
    Google's own combined cap for comparison (ten times against the game's
