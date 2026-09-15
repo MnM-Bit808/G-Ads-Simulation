@@ -245,6 +245,45 @@ the player in the most of all the auctions it shows in. A second read fixed
 five wordings, recorded on the canvas. Left for the owner: a results page for
 one search (a DECISIONS entry first), and keeping round 0's notes on rivals.
 
+## `results/`: the Results area, after the last week (2026-09-15)
+
+A tenth canvas, https://claude.ai/code/artifact/e03ab7c2-eeb8-473b-b80c-d67e1932a5b7,
+the Results area on the makeover design's section 7 list, replacing today's end
+screen (Twelve weeks, the debrief, Where did they sit?, Everyone with the books
+open, Every week, The account, What you did, Play again), which the Studio
+still showed as classic cards.
+
+- **Page 1**, four artboards (A · four sections), **chosen by the owner on
+  2026-09-15**: `Main.dc.html`, Twelve weeks: the figures, every week's net
+  profit as it stands against its first report (a dashed tick) with the weeks
+  the player changed something marked red, and a strip for the week tapped,
+  which replaces Every week and What you did; `Learned.dc.html`, What you
+  learned: the six lessons as cards, the weeks you changed something with
+  "What if I hadn't?", and the budget question; `Reveal.dc.html`, Where they
+  sat: round 0's eight ads and six squares, guessed and then revealed, with a
+  switch showing round 0's notes kept; `Books.dc.html`, Everyone's books: every
+  brand ranked by net profit with gross profit as an outline, where each sat
+  hidden until the reveal is answered, the player's three ranks, and Play again.
+- **Page 2**, `OnePage.dc.html` (B · one page, told in order): the same four
+  parts on one scroll, about 5,000px, today's length again.
+
+Its numbers come from the makeover canvas's game (seed 1, Vella & Co. at
+mid-price performance, its keywords) played to week 12 with four decisions a
+player could make from the screens: block "cheap" at week 4, ₹55,000 to the
+size guide at week 5, the broad bids ₹24 → ₹18 at week 7, "gym leggings" ₹33 →
+₹40 at week 10. Only the guesses are invented. Drawing it, and a second reader
+checking every figure against the code, found four faults, recorded on the
+canvas: "What if I hadn't?" deletes a decision where it should keep the change
+out, stops at the next decision of any kind, and at week 5 makes the capital
+vanish (blocking "cheap" read ₹8,067, worth ₹75,021 to the end; the size
+guide's answer reversed); the budget question cannot answer for a capital week,
+because the rollover re-spreads the month and undoes its raise; net profit never
+counts capital spent on the business; and returns come back two weeks after a
+sale, so the last five weeks read high and weeks 11 and 12 count none. The owner
+chose to fix both replays first and to say the other two plainly on the
+screens; the mock-ups show the corrected answers and those sentences. Still
+open: keeping round 0's notes for the reveal.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

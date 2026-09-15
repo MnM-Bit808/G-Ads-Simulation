@@ -1,0 +1,413 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .why { color: #FF6166; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+    .pick { cursor: pointer; user-select: none; }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 1460px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Brand</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M16 14.2c2.9.4 5 2.8 5 5.8"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Market</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Guide</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: #2A1216; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #F3EEEA;">Results</div>
+    </div>
+  </div>
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">mid · performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Results</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M11 20V5M17 20v-6M3 20h18"></path></svg>
+      <div style="flex-grow: 1;">Twelve weeks</div>
+      
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 21h4"></path><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"></path></svg>
+      <div style="flex-grow: 1;">What you learned</div>
+      
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v12H3z"></path><path d="M3 12h18"></path><path d="M9 6v12"></path><path d="M15 6v12"></path></svg>
+      <div style="flex-grow: 1;">Where they sat</div>
+      
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; background: #1F1C22; color: #F3EEEA; box-shadow: 0 0 0 1px #2E2A33;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg>
+      <div style="flex-grow: 1;">Everyone’s books</div>
+      
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="display" style="font-weight: 700; font-size: 20px;">{{topWeek}}</div>
+        <div style="font-size: 13px; color: #8A847E;">{{topSaved}}</div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 13px;">
+        <div style="color: #A19A94;">{{topLabel}}</div>
+        <div class="num" style="font-weight: 700;">{{topMonth}}</div>
+      </div>
+    </div>
+    <div style="flex-grow: 1; min-height: 0; padding: 22px 40px 24px; display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;">
+        <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Everyone’s books</div>
+
+      </div>
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+        <div style="padding: 14px 18px; border: 1px solid #4A1A1F; border-radius: 16px; background: #1A0C0F; display: flex; flex-direction: column; gap: 6px; max-width: 880px;">
+          <div class="display" style="font-weight: 800; font-size: 18px;">You will never see this in a real account.</div>
+          <div style="font-size: 13px; line-height: 1.5; color: #CFC9C3;">{{warning}}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8A847E; flex-shrink: 0;">mock-up:
+          <sc-for list="{{bookChips}}" as="c" hint-placeholder-count="2">
+            <div class="pick" onClick="{{c.pick}}" style="padding: 4px 10px; border-radius: 999px; border: 1px solid {{c.border}}; background: {{c.bg}}; color: {{c.color}}; font-size: 12px; font-weight: 600;">{{c.label}}</div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0; gap: 0; padding: 10px 20px 14px;">
+        <div style="display: grid; grid-template-columns: 28px 170px 150px minmax(0, 1fr) 110px 92px 76px; gap: 14px; padding: 6px 0 8px; font-size: 11px; color: #8A847E;">
+          <div>#</div><div>Brand</div><div>Where they sat</div><div>Net profit, with gross profit as the outline</div><div style="text-align: right;">Net profit</div><div style="text-align: right;">Returns took</div><div style="text-align: right;">Rank on gross</div>
+        </div>
+        <sc-for list="{{booksRows}}" as="r" hint-placeholder-count="9">
+          <div style="display: grid; grid-template-columns: 28px 170px 150px minmax(0, 1fr) 110px 92px 76px; gap: 2px 14px; align-items: center; padding: 10px 0; border-top: 1px solid #221F25;">
+            <div class="display num" style="font-weight: 800; font-size: 18px; color: #A19A94;">{{r.rank}}</div>
+            <div style="display: flex; align-items: center; gap: 6px; min-width: 0;">
+              <div style="font-weight: 700; font-size: 15px; white-space: nowrap;">{{r.name}}</div>
+              <sc-if value="{{r.isYou}}" hint-placeholder-val="{{false}}"><div style="padding: 1px 7px; border-radius: 999px; background: #D7262F; color: #FFF5F4; font-size: 11px; font-weight: 700;">You</div></sc-if>
+            </div>
+            <div style="font-size: 13px; color: {{r.cellColor}};">{{r.cellText}}</div>
+            <div style="position: relative; height: 14px;">
+              <div style="position: absolute; left: 0; top: 0; bottom: 0; width: {{r.grossW}}; border: 1px solid #68636B; border-radius: 3px; box-sizing: border-box;"></div>
+              <div style="position: absolute; left: 0; top: 0; bottom: 0; width: {{r.keptW}}; background: {{r.keptBg}}; border-radius: 3px;"></div>
+            </div>
+            <div class="num" style="text-align: right; font-weight: 800; font-size: 15px; color: {{r.keptColor}};">{{r.keptText}}</div>
+            <div class="num" style="text-align: right; font-size: 13px; color: #CFC9C3;">{{r.returnsTook}}</div>
+            <div class="num" style="text-align: right; font-size: 13px; color: #CFC9C3;">{{r.onGross}}</div>
+            <div></div>
+            <div class="num" style="grid-column: 2 / -1; font-size: 12px; color: #8A847E;">{{r.line2}}</div>
+          </div>
+        </sc-for>
+        <div style="padding-top: 10px; font-size: 12px; line-height: 1.5; color: #A19A94;">Ranked by net profit, what each kept: sales after returns, less the goods, the clicks and the freight on parcels refused at the door. The outline is gross profit, which counts an order that came back as a sale; month 3’s budgets were split on gross, at week 8. Every brand’s last 5 weeks are missing returns that came back after the game ended, so every figure here reads high, most for whoever sold most in those weeks.</div>
+        <sc-if value="{{cellsHidden}}" hint-placeholder-val="{{false}}"><div style="padding-top: 4px; font-size: 12px; color: #8A847E;">{{cellsNote}}</div></sc-if>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 16px; align-items: start;">
+        <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+          <div class="display" style="font-weight: 700; font-size: 18px;">Where you finished</div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px;">
+            <sc-for list="{{ranks}}" as="k" hint-placeholder-count="3">
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div class="display num" style="font-weight: 800; font-size: 30px; line-height: 1;">{{k.place}}</div>
+                <div style="font-size: 12px; line-height: 1.4; color: #A19A94;">{{k.what}}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div class="num" style="font-size: 13px; line-height: 1.5; color: #CFC9C3;">{{monthThree}}</div>
+          <div style="font-size: 13px; line-height: 1.5; color: #A19A94;">{{traps}}</div>
+        </div>
+        <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+          <div class="display" style="font-weight: 700; font-size: 18px;">Play again</div>
+          <sc-if value="{{restartClosed}}" hint-placeholder-val="{{true}}"><div class="pick" onClick="{{openRestart}}" style="align-self: flex-start; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid #3A363E; color: #CFC9C3; display: flex; align-items: center; font-size: 13px; font-weight: 600;">Start another game</div></sc-if>
+          <sc-if value="{{restartOpen}}" hint-placeholder-val="{{false}}">
+            <sc-for list="{{restartChoices}}" as="o" hint-placeholder-count="2">
+              <div class="pick" style="display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid #3A363E; border-radius: 14px;">
+                <div style="font-weight: 700; font-size: 14px;">{{o.label}}</div>
+                <div style="font-size: 12px; line-height: 1.45; color: #A19A94;">{{o.why}}</div>
+              </div>
+            </sc-for>
+          </sc-if>
+          <div style="font-size: 12px; line-height: 1.45; color: #8A847E;">{{restartWarn}}</div>
+        </div>
+      </div>
+    </div>
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <div style="font-size: 14px; color: #A19A94;">{{trayText}}</div>
+      <div class="display" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #2E2A33; color: #8A847E; display: flex; align-items: center; font-weight: 700; font-size: 18px;">{{trayButton}}</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1460}}'>
+/*
+ * The Results area, Everyone’s books. Real figures: seed 1, Vella & Co. at mid-price
+ * performance, the makeover canvas's keywords, played to week 12 with four
+ * decisions (block "cheap" at week 4; Rs 55,000 to the size guide at week 5;
+ * broad bids Rs 24 to Rs 18 at week 7; "gym leggings" Rs 33 to Rs 40 at week
+ * 10). The replays behind "What if I hadn't?" and the budget line are the
+ * game's own, run through game.js; the guesses are a player's, invented.
+ */
+const DATA = {"chrome":{"topWeek":"Week 12 of 12","topSaved":"saved","topLabel":"Month 3","topMonth":"₹1,79,760 of ₹1,79,760 spent","trayText":"The twelve weeks are done.","trayButton":"Game over","warning":"For twelve weeks you saw your rivals as a real account does: their ads, and how often you met them in auctions. A real account never shows a competitor’s spend, conversions or profit. This page does, only because the game is over and nothing here can change a decision now. Read it as the answer sheet, not as a report."},"figures":[{"label":"Net profit","value":"₹4,91,661","sub":"gross ₹12,15,977"},{"label":"Spend","value":"₹7,09,295","sub":"34,644 clicks"},{"label":"Conversions","value":"1,543.1","sub":"548.9 came back"},{"label":"Net revenue","value":"₹23,97,046","sub":"gross ₹37,02,448"},{"label":"Net ROAS","value":"3.38","sub":"sales after returns, per ₹1 of clicks"},{"label":"Settled","value":"7 of 12 weeks","sub":"weeks 8 to 12 still moving"}],"chart":{"weeks":[{"round":1,"n":"1","nowH":200,"tickBottom":226,"valueBottom":252,"valueText":"₹97,821","changeText":"+₹9,313","hasDot":false,"panel":{"title":"Week 1","status":"settled: every conversion in, every return back","then":"₹88,508","now":"₹97,821","change":"+₹9,313","did":[],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹61,786 spent on 5,039 clicks. You showed in 97% of the auctions you could enter, and lost 0% to budget and 3% to rank."}},{"round":2,"n":"2","nowH":80,"tickBottom":112,"valueBottom":132,"valueText":"₹38,941","changeText":"+₹6,001","hasDot":false,"panel":{"title":"Week 2","status":"settled: every conversion in, every return back","then":"₹32,940","now":"₹38,941","change":"+₹6,001","did":[],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹78,250 spent on 3,525 clicks. You showed in 43% of the auctions you could enter, and lost 57% to budget and 0% to rank."}},{"round":3,"n":"3","nowH":63,"tickBottom":99,"valueBottom":115,"valueText":"₹30,605","changeText":"+₹3,973","hasDot":false,"panel":{"title":"Week 3","status":"settled: every conversion in, every return back","then":"₹26,632","now":"₹30,605","change":"+₹3,973","did":[],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹78,250 spent on 3,392 clicks. You showed in 41% of the auctions you could enter, and lost 59% to budget and 0% to rank."}},{"round":4,"n":"4","nowH":87,"tickBottom":125,"valueBottom":139,"valueText":"₹42,623","changeText":"+₹3,587","hasDot":true,"panel":{"title":"Week 4","status":"settled: every conversion in, every return back","then":"₹39,036","now":"₹42,623","change":"+₹3,587","did":[{"text":"Blocked “cheap” (broad)"}],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹78,250 spent on 3,579 clicks. You showed in 60% of the auctions you could enter, and lost 40% to budget and 0% to rank."}},{"round":5,"n":"5","nowH":86,"tickBottom":125,"valueBottom":138,"valueText":"₹41,833","changeText":"+₹2,588","hasDot":true,"panel":{"title":"Week 5","status":"settled: every conversion in, every return back","then":"₹39,245","now":"₹41,833","change":"+₹2,588","did":[{"text":"Committed ₹55,000 to the size guide"}],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹58,250 spent on 2,993 clicks. You showed in 54% of the auctions you could enter, and lost 46% to budget and 0% to rank."}},{"round":6,"n":"6","nowH":71,"tickBottom":111,"valueBottom":123,"valueText":"₹34,748","changeText":"+₹2,413","hasDot":false,"panel":{"title":"Week 6","status":"settled: every conversion in, every return back","then":"₹32,335","now":"₹34,748","change":"+₹2,413","did":[],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹58,250 spent on 2,789 clicks. You showed in 51% of the auctions you could enter, and lost 49% to budget and 0% to rank."}},{"round":7,"n":"7","nowH":78,"tickBottom":118,"valueBottom":130,"valueText":"₹38,255","changeText":"+₹2,434","hasDot":true,"panel":{"title":"Week 7","status":"settled: every conversion in, every return back","then":"₹35,821","now":"₹38,255","change":"+₹2,434","did":[{"text":"“running leggings women” bid ₹24 → ₹18"},{"text":"“high waisted gym leggings” bid ₹24 → ₹18"}],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹58,250 spent on 2,888 clicks. You showed in 53% of the auctions you could enter, and lost 47% to budget and 0% to rank."}},{"round":8,"n":"8","nowH":110,"tickBottom":130,"valueBottom":162,"valueText":"₹53,756","changeText":"+₹12,266","hasDot":false,"panel":{"title":"Week 8","status":"returns still to come","then":"₹41,490","now":"₹53,756","change":"+₹12,266","did":[],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹58,250 spent on 3,057 clicks. You showed in 56% of the auctions you could enter, and lost 44% to budget and 0% to rank."}},{"round":9,"n":"9","nowH":65,"tickBottom":82,"valueBottom":117,"valueText":"₹31,572","changeText":"+₹13,504","hasDot":false,"panel":{"title":"Week 9","status":"returns still to come","then":"₹18,068","now":"₹31,572","change":"+₹13,504","did":[],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹44,940 spent on 1,996 clicks. You showed in 34% of the auctions you could enter, and lost 66% to budget and 0% to rank."}},{"round":10,"n":"10","nowH":50,"tickBottom":59,"valueBottom":102,"valueText":"₹24,234","changeText":"+₹17,157","hasDot":true,"panel":{"title":"Week 10","status":"3.8 conversions still to arrive, and returns to come","then":"₹7,077","now":"₹24,234","change":"+₹17,157","did":[{"text":"“gym leggings” bid ₹33 → ₹40"}],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹44,940 spent on 1,695 clicks. You showed in 26% of the auctions you could enter, and lost 74% to budget and 0% to rank."}},{"round":11,"n":"11","nowH":103,"tickBottom":82,"valueBottom":155,"valueText":"₹50,265","changeText":"+₹32,117","hasDot":false,"panel":{"title":"Week 11","status":"15.7 conversions still to arrive, and returns to come","then":"₹18,148","now":"₹50,265","change":"+₹32,117","did":[],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹44,940 spent on 1,998 clicks. You showed in 34% of the auctions you could enter, and lost 66% to budget and 0% to rank."}},{"round":12,"n":"12","nowH":14,"tickBottom":59,"valueBottom":66,"valueText":"₹7,008","changeText":"","hasDot":false,"panel":{"title":"Week 12","status":"34.1 conversions still to arrive, and returns to come","then":"₹7,008","now":"₹7,008","change":"no change yet","did":[],"nothing":"Nothing: it ran on what you had already set.","traffic":"₹44,940 spent on 1,693 clicks. You showed in 26% of the auctions you could enter, and lost 74% to budget and 0% to rank."}}],"startWeek":10,"reading":"The weeks' first reports added up to ₹3,86,307; the same twelve weeks stand at ₹4,91,661 now. Every week you decided on was still moving.","provisional":"The last 5 weeks are not settled, and they read high. Weeks 10 to 12 still have 53.6 conversions to arrive, but returns come back two weeks after a sale lands, so nothing sold after week 10 comes back inside the game: weeks 11 and 12 count no returns at all."},"kinder":"This market is kinder than a real one: its ads are clicked, and its clicks buy, at least as often as published apparel benchmarks, so its returns sit at the top of the range Indian brands report, and in every market measured a sensible player made money.","capital":"₹55,000 on the size guide from week 5's allocation, live from week 8. The other ₹1,85,000 of the two allocations went into your ad budget.","lessons":{"all":[{"title":"Numbers keep moving","text":"Week 1’s gross profit read ₹88,508 when you first saw it; it now stands at ₹2,11,476. Every week you read was unfinished.","tried":true,"hasHero":true,"hasBar":false,"bar":{"shown":"0%","budget":"0%","rank":"0%"},"hero":"₹88,508 → ₹2,11,476","caption":"week 1's gross profit, first read and now","tag":"","hasTag":false,"border":"1px solid #2A272D"},{"title":"Rank or budget","text":"Your worst week, week 12, lost 74% of its impressions to budget: the money ran out, so a higher bid would only have made each click dearer. Whether more money would have paid is the question below.","tried":true,"hasHero":true,"hasBar":true,"bar":{"shown":"26%","budget":"74%","rank":"0%"},"hero":"74%","caption":"of week 12's impressions lost to budget","tag":"","hasTag":false,"border":"1px solid #2A272D"},{"title":"Broad match wanders","text":"Your keywords bought clicks on 26 different searches that none of them spelled out exactly: broad match wandering, and phrase match's longer searches. You blocked one word.","tried":true,"hasHero":true,"hasBar":false,"bar":{"shown":"0%","budget":"0%","rank":"0%"},"hero":"26","caption":"different searches bought that no keyword spelled out · 1 word blocked","tag":"","hasTag":false,"border":"1px solid #2A272D"},{"title":"Returns: gross against kept","text":"Returns took 60% of your gross profit. You placed 6th on what you kept and 5th on gross profit, which counts an order that came back as a sale. It will be more: the last 5 weeks' returns had not all come back when the game ended.","tried":true,"hasHero":true,"hasBar":false,"bar":{"shown":"0%","budget":"0%","rank":"0%"},"hero":"60%","caption":"of your gross profit · 6th on what you kept, 5th on gross","tag":"","hasTag":false,"border":"1px solid #2A272D"},{"title":"Defending your name","text":"A click on your own name cost ₹7, against ₹21 for everything else.","tried":true,"hasHero":true,"hasBar":false,"bar":{"shown":"0%","budget":"0%","rank":"0%"},"hero":"₹7 · ₹21","caption":"a click on your name · on everything else","tag":"","hasTag":false,"border":"1px solid #2A272D"},{"title":"Smart bidding learns","text":"You never switched to a strategy that predicts conversions. Next game, try one and watch its learning weeks.","tried":false,"hasHero":false,"hasBar":false,"bar":{"shown":"0%","budget":"0%","rank":"0%"},"hero":"","caption":"","tag":"you didn’t try this","hasTag":true,"border":"1px dashed #4A454F"}]},"moments":[{"round":4,"title":"Week 4","lines":[{"text":"Blocked “cheap” (broad)"}],"beforeLabel":"Week 3","afterLabel":"Week 4","pairs":[{"label":"Clicks","before":"3,392","after":"3,579"},{"label":"Cost per click","before":"₹23","after":"₹22"},{"label":"Spend","before":"₹78,250","after":"₹78,250"},{"label":"Impression share","before":"41%","after":"60%"}],"also":"Other things changed that week too: rivals moved their bids. This shows what changed, not what caused it.","window":"Weeks 4–12, to the end of the game, still settling.","withoutIt":"Without it you would have had 1,189 fewer clicks, paid ₹11,760 less, and kept ₹75,021 less.","extra":"","hasExtra":false,"held":"Rivals make the moves they made in your game; in a real one they might have answered differently.","startAsked":true},{"round":5,"title":"Week 5","lines":[{"text":"Committed ₹55,000 to the size guide"}],"beforeLabel":"Week 4","afterLabel":"Week 5","pairs":[{"label":"Clicks","before":"3,579","after":"2,993"},{"label":"Cost per click","before":"₹22","after":"₹19"},{"label":"Spend","before":"₹78,250","after":"₹58,250"},{"label":"Impression share","before":"60%","after":"54%"}],"also":"Other things changed that week too: rivals moved their bids, a new month’s budget began and the second capital allocation was made. This shows what changed, not what caused it.","window":"Weeks 5–12, to the end of the game, still settling.","withoutIt":"Without it you would have had 2,747 more clicks, paid ₹55,000 more, and kept ₹28,625 more.","extra":"What you kept never counts the ₹55,000 the size guide itself cost, only what clicks cost. Counting it, the game without the size guide ends ₹83,625 ahead.","hasExtra":true,"held":"Rivals make the moves they made in your game; in a real one they might have answered differently.","startAsked":true},{"round":7,"title":"Week 7","lines":[{"text":"“running leggings women” bid ₹24 → ₹18"},{"text":"“high waisted gym leggings” bid ₹24 → ₹18"}],"beforeLabel":"Week 6","afterLabel":"Week 7","pairs":[{"label":"Clicks","before":"2,789","after":"2,888"},{"label":"Cost per click","before":"₹21","after":"₹20"},{"label":"Spend","before":"₹58,250","after":"₹58,250"},{"label":"Impression share","before":"51%","after":"53%"}],"also":"Other things changed that week too: rivals moved their bids. This shows what changed, not what caused it.","window":"Weeks 7–12, to the end of the game, still settling.","withoutIt":"Without it you would have had 111 fewer clicks, paid the same, and kept ₹4,542 less.","extra":"","hasExtra":false,"held":"Rivals make the moves they made in your game; in a real one they might have answered differently.","startAsked":false},{"round":10,"title":"Week 10","lines":[{"text":"“gym leggings” bid ₹33 → ₹40"}],"beforeLabel":"Week 9","afterLabel":"Week 10","pairs":[{"label":"Clicks","before":"1,996","after":"1,695"},{"label":"Cost per click","before":"₹23","after":"₹27"},{"label":"Spend","before":"₹44,940","after":"₹44,940"},{"label":"Impression share","before":"34%","after":"26%"}],"also":"Other things changed that week too: rivals moved their bids. This shows what changed, not what caused it.","window":"Weeks 10–12, to the end of the game, still settling.","withoutIt":"Without it you would have had 582 more clicks, paid the same, and kept ₹25,466 more.","extra":"","hasExtra":false,"held":"Rivals make the moves they made in your game; in a real one they might have answered differently.","startAsked":false}],"rivalsHeld":"Rivals make the moves they made in your game; in a real one they might have answered differently.","budget":{"strip":[{"n":"1","bg":"transparent","style":"dashed","border":"#4A454F"},{"n":"2","bg":"#7A7480","style":"solid","border":"#7A7480"},{"n":"3","bg":"#7A7480","style":"solid","border":"#7A7480"},{"n":"4","bg":"#7A7480","style":"solid","border":"#7A7480"},{"n":"5","bg":"#7A7480","style":"solid","border":"#7A7480"},{"n":"6","bg":"#7A7480","style":"solid","border":"#7A7480"},{"n":"7","bg":"#7A7480","style":"solid","border":"#7A7480"},{"n":"8","bg":"repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px)","style":"solid","border":"#7A7480"},{"n":"9","bg":"#7A7480","style":"solid","border":"#7A7480"},{"n":"10","bg":"#7A7480","style":"solid","border":"#7A7480"},{"n":"11","bg":"#EDE8E3","style":"solid","border":"#EDE8E3"},{"n":"12","bg":"repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px)","style":"solid","border":"#7A7480"}],"text":"Your budget ran out in 11 of 12 weeks. In 9 of them there was still money left in the month: spending it that week would have paid for itself only in week 11, by ₹36 on 1,977 more clicks, and would not have in the other 8. Weeks 8 and 12 were the last of their month, with nothing left to spend.","exact":"An exact figure only a simulation can have: Google Ads can only estimate it, as impression share lost to budget."},"reveal":{"rows":[{"id":"auren","name":"Auren","domain":"auren.in","head":"Bamboo Silk, Cut To Drape · Loungewear You Keep · Mended Free, For Life","desc":"Bamboo silk and heavy cotton, cut to fall properly and to be worn for years. Fit consultation on request. We repair anything we make, free, for as long as you own it.","truth":"premium|lifestyle","noted":true},{"id":"halcyon","name":"Halcyon","domain":"halcyon.in","head":"Modal And Cashmere Blend · Considered Athleisure · Made To Outlast Trends","desc":"Loungewear in modal and cashmere blend, cut to hold its shape for years. Fit consultation, and a care card in every box. 30-day returns.","truth":"premium|lifestyle","noted":true},{"id":"kestrel","name":"Kestrel","domain":"kestrel.in","head":"Athleisure For All Day · Studio To Street Co-ords · The Set You Reach For","desc":"Everyday athleisure for the school run, the studio, and whatever comes after. Sizes XS to XXL, with a fit guide for between-sizes. 30-day returns.","truth":"mid|lifestyle","noted":true},{"id":"lumen","name":"Lumen","domain":"lumenlabel.in","head":"Gym Leggings From ₹799 · Squat Proof, Not Pricey · 2 Sports Bras For ₹999","desc":"Train hard, spend little. Squat-proof leggings and high-impact bras that hold. Free delivery over ₹799. Easy 15-day returns, because gym fit is hard to guess.","truth":"value|performance","noted":true},{"id":"marlow","name":"Marlow","domain":"marlowlabel.in","head":"Leggings Built To Train In · Holds Up, Wash After Wash · Squat-Proof, Sweat-Wicking","desc":"Gym wear that survives four sessions a week and a hot Indian summer. Sizes XS to XXL, with a fit guide that admits when to size up. 30-day returns.","truth":"mid|performance","noted":true},{"id":"nira","name":"Nira","domain":"nira.in","head":"Co-ord Sets For All Day · From The Desk To The Door · Everyday Soft, Every Day","desc":"Joggers and co-ord sets that look considered without looking like effort. Sizes XS to XXL. Thirty-day returns and a fit guide written by real wearers.","truth":"mid|lifestyle","noted":false},{"id":"satva","name":"Satva","domain":"satva.in","head":"Seamless Compression Kit · Japanese Technical Knit · Made For Heavy Lifts","desc":"Seamless, sculpting, second-skin. Japanese yarn, knitted to hold under load. Fit consultation before you buy. 30-day returns, free delivery both ways.","truth":"premium|performance","noted":false},{"id":"torvi","name":"Torvi","domain":"torvi.in","head":"Recycled Nylon, Built To Last · Tested Over A Training Block · No Chafe, No Ride, No Fuss","desc":"Recycled technical nylon with bonded panels, tested through a full training block. Talk to a fitter before you order. Thirty days to change your mind, either way.","truth":"premium|performance","noted":false}],"endGuesses":{"auren":"premium|lifestyle","halcyon":"premium|lifestyle","kestrel":"mid|performance","lumen":"value|performance","marlow":"value|performance","nira":"mid|lifestyle","satva":"value|lifestyle"},"keptGuesses":{"auren":"premium|lifestyle","halcyon":"premium|lifestyle","kestrel":"mid|performance","lumen":"value|performance","marlow":"value|performance"},"cellNames":{"value|performance":"Value · Performance","value|lifestyle":"Value · Lifestyle","mid|performance":"Mid · Performance","mid|lifestyle":"Mid · Lifestyle","premium|performance":"Premium · Performance","premium|lifestyle":"Premium · Lifestyle"},"purposeNames":{"performance":"Performance","lifestyle":"Lifestyle"},"purposeSubs":{"performance":"the most contested","lifestyle":"fewer bidders"},"you":"mid|performance","mates":"Marlow sat in your cell, so it bid on the same kind of searches you did. Yet Kestrel, in another cell, met you most: in 94% of the auctions you showed in, week by week on average.","words":{"result":{"exact":"Exactly right","price":"Right on price, wrong on purpose","purpose":"Right on purpose, wrong on price","wrong":"Wrong on both"},"skippedWord":"Not guessed","itWas":"It was","itWasLower":"it was","said":"you said","noted":"you noted","tagNoted":"noted at round 0","tagNow":"place it now","switchEnd":"asked again at the end","switchKept":"round 0’s notes kept","introEnd":"Place each rival on the grid from its ad alone, the only evidence you had before the first auction. Then see where they really sat.","introKept":"At round 0 you noted where 5 of them sit, from their ads alone. Place the other 3 now, then see where they really sat.","shown":"Here is where each of them really sat."}},"books":{"rows":[{"rank":"1","name":"Nira","isYou":false,"cell":"Mid · Lifestyle","grossW":"100.0%","keptW":"56.9%","keptBg":"#EDE8E3","keptText":"₹22,20,390","keptColor":"#EDE8E3","returnsTook":"43%","onGross":"1st","line2":"spent ₹4,89,327 · 3,196.8 conversions, ₹153 each · ₹11.01 of sales after returns per ₹1 of clicks · gross profit ₹39,04,635"},{"rank":"2","name":"Lumen","isYou":false,"cell":"Value · Performance","grossW":"44.6%","keptW":"23.3%","keptBg":"#EDE8E3","keptText":"₹9,08,522","keptColor":"#EDE8E3","returnsTook":"48%","onGross":"2nd","line2":"spent ₹4,72,410 · 4,608.1 conversions, ₹103 each · ₹7.97 of sales after returns per ₹1 of clicks · gross profit ₹17,39,702"},{"rank":"3","name":"Satva","isYou":false,"cell":"Premium · Performance","grossW":"36.7%","keptW":"20.8%","keptBg":"#EDE8E3","keptText":"₹8,10,242","keptColor":"#EDE8E3","returnsTook":"43%","onGross":"4th","line2":"spent ₹4,64,946 · 633.7 conversions, ₹734 each · ₹4.47 of sales after returns per ₹1 of clicks · gross profit ₹14,33,544"},{"rank":"4","name":"Halcyon","isYou":false,"cell":"Premium · Lifestyle","grossW":"41.1%","keptW":"17.5%","keptBg":"#EDE8E3","keptText":"₹6,82,244","keptColor":"#EDE8E3","returnsTook":"57%","onGross":"3rd","line2":"spent ₹7,80,959 · 759.3 conversions, ₹1,029 each · ₹3.06 of sales after returns per ₹1 of clicks · gross profit ₹16,03,995"},{"rank":"5","name":"Auren","isYou":false,"cell":"Premium · Lifestyle","grossW":"25.2%","keptW":"15.0%","keptBg":"#EDE8E3","keptText":"₹5,87,475","keptColor":"#EDE8E3","returnsTook":"40%","onGross":"7th","line2":"spent ₹1,10,350 · 352.0 conversions, ₹313 each · ₹10.33 of sales after returns per ₹1 of clicks · gross profit ₹9,84,691"},{"rank":"6","name":"Vella & Co.","isYou":true,"cell":"Mid · Performance","grossW":"31.1%","keptW":"12.6%","keptBg":"#D7262F","keptText":"₹4,91,661","keptColor":"#EDE8E3","returnsTook":"60%","onGross":"5th","line2":"spent ₹7,09,295 · 1,543.1 conversions, ₹460 each · ₹3.38 of sales after returns per ₹1 of clicks · gross profit ₹12,15,977"},{"rank":"7","name":"Marlow","isYou":false,"cell":"Mid · Performance","grossW":"15.2%","keptW":"9.7%","keptBg":"#EDE8E3","keptText":"₹3,78,607","keptColor":"#EDE8E3","returnsTook":"36%","onGross":"8th","line2":"spent ₹1,00,795 · 583.1 conversions, ₹173 each · ₹9.40 of sales after returns per ₹1 of clicks · gross profit ₹5,94,996"},{"rank":"8","name":"Kestrel","isYou":false,"cell":"Mid · Lifestyle","grossW":"29.5%","keptW":"8.2%","keptBg":"#EDE8E3","keptText":"₹3,21,242","keptColor":"#EDE8E3","returnsTook":"72%","onGross":"6th","line2":"spent ₹7,44,000 · 1,424.7 conversions, ₹522 each · ₹2.88 of sales after returns per ₹1 of clicks · gross profit ₹11,52,588"},{"rank":"9","name":"Torvi","isYou":false,"cell":"Premium · Performance","grossW":"9.1%","keptW":"0.0%","keptBg":"#EDE8E3","keptText":"−₹2,346","keptColor":"#F2A53A","returnsTook":"101%","onGross":"9th","line2":"spent ₹6,93,600 · 339.8 conversions, ₹2,041 each · ₹1.63 of sales after returns per ₹1 of clicks · gross profit ₹3,54,637"}],"switchBefore":"before the reveal","switchAfter":"after it","cellsNote":"Where each of them sat stays hidden here until you answer Where they sat.","ranks":[{"place":"4th","what":"at week 8, on gross profit as reported then"},{"place":"5th","what":"at the end, on gross profit"},{"place":"6th","what":"at the end, on net profit"}],"monthThree":"Month 3’s budgets were set by the week-8 ranking: 4th gave you ₹1,79,760, where the middle place got ₹1,68,000, first ₹2,18,400 and last ₹1,17,600.","traps":"Both halves of that ranking were traps. Gross profit does not net off returns, so traffic that converts well and comes straight back flattered it. And at week 8 attribution had not caught up, so a week-8 click showed all of its cost against about half of its revenue: spending hard into the deadline made you look worse, not better.","restart":[{"label":"Same market","why":"The same eight rivals in the same cells. The only way to find out whether a result came from your decisions or from the market you happened to get."},{"label":"A new market","why":"Different rivals in different cells, so the eight ads at round 0 say something else. Whether what you learned here transfers is a harder question than whether you can beat this board again."}],"restartWarn":"Either one throws this game away: there is no going back to it. Read the rest first."}};
+const PAGE = 'books';
+const PRICES = ['value', 'mid', 'premium'];
+const PURPOSES = ['performance', 'lifestyle'];
+const RED = '#D7262F';
+const BONE = '#EDE8E3';
+
+// The reveal's sentences with figures in them (ui/words/debrief.js's score,
+// and two for round-0 notes kept, which would be new words).
+const scoreAll = ({ exact, half, of }) => `You read ${exact} of ${of} exactly, and ${half} more half right.`;
+const scoreThen = ({ exact, half, of }) => `Of the ${of} you noted at round 0, you read ${exact} exactly and ${half} more half right.`;
+const scoreNow = ({ exact, half, of, placed }) => (placed === 0
+  ? `You placed none of the other ${of}.`
+  : `Of the other ${of}, you placed ${placed}: ${exact} exactly right and ${half} half right.`);
+const placedLine = ({ placed, total }) => `${placed} of ${total} placed`;
+
+const chip = (on) => ({
+  bg: on ? BONE : 'transparent', color: on ? '#0D0C0E' : '#CFC9C3', border: on ? BONE : '#3A363E',
+});
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = {
+      week: DATA.chart.startWeek,
+      asked: DATA.moments.filter((m) => m.startAsked).map((m) => m.round),
+      budget: true,
+      notes: 'end',
+      guesses: { ...DATA.reveal.endGuesses },
+      revealed: 'no',
+      books: 'after',
+      restart: false,
+    };
+  }
+
+  // --- Twelve weeks ---------------------------------------------------------
+  twelve(s) {
+    const weeks = DATA.chart.weeks.map((w) => {
+      const on = w.round === s.week;
+      return {
+        ...w,
+        colBg: on ? '#221F25' : 'transparent',
+        labelWeight: on ? 700 : 400,
+        labelColor: on ? BONE : '#A19A94',
+        pick: () => this.setState({ week: w.round }),
+      };
+    });
+    const picked = DATA.chart.weeks.find((w) => w.round === s.week);
+    return {
+      figures: DATA.figures,
+      chartWeeks: weeks,
+      panel: picked.panel,
+      panelDid: picked.panel.did,
+      panelHasDid: picked.panel.did.length > 0,
+      panelNothing: picked.panel.did.length === 0,
+      chartReading: DATA.chart.reading,
+      provisional: DATA.chart.provisional,
+      kinder: DATA.kinder,
+      capital: DATA.capital,
+    };
+  }
+
+  // --- What you learned -----------------------------------------------------
+  learned(s) {
+    const moments = DATA.moments.map((m) => {
+      const asked = s.asked.includes(m.round);
+      return {
+        ...m,
+        asked,
+        notAsked: !asked,
+        ask: () => this.setState({ asked: [...s.asked, m.round] }),
+      };
+    });
+    return {
+      lessons: DATA.lessons.all,
+      moments,
+      rivalsHeld: DATA.rivalsHeld,
+      budgetAsked: s.budget,
+      budgetNot: !s.budget,
+      askBudget: () => this.setState({ budget: true }),
+      budgetStrip: DATA.budget.strip,
+      budgetText: DATA.budget.text,
+      budgetExact: DATA.budget.exact,
+    };
+  }
+
+  // --- Where they sat -------------------------------------------------------
+  reveal(s) {
+    const kept = s.notes === 'kept';
+    const done = s.revealed !== 'no';
+    const skipped = s.revealed === 'skipped';
+    const guessOf = (row) => (skipped ? null : s.guesses[row.id] ?? null);
+    const words = DATA.reveal.words;
+    const cards = DATA.reveal.rows.map((row) => {
+      const noted = kept && row.noted;
+      const guess = guessOf(row);
+      const cells = [];
+      for (const purpose of PURPOSES) {
+        for (const price of PRICES) {
+          const key = `${price}|${purpose}`;
+          const isGuess = guess === key;
+          const isTruth = done && row.truth === key;
+          cells.push({
+            bg: isTruth ? BONE : (!done && isGuess ? RED : 'transparent'),
+            border: isGuess ? RED : (isTruth ? BONE : '#68636B'),
+            ring: isGuess && done ? `0 0 0 2px ${RED}` : 'none',
+            pick: () => {
+              if (done || noted) return;
+              const next = { ...s.guesses };
+              if (next[row.id] === key) delete next[row.id]; else next[row.id] = key;
+              this.setState({ guesses: next });
+            },
+          });
+        }
+      }
+      let result = '';
+      let resultColor = '#A19A94';
+      if (done) {
+        const truthName = DATA.reveal.cellNames[row.truth];
+        if (!guess) result = skipped ? `${words.itWas} ${truthName}.` : `${words.skippedWord}: ${words.itWasLower} ${truthName}.`;
+        else {
+          const [gp, gu] = guess.split('|');
+          const [tp, tu] = row.truth.split('|');
+          const kind = gp === tp && gu === tu ? 'exact' : gp === tp ? 'price' : gu === tu ? 'purpose' : 'wrong';
+          const said = noted ? words.noted : words.said;
+          result = kind === 'exact'
+            ? `${words.result.exact}: ${truthName}.`
+            : `${words.result[kind]}: ${said} ${DATA.reveal.cellNames[guess]}, ${words.itWasLower} ${truthName}.`;
+          resultColor = kind === 'exact' ? BONE : '#CFC9C3';
+        }
+      }
+      let tag = '';
+      if (kept) tag = row.noted ? words.tagNoted : words.tagNow;
+      return {
+        name: row.name, domain: row.domain, head: row.head, desc: row.desc,
+        cells, tag, hasTag: tag !== '', result, hasResult: done, resultColor,
+        tagColor: row.noted ? '#CFC9C3' : '#8A847E',
+      };
+    });
+
+    // The six squares, round 0's own diagram: guesses before, the truth after.
+    const squares = PURPOSES.map((purpose) => ({
+      purposeName: DATA.reveal.purposeNames[purpose],
+      purposeSub: DATA.reveal.purposeSubs[purpose],
+      cells: PRICES.map((price) => {
+        const key = `${price}|${purpose}`;
+        const you = DATA.reveal.you === key;
+        const chips = done
+          ? DATA.reveal.rows.filter((r) => r.truth === key).map((r) => {
+            const right = !skipped && s.guesses[r.id] === key;
+            return { text: r.name, weight: 700, border: 'transparent', color: BONE, mark: right ? '✓' : '', hasMark: right };
+          })
+          : DATA.reveal.rows.filter((r) => s.guesses[r.id] === key).map((r) => ({
+            text: `${r.name}?`, weight: 400, border: '#3A363E', color: '#CFC9C3', mark: '', hasMark: false,
+          }));
+        return {
+          name: DATA.reveal.cellNames[key],
+          chips,
+          you,
+          border: you ? RED : '#2A272D',
+          bg: you ? '#1C1417' : '#17161A',
+          ring: you ? `0 0 0 1px ${RED}` : 'none',
+        };
+      }),
+    }));
+
+    const placed = DATA.reveal.rows.filter((r) => s.guesses[r.id]).length;
+    let score = '';
+    if (s.revealed === 'yes') {
+      const graded = (rows) => {
+        let exact = 0; let half = 0; let placed = 0;
+        for (const r of rows) {
+          const g = s.guesses[r.id];
+          if (!g) continue;
+          placed++;
+          const [gp, gu] = g.split('|');
+          const [tp, tu] = r.truth.split('|');
+          if (gp === tp && gu === tu) exact++; else if (gp === tp || gu === tu) half++;
+        }
+        return { exact, half, of: rows.length, placed };
+      };
+      if (kept) {
+        const then = graded(DATA.reveal.rows.filter((r) => r.noted));
+        const now = graded(DATA.reveal.rows.filter((r) => !r.noted));
+        score = `${scoreThen(then)} ${scoreNow(now)}`;
+      } else score = scoreAll(graded(DATA.reveal.rows));
+    } else if (skipped) score = words.shown;
+    const noteChips = [['end', words.switchEnd], ['kept', words.switchKept]].map(([key, label]) => ({
+      label, ...chip(s.notes === key),
+      pick: () => this.setState({ notes: key, revealed: 'no', guesses: { ...(key === 'kept' ? DATA.reveal.keptGuesses : DATA.reveal.endGuesses) } }),
+    }));
+    return {
+      noteChips,
+      revealIntro: kept ? words.introKept : words.introEnd,
+      rivalCards: cards,
+      squares,
+      notDone: !done,
+      isDone: done,
+      placedLine: placedLine({ placed, total: DATA.reveal.rows.length }),
+      doReveal: () => this.setState({ revealed: 'yes' }),
+      doSkip: () => this.setState({ revealed: 'skipped' }),
+      doReset: () => this.setState({ revealed: 'no', guesses: { ...(kept ? DATA.reveal.keptGuesses : DATA.reveal.endGuesses) } }),
+      score,
+      mates: DATA.reveal.mates,
+    };
+  }
+
+  // --- Everyone's books -----------------------------------------------------
+  books(s) {
+    // The Books artboard has its own switch; on one page the column follows the reveal.
+    const shown = PAGE === 'books' ? s.books === 'after' : s.revealed !== 'no';
+    const rows = DATA.books.rows.map((r) => ({
+      ...r,
+      cellText: shown ? r.cell : '—',
+      cellColor: shown ? '#CFC9C3' : '#68636B',
+    }));
+    const bookChips = [['before', DATA.books.switchBefore], ['after', DATA.books.switchAfter]].map(([key, label]) => ({
+      label, ...chip(s.books === key), pick: () => this.setState({ books: key }),
+    }));
+    return {
+      bookChips,
+      booksRows: rows,
+      cellsHidden: !shown,
+      cellsNote: DATA.books.cellsNote,
+      ranks: DATA.books.ranks,
+      monthThree: DATA.books.monthThree,
+      traps: DATA.books.traps,
+      restartOpen: s.restart,
+      restartClosed: !s.restart,
+      openRestart: () => this.setState({ restart: true }),
+      restartChoices: DATA.books.restart,
+      restartWarn: DATA.books.restartWarn,
+    };
+  }
+
+  renderVals() {
+    const s = this.state;
+    return {
+      ...DATA.chrome,
+      ...this.twelve(s),
+      ...this.learned(s),
+      ...this.reveal(s),
+      ...this.books(s),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

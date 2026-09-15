@@ -1,0 +1,102 @@
+{
+  "pages": [
+    {
+      "id": "results",
+      "name": "Results"
+    },
+    {
+      "id": "not-chosen",
+      "name": "Not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "A · Twelve weeks (chosen)",
+      "page": "results",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1210
+    },
+    {
+      "file": "Learned.dc.html",
+      "title": "A · What you learned",
+      "page": "results",
+      "is_interactive": true,
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 1980
+    },
+    {
+      "file": "Reveal.dc.html",
+      "title": "A · Where they sat",
+      "page": "results",
+      "is_interactive": true,
+      "x": 3120,
+      "y": 0,
+      "w": 1440,
+      "h": 1320
+    },
+    {
+      "file": "Books.dc.html",
+      "title": "A · Everyone’s books",
+      "page": "results",
+      "is_interactive": true,
+      "x": 4680,
+      "y": 0,
+      "w": 1440,
+      "h": 1460
+    },
+    {
+      "file": "OnePage.dc.html",
+      "title": "B · One page, told in order",
+      "page": "not-chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 5320
+    }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "page": "results",
+      "x": 0,
+      "y": -640,
+      "w": 2960,
+      "text": "Results: what the Studio shows after week 12, in place of today's end screen (Twelve weeks, the debrief, Where did they sit?, Everyone with the books open, Every week, The account, What you did, Play again). Two ways to lay out the same content: A splits it into four sections of the Results area (the four artboards on the left); B keeps it as one long page (right).\nReal figures from the engine: seed 1, Vella & Co. at mid-price performance, the makeover canvas's keywords, played to week 12 with four decisions a player could make from the screens: block \"cheap\" at week 4 (\"cheap gym leggings\" had cost ₹906 a sale over weeks 1 to 3, the dearest of the searches it spent most on), ₹55,000 of the second allocation to the size guide at week 5, the two broad keywords' bids ₹24 → ₹18 at week 7, and \"gym leggings\" ₹33 → ₹40 at week 10. It kept ₹4,91,661, 6th of 9. The replays behind \"What if I hadn't?\" and the budget line are the game's own. Only the guesses on Where they sat are invented: press Reveal."
+    },
+    {
+      "id": "a",
+      "page": "results",
+      "x": 3120,
+      "y": -640,
+      "w": 2960,
+      "text": "Chosen by the owner, 2026-09-15. A · Four sections. Twelve weeks: the result, and every week's net profit as it stands against its first report (a dashed tick), the weeks you changed something marked in red; tap a week for what you did and how it ran, which replaces today's Every week table and the What you did list. What you learned: the six lessons as cards, the weeks you changed something with \"What if I hadn't?\", and the budget question. Where they sat: round 0's eight ads and six squares, guess, then reveal. Everyone's books: every brand ranked by net profit, with gross profit as an outline behind it, where each sat (hidden until you answer Where they sat), your three ranks, and Play again at the very end. The tray says Game over, as today; the playtest link's questions would follow Everyone's books (not drawn).\nFor: each screen is short, like every other section; the sidebar's dots show what is left to read, and each section ends by pointing at the next.\nAgainst: a player can read the first section and never open the rest."
+    },
+    {
+      "id": "b",
+      "page": "not-chosen",
+      "x": 0,
+      "y": -420,
+      "w": 1440,
+      "text": "B · One page, told in order. The same four parts, one under the other, in a single section.\nFor: one scroll, nothing to miss, the order fixed.\nAgainst: today's problem again, about 5,000px of page. The reveal sits three screens down, and the answer sheet is one scroll from the quiz (the column stays hidden until you answer, as today)."
+    },
+    {
+      "id": "found",
+      "page": "results",
+      "x": 0,
+      "y": 2120,
+      "w": 2960,
+      "text": "For you to decide. A second reader checked every figure against the code; items 1 to 4 are real faults, found by drawing this.\nDecided by the owner, 2026-09-15: A; fix both replays (1 and 2) first; say 3 and 4 plainly on the screens. 6 and 7 as recommended. 5 still open.\n1. \"What if I hadn't?\" gives wrong answers today, on the live site too. It deletes that week's decision and compares only until your next decision of any kind. But the form sends only what changed: a later keyword list can carry a removed change back in, a removed blocked word stays removed, and at week 5 deleting the capital decision makes the second ₹1,20,000 vanish, which no player can do (C8). The fix: remove the change and keep it removed, leave an untouched capital card alone, and always compare to the end of the game, because a change can move your week-8 rank and with it month 3's budget. Three of this game's four answers change:\n   Week 4, block \"cheap\". Today: \"Week 4, until your next change. Without it you would have had 81 fewer clicks, paid the same, and kept ₹8,067 less.\" Fixed: \"Weeks 4–12, to the end of the game, still settling. Without it you would have had 1,189 fewer clicks, paid ₹11,760 less, and kept ₹75,021 less.\" It also lifted you from 5th to 4th at week 8: ₹11,760 more in month 3.\n   Week 5, the size guide. Today: \"Weeks 5–6, until your next change. Without it you would have had 1,598 fewer clicks, paid ₹32,500 less, and kept ₹23,530 less.\" Fixed: \"Weeks 5–12, to the end of the game, still settling. Without it you would have had 2,747 more clicks, paid ₹55,000 more, and kept ₹28,625 more.\" The opposite answer.\n   Week 7, the broad bids. Today: \"Weeks 7–9, until your next change. Without it you would have had 68 fewer clicks, paid the same, and kept ₹2,550 less.\" Fixed: \"Weeks 7–12, to the end of the game, still settling. Without it you would have had 111 fewer clicks, paid the same, and kept ₹4,542 less.\"\n   And a capital card left untouched at week 5 would no longer show up as a change you made.\n2. The budget \"what if\" cannot answer for a capital week (the engine). At week 5 the capital joining the budget re-spreads the month and undoes the question's raise, so today week 5 reports nothing although it lost 46% of its impressions to budget. Fixed, it would have bought 2,618 more clicks and lost ₹2,540 on them. Played games are untouched; only this end-of-game question changes.\n3. Net profit never counts capital. It takes off what clicks cost and the freight on refused parcels, never capital spent on the business, so the size guide's ₹55,000 is free in every figure here and in Everyone's books (rivals invest at round 0 too). Counted, the game without the size guide ends ₹83,625 ahead, not ₹28,625; D12's measurement of capital uses the same figure. I'd say it plainly on these screens now, and bring you the rule as a DECISIONS entry later.\n4. The last 5 weeks read high. A return comes back two weeks after its sale lands, so nothing sold after week 10 comes back inside the game: weeks 11 and 12 count no returns at all, and weeks 8 to 10 too few (36%, 31% and 22% of their sales, against about 41% before). So net profit, the returns lesson and every brand's place in the books read high. I'd say it plainly now, as the mock-ups do; settling those returns when the game ends would be an engine change, measured first.\n5. Round 0's notes on where each rival sits are thrown away after round 0, so the reveal asks again at the end, after twelve weeks of meeting them in auctions. Keeping them would score what you read before the first auction, which is the lesson (17.1). One more field in the save; an older save asks at the end, as today. The switch on Where they sat shows both.\n6. Week 1 reads two ways: the chart shows its net profit (₹88,508 first reported, ₹97,821 now), the \"Numbers keep moving\" lesson its gross profit (₹88,508, now ₹2,11,476). I'd make the lesson read net, like the chart.\n7. The budget line counts ₹36 on 1,977 more clicks as \"paid for itself\". That is break-even; I'd say \"about broke even\" inside a small margin (a display number, I6).\n8. Reworded after the second reading: the dashed tick is each week's first report (Your week's tick means \"before week N ran\"); the rank-or-budget lesson no longer says \"more money\" beside a card saying it would not have paid; broad match no longer takes the blame for phrase match's longer searches; the books' warning names the ads a player did see; CPA and net ROAS in plain words, and one name, net profit; the cellmates line says Kestrel, in another cell, met you most; a loss prints \"−₹2,346\" in amber (today \"₹-2,346\"); month 3's ₹1,79,760 is set against the middle place's ₹1,68,000, not \"the ₹1,68,000 everyone had\" (this player had ₹3,13,000 and ₹2,33,000)."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "results"
+  }
+}
