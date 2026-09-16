@@ -29,6 +29,7 @@
 import {
   readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync,
 } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -146,6 +147,16 @@ export function buildSite(root, outDir) {
     mkdirSync(dirname(target), { recursive: true });
     copyFileSync(join(root, file), target);
   }
+  // The commit this site was built from, over the copy of ui/version.js, so a
+  // playtest file names the version each of its loads ran (ui/recorder.js).
+  // Cloudflare builds from a git checkout; anywhere else, 'unknown'.
+  let commit = 'unknown';
+  try {
+    commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  } catch {
+    // Not a git checkout: the file still says something, just not which commit.
+  }
+  writeFileSync(join(outDir, 'ui', 'version.js'), `export const GAME_VERSION = '${commit}';\n`);
   writeFileSync(join(outDir, 'index.html'), ROOT_INDEX);
   writeFileSync(join(outDir, '_headers'), HEADERS);
   return files;

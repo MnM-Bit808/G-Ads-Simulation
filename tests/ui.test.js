@@ -199,6 +199,7 @@ describe('every interface module at least loads', () => {
     'india-map.js': () => import('../ui/india-map.js'),
     'save.js': () => import('../ui/save.js'),
     'recorder.js': () => import('../ui/recorder.js'),
+    'version.js': () => import('../ui/version.js'),
     'words/line.js': () => import('../ui/words/line.js'),
     'words/returns.js': () => import('../ui/words/returns.js'),
     'words/guide.js': () => import('../ui/words/guide.js'),

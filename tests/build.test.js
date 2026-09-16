@@ -199,6 +199,12 @@ describe('the built copy runs', () => {
     expect(state.advertisers).toHaveLength(9);
   });
 
+  // A playtest file names the build it was recorded on (the switch-over,
+  // 2026-09-16), and 'dev' in a built site would name nothing.
+  test('the built copy carries the commit it was built from, not \'dev\'', () => {
+    expect(readFileSync(join(out, 'ui/version.js'), 'utf8')).toMatch(/GAME_VERSION = '(?!dev')[0-9a-f]{7,}'/);
+  });
+
   test('the address a visitor types sends them to the game', () => {
     // The dev server answers "/" with a redirect to /ui/. A static host has no
     // code to do that, so the build writes a page that does it instead — and

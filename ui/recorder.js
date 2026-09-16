@@ -30,6 +30,7 @@
 
 import { el } from './dom.js';
 import { SAVE_KEY } from './save.js';
+import { GAME_VERSION } from './version.js';
 import { PLAYTEST } from './words/playtest.js';
 
 /** Where the recording is kept, beside the save and never inside it. */
@@ -94,6 +95,7 @@ function emptyRecording(at) {
     format: RECORDING_FORMAT,
     startedAt: at,
     loads: [],
+    versions: [],
     phases: [],
     clicks: [],
     weeks: [],
@@ -122,8 +124,9 @@ function readRecording(storage, at) {
  * @param {object} deps
  * @param {Storage|null} deps.storage
  * @param {() => number} deps.now - milliseconds
+ * @param {string} [deps.version] - the build this load is running (ui/version.js)
  */
-export function createRecorder({ storage, now }) {
+export function createRecorder({ storage, now, version = GAME_VERSION }) {
   const recording = readRecording(storage, now());
   // Per page load, never stored: they describe this load, not the recording.
   let lastTickAt = now();
@@ -161,6 +164,10 @@ export function createRecorder({ storage, now }) {
       const current = open();
       if (current) current.endAt = current.lastSeenAt;
       recording.loads.push(at);
+      // The version this load ran, when it is not the one the last load ran.
+      // A recording made before this field existed has none, so it starts here.
+      recording.versions ??= [];
+      if (recording.versions.at(-1)?.version !== version) recording.versions.push({ at, version });
       lastTickAt = at;
       lastInputAt = at;
       hiddenSince = null;
@@ -372,6 +379,8 @@ export function playtestFile({ log, save, environment }) {
     format: RECORDING_FORMAT,
     summary: summarise(log),
     answers: log.answers,
+    // At the top too, where a reader looks first: a game can span a deploy.
+    versions: log.versions ?? [],
     recording: log,
     save: save ?? null,
     environment,
