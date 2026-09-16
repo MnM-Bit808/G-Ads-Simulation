@@ -134,8 +134,9 @@ function landingPage(model, openGuide) {
   const box = el('div', 'yad-card');
   box.classList.add('yad-page');
 
-  const bought = new Map(model.page.parts.map((p) => [p.target, p]));
-  const has = (target) => bought.get(target)?.bought && bought.get(target)?.week === null;
+  // Each picture is drawn when its RUNG is live (read.js, pageDrawn), not once
+  // every purchase on its target has landed.
+  const { drawn } = model.page;
 
   // --- the page itself, drawn from what is live -----------------------------
   const sheet = el('div', 'yad-sheet');
@@ -145,7 +146,7 @@ function landingPage(model, openGuide) {
   hero.append(garment({ w: 124, h: 148 }));
   const detail = el('div', 'yad-detail');
   detail.append(el('div', 'yad-product', AD.product()));
-  if (has('landingPage')) {
+  if (drawn.stars) {
     const reviews = el('div', 'yad-reviews');
     reviews.append(stars(), el('span', 'yad-small', AD.reviewCount()));
     detail.append(reviews);
@@ -157,7 +158,7 @@ function landingPage(model, openGuide) {
   detail.append(sizes);
   hero.append(detail);
   sheet.append(hero);
-  if (has('sizeGuide')) sheet.append(sizeChart());
+  if (drawn.sizeChart) sheet.append(sizeChart());
 
   // --- what each one buys ---------------------------------------------------
   const side = el('div', 'yad-side');

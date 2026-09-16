@@ -12,7 +12,8 @@ import { writerTier } from '../content/writers.js';
 import { startGame } from '../setup.js';
 import { createDraft, effectiveGrades } from '../ui/decisions.js';
 import * as r0 from '../ui/roundzero/rules.js';
-import { adModel, worthShape, GRADE_TOP } from '../ui/ad/read.js';
+import { adModel, worthShape, GRADE_TOP, DRAWN_RUNGS } from '../ui/ad/read.js';
+import { PAGE_FEATURES } from '../ui/landing-page.js';
 import { asOldSave, OLD_SAVE_LIVE_ROUND } from './fixtures/oldSave.js';
 
 const SEED = 20260902;
@@ -57,6 +58,22 @@ const gradedAt = (game, landingPage) => ({
 const auctionGrade = (draft, round) => effectiveGrades({ ...draft, round }).landingPage;
 /** The same account with no capital on anything. */
 const bare = (draft) => ({ ...draft, capexBlock: {} });
+
+/** The week capital committed in the week-5 window goes live. */
+const WEEK_FIVE_LIVE = 5 + CAPEX_DELAY_ROUNDS;
+/**
+ * The same game with more capital committed on `target` in the week-5 window,
+ * in the shape a played game holds it (measured on the dev server: a second
+ * pending tranche, live at week 8, beside the round-0 one).
+ */
+const andAtWeekFive = (game, paise, target = 'landingPage') => {
+  const block = game.draft.capexBlock;
+  return { ...game, draft: { ...game.draft, capexBlock: {
+    ...block,
+    committed: { ...block.committed, [target]: (block.committed[target] ?? 0) + paise },
+    pending: [...block.pending, { target, paise, liveAtRound: WEEK_FIVE_LIVE }],
+  } } };
+};
 
 describe('the ad as searchers see it', () => {
   test('the words the account runs, under the player\'s own name', () => {
@@ -242,16 +259,6 @@ describe('what each thing bought for the page actually moves', () => {
    * card above it already said the right week (`firstChange`); the row did not.
    */
   describe('the week the grade actually moves', () => {
-    const WEEK_FIVE_LIVE = 5 + CAPEX_DELAY_ROUNDS;
-    /** The same game with more page capital committed in the week-5 window. */
-    const andAtWeekFive = (game, paise) => {
-      const block = game.draft.capexBlock;
-      return { ...game, draft: { ...game.draft, capexBlock: {
-        ...block,
-        committed: { ...block.committed, landingPage: block.committed.landingPage + paise },
-        pending: [...block.pending, { target: 'landingPage', paise, liveAtRound: WEEK_FIVE_LIVE }],
-      } } };
-    };
     const page = (game, week) => find(read(game, week).page.parts, 'landingPage');
     /** Each week the auction's grade changes after `week`, and by how much: the rule itself. */
     const movesAfter = (draft, week) => Array.from({ length: TOTAL_ROUNDS - week }, (_, i) => week + 1 + i)
@@ -315,6 +322,60 @@ describe('what each thing bought for the page actually moves', () => {
     const game = opened({ landingPaise: PAGE_RUNG_PAISE });
     const shots = find(read(game).page.parts, 'photography');
     expect(shots).toMatchObject({ target: 'photography', paise: 0, bought: false, moves: 'conversions' });
+  });
+});
+
+/**
+ * WHAT THE DRAWN PAGE SHOWS IS THE RUNG THAT IS LIVE (the owner, 2026-09-16:
+ * "show when the page goes live"). The stars are the reviews rung and the chart
+ * is the size guide's first rung (ui/landing-page.js, PAGE_FEATURES). The page
+ * used to draw both once EVERY tranche on the target had landed, whatever rung
+ * was live, which went wrong both ways: ₹55,000 then ₹25,000 hid reviews bought
+ * and live since week 4 until week 8, and ₹25,000 alone — a page that loads
+ * faster and has no reviews — was drawn with review stars.
+ */
+describe('what the drawn page shows', () => {
+  const drawnAt = (game, week) => read(game, week).page.drawn;
+  const weeks = (game, key) => Array.from({ length: TOTAL_ROUNDS }, (_, i) => drawnAt(game, i + 1)[key]);
+  const liveFrom = (week) => Array.from({ length: TOTAL_ROUNDS }, (_, i) => i + 1 >= week);
+  const round0Live = (game) => game.draft.capexBlock.pending[0].liveAtRound;
+
+  test('the rungs it draws are rungs the page can have', () => {
+    expect(PAGE_FEATURES.landingPage.map((t) => t.label)).toContain(DRAWN_RUNGS.stars.label);
+    expect(DRAWN_RUNGS.stars.target).toBe('landingPage');
+    expect(PAGE_FEATURES.sizeGuide.map((t) => t.label)).toContain(DRAWN_RUNGS.sizeChart.label);
+    expect(DRAWN_RUNGS.sizeChart.target).toBe('sizeGuide');
+  });
+
+  test('reviews bought at round 0 and more at week 5: the stars from week 4, when the reviews go live', () => {
+    const game = andAtWeekFive(opened({ landingPaise: PAGE_RUNG_PAISE }), 2500000);
+    expect(weeks(game, 'stars')).toEqual(liveFrom(round0Live(game)));
+  });
+
+  test('a faster page first and reviews at week 5: no stars until the reviews rung lands', () => {
+    const game = andAtWeekFive(opened({ landingPaise: 2500000 }), 5500000);
+    expect(weeks(game, 'stars')).toEqual(liveFrom(WEEK_FIVE_LIVE));
+  });
+
+  test('a page that bought speed and no reviews is never drawn with review stars', () => {
+    const game = opened({ landingPaise: 2500000 });
+    expect(weeks(game, 'stars').some(Boolean)).toBe(false);
+  });
+
+  test('the top rung includes reviews, from the week it lands', () => {
+    const game = opened({ landingPaise: TOP_RUNG_PAISE });
+    expect(weeks(game, 'stars')).toEqual(liveFrom(round0Live(game)));
+  });
+
+  test('a size guide bought in two halves shows its chart from the first, not the second', () => {
+    const game = andAtWeekFive(opened({ guidePaise: 2500000 }), 2500000, 'sizeGuide');
+    expect(weeks(game, 'sizeChart')).toEqual(liveFrom(round0Live(game)));
+  });
+
+  test('nothing bought, nothing drawn', () => {
+    const game = opened();
+    expect(weeks(game, 'stars').some(Boolean)).toBe(false);
+    expect(weeks(game, 'sizeChart').some(Boolean)).toBe(false);
   });
 });
 

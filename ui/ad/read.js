@@ -18,7 +18,7 @@
 import { TOTAL_ROUNDS } from '../../engine/constants.js';
 import { writerTier, isDiy } from '../../content/writers.js';
 import { effectiveGrades } from '../decisions.js';
-import { pageShape } from '../landing-page.js';
+import { pageShape, tiersFunded } from '../landing-page.js';
 import { capexEffect, liveCapexPaise } from '../../engine/positions.js';
 
 const PARTS = ['expectedCtr', 'adRelevance', 'landingPage'];
@@ -157,6 +157,39 @@ export function pageParts(block, round, grade) {
 }
 
 /**
+ * The rungs the drawn page shows as pictures: the stars are the reviews, and
+ * the chart is the size guide's first rung (ui/landing-page.js, PAGE_FEATURES).
+ * Named by label because that ladder names them; a test holds that both labels
+ * are rungs the ladder has, so renaming one fails rather than drawing nothing.
+ */
+export const DRAWN_RUNGS = Object.freeze({
+  stars: Object.freeze({ target: 'landingPage', label: 'reviews' }),
+  sizeChart: Object.freeze({ target: 'sizeGuide', label: 'a chart' }),
+});
+
+/**
+ * What the drawn page shows in `round`: each picture whose rung is LIVE.
+ *
+ * IT READS THE LIVE MONEY, NOT WHETHER EVERY PURCHASE HAS LANDED (the owner,
+ * 2026-09-16). The page used to draw a target's picture once no tranche on it
+ * was pending, whatever rung was live. So ₹55,000 at round 0 and ₹25,000 more
+ * at week 5 hid reviews live since week 4 until week 8, while the grade beside
+ * them already counted them; and ₹25,000 alone, which buys a page that loads
+ * faster and no reviews at all, was drawn with review stars. The live money is
+ * run through the same ladder that writes the page's description (`tiersFunded`),
+ * so the picture and the words cannot claim different rungs.
+ *
+ * @param {object} block - the draft's `capexBlock`
+ * @param {number} round
+ * @returns {{stars: boolean, sizeChart: boolean}}
+ */
+export function pageDrawn(block, round) {
+  const live = ({ target, label }) => tiersFunded(target, liveCapexPaise(block, target, round))
+    .some((tier) => tier.label === label);
+  return { stars: live(DRAWN_RUNGS.stars), sizeChart: live(DRAWN_RUNGS.sizeChart) };
+}
+
+/**
  * The landing page grade the auction runs on, week by week. This is the chart
  * beside the page, and it is why the page steps rather than climbs — the money
  * leaves in one week and buys nothing until another.
@@ -273,6 +306,7 @@ export function adModel({ draft, creative, name, domain }) {
       strips: pageStrips(block, week),
       parts: pageParts(block, week, pageGrade),
       worth: pageWorth(block, pageGrade),
+      drawn: pageDrawn(block, week),
     },
   };
 }
