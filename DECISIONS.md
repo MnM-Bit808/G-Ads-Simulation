@@ -4594,6 +4594,57 @@ The design, decided with the owner one question at a time on a canvas, is
 `plans/2026-09-14-round-zero-redesign.md`; the build and its play record are
 `plans/2026-09-14-round-zero-redesign-plan.md`.
 
+### I36. An old week's late sales went to whichever keyword caught the search when they landed — `FIXED` (2026-09-16)
+
+Found while tracing F18, and the same shape: a revision reading the account as
+it is now rather than as the week was sold.
+
+**Sim, before.** A week's late sales and returns are added to its breakdown
+rows as they arrive (11.4). Each order carried its search and its place, so the
+search terms rows and the place rows were right. The keyword row was found by
+asking which keyword catches that search in the week the sale LANDS
+(`keywordForQuery`, the revising round's own map), so it was right only while
+the keywords stayed as they were. Changing them broke the weeks before the
+change, in two ways:
+- **A search nothing catches any more** had its late sales and returns reach no
+  keyword row. The commonest way in is the search terms report's own lesson:
+  block a search with a negative, and its keyword stays and still matches it,
+  but nothing catches it. One game (seed 20260902, the phrase keyword
+  "leggings", "gym leggings" blocked at week 3): week 2's keyword row held
+  159.30 of the week's 163.27 sales and 61.29 of its 64.64 returns. Removing a
+  keyword does the same: with two exact keywords and one removed at week 3,
+  week 2's row for it stopped at 11.29 of the 20.52 sales its search made, and
+  none of its 7.79 returns.
+- **A search a broader keyword took over** had them credited to that keyword,
+  a row the week does have, so the rows still added up to the week and were
+  wrong. The existing test that holds keyword rows to the week's returns could
+  not see either: its game never changes a keyword.
+
+**Who saw it.** The keywords table adds up every revised week, so a player who
+blocked a search, or removed or replaced a keyword, saw that keyword's old weeks
+come up short, and whatever took over its searches credited with sales it never
+caught. The search terms report was right throughout, so the two tables
+disagreed about the same weeks. No rival reads an old week's keyword rows: a
+controller is handed only its latest report, which no revision has touched yet.
+
+**The fix.** Each order carries the keyword that caught its click
+(`keywordId`), snapshotted with its search and its place (spec 11.3). The
+round's per-search bucket records it, since an advertiser catches a search with
+one keyword for the whole round (8.6); `queueConversions` stores it,
+`queueReturns` carries it to the return, and both places in `report.js` that
+credit a keyword row read it from the entry. `keywordForQuery` had no reader
+left and is gone. `tests/report.test.js` plays both ways in: an exact keyword a
+phrase keyword in the same ad group takes over at week 3 and one nothing else
+catches, and a search blocked by a negative at week 3. Weeks 1 and 2's keyword
+rows now add up to the week's sales and returns, and each removed keyword keeps
+what its one search earned. The negative game was also run against the engine
+before the fix, and failed there.
+
+**Measured.** The market harness before and after: identical, all 72 rows and
+every field. Rivals block searches too, so their own old keyword rows did
+change; nothing in the market reads an old week's keyword rows, so nothing it
+decides moved.
+
 ### F14. The engine contradicts itself about returns — `FIXED`
 
 **RESOLVED 2026-09-11, and it took four constants rather than three numbers.**
@@ -5290,6 +5341,108 @@ in anybody's way. The two-paths test compared one path with itself. And a
 fixture round's numbers looked plausible either way. G4's dated note on the bid
 cap had already seen it without naming it: moving one rounding step changed one
 game by 15% of the player's profit.
+
+### F18. A price move re-priced the weeks already sold — `FIXED` (2026-09-16)
+
+Not a modelling choice. Spec 11.3 already said the right thing, and the engine
+did not do it.
+
+**Sim, before.** A week's report is revised for up to five weeks as its late
+sales land and its returns come back (11.4), and each revision works the week's
+profit out again: revenue times margin, less what the clicks cost. The revenue
+came from the orders, which carry what they sold for. The margin came from
+`businessFor` on the advertiser as it stood in the REVISING week. Margin follows
+the price tier (40, 52 and 62%) and a price move is legal at week 5 (4.5), so a
+move re-priced every week sold before it: all four weeks of month 1, since each
+is still getting returns back after week 5. Spec 11.3 snapshots an order's value
+and return rate "so a repositioning (4.5) cannot retroactively change an order
+that was already sold". The margin is applied to the report rather than the
+order, so that rule never reached it.
+
+One game (seed 20260902, the player on mid · performance with one exact keyword,
+the setup `tests/report.test.js` now plays): after a move to premium, week 1's
+gross profit read ₹15,410 until week 5 and ₹20,791 from then on, and its net
+profit ₹4,214 then ₹7,573. Its revenue, returns, freight and ROAS were the same
+to the paisa as in the game that stayed.
+
+**What it moved.** Gross profit decides the week-8 rank that splits month 3's
+budget (13.3, D4), and the end screen ranks on these reports (I26). Measured
+first with a throwaway on the committed harness's player, moving at week 5, 12
+seeds × the eight price moves, each game re-ranked with weeks 1–4 at the margin
+they were sold at: the week-8 rank was wrong in 63 of 96 games and the end
+screen's in 40 of 96. That was on the same game, so without the knock-on from a
+wrong month-3 budget (whole games below). Moving up flattered the player and
+moving down cost it: seed 8, mid · lifestyle to value, ranked 4th and was
+honestly 1st. Weeks 1–4's net profit moved by a median of about ₹1,00,000 either
+way, which for a move from mid to value is more than that player's median profit
+for the whole game (₹96,481). It showed on screen too: the week-8 deadline
+card's running total, the end screen's *Every week* card, which presented the
+jump as late sales, and the debrief's *Numbers keep moving* lesson. A game that
+did this taught that moving up makes your old sales worth more.
+
+Only the player was ever hit. No rival policy repositions (`agents/policies.js`,
+`disciplined`), and nobody in the harness's `market` mode moves.
+
+**The fix**, chosen with the owner (option A). `buildRoundReport` records the
+margin on each week's report, `money.marginPct`, and `reviseReports` revises
+with that and never asks the advertiser (spec 11.3, 15.2). It is exact, not an
+approximation: every order in a report was clicked in that report's week, and a
+week has one price, so one margin per report is each order's own. A report
+without the field fails loudly (`mulRate` rejects an undefined rate) rather than
+falling back to the current margin, which would bring this back unseen.
+
+Rejected: a margin on every pending order beside `valuePaise` (option B). It
+matches 11.3's wording, but profit is worked out per week, so the revision would
+still have to pick one margin per week from whichever orders arrived, with the
+returns carrying it too: three files for the same answer in every game the grid
+allows. B is the right shape only if a report could ever hold orders sold at two
+prices, and a report is keyed by the week its clicks happened in.
+
+**Measured before and after**, whole games on `scripts/market-harness.js`: the
+`market` mode (72 games, nobody moves) and the `move` mode added for this
+(12 seeds × every move spec 4.5 allows from each cell, 168 games; the market
+mode's rows for the same seeds are the games where the player stayed).
+
+| | before | after |
+|---|---|---|
+| `market`, 72 games | | identical, every row and field |
+| `move`, the 72 purpose steps | | identical, every field |
+| weeks 1–4's net profit, median: value to mid | ₹2,54,098 | ₹1,45,029 |
+| mid to value | ₹86,345 | ₹2,02,326 |
+| mid to premium | ₹3,03,422 | ₹2,02,326 |
+| premium to mid | ₹2,05,741 | ₹2,83,824 |
+
+After the fix, weeks 1–4 read the same whichever move a cell makes, as they
+must: the games are the same to the end of week 4. Before it, mid · performance's
+three moves gave three figures for the same four weeks.
+
+Of the 96 price moves, the week-8 rank changed in 63, month 3's budget with it,
+and the final rank in 40: the throwaway's counts, now with the budget's
+knock-on in. Every change ran one way. A move up had been flattered (its week-8
+rank falls in 35 of 48 and rises in none) and a move down punished (rises in 28
+of 48, falls in none). The final net profit moved by a median of −₹1,15,943
+(value to mid), +₹1,26,794 (mid to value), −₹1,14,718 (mid to premium) and
++₹78,002 (premium to mid).
+
+**The lesson it had been teaching.** Paired by seed with the game where the same
+player stayed, a move from mid to premium beat staying on net profit in 10 of 24
+games before the fix and in none after. Value to mid beats staying in all 24
+either way, and the two moves down in none. The harness player keeps its old
+keywords after moving, so this measures the move and nothing else, not whether
+moving pays for a player who rebuilds the account around it.
+
+**Why it survived.** 11.3's snapshot was written for the two numbers an order
+carries; the margin is applied later, at the report, and a revision is the only
+code that applies it after the week. No test moved price and then read an
+earlier week, the harness never moved, and no rival moves. And a jump in an old
+week reads exactly like late sales, which is what every screen says a revision
+is.
+
+**The same shape elsewhere.** The cash share on each place row was worked out
+from the advertiser at revision too (I34), and so was the keyword a late sale is
+credited to (I36). Anything a revision works out from the advertiser, rather
+than adding up from orders, belongs on the report when it is built or on the
+order (CLAUDE.md, known traps).
 
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 

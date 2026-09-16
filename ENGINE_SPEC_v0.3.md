@@ -935,6 +935,17 @@ Conversions are queued into `pendingConversions` with `dueRound` drawn from
 `returnRate` at click time, so a repositioning (4.5) cannot retroactively change
 an order that was already sold.
 
+Each entry also carries the search it came from, the keyword that caught the
+click and where it was bought, so a late sale reaches the breakdown rows of its
+own week (15.2) whatever the keywords have become since (`DECISIONS.md` I36).
+
+The margin those orders earn is kept one level up, on the report: each records
+`money.marginPct` when it is built (15.2), and every revision (11.4) uses it.
+Every order in a report was clicked in that report's round, at that round's
+price, so the report's margin is each order's own. It was once read from the
+advertiser at revision time instead, and a week-5 price move re-priced all of
+month 1 (`DECISIONS.md` F18).
+
 ### 11.4 Reporting rule **(L5)**
 
 Reports are keyed by **click round** and are **revisable**. When conversions land
@@ -1293,6 +1304,7 @@ only its own slice **(R3a)**.
     grossRoas, netRoas,
     grossProfitPaise, netProfitPaise,
     cpaPaise,
+    marginPct,       // its orders' margin, recorded at first report, never looked up again — see 11.3
     // twins captured at first report, never revised — see 11.4
     grossRoasAsFirstReported, netRoasAsFirstReported,
     cpaAsFirstReported, grossProfitAsFirstReportedPaise

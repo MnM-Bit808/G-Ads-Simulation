@@ -17,6 +17,7 @@ import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
+import { businessFor, realisedBreakEvenCpcPaise } from '../engine/positions.js';
 
 const STATE = makeGameState();
 const R1 = runRound(STATE, { mode: 'expected', counterfactualFor: ['halcyon'] });
@@ -261,6 +262,221 @@ describe('reports are revised, and remember what they first said (spec 11.4)', (
   test('history grows by one report per round', () => {
     expect(R1.nextGameState.history).toHaveLength(1);
     expect(R2.nextGameState.history).toHaveLength(2);
+  });
+});
+
+/**
+ * A move at week 5 and the weeks sold before it.
+ *
+ * Spec 11.3 snapshots each order's value and return rate at click time "so a
+ * repositioning (4.5) cannot retroactively change an order that was already
+ * sold". The margin laid over those orders was never snapshotted: a revision
+ * took it from the advertiser as it stood in the revising week. So a move from
+ * mid to premium lifted week 1's gross profit from ₹15,410 to ₹20,791 with not
+ * one order changed, and every week of month 1 with it, because each is revised
+ * at least once after week 5 while its returns come back.
+ *
+ * Three games, the same to the end of week 4: one stays, one moves up, one moves
+ * down. Nine weeks, so week 4's last return has resolved. The money block is
+ * compared whole, because nothing in it may know about a move that came after.
+ */
+describe('a later price move does not re-price the weeks already sold (spec 11.3)', { timeout: 120_000 }, () => {
+  const POSITION = { price: 'mid', purpose: 'performance' };
+  const SEARCH = QUERY_SET.queries
+    .filter((q) => homeCell(q) === 'mid|performance' && q.returnRateMultiplier === 1 && q.intent !== 'brand')
+    .sort((a, b) => b.volumeShareBp - a.volumeShareBp)[0];
+  const games = new Map();
+  const played = (movePrice) => {
+    if (games.has(movePrice)) return games.get(movePrice);
+    const breakEven = realisedBreakEvenCpcPaise(
+      businessFor(POSITION, { committed: {}, pending: [] }, 1), QUERY_SET, POSITION,
+    );
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: POSITION,
+        capex: { orderConfirmation: 8000000 },
+        keywords: [{ text: SEARCH.text, matchType: 'exact', bidPaise: Math.round(breakEven * 1.2) }],
+        ad: {
+          headlines: ['Activewear Built To Train In', 'Free Delivery Across India', 'Sizes XS To XXL'],
+          descriptions: [
+            'Leggings, tights and sports bras that hold through 4 sessions a week.',
+            'Easy returns within 30 days, and cash on delivery everywhere.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    const id = state.advertisers[0].id;
+    for (let week = 1; week <= 9; week++) {
+      const decisions = week === 5 && movePrice
+        ? { [id]: { position: { price: movePrice, purpose: POSITION.purpose } } } : {};
+      state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
+    }
+    const game = { state, id };
+    games.set(movePrice, game);
+    return game;
+  };
+  const money = ({ state, id }, week) => state.history[week - 1].byAdvertiser[id].money;
+
+  test.each(['premium', 'value'])('weeks 1-4 read the same after a move to %s as with no move', (price) => {
+    const stayed = played(null);
+    const moved = played(price);
+    // Or this proves nothing: the move happened, and every week of month 1 was
+    // revised after it.
+    expect(moved.state.advertisers[0].position).toMatchObject({ price, repositionedAtRound: 5 });
+    for (let week = 1; week <= 4; week++) {
+      expect(moved.state.history[week - 1].revisedAtRound, `week ${week}`).toBeGreaterThanOrEqual(5);
+      expect(money(stayed, week).grossProfitPaise, `week ${week} sold something`).toBeGreaterThan(0);
+      expect(money(moved, week), `week ${week}`).toEqual(money(stayed, week));
+    }
+  });
+});
+
+/**
+ * Two keywords removed at week 3, and the weeks they had already sold in.
+ *
+ * A week's late sales and returns were credited to whichever keyword caught
+ * their search in the week they LANDED. So removing a keyword broke the weeks
+ * before it in two ways. A search nothing catches any more lost its late sales
+ * from the keyword rows altogether. A search a broader keyword took over had them
+ * credited to that keyword, a row the week does have, so the rows still added
+ * up and were wrong. The search terms rows never had either fault, because each
+ * order carries its search; the keyword rows are held to them.
+ *
+ * "workout leggings" is exact and so wins its search over the phrase "leggings"
+ * in the same ad group until week 3, when the phrase takes it over. "sports bra
+ * high impact" has nothing else to catch it.
+ */
+describe('an old week\'s late sales reach the keyword that caught their click', { timeout: 120_000 }, () => {
+  const POSITION = { price: 'mid', purpose: 'performance' };
+  const search = (text) => QUERY_SET.queries.find((q) => q.text === text);
+  const TAKEN_OVER = search('workout leggings');
+  const DROPPED = search('sports bra high impact');
+  let game = null;
+  const played = () => {
+    if (game) return game;
+    const bid = Math.round(realisedBreakEvenCpcPaise(
+      businessFor(POSITION, { committed: {}, pending: [] }, 1), QUERY_SET, POSITION,
+    ) * 1.2);
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: POSITION,
+        capex: {},
+        keywords: [
+          { text: 'leggings', matchType: 'phrase', bidPaise: bid },
+          { text: TAKEN_OVER.text, matchType: 'exact', bidPaise: bid },
+          { text: DROPPED.text, matchType: 'exact', bidPaise: bid },
+        ],
+        ad: {
+          headlines: ['Activewear Built To Train In', 'Free Delivery Across India', 'Sizes XS To XXL'],
+          descriptions: [
+            'Leggings, tights and sports bras that hold through 4 sessions a week.',
+            'Easy returns within 30 days, and cash on delivery everywhere.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    const id = state.advertisers[0].id;
+    const keywords = state.advertisers[0].adGroups.flatMap((g) => g.keywords);
+    const idOf = (text) => keywords.find((k) => k.text === text).id;
+    const removed = [idOf(TAKEN_OVER.text), idOf(DROPPED.text)];
+    for (let week = 1; week <= 8; week++) {
+      let decisions = {};
+      if (week === 3) {
+        const me = state.advertisers.find((a) => a.id === id);
+        decisions = {
+          [id]: { adGroups: me.adGroups.map((g) => ({ ...g, keywords: g.keywords.filter((k) => !removed.includes(k.id)) })) },
+        };
+      }
+      state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
+    }
+    game = { state, id, phrase: idOf('leggings'), takenOver: idOf(TAKEN_OVER.text), dropped: idOf(DROPPED.text) };
+    return game;
+  };
+  const row = ({ state, id }, week) => state.history[week - 1].byAdvertiser[id];
+  const total = (rows, field) => Object.values(rows ?? {}).reduce((a, r) => a + (r[field] ?? 0), 0);
+
+  test('the phrase really took the search over, or this proves nothing', () => {
+    const g = played();
+    expect(row(g, 2).breakdown.byKeyword[g.takenOver].clicks, 'the exact had it before').toBeGreaterThan(0);
+    expect(row(g, 4).breakdown.byQuery[TAKEN_OVER.id].clicks, 'and someone has it after').toBeGreaterThan(0);
+    expect(row(g, 4).breakdown.byKeyword[g.takenOver], 'the exact is gone').toBeUndefined();
+    expect(row(g, 4).breakdown.byQuery[DROPPED.id]?.clicks ?? 0, 'nothing has this one').toBe(0);
+  });
+
+  test.each([1, 2])('week %i: the keyword rows add up to the week, as the search rows do', (week) => {
+    const r = row(played(), week);
+    expect(r.conversions.returned, 'the week has returns to count').toBeGreaterThan(0);
+    expect(total(r.breakdown.byKeyword, 'conversions'), 'sales').toBeCloseTo(r.conversions.final, 6);
+    expect(total(r.breakdown.byKeyword, 'returned'), 'returns').toBeCloseTo(r.conversions.returned, 6);
+  });
+
+  test.each([1, 2])('week %i: each removed keyword keeps what its one search earned', (week) => {
+    const g = played();
+    const { byKeyword, byQuery } = row(g, week).breakdown;
+    for (const [keyword, query] of [[g.takenOver, TAKEN_OVER], [g.dropped, DROPPED]]) {
+      expect(byKeyword[keyword].conversions, `${query.text}: sales`).toBeCloseTo(byQuery[query.id].conversions, 6);
+      expect(byKeyword[keyword].returned, `${query.text}: returns`).toBeCloseTo(byQuery[query.id].returned, 6);
+    }
+  });
+
+  // THE COMMONEST WAY IN, and the search terms report's whole lesson: block a
+  // search with a negative. The keyword stays and still matches the search, but
+  // nothing catches it any more, which lost its late sales exactly as a removed
+  // keyword did. Measured before the fix: week 2's row held 159.30 of the week's
+  // 163.27 sales and 61.29 of its 64.64 returns.
+  let blocked = null;
+  const playedWithNegative = () => {
+    if (blocked) return blocked;
+    const bid = Math.round(realisedBreakEvenCpcPaise(
+      businessFor(POSITION, { committed: {}, pending: [] }, 1), QUERY_SET, POSITION,
+    ) * 1.2);
+    let state = startGame({
+      rootSeed: 20260902,
+      playerBrandId: BRAND_IDENTITIES[0].id,
+      querySet: QUERY_SET,
+      player: {
+        position: POSITION,
+        capex: {},
+        keywords: [{ text: 'leggings', matchType: 'phrase', bidPaise: bid }],
+        ad: {
+          headlines: ['Activewear Built To Train In', 'Free Delivery Across India', 'Sizes XS To XXL'],
+          descriptions: [
+            'Leggings, tights and sports bras that hold through 4 sessions a week.',
+            'Easy returns within 30 days, and cash on delivery everywhere.',
+          ],
+          landingPageDescription: 'A plain product page.',
+        },
+        writerTier: 'freelancer',
+      },
+    });
+    const id = state.advertisers[0].id;
+    for (let week = 1; week <= 8; week++) {
+      const decisions = week === 3
+        ? { [id]: { campaign: { negatives: [{ text: 'gym leggings', matchType: 'exact' }] } } } : {};
+      state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
+    }
+    blocked = { state, id };
+    return blocked;
+  };
+
+  test.each([1, 2])('week %i: a search blocked later keeps its late sales on its keyword\'s row', (week) => {
+    const g = playedWithNegative();
+    const gym = search('gym leggings');
+    expect(row(g, 2).breakdown.byQuery[gym.id].clicks, 'the search sold before the block').toBeGreaterThan(0);
+    expect(row(g, 4).breakdown.byQuery[gym.id]?.clicks ?? 0, 'and nothing after it').toBe(0);
+    const r = row(g, week);
+    expect(total(r.breakdown.byKeyword, 'conversions'), 'sales').toBeCloseTo(r.conversions.final, 6);
+    expect(total(r.breakdown.byKeyword, 'returned'), 'returns').toBeCloseTo(r.conversions.returned, 6);
   });
 });
 

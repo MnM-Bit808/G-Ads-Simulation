@@ -22,6 +22,7 @@
  *   node scripts/market-harness.js capital <label> [workers]
  *   node scripts/market-harness.js writer  <label> [workers]
  *   node scripts/market-harness.js prepaid <label> [workers]
+ *   node scripts/market-harness.js move    <label> [workers]
  *   node scripts/market-harness.js compare <before.json> <after.json>
  *
  * `market` plays 72 whole games (seeds 1-12, the six cells) and reports F15's
@@ -29,8 +30,10 @@
  * far rivals move into weeks 5 and 9 against an ordinary week. `capital` is
  * D12's comparison: forked at week 5, committing nothing against four ways of
  * investing the whole allocation. `prepaid` is I34's comparison: every rung from
- * week 1 against none, whole games. Each writes `harness-<label>-<mode>.json` to
- * the system temp folder and prints a summary.
+ * week 1 against none, whole games. `move` is F18's: the player moves one step
+ * at week 5, to every cell spec 4.5 allows, whole games; the same seeds in
+ * `market` are the games where it stayed. Each writes
+ * `harness-<label>-<mode>.json` to the system temp folder and prints a summary.
  */
 import { writeFileSync, readFileSync, mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
@@ -40,12 +43,16 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { startGame } from '../setup.js';
 import { playRound } from '../game.js';
 import { controllerFor } from '../agents/policies.js';
-import { gameTotals, finalStandings } from '../ui/ending.js';
+import { gameTotals, finalStandings, rankOf } from '../ui/ending.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
-import { allCells, parseCell, businessFor, realisedBreakEvenCpcPaise } from '../engine/positions.js';
-import { TOTAL_ROUNDS, CAPEX_ALLOCATION_PAISE, PREPAID_DISCOUNT_CURVE } from '../engine/constants.js';
+import {
+  allCells, parseCell, businessFor, realisedBreakEvenCpcPaise, isOneStep,
+} from '../engine/positions.js';
+import {
+  TOTAL_ROUNDS, CAPEX_ALLOCATION_PAISE, PREPAID_DISCOUNT_CURVE, REPOSITION_ROUND, ROUNDS_PER_MONTH,
+} from '../engine/constants.js';
 import { gradeAdOffline } from '../agents/grader.js';
 
 export const PLAYER = BRAND_IDENTITIES[0].id;
@@ -341,6 +348,44 @@ export async function prepaidRow({ seed, cell }) {
   return out;
 }
 
+/** Every cell one step from `cell`: where a week-5 move may go (spec 4.5). */
+export const movesFrom = (cell) => CELLS.filter((to) => isOneStep(parseCell(cell), parseCell(to)));
+
+/**
+ * The harness player moving at week 5. Merged into the capital decision the form
+ * always sends that week, for prepaid's reason: a decision that dropped it would
+ * lose the second allocation and measure a poorer player (C8).
+ */
+export const moveDecision = (to) => (round, state) => {
+  const decision = { ...(keepAtWindow(round, state) ?? {}) };
+  if (round === REPOSITION_ROUND) decision.position = to;
+  return Object.keys(decision).length > 0 ? decision : null;
+};
+
+/**
+ * F18's comparison on one market: a whole game for every move the cell has.
+ *
+ * `soldBeforeNet` is the weeks sold before the move, as they finally stand. No
+ * later decision may change them, so a move that does is a report re-pricing
+ * old orders, which is what F18 found.
+ */
+export async function moveRow({ seed, cell }) {
+  const out = { seed, cell };
+  for (const to of movesFrom(cell)) {
+    const { state } = await playMarket({ seed, cell, playerDecision: moveDecision(parseCell(to)) });
+    const { weeks, all } = gameTotals(state.history, PLAYER);
+    const month3 = state.history.find((h) => h.round === 2 * ROUNDS_PER_MONTH + 1);
+    out[to] = {
+      net: all.netProfitPaise,
+      rank: finalStandings(state).findIndex((r) => r.id === PLAYER) + 1,
+      week8Rank: rankOf(state, PLAYER).position,
+      month3BudgetPaise: month3.byAdvertiser[PLAYER].budget.monthlyBudgetPaise,
+      soldBeforeNet: weeks.filter((w) => w.round < REPOSITION_ROUND).reduce((t, w) => t + w.netProfitPaise, 0),
+    };
+  }
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // Running it
 // ---------------------------------------------------------------------------
@@ -422,11 +467,28 @@ function summarisePrepaid(rows) {
   return out.join('\n');
 }
 
+function summariseMove(rows) {
+  const out = [`${rows.length} markets: the player moves one step at week 5, every move its cell has (F18); medians`];
+  out.push(`  ${'move'.padEnd(42)}${'net profit'.padStart(13)}${'rank'.padStart(6)}${'week-8 rank'.padStart(13)}`
+    + `${'month-3 budget'.padStart(16)}${'weeks 1-4 net'.padStart(15)}`);
+  for (const cell of CELLS) {
+    for (const to of movesFrom(cell)) {
+      const games = rows.filter((r) => r.cell === cell).map((r) => r[to]);
+      const m = (f) => median(games.map(f));
+      out.push(`  ${`${cell} to ${to}`.padEnd(42)}${`₹${rupees(m((g) => g.net))}`.padStart(13)}`
+        + `${String(m((g) => g.rank)).padStart(6)}${String(m((g) => g.week8Rank)).padStart(13)}`
+        + `${`₹${rupees(m((g) => g.month3BudgetPaise))}`.padStart(16)}${`₹${rupees(m((g) => g.soldBeforeNet))}`.padStart(15)}`);
+    }
+  }
+  return out.join('\n');
+}
+
 const MODES = {
   market: [marketRow, summariseMarket],
   capital: [capitalRow, summariseCapital],
   writer: [writerRow, summariseWriter],
   prepaid: [prepaidRow, summarisePrepaid],
+  move: [moveRow, summariseMove],
 };
 
 async function worker(mode, outFile, seeds) {

@@ -1755,16 +1755,6 @@ F13's rejected volume option has to come back.
     building from them.
   - **F13 is now 1.73x**, from 1.58x on the same harness. See F13's F14 note.
 
-- **A revision re-prices old weeks at the account's current margin** (found
-  2026-09-15, measured once, not yet tested). `reviseReports` recomputes an
-  earlier week's money with `businessFor` at the CURRENT round, and `marginPct`
-  follows the price tier, so a move from mid to premium at week 5 lifted week 1's
-  booked gross profit from ₹15,410 to ₹20,791 (seed 20260902, one exact keyword).
-  Spec 11.3 snapshots order value and return rate on each order so a
-  repositioning cannot rewrite a sale; margin was never snapshotted. Gross profit
-  ranks month 3's budgets (13.3), so a mover's history may move its rank. Flagged
-  as its own task; measure with `scripts/market-harness.js` before and after any
-  fix.
 
 - **Deployment, a database and a backend are planned, in that order** (agreed
   2026-09-08). Everything runs in the player's browser, so there is no backend,
@@ -2191,6 +2181,27 @@ tooling and one untested claim.
   no sale unmarked, and can import `isDear` once `main` is merged in; and the
   rivals' `wastefulQueries` still blocks only a search with no conversions at
   all, which changes the market and wants the harness before and after.
+- ~~A revision re-prices the weeks sold before a price move.~~ **Fixed
+  2026-09-16** (F18, on `main` the same day; this is its `makeover` twin):
+  each week's report records the margin its orders were sold at
+  (`money.marginPct`), and every revision uses it. A week-5 move had been
+  re-pricing all of month 1 at the new tier's margin, which moved the week-8
+  rank and the end screen for a player who moved; F18 has the before and after.
+  The harness has a `move` mode for it.
+- ~~An old week's late sales go to whichever keyword catches the search when
+  they land.~~ **Fixed 2026-09-16** (I36, with F18): each order now carries
+  the keyword that caught its click (`keywordId`), as it carries its search and
+  place, and `keywordForQuery` is gone. It hit every player who blocked a
+  search with a negative, since nothing catches a blocked search any more;
+  removing or replacing a keyword did it too. The keywords table showed it,
+  the search terms report never did, and the market harness came out identical.
+- **What the twin took, since `makeover`'s engine is not `main`'s.** F18 applied
+  as it stands. I36 did not: F17 moved the conversion bucket into
+  `recordConversions`, so `keywordId` is set there from `e._plan.keyword.id`,
+  and `report.js` differs by about thirty lines from main's, so only the map
+  argument came out of `reviseBreakdown` and its three `byKeyword` lookups. The
+  harness kept `makeover`'s `writer` and `compare` modes beside the new `move`
+  one. In DECISIONS, F17 stays before F18 and I35 before I36.
 
 ---
 
@@ -2661,8 +2672,9 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   move rewrote four weeks of it (I34, 2026-09-15); it is now recorded once, when
   the week's report is built. Anything a report carries that is not a sum of
   orders belongs in `buildRoundReport`, or on the order itself, as `valuePaise`
-  and `returnRate` are (11.3). The same pass found profit margin worked out the
-  same way: see *Still open*.
+  and `returnRate` are (11.3). The margin (F18) and the keyword a late sale is
+  credited to (I36) were the same fault, fixed the same way; CLAUDE.md carries
+  it as a known trap.
 - **Resizing the browser pane reloads the page, and the game is in memory.**
   Four played rounds vanish and you are back at round 0 with no error and no
   clue. Set the viewport BEFORE opening the game, not after — and if a
