@@ -368,9 +368,15 @@ engine does: the page's parts marked "week 4", its description graded now.
      grades: "live from week 4", "1 more from week 8", or nothing once the grade
      has finished moving. The size guide and photography rows still fold two
      purchases into one week; they move no grade, and were not the choice.
-     **Open, the owner's:** the drawn page has the same fold. It shows no stars
-     until the LAST tranche lands, so that same page stays plain through weeks
-     4-7 with its grade already at 10. It belongs with what each rung draws.
+   - **The drawn page shows a picture when its rung is live** (`6be00c7`, the
+     owner's word). It drew stars once no page tranche was pending, so ₹55,000
+     then ₹25,000 stayed plain through weeks 4-7 with its grade at 10, and
+     ₹25,000 alone — a faster page, no reviews — was drawn with review stars.
+     `pageDrawn` runs the LIVE money through `tiersFunded`, the ladder that
+     writes the description: stars when "reviews" is live, the chart when "a
+     chart" is. **Still open, the owner's:** what the other rungs draw —
+     "faster" and "built around the search" on the page, and product shots,
+     draw nothing yet.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.
