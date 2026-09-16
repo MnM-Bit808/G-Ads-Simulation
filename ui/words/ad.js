@@ -12,10 +12,12 @@ import { line } from './line.js';
  * windows (`capexAllocationRounds`).
  *
  * @param {Array<{points: number, week: number}>} steps - in the order they land
+ * @param {boolean} [started] - some of the gain is live already, so even the
+ *   first step still to come is "more"
  * @returns {string}
  */
-const eachStep = (steps) => steps
-  .map(({ points, week }, i) => (i === 0 ? `${points} from week ${week}` : `${points} more from week ${week}`))
+const eachStep = (steps, started = false) => steps
+  .map(({ points, week }, i) => (i === 0 && !started ? `${points} from week ${week}` : `${points} more from week ${week}`))
   .join(' and ');
 
 /** What to call a target nothing has been spent on, which has no page label yet. */
@@ -79,6 +81,13 @@ export const AD = Object.freeze({
   wouldReturns: line('label', 'would buy fewer orders sent back'),
   wouldSales: line('label', 'would buy more sales per click'),
   liveWeek: line('label', ({ week }) => `live from week ${week}`),
+  // The page row's weeks are the weeks the GRADE moves (read.js, `steps`), in
+  // the words the note under the chart uses. One step with nothing live yet
+  // reads as it always did; anything else lists what is still to come, since a
+  // single week would overstate the first step or hide it.
+  gradeWeeks: line('label', ({ steps, started }) => (steps.length === 1 && !started
+    ? `live from week ${steps[0].week}`
+    : eachStep(steps, started))),
   liveNow: line('label', 'live'),
   drawn: line('reading', 'The page is drawn from what your capital bought. Nothing here is a photograph of a '
     + 'real product.'),

@@ -174,7 +174,13 @@ function landingPage(model, openGuide) {
     const said = el('span', part.moves === 'grade' && part.points > 0 ? 'yad-buy-moves grade' : 'yad-buy-moves');
     said.textContent = part.bought ? movedBy(part) : wouldMove(part);
     row.append(top, said);
-    if (part.week !== null) row.append(el('span', 'yad-small', AD.liveWeek({ week: part.week })));
+    // The page names the weeks its GRADE moves, which a purchase the cap leaves
+    // nothing to add does not; the other two name the week their work lands.
+    if (part.moves === 'grade') {
+      if (part.steps.length > 0) row.append(el('span', 'yad-small', AD.gradeWeeks({ steps: part.steps, started: part.now > 0 })));
+    } else if (part.week !== null) {
+      row.append(el('span', 'yad-small', AD.liveWeek({ week: part.week })));
+    }
     list.append(row);
   }
   const only = el('p', 'yad-small', AD.onlyPage());

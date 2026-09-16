@@ -380,6 +380,19 @@ describe('the weekly Your ad', () => {
    * so a page bought in both windows read "adds 3 from week 8" while the grade
    * had already risen at week 4. Found drawing the chart as a step, 2026-09-16.
    */
+  /** The four cases the owner chose between, 2026-09-16, as the row reads them. */
+  test('the page row names the weeks the grade moves, in the note\'s own words', () => {
+    // One step to come and nothing live yet: the common case reads as it always did.
+    expect(AD.gradeWeeks({ steps: [{ points: 2, week: 4 }], started: false })).toBe('live from week 4');
+    // Two to come: both, since one week would overstate the first or hide it.
+    // (No real game shows it — the week-5 purchase always follows a step already
+    // taken at week 4 — but the wording must hold if the windows ever move.)
+    expect(AD.gradeWeeks({ steps: [{ points: 2, week: 4 }, { points: 1, week: 8 }], started: false }))
+      .toBe('2 from week 4 and 1 more from week 8');
+    // One taken, one to come: what is left is "more", never the whole again.
+    expect(AD.gradeWeeks({ steps: [{ points: 1, week: 8 }], started: true })).toBe('1 more from week 8');
+  });
+
   test('the note under the worth chart reads every step, not the last one', () => {
     const one = AD.stepNote({ graded: 8, steps: [{ points: 2, week: 4 }] });
     expect(one).toMatch(/adds 2 from week 4, when it goes live/);

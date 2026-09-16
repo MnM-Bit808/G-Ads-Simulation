@@ -5,7 +5,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { getSelfView } from '../engine/insights.js';
-import { DEFAULT_UNGRADED_QUALITY, TOTAL_ROUNDS } from '../engine/constants.js';
+import { DEFAULT_UNGRADED_QUALITY, TOTAL_ROUNDS, CAPEX_DELAY_ROUNDS } from '../engine/constants.js';
 import { landingPageBonus, capexEffect } from '../engine/positions.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { writerTier } from '../content/writers.js';
@@ -231,6 +231,84 @@ describe('what each thing bought for the page actually moves', () => {
     expect(parts.filter((p) => p.points > 0).map((p) => p.target)).toEqual(['landingPage']);
     // And the points on screen are the whole gain, not a share of it.
     expect(find(parts, 'landingPage').points).toBe(auctionGrade(game.draft, live) - auctionGrade(bare(game.draft), live));
+  });
+
+  /**
+   * THE WEEK IS THE WEEK THE GRADE MOVES, not the week the last purchase lands
+   * (the owner's choice, 2026-09-16). A row used to name the latest tranche
+   * still pending, so ₹55,000 at round 0 and ₹25,000 more at week 5, on a page
+   * graded 8, read "+2 · live from week 8" at week 6 — when the whole +2 had
+   * arrived at week 4 and the cap left the ₹25,000 nothing to add. The grades
+   * card above it already said the right week (`firstChange`); the row did not.
+   */
+  describe('the week the grade actually moves', () => {
+    const WEEK_FIVE_LIVE = 5 + CAPEX_DELAY_ROUNDS;
+    /** The same game with more page capital committed in the week-5 window. */
+    const andAtWeekFive = (game, paise) => {
+      const block = game.draft.capexBlock;
+      return { ...game, draft: { ...game.draft, capexBlock: {
+        ...block,
+        committed: { ...block.committed, landingPage: block.committed.landingPage + paise },
+        pending: [...block.pending, { target: 'landingPage', paise, liveAtRound: WEEK_FIVE_LIVE }],
+      } } };
+    };
+    const page = (game, week) => find(read(game, week).page.parts, 'landingPage');
+    /** Each week the auction's grade changes after `week`, and by how much: the rule itself. */
+    const movesAfter = (draft, week) => Array.from({ length: TOTAL_ROUNDS - week }, (_, i) => week + 1 + i)
+      .filter((w) => auctionGrade(draft, w) !== auctionGrade(draft, w - 1))
+      .map((w) => ({ week: w, points: auctionGrade(draft, w) - auctionGrade(draft, w - 1) }));
+
+    test('one step to come, with nothing live yet: its week, and the whole gain', () => {
+      const game = gradedAt(opened({ landingPaise: PAGE_RUNG_PAISE }), 5);
+      const live = game.draft.capexBlock.pending[0].liveAtRound;
+      const row = page(game, 1);
+      expect(row.steps).toEqual([{ week: live, points: row.points }]);
+      expect(row.points).toBeGreaterThan(0);
+      expect(row.now).toBe(0);
+    });
+
+    // NO REAL GAME REACHES THIS: the second window is week 5, and by then the
+    // first purchase went live at week 4, so one step has always been taken. It
+    // holds the rule in general — every move still to come, adding up to the
+    // whole — which the case a player does meet (the next test) is a part of.
+    test('a page that steps twice lists both, and they add up to what it buys', () => {
+      const game = andAtWeekFive(gradedAt(opened({ landingPaise: PAGE_RUNG_PAISE }), 5), 2500000);
+      const row = page(game, 1);
+      expect(row.steps.map((s) => s.week)).toEqual([game.draft.capexBlock.pending[0].liveAtRound, WEEK_FIVE_LIVE]);
+      expect(row.steps).toEqual(movesAfter(game.draft, 1));
+      expect(row.steps.reduce((sum, s) => sum + s.points, 0)).toBe(row.points);
+    });
+
+    test('a step already taken is not listed again, and what is live is counted', () => {
+      const game = andAtWeekFive(gradedAt(opened({ landingPaise: PAGE_RUNG_PAISE }), 5), 2500000);
+      const row = page(game, 6);
+      expect(row.steps).toEqual([{ week: WEEK_FIVE_LIVE, points: row.points - row.now }]);
+      expect(row.now).toBeGreaterThan(0);
+    });
+
+    test('a purchase the cap swallows moves no week, though it is still being built', () => {
+      const game = andAtWeekFive(gradedAt(opened({ landingPaise: PAGE_RUNG_PAISE }), 8), 2500000);
+      const early = page(game, 1);
+      expect(early.steps.map((s) => s.week)).toEqual([game.draft.capexBlock.pending[0].liveAtRound]);
+      const late = page(game, 6);
+      expect(late.week, 'the site work is still landing').toBe(WEEK_FIVE_LIVE);
+      expect(late.steps, 'but the grade has finished moving').toEqual([]);
+      expect(late.now).toBe(late.points);
+    });
+
+    test('the week a step lands, it is live, not to come', () => {
+      const game = gradedAt(opened({ landingPaise: PAGE_RUNG_PAISE }), 5);
+      const live = game.draft.capexBlock.pending[0].liveAtRound;
+      expect(page(game, live).steps).toEqual([]);
+      expect(page(game, live - 1).steps.map((s) => s.week)).toEqual([live]);
+    });
+
+    test('the size guide and photography have no grade to step', () => {
+      const game = opened({ landingPaise: PAGE_RUNG_PAISE, guidePaise: 2500000, photoPaise: 5000000 });
+      const { parts } = read(game, 1).page;
+      expect(find(parts, 'sizeGuide').steps).toEqual([]);
+      expect(find(parts, 'photography').steps).toEqual([]);
+    });
   });
 
   test('a target with nothing spent on it says what it would move', () => {

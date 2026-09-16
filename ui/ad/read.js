@@ -95,15 +95,25 @@ function pageStrips(block, round) {
  * bonus uncapped and said "+3". So the points are asked of `grade` — the same
  * capped reading the rest of the screen uses — with the capital and without it.
  *
+ * AND ITS WEEKS ARE THE WEEKS THE GRADE MOVES (`steps`), not the week the last
+ * purchase lands (`week`, which the drawn page still reads, since that is when
+ * the site work appears). They part company twice. A page bought in both capital
+ * windows can step twice, and one week cannot say so. And a purchase the cap
+ * leaves nothing to add still lands: ₹55,000 at round 0 and ₹25,000 at week 5,
+ * on a page graded 8, gained all of its +2 at week 4, yet read "live from week 8".
+ *
  * @param {object} block - the draft's `capexBlock`
  * @param {number} round
  * @param {(block: object, round: number) => number|null} grade - the landing page
  *   grade the auction runs on in `round` with that capital (`effectiveGrades`),
  *   or null for an account with no ad to grade
  * @returns {Array<{target: string, label: string|null, bought: boolean, paise: number,
- *   week: number|null, moves: 'grade'|'returns'|'conversions', points: number, lift: number}>}
+ *   week: number|null, moves: 'grade'|'returns'|'conversions', points: number, lift: number,
+ *   steps: Array<{week: number, points: number}>}>}
  *   in the order the page draws them; `points` is grade points, `lift` the
- *   multiplier the other two apply, 1 when nothing is bought
+ *   multiplier the other two apply, 1 when nothing is bought; `steps` the weeks
+ *   after `round` in which the grade still moves, and by how much — empty for the
+ *   two that move no grade, and once the grade has finished moving
  */
 export function pageParts(block, round, grade) {
   const committed = block?.committed ?? {};
@@ -117,6 +127,13 @@ export function pageParts(block, round, grade) {
   const settled = { ...block, pending: [] };
   const without = grade({}, round);
   const gained = (withCapital) => (without === null ? 0 : grade(withCapital, round) - without);
+  // Read off the same weekly grades the chart is drawn from, so the row and the
+  // chart's risers cannot name different weeks. A step in `round` itself is
+  // already counted in `now`: that is the week about to run.
+  const worth = pageWorth(block, grade);
+  const steps = worth.length === 0 ? [] : worthShape(worth, GRADE_TOP).risers
+    .filter((riser) => riser.round > round)
+    .map((riser) => ({ week: riser.round, points: riser.points }));
 
   return PAGE_PARTS.map((target) => {
     const paise = committed[target] ?? 0;
@@ -134,6 +151,7 @@ export function pageParts(block, round, grade) {
       points: target === 'landingPage' ? gained(settled) : 0,
       now: target === 'landingPage' ? gained(block) : capexEffect(live, target),
       lift: target === 'landingPage' ? 1 : capexEffect(paise, target),
+      steps: target === 'landingPage' ? steps : [],
     };
   });
 }
