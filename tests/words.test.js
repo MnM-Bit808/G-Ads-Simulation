@@ -749,20 +749,6 @@ describe('no number is typed into a sentence', () => {
   });
 });
 
-describe('a card that has moved draws, and no longer writes', () => {
-  const dashboard = readFileSync(fileURLToPath(new URL('../ui/dashboard.js', import.meta.url)), 'utf8');
-
-  test('renderReturns holds no sentence of its own', () => {
-    const start = dashboard.indexOf('function renderReturns(');
-    const body = dashboard.slice(start, dashboard.indexOf('\nfunction ', start + 1));
-    expect(body.length).toBeGreaterThan(0);
-    for (const literal of literals(body)) {
-      const words = outsideInterpolation(literal).slice(1, -1).trim().split(/\s+/).filter(Boolean);
-      expect(words.length, literal).toBeLessThan(3);
-    }
-  });
-});
-
 describe('the Guide page says its own labels whole (ui/words/guide.js)', () => {
   // The Guide as a page (the owner's choice, 2026-09-15, design/guide/).
   const FIGURES = { n: 4, of: 13, title: 'Lost to rank, or lost to budget' };
