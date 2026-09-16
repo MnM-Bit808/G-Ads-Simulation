@@ -279,8 +279,11 @@ describe('every interface module at least loads', () => {
     }
   });
 
+  // The switch-over's part 2 empties this list as each classic screen goes:
+  // ui/ending.js draws nothing now, and what it still exports is the reading
+  // the Studio's Results and scripts/read-playtest.js take from it.
   test('and the ones that draw a screen export a render function', async () => {
-    for (const file of ['chart.js', 'dashboard.js', 'decisions.js', 'ending.js', 'round-zero.js']) {
+    for (const file of ['chart.js', 'dashboard.js', 'decisions.js', 'round-zero.js']) {
       const module = await LOADABLE[file]();
       const renders = Object.entries(module).filter(([name]) => name.startsWith('render'));
       expect(renders.length, file).toBe(1);
