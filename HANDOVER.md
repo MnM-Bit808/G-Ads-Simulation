@@ -12,12 +12,16 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, end of 2026-09-13.** `main` is at the latest push and is the only
-branch; the game is live and invite-only; 1656 tests pass, 1 todo; the build
-publishes 54 files. Nothing is waiting on code. **The next step is the owner's:
-the stranger playtests** (*Deployment → Running a playtest* has the steps and the
-invite). Everything else below either waits on their files or on the owner's
-judgement.
+**Current state, 2026-09-16.** `main` is at the latest push and the game is
+live and invite-only; 1714 tests pass, 1 todo; the build publishes 54 files.
+`main` is no longer the only branch: `makeover`, pushed for a preview but not
+merged, carries the new look (`plans/2026-09-13-studio-makeover.md`) and F17,
+a fix to how an advertiser low on budget is ranked; its own HANDOVER says where
+both stand. The owner put the stranger playtests on hold on 2026-09-13 for that
+makeover, so the list below is as it stood that day: **the next step was the
+owner's, the stranger playtests** (*Deployment → Running a playtest* has the
+steps and the invite), and everything else waits on their files or on the
+owner's judgement.
 
 **2026-09-16, on the unpushed branch `claude/rival-history-main`** (cut from
 `42eeebf`, the rival prepaid fix, which `main` has since merged as `2044072`; it
@@ -1924,6 +1928,27 @@ tooling and one untested claim.
   no sale unmarked, and can import `isDear` once `main` is merged in; and the
   rivals' `wastefulQueries` still blocks only a search with no conversions at
   all, which changes the market and wants the harness before and after.
+- ~~A revision re-prices the weeks sold before a price move.~~ **Fixed
+  2026-09-16** (F18, merged into `main` the same day): each week's report
+  records the margin its orders were sold at
+  (`money.marginPct`), and every revision uses it. A week-5 move had been
+  re-pricing all of month 1 at the new tier's margin, which moved the week-8
+  rank and the end screen for a player who moved; F18 has the before and after.
+  The harness has a `move` mode for it.
+- ~~An old week's late sales go to whichever keyword catches the search when
+  they land.~~ **Fixed 2026-09-16** (I36, merged with F18): each order now carries
+  the keyword that caught its click (`keywordId`), as it carries its search and
+  place, and `keywordForQuery` is gone. It hit every player who blocked a
+  search with a negative, since nothing catches a blocked search any more;
+  removing or replacing a keyword did it too. The keywords table showed it,
+  the search terms report never did, and the market harness came out identical.
+- **F18 and I36 are not on `makeover` yet.** It carries the same
+  `reviseReports` and `keywordForQuery`, so it wants both fixes. F17 sits just
+  before I6 there, where F18 goes, and I35 just after I34, where I36 goes: keep
+  both each time, the lower number first. The `reviseBreakdown` call is already
+  the cash share's there, so it becomes `reviseBreakdown(existing.breakdown,
+  lateLanded, lateReturns)`, as on `main`. F17 moved the market, so run the
+  harness's `market` and `move` modes before and after on `makeover` itself.
 
 ---
 
@@ -2379,6 +2404,17 @@ oddly while implementing it, it is worth ten minutes of arithmetic.
   until 2026-09-15. It was found only because a second mark was meant to match
   it. When checking a mark in the browser, read its computed colour
   (`getComputedStyle`), not its class list.
+- **A report is rewritten for five weeks, by whoever the account is by then.**
+  `reviseReports` is handed THIS round's advertisers while it edits earlier
+  reports, so anything it works out from the advertiser rather than adding up
+  from the orders describes the account as it is now, not as the week was sold.
+  The cash share on each place row was worked out that way, and a week-5 price
+  move rewrote four weeks of it (I34, 2026-09-15); it is now recorded once, when
+  the week's report is built. Anything a report carries that is not a sum of
+  orders belongs in `buildRoundReport`, or on the order itself, as `valuePaise`
+  and `returnRate` are (11.3). The margin (F18) and the keyword a late sale is
+  credited to (I36) were the same fault, fixed the same way; CLAUDE.md carries
+  it as a known trap.
 - **Resizing the browser pane reloads the page, and the game is in memory.**
   Four played rounds vanish and you are back at round 0 with no error and no
   clue. Set the viewport BEFORE opening the game, not after — and if a

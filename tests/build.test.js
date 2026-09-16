@@ -142,6 +142,11 @@ describe('the built copy runs', () => {
     for (const f of built) expect(existsSync(join(out, f)), f).toBe(true);
   });
 
+  // Its own allowance, not vitest's 5s default: this asks whether every module
+  // loads, never how fast. Alone it takes about 3.7s at 106 files, and inside the
+  // full parallel run it crossed 5s (5,020ms on 2026-09-15) and failed with
+  // nothing wrong, which is the machine-weather failure vitest.config.js keeps
+  // timing out of this suite. Each section the build publishes adds a module.
   test('node can load every module in it except the page itself', async () => {
     // The real resolver, not the build's: a module missing from dist/ throws.
     const modules = built.filter((f) => f.endsWith('.js') && f !== 'ui/app.js');
@@ -149,7 +154,7 @@ describe('the built copy runs', () => {
     for (const f of modules) {
       await expect(import(pathToFileURL(join(out, f)).href), f).resolves.toBeTruthy();
     }
-  });
+  }, 30_000);
 
   test('and a game starts from the copy, not from the repository', async () => {
     const { startGame } = await import(pathToFileURL(join(out, 'setup.js')).href);
