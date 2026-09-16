@@ -1,10 +1,10 @@
 /**
  * Round 0's rules, read without a page (plans/2026-09-14-round-zero-redesign.md,
- * section 8). The classic page and the Studio steps must read the SAME
- * functions, or a figure on one could disagree with the account.
+ * section 8). They were lifted out of the classic page so that page and the
+ * Studio's steps could not disagree about the account Go opens; the switch-over's
+ * part 2 then deleted the page, and the rules stayed where they had moved to.
  */
 import { describe, test, expect } from 'vitest';
-import * as classic from '../ui/round-zero.js';
 import * as rules from '../ui/roundzero/rules.js';
 import { assignIdentities, BRAND_IDENTITIES } from '../content/brands.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -16,13 +16,6 @@ import {
   MONTHLY_BUDGET_PAISE, CAPEX_ALLOCATION_PAISE, CREATIVE_ALLOCATION_PAISE,
   CAPEX_DELAY_ROUNDS, CAPEX_TARGETS, WRITER_TIERS, MIN_BID_PAISE,
 } from '../engine/constants.js';
-
-describe('one set of rules for both looks', () => {
-  test.each(['openingReserve', 'submittedAd', 'gradeAsSubmitted', 'monthlyBudget',
-    'positionMatrix', 'splitShares'])('%s is the same function on both pages', (name) => {
-    expect(classic[name]).toBe(rules[name]);
-  });
-});
 
 describe('the rival ads round 0 shows', () => {
   const brand = 'nira';
