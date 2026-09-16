@@ -13,7 +13,7 @@ import { changes } from '../decisions.js';
 import { studioContext } from './context.js';
 import { TOTAL_ROUNDS, ROUNDS_PER_MONTH } from '../../engine/constants.js';
 import {
-  AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots, slotOpen, areaEntry,
+  AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, entranceSlots, slotOpen, areaEntry,
 } from './sections.js';
 import { trayLines } from './tray.js';
 import { SHELL } from '../words/shell.js';
@@ -52,13 +52,6 @@ const LIST_BEHIND_MENU = '(max-width: 900px)';
  * @param {(() => void)|null} [deps.onPlaytest]
  */
 export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPlaytest = null }) {
-  if (!document.getElementById('studio-sections')) {
-    const style = el('style');
-    style.id = 'studio-sections';
-    style.textContent = visibilityRules();
-    document.head.append(style);
-  }
-
   const view = {
     area: 'brand', section: 'week', seen: {}, order: [], menuOpen: false,
     resultsShown: false, firstOpen: null, dotsShown: new Set(),

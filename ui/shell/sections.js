@@ -1,11 +1,19 @@
 /**
- * The Studio layout's areas and sections, and which of today's cards each one
- * shows (plans/2026-09-13-studio-makeover.md, section 2). Pure: the shell draws
- * what this decides, and the rules can be tested without a browser.
+ * The Studio layout's areas and sections, and the parts each one draws
+ * (plans/2026-09-13-studio-makeover.md, section 2). Pure: the shell draws what
+ * this decides, and the rules can be tested without a browser.
  *
- * A section shows today's cards by their `data-slot`. Until a section is rebuilt
- * its cards are the classic ones, re-themed; `draws` names the slots a rebuilt
- * section draws itself, so the guide can still open it.
+ * `draws` names the `data-slot`s a section's own module sets, which is how the
+ * guide's "Show me in your account" finds a part and how a first visit knows
+ * what to bring in.
+ *
+ * IT USED TO BE A FILTER. The makeover was built beside the classic page: a
+ * section listed the classic cards it `slots`-ed, and an injected stylesheet
+ * hid every other section's. Section by section that list emptied as each
+ * section was rebuilt to draw its own parts, and the switch-over's part 2
+ * deleted the page, so the last of the machinery — `slots`, `RETIRED_SLOTS`
+ * and `visibilityRules` — went with it. Nothing is hidden now; a section is
+ * simply what it draws.
  */
 
 import { SETTLES_AFTER_ROUNDS } from '../dashboard.js';
@@ -45,79 +53,73 @@ export const SECTIONS = Object.freeze([
   // Rebuilt (the owner's choice, 2026-09-15, design/your-week/): it draws its
   // own figures, chart and impressions (ui/week/render.js); the classic three
   // cards are retired in the Studio.
-  { key: 'week', area: 'brand', label: 'Your week', icon: ICONS.week, slots: [], draws: ['headline', 'share', 'revised'] },
+  { key: 'week', area: 'brand', label: 'Your week', icon: ICONS.week, draws: ['headline', 'share', 'revised'] },
   // Rebuilt: it draws its own cards (ui/keywords/render.js) and the classic
   // keywords card is retired in the Studio; `draws` lets the guide open it.
-  { key: 'keywords', area: 'brand', label: 'Your keywords', icon: ICONS.keywords, slots: [], draws: ['keywords'] },
+  { key: 'keywords', area: 'brand', label: 'Your keywords', icon: ICONS.keywords, draws: ['keywords'] },
   // Rebuilt (the owner's choice, 2026-09-15, design/what-people-typed/): one
   // list and Block words (ui/typed/render.js); the classic two cards are retired.
-  { key: 'typed', area: 'brand', label: 'What people typed', icon: ICONS.typed, slots: [], draws: ['terms', 'negatives'] },
+  { key: 'typed', area: 'brand', label: 'What people typed', icon: ICONS.typed, draws: ['terms', 'negatives'] },
   // Read-only (the owner, 2026-09-15): the ad is written in round 0 and runs as
   // it is (I9). It draws itself (ui/ad/render.js); the classic page has no ad card.
   // Its writer carries a slot so the guide's "Who writes the ad" can show it.
-  { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, slots: [], draws: ['writer'] },
+  { key: 'ad', area: 'brand', label: 'Your ad', icon: ICONS.ad, draws: ['writer'] },
   // Rebuilt (the owner's choice, 2026-09-15, design/your-money/): this month as
   // one bar, with the week-5 window on top and bidding and week 8 beside each
   // other (ui/money/render.js); the classic five cards are retired.
   { key: 'money', area: 'brand', label: 'Your money', icon: ICONS.money,
-    slots: [], draws: ['window', 'budget', 'split', 'bidding', 'deadline'] },
+    draws: ['window', 'budget', 'split', 'bidding', 'deadline'] },
   // Rebuilt (the owner's choice, 2026-09-15, design/where-when/): it draws its
   // own bars and map (ui/where/render.js), and the classic two cards are retired.
-  { key: 'where', area: 'brand', label: 'Where and when', icon: ICONS.where, slots: [], draws: ['places', 'hours'] },
+  { key: 'where', area: 'brand', label: 'Where and when', icon: ICONS.where, draws: ['places', 'hours'] },
   // Opens the week the first returns settle: the returns card's own rule
   // (ui/dashboard.js, SETTLES_AFTER_ROUNDS), never a typed week. Rebuilt (the
   // owner's choice, 2026-09-15, design/returns/): its figures, weeks, discount
   // and levers (ui/returns/render.js); the classic two cards are retired.
   { key: 'returns', area: 'brand', label: 'Returns', icon: ICONS.returns,
-    slots: [], draws: ['returns-figures', 'returns', 'prepaid', 'returns-levers'], opensAt: SETTLES_AFTER_ROUNDS + 1 },
+    draws: ['returns-figures', 'returns', 'prepaid', 'returns-levers'], opensAt: SETTLES_AFTER_ROUNDS + 1 },
   // Rebuilt (the owner's choice, 2026-09-15, design/market/): one section, the
   // market's public figures on top and each rival you meet as a card
   // (ui/rivals/render.js); the classic three cards are retired, and the
   // market card no longer has a section of its own.
-  { key: 'rivals', area: 'market', label: 'Rivals', icon: ICONS.rivals, slots: [], draws: ['market', 'insights'] },
+  { key: 'rivals', area: 'market', label: 'Rivals', icon: ICONS.rivals, draws: ['market', 'insights'] },
   // Rebuilt (the owner's choice, 2026-09-15, design/results/): four sections
   // after the last week, drawn by ui/results/render.js, in the order they are
   // read; each carries a dot until opened and ends by pointing at the next.
   // The classic end screen still draws for the classic look.
   { key: 'twelve', area: 'results', label: 'Twelve weeks', icon: ICONS.week,
-    slots: [], draws: ['results-figures', 'results-weeks', 'results-built'], opensAt: TOTAL_ROUNDS },
+    draws: ['results-figures', 'results-weeks', 'results-built'], opensAt: TOTAL_ROUNDS },
   { key: 'learned', area: 'results', label: 'What you learned', icon: ICONS.learned,
-    slots: [], draws: ['results-lessons', 'results-moments', 'results-budget'], opensAt: TOTAL_ROUNDS },
+    draws: ['results-lessons', 'results-moments', 'results-budget'], opensAt: TOTAL_ROUNDS },
   { key: 'reveal', area: 'results', label: 'Where they sat', icon: ICONS.squares,
-    slots: [], draws: ['results-reveal', 'results-squares'], opensAt: TOTAL_ROUNDS },
+    draws: ['results-reveal', 'results-squares'], opensAt: TOTAL_ROUNDS },
   { key: 'books', area: 'results', label: 'Everyone’s books', icon: ICONS.results,
-    slots: [], draws: ['results-books', 'results-finish'], opensAt: TOTAL_ROUNDS },
+    draws: ['results-books', 'results-finish'], opensAt: TOTAL_ROUNDS },
   // On the playtest link only (design/switch-over/, 2026-09-16): the questions
   // a tester answers before sending the file, as the last Results section
   // rather than a card under Everyone's books, where one who stops at the first
   // section never meets them.
   { key: 'playtest', area: 'results', label: 'Before you go', icon: ICONS.file,
-    slots: [], draws: ['results-playtest'], opensAt: TOTAL_ROUNDS, playtestOnly: true },
+    draws: ['results-playtest'], opensAt: TOTAL_ROUNDS, playtestOnly: true },
 ]);
 
-/** Cards the new screens draw instead: the tray replaces *Next week*; the rebuilt sections draw their own. */
-export const RETIRED_SLOTS = Object.freeze([
-  'keywords', 'next', 'places', 'hours', 'headline', 'share', 'revised', 'terms', 'negatives',
-  'window', 'budget', 'split', 'bidding', 'deadline', 'returns', 'prepaid', 'insights', 'trends', 'market',
-]);
-
-/** @returns {object|null} the section a card's slot lives in */
+/** @returns {object|null} the section that draws the part a slot names */
 export function sectionOf(slot) {
-  return SECTIONS.find((s) => s.slots.includes(slot) || s.draws?.includes(slot)) ?? null;
+  return SECTIONS.find((s) => s.draws?.includes(slot)) ?? null;
 }
 
 /**
- * The parts a section's first visit brings in (spec section 3, row 3): a
- * rebuilt section's own, which it draws, or a classic one's cards.
+ * The parts a section's first visit brings in (spec section 3, row 3).
  *
- * Found planning Returns: the shell looked for the cards among the classic
- * ones only, so rebuilding Your money quietly took its week-5 entrance away.
+ * Found planning Returns: this once looked for a section's cards among the
+ * classic page's, so rebuilding Your money quietly took its week-5 entrance
+ * away. Every section draws its own parts now, so there is one answer.
  *
  * @param {object} section
  * @returns {string[]} data-slot names
  */
 export function entranceSlots(section) {
-  return section.slots.length > 0 ? section.slots : (section.draws ?? []);
+  return section.draws ?? [];
 }
 
 /**
@@ -179,19 +181,3 @@ export function slotOpen(slot, at) {
   return section !== null && !sectionState(section, at).locked;
 }
 
-/**
- * The stylesheet that makes a section a filter over today's page: in each
- * section, every other section's cards and every retired card are hidden.
- *
- * @param {string} [scope] - the dashboard root, as the shell marks it
- * @returns {string}
- */
-export function visibilityRules(scope = 'body.studio .studio-cards') {
-  const is = (slots) => `:is(${slots.map((slot) => `[data-slot="${slot}"]`).join(', ')})`;
-  const rules = [`${scope} ${is(RETIRED_SLOTS)} { display: none !important; }`];
-  for (const s of SECTIONS) {
-    if (s.slots.length === 0) continue;
-    rules.push(`${scope}:not([data-section="${s.key}"]) ${is(s.slots)} { display: none !important; }`);
-  }
-  return rules.join('\n');
-}

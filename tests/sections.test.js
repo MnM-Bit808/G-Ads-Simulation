@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  AREAS, SECTIONS, RETIRED_SLOTS, sectionOf, sectionsIn, sectionState, visibilityRules, entranceSlots, slotOpen,
+  AREAS, SECTIONS, sectionOf, sectionsIn, sectionState, entranceSlots, slotOpen,
   areaEntry,
 } from '../ui/shell/sections.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
@@ -39,34 +39,29 @@ describe('every part a section claims is a part its module draws', () => {
   });
 
   test('Your keywords draws its own card, so the guide can still open it', () => {
-    expect(RETIRED_SLOTS).toContain('keywords');
     expect(sectionOf('keywords').key).toBe('keywords');
   });
 
   test('Where and when draws its own bars, so the guide can still open both', () => {
     for (const slot of ['places', 'hours']) {
-      expect(RETIRED_SLOTS, slot).toContain(slot);
       expect(sectionOf(slot).key, slot).toBe('where');
     }
   });
 
   test('What people typed draws its own list and Block words, so the guide can still open both', () => {
     for (const slot of ['terms', 'negatives']) {
-      expect(RETIRED_SLOTS, slot).toContain(slot);
       expect(sectionOf(slot).key, slot).toBe('typed');
     }
   });
 
   test('Your money draws its own capital, month, bidding and week 8, so the guide can still open all five', () => {
     for (const slot of ['window', 'budget', 'split', 'bidding', 'deadline']) {
-      expect(RETIRED_SLOTS, slot).toContain(slot);
       expect(sectionOf(slot).key, slot).toBe('money');
     }
   });
 
   test('the Market area is one section, Rivals, drawing the market\'s figures and the rival cards', () => {
     expect(sectionsIn('market').map((s) => s.key)).toEqual(['rivals']);
-    for (const slot of ['insights', 'trends', 'market']) expect(RETIRED_SLOTS, slot).toContain(slot);
     // The rival cards keep the classic Auction insights' slot.
     expect(sectionOf('insights').key).toBe('rivals');
     expect(sectionOf('market').key).toBe('rivals');
@@ -74,7 +69,6 @@ describe('every part a section claims is a part its module draws', () => {
 
   test('Returns draws its own figures, weeks, discount and levers, so the guide can still open it', () => {
     for (const slot of ['returns', 'prepaid']) {
-      expect(RETIRED_SLOTS, slot).toContain(slot);
       expect(sectionOf(slot).key, slot).toBe('returns');
     }
     expect(entranceSlots(SECTIONS.find((s) => s.key === 'returns')))
@@ -83,7 +77,6 @@ describe('every part a section claims is a part its module draws', () => {
 
   test('Your week draws its own figures, chart and impressions, so the guide can still open all three', () => {
     for (const slot of ['headline', 'share', 'revised']) {
-      expect(RETIRED_SLOTS, slot).toContain(slot);
       expect(sectionOf(slot).key, slot).toBe('week');
     }
   });
@@ -238,11 +231,12 @@ describe('the playtest questions are a Results section on the playtest link only
 describe('a first visit enters the parts the section shows', () => {
   const find = (key) => SECTIONS.find((s) => s.key === key);
 
-  test('a rebuilt section enters the parts it draws; a classic one its cards', () => {
+  test('a section enters the parts it draws', () => {
     expect(entranceSlots(find('money'))).toEqual(['window', 'budget', 'split', 'bidding', 'deadline']);
-    // Since the Market area was rebuilt no section shows a classic card, so
-    // the classic branch is held by a section of that shape.
-    expect(entranceSlots({ slots: ['insights', 'trends'] })).toEqual(['insights', 'trends']);
+    // There was a second branch here, for a section that showed the classic
+    // page's cards rather than drawing its own. The switch-over's part 2
+    // deleted the page and with it `slots`, so there is one answer now.
+    expect(entranceSlots({})).toEqual([]);
   });
 
   test('every section that can be visited fresh has something to enter', () => {
@@ -254,22 +248,5 @@ describe('a first visit enters the parts the section shows', () => {
     const shell = read('ui/shell/shell.js');
     expect(shell).toMatch(/entranceSlots\(/);
     expect(shell).not.toMatch(/s\.slots\.map\(\(slot\) => `\[data-slot/);
-  });
-});
-
-describe('a section is a filter over today\'s page', () => {
-  const css = visibilityRules();
-
-  test('each section hides every other section\'s cards', () => {
-    for (const s of SECTIONS.filter((x) => x.slots.length > 0)) {
-      expect(css).toContain(`:not([data-section="${s.key}"])`);
-      for (const slot of s.slots) expect(css).toContain(`[data-slot="${slot}"]`);
-    }
-  });
-
-  test('retired cards are hidden in every section', () => {
-    for (const slot of RETIRED_SLOTS) {
-      expect(css).toMatch(new RegExp(`\\.studio-cards :is\\([^)]*\\[data-slot="${slot}"\\]`));
-    }
   });
 });
