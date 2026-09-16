@@ -346,6 +346,19 @@ door that cannot open a game (a replay fails the same way every time), the
 changed game lists only the weeks that differ as saved against replayed now,
 and the release's housekeeping is on the canvas.
 
+**Built, part 1** (2026-09-16, `638cf47`..`77e63bc`, plan
+`plans/2026-09-16-switch-over-plan.md`): page 1 as drawn — the front door in all
+five states and "Before you go" as a fifth Results section with Play again after
+the file — plus the Studio's own context, the version in the playtest file, and
+the Studio as the default look. Page 2's table is the release: `main` merged in
+as twins, F17 and the rival prepaid fix measured in place. Two things the
+mock-ups did not settle, decided by measuring while building: a changed game
+lists a week only where whole rupees or clicks differ, because the save compares
+fractional clicks exactly and a table of identical rows reads as a mistake; and
+the answer boxes take the kit's own field colours, because the line tokens put
+the box's only visible edge at 1.5:1. Part 2 — the classic look and its code
+removed — has its own plan.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

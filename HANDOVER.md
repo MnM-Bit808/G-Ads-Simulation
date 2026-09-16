@@ -12,14 +12,16 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, 2026-09-15: the Studio pilot is built and the owner called it
-alive, on the branch `makeover`.** The owner put the stranger playtests on hold
-for a visual makeover. Their own sessions with two other people kept raising the
-same complaints: too much to read, fiddly click-and-edit controls, and a static
-look. "It needs to feel alive." Round 0 went first, after the owner opened it in
-the new look and called it horrid, and they then played its five new steps and
-said "it feels alive". The weekly *Your keywords* followed, the makeover pilot's
-own section; the owner played it on 2026-09-15 and said "Alive".
+**Current state, 2026-09-16: on the branch `makeover` the Studio IS the game.**
+Part 1 of the switch-over is built (item 4's last entry): a visit with nothing
+asked opens the Studio, and `?look=classic` reaches today's page until part 2
+removes it. The owner put the stranger playtests on hold for a visual makeover.
+Their own sessions with two other people kept raising the same complaints: too
+much to read, fiddly click-and-edit controls, and a static look. "It needs to
+feel alive." Round 0 went first, after the owner opened it in the new look and
+called it horrid, and they then played its five new steps and said "it feels
+alive". The weekly *Your keywords* followed, the makeover pilot's own section;
+the owner played it on 2026-09-15 and said "Alive".
 
 - **The live site runs `main`**: Cloudflare deploys each push to it that
   passes `npm run ci`. On 2026-09-16 `main` stood at `2044072` (rivals pulling
@@ -84,13 +86,17 @@ own section; the owner played it on 2026-09-15 and said "Alive".
     No Studio screen shows a classic card any more. Then the Guide as a page
     (`ui/guide/page.js`), from `design/guide/`: the field guide as a book,
     with Show me fixed to mark what it opens in every rebuilt section.
-  - On `makeover` (2026-09-16, with the cash share fix): 2273 tests pass, 1
-    todo, and the build publishes 108 files.
-    On `main` it is 54.
+  - Part 1 of the switch-over (2026-09-16, `638cf47`..`77e63bc`): `main` merged
+    in, the Studio standing on its own context, the front door, the playtest
+    questions as a Results section, the version in the playtest file, and the
+    Studio as the default look. Part 2 removes the classic look.
+  - On `makeover` (2026-09-16, after part 1 and the F18/I36 merge): 2307 tests
+    pass, 1 todo, and the build publishes 114 files. On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
-**To play it:** `npm run dev`, then `http://localhost:5173/ui/?look=studio`. The
-look is remembered; `?look=classic` turns it off. A saved game is offered back
+**To play it:** `npm run dev`, then `http://localhost:5173/ui/` — the Studio is
+what a visit gets. `?look=classic` reaches today's page and is remembered until
+`?look=studio`, until part 2 removes it. A saved game is met at the front door
 on every load, so choose *Start a new game* to reach round 0. The classic round
 0 reads the same rules (`ui/roundzero/rules.js`).
 
@@ -221,7 +227,40 @@ engine does: the page's parts marked "week 4", its description graded now.
    the returns chapter's 30% is now the country's, which places move; six
    related links from the owner's read-through; and each area remembers its
    last section, so the rail goes back to where the player was.
-   Next: the switch-over.
+   **DONE 2026-09-16: the switch-over, part 1** (`plans/2026-09-16-switch-over-plan.md`),
+   from the canvas
+   https://claude.ai/code/artifact/54dadd5c-e4db-43fd-90ef-dd8117aa2c19: the
+   Studio becomes the game. The owner chose the front door on its own, the
+   classic look removed, and F17 and the rival prepaid fix in the release.
+   - **The three merges.** `main` came in as one `-s ours` merge: all 22 of its
+     commits are twins of makeover's own, and the tree is byte-identical to
+     makeover's before it, so the gate held by construction. F17 and the rival
+     fix were already merged here by other sessions; F17's gate held the same
+     way (no file the market reads differs), and the rival fix was measured with
+     F17 in place — rank 5th, no losing weeks, the player's net within ₹2, the
+     rivals' profit per rupee 1.94 to 1.96.
+   - **The Studio stands on its own** (`ui/shell/context.js`). It was drawing
+     the whole classic page hidden, only to borrow the decision form's context;
+     it now builds its own, and a section with nothing to draw throws rather
+     than falling back to a card that is no longer there.
+   - **The front door** (`ui/door/`): before a game opens, one card in the
+     page's own space, in five states — the game in progress, restoring it, a
+     game the simulator has changed under (the weeks that differ, as saved
+     against replayed now), a game this version cannot open, and a finished
+     game. The weeks played stay red while a replay runs, with a bar and a
+     line a screen reader can follow. Nothing caught a restore that threw
+     before this, so "Restoring your game" stayed on screen for ever.
+   - **"Before you go"** is a fifth Results section on the playtest link, where
+     the questions were a card under Everyone's books and a tester who stopped
+     at the first section never met them. Play again moves there, since
+     starting again clears the saved game the file carries.
+   - **The playtest file names its version** (`ui/version.js`): 'dev' in the
+     repository, the commit in a built site, noted on a load only when it
+     differs from the last, so a game that spans a deploy says where.
+   - **The Studio is the default.** The page is served as `body.studio` and a
+     classic visit takes the class off, so the game everyone now gets paints in
+     its own colours before any script runs.
+   Next: part 2 — the classic look and its code removed, then the deploy.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.

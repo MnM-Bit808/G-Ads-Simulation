@@ -218,9 +218,11 @@ number in the simulation without ever throwing an error.
   guesses the folder to publish on every deploy, and a wrong guess publishes the
   repository — docs and tests — while still reporting success.
   `tests/build.test.js` holds it, and holds `dist/` to exactly the files the
-  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 108 on the
-  branch `makeover` since the Guide page (2026-09-15), whose stylesheet and
-  fonts the build finds by following `url()` inside CSS.
+  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 114 on the
+  branch `makeover` since the switch-over's part 1 (2026-09-16), whose
+  stylesheet and fonts the build finds by following `url()` inside CSS. The
+  build also WRITES one file it did not copy: `ui/version.js`, stamped with the
+  commit, so a playtest file names the build it was recorded on.
 - **The Studio makeover filters today's cards, it never moves them.** The
   decision form redraws every card it owns into its own region on each change,
   so a card moved into a sidebar section is redrawn into nothing. The shell
@@ -233,9 +235,19 @@ number in the simulation without ever throwing an error.
   first visit brings them in (`entranceSlots`). Show me rings any Studio part
   carrying a slot (`studio.css`) and focuses its own heading, an h3 there;
   until 2026-09-15 the ring existed on classic cards only, so it marked
-  nothing in any rebuilt section. Everything new sits under
-  `body.studio` (`?look=studio`) until the switch-over, and red there is the
-  player's colour, so losses and warnings are amber with a minus sign.
+  nothing in any rebuilt section. Red there is the player's colour, so losses
+  and warnings are amber with a minus sign.
+- **Since the switch-over's part 1 (2026-09-16) the Studio is the game.** The
+  page is served as `<body class="studio">` and `ui/app.js` takes the class off
+  for a `?look=classic` visit, so the default paints in the Studio's colours
+  before any script runs; everything new still sits under `body.studio`, but
+  that is now everyone. The shell builds its OWN context (`ui/shell/context.js`,
+  `studioContext`) — it used to draw the whole classic page hidden to borrow the
+  decision form's — so a Studio section that draws nothing of its own throws
+  rather than quietly showing an empty screen. Before a game opens the Studio
+  draws the front door (`ui/door/`), which is also the only thing that catches
+  a restore that throws. Part 2 removes the classic look, `ui/look.js` and about
+  4,500 lines with it.
 - **Round 0's rules live in `ui/roundzero/rules.js`, and both looks read them.**
   A figure round 0 shows (the month, the reserve, the grades, the landing page
   grade) comes from there, never from a drawing module, so the classic page and

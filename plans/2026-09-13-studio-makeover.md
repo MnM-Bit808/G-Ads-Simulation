@@ -598,6 +598,24 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   pointing where their idea is not shown, two naming a classic card, and the
   rail losing the player's place; all fixed first. A chapter may now name a
   part only the Studio draws (`studioAccount`).
+- **The switch-over (section 7, item 9), part 1** is built as the owner chose
+  from the mock-ups on `design/switch-over/` (2026-09-16):
+  `plans/2026-09-16-switch-over-plan.md`, nine tasks. The Studio is the default
+  look — the page is served as `body.studio` and a `?look=classic` visit takes
+  the class off, so the game everyone gets paints in its own colours before any
+  script runs. Section 5's "built beside today's screens, behind a link" ends
+  here; part 2 removes the classic look and this design's `?look=studio`
+  entirely. Three things the Studio never had, because the classic page was
+  always underneath it: its own context (`ui/shell/context.js`, where the shell
+  drew the whole classic page hidden to borrow the decision form's), a front
+  door before a game opens (`ui/door/`, five states, and the only thing that
+  catches a restore that throws), and the playtest questions as a Results
+  section rather than a card under the fourth one. The playtest file now names
+  the build it was recorded on (`ui/version.js`), so a game that spans a deploy
+  says where. Merging `main` in was a `-s ours` merge of 22 commits that are all
+  twins of makeover's own, leaving the tree byte-identical; F17 and the rival
+  prepaid fix, both in the release by the owner's choice, were measured with the
+  market harness against gates agreed first.
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.
