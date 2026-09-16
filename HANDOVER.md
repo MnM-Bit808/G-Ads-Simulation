@@ -360,10 +360,17 @@ engine does: the page's parts marked "week 4", its description graded now.
      auction caps the landing page grade at 10; this screen added capital's
      points without the cap, so ₹80,000 on a page graded 8 charted 11 and a row
      read "+3" for a gain of 2. The screen now reads `effectiveGrades` for every
-     figure, as its header always said it did. **Still open, the owner's to
-     decide:** a row folds two capital purchases into one line and names the
-     later one's week, so ₹55,000 then ₹25,000 reads "live from week 8" at week 6
-     when its whole gain arrived at week 4.
+     figure, as its header always said it did.
+   - **The page row names the weeks the grade moves** (`543cda7`, the owner's
+     choice). It named the latest capital tranche's week, so ₹55,000 then
+     ₹25,000 on a page graded 8 read "live from week 8" at week 6, when its whole
+     +2 arrived at week 4. It now reads `steps`, off the chart's own capped
+     grades: "live from week 4", "1 more from week 8", or nothing once the grade
+     has finished moving. The size guide and photography rows still fold two
+     purchases into one week; they move no grade, and were not the choice.
+     **Open, the owner's:** the drawn page has the same fold. It shows no stars
+     until the LAST tranche lands, so that same page stays plain through weeks
+     4-7 with its grade already at 10. It belongs with what each rung draws.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.
