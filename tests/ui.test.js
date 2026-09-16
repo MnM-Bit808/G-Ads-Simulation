@@ -278,17 +278,13 @@ describe('every interface module at least loads', () => {
     }
   });
 
-  // The switch-over's part 2 empties this list as each classic screen goes:
-  // ui/ending.js draws nothing now, and what it still exports is the reading
-  // the Studio's Results and scripts/read-playtest.js take from it.
-  test('and the ones that draw a screen export a render function', async () => {
-    for (const file of ['chart.js']) {
-      const module = await LOADABLE[file]();
-      const renders = Object.entries(module).filter(([name]) => name.startsWith('render'));
-      expect(renders.length, file).toBe(1);
-      expect(typeof renders[0][1], file).toBe('function');
-    }
-  });
+  // There was a test here that the five classic screens each exported exactly
+  // one render function: chart.js, dashboard.js, decisions.js, ending.js and
+  // round-zero.js. The switch-over's part 2 emptied the list one screen at a
+  // time, and a loop over nothing asserts nothing, so it went with the last of
+  // them. Every module that draws now is a Studio section, held by
+  // tests/sections.test.js (each draws the parts its section claims) and by
+  // tests/words.test.js's drawing guard (a drawing module writes no sentence).
 });
 
 describe('the dev server serves the project, not just the interface', () => {
