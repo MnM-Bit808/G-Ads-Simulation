@@ -87,6 +87,12 @@ export const SECTIONS = Object.freeze([
     slots: [], draws: ['results-reveal', 'results-squares'], opensAt: TOTAL_ROUNDS },
   { key: 'books', area: 'results', label: 'Everyone’s books', icon: ICONS.results,
     slots: [], draws: ['results-books', 'results-finish'], opensAt: TOTAL_ROUNDS },
+  // On the playtest link only (design/switch-over/, 2026-09-16): the questions
+  // a tester answers before sending the file, as the last Results section
+  // rather than a card under Everyone's books, where one who stops at the first
+  // section never meets them.
+  { key: 'playtest', area: 'results', label: 'Before you go', icon: ICONS.file,
+    slots: [], draws: ['results-playtest'], opensAt: TOTAL_ROUNDS, playtestOnly: true },
 ]);
 
 /** Cards the new screens draw instead: the tray replaces *Next week*; the rebuilt sections draw their own. */
@@ -114,9 +120,13 @@ export function entranceSlots(section) {
   return section.slots.length > 0 ? section.slots : (section.draws ?? []);
 }
 
-/** @returns {object[]} an area's sections, in order */
-export function sectionsIn(area) {
-  return SECTIONS.filter((s) => s.area === area);
+/**
+ * @param {string} area
+ * @param {{playtest?: boolean}} [options] - on the playtest link, Results has "Before you go"
+ * @returns {object[]} an area's sections, in order
+ */
+export function sectionsIn(area, { playtest = false } = {}) {
+  return SECTIONS.filter((s) => s.area === area && (playtest || !s.playtestOnly));
 }
 
 /**
@@ -126,10 +136,11 @@ export function sectionsIn(area) {
  *
  * @param {string} area
  * @param {Record<string, string>} [lastIn] - the section last open, by area
+ * @param {{playtest?: boolean}} [options] - as `sectionsIn` takes them
  * @returns {string} a section key in that area
  */
-export function areaEntry(area, lastIn = {}) {
-  const inArea = sectionsIn(area);
+export function areaEntry(area, lastIn = {}, options = {}) {
+  const inArea = sectionsIn(area, options);
   return inArea.find((s) => s.key === lastIn[area])?.key ?? inArea[0].key;
 }
 

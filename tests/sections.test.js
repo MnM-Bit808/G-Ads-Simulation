@@ -156,7 +156,7 @@ describe('an area remembers where the player was', () => {
 
   test('the shell asks it on every rail button but the Guide\'s, which keeps its chapter', () => {
     const shell = read('ui/shell/shell.js');
-    expect(shell).toContain('open(areaEntry(area.key, view.lastIn))');
+    expect(shell).toContain('open(areaEntry(area.key, view.lastIn');
     expect(shell).toMatch(/view\.lastIn\[s\.area\] = key;/);
   });
 });
@@ -212,6 +212,30 @@ describe('a section opens when it has something true to say', () => {
 
   test('every area but the guide has sections; the guide opens its drawer instead', () => {
     for (const area of AREAS) expect(sectionsIn(area.key).length > 0, area.key).toBe(area.key !== 'guide');
+  });
+});
+
+// The switch-over, part 1 (design/switch-over/, 2026-09-16): the questions were a
+// card at the foot of Everyone's books, where a tester who read the first section
+// and stopped never met them.
+describe('the playtest questions are a Results section on the playtest link only', () => {
+  test('Results has four sections, and a fifth, "Before you go", on the playtest link', () => {
+    expect(sectionsIn('results').map((s) => s.key)).toEqual(['twelve', 'learned', 'reveal', 'books']);
+    expect(sectionsIn('results', { playtest: true }).map((s) => s.key))
+      .toEqual(['twelve', 'learned', 'reveal', 'books', 'playtest']);
+  });
+
+  test('it opens after the last week, as the rest of Results does', () => {
+    expect(SECTIONS.find((s) => s.key === 'playtest').opensAt).toBe(TOTAL_ROUNDS);
+  });
+
+  test('the rail\'s Playtest opens it after the last week, rather than downloading past the questions', () => {
+    expect(read('ui/shell/shell.js')).toContain("open('playtest')");
+  });
+
+  test('the rail\'s Results goes back to it on the playtest link', () => {
+    expect(areaEntry('results', { results: 'playtest' }, { playtest: true })).toBe('playtest');
+    expect(areaEntry('results', { results: 'playtest' })).toBe('twelve');
   });
 });
 

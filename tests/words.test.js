@@ -36,6 +36,7 @@ import { MONEY } from '../ui/words/money.js';
 import { RESULTS, TARGET_WORDS } from '../ui/words/results.js';
 import { GUIDE } from '../ui/words/guide.js';
 import { DOOR } from '../ui/words/door.js';
+import { PLAYTEST } from '../ui/words/playtest.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -797,6 +798,17 @@ describe('the front door says its words whole (ui/words/door.js)', () => {
   test('a save this version cannot open is not offered again', () => {
     const all = Object.values(DOOR).map((entry) => entry(FIGURES)).join(' ');
     expect(all).not.toMatch(/try again/i);
+  });
+});
+
+describe('the playtest questions are today\'s, in both looks (ui/words/playtest.js)', () => {
+  // Moved out of ui/recorder.js by the switch-over, part 1, so the classic panel
+  // and the Studio's "Before you go" cannot drift into asking different things
+  // while testers are answering both.
+  test('each renders whole, and the questions are the ones testers have answered', () => {
+    for (const [name, entry] of Object.entries(PLAYTEST)) expect(entry({}), name).not.toMatch(/undefined|NaN/);
+    expect(PLAYTEST.lessons()).toBe('What three things did this game teach you? In your own words.');
+    expect(PLAYTEST.confusing()).toBe('What confused or annoyed you?');
   });
 });
 

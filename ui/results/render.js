@@ -28,6 +28,7 @@ import { replayRound } from '../../game.js';
 import { AD } from '../words/ad.js';
 import { DEBRIEF } from '../words/debrief.js';
 import { RESULTS, TARGET_WORDS, ordinal } from '../words/results.js';
+import { PLAYTEST } from '../words/playtest.js';
 import { R0, cellWords, PRICE_WORD, PURPOSE_WORD } from '../words/roundZero.js';
 import { SECTIONS } from '../shell/sections.js';
 import {
@@ -72,7 +73,8 @@ async function replay(initial, logAt, throughRound, options, onWeek) {
  * @param {Function} [args.openGuide] - `guide.open`
  * @param {(key: string) => void} args.openSection - the shell's `open`
  * @param {(market: 'same'|'new') => void} [args.onRestart]
- * @param {(() => HTMLElement)|null} [args.playtest] - the playtest link's questions
+ * @param {{recorder: object, onDownload: () => void}|null} [args.playtest] - on the
+ *   playtest link, the recorder the answers are typed into and the file's button
  * @returns {{node: (key: string) => HTMLElement, game: object}}
  */
 export function renderResults({ game, openGuide, openSection, onRestart = null, playtest = null }) {
@@ -101,9 +103,8 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
   };
   const parts = {
     twelve: el('div', 'rs'), learned: el('div', 'rs'), reveal: el('div', 'rs'), books: el('div', 'rs'),
+    playtest: el('div', 'rs'),
   };
-  // Made once, so answers typed into it survive the section being redrawn.
-  const questions = playtest ? playtest() : null;
 
   const why = (entry) => whyButton(entry, openGuide);
   const para = (className, text, entry = null) => {
@@ -683,12 +684,25 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
         first: money(where.firstPaise), last: money(where.lastPaise),
       })), para('rs-sub', RESULTS.traps({ snapshot }), RESULTS.traps));
     }
+    const endRow = el('div', 'rs-pairs wide');
+    // On the playtest link Play again moves under the file, since starting again
+    // clears the saved game the file carries; the books point there instead.
+    if (playtest) {
+      const onward = card('rs-card', null);
+      onward.append(next('playtest'));
+      endRow.append(finish, onward);
+    } else endRow.append(finish, playAgain());
+    parts.books.replaceChildren(warning, table, endRow);
+  }
+
+  /** Play again: in Everyone's books, or under the file on the playtest link. */
+  function playAgain() {
     const again = card('rs-card', null);
     again.append(el('h4', null, RESULTS.playAgain()));
     if (!view.restart) {
       const ask = button('rs-pill', RESULTS.startAnother());
       ask.disabled = !onRestart;
-      ask.addEventListener('click', () => { view.restart = true; drawBooks(); });
+      ask.addEventListener('click', () => { view.restart = true; redrawEnd(); });
       again.append(ask);
     } else {
       for (const [market, name, reason] of [['same', RESULTS.sameMarket(), RESULTS.sameWhy()],
@@ -700,14 +714,38 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
       }
     }
     again.append(el('p', 'rs-sub', RESULTS.restartWarn()));
-    const endRow = el('div', 'rs-pairs wide');
-    endRow.append(finish, again);
-    const out = [warning, table, endRow];
-    if (questions) out.push(questions);
-    parts.books.replaceChildren(...out);
+    return again;
   }
 
-  const drawers = { twelve: drawTwelve, learned: drawLearned, reveal: drawReveal, books: drawBooks };
+  /** The section Play again sits in, redrawn where the player is looking. */
+  const redrawEnd = () => (playtest ? drawPlaytest() : drawBooks());
+
+  // On the playtest link, the questions and the file, then Play again, which
+  // clears the saved game the file carries (the review, 2026-09-16).
+  function drawPlaytest() {
+    if (!playtest) return;
+    const box = card('rs-card', 'results-playtest');
+    const ask = (id, question, rows) => {
+      const wrap = el('label', 'rs-ask');
+      const text = el('textarea', 'rs-answer');
+      text.rows = rows;
+      text.value = playtest.recorder.log().answers[id] ?? '';
+      text.addEventListener('input', () => playtest.recorder.answer(id, text.value));
+      wrap.append(el('span', null, question), text);
+      return wrap;
+    };
+    const send = button('rs-pill', PLAYTEST.download());
+    send.addEventListener('click', playtest.onDownload);
+    box.append(ask('lessons', PLAYTEST.lessons(), 5), ask('confusing', PLAYTEST.confusing(), 3),
+      el('p', 'rs-sub', PLAYTEST.fileNote()), send);
+    const again = playAgain();
+    again.append(el('p', 'rs-sub', PLAYTEST.playAgainAfter()));
+    parts.playtest.replaceChildren(el('p', 'rs-sub', PLAYTEST.sub()), box, again);
+  }
+
+  const drawers = {
+    twelve: drawTwelve, learned: drawLearned, reveal: drawReveal, books: drawBooks, playtest: drawPlaytest,
+  };
   return {
     game,
     node(key) {

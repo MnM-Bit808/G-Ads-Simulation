@@ -30,6 +30,7 @@
 
 import { el } from './dom.js';
 import { SAVE_KEY } from './save.js';
+import { PLAYTEST } from './words/playtest.js';
 
 /** Where the recording is kept, beside the save and never inside it. */
 export const RECORDING_KEY = 'g-ads-simulation:playtest';
@@ -505,18 +506,15 @@ function answerBox(recorder, id, question, rows) {
 export function renderPlaytestPanel({ recorder, onDownload }) {
   const node = el('article', 'card span-4 playtest');
   node.id = 'playtest-panel';
-  const heading = el('h2', null, 'Before you go');
-  heading.append(el('span', 'muted', 'for the playtest only'));
+  const heading = el('h2', null, PLAYTEST.title());
+  heading.append(el('span', 'muted', PLAYTEST.sub()));
   node.append(heading);
   node.append(
-    answerBox(recorder, 'lessons', 'What three things did this game teach you? In your own words.', 5),
-    answerBox(recorder, 'confusing', 'What confused or annoyed you?', 3),
+    answerBox(recorder, 'lessons', PLAYTEST.lessons(), 5),
+    answerBox(recorder, 'confusing', PLAYTEST.confusing(), 3),
   );
-  node.append(el('p', 'note',
-    'The file holds how long you spent on each screen, what you clicked, how many '
-    + 'keys you pressed (not what they were), your answers, your saved game and your '
-    + 'browser and screen size. Nothing has been sent anywhere: download it and send it back.'));
-  const button = el('button', null, 'Download the playtest file');
+  node.append(el('p', 'note', PLAYTEST.fileNote()));
+  const button = el('button', null, PLAYTEST.download());
   button.type = 'button';
   button.addEventListener('click', onDownload);
   node.append(button);

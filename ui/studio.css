@@ -1099,6 +1099,13 @@ body.studio .rs-rankbox { display: flex; flex-direction: column; gap: 4px; }
 body.studio .rs-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: none; color: var(--studio-text); text-align: left; }
 body.studio .rs-choice:hover { border-color: var(--studio-red); }
 body.studio .rs-choice strong { font-size: 14px; }
+/* Before you go, on the playtest link only: the two questions, in the kit's own
+   text box (.kfield). Built first with the line tokens, which measured 1.5:1
+   against the card: a box whose only cue is its outline has to reach 3:1 (WCAG
+   1.4.11), and the kit's #68636B is 3.08:1. */
+body.studio .rs-ask { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 600; color: var(--studio-soft); }
+body.studio .rs-answer { padding: 10px 12px; border: 1px solid #68636B; border-radius: 12px; background: #141216; color: var(--studio-text); font: inherit; font-size: 14px; font-weight: 400; resize: vertical; }
+body.studio .rs-answer::placeholder { color: var(--studio-muted); }
 
 /* A section under 900px wide (a tablet): two of most things to a row, and
    the books without their bars, which need the width. */

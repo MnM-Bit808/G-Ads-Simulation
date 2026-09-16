@@ -144,14 +144,16 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
       b.disabled = area.key === 'results' && played() < TOTAL_ROUNDS;
       b.addEventListener('click', () => {
         if (area.key === 'guide') { openChapter(view.chapter); return; }
-        open(areaEntry(area.key, view.lastIn));
+        open(areaEntry(area.key, view.lastIn, { playtest: Boolean(onPlaytest) }));
       });
       rail.append(b);
     }
     if (onPlaytest) {
       const p = button('studio-area studio-playtest', icon(ICONS.file), el('span', null, SHELL.playtestShort()));
       p.title = SHELL.playtest();
-      p.addEventListener('click', onPlaytest);
+      // After the last week the questions exist, and the file carries them: send
+      // a tester there rather than downloading past the two things being asked.
+      p.addEventListener('click', () => (results && played() >= TOTAL_ROUNDS ? open('playtest') : onPlaytest()));
       rail.append(p);
     }
   }
@@ -182,7 +184,7 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
     // sits behind the menu, and the entrance waits for the menu to open. Asked
     // of the width, not the page: the first draw happens before the shell is on it.
     const listShown = view.menuOpen || !matchMedia(LIST_BEHIND_MENU).matches;
-    for (const s of sectionsIn(view.area)) {
+    for (const s of sectionsIn(view.area, { playtest: Boolean(onPlaytest) })) {
       const st = sectionState(s, args());
       const item = button(`studio-item${st.locked ? ' locked' : ''}`, icon(s.icon), el('span', 'grow', s.label));
       item.setAttribute('aria-current', String(view.section === s.key));

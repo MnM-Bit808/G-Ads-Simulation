@@ -391,9 +391,7 @@ function render() {
     // whole game has been seen.
     const ending = game.reports.length >= TOTAL_ROUNDS ? {
       onRestart: restart,
-      playtest: recorder
-        ? () => renderPlaytestPanel({ recorder, onDownload: () => downloadPlaytestFile(recorder, storage) })
-        : null,
+      playtest: recorder ? { recorder, onDownload: () => downloadPlaytestFile(recorder, storage) } : null,
     } : null;
     studio.draw(game, { saved: game.saved, canRedo: canRedoRoundZero(game.state), ending });
     app.replaceChildren(studio.node);
