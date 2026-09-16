@@ -400,6 +400,39 @@ a drawn price taken from `businessFor`, which the R3 guard refused because that
 function blends in what 16.1 withholds from every viewer. The page has no price
 now: decoration is not worth reaching into a withheld block for.
 
+## `page-worth/`: what the page is worth (2026-09-16)
+
+A fourteenth canvas, https://claude.ai/code/artifact/0cffae9d-9e2c-43e1-be0a-0c96404f6871,
+for one chart. Built beneath the landing page above, it was twelve bars, and
+the owner looking for it could not see what had changed: a page graded 8
+stepping to 10 is 19 pixels inside a 96-pixel bar, and twelve of them read as a
+flat row. The chart's whole job is to show that capital leaves now and the grade
+moves weeks later, so a chart that reads flat teaches nothing.
+
+- **Today**, `Today.dc.html`: the bars as built, measured.
+- **A**, `Main.dc.html`: the same bars, the bought points as their own red band.
+- **B**, `Step.dc.html`, **chosen by the owner**: the grade as a step line —
+  flat, one red riser, flat — against a labelled scale from 0 to 10.
+
+Drawn at 8 → 10 rather than the landing page canvas's 5 → 7, because the higher
+the grade the smaller the step looks: it is the hardest case the game produces.
+
+**Refused, and said so on the canvas:** starting the scale at 7. It makes the
+step enormous by drawing a 25% gain as a fourfold one, which is the oldest way
+to mislead with a chart. Both options keep a full scale; neither makes the step
+bigger, only legible.
+
+**Built** 2026-09-16 in three commits, each finding something the mock-up could
+not. `1cfdf33`: the shape moved into `read.js` (`worthShape`) so "the scale is
+never cut short" is a test; the labels, drawn inside a scaled SVG, measured 8.2px
+on the real screen, so they are laid over it instead; and a page bought in both
+capital windows can step twice, which the note beneath had named as one step.
+`37c7e58`: the gain moved above its riser, where beside it it covered the ring of
+the week you run next. `bc60a13`: played with ₹80,000 on a page graded 8, the
+line sat ABOVE its own 10 — the screen added capital's points without the cap
+the auction applies. The bars had hidden that for a day; a labelled scale showed
+it in one look.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

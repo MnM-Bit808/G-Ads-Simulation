@@ -349,6 +349,21 @@ engine does: the page's parts marked "week 4", its description graded now.
      attribution chapter said a Monday click buying on Friday "adds a conversion
      to Monday, on Friday". Google Ads Help confirms the fact, but two dates in
      one clause read as a typo in the chapter whose job is why numbers move.
+   - **The worth chart was redrawn the same day as a step** (`1cfdf33`,
+     `37c7e58`, from `design/page-worth/`, direction B), because the owner
+     could not see it change: twelve bars stepping 8 → 10 read as one flat row.
+     Its geometry is `worthShape` in `ui/ad/read.js`, so a full 0-10 scale and a
+     riser on the week the grade steps are tests. Its labels are laid OVER the
+     SVG rather than drawn in it: text inside a scaled SVG shrinks with it, and
+     measured 8.2px on screen.
+   - **And it showed the landing page ignoring the cap** (`bc60a13`). The
+     auction caps the landing page grade at 10; this screen added capital's
+     points without the cap, so ₹80,000 on a page graded 8 charted 11 and a row
+     read "+3" for a gain of 2. The screen now reads `effectiveGrades` for every
+     figure, as its header always said it did. **Still open, the owner's to
+     decide:** a row folds two capital purchases into one line and names the
+     later one's week, so ₹55,000 then ₹25,000 reads "live from week 8" at week 6
+     when its whole gain arrived at week 4.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.
