@@ -23,13 +23,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { CHAPTERS, CONTENTS, chapter } from '../ui/guide/chapters.js';
 import { guideFigures } from '../ui/guide/figures.js';
+import { sectionOf } from '../ui/shell/sections.js';
 import { MAX_BID_MULTIPLE } from '../engine/constants.js';
 
 const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 const DECISIONS = read('DECISIONS.md');
 const SPEC = read('ENGINE_SPEC_v0.3.md');
-const INDEX = read('ui/index.html');
-const DECISIONS_FORM = read('ui/decisions.js');
 const FIGURES = guideFigures();
 const wordCount = (text) => text.trim().split(/\s+/).filter(Boolean).length;
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -129,14 +128,13 @@ describe('the chapters', () => {
     expect(`${c.real(FIGURES)} ${c.game(FIGURES)}`).not.toMatch(/undefined|NaN/);
   });
 
-  test.each(entries)('%s: "in your account" points at a card that exists', (_, c) => {
-    // On the page itself, or on one of the decision form's cards, which the form
-    // draws in place of the page's own `decisions` slot. Pointing at that slot
-    // would leave a button that does nothing: it is gone once the form draws.
+  test.each(entries)('%s: "in your account" points at a part that exists', (_, c) => {
+    // Until the switch-over's part 2 this asked the classic page and the
+    // decision form. The page is gone, so the part a chapter points at is one a
+    // Studio section draws; tests/sections.test.js holds the other half, that
+    // the section's own module really sets the slot.
     expect(c.yourAccount).not.toBe('decisions');
-    const onPage = INDEX.includes(`data-slot="${c.yourAccount}"`);
-    const onForm = DECISIONS_FORM.includes(`dataset.slot = '${c.yourAccount}'`);
-    expect(onPage || onForm, c.yourAccount).toBe(true);
+    expect(sectionOf(c.studioAccount ?? c.yourAccount), c.yourAccount).not.toBeNull();
   });
 
   test.each(entries)('%s: related chapters exist', (_, c) => {

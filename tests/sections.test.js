@@ -17,31 +17,25 @@ const DRAWN_BY = {
   ad: 'ui/ad/render.js', money: 'ui/money/render.js', where: 'ui/where/render.js',
   returns: 'ui/returns/render.js', rivals: 'ui/rivals/render.js', twelve: 'ui/results/render.js',
   learned: 'ui/results/render.js', reveal: 'ui/results/render.js', books: 'ui/results/render.js',
+  playtest: 'ui/results/render.js',
 };
 
-// Every card today's page draws, by the slot it carries: the page's own
-// articles, the decision form's cards and the trends chart.
-const CARD_SLOTS = [
-  ...[...read('ui/index.html').matchAll(/<article class="card[^"]*" data-slot="([^"]+)"/g)].map((m) => m[1]),
-  ...[...read('ui/decisions.js').matchAll(/dataset\.slot = '([^']+)'/g)].map((m) => m[1]),
-  ...[...read('ui/chart.js').matchAll(/dataset\.slot = '([^']+)'/g)].map((m) => m[1]),
-];
+// Every slot the Studio's sections say they draw. Until the switch-over's part
+// 2 this read the classic page's cards out of ui/index.html and checked each had
+// one home; the page has no cards now, so the guarantee that survives is the
+// one that matters: a section's own module really sets what the section claims.
+const DRAWN_SLOTS = [...new Set(SECTIONS.flatMap((s) => s.draws ?? []))];
 
-describe('every card on today\'s page has one place in the new layout', () => {
-  test('all nineteen are found, each once', () => {
-    expect(CARD_SLOTS).toHaveLength(19);
-    expect(new Set(CARD_SLOTS).size).toBe(19);
+describe('every part a section claims is a part its module draws', () => {
+  test('the sections between them draw every slot once', () => {
+    const all = SECTIONS.flatMap((s) => s.draws ?? []);
+    expect(all.length).toBe(DRAWN_SLOTS.length);
+    expect(DRAWN_SLOTS.length).toBeGreaterThan(18);
   });
 
-  test.each(CARD_SLOTS)('%s sits in exactly one section, or is retired', (slot) => {
-    const homes = SECTIONS.filter((s) => s.slots.includes(slot)).length;
-    expect(homes + (RETIRED_SLOTS.includes(slot) ? 1 : 0), slot).toBe(1);
-  });
-
-  test('no section names a card that does not exist', () => {
-    for (const s of SECTIONS) {
-      for (const slot of s.slots) expect(CARD_SLOTS, `${s.key}: ${slot}`).toContain(slot);
-    }
+  test.each(DRAWN_SLOTS)('%s is set by the module that draws it', (slot) => {
+    const section = SECTIONS.find((s) => s.draws?.includes(slot));
+    expect(read(DRAWN_BY[section.key]), `${section.key} draws ${slot}`).toContain(`'${slot}'`);
   });
 
   test('Your keywords draws its own card, so the guide can still open it', () => {
