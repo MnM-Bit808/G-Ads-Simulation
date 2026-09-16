@@ -4534,6 +4534,13 @@ save replays onto the corrected figures with its fingerprint unchanged. The test
 read the share the round used back off the revenue it booked, since the discount
 is paid on prepaid orders only, rather than off `codShareFor`.
 
+*And measured rather than left at that, 2026-09-16:* `market` mode over 72
+markets, this line with the fix against this line without it, the two trees
+differing in `engine/report.js` alone. Every row came out byte-identical, so no
+market figure moves and the F17 figures in the dated note above still describe
+this line. The rule that has rivals discount is untouched by it: `statedRefusals`
+builds their `refusalRate` from `refusalOutlook`, never from `codShare`.
+
 **Dated note, 2026-09-16.** "Both looks" above means what it meant when this was
 written. The switch-over deleted the classic page, so `ui/returns/read.js` and
 `locationRows` now feed the Studio alone; the fix and the reasoning are
