@@ -159,9 +159,14 @@ const INDUSTRY = {
 export const CHAPTERS = Object.freeze({
   attributionLag: chapter({
     title: 'Why this week’s numbers keep moving',
+    // Two days, two jobs: the day the sale is counted on, and the day the figure
+    // moves. Said in one clause ("adds a conversion to Monday, on Friday") it is
+    // true and reads as a typo — which the owner caught by playing it, in the one
+    // chapter whose whole job is why a number changes after you have read it.
     real: () => 'Google Ads dates a conversion by the click that led to it, not by the day '
-      + 'of the sale. Someone who clicks on Monday and buys on Friday adds a conversion to '
-      + 'Monday, on Friday. So your newest days always look weakest: their spend is counted '
+      + 'of the sale. Someone who clicks on Monday and buys on Friday has that sale counted '
+      + 'on Monday, the day of the click. Monday’s figures change on Friday — days after you '
+      + 'read them. So your newest days always look weakest: their spend is counted '
       + 'in full, but many of their buyers have not bought yet. Depending on the conversion '
       + 'window you set, a sale can still be added up to 90 days after the click.',
     realSources: [GOOGLE.byClickTime, GOOGLE.howLong],

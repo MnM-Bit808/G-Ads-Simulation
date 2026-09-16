@@ -111,6 +111,26 @@ describe('the chapters', () => {
     for (const id of c.cites) expect(cited(id), id).toBe(true);
   });
 
+  /**
+   * The attribution chapter's example names two days doing two different jobs:
+   * the day the sale is COUNTED ON, and the day the figure MOVES. It once said
+   * "adds a conversion to Monday, on Friday", which is true — Google Ads Help,
+   * *Understand your conversion tracking data*: "if your ad was clicked on last
+   * week and that traffic converted this week, both the click and the
+   * conversion are reported back to last week" — and read as a typo, in the one
+   * chapter whose job is explaining why a number a player has already read
+   * changes afterwards. The owner read it as an error (2026-09-16), which is
+   * the only test that matters for a sentence.
+   */
+  test('the attribution chapter keeps its two days apart', () => {
+    const real = CHAPTERS.attributionLag.real(FIGURES);
+    // The sale is counted on the day of the click.
+    expect(real).toMatch(/counted on Monday, the day of the click/);
+    // And the figure moves later, which is a separate clause.
+    expect(real).toMatch(/change on Friday/);
+    expect(real).not.toMatch(/adds a conversion to Monday, on Friday/);
+  });
+
   test.each(entries)('%s: every real source is a link, unless it is a device', (_, c) => {
     if (c.device) return;
     expect(c.realSources.length).toBeGreaterThan(0);
