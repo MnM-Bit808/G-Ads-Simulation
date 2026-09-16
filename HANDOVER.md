@@ -12,13 +12,12 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, 2026-09-16: on the branch `makeover` the Studio is the ONLY
-game.** Both parts of the switch-over are built (item 4's last entry). There is
-no other look to reach and no `?look=` to reach it with: the classic page, its
-round 0, its end screen and the 6,153 lines behind them are deleted, and the tag
-`classic-last` is the last commit where they run. What has NOT happened is the
-deploy — `main` still serves the classic game, and part 2's last task is the
-owner's to give the word on. The owner put the stranger playtests on hold for a
+**Current state, 2026-09-16: the Studio is LIVE, and it is the only game.** The
+switch-over is deployed — `main` is `e29648f`, 194 commits ahead of where it
+stood this morning, pushed at the owner's word. There is no other look and no
+`?look=` to reach one with: the classic page, its round 0, its end screen and
+the 6,153 lines behind them are deleted, and the tag `classic-last` is the last
+commit where they run. The owner put the stranger playtests on hold for a
 visual makeover.
 Their own sessions with two other people kept raising the same complaints: too
 much to read, fiddly click-and-edit controls, and a static look. "It needs to
@@ -28,16 +27,15 @@ alive". The weekly *Your keywords* followed, the makeover pilot's own section;
 the owner played it on 2026-09-15 and said "Alive".
 
 - **The live site runs `main`**: Cloudflare deploys each push to it that
-  passes `npm run ci`. On 2026-09-16 `main` stood at `2044072` (rivals pulling
-  the prepaid discount, I34) on this computer and on GitHub alike. It holds
-  the makeover's design doc (`plans/2026-09-13-studio-makeover.md`), the canvas
-  sources (`design/makeover/`, drawn at
-  https://claude.ai/code/artifact/d881fe56-251c-4ded-9173-b8616924bbc4) and the
-  11-task build plan (`plans/2026-09-13-studio-makeover-plan.md`), and none of
-  the makeover itself: no Studio look, and no F17.
-- **The branch `makeover` holds all of it.** Cloudflare builds it a preview,
-  behind the same sign-in, whenever it is pushed; only a push to `main`
-  deploys.
+  passes `npm run ci`. Since 2026-09-16 that is the Studio, F17 included —
+  `main` and `makeover` are the same commit, `e29648f`. Four tags mark what came
+  before: `playtest-1` and `playtest-2` are the versions the two playtests were
+  played on, `live-before-studio` (`760a6b1`) is the last classic version the
+  site served, and `classic-last` (`b7f6726`) is the last commit the classic
+  look runs on at all.
+- **The makeover, which `makeover` was built on and `main` now carries.**
+  Cloudflare builds every other branch a preview behind the same sign-in; only a
+  push to `main` deploys.
   - Makeover Tasks 1–6: `?look=studio` and the Red signal colours, the two
     typefaces, the sidebar layout (sections, the tray's order and the shell,
     played through twelve weeks), and the Quality Score chapter.
@@ -299,11 +297,33 @@ engine does: the page's parts marked "week 4", its description graded now.
      fingerprinted from its computed styles before and after: 4,853 elements
      across round 0, the six Brand sections, the guide drawer and the five
      Results sections, with zero differences.
-   Next: **the deploy**, which is the owner's word to give. `main` still serves
-   the classic game, so this is the first time a player would see any of it.
-   Before `main` moves, push the tag `playtest-2` and tag the live commit: a
-   playtest file is read by checking out the version it was played on, and
-   `playtest-2` exists on this computer only.
+   **DEPLOYED 2026-09-16 at the owner's word** ("deploy it"). `main` went
+   `760a6b1` → `e29648f`, 194 commits, +39,627 / −7,086 over 204 files: the
+   whole makeover at once, F17 and the one-clamp bid fix included, neither of
+   which `main` had ever had.
+   - **Before `main` moved**, the versions the playtests were played on were
+     pushed as tags, since a playtest file is read by checking out the build it
+     was recorded on and `playtest-2` existed on this computer only:
+     `playtest-2`, `live-before-studio` (`760a6b1`, the last classic version
+     the site served) and `classic-last`.
+   - **`main` had sixteen commits `makeover` did not**, and an ordinary merge
+     conflicted in six files. Every one was a document or a twin of work this
+     branch already carried by its own route (F18, I36, the harness's move
+     mode, I34's cash share), and the only file `main` held that `makeover` did
+     not was the classic round 0, deleted on purpose. So it was merged `-s
+     ours` (`e29648f`), which made the deploy a fast-forward rather than a
+     second conflicted merge.
+   - **`npm run ci` was run locally first**, exactly as Cloudflare runs it:
+     lint, 2,273 tests, then the build, exit 0. The built copy was then served
+     from `dist/` and played — it stamps `e29648f`, opens in the Studio with no
+     classic header and a clean console, and round 0 into week 1 saved.
+   - **The live site itself was NOT opened from here**: it is behind Cloudflare
+     Access, and signing in is the owner's. Confirming Cloudflare's own build
+     passed and published is theirs too.
+   - **Nobody needed telling.** No playtester has ever been added to the Access
+     list, so no saved game existed on the live site and nobody met the front
+     door's "This game has changed" — which is what they WILL meet, since F17
+     moves almost any game whose budget ran short.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.
@@ -323,11 +343,11 @@ engine does: the page's parts marked "week 4", its description graded now.
    a DECISIONS entry; and a return comes back two weeks after its sale, so the
    last five weeks read high and weeks 11 and 12 count no returns, which
    settling at the game's end would fix, as an engine change measured first.
-   The two replay fixes are on `makeover` only: `main`'s end screen still
-   gives the old answers.
+   Both replay fixes are live since the switch-over deployed (2026-09-16);
+   until then they were on `makeover` only.
 9. **FIXED 2026-09-15 (DECISIONS F17), built on the branch
-   `claude/lucid-bhabha-395dd1`, merged into `makeover` and pushed on
-   2026-09-16 (the owner's call; `main` does not have it):** the round's two paths through the auction disagreed with equal
+   `claude/lucid-bhabha-395dd1`, merged into `makeover` on 2026-09-16 and live
+   since the switch-over deployed that day:** the round's two paths through the auction disagreed with equal
    bids, and the test meant to hold them together never took the second path.
    The cause was deeper: a budget-throttled advertiser held its slot, and
    priced the advertiser above it, in searches it was not in. It now takes part
@@ -2306,8 +2326,10 @@ backend will run anyway.
 
 **How it works, in one paragraph.** Nothing is compiled. `scripts/build-site.js`
 follows the imports from `ui/index.html` exactly as a browser does and copies the
-54 files it reaches into `dist/` — the page, its stylesheet and 52 modules, about
-990 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
+files it reaches into `dist/` — 112 since the switch-over (54 before it), about
+1.6 MB with the two typefaces — plus a front page that sends visitors to `ui/`
+and a `_headers` file. It also WRITES one file it did not copy, `ui/version.js`,
+stamped with the commit, so a playtest file names the build it was made on.
 Docs, tests, the design canvas and `files.zip` are never published, and
 `tests/build.test.js` holds both halves: nothing missing (Node imports every
 module from the built copy, so the check does not trust the build's own reader)
@@ -2426,15 +2448,23 @@ before-and-after later if one is wanted.
 
 **When the invites go out:**
 1. **Tag the live version the same day,** so the files can be read on the engine
-   they were played on:
+   they were played on. `playtest-1` and `playtest-2` are both used —
+   `playtest-2` is the classic game, and `live-before-studio` is the last
+   version the site served before the Studio — so the next one is
+   `playtest-3`:
 
    ```
-   git tag playtest-2
-   git push origin playtest-2
+   git tag playtest-3
+   git push origin playtest-3
    ```
 
    Then keep engine changes off `main` until the files are back. Words and
    docs are safe; anything that moves a number in a played week is not.
+
+   Since the switch-over (2026-09-16) a playtest file also NAMES the build each
+   of its loads ran on (`ui/version.js`), so a game that spans a deploy says so
+   in the file itself and `scripts/read-playtest.js` prints the versions. The
+   tag still matters — it is how you get that build back to read the file on.
 2. Add each tester's address to the Access list (*Invite-only* below).
 3. Send `https://g-ads-simulation.manikhorocks.workers.dev/ui/?playtest=1` with
    the message below.
@@ -2454,9 +2484,13 @@ the Access list):
 > 2. It asks for your email: use *address*, and type in the code it emails you.
 > 3. Play it the way you would on your own. There is no right answer, and you
 >    don't need to read everything.
-> 4. When you finish, or if you give up partway, press **Send playtest file** at
->    the top, save the file, and send it back to me here. At the end it asks
->    what the game taught you and what confused you; a few words is plenty.
+> 4. When you finish, the last thing on the results is **Before you go**: two
+>    questions about what the game taught you and what confused you, and a
+>    **Download the playtest file** button under them. A few words is plenty.
+>    Send me the file it saves.
+> 5. If you give up partway, that is useful too — press **Playtest** at the
+>    bottom of the black strip on the left, which saves the same file straight
+>    away, and send me that.
 >
 > The file holds how long you spent on each screen, what you clicked, your
 > browser and screen size, and your game, so I can replay it. It never records
