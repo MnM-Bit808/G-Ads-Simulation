@@ -190,7 +190,8 @@ function landingPage(model, openGuide) {
 
 // The box the chart is drawn in. The shape it is drawn FROM is fractions
 // (ui/ad/read.js, worthShape), so these are the only pixels in it.
-const PLOT = Object.freeze({ w: 720, h: 206, left: 36, right: 708, top: 28, floor: 178, weeks: 190 });
+// `top` leaves room above the scale for a riser's gain, which is written there.
+const PLOT = Object.freeze({ w: 720, h: 206, left: 36, right: 708, top: 38, floor: 178, weeks: 190 });
 const acrossPlot = (fraction) => PLOT.left + fraction * (PLOT.right - PLOT.left);
 const upFromFloor = (fraction) => PLOT.floor - fraction * (PLOT.floor - PLOT.top);
 
@@ -263,10 +264,11 @@ function worthChart(model, openGuide) {
     plot.append(svgEl('path', {
       class: 'yad-worth-riser', d: `M${x} ${upFromFloor(riser.from)}V${upFromFloor(riser.to)}`,
     }));
-    // On the riser's left, the corner the gain filled: on its right sits the
-    // week the step lands in, whose mark it covered on a phone.
-    frame.append(pin(x - 6, upFromFloor((riser.from + riser.to) / 2), AD.gained({ points: riser.points }),
-      'yad-worth-gain'));
+    // Above the riser, the one place nothing else is drawn. Beside it, on the
+    // right it covered the mark of the week the step lands in (on a phone), and
+    // on the left the ring of the week being played whenever that is the week
+    // before — which is the very week this chart is there for.
+    frame.append(pin(x, upFromFloor(riser.to), AD.gained({ points: riser.points }), 'yad-worth-gain'));
   }
 
   const stepWeeks = new Set(shape.risers.map((r) => r.round));

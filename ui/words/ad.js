@@ -84,7 +84,10 @@ export const AD = Object.freeze({
     + 'real product.'),
   gained: line('label', ({ points }) => `+${points}`),
   liveDot: line('label', 'the site work goes live'),
-  nowDot: line('label', 'the week you are playing'),
+  // Not "the week you are playing": the header counts weeks played, so beside
+  // "Week 2 of 12" that ringed week 3 and read as a contradiction. The grades
+  // here are the ones the NEXT week runs on, and the button says "Run week 3".
+  nowDot: line('label', 'the week you run next'),
   // No week is typed here on purpose: capital can be committed in either
   // window, so "the money leaves in week 1" is false for anything bought at
   // week 5. The words guard caught that.

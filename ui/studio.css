@@ -492,10 +492,13 @@ body.studio .yad-worth-frame > span { position: absolute; font-variant-numeric: 
 body.studio .yad-worth-axis { transform: translate(-100%, -50%); font-size: 10px; color: var(--studio-faint); }
 body.studio .yad-worth-week { transform: translate(-50%, -50%); font-size: 10px; color: var(--studio-faint); }
 body.studio .yad-worth-week.on { color: var(--studio-text); font-weight: 600; }
-body.studio .yad-worth-gain { transform: translate(-100%, -50%); font-size: 12px; font-weight: 700; color: var(--studio-red-text); }
+/* Written above the riser's top; the card colour behind it parts the dashed
+   live line where the two cross, rather than printing over it. */
+body.studio .yad-worth-gain { transform: translate(-50%, calc(-100% - 11px)); padding: 0 3px; background: var(--studio-card);
+  font-size: 12px; font-weight: 700; color: var(--studio-red-text); }
 body.studio .yad-worth-dot { transform: translate(-50%, -50%); width: 7px; height: 7px; border-radius: 999px; background: var(--studio-text); }
 body.studio .yad-worth-dot.live { background: var(--studio-mint); }
-/* The week being played: the dot, ringed. */
+/* The week you run next: the dot, ringed. */
 body.studio .yad-worth-dot.now { box-shadow: 0 0 0 3px var(--studio-card), 0 0 0 4.5px var(--studio-text); }
 body.studio .yad-worth-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 11px; color: var(--studio-muted); }
 body.studio .yad-worth-keyitem { display: inline-flex; align-items: center; gap: 6px; }
