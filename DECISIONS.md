@@ -914,6 +914,15 @@ adjustments and Smart Bidding pages re-read that day (schedule adjustments
 −90% to +900%, "not used" under Smart Bidding, which already bids by time of
 day), citing this entry, H4 and D2.
 
+**Where the telling moved, 2026-09-16.** The switch-over deleted the classic
+decision form, and that daypart card was the only place saying it. Because this
+entry is accepted *and told*, the sentence moved rather than went: the Studio's
+*Where and when* says it under the hours, while the strategy it describes is the
+one running (`WHERE.hoursTwice` in `ui/words/where.js`, shown on
+`hoursModel().countsTwice`, which still asks `hourAdjustmentStacks`). Its "why?"
+opens the same chapter. `ui/where/read.js` also stopped keeping its own list of
+which strategies lean by hour, which was this same fact typed a second time.
+
 **What would change the answer:** a playtest in which automated bidding plus an
 hour adjustment visibly overbids, or a player who carries "you can set −100%" to
 a real account and is surprised.
@@ -3541,6 +3550,11 @@ round 0 beside the rivals'.
    rule when a writer or square is chosen. Its boxes still show for a hired
    writer, so typing over the writer's copy there still runs the player's words
    at the writer's grade; the Studio, with no boxes for a hired writer, cannot.
+
+   **Dated note, 2026-09-16.** The switch-over deleted the classic page, so the
+   last two sentences describe something that no longer exists: there are no
+   boxes for a hired writer anywhere, and the words in `draft.ownAd` come back
+   only on Write it yourself. The rule as decided is unchanged.
 3. **The variant follows `rootSeed`**, which `app.js` increments for a new market,
    so a restart shows a different ad. `content/adCopy.js` carries the scar of the
    alternative: with one ad per cell, two rivals in a cell ran the same ad word
@@ -4519,6 +4533,11 @@ Nothing in `engine/` or `agents/` reads `codShare`, so no economics moved, and a
 save replays onto the corrected figures with its fingerprint unchanged. The tests
 read the share the round used back off the revenue it booked, since the discount
 is paid on prepaid orders only, rather than off `codShareFor`.
+
+**Dated note, 2026-09-16.** "Both looks" above means what it meant when this was
+written. The switch-over deleted the classic page, so `ui/returns/read.js` and
+`locationRows` now feed the Studio alone; the fix and the reasoning are
+unchanged, and the screens named are the Studio's Returns and Where and when.
 
 ### I35. Round 0 is five steps in the sidebar layout, and the brand is drawn — `FIXED` (2026-09-14)
 

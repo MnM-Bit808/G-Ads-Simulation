@@ -12,10 +12,14 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, 2026-09-16: on the branch `makeover` the Studio IS the game.**
-Part 1 of the switch-over is built (item 4's last entry): a visit with nothing
-asked opens the Studio, and `?look=classic` reaches today's page until part 2
-removes it. The owner put the stranger playtests on hold for a visual makeover.
+**Current state, 2026-09-16: on the branch `makeover` the Studio is the ONLY
+game.** Both parts of the switch-over are built (item 4's last entry). There is
+no other look to reach and no `?look=` to reach it with: the classic page, its
+round 0, its end screen and the 6,153 lines behind them are deleted, and the tag
+`classic-last` is the last commit where they run. What has NOT happened is the
+deploy — `main` still serves the classic game, and part 2's last task is the
+owner's to give the word on. The owner put the stranger playtests on hold for a
+visual makeover.
 Their own sessions with two other people kept raising the same complaints: too
 much to read, fiddly click-and-edit controls, and a static look. "It needs to
 feel alive." Round 0 went first, after the owner opened it in the new look and
@@ -90,15 +94,18 @@ the owner played it on 2026-09-15 and said "Alive".
     in, the Studio standing on its own context, the front door, the playtest
     questions as a Results section, the version in the playtest file, and the
     Studio as the default look. Part 2 removes the classic look.
-  - On `makeover` (2026-09-16, after part 1 and the F18/I36 merge): 2307 tests
-    pass, 1 todo, and the build publishes 114 files. On `main` it is 54.
+  - Part 2 of the switch-over (2026-09-16, `bae274d`..`d3c3476`): the classic
+    look and its code are gone — 6,153 lines, and with them `ui/look.js`,
+    `ui/round-zero.js` and the page's own markup. The tag `classic-last`
+    (`b7f6726`) is the last commit where it runs.
+  - On `makeover` (2026-09-16, after part 2): 2273 tests pass, 1 todo, and the
+    build publishes 112 files. On `main` it is 54.
 - **The tag `playtest-2`** exists on this computer only.
 
-**To play it:** `npm run dev`, then `http://localhost:5173/ui/` — the Studio is
-what a visit gets. `?look=classic` reaches today's page and is remembered until
-`?look=studio`, until part 2 removes it. A saved game is met at the front door
-on every load, so choose *Start a new game* to reach round 0. The classic round
-0 reads the same rules (`ui/roundzero/rules.js`).
+**To play it:** `npm run dev`, then `http://localhost:5173/ui/`. There is one
+look and no parameter for another. A saved game is met at the front door on
+every load, so choose *Start a new game* to reach round 0. To see the classic
+game as it was, check out the tag `classic-last`.
 
 **Open, and the owner's to decide: the landing page's timing** (the round 0
 design, section 12). A page bought in round 0 raises the graded landing page
@@ -260,7 +267,43 @@ engine does: the page's parts marked "week 4", its description graded now.
    - **The Studio is the default.** The page is served as `body.studio` and a
      classic visit takes the class off, so the game everyone now gets paints in
      its own colours before any script runs.
-   Next: part 2 — the classic look and its code removed, then the deploy.
+   **DONE 2026-09-16: the switch-over, part 2**
+   (`plans/2026-09-16-switch-over-part-2-plan.md`): the classic look and its
+   code are gone, 6,153 lines over eight commits, each with the suite green.
+   The owner chose to delete first and deploy once, and to cut the look off
+   before carving the shared files.
+   - **What it actually was.** The design said "about 4,500 lines" and read
+     like a deletion; an inventory found only TWO wholly classic files
+     (`ui/look.js` and `ui/round-zero.js`), with everything else shared. So it
+     was carving classic-only regions out of six files: `ui/dashboard.js`
+     1,208 lines to 248, `ui/decisions.js` 3,047 to 1,824, `ui/chart.js` 487 to
+     189, `ui/dom.js` 146 to 35, `ui/ending.js` and `ui/debrief/render.js` down
+     to their readings, and `ui/style.css` 1,581 to 992.
+   - **The header was not inert markup.** `ui/app.js` wrote to `#brand`,
+     `#round-label`, `#next`, `#redo` and `#guide` on every render in BOTH
+     looks, and the Studio only hid the header with CSS. Deleting the markup
+     without stripping that wiring would have broken the Studio, not the
+     classic page, so they went in one commit (`bae274d`).
+   - **Two things nearly went that should not have.** DECISIONS D11 is accepted
+     "and told", and the classic daypart card was the only place telling the
+     player that an hour adjustment counts twice under the strategies that
+     predict conversions; the owner chose to move it, so Where and when says it
+     now (`WHERE.hoursTwice`, shown while `hoursModel().countsTwice`). And
+     `tests/roundZero.test.js` was written off as the classic page's; reading it
+     first showed it is round 0's RESERVE WARNING, measured against the engine's
+     own auction, so 37 tests moved to `ui/roundzero/rules.js` instead of dying.
+   - **The stylesheet was cut by measurement.** A rule went only if every class
+     in its selector appears nowhere in `ui/**.js`, `ui/index.html` or
+     `studio.css`; 142 classes that do appear somewhere were left, most of them
+     English words used as variables. Then every element on every screen was
+     fingerprinted from its computed styles before and after: 4,853 elements
+     across round 0, the six Brand sections, the guide drawer and the five
+     Results sections, with zero differences.
+   Next: **the deploy**, which is the owner's word to give. `main` still serves
+   the classic game, so this is the first time a player would see any of it.
+   Before `main` moves, push the tag `playtest-2` and tag the live commit: a
+   playtest file is read by checking out the version it was played on, and
+   `playtest-2` exists on this computer only.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.

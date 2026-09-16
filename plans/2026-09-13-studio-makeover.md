@@ -616,6 +616,20 @@ The plan's tasks carry the detail, in their *Found when built* notes and Task
   twins of makeover's own, leaving the tree byte-identical; F17 and the rival
   prepaid fix, both in the release by the owner's choice, were measured with the
   market harness against gates agreed first.
+- **The switch-over, part 2** (`plans/2026-09-16-switch-over-part-2-plan.md`)
+  removed the classic look: 6,153 lines over eight commits, the tag
+  `classic-last` on the last one that runs it. Section 5's "built beside today's
+  screens, behind a link" is finished, and so is the mechanism section 5
+  describes — `slots`, `RETIRED_SLOTS` and `visibilityRules` are gone, since
+  there are no cards left to filter. The estimate in section 7 was "about 4,500
+  lines" and read as a deletion; it was mostly carving classic-only regions out
+  of six SHARED files, only two being wholly classic. Two things the deletion
+  nearly took, both kept by reading before cutting: DECISIONS D11's disclosure,
+  which is accepted "and told" and now lives in Where and when, and round 0's
+  reserve-warning tests, which read as the classic page's and are the shared
+  rules'. What a player sees was held by measurement rather than by eye — every
+  element of every screen fingerprinted from its computed styles before and
+  after the stylesheet was cut, 4,853 of them, with no differences.
 - **A bid drag refreshes only the tray,** and the rest of the page once the
   slider is let go: the whole refresh on every step cost 41ms with sixty
   keywords.

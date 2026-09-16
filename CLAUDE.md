@@ -218,40 +218,44 @@ number in the simulation without ever throwing an error.
   guesses the folder to publish on every deploy, and a wrong guess publishes the
   repository — docs and tests — while still reporting success.
   `tests/build.test.js` holds it, and holds `dist/` to exactly the files the
-  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 114 on the
-  branch `makeover` since the switch-over's part 1 (2026-09-16), whose
+  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 112 on the
+  branch `makeover` since the switch-over (2026-09-16), whose
   stylesheet and fonts the build finds by following `url()` inside CSS. The
   build also WRITES one file it did not copy: `ui/version.js`, stamped with the
   commit, so a playtest file names the build it was recorded on.
-- **The Studio makeover filters today's cards, it never moves them.** The
+- **The Studio is the only look, since the switch-over (2026-09-16).** There is
+  no `?look=`, no classic page, no `ui/look.js`. The page is served as
+  `<body class="studio">` so it paints in its own colours before any script
+  runs, every rule in `studio.css` is still scoped under that class, and red
+  there is the player's colour, so losses and warnings are amber with a minus
+  sign. Each section draws its own parts and names them in `draws`; that is how
+  the guide's "Show me in your account" finds one (`sectionOf`) and how a first
+  visit knows what to bring in (`entranceSlots`). Show me rings any part
+  carrying a `data-slot` and focuses its own heading, an h3.
+- **It was built beside the classic page, and that shaped everything.** Worth
+  knowing before you wonder why the screens are put together as they are: the
   decision form redraws every card it owns into its own region on each change,
-  so a card moved into a sidebar section is redrawn into nothing. The shell
-  shows a section's cards by CSS on `data-slot`; a rebuilt section (Your
-  keywords, Where and when, Your week, What people typed, Your money, Returns,
-  the Market area's Rivals, and Results' four sections after the last week, so
-  no Studio screen shows a classic card now) draws its own and retires the classic
-  cards in the Studio, keeping their slot names on its parts so the guide's
-  "show me on the card" still finds them, and naming them in `draws` so a
-  first visit brings them in (`entranceSlots`). Show me rings any Studio part
-  carrying a slot (`studio.css`) and focuses its own heading, an h3 there;
-  until 2026-09-15 the ring existed on classic cards only, so it marked
-  nothing in any rebuilt section. Red there is the player's colour, so losses
-  and warnings are amber with a minus sign.
-- **Since the switch-over's part 1 (2026-09-16) the Studio is the game.** The
-  page is served as `<body class="studio">` and `ui/app.js` takes the class off
-  for a `?look=classic` visit, so the default paints in the Studio's colours
-  before any script runs; everything new still sits under `body.studio`, but
-  that is now everyone. The shell builds its OWN context (`ui/shell/context.js`,
-  `studioContext`) — it used to draw the whole classic page hidden to borrow the
-  decision form's — so a Studio section that draws nothing of its own throws
-  rather than quietly showing an empty screen. Before a game opens the Studio
-  draws the front door (`ui/door/`), which is also the only thing that catches
-  a restore that throws. Part 2 removes the classic look, `ui/look.js` and about
-  4,500 lines with it.
-- **Round 0's rules live in `ui/roundzero/rules.js`, and both looks read them.**
-  A figure round 0 shows (the month, the reserve, the grades, the landing page
-  grade) comes from there, never from a drawing module, so the classic page and
-  the Studio's five steps cannot disagree about the account Go will open.
+  so a card MOVED into a sidebar section would have been redrawn into nothing.
+  The shell therefore filtered the classic page by CSS on `data-slot` and each
+  section listed the cards it claimed, until section by section each was rebuilt
+  to draw its own. Part 2 deleted the page and the filtering with it
+  (`RETIRED_SLOTS`, `visibilityRules` and `slots` are gone), but the sections
+  are still shaped by having grown that way, and `ui/shell/sections.js` keeps
+  the history.
+- **The shell builds its own context** (`ui/shell/context.js`, `studioContext`).
+  It used to draw the whole classic page hidden just to borrow the decision
+  form's context. A Studio section that draws nothing of its own now throws
+  rather than quietly showing an empty screen.
+- **Before a game opens the Studio draws the front door** (`ui/door/`), which is
+  also the only thing that catches a restore that throws. Until it existed, a
+  save the engine could no longer replay left "Restoring your game" on screen
+  for ever.
+- **Round 0's rules live in `ui/roundzero/rules.js`,** not in a drawing module:
+  a figure round 0 shows (the month, the reserve, the grades, the landing page
+  grade) comes from there, so its five steps cannot disagree with the account Go
+  opens. They were lifted out of the classic page for exactly that reason, and
+  `tests/roundZero.test.js` — round 0's reserve warning, measured against the
+  engine's own auction — reads them directly.
 - **Since 2026-09-14 a self-written ad runs on its words from week 1 (I11).** No
   new game sets `pendingGrade`, and `game.js`'s `landCreative` stays only for
   saves made before then; `tests/fixtures/oldSave.js` builds one, and the game

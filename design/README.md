@@ -356,8 +356,16 @@ mock-ups did not settle, decided by measuring while building: a changed game
 lists a week only where whole rupees or clicks differ, because the save compares
 fractional clicks exactly and a table of identical rows reads as a mistake; and
 the answer boxes take the kit's own field colours, because the line tokens put
-the box's only visible edge at 1.5:1. Part 2 — the classic look and its code
-removed — has its own plan.
+the box's only visible edge at 1.5:1.
+
+**Built, part 2** (2026-09-16, `bae274d`..`d3c3476`, plan
+`plans/2026-09-16-switch-over-part-2-plan.md`): page 2's table carried out — the
+classic look, its round 0, its end screen and the 6,153 lines behind them are
+gone, and the tag `classic-last` is the last commit that runs them. The canvas
+said "about 4,500 lines" and drew it as a deletion; it was mostly carving
+classic-only regions out of six files both looks shared, since only `ui/look.js`
+and `ui/round-zero.js` were wholly classic. The deploy, which page 2 also
+describes, is the owner's word to give and has not happened.
 
 ## The map data
 
