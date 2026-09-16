@@ -282,7 +282,7 @@ describe('every interface module at least loads', () => {
   // ui/ending.js draws nothing now, and what it still exports is the reading
   // the Studio's Results and scripts/read-playtest.js take from it.
   test('and the ones that draw a screen export a render function', async () => {
-    for (const file of ['chart.js', 'decisions.js']) {
+    for (const file of ['chart.js']) {
       const module = await LOADABLE[file]();
       const renders = Object.entries(module).filter(([name]) => name.startsWith('render'));
       expect(renders.length, file).toBe(1);

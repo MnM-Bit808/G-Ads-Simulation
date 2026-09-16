@@ -39,6 +39,14 @@ export const WHERE = Object.freeze({
     + 'is the same, so bidding harder in one block leaves less for the rest of the day.', { why: 'hours' }),
   varies: line('reading', 'Your strategy sets its own bid each hour, so how far a block can go before the limit '
     + 'varies, and a higher setting may change nothing.'),
+  // DECISIONS D11, accepted "and told": said only while the strategy it is true
+  // of is the one running. It was the classic form's, on its daypart card, until
+  // the switch-over's part 2 moved it to the section that owns the hours.
+  hoursTwice: line('disclosure',
+    'Here an hour adjustment works under every bidding strategy. Under this one it lands on '
+    + 'top of the strategy’s own reading of the hour, so the hour counts twice; Google Ads '
+    + 'does not allow hour adjustments with the strategies that predict conversions.',
+    { why: 'hours' }),
 
   even: line('label', 'even'),
   off: line('label', 'off'),

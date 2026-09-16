@@ -376,6 +376,12 @@ export function renderWhereSection({ game, ctx, openGuide, refreshTray }) {
     const said = el('p', 'ww-note', WHERE.hoursNote());
     add(said, whyButton(WHERE.hoursNote, openGuide));
     notes.append(said);
+    // D11's disclosure, while the strategy it describes is the one running.
+    if (model.countsTwice) {
+      const twice = el('p', 'ww-note', WHERE.hoursTwice());
+      add(twice, whyButton(WHERE.hoursTwice, openGuide));
+      notes.append(twice);
+    }
     part.append(notes);
     return part;
   }

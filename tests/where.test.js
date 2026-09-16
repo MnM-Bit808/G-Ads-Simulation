@@ -5,6 +5,8 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { getSelfView } from '../engine/insights.js';
 import {
   DAYPART_BLOCKS, LOCATION_TIERS, MAX_BID_MULTIPLE, MAX_CLICKS_AGGRESSION,
@@ -76,6 +78,30 @@ describe('the hours', () => {
     const d = draft();
     expect(hoursModel({ ...d, strategy: 'manual' }).varies).toBe(false);
     expect(hoursModel({ ...d, strategy: 'targetCpa', strategyParams: { targetCpaPaise: 50000 } }).varies).toBe(true);
+  });
+
+  /**
+   * D11 is accepted "and told": under a strategy that predicts conversions the
+   * player's hour adjustment lands on top of the strategy's own lean, so the
+   * hour counts twice, and the game says so. The classic form said it on its
+   * daypart card; the switch-over's part 2 deleted that card, so the section
+   * that owns the hours says it now, or the ledger claims a disclosure the game
+   * does not make.
+   */
+  test('an hour adjustment that counts twice says so, and only then (D11)', () => {
+    const d = draft();
+    expect(hoursModel({ ...d, strategy: 'manual' }).countsTwice).toBe(false);
+    expect(hoursModel({ ...d, strategy: 'maxClicks' }).countsTwice).toBe(false);
+    for (const strategy of ['targetCpa', 'targetRoas', 'maxConv']) {
+      expect(hoursModel({ ...d, strategy, strategyParams: { targetCpaPaise: 50000, targetRoas: 4 } }).countsTwice,
+        strategy).toBe(true);
+    }
+  });
+
+  test('and the section draws that sentence, with its "why?"', () => {
+    const render = readFileSync(fileURLToPath(new URL('../ui/where/render.js', import.meta.url)), 'utf8');
+    expect(render).toMatch(/model\.countsTwice/);
+    expect(render).toMatch(/WHERE\.hoursTwice/);
   });
 
   test('a setting saved above the top is shown at the top, and kept as it was', () => {

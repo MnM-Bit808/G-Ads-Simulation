@@ -30,7 +30,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { creativeOutlook, allocationWindowPhrase, formContext } from '../ui/dashboard.js';
-import { createDraft, prepaidReading } from '../ui/decisions.js';
+import { createDraft, prepaidOutlook } from '../ui/decisions.js';
 import { startGame } from '../setup.js';
 import { getSelfView } from '../engine/insights.js';
 import { submitRound } from '../game.js';
@@ -294,7 +294,11 @@ describe('the prepaid card shows the refusal rate this account runs at (I29, I34
     });
     expect(Math.abs(towns - booked(game)), 'the towns\' places, not this account\'s').toBeGreaterThan(0.015);
 
-    expect(Math.abs(prepaidReading(formContext(game)).none - booked(game))).toBeLessThan(0.01);
+    // Through `prepaidOutlook` itself. It used to go through `prepaidReading`,
+    // a two-line wrapper that took the classic card's context and went with it;
+    // this is the arithmetic both the wrapper and the Studio's rungs call.
+    const ctx = formContext(game);
+    expect(Math.abs(prepaidOutlook(ctx.draft, ctx.places()).none - booked(game))).toBeLessThan(0.01);
   });
 
   test('and the form is handed no other advertiser\'s figures to do it', () => {

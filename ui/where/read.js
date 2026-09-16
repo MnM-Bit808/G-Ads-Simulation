@@ -16,7 +16,7 @@
 
 import { MAX_BID_MULTIPLE, MAX_CLICKS_AGGRESSION } from '../../engine/constants.js';
 import {
-  daypartRows, locationRows, locationOutlook, setDaypart, setLocation,
+  daypartRows, locationRows, locationOutlook, setDaypart, setLocation, hourAdjustmentStacks,
 } from '../decisions.js';
 
 /** A drag or an arrow key moves a bar in whole steps of this many percent. */
@@ -48,8 +48,14 @@ export function hourTop(strategy) {
 /** A place's bar goes as far as the cap: one cap covers both adjustments (G4). */
 export const PLACE_TOP = CAP;
 
-/** Strategies whose own bid changes hour by hour, so the top of an hour's bar varies. */
-const VARIES = new Set(['targetCpa', 'targetRoas', 'maxConv']);
+/**
+ * Strategies whose own bid changes hour by hour, so the top of an hour's bar
+ * varies — and, for the same reason, the strategies an hour adjustment counts
+ * twice under (DECISIONS D11). One fact, asked of the engine rather than listed
+ * here: a second list of strategy names is a list that can quietly fall behind
+ * `engine/strategies.js`, which is how this project has been bitten before.
+ */
+const leansByHour = (strategy) => hourAdjustmentStacks(strategy);
 
 /**
  * A setting a drag or a key produced, made one the form accepts.
@@ -75,7 +81,9 @@ export function hoursModel(draft) {
   const observed = draft.bidding?.observedByHour ?? [];
   return {
     top,
-    varies: VARIES.has(draft.strategy),
+    varies: leansByHour(draft.strategy),
+    // D11's "and told": said only while it is true of the strategy in the draft.
+    countsTwice: leansByHour(draft.strategy),
     hourly: Array.from({ length: 24 }, (_, hour) => observed[hour]?.clicks ?? 0),
     blocks: daypartRows(draft).map((row) => ({
       index: row.index,
