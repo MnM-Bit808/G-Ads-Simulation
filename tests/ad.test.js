@@ -12,7 +12,7 @@ import { writerTier } from '../content/writers.js';
 import { startGame } from '../setup.js';
 import { createDraft, effectiveGrades } from '../ui/decisions.js';
 import * as r0 from '../ui/roundzero/rules.js';
-import { adModel } from '../ui/ad/read.js';
+import { adModel, worthShape, GRADE_TOP } from '../ui/ad/read.js';
 import { asOldSave, OLD_SAVE_LIVE_ROUND } from './fixtures/oldSave.js';
 
 const SEED = 20260902;
@@ -227,6 +227,81 @@ describe('what the page is worth, week by week', () => {
   test('a page with no capital never moves', () => {
     const weeks = read(opened()).page.worth;
     expect(new Set(weeks.map((w) => w.value)).size).toBe(1);
+  });
+});
+
+/**
+ * The chart's geometry, worked out here rather than in the drawing module, so
+ * that the two promises it makes can be held by a test instead of by eye: the
+ * scale is never cut short, and a step is drawn on the week the grade actually
+ * steps. A chart that starts its scale at seven makes a two-point gain look
+ * like a fourfold one, which is the oldest way to mislead with a picture, and
+ * this game is worth nothing if it teaches something false.
+ */
+describe('the shape the worth chart is drawn from', () => {
+  const flat = (value) => Array.from({ length: TOTAL_ROUNDS }, (_, i) => ({ round: i + 1, value }));
+  const steps = (...at) => flat(0).map(({ round }) => ({
+    round, value: at.reduce((v, [week, points]) => (round >= week ? v + points : v), 8),
+  }));
+
+  test('the scale runs from nothing to the whole grade, never from part way up', () => {
+    const shape = worthShape(steps([4, 2]), GRADE_TOP);
+    expect(shape.baseline).toBe(0);
+    expect(shape.top).toBe(GRADE_TOP);
+    // A grade of 8 stands 8/10 of the way up, which is only true of a full scale.
+    expect(shape.weeks[0].y).toBeCloseTo(0.8, 10);
+    expect(shape.weeks.at(-1).y).toBeCloseTo(1, 10);
+  });
+
+  test('every week of the game is a reading, in order', () => {
+    const shape = worthShape(steps([4, 2]), GRADE_TOP);
+    expect(shape.weeks).toHaveLength(TOTAL_ROUNDS);
+    expect(shape.weeks.map((w) => w.round)).toEqual(flat(0).map((w) => w.round));
+    // Each sits in the middle of its own band, so twelve weeks share the width.
+    expect(shape.weeks[0].mid).toBeCloseTo(0.5 / TOTAL_ROUNDS, 10);
+    expect(shape.weeks.at(-1).mid).toBeCloseTo((TOTAL_ROUNDS - 0.5) / TOTAL_ROUNDS, 10);
+  });
+
+  test('a riser stands where the grade steps, and carries what it gained', () => {
+    const shape = worthShape(steps([4, 2]), GRADE_TOP);
+    expect(shape.risers).toHaveLength(1);
+    const [riser] = shape.risers;
+    expect(riser.round).toBe(4);
+    expect(riser.points).toBe(2);
+    // At the START of week four's band: the grade is 8 through week three.
+    expect(riser.at).toBeCloseTo(3 / TOTAL_ROUNDS, 10);
+    expect(riser.from).toBeCloseTo(0.8, 10);
+    expect(riser.to).toBeCloseTo(1, 10);
+  });
+
+  /**
+   * Capital has two windows, round 1 and week 5 (`capexAllocationRounds`), so a
+   * player who buys the page twice can step twice. Measured on the rungs a
+   * player can pick: ₹55,000 then ₹25,000 more adds 0/0/0/2/2/2/2/3/3/3/3/3.
+   * The other order steps once: ₹25,000 alone rounds to no points at all.
+   * The chart drew one step until this test, which is why the note beside it
+   * named a single week and the wrong number of points.
+   */
+  test('a page bought twice steps twice', () => {
+    const shape = worthShape(steps([4, 1], [8, 2]), GRADE_TOP);
+    expect(shape.risers.map((r) => [r.round, r.points])).toEqual([[4, 1], [8, 2]]);
+    expect(shape.risers[1].from).toBeCloseTo(0.9, 10);
+    expect(shape.risers[1].to).toBeCloseTo(1.1, 10);
+  });
+
+  test('a page nothing was spent on has no riser, and one flat run', () => {
+    const shape = worthShape(flat(8), GRADE_TOP);
+    expect(shape.risers).toEqual([]);
+    expect(shape.flats).toHaveLength(1);
+    expect(shape.flats[0]).toMatchObject({ from: 0, to: 1 });
+  });
+
+  test('the flat runs cover the whole width and meet at the risers', () => {
+    const shape = worthShape(steps([4, 1], [8, 2]), GRADE_TOP);
+    expect(shape.flats.map((f) => f.from)).toEqual(shape.flats.map((f, i) => (i === 0 ? 0 : shape.risers[i - 1].at)));
+    expect(shape.flats[0].from).toBe(0);
+    expect(shape.flats.at(-1).to).toBe(1);
+    for (const [i, f] of shape.flats.slice(0, -1).entries()) expect(f.to).toBe(shape.flats[i + 1].from);
   });
 });
 

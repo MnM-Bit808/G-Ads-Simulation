@@ -11,10 +11,8 @@ import { CREATIVE_ALLOCATION_PAISE } from '../../engine/constants.js';
 import { whyButton } from '../guide/drawer.js';
 import { serp } from '../kit/serp.js';
 import { AD } from '../words/ad.js';
-import { adModel } from './read.js';
+import { adModel, worthShape, GRADE_TOP as GRADE_SCALE } from './read.js';
 
-/** Grades run from 1 to 10 (the grader's scale, agents/grader.js). */
-const GRADE_SCALE = 10;
 const PART_WORD = { expectedCtr: AD.expectedCtr, adRelevance: AD.adRelevance, landingPage: AD.landingPage };
 const width = (value) => `${(100 * value) / GRADE_SCALE}%`;
 
@@ -190,36 +188,141 @@ function landingPage(model, openGuide) {
   return box;
 }
 
-/** The grade the auction runs on, week by week: it steps, it does not climb. */
+// The box the chart is drawn in. The shape it is drawn FROM is fractions
+// (ui/ad/read.js, worthShape), so these are the only pixels in it.
+const PLOT = Object.freeze({ w: 720, h: 206, left: 36, right: 708, top: 28, floor: 178, weeks: 190 });
+const acrossPlot = (fraction) => PLOT.left + fraction * (PLOT.right - PLOT.left);
+const upFromFloor = (fraction) => PLOT.floor - fraction * (PLOT.floor - PLOT.top);
+
+/**
+ * The grade the auction runs on, week by week, drawn as a step (the owner's
+ * choice, 2026-09-16, design/page-worth/).
+ *
+ * IT WAS TWELVE BARS AND IT READ AS ONE FLAT ROW. A grade of 8 stepping to 10
+ * is nineteen pixels inside a ninety-six pixel bar, twelve times over, and the
+ * one thing the chart exists to teach — that the money goes now and the grade
+ * moves weeks later — was invisible at a glance. The obvious fix, starting the
+ * scale at 7, was refused: it draws a 25% gain as a fourfold one.
+ *
+ * A LINE IS LEGIBLE WITHOUT EXAGGERATING, because the eye reads a break in it
+ * rather than the area of a bar. It is a true step and never a slope: the grade
+ * sits still and then moves once, and a sloped line would claim a climb through
+ * weeks the engine holds flat.
+ */
 function worthChart(model, openGuide) {
   const wrap = el('div', 'yad-worth');
   const head = el('div', 'yad-worth-head');
   head.append(el('h3', null, AD.worthTitle()), el('span', 'yad-small', AD.worthSub()));
   wrap.append(head);
 
-  const page = model.page.parts.find((p) => p.target === 'landingPage');
-  const live = page?.week ?? model.page.worth.findIndex((w, i) => i > 0 && w.value !== model.page.worth[0].value) + 1;
-  const top = 10;
-  const bars = el('div', 'yad-worth-bars');
-  for (const week of model.page.worth) {
-    const column = el('div', 'yad-worth-col');
-    const bar = el('div', week.round === model.week ? 'yad-worth-bar now' : 'yad-worth-bar');
-    bar.style.height = `${Math.round((week.value / top) * 96)}px`;
-    column.append(bar, el('span', 'yad-worth-week', String(week.round)));
-    if (live > 1 && week.round === live) column.classList.add('live');
-    bars.append(column);
-  }
-  wrap.append(bars);
+  const shape = worthShape(model.page.worth, GRADE_SCALE);
+  // LINES IN THE SVG, MARKS AND WORDS OVER IT. The SVG scales with the card, and
+  // anything drawn inside it scales too: at 592px wide its ten-pixel labels
+  // measured 8.2px, and on a phone about four. So the plot holds only lines,
+  // whose strokes do not thin as it shrinks, and every dot and label is an
+  // element laid over it by percentage, which stays its own size at any width.
+  const frame = el('div', 'yad-worth-frame');
+  frame.setAttribute('role', 'img');
+  frame.setAttribute('aria-label', AD.worthTitle());
+  // Stretched to the frame, not letterboxed in it: on a phone the frame is kept
+  // taller than its shape would allow, or a two-point step is thirteen pixels.
+  // Every line is level or upright, so stretching one way bends nothing.
+  const plot = svgEl('svg', {
+    viewBox: `0 0 ${PLOT.w} ${PLOT.h}`, class: 'yad-worth-plot', 'aria-hidden': 'true', preserveAspectRatio: 'none',
+  });
+  frame.append(plot);
 
-  if (page?.points > 0 || page?.week !== null) {
-    const graded = model.page.worth[0].value;
+  // The scale it is read against, so the step is never bigger than it is.
+  for (const grade of [shape.baseline, shape.top / 2, shape.top]) {
+    const y = upFromFloor(grade / shape.top);
+    plot.append(svgEl('line', { class: 'yad-worth-rule', x1: PLOT.left, x2: PLOT.right, y1: y, y2: y }));
+    frame.append(pin(PLOT.left - 8, y, String(grade), 'yad-worth-axis'));
+  }
+
+  // Where it stood before each step, carried on so the gain is read against it.
+  for (const riser of shape.risers) {
+    const y = upFromFloor(riser.from);
+    plot.append(svgEl('line', { class: 'yad-worth-before', x1: acrossPlot(riser.at), x2: PLOT.right, y1: y, y2: y }));
+    plot.append(svgEl('line', {
+      class: 'yad-worth-live', x1: acrossPlot(riser.at), x2: acrossPlot(riser.at),
+      y1: PLOT.top - 6, y2: PLOT.floor + 8,
+    }));
+  }
+
+  // The flats alone: each riser is drawn after, in its own colour.
+  const line = shape.flats.map((f) => `M${acrossPlot(f.from)} ${upFromFloor(f.y)}H${acrossPlot(f.to)}`).join('');
+  const under = `M${acrossPlot(shape.flats[0].from)} ${upFromFloor(shape.flats[0].y)}`
+    + shape.flats.map((f) => `V${upFromFloor(f.y)}H${acrossPlot(f.to)}`).join('')
+    + `V${PLOT.floor}H${acrossPlot(0)}Z`;
+  plot.append(svgEl('path', { class: 'yad-worth-under', d: under }));
+  plot.append(svgEl('path', { class: 'yad-worth-line', d: line }));
+
+  // The risers are the player's own doing, so they carry the player's colour.
+  for (const riser of shape.risers) {
+    const x = acrossPlot(riser.at);
+    plot.append(svgEl('path', {
+      class: 'yad-worth-riser', d: `M${x} ${upFromFloor(riser.from)}V${upFromFloor(riser.to)}`,
+    }));
+    // On the riser's left, the corner the gain filled: on its right sits the
+    // week the step lands in, whose mark it covered on a phone.
+    frame.append(pin(x - 6, upFromFloor((riser.from + riser.to) / 2), AD.gained({ points: riser.points }),
+      'yad-worth-gain'));
+  }
+
+  const stepWeeks = new Set(shape.risers.map((r) => r.round));
+  for (const week of shape.weeks) {
+    const x = acrossPlot(week.mid);
+    const y = upFromFloor(week.y);
+    const mark = pin(x, y, '', 'yad-worth-dot');
+    if (stepWeeks.has(week.round)) mark.classList.add('live');
+    if (week.round === model.week) mark.classList.add('now');
+    frame.append(mark);
+    const label = pin(x, PLOT.weeks + 4, String(week.round), 'yad-worth-week');
+    if (week.round === model.week || stepWeeks.has(week.round)) label.classList.add('on');
+    frame.append(label);
+  }
+  wrap.append(frame);
+
+  if (shape.risers.length > 0) {
+    const key = el('div', 'yad-worth-key');
+    key.append(dot('live', AD.liveDot()), dot('now', AD.nowDot()));
+    wrap.append(key);
     const note = el('p', 'yad-note', AD.stepNote({
-      graded, points: page.points > 0 ? page.points : model.page.worth.at(-1).value - graded, week: live,
+      graded: shape.weeks[0].value,
+      steps: shape.risers.map((r) => ({ points: r.points, week: r.round })),
     }));
     add(note, whyButton(AD.stepNote, openGuide));
     wrap.append(note);
   }
   return wrap;
+}
+
+/** One entry of the chart's key: a mark of the same kind, then what it means. */
+function dot(kind, label) {
+  const item = el('span', 'yad-worth-keyitem');
+  const mark = el('span', 'yad-worth-keydot');
+  mark.classList.add(kind);
+  item.append(mark, el('span', null, label));
+  return item;
+}
+
+/** One SVG element with its attributes, since `el` builds HTML ones. */
+function svgEl(tag, attrs) {
+  const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, String(value));
+  return node;
+}
+
+/**
+ * A mark or label laid over the plot at a point in its own coordinates, as a
+ * percentage of the frame, so it lands where the line is at any width and keeps
+ * its own size. Where it hangs from that point is the stylesheet's business.
+ */
+function pin(x, y, body, cls) {
+  const node = el('span', cls, body);
+  node.style.left = `${(100 * x) / PLOT.w}%`;
+  node.style.top = `${(100 * y) / PLOT.h}%`;
+  return node;
 }
 
 /**

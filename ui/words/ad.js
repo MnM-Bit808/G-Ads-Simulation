@@ -6,6 +6,18 @@
 
 import { line } from './line.js';
 
+/**
+ * Every step the grade takes, read aloud: "2 from week 4", or "1 from week 4
+ * and 2 more from week 8". There are at most two, because capital has two
+ * windows (`capexAllocationRounds`).
+ *
+ * @param {Array<{points: number, week: number}>} steps - in the order they land
+ * @returns {string}
+ */
+const eachStep = (steps) => steps
+  .map(({ points, week }, i) => (i === 0 ? `${points} from week ${week}` : `${points} more from week ${week}`))
+  .join(' and ');
+
 /** What to call a target nothing has been spent on, which has no page label yet. */
 const PART_NAME = Object.freeze({
   landingPage: 'The page itself',
@@ -70,12 +82,19 @@ export const AD = Object.freeze({
   liveNow: line('label', 'live'),
   drawn: line('reading', 'The page is drawn from what your capital bought. Nothing here is a photograph of a '
     + 'real product.'),
+  gained: line('label', ({ points }) => `+${points}`),
+  liveDot: line('label', 'the site work goes live'),
+  nowDot: line('label', 'the week you are playing'),
   // No week is typed here on purpose: capital can be committed in either
   // window, so "the money leaves in week 1" is false for anything bought at
   // week 5. The words guard caught that.
-  stepNote: line('reading', ({ graded, points, week }) => `Your page was graded ${graded} on its own words. `
-    + `The site work adds ${points} from week ${week}, when it goes live — the money leaves the week you commit it, `
-    + 'and the page is unchanged until then.'),
+  //
+  // IT READS EVERY STEP, not one. Capital has two windows, so a page bought in
+  // both can step twice, and naming the total points and the last week alone
+  // said the grade was unchanged through weeks it had already risen in.
+  stepNote: line('reading', ({ graded, steps }) => `Your page was graded ${graded} on its own words. `
+    + `The site work adds ${eachStep(steps)}, when ${steps.length > 1 ? 'each goes' : 'it goes'} live — `
+    + 'the money leaves the week you commit it, and the page is unchanged until then.'),
   onlyPage: line('disclosure', 'Only the page itself moves the grade. A size guide buys fewer orders sent back, and '
     + 'photography buys more sales for the same clicks — both worth money, neither worth a point of Quality Score.',
   { why: 'qualityScore' }),

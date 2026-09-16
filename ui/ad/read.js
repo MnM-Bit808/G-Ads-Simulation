@@ -145,6 +145,63 @@ export function pageWorth(block, graded) {
 }
 
 /**
+ * Grades run from 1 to 10 (the grader's scale, agents/grader.js). The whole
+ * screen reads it from here — the grade bars and the worth chart both — so a
+ * chart cannot be drawn against a different scale from the bars beside it.
+ */
+export const GRADE_TOP = 10;
+
+/**
+ * The worth chart's geometry: where the line sits, where it steps, and how far.
+ *
+ * IT LIVES HERE, NOT IN THE DRAWING MODULE, so that the two things the chart
+ * promises can be held by a test rather than by eye. The first is that the
+ * scale runs from nothing to the whole grade: starting it part way up makes a
+ * two-point gain look like a fourfold one, which is the oldest way to mislead
+ * with a picture and exactly the failure this game cannot afford. The second is
+ * that a step is drawn on the week the grade actually steps.
+ *
+ * EVERYTHING IS A FRACTION of the plot, never a pixel, so the drawing module
+ * owns the size and this owns the shape. `mid` and `at` run left to right
+ * across the weeks; `y` runs up from the baseline, so 1 is the top of the scale.
+ *
+ * There can be more than one riser. Capital has two windows, round 1 and week 5
+ * (`capexAllocationRounds`), so a page bought in both can step twice: ₹55,000
+ * then ₹25,000 more steps +2 at week 4 and +1 at week 8. A purchase too small to
+ * round to a point steps nothing, so a riser is drawn only where the grade moves.
+ *
+ * @param {Array<{round: number, value: number}>} worth - from `pageWorth`
+ * @param {number} top - the highest grade the scale holds
+ * @returns {{top: number, baseline: number,
+ *   weeks: Array<{round: number, value: number, mid: number, y: number}>,
+ *   flats: Array<{from: number, to: number, y: number}>,
+ *   risers: Array<{round: number, at: number, from: number, to: number, points: number}>}}
+ */
+export function worthShape(worth, top) {
+  const span = worth.length;
+  const weeks = worth.map(({ round, value }, i) => ({
+    round, value, mid: (i + 0.5) / span, y: value / top,
+  }));
+  const risers = [];
+  const flats = [];
+  let start = 0;
+  for (const [i, week] of worth.entries()) {
+    if (i === 0 || week.value === worth[i - 1].value) continue;
+    // The grade holds its old value through the week before, so the step stands
+    // at the START of the week it lands in, never between two readings.
+    risers.push({
+      round: week.round, at: i / span,
+      from: worth[i - 1].value / top, to: week.value / top,
+      points: week.value - worth[i - 1].value,
+    });
+    flats.push({ from: start / span, to: i / span, y: worth[i - 1].value / top });
+    start = i;
+  }
+  flats.push({ from: start / span, to: 1, y: worth.at(-1).value / top });
+  return { top, baseline: 0, weeks, flats, risers };
+}
+
+/**
  * @param {object} args
  * @param {object} args.draft - the weekly draft (ui/decisions.js, createDraft)
  * @param {object|undefined} args.creative - the player's creative block, from

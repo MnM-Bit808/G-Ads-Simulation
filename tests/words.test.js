@@ -371,7 +371,22 @@ describe('the weekly Your ad', () => {
     // The page drawn as a page: its grade points and the two lifts that are not
     // grade points (design/landing-page/, C).
     points: 2, percent: '4%', graded: 5, target: 'sizeGuide',
+    // Two steps, the harder case: capital has two windows (design/page-worth/).
+    steps: [{ points: 1, week: 4 }, { points: 2, week: 8 }],
   };
+
+  /**
+   * The note beside the worth chart named the TOTAL points and the LAST week,
+   * so a page bought in both windows read "adds 3 from week 8" while the grade
+   * had already risen at week 4. Found drawing the chart as a step, 2026-09-16.
+   */
+  test('the note under the worth chart reads every step, not the last one', () => {
+    const one = AD.stepNote({ graded: 8, steps: [{ points: 2, week: 4 }] });
+    expect(one).toMatch(/adds 2 from week 4, when it goes live/);
+    const two = AD.stepNote({ graded: 8, steps: [{ points: 1, week: 4 }, { points: 2, week: 8 }] });
+    expect(two).toMatch(/adds 1 from week 4 and 2 more from week 8, when each goes live/);
+    expect(two).not.toMatch(/adds 3/);
+  });
 
   test('every entry is a line of a kind the screen may carry', () => {
     for (const [name, entry] of Object.entries(AD)) expect(KINDS, name).toContain(entry.kind);
