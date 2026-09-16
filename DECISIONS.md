@@ -731,7 +731,18 @@ the reading (`PLACE_STEP`, 0.5). Summing every week had already steadied three
 characters; `spender`, which leans hardest, still reversed four to six times on
 seed 8 until this.
 
-All three numbers are a character's opinion, kept with the policy (C7).
+**And a negative zero, which step 3 made reachable.** `Math.round` returns -0 for
+anything a hair under zero, so a place a shade below the account's own average
+was written as -0; JSON has no -0, so a save read back a decision it had never
+stored and the round-trip in `save.test.js` failed. The rounding is older than
+this entry — summing every week is what put a place close enough to the average
+to meet it. **The makeover line found it and this line did not**, on the same
+code: that test plays its own three weeks, and the -0 happened there and not
+here. Guarded where an adjustment is written, on both lines; step 4 has since
+made that path unreachable, so the guard now holds the one that remains, the
+adjustment carried over for a place with too little traffic to read.
+
+All three policy numbers are a character's opinion, kept with the policy (C7).
 `tests/rivalsInPlay.test.js` plays seed 8 through `playMarket` and holds each fix
 in play: late in the game a rival has been handed returns and has moved its
 belief off the briefing; `grossOptimiser` and `disciplined`, handed the same week,

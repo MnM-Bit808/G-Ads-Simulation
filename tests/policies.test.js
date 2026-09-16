@@ -212,6 +212,26 @@ describe('where a rival bids, read off every week it has played (G4, C9)', () =>
     // Once there, it stays.
     expect(from([35, 9, -43])).toEqual([35, 9, -43]);
   });
+
+  test('a place it leaves alone is written 0, never -0', () => {
+    // `Math.round` gives -0 for anything a hair under zero, JSON has no -0, and
+    // a saved game then reads back a decision it never stored: the round-trip
+    // in save.test.js fails, which is how the makeover line found it. Summing
+    // every week put a place close enough to the average to meet it. The
+    // halfway step above cannot produce one any more, so this holds the branch
+    // that still could - a place with too little traffic to read, whose
+    // adjustment is carried over as it stands (C9).
+    const rows = {
+      0: { clicks: 100, grossRevenuePaise: 10100, returnedRevenuePaise: 0 },
+      1: { clicks: 10, grossRevenuePaise: 1000, returnedRevenuePaise: 0 },
+      2: { clicks: 100, grossRevenuePaise: 10000, returnedRevenuePaise: 0 },
+    };
+    const history = [{ round: 1, breakdown: { byLocation: rows } }];
+    const holding = { ...self, campaign: { ...self.campaign, locationAdjustments: [0, -0, 0] } };
+    const middle = locationTilt(holding, history)[1];
+    expect(middle).toBe(0);
+    expect(Object.is(middle, -0)).toBe(false);
+  });
 });
 
 describe('disciplined reads its search terms report', () => {

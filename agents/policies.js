@@ -283,6 +283,23 @@ const CAUTIOUS_LOCATION_LEAN = 100;
 const LOCATION_MIN_CLICKS = 40;
 
 /**
+ * Never write a negative zero into a decision.
+ *
+ * `Math.round` returns -0 for anything a hair under zero, so a place a shade
+ * below the account's own average came out as -0. JSON has no -0, so a saved
+ * game read back a decision it had not stored, and the save's round-trip stopped
+ * being exact (`tests/save.test.js`, which caught it on the makeover line). The
+ * rounding is older than C9; reading every week played is what put a place close
+ * enough to the average to meet it.
+ *
+ * `PLACE_STEP` below has since made that path unreachable — a half step from a
+ * whole number cannot land on -0 — so this now guards the adjustment carried
+ * over for a place with too little traffic to read, and any later change to the
+ * step.
+ */
+const noMinusZero = (n) => (n === 0 ? 0 : n);
+
+/**
  * How far toward what its reports say a rival moves a place adjustment in one
  * week: halfway.
  *
@@ -367,7 +384,7 @@ export function locationTilt(self, history, lean = LOCATION_LEAN, { net = true }
 
   return value.map((v, tier) => {
     const held = current[tier] ?? 0;
-    if (v === null || !Number.isFinite(v)) return held;
+    if (v === null || !Number.isFinite(v)) return noMinusZero(held);
     // Relative to this account's own average, so a premium advertiser and a
     // value one are each judging against their own economics rather than
     // against a number neither of them can see.
@@ -376,7 +393,7 @@ export function locationTilt(self, history, lean = LOCATION_LEAN, { net = true }
     // hard by one violent week.
     const target = clamp(Math.round(relative * lean), -lean, lean);
     // And only part of the way there, because moving the bid moves the reading.
-    return held + Math.round((target - held) * PLACE_STEP);
+    return noMinusZero(held + Math.round((target - held) * PLACE_STEP));
   });
 }
 

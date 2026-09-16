@@ -19,19 +19,24 @@ the stranger playtests** (*Deployment → Running a playtest* has the steps and 
 invite). Everything else below either waits on their files or on the owner's
 judgement.
 
-**2026-09-16, on the unpushed branch `claude/rival-history-main`** (built on
-`claude/rival-prepaid-main`, so it carries I34's rival discount too): **DECISIONS
-C9.** Three rival rules read returns off the week just played, which never carries
-one, so in every game a rival's belief about returns stayed the briefing's 40% and
-`grossOptimiser`'s places were `disciplined`'s; and the place rule see-sawed. Chosen
-with the owner: a controller is also handed its own revised history (spec R3a and
-hard rule 5 amended), both rules read it, and a place bid moves halfway toward its
-reading each week. On the harness the player's median rank is unchanged (5th, 0 of
-72 losing), net +0.8% paired median. **Two things for the owner, in C9:** D12's
-week-9 gate now reads 1.83× an ordinary week, under its double, though the week-9
-move itself is unchanged; and `npm run test:perf`'s sampled-round test fails at
-its 2,200ms bound on unchanged code on this machine. The same work for the makeover
-line follows on its own branch.
+**2026-09-16, on the unpushed branch `claude/rival-history-main`** (cut from
+`42eeebf`, the rival prepaid fix, which `main` has since merged as `2044072`; it
+merges into `main` cleanly, and the makeover line has the same work on
+`claude/rival-history-makeover`): **DECISIONS C9.** Three rival rules read returns
+off the week just played, which never carries one, so in every game a rival's
+belief about returns stayed the briefing's 40% and `grossOptimiser`'s places were
+`disciplined`'s; and the place rule see-sawed. Chosen with the owner: a controller
+is also handed its own revised history (spec R3a and hard rule 5 amended), both
+rules read it, and a place bid moves halfway toward its reading each week. On the
+harness the player's median rank is unchanged (5th, 0 of 72 losing), net +0.8%
+paired median here and +0.3% on the makeover line. Found on the way and fixed on
+both lines: a place adjustment could be written as a negative zero, which JSON
+cannot carry, so a saved game no longer round-tripped exactly — the makeover
+line's `save.test.js` caught it and this line's did not. **Two things for the
+owner, in C9:** D12's week-9 gate now reads 1.83× an ordinary week here, under its
+double (on the makeover line it stays over, at 3.53×), though the week-9 move
+itself barely changed; and `npm run test:perf`'s sampled-round test fails at its
+2,200ms bound on unchanged code on this machine.
 
 **What to do next, in order:**
 1. **Run the stranger playtests on the live site.** Owner: pick three people
