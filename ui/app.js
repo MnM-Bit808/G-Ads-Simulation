@@ -104,11 +104,13 @@ const storage = (() => {
 })();
 
 /**
- * The Studio makeover, on the link only (plans/2026-09-13-studio-makeover.md).
+ * Which look this visit runs in (ui/look.js). Since the switch-over the page
+ * is served with `body.studio` already set, so the Studio paints in its own
+ * colours before this runs; `?look=classic` takes the class off again.
  * `body.studio` is all it sets here; ui/studio.css scopes every rule under it.
  */
 const look = lookMode(window.location.search, storage);
-if (look === 'studio') document.body.classList.add('studio');
+document.body.classList.toggle('studio', look === 'studio');
 
 /**
  * The playtest recorder, on the invite link only (stage B). Null for everyone

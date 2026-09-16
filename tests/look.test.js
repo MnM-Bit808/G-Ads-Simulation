@@ -1,10 +1,12 @@
 /**
- * Which look a visit runs in (plans/2026-09-13-studio-makeover.md, section 5).
- *
- * The Studio makeover is built beside today's screens: a link turns it on and
- * the browser remembers, so the classic game is never broken while it is built.
+ * Which look a visit runs in. Since the switch-over (2026-09-16, the owner's
+ * choice) the Studio is the default; `?look=classic` still reaches the classic
+ * page until part 2 removes it, and this browser remembers that choice until
+ * `?look=studio`.
  */
 
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
 import { lookMode, LOOK_KEY } from '../ui/look.js';
 
@@ -22,38 +24,48 @@ const refusing = {
   removeItem() { throw new Error('blocked'); },
 };
 
-describe('which look a visit runs in', () => {
-  test('everyone gets today\'s screens unless they ask', () => {
-    expect(lookMode('', memory())).toBe('classic');
-    expect(lookMode('', null)).toBe('classic');
+describe('the Studio is the default look', () => {
+  test('a visit with nothing asked runs the Studio', () => {
+    expect(lookMode('', memory())).toBe('studio');
+    expect(lookMode('', null)).toBe('studio');
   });
 
-  test('the link turns the studio on, and the browser remembers it', () => {
+  test('the classic page is still reachable, and remembered', () => {
     const storage = memory();
+    expect(lookMode('?look=classic', storage)).toBe('classic');
+    expect(storage.getItem(LOOK_KEY)).toBe('classic');
+    expect(lookMode('', storage)).toBe('classic');
     expect(lookMode('?look=studio', storage)).toBe('studio');
-    expect(storage.getItem(LOOK_KEY)).toBe('studio');
     expect(lookMode('', storage)).toBe('studio');
   });
 
-  test('?look=classic turns it off again', () => {
+  // Every tester who played the makeover has 'studio' stored from before the
+  // switch-over. It must not read as "asked for something else".
+  test('a remembered Studio from before the switch-over still reads as the Studio', () => {
     const storage = memory();
-    lookMode('?look=studio', storage);
-    expect(lookMode('?look=classic', storage)).toBe('classic');
-    expect(lookMode('', storage)).toBe('classic');
+    storage.setItem(LOOK_KEY, 'studio');
+    expect(lookMode('', storage)).toBe('studio');
   });
 
   test('it rides alongside the playtest link', () => {
-    expect(lookMode('?playtest=1&look=studio', memory())).toBe('studio');
+    expect(lookMode('?playtest=1&look=classic', memory())).toBe('classic');
   });
 
   test('an unknown value changes nothing', () => {
     const storage = memory();
-    lookMode('?look=studio', storage);
-    expect(lookMode('?look=neon', storage)).toBe('studio');
+    lookMode('?look=classic', storage);
+    expect(lookMode('?look=neon', storage)).toBe('classic');
   });
 
-  test('a browser that refuses storage still honours the link', () => {
-    expect(lookMode('?look=studio', refusing)).toBe('studio');
-    expect(lookMode('', refusing)).toBe('classic');
+  test('a browser that will not store the choice gets what it asked for, or the Studio', () => {
+    expect(lookMode('', refusing)).toBe('studio');
+    expect(lookMode('?look=classic', refusing)).toBe('classic');
+  });
+
+  // Without this the page paints the classic header, then the script repaints
+  // it: a white flash on every load of the game everyone now gets.
+  test('the page opens in the Studio\'s colours, before any script runs', () => {
+    expect(readFileSync(fileURLToPath(new URL('../ui/index.html', import.meta.url)), 'utf8'))
+      .toMatch(/<body class="studio">/);
   });
 });

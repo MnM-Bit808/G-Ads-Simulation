@@ -139,6 +139,13 @@ body.studio [hidden] { display: none !important; }
 body.studio:has(.studio-shell) .bar { display: none; }
 body.studio main:has(> .studio-shell) { padding: 0; max-width: none; }
 
+/* The first frame, before app.js has run: the page is served as body.studio
+   (the switch-over, 2026-09-16), so the classic header must not paint and the
+   loading line sits in the Studio's own space. Without this the game everyone
+   now gets opens with a white bar that disappears a moment later. */
+body.studio:has(.loading) .bar { display: none; }
+body.studio .loading { display: grid; place-items: center; min-height: 100vh; margin: 0; color: var(--studio-faint); }
+
 /* --- the front door (design/switch-over/, A, the owner's choice 2026-09-16) --- */
 /* One card before a game opens: the page's own space, no header, as the shell. */
 body.studio:has(.door) .bar { display: none; }
