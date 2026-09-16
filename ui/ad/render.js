@@ -184,7 +184,8 @@ function landingPage(model, openGuide) {
 
   const top = el('div', 'yad-page-top');
   top.append(sheet, side);
-  box.append(top, worthChart(model, openGuide), el('p', 'yad-small', AD.drawn()));
+  // An account with no ad has no grade, so no worth to chart (read.js, pageWorth).
+  add(box, top, model.page.worth.length > 0 ? worthChart(model, openGuide) : null, el('p', 'yad-small', AD.drawn()));
   return box;
 }
 
