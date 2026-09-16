@@ -753,7 +753,10 @@ learning now measure against the ceiling the rival actually holds.
 
 **MEASURED, BEFORE AND AFTER**, on `scripts/market-harness.js market` (72
 markets, seeds 1–12, six cells), paired market by market against the code before
-(`42eeebf`, the prepaid fix of I34):
+(`42eeebf`, the prepaid fix of I34). **`main` moved twice while this was being
+built** — F18 and I36 landed — so it was measured again against `760a6b1`, the
+tip with both: every figure below is identical, to the rupee and to the second
+decimal, so F18 and I36 do not move this market and the table stands.
 
 | | before | after |
 |---|---|---|
