@@ -19,8 +19,21 @@ import { TOTAL_ROUNDS } from '../../engine/constants.js';
 import { writerTier, isDiy } from '../../content/writers.js';
 import { effectiveGrades } from '../decisions.js';
 import { pageShape } from '../landing-page.js';
+import { landingPageBonus, capexEffect, liveCapexPaise } from '../../engine/positions.js';
 
 const PARTS = ['expectedCtr', 'adRelevance', 'landingPage'];
+
+/**
+ * The three things capital can put on the page, in the order it draws them,
+ * and what each one moves. `orderConfirmation` is not here: it buys fewer
+ * refusals at the door and nothing a visitor to the page can see.
+ */
+const PAGE_PARTS = ['landingPage', 'sizeGuide', 'photography'];
+const MOVES = Object.freeze({
+  landingPage: 'grade',
+  sizeGuide: 'returns',
+  photography: 'conversions',
+});
 
 /**
  * The grade each part runs at in `round`. A save's self-written ad that is due
@@ -66,6 +79,72 @@ function pageStrips(block, round) {
 }
 
 /**
+ * What each thing bought for the page moves, and by how much.
+ *
+ * THREE PURCHASES, THREE MECHANISMS, and only one of them is the grade.
+ * `landingPageBonus` reads the `landingPage` target alone; the size guide
+ * divides the return rate and photography multiplies the conversion rate
+ * (`businessFor`). Drawing the page as a page (design/landing-page/, C) made it
+ * possible to imply otherwise, so every figure here is asked of the engine: a
+ * change to a curve, or to how many points a page can be worth, moves the
+ * screen with it rather than leaving it stating an old number.
+ *
+ * @param {object} block - the draft's `capexBlock`
+ * @param {number} round
+ * @returns {Array<{target: string, label: string|null, bought: boolean, paise: number,
+ *   week: number|null, moves: 'grade'|'returns'|'conversions', points: number, lift: number}>}
+ *   in the order the page draws them; `points` is grade points, `lift` the
+ *   multiplier the other two apply, 1 when nothing is bought
+ */
+export function pageParts(block, round) {
+  const committed = block?.committed ?? {};
+  const pending = (target) => (block?.pending ?? []).filter((p) => p.target === target && p.liveAtRound > round);
+  const label = new Map(pageShape(committed).strips.map((s) => [s.target, s.label]));
+
+  // What a purchase buys is what it buys ONCE LIVE. Read at the current round
+  // instead, a page bought in week 1 reads "+0 on the grade · live from week 4",
+  // which is true and says the opposite of what it means (found by playing it).
+  // So `points` and `lift` are the settled answer and `now` is today's.
+  const settled = { ...block, pending: [] };
+
+  return PAGE_PARTS.map((target) => {
+    const paise = committed[target] ?? 0;
+    const waiting = pending(target);
+    const live = liveCapexPaise(block, target, round);
+    return {
+      target,
+      label: label.get(target) ?? null,
+      bought: paise > 0,
+      paise,
+      week: waiting.length > 0 ? Math.max(...waiting.map((p) => p.liveAtRound)) : null,
+      moves: MOVES[target],
+      // Only the page itself is a grade point, and it is the WHOLE bonus rather
+      // than a share of it: nothing else contributes for it to share with.
+      points: target === 'landingPage' ? landingPageBonus(settled, round) : 0,
+      now: target === 'landingPage' ? landingPageBonus(block, round) : capexEffect(live, target),
+      lift: target === 'landingPage' ? 1 : capexEffect(paise, target),
+    };
+  });
+}
+
+/**
+ * The landing page grade the auction runs on, week by week: what the grader
+ * gave the words, plus the points the site work adds once it is live. This is
+ * the chart beside the page, and it is why the page steps rather than climbs —
+ * the money leaves in one week and buys nothing until another.
+ *
+ * @param {object} block - the draft's `capexBlock`
+ * @param {number} graded - the grader's own reading of the page
+ * @returns {Array<{round: number, value: number}>} one per round of the game
+ */
+export function pageWorth(block, graded) {
+  return Array.from({ length: TOTAL_ROUNDS }, (_, i) => ({
+    round: i + 1,
+    value: graded + landingPageBonus(block, i + 1),
+  }));
+}
+
+/**
  * @param {object} args
  * @param {object} args.draft - the weekly draft (ui/decisions.js, createDraft)
  * @param {object|undefined} args.creative - the player's creative block, from
@@ -93,6 +172,12 @@ export function adModel({ draft, creative, name, domain }) {
     writer: { id: tierId, label: tier.label, pricePaise: tier.pricePaise, hired: !isDiy(tierId) },
     week,
     grades: now ? PARTS.map((key) => ({ key, value: now[key], later: firstChange(draft, creative, key, now[key], week) })) : [],
-    page: { description: ad.landingPageDescription ?? '', strips: pageStrips(draft.capexBlock ?? {}, week) },
+    page: {
+      description: ad.landingPageDescription ?? '',
+      strips: pageStrips(draft.capexBlock ?? {}, week),
+      parts: pageParts(draft.capexBlock ?? {}, week),
+      // The page shows a price, and it is this account's own average order.
+      worth: pageWorth(draft.capexBlock ?? {}, now ? now.landingPage - landingPageBonus(draft.capexBlock ?? {}, week) : 0),
+    },
   };
 }

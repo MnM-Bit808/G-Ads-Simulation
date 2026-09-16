@@ -6,6 +6,13 @@
 
 import { line } from './line.js';
 
+/** What to call a target nothing has been spent on, which has no page label yet. */
+const PART_NAME = Object.freeze({
+  landingPage: 'The page itself',
+  sizeGuide: 'A size chart',
+  photography: 'Product shots',
+});
+
 export const AD = Object.freeze({
   intro: line('reading', ({ week }) => `Written once, before week ${week}. It runs every week as it is.`),
   asSearchersSee: line('label', 'As searchers see it'),
@@ -33,4 +40,43 @@ export const AD = Object.freeze({
   pageRead: line('label', 'what the grader read'),
   stripAt: line('label', ({ label, week }) => `${label} · week ${week}`),
   stripFrom: line('label', ({ from, label, week }) => `${from} → ${label} · week ${week}`),
+
+  // The page drawn as a page (design/landing-page/, C, the owner 2026-09-16).
+  // Three purchases, three mechanisms: the sentences exist so the screen cannot
+  // imply that any of them but the page itself moves the grade.
+  // The page's own furniture. The price is the account's OWN average order
+  // (`aovMeanPaise`), not a number typed to look like a shop: a figure on this
+  // screen that no part of the game produced would be read as one that is.
+  // The stars carry no count for the same reason — an invented "412 reviews"
+  // beside real grades is decoration pretending to be data.
+  product: line('label', 'High-waisted training leggings'),
+  price: line('label', ({ amount }) => amount),
+  reviewCount: line('label', 'reviews'),
+  sizeChart: line('label', 'Size chart'),
+  partName: line('label', ({ target }) => PART_NAME[target]),
+  boughtTitle: line('label', 'What each one buys'),
+  worthTitle: line('label', 'What the page is worth'),
+  worthSub: line('label', 'the landing page grade the auction uses'),
+  gradedOn: line('label', 'Graded on its words'),
+  withWork: line('label', ({ week }) => `With the site work, from week ${week}`),
+  toGrade: line('label', ({ points }) => `+${points} on the landing page grade`),
+  fewerBack: line('label', ({ percent }) => `${percent} fewer orders sent back`),
+  moreSales: line('label', ({ percent }) => `${percent} more sales for the same clicks`),
+  noGrade: line('label', 'nothing on the grade'),
+  notBought: line('label', 'not bought'),
+  wouldReturns: line('label', 'would buy fewer orders sent back'),
+  wouldSales: line('label', 'would buy more sales per click'),
+  liveWeek: line('label', ({ week }) => `live from week ${week}`),
+  liveNow: line('label', 'live'),
+  drawn: line('reading', 'The page is drawn from what your capital bought. Nothing here is a photograph of a '
+    + 'real product.'),
+  // No week is typed here on purpose: capital can be committed in either
+  // window, so "the money leaves in week 1" is false for anything bought at
+  // week 5. The words guard caught that.
+  stepNote: line('reading', ({ graded, points, week }) => `Your page was graded ${graded} on its own words. `
+    + `The site work adds ${points} from week ${week}, when it goes live — the money leaves the week you commit it, `
+    + 'and the page is unchanged until then.'),
+  onlyPage: line('disclosure', 'Only the page itself moves the grade. A size guide buys fewer orders sent back, and '
+    + 'photography buys more sales for the same clicks — both worth money, neither worth a point of Quality Score.',
+  { why: 'qualityScore' }),
 });

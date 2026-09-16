@@ -436,13 +436,60 @@ body.studio .yad-fill { background: var(--studio-text); }
 /* The grade still to come, outlined behind this week's (3:1 against the track). */
 body.studio .yad-ghost { border: 1px dashed var(--studio-muted); }
 body.studio .yad-value { font-variant-numeric: tabular-nums; }
-body.studio .yad-page { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 18px; align-items: start; }
-body.studio .yad-sketch { overflow: hidden; border: 1px solid var(--studio-line-strong); border-radius: 12px; }
-body.studio .yad-bar { padding: 6px 10px; background: var(--studio-raised); font-size: 12px; color: var(--studio-muted); }
-body.studio .yad-strip { margin: 8px; padding: 10px; border: 1px solid transparent; border-radius: 8px; background: var(--studio-raised); font-size: 12px; text-align: center; color: var(--studio-soft); }
-body.studio .yad-strip.coming { border-color: var(--studio-muted); border-style: dashed; background: none; }
+/* The landing page drawn as a page (design/landing-page/, C, the owner's choice
+   2026-09-16), with what each purchase buys beside it and the grade it earns
+   beneath. The pictures are SVG in ui/ad/render.js: the game ships no
+   photographs, and a stylised garment cannot be mistaken for a real product. */
+body.studio .yad-page { display: flex; flex-direction: column; gap: 18px; }
+body.studio .yad-page-top { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 22px; align-items: start; }
+body.studio .yad-sheet { overflow: hidden; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: #141216; }
+body.studio .yad-bar { padding: 7px 12px; background: var(--studio-raised); font-size: 12px; color: var(--studio-muted); }
+body.studio .yad-hero { display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 14px; padding: 14px; }
+body.studio .yad-hero svg { border-radius: 9px; }
+body.studio .yad-detail { display: flex; flex-direction: column; gap: 7px; }
+body.studio .yad-product { font-size: 14px; font-weight: 700; line-height: 1.25; }
+body.studio .yad-price { font: 800 19px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .yad-reviews { display: flex; align-items: center; gap: 7px; }
+body.studio .yad-sizes { display: flex; gap: 5px; }
+body.studio .yad-size { padding: 2px 8px; border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 10px; color: var(--studio-soft); }
+body.studio .yad-size.on { border-color: var(--studio-text); color: var(--studio-text); }
+body.studio .yad-chart { margin: 0 14px 14px; padding: 10px 12px; border: 1px solid var(--studio-line); border-radius: 9px; }
+body.studio .yad-chart-head { font-size: 11px; font-weight: 700; }
+body.studio .yad-chart-bars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; margin-top: 8px; align-items: end; height: 38px; }
+body.studio .yad-chart-bar { border-radius: 2px; background: #57525C; }
+body.studio .yad-chart-bar.on { background: var(--studio-text); }
+body.studio .yad-side { display: flex; flex-direction: column; gap: 10px; }
+body.studio .yad-buys { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--studio-line); }
+body.studio .yad-buys-head { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--studio-muted); }
+body.studio .yad-buy { display: flex; flex-direction: column; gap: 2px; }
+/* A row for something not bought is set back by colour, not by opacity: dimming
+   an already-muted colour measured 2.85:1 on the line that says what the money
+   would buy, which is the one part of that row worth reading. */
+body.studio .yad-buy.off .yad-buy-top { color: var(--studio-faint); }
+body.studio .yad-buy-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
+body.studio .yad-buy-moves { font-size: 12px; color: var(--studio-muted); }
+/* Mint is money made, and the grade is the one purchase that buys a cheaper
+   click; the other two say what they move in plain muted text, so the eye
+   finds the single thing that is a Quality Score point. */
+body.studio .yad-buy-moves.grade { color: var(--studio-mint); }
+body.studio .yad-worth { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--studio-line); }
+body.studio .yad-worth-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+body.studio .yad-worth-bars { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 5px; align-items: end; }
+body.studio .yad-worth-col { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+body.studio .yad-worth-bar { border-radius: 3px 3px 0 0; background: #57525C; }
+body.studio .yad-worth-bar.now { background: var(--studio-text); }
+body.studio .yad-worth-week { font-size: 10px; color: var(--studio-faint); text-align: center; font-variant-numeric: tabular-nums; }
+/* The week the site work goes live, marked on the week it lands rather than
+   between two columns: the step is the point of the chart. */
+body.studio .yad-worth-col.live .yad-worth-bar { box-shadow: inset 0 0 0 1px var(--studio-mint); }
+body.studio .yad-worth-col.live .yad-worth-week { color: var(--studio-text); }
 body.studio .yad-quote { margin: 0; font-size: 14px; line-height: 1.5; color: var(--studio-text); }
-@media (max-width: 900px) { body.studio .yad-row, body.studio .yad-page { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) {
+  body.studio .yad-row, body.studio .yad-page-top { grid-template-columns: minmax(0, 1fr); }
+  /* The garment gives up its column before the words do. */
+  body.studio .yad-hero { grid-template-columns: 96px minmax(0, 1fr); }
+  body.studio .yad-hero svg { width: 96px; height: auto; }
+}
 
 /* --- Where and when, a played week (design/where-when/, the owner's choice 2026-09-15) --- */
 /* Sized by the section's own width, not the window's: the sidebar takes 300px

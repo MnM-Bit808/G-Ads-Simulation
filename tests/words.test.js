@@ -368,6 +368,9 @@ describe('the weekly Your ad', () => {
   const FIGURES = {
     amount: '₹10,000', budget: '₹50,000', week: 4, value: 9, scale: 10, part: 'Landing page',
     text: 'A plain product page.', label: 'reviews', from: 'plain',
+    // The page drawn as a page: its grade points and the two lifts that are not
+    // grade points (design/landing-page/, C).
+    points: 2, percent: '4%', graded: 5, target: 'sizeGuide',
   };
 
   test('every entry is a line of a kind the screen may carry', () => {
