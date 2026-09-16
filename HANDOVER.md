@@ -324,6 +324,31 @@ engine does: the page's parts marked "week 4", its description graded now.
      list, so no saved game existed on the live site and nobody met the front
      door's "This game has changed" — which is what they WILL meet, since F17
      moves almost any game whose budget ran short.
+   **DONE 2026-09-16, from the owner playing the deployed game: the landing page
+   is drawn as a page** (`073e05f`, from `design/landing-page/`, direction C).
+   It was a domain bar and grey strips reading "product shots"; it is now the
+   garment, the sizes, review stars and a size chart, in SVG, showing only what
+   is LIVE — plain until the site work lands, then the stars and the chart
+   arrive. Beneath it, the landing page grade the auction runs on, week by week,
+   which STEPS rather than climbs.
+   - **It says which purchase buys the grade, and the other two do not.**
+     `landingPageBonus` reads the `landingPage` target alone; the size guide
+     divides the return rate and photography multiplies the conversion rate. So
+     the screen reads "+2 on the landing page grade", "4% fewer orders sent
+     back", "would buy more sales per click", with a disclosure that only the
+     page itself moves the grade. A player buying a size guide for a better
+     Quality Score was buying the wrong thing and nothing said so.
+   - **Four things were caught before it shipped**, three of them by the guards:
+     an invented per-part split of the grade (caught in the mock-up); a row
+     reading "+0 on the landing page grade · live from week 4", true and the
+     opposite of its meaning; "the money leaves in week 1", false for the week-5
+     capital window; and a drawn price read from `businessFor`, refused by the
+     R3 guard because that function blends in what 16.1 withholds from every
+     viewer. The page carries no price now.
+   - **And one wording fix from the same play-through** (`da65154`): the
+     attribution chapter said a Monday click buying on Friday "adds a conversion
+     to Monday, on Friday". Google Ads Help confirms the fact, but two dates in
+     one clause read as a typo in the chapter whose job is why numbers move.
 5. **The message project** (the round 0 design, section 11): angles that change
    who clicks, images from week 9. Its own design doc, a spec change and
    DECISIONS entries come before any build.

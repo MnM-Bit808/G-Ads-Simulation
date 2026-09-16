@@ -367,6 +367,39 @@ classic-only regions out of six files both looks shared, since only `ui/look.js`
 and `ui/round-zero.js` were wholly classic. The deploy, which page 2 also
 describes, is the owner's word to give and has not happened.
 
+## `landing-page/`: Your ad's landing page (2026-09-16)
+
+A thirteenth canvas, https://claude.ai/code/artifact/fa1be81b-6e6f-44f3-9418-a16ead16a2b3,
+asked for after the owner played the deployed game: the landing page half of
+Your ad was a domain bar and grey strips reading "plain", "reviews", "a chart",
+"product shots" — a label for a picture rather than a picture. Three directions,
+each with a chart of what the page is worth, on a real game: Vella & Co. at
+mid-price performance writing its own ad, ₹55,000 on the page and ₹25,000 on the
+size guide at round 0.
+
+- **A**, `Main.dc.html`: the page drawn full width, its worth beneath.
+- **B**, `Beside.dc.html`: the page beside its worth, today's two-column shape.
+- **C**, `Graded.dc.html`, **chosen by the owner**: each part of the page marked
+  with what it buys, so the picture and the number are the same object.
+
+The pictures are SVG. The game ships no photographs, the owner chose to keep it
+that way, and a stylised garment cannot be mistaken for a real product.
+
+**What drawing it caught.** C first tagged "+1 reviews" and "+1 size chart",
+splitting the grade between them. `landingPageBonus` reads the `landingPage`
+target ALONE: the size guide divides the return rate and photography multiplies
+the conversion rate, and neither is worth a point of Quality Score. Corrected, C
+says what each purchase buys in the unit it moves — which is a thing the game
+had never told a player, and the reason this direction was worth building.
+
+**Built** 2026-09-16 (`073e05f`). Three more falsehoods were caught between the
+guards and playing it: a row reading "+0 on the landing page grade · live from
+week 4" (true, and the opposite of its meaning — a row says what it BUYS now);
+"the money leaves in week 1", which is false for the week-5 capital window; and
+a drawn price taken from `businessFor`, which the R3 guard refused because that
+function blends in what 16.1 withholds from every viewer. The page has no price
+now: decoration is not worth reaching into a withheld block for.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

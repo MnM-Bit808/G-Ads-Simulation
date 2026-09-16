@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #0D0C0E; color: #EDE8E3;
+      font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+    a { color: #FF6166; } a:hover { color: #D7262F; }
+    .disp { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .num { font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="padding: 28px 30px; display: flex; flex-direction: column; gap: 18px;">
+
+  <div style="display: flex; flex-direction: column; gap: 4px;">
+    <h1 class="disp" style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -0.01em;">Your ad</h1>
+    <p style="margin: 0; font-size: 13px; color: #A19A94;">A · the page drawn, its worth beneath</p>
+  </div>
+
+  <!-- The landing page card ------------------------------------------------>
+  <div style="padding: 18px 20px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A;
+      display: flex; flex-direction: column; gap: 16px;">
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+      <h3 class="disp" style="margin: 0; font-size: 17px; font-weight: 700;">The page your clicks land on</h3>
+      <span style="font-size: 12px; color: #8A847E;">vellaandco.in</span>
+    </div>
+
+    <!-- The drawn page -->
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 236px; gap: 20px; align-items: start;">
+
+      <div style="border: 1px solid #3A363E; border-radius: 14px; overflow: hidden; background: #141216;">
+        <!-- browser chrome strip -->
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #221F25; border-bottom: 1px solid #2A272D;">
+          <div style="display: flex; gap: 5px;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #3A363E; display: block;"></span>
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #3A363E; display: block;"></span>
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: #3A363E; display: block;"></span>
+          </div>
+          <span style="font-size: 11px; color: #8A847E;">vellaandco.in/leggings</span>
+        </div>
+
+        <!-- hero: a drawn product, not a grey strip -->
+        <div style="display: grid; grid-template-columns: 148px minmax(0, 1fr); gap: 16px; padding: 16px;">
+          <svg viewBox="0 0 148 172" width="148" height="172" role="img" aria-label="Product photograph">
+            <defs>
+              <linearGradient id="prodA" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#2A272D"/><stop offset="1" stop-color="#1A181D"/>
+              </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="148" height="172" rx="10" fill="url(#prodA)"/>
+            <path d="M52 26h44l8 22-10 10 6 84H48l6-84-10-10z" fill="#3A363E"/>
+            <path d="M60 58h28l4 74H56z" fill="#4A454F"/>
+            <path d="M52 26c6 8 16 12 22 12s16-4 22-12" fill="none" stroke="#6E6971" stroke-width="2"/>
+            <circle cx="74" cy="150" r="3" fill="#D7262F"/>
+          </svg>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 15px; font-weight: 700;">High-waisted training leggings</div>
+            <div class="num" style="font-size: 20px; font-weight: 800;" class="disp">₹2,400</div>
+            <!-- reviews: what ₹55,000 bought -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg viewBox="0 0 88 16" width="88" height="16" role="img" aria-label="Four and a half stars">
+                <g fill="#F2A53A">
+                  <path d="M8 1l2.1 4.3 4.7.7-3.4 3.3.8 4.7L8 11.8 3.8 14l.8-4.7L1.2 6l4.7-.7z"/>
+                  <path d="M26 1l2.1 4.3 4.7.7-3.4 3.3.8 4.7L26 11.8 21.8 14l.8-4.7L19.2 6l4.7-.7z"/>
+                  <path d="M44 1l2.1 4.3 4.7.7-3.4 3.3.8 4.7L44 11.8 39.8 14l.8-4.7L37.2 6l4.7-.7z"/>
+                  <path d="M62 1l2.1 4.3 4.7.7-3.4 3.3.8 4.7L62 11.8 57.8 14l.8-4.7L55.2 6l4.7-.7z"/>
+                  <path d="M80 1l2.1 4.3 4.7.7-3.4 3.3.8 4.7L80 11.8v-10.8z"/>
+                </g>
+                <path d="M80 1l-2.1 4.3-4.7.7 3.4 3.3-.8 4.7L80 11.8z" fill="none" stroke="#F2A53A" stroke-width="1"/>
+              </svg>
+              <span style="font-size: 12px; color: #CFC9C3;">412 reviews</span>
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 2px;">
+              <span style="padding: 3px 9px; border: 1px solid #3A363E; border-radius: 999px; font-size: 11px; color: #CFC9C3;">XS</span>
+              <span style="padding: 3px 9px; border: 1px solid #3A363E; border-radius: 999px; font-size: 11px; color: #CFC9C3;">S</span>
+              <span style="padding: 3px 9px; border: 1px solid #EDE8E3; border-radius: 999px; font-size: 11px; color: #EDE8E3;">M</span>
+              <span style="padding: 3px 9px; border: 1px solid #3A363E; border-radius: 999px; font-size: 11px; color: #CFC9C3;">L</span>
+              <span style="padding: 3px 9px; border: 1px solid #3A363E; border-radius: 999px; font-size: 11px; color: #CFC9C3;">XL</span>
+            </div>
+            <div style="margin-top: 4px; padding: 8px 12px; border-radius: 10px; background: #D7262F; color: #FFF5F4;
+                font-size: 13px; font-weight: 700; text-align: center; width: 132px;">Add to bag</div>
+          </div>
+        </div>
+
+        <!-- the size chart the size guide bought -->
+        <div style="margin: 0 16px 16px; padding: 12px 14px; border: 1px solid #2A272D; border-radius: 10px; background: #17161A;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <span style="font-size: 12px; font-weight: 700; color: #EDE8E3;">Size chart</span>
+            <span style="font-size: 11px; color: #8A847E;">waist, in inches</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 10px; align-items: end; height: 54px;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+              <div style="width: 100%; height: 18px; border-radius: 3px; background: #4A454F;"></div>
+              <span class="num" style="font-size: 10px; color: #A19A94;">24</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+              <div style="width: 100%; height: 25px; border-radius: 3px; background: #57525C;"></div>
+              <span class="num" style="font-size: 10px; color: #A19A94;">26</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+              <div style="width: 100%; height: 32px; border-radius: 3px; background: #EDE8E3;"></div>
+              <span class="num" style="font-size: 10px; color: #EDE8E3;">28</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+              <div style="width: 100%; height: 39px; border-radius: 3px; background: #57525C;"></div>
+              <span class="num" style="font-size: 10px; color: #A19A94;">31</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+              <div style="width: 100%; height: 46px; border-radius: 3px; background: #4A454F;"></div>
+              <span class="num" style="font-size: 10px; color: #A19A94;">34</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- what is on the page, and what is not -->
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 12px; font-weight: 700; color: #A19A94; letter-spacing: 0.04em;">WHAT YOU BOUGHT</div>
+
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+          <svg viewBox="0 0 20 20" width="18" height="18" style="flex-shrink: 0; margin-top: 1px;" aria-hidden="true">
+            <path d="M4 10.5l4 4 8-9" fill="none" stroke="#9FD3B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <div style="font-size: 13px; font-weight: 600;">Reviews on the page</div>
+            <div class="num" style="font-size: 12px; color: #A19A94;">₹55,000 · live from week 4</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: flex-start;">
+          <svg viewBox="0 0 20 20" width="18" height="18" style="flex-shrink: 0; margin-top: 1px;" aria-hidden="true">
+            <path d="M4 10.5l4 4 8-9" fill="none" stroke="#9FD3B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <div style="font-size: 13px; font-weight: 600;">A size chart</div>
+            <div class="num" style="font-size: 12px; color: #A19A94;">₹25,000 · live from week 4</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: flex-start; opacity: 0.55;">
+          <svg viewBox="0 0 20 20" width="18" height="18" style="flex-shrink: 0; margin-top: 1px;" aria-hidden="true">
+            <circle cx="10" cy="10" r="7" fill="none" stroke="#6E6971" stroke-width="2" stroke-dasharray="3 3"/>
+          </svg>
+          <div>
+            <div style="font-size: 13px; font-weight: 600;">Product shots</div>
+            <div style="font-size: 12px; color: #A19A94;">not bought</div>
+          </div>
+        </div>
+
+        <p style="margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: #A19A94;">
+          The page is drawn from what your capital bought. Nothing here is a photograph of a real product.
+        </p>
+      </div>
+    </div>
+
+    <!-- what the page is worth --------------------------------------------->
+    <div style="border-top: 1px solid #2A272D; padding-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+        <h3 class="disp" style="margin: 0; font-size: 15px; font-weight: 700;">What the page is worth</h3>
+        <span style="font-size: 12px; color: #8A847E;">the landing page grade the auction uses</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 8px; align-items: end;">
+        <div style="display: flex; flex-direction: column; justify-content: space-between; height: 124px; padding-bottom: 20px;">
+          <span class="num" style="font-size: 10px; color: #8A847E;">10</span>
+          <span class="num" style="font-size: 10px; color: #8A847E;">5</span>
+          <span class="num" style="font-size: 10px; color: #8A847E;">0</span>
+        </div>
+
+        <div style="position: relative;">
+          <!-- the step at week 4 -->
+          <div style="position: absolute; left: 25%; top: 0; bottom: 20px; width: 1px; background: #4A454F;"></div>
+          <div style="position: absolute; left: calc(25% + 8px); top: 2px; font-size: 11px; color: #CFC9C3;">
+            site work goes live
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 5px; align-items: end; height: 104px;">
+            <div style="height: 43px; border-radius: 3px 3px 0 0; background: #57525C;"></div>
+            <div style="height: 43px; border-radius: 3px 3px 0 0; background: #57525C;"></div>
+            <div style="height: 43px; border-radius: 3px 3px 0 0; background: #57525C;"></div>
+            <div style="height: 61px; border-radius: 3px 3px 0 0; background: #EDE8E3;"></div>
+            <div style="height: 61px; border-radius: 3px 3px 0 0; background: #EDE8E3;"></div>
+            <div style="height: 61px; border-radius: 3px 3px 0 0; background: #EDE8E3;"></div>
+            <div style="height: 61px; border-radius: 3px 3px 0 0; background: #EDE8E3;"></div>
+            <div style="height: 61px; border-radius: 3px 3px 0 0; background: #EDE8E3;"></div>
+            <div style="height: 61px; border-radius: 3px 3px 0 0; background: #4A454F;"></div>
+            <div style="height: 61px; border-radius: 3px 3px 0 0; background: #4A454F;"></div>
+            <div style="height: 61px; border-radius: 3px 3px 0 0; background: #4A454F;"></div>
+            <div style="height: 61px; border-radius: 3px 3px 0 0; background: #4A454F;"></div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 5px; margin-top: 6px;">
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">1</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">2</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">3</span>
+            <span class="num" style="font-size: 10px; color: #EDE8E3; text-align: center;">4</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">5</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">6</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">7</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">8</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">9</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">10</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">11</span>
+            <span class="num" style="font-size: 10px; color: #8A847E; text-align: center;">12</span>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #CFC9C3;">
+        Your page was graded <strong style="color: #EDE8E3;">5 out of 10</strong> on its own words. The ₹80,000 of site
+        work adds <strong style="color: #EDE8E3;">2 points</strong> from week 4, when it goes live — the money is spent
+        at week 1 and the page is unchanged until then.
+      </p>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
