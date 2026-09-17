@@ -26,6 +26,7 @@
  *   node scripts/market-harness.js page    <label> [workers]
  *   node scripts/market-harness.js compare <before.json> <after.json>
  *   node scripts/market-harness.js pagegates <before-label> <after-label>
+ *   node scripts/market-harness.js speedgates <before-label> <after-label>
  *
  * `market` plays 72 whole games (seeds 1-12, the six cells) and reports F15's
  * economics, the player's profit and rank, every rival's month-2 budget, and how
@@ -37,7 +38,9 @@
  * `market` are the games where it stayed. `page` plays whole games with one page
  * bought at round 0 against none, and `pagegates` checks the gates the owner
  * agreed for grading the page as it stands (2026-09-17) from a `market`,
- * `capital` and `page` run under each label. Each mode writes
+ * `capital` and `page` run under each label; `speedgates` checks, from the same
+ * three, the gates agreed for grading only what Google names (C, 2026-09-17).
+ * Each mode writes
  * `harness-<label>-<mode>.json` to the system temp folder and prints a summary.
  */
 import { writeFileSync, readFileSync, mkdtempSync } from 'node:fs';
@@ -290,6 +293,11 @@ export async function capitalRow({ seed, cell }) {
  * each kind of sentence the page ladder writes — a size chart, reviews, the top
  * page, product shots (content/landingPage.js). Each is bought alone, so a
  * difference is that page's.
+ *
+ * The last two were added for grading only what Google names (the owner's C,
+ * 2026-09-17), whose gates need them: the faster page earns its point by length
+ * today and for speed after, so it must not move; a chart with shots, bought
+ * without the page, loses one point.
  */
 export const ROUND0_PAGES = Object.freeze({
   keep: {},
@@ -297,7 +305,15 @@ export const ROUND0_PAGES = Object.freeze({
   reviews: { landingPage: 5500000 },
   topPage: { landingPage: 8000000 },
   photography: { photography: 5000000 },
+  fasterPage: { landingPage: 2500000 },
+  guideShots: { sizeGuide: 2500000, photography: 5000000 },
 });
+
+/**
+ * The round-0 pages the page gates were agreed over. Pinned, so they still read
+ * the runs made before `fasterPage` and `guideShots` existed.
+ */
+const I37_PAGES = Object.freeze(['keep', 'guide', 'reviews', 'topPage', 'photography']);
 
 /**
  * Grading the page as it stands, on one market: whole games with each round-0
@@ -357,7 +373,7 @@ export function pageGates({ market, capital, page }) {
   });
 
   const pageNet = (r, n) => r[n].net;
-  const pageCheck = Object.keys(ROUND0_PAGES).filter((n) => n !== 'keep').map((name) => {
+  const pageCheck = I37_PAGES.filter((n) => n !== 'keep').map((name) => {
     const before = advantage(page.before, name, 'keep', pageNet);
     const after = advantage(page.after, name, 'keep', pageNet);
     const flipped = before > 0 && after <= 0;
@@ -378,7 +394,7 @@ export function pageGates({ market, capital, page }) {
     }
   };
   rivalCheck('capital', capital, Object.keys(INVESTMENTS), (r, v) => r.rivals[v]);
-  rivalCheck('page', page, Object.keys(ROUND0_PAGES), (r, v) => r[v].rivals);
+  rivalCheck('page', page, I37_PAGES, (r, v) => r[v].rivals);
 
   const out = {
     market: { ok: marketDiffer.length === 0, differ: marketDiffer },
@@ -389,6 +405,99 @@ export function pageGates({ market, capital, page }) {
   };
   out.hardOk = out.market.ok && out.capitalFixed.ok;
   out.stopOk = capitalGain.every((g) => g.ok) && pageCheck.every((p) => p.ok) && rivalMoves.every((r) => r.ok);
+  return out;
+}
+
+/**
+ * The gates the owner agreed before any run for grading only what Google names
+ * (design/photography-point/, C, 2026-09-17): the 40-character rule goes and
+ * the faster page's sentence earns its point for speed. Over all 64 rung
+ * combinations, a page with capital on the page itself grades exactly as
+ * before, and one without it loses exactly one point when a size chart or shots
+ * are bought, so:
+ *
+ * - hard: `market` mode's player buys no capital, so every row is identical.
+ * - hard: at week 5, keeping, order confirmation and the page itself (₹80,000)
+ *   are identical in every market, the player's profit and every rival's.
+ * - hard: at round 0, keeping, reviews, the top page and the faster page are
+ *   identical in every market, rivals included.
+ * - stop: the five purchases that lose a point (round-0 size chart, shots, and
+ *   both together; week-5 size guide and photography) may not go from beating
+ *   keep to not, in the median market, nor lose more than a quarter of their
+ *   median advantage. The quarter is the judgment the owner accepted for I37.
+ * - stop: no rival's median profit moves more than 5% either way, in any variant.
+ * - shown, not a gate: the round-0 purchases ranked by median advantage.
+ *
+ * The 64-combination rule, the screen equalling the auction, and calibration's
+ * figures are tests, not harness figures.
+ *
+ * @param {{market: {before: object[], after: object[]}, capital: {before: object[], after: object[]},
+ *   page: {before: object[], after: object[]}}} runs rows as the three modes write them
+ * @returns {object} each gate's figures and verdict, `hardOk` and `stopOk`
+ */
+export function speedGates({ market, capital, page }) {
+  const key = (r) => `${r.seed}|${r.cell}`;
+  const byKey = (rows) => new Map(rows.map((r) => [key(r), r]));
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+  const marketBefore = byKey(market.before);
+  const marketAfter = byKey(market.after);
+  const marketDiffer = [...marketBefore.keys()].filter((k) => !same(marketBefore.get(k), marketAfter.get(k)));
+  if (market.after.length !== market.before.length) marketDiffer.push('the number of markets');
+
+  const fixed = (rows, names, pick) => {
+    const after = byKey(rows.after);
+    return rows.before.flatMap((r) => names
+      .filter((name) => !same(pick(r, name), after.get(key(r)) && pick(after.get(key(r)), name)))
+      .map((name) => `${key(r)} ${name}`));
+  };
+  const capitalDiffer = fixed(capital, ['keep', 'orderConfirmation', 'landingPage'], (r, n) => [r[n], r.rivals[n]]);
+  const pageDiffer = fixed(page, ['keep', 'reviews', 'topPage', 'fasterPage'], (r, n) => r[n]);
+
+  const advantage = (rows, name, net) => median(rows.map((r) => net(r, name) - net(r, 'keep')));
+  const bounded = (label, rows, name, net) => {
+    const before = advantage(rows.before, name, net);
+    const after = advantage(rows.after, name, net);
+    const flipped = before > 0 && after <= 0;
+    const lossShare = before > 0 ? (before - after) / before : 0;
+    return { name: `${label} ${name}`, before, after, flipped, lossShare, ok: !flipped && lossShare <= 0.25 };
+  };
+  const pageNet = (r, n) => r[n].net;
+  const capitalNet = (r, n) => r[n];
+  const weaker = [
+    ...['guide', 'photography', 'guideShots'].map((name) => bounded('page', page, name, pageNet)),
+    ...['sizeGuide', 'photography'].map((name) => bounded('capital', capital, name, capitalNet)),
+  ];
+
+  const rivalMoves = [];
+  const rivalCheck = (mode, rows, variants, profits) => {
+    for (const variant of variants) {
+      for (const id of Object.keys(profits(rows.before[0], variant))) {
+        const before = median(rows.before.map((r) => profits(r, variant)[id]));
+        const after = median(rows.after.map((r) => profits(r, variant)[id]));
+        const change = (after - before) / Math.abs(before);
+        rivalMoves.push({ mode, variant, id, before, after, change, ok: Math.abs(change) <= 0.05 });
+      }
+    }
+  };
+  rivalCheck('capital', capital, Object.keys(INVESTMENTS), (r, v) => r.rivals[v]);
+  rivalCheck('page', page, Object.keys(ROUND0_PAGES), (r, v) => r[v].rivals);
+
+  const ranked = (rows) => Object.keys(ROUND0_PAGES).filter((n) => n !== 'keep')
+    .map((name) => [name, advantage(rows, name, pageNet)])
+    .sort((a, b) => b[1] - a[1])
+    .map(([name]) => name);
+
+  const out = {
+    market: { ok: marketDiffer.length === 0, differ: marketDiffer },
+    capitalFixed: { ok: capitalDiffer.length === 0, differ: capitalDiffer },
+    pageFixed: { ok: pageDiffer.length === 0, differ: pageDiffer },
+    weaker,
+    rivals: rivalMoves,
+    ranking: { before: ranked(page.before), after: ranked(page.after) },
+  };
+  out.hardOk = out.market.ok && out.capitalFixed.ok && out.pageFixed.ok;
+  out.stopOk = weaker.every((w) => w.ok) && rivalMoves.every((r) => r.ok);
   return out;
 }
 
@@ -623,6 +732,27 @@ function printPageGates(beforeLabel, afterLabel) {
   console.log(out.hardOk ? (out.stopOk ? 'ALL GATES PASS' : 'HARD GATES PASS; A STOP GATE TRIPPED: show the owner') : 'A HARD GATE FAILED');
 }
 
+function printSpeedGates(beforeLabel, afterLabel) {
+  const pair = (mode) => ({ before: runOf(beforeLabel, mode), after: runOf(afterLabel, mode) });
+  const out = speedGates({ market: pair('market'), capital: pair('capital'), page: pair('page') });
+  const verdict = (ok, word = 'FAIL') => (ok ? 'PASS' : word);
+  const differ = (gate) => (gate.ok ? '' : ` (${gate.differ.slice(0, 8).join(', ')}${gate.differ.length > 8 ? ', …' : ''})`);
+  console.log(`hard: market mode identical: ${verdict(out.market.ok)}${differ(out.market)}`);
+  console.log(`hard: week 5 keep, order confirmation, the page itself identical: ${verdict(out.capitalFixed.ok)}${differ(out.capitalFixed)}`);
+  console.log(`hard: round 0 keep, reviews, top page, faster page identical: ${verdict(out.pageFixed.ok)}${differ(out.pageFixed)}`);
+  for (const w of out.weaker) {
+    console.log(`stop: ${w.name.padEnd(20)} median over keep ₹${rupees(w.before)} -> ₹${rupees(w.after)}`
+      + ` (${pct(-w.lossShare)}${w.flipped ? ', no longer beats keep' : ''})  ${verdict(w.ok, 'STOP')}`);
+  }
+  const moved = out.rivals.filter((r) => !r.ok);
+  const widest = out.rivals.reduce((w, r) => (Math.abs(r.change) > Math.abs(w.change) ? r : w), out.rivals[0]);
+  console.log(`stop: rivals within 5%: ${verdict(moved.length === 0, 'STOP')}; widest ${widest.mode} ${widest.variant} ${widest.id} ${pct(widest.change)}`);
+  for (const r of moved) console.log(`   ${r.mode} ${r.variant} ${r.id}: ₹${rupees(r.before)} -> ₹${rupees(r.after)} (${pct(r.change)})`);
+  console.log(`shown: round-0 purchases by median advantage, before: ${out.ranking.before.join(' > ')}`);
+  console.log(`                                              after:  ${out.ranking.after.join(' > ')}`);
+  console.log(out.hardOk ? (out.stopOk ? 'ALL GATES PASS' : 'HARD GATES PASS; A STOP GATE TRIPPED: show the owner') : 'A HARD GATE FAILED');
+}
+
 function summariseMove(rows) {
   const out = [`${rows.length} markets: the player moves one step at week 5, every move its cell has (F18); medians`];
   out.push(`  ${'move'.padEnd(42)}${'net profit'.padStart(13)}${'rank'.padStart(6)}${'week-8 rank'.padStart(13)}`
@@ -682,6 +812,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     printGates(rest[0], rest[1]);
   } else if (first === 'pagegates') {
     printPageGates(rest[0], rest[1]);
+  } else if (first === 'speedgates') {
+    printSpeedGates(rest[0], rest[1]);
   } else {
     await main(first, rest[0] ?? 'run', Number(rest[1] ?? 6));
   }
