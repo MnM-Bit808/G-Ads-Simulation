@@ -37,13 +37,19 @@ const SHARER = Object.freeze({
 /**
  * Each of the grader's landing page rules (content/landingPage.js), and the site
  * work's points, as a row says them (design/grade-breakdown/, B).
+ *
+ * The site work's points are NOT called "the site work" on screen. Round 0 and
+ * Your money use that for everything capital builds, and so do this screen's note
+ * and legend, while these points come from the page's own capital alone. It read
+ * "+2 the site work" for a day, and beside a note saying product shots were site
+ * work too, the same words named two things (the owner's call, 2026-09-17).
  */
 const RULE_NAME = Object.freeze({
   described: 'the page is described',
   sizing: 'it mentions sizing',
   reviews: 'it mentions reviews',
   barely: 'there is barely a description',
-  siteWork: 'the site work',
+  siteWork: 'the work on the page',
 });
 
 /** A point with its sign: a lost one carries a minus, never colour alone. */

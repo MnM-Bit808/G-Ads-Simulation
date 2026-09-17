@@ -132,7 +132,8 @@ none flipping; no rival moved more than 5%; calibration's figures identical.
   point only by lengthening the description.
 - **DONE 2026-09-17: Your ad shows where the grade comes from** (`523301f`,
   from `design/grade-breakdown/`, direction B). Each row names the grader's
-  rules its own sentences earn ("+1 it mentions sizing", "+2 the site work"),
+  rules its own sentences earn ("+1 it mentions sizing", "+2 the work on the
+  page" — not "the site work", which the game uses for everything capital builds),
   the point more than one purchase earns alone is shown once as shared, and a
   sum under the rows matches the chart, saying "the grade stops at 10" when
   the rows add to more. Split by RULE, not by what removing a purchase costs,

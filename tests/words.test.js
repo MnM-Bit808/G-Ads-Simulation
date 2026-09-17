@@ -405,7 +405,10 @@ describe('the weekly Your ad', () => {
    */
   test('the grade breakdown reads rule by rule, shares out loud, and shows the cap', () => {
     expect(AD.gradeRule({ rule: 'reviews', points: 1 })).toBe('+1 it mentions reviews');
-    expect(AD.gradeRule({ rule: 'siteWork', points: 2 })).toBe('+2 the site work');
+    // Not "the site work": round 0 and Your money use that for everything capital
+    // builds, and so do this screen's note and legend, while these points are the
+    // page's own capital alone (the owner's call, 2026-09-17).
+    expect(AD.gradeRule({ rule: 'siteWork', points: 2 })).toBe('+2 the work on the page');
     expect(AD.gradeRule({ rule: 'sizing', points: 1 })).toBe('+1 it mentions sizing');
     expect(AD.gradeRule({ rule: 'described', points: 1 })).toBe('+1 the page is described');
     // A lost point carries a minus sign, never colour alone.
