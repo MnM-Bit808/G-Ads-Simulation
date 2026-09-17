@@ -439,6 +439,35 @@ line sat ABOVE its own 10 — the screen added capital's points without the cap
 the auction applies. The bars had hidden that for a day; a labelled scale showed
 it in one look.
 
+## `grade-breakdown/`: where the landing page grade comes from (2026-09-17)
+
+A fifteenth canvas, https://claude.ai/code/artifact/84824b26-f048-478f-84da-1a0d9d59983a,
+because the page's row said +3 while the chart beside it stepped +5, and no line
+on the screen held the other two. Drawn on a real game measured on the page as
+it stands: Vella & Co. at mid-price performance, ₹55,000 on the page and ₹25,000
+on the size guide at round 0, ₹50,000 of product shots at week 5, at week 6.
+
+- **Today**, `Today.dc.html`: the rows as built, +3 here and +5 there.
+- **A**, `Ledger.dc.html`: one ledger block, every point and one total.
+- **B**, `Main.dc.html`, **chosen by the owner**: each row carries the rules its
+  own sentences earn, a shared line for the point more than one earns alone,
+  and a sum that matches the chart.
+- **C**, `Step.dc.html`: the chart's riser cut into labelled parts, the only one
+  showing when each point arrives.
+
+**What designing it found.** The obvious split, asking each purchase what the
+grade would be without it, does not add up: with page and chart 10, without the
+page 7, without the chart 9, so +3 and +1 for a gain of 5. The missing point is
+"described", which either purchase earns alone, so asking about either finds it
+already there. All three directions split by the grader's rules instead, where
+every point has one source except that one, and say so.
+
+**Built** 2026-09-17 (`523301f`), with the cap shown openly, the owner's call:
+rows keep every point they earn, the total reads "11, the grade stops at 10", and
+the chart still draws the grade the auction uses. Hiding the eleventh point
+would have meant choosing which purchase lost it. Playing it caught the capped
+total breaking across three lines in a 280-pixel column.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

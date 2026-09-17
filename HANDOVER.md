@@ -129,9 +129,15 @@ none flipping; no rival moved more than 5%; calibration's figures identical.
   `claude/cranky-montalcini-b7c4de` (`87d797e`), is superseded by
   `tests/pageAsItStands.test.js`, which reads the same auction record.
 - **Still open, the owner's:** whether photography should earn its landing
-  point only by lengthening the description, and how Your ad shows what each
-  purchase's sentence adds (the chart steps +5 where the page's row says +3; the
-  other 2 are a size chart's, whose row claims no grade yet).
+  point only by lengthening the description.
+- **DONE 2026-09-17: Your ad shows where the grade comes from** (`523301f`,
+  from `design/grade-breakdown/`, direction B). Each row names the grader's
+  rules its own sentences earn ("+1 it mentions sizing", "+2 the site work"),
+  the point more than one purchase earns alone is shown once as shared, and a
+  sum under the rows matches the chart, saying "the grade stops at 10" when
+  the rows add to more. Split by RULE, not by what removing a purchase costs,
+  because those do not add up (`pagePoints`, `content/landingPage.js`, with a
+  property test against the auction's grade over every rung).
 
 **What to do next, in the owner's order (2026-09-15):**
 1. **DONE 2026-09-15: the brand as a pick from the nine,** in round 0's step
@@ -352,8 +358,8 @@ none flipping; no rival moved more than 5%; calibration's figures identical.
      (`agents/grader.js`, LANDING_RULES). Measured through a real round 0: a
      ₹25,000 size guide takes the grade 5 → 7, photography 5 → 6, ₹25,000 on the
      page 5 → 6. The disclosure is gone, the page row's points say "from the
-     site work", and how to show the description's points is being designed —
-     the owner's choice. Found when the owner asked for a round-0 warning that
+     site work", and the description's points are shown rule by rule since
+     `523301f` (design B, the owner's choice). Found when the owner asked for a round-0 warning that
      ₹25,000 on the page moves nothing, on my word; it moves the grade by one.
      The test games had typed their descriptions by hand, which skips this road.
    - **Four things were caught before it shipped**, three of them by the guards:

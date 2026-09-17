@@ -1,0 +1,39 @@
+{
+  "artboards": [
+    { "file": "Today.dc.html", "x": 0, "y": 0, "w": 920, "h": 1080, "title": "Today · +3 here, +5 there" },
+    { "file": "Main.dc.html", "x": 1020, "y": 0, "w": 920, "h": 1300, "title": "B · Each purchase carries its share" },
+    { "file": "Ledger.dc.html", "x": 0, "y": 1420, "w": 920, "h": 1360, "title": "A · The grade, line by line" },
+    { "file": "Step.dc.html", "x": 1020, "y": 1420, "w": 920, "h": 1120, "title": "C · The step explains itself" }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": -440,
+      "y": 0,
+      "w": 400,
+      "text": "Your ad — where the landing page grade comes from.\n\nA real game, measured on the page as it stands: Vella & Co., mid-price performance, ₹55,000 on the page (reviews) and ₹25,000 on the size guide at round 0, ₹50,000 of product shots at week 5. Drawn at week 6.\n\nThe grade is 5 in weeks 1-3 and 10 from week 4:\n5 every page starts here\n+1 described — the words run past 40 characters\n+1 mentions sizing — the size chart\n+1 mentions reviews — reviews\n+2 site work — reviews, live from week 4\n\nProduct shots land at week 8 and add nothing to the grade (the page is already described). They buy 2% more sales for the same clicks.\n\nToday the page row says +3 and the chart +5, and the other two points are on no line."
+    },
+    {
+      "id": "why-rules",
+      "x": -440,
+      "y": 520,
+      "w": 400,
+      "text": "WHY BY RULE, NOT BY PURCHASE.\n\nAsked per purchase — the grade with it against the grade without it — the numbers do not add up:\nwith both: 10\nwithout the page's money: 7 (a chart alone is still 41 characters, still described)\nwithout the chart: 9\nSo the page adds 3 and the chart 1, which is 4, while the page gained 5 over plain.\n\nThe missing point is \"described\": reviews or the chart earns it alone, so asking about either one finds it already there. Split by the grader's rules instead, every point has one source except that one, and the lines add up exactly.\n\nAll three directions split by rule and say plainly which point is shared."
+    },
+    {
+      "id": "pick",
+      "x": 1980,
+      "y": 0,
+      "w": 340,
+      "text": "B — RECOMMENDED. The grade sits where the money was spent, which is where a player decides what to buy next: each row names the rules its sentence earns beside what else it buys, product shots say +0 on their own row, the shared point has a line, and the sum matches the chart. No new block. Cost: the side column grows by about half.\n\nA — the most complete and the easiest to check: one ledger, every point, one total. Cost: a whole new block, and two of its numbers repeat the rows.\n\nC — the only one that shows WHEN each point arrives, and it leaves the rows alone. Cost: the size chart's +1 is on the chart, not its row, and on a phone each part of the step is about eleven pixels."
+    },
+    {
+      "id": "photography",
+      "x": 1980,
+      "y": 1420,
+      "w": 340,
+      "text": "YOUR OPEN QUESTION SHOWS UP HERE.\n\nIn this game product shots add +0, because reviews and the chart already carried the page past 40 characters. Bought alone they would add +1, and every direction would draw that as \"+1 described\" on the product shots — a point for making the description longer, not for anything a photo does.\n\nWhether photography should earn that point is yours to decide; these designs show the rule as it is today."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
