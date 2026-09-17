@@ -105,22 +105,33 @@ look and no parameter for another. A saved game is met at the front door on
 every load, so choose *Start a new game* to reach round 0. To see the classic
 game as it was, check out the tag `classic-last`.
 
-**Open, and the owner's to decide: the landing page's timing** (the round 0
-design, section 12). A page bought in round 0 raises the graded landing page
-from week 1, though the site work goes live at week 4: reviews take it from 5
-to 7 in week 1's auctions, then to 9 at week 4. A background check confirmed
-it in a test it never committed, `tests/capitalTiming.test.js` in the worktree
-`.claude/worktrees/cranky-montalcini-b7c4de` (written against `main`'s code),
-and Task 15 played the same on `makeover`: the agency with reviews opened at
-landing 7. Step 5 shows what the engine does, so it follows any change. A
-change moves the market, so it is measured on `scripts/market-harness.js`
-before and after, against gates agreed first. It reaches every target's
-sentence, not only the page's (found building Your ad, 2026-09-15): a ₹25,000
-size guide alone takes the graded page from 5 to 7 from week 1, and ₹50,000 of
-photography to 6, though neither goes live until week 4. That a size guide
-moves the landing grade at all is documented (DECISIONS I9, *What this
-costs*); the open part is only the week it starts. The weekly *Your ad* shows it as the
-engine does: the page's parts marked "week 4", its description graded now.
+**DONE 2026-09-17: the landing page is graded as it stands** (DECISIONS I37,
+the owner's decision; commits `88c2c98`, `6246367`, `a163633`). The timing
+question this entry held open is settled. A page built from capital is
+re-written each week from the capital LIVE that week and its landing page grade
+re-scored (`pageAsItStands`, `content/landingPage.js`), so round-0 capital no
+longer counts three weeks before the work exists, and week-5 capital — which
+used to never reach the page — does from week 8. Old saves keep the old rule.
+Measured against gates the owner agreed before any run, all passing: `market`
+mode byte-identical; week-5 page purchases worth more (the size guide's median
+advantage over keeping ₹21,491 → ₹46,435); round-0 purchases worth 13-17% less,
+none flipping; no rival moved more than 5%; calibration's figures identical.
+- **Measure through a real round 0.** The landing page grade has two writers,
+  the page description (all capital's sentences) and the site work's points
+  (the page's own capital), and a test game that types its own description
+  meets only the second. That is how 073e05f came to say the size guide and
+  photography move no grade (corrected in `2d5359c`).
+- **The harness can see the page now**, and has a `page` mode and a
+  `pagegates` check (`scripts/market-harness.js`). Before `6246367` its player
+  typed "A plain product page." and bought nothing at round 0, so it was blind
+  to all of this.
+- The kept measurement of the old timing, branch
+  `claude/cranky-montalcini-b7c4de` (`87d797e`), is superseded by
+  `tests/pageAsItStands.test.js`, which reads the same auction record.
+- **Still open, the owner's:** whether photography should earn its landing
+  point only by lengthening the description, and how Your ad shows what each
+  purchase's sentence adds (the chart steps +5 where the page's row says +3; the
+  other 2 are a size chart's, whose row claims no grade yet).
 
 **What to do next, in the owner's order (2026-09-15):**
 1. **DONE 2026-09-15: the brand as a pick from the nine,** in round 0's step

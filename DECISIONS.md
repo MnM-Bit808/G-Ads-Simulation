@@ -1087,6 +1087,17 @@ on the committed harness**, whose player has its round-0 money: before C8's fix
 and after it, the best investment against keeping the money keeps its sign in
 every cell, so the capital card's premise stands (C8 has the figures).
 
+**Dated note, 2026-09-17: week-5 capital now reaches the page (I37).** The table
+above measured a week-5 investment whose page sentence never reached the grader,
+because the description was written only in round 0. It now does, from the week
+the work lands, so those investments are worth more. On the committed harness
+(full account, week 5, median over keeping the money): photography ₹21,824 →
+₹34,204, size guide ₹21,491 → ₹46,435, the page ₹36,789 → ₹60,841; order
+confirmation writes no sentence and did not move. The week-7 question was not
+re-run: moving the window would now also move when the page is re-graded, so the
+table's week-7 column describes the old rule and should be re-measured before
+anyone reopens it.
+
 ### D13. A bid lies between ₹1 and four times its keyword bid — `OPEN`, recorded 2026-09-15
 
 **What the game does.** Every bid, whatever the strategy and however the hour's
@@ -2641,6 +2652,16 @@ graded by token presence — a digit anywhere, one of `free|save|off|buy|shop`
 — so `expectedCtr` remains word-bingo. And the ad can still only be written at
 round 0 and never revised, though spec 12.3 is explicit that editing copy costs
 no learning period.
+
+**Corrected, 2026-09-17.** Three things above no longer hold, and the first was
+never true. *"Bounded at one point out of ten"*: a ₹25,000 size guide takes the
+page from 5 to 7, because its sentence both mentions size and carries the
+description past the 40-character rule; product shots earn a point by length
+alone. Measured through a real round 0; Your ad said the size guide and
+photography were worth no point until `2d5359c`. The ladder is no longer in
+`ui/landing-page.js` but `content/landingPage.js`, with the landing page rules
+beside it. And the description is no longer composed once in round 0: it is
+re-written each week from the capital live that week (I37).
 
 ### I10. The offline grader rewards craft, and still refuses to award a 9 — `FIXED`
 
@@ -4610,7 +4631,8 @@ so tucking capital behind "advanced" would have steered players to the worst
 option. The landing page grade sits in step 5 beside the capital that moves it.
 How that grade is timed is open (the design's section 12): a page bought in
 round 0 raises the graded page from week 1, though the site work goes live at
-week 4.
+week 4. *Settled 2026-09-17 (I37): the page is graded as it stands, so week 1
+runs on the plain page and step 5 draws the built page's grade from week 4.*
 
 **Not changed:** the engine's economics, the query set, the rival policies, and
 every constant but I11's `CREATIVE_DIY_LIVE_ROUND`, which went. The map's 32
@@ -4670,6 +4692,80 @@ before the fix, and failed there.
 every field. Rivals block searches too, so their own old keyword rows did
 change; nothing in the market reads an old week's keyword rows, so nothing it
 decides moved.
+
+### I37. The landing page is graded as it stands each week — `FIXED` (2026-09-17)
+
+**The question, open since the round 0 redesign (its section 12).** Round 0
+writes the player's page description from every rupee of capital committed
+(I9), and the grader scored it from week 1. None of that work is live before
+week 4. Measured on real round-0 games played to week 10:
+
+| capital | when | landing page grade the auctions ran on |
+|---|---|---|
+| reviews ₹55,000 | round 0 | 7 from week 1, 9 from week 4 |
+| size guide ₹25,000 + photography ₹50,000 | round 0 | 7 from week 1 |
+| the same | week 5 | 5 all game — the description was never written again |
+| reviews ₹55,000 | week 5 | 5, then 7 at week 8 (the site work's points only) |
+
+So round-0 page capital counted three weeks before the work existed, capital
+committed at week 5 never reached the page at all, and the same money was worth
+up to three grade points more for being spent early. Nobody decided that; it
+fell out of when the description happened to be written.
+
+**The owner's decision: grade the page as it stands.** Each week a page built
+from capital is re-written from the capital LIVE that week and its landing page
+grade re-scored (`pageAsItStands`, `content/landingPage.js`). `game.js` lands it
+before each round's auctions beside `landCreative`; `setup.js` opens a game on
+the page as it stands in week 1, the plain page; round 0's step 5, its reserve
+warning, and Your ad read the same function. Only the landing page part moves:
+the copy grades read headlines and descriptions alone. A page built from capital
+carries a mark (`pageBuiltFromCapital`) — data, not "this is the player": a
+rival's page grade is its authored character and has none. **Games saved before
+the change keep the rule they were played under** (the owner's choice): their
+stored start has no mark, so they replay exactly, as saves from before I11 still
+land their copy at week 3.
+
+**Where it departs from Google.** The field guide's sourced sentence describes
+landing page experience as "how relevant and useful your page is to people who
+click" (`ui/guide/chapters.js`, *Who writes the ad*). Inferred from that, not
+separately sourced: people who click reach the page as it is, not work still
+being built, so grading the page as it stands departs less than grading it
+early did. What remains of I9's departure is that the page is a description
+graded by rules, not a page.
+
+**The landing page's grading rules moved beside the ladder.** `game.js` may not
+import `agents/` (R2, `tests/game.test.js`), and the rules read the description
+and nothing else, so `LANDING_RULES`, `gradePage` and the base grade live in
+`content/landingPage.js`, and `agents/grader.js` reads them from there to score
+and explain the landing page.
+
+**Measured, against gates the owner agreed before any run** (the market harness
+at `6246367`, whose player first learned to write its page from capital):
+- **Hard, all passed.** `market` mode byte-identical (72 markets). At week 5,
+  keeping the money and order confirmation identical in every market. From the
+  auctions' own record, round-0 capital grades like none in weeks 1-3 and like
+  it used to from week 4; week-5 capital leaves the page alone to week 7 and
+  matches the same bought at round 0 from week 8 (`tests/pageAsItStands.test.js`).
+  The screen's grade equals the auction's every week. Calibration's 22 printed
+  figures identical.
+- **Stop-and-show, all passed.** Week-5 capital's median advantage over keeping
+  rose: photography ₹21,824 → ₹34,204, size guide ₹21,491 → ₹46,435, the page
+  ₹36,789 → ₹60,841. Round-0 capital's fell by no more than the owner's 25%:
+  size guide ₹77,387 → ₹63,951 (−17.4%), reviews ₹1,15,455 → ₹99,832 (−13.5%),
+  top page ₹1,40,553 → ₹1,20,169 (−14.5%), photography ₹56,419 → ₹47,641
+  (−15.6%), each still beating keeping in 51 to 58 of 72 markets. No rival's
+  median profit moved more than 5%; the widest, −4.1%.
+
+**What it changes on screen.** Round 0's step 5 draws the grade as 5 for week 1
+and the built page's grade from week 4, so a size chart that used to show one
+bar at 7 shows two. Your ad's chart steps at the week the work lands, and the
+page's row counts what the page's own capital adds against the same account
+without it — a size chart bought beside it lands its sentence on the page too.
+
+**Still open.** Photography earns its landing page point only by lengthening
+the description past 40 characters, which nobody chose (the owner's question,
+2026-09-17). And how Your ad should show what each purchase's sentence adds is
+the owner's design to come.
 
 ### F14. The engine contradicts itself about returns — `FIXED`
 

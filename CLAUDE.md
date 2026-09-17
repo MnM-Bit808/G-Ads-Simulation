@@ -256,6 +256,18 @@ number in the simulation without ever throwing an error.
   opens. They were lifted out of the classic page for exactly that reason, and
   `tests/roundZero.test.js` — round 0's reserve warning, measured against the
   engine's own auction — reads them directly.
+- **The landing page grade has two writers, and the page is graded as it
+  stands (I37, 2026-09-17).** The page description is written from ALL the
+  capital's sentences (the size guide's and photography's too) and graded by
+  `LANDING_RULES`; the site work's points come from the page's own capital
+  (`landingPageBonus`). Each week `game.js` re-writes a page marked
+  `pageBuiltFromCapital` from the capital live that week (`pageAsItStands`,
+  `content/landingPage.js`), and every screen reads the same function. A claim
+  about what a purchase does to the grade has to check both writers, through a
+  real round 0 (`r0.startChoices`): a test game that types its own description
+  meets only the second, which is how the screen once said a size guide is worth
+  no point when it is worth two. `game.js` may not import `agents/`, which is why
+  the page's grading rules live in `content/`.
 - **Since 2026-09-14 a self-written ad runs on its words from week 1 (I11).** No
   new game sets `pendingGrade`, and `game.js`'s `landCreative` stays only for
   saves made before then; `tests/fixtures/oldSave.js` builds one, and the game
