@@ -4762,10 +4762,93 @@ bar at 7 shows two. Your ad's chart steps at the week the work lands, and the
 page's row counts what the page's own capital adds against the same account
 without it — a size chart bought beside it lands its sentence on the page too.
 
-**Still open.** Photography earns its landing page point only by lengthening
-the description past 40 characters, which nobody chose (the owner's question,
-2026-09-17). And how Your ad should show what each purchase's sentence adds is
-the owner's design to come.
+**Both things this left open are now settled.** Photography earned its landing
+page point only by lengthening the description past 40 characters: the rule is
+gone (I38). How Your ad shows what each purchase's sentence adds was designed
+and built (`523301f`, design/grade-breakdown/, direction B).
+
+### I38. The landing page grade counts only what Google names — `FIXED` (2026-09-17)
+
+**The rule nobody chose.** `LANDING_RULES` gave a point to any page description
+longer than 40 characters. The plain page every advertiser starts with is 21
+characters, so ANY sentence the capital ladder wrote earned it:
+
+| bought alone at round 0 | the sentence | characters | grade from week 4 |
+|---|---|---|---|
+| product shots ₹50,000 | "Product shots on white." | 45 | 6 |
+| the faster page ₹25,000 | "It loads quickly on a phone." | 50 | 6 |
+| a size chart ₹25,000 | "A basic size chart." | 41 | 7 (with sizing) |
+
+So a photograph earned Quality Score through its caption, and a size chart
+cleared the threshold by a single character. I9's correction of 2026-09-17 had
+already recorded the first as a fact; the owner asked whether it should be one.
+
+**What Google says, fetched 2026-09-17.** Google Ads Help, *Optimize your ads and
+landing pages* (`support.google.com/google-ads/answer/6238826`): useful, original
+information about what you advertise; being clear about the product; adding
+reviews from real customers; for mobile, keep it quick and use simple navigation;
+and a page that matches the ad and its keywords. Search Ads 360 Help, *Landing
+page experience* (`support.google.com/sa360/answer/9351020`): the usefulness and
+relevance of the information, ease of navigation, the number of links, and what
+the ad led people to expect. **Neither names images, photographs, video, or the
+length of the text.**
+
+**The owner's decision (design/photography-point/, direction C).** The length
+rule goes. The faster page's own sentence earns that point for SPEED, which
+Google's mobile advice names, and every page rung above it keeps it, since the
+ladder is cumulative. Sizing and reviews stay; reviews is named by Google, sizing
+is inferred from "useful information about the product" and is marked as inferred
+rather than sourced. Photography earns no landing page point at any rung: it buys
+conversions, which is its road.
+
+Two directions were drawn and not taken: saying plainly on screen what the length
+point was for (no number moves, but the game still pays a grade point for a
+caption), and counting length from what the page SAYS rather than what it shows
+(smaller, but the faster page and the size chart would still earn by character
+count). **Refused outright:** a grade point of photography's own. No source names
+pictures, and photography is already the best single capital purchase in four of
+the six cells (I30, as F14 left it).
+
+**What it changes, over all 64 combinations of the three ladders:** 49 grade
+exactly as before — every page with capital on the page itself, and the page with
+nothing bought. 15 lose exactly one point: no page capital, but a size chart or
+product shots. Rivals' page grades are authored numbers, not scored, so only the
+player's grade moves directly.
+
+**Games saved before this keep the length rule** (the owner's choice, as for I37
+and I11). A new game's page carries `pageRules: 'speed'`; a page without it is
+graded by `LENGTH_RULES`. `game.js`, Your ad and the week-5 capital card all read
+`rulesFor`, so a saved game replays exactly and never meets "This game has changed".
+
+**Measured, against gates the owner agreed before any run** (`speedgates`, from
+`market`, `capital` and `page` runs before and after):
+
+- **Hard, all passed.** The 72 markets of `market` mode identical. At week 5,
+  keeping the money, order confirmation and ₹80,000 on the page identical, the
+  player's profit and every rival's. At round 0, keeping, reviews, the top page
+  and the faster page identical.
+- **Stop-and-show: all five tripped, and the owner accepted them.** Median
+  advantage over keeping the money: round-0 size chart ₹63,951 → ₹38,029
+  (−40.5%), round-0 product shots ₹47,641 → ₹22,245 (−53.3%), the two together
+  ₹85,397 → ₹57,238 (−33.0%), week-5 size guide ₹46,435 → ₹33,263 (−28.4%),
+  week-5 photography ₹34,204 → ₹21,824 (−36.2%). The limit was a quarter, carried
+  over from I37 where the change was about timing; here a whole grade point is
+  removed, which is a fifth of the way from 5 to 10, so a third to a half of the
+  advantage is the size to expect. **Nothing stopped being worth buying**: each
+  still beats keeping the money in about the same share of markets (the size chart
+  in 55 of 72, down from 58; product shots in 51 of 72, unchanged; the pair in 52,
+  up from 51; week-5 size guide in 47, unchanged; week-5 photography in 38, down
+  from 41).
+- **Rivals within 5%**, the widest 3.1% (Torvi, round-0 photography).
+- **Shown, not a gate:** the round-0 purchases rank by advantage as before — the
+  top page, reviews, chart-and-shots, the size chart — except that product shots
+  now sit below the faster page. A first ₹50,000 rung of photography buys 2% more
+  sales and nothing else, which is what it always bought.
+
+**What it costs.** The size chart was the best-value first purchase for a
+beginner and is now worth about 60% of what it was. Making it worth more again
+would need a second sourced rule about the page's usefulness, which is a design
+question rather than a tuning knob, and is not open.
 
 ### F14. The engine contradicts itself about returns — `FIXED`
 

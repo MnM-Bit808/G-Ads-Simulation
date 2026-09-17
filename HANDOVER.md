@@ -128,8 +128,23 @@ none flipping; no rival moved more than 5%; calibration's figures identical.
 - The kept measurement of the old timing, branch
   `claude/cranky-montalcini-b7c4de` (`87d797e`), is superseded by
   `tests/pageAsItStands.test.js`, which reads the same auction record.
-- **Still open, the owner's:** whether photography should earn its landing
-  point only by lengthening the description.
+- **DONE 2026-09-17: the grade counts only what Google names** (DECISIONS I38,
+  the owner's decision, from `design/photography-point/`, direction C). The rule
+  that gave a point to any description over 40 characters is gone: the plain page
+  is 21, so any sentence at all earned it — a caption for product shots, the
+  faster page, a size chart alone by one character. The faster page's own
+  sentence now earns that point for SPEED, which Google's mobile advice names;
+  photography earns no landing page point at any rung. Over all 64 rung
+  combinations, 49 grade as before (every page with capital on the page itself)
+  and 15 lose exactly one point (a chart or shots with nothing on the page).
+  Games saved before keep the length rule (`pageRules`, `rulesFor`), the owner's
+  choice as for I37. Gates agreed first: all three hard gates passed (the
+  no-capital market identical; week-5 keep, order confirmation and the page
+  identical; round-0 keep, reviews, top page and faster page identical), and all
+  five stop-and-show gates tripped and were accepted — the purchases that lose a
+  point lost 28-53% of their median advantage over keeping the money, while every
+  one still beats keeping it in about the same share of markets, and no rival
+  moved more than 3.1%.
 - **DONE 2026-09-17: Your ad shows where the grade comes from** (`523301f`,
   from `design/grade-breakdown/`, direction B). Each row names the grader's
   rules its own sentences earn ("+1 it mentions sizing", "+2 the work on the

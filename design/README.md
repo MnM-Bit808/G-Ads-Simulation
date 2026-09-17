@@ -468,6 +468,43 @@ the chart still draws the grade the auction uses. Hiding the eleventh point
 would have meant choosing which purchase lost it. Playing it caught the capped
 total breaking across three lines in a 280-pixel column.
 
+## `photography-point/`: what product shots earn on the grade (2026-09-17)
+
+A sixteenth canvas, https://claude.ai/code/artifact/a40e2ecc-162e-416b-a011-12943a474625,
+for the question the canvas above left open: product shots earned a landing page
+point only by making the description longer. The grader gave a point to any
+description over 40 characters, and the plain page is 21, so any sentence at all
+earned it — a caption for product shots (45), the faster page (50), a size chart
+alone (41, by one character).
+
+Drawn on product shots bought alone, ₹50,000 at round 0, at round 0's step 5 and
+Your ad in week 6, because that is the game the question changes.
+
+- **Today**, `Today.dc.html`: the caption earns a point, and round 0's photography
+  card says it moves how many visitors buy while the bar beside it rises by one.
+- **A**, `Say.dc.html`: keep the point and say what earns it. No number moves.
+- **B**, `Words.dc.html`: the length rule counts what the page SAYS, so a
+  photograph's line does not lengthen it. Only shots-first games lose a point.
+- **C**, `Main.dc.html`, **chosen by the owner**: no rule for length; the faster
+  page's own sentence earns its point for speed, which Google's advice names.
+
+**What Google says, fetched 2026-09-17** and quoted on the canvas: Google Ads
+Help's *Optimize your ads and landing pages* (answer 6238826) asks for useful,
+original information about what you advertise, suggests adding reviews from real
+customers, and for mobile says to keep it quick and use simple navigation; Search
+Ads 360 Help's *Landing page experience* (9351020) names usefulness and relevance,
+ease of navigation, the number of links, and what the ad led people to expect.
+**Neither mentions images, photographs, video, or how long the text is.**
+
+**Refused, and said so on the canvas:** a grade point of photography's own ("it
+shows the product"). No source names pictures, and photography is already the
+best single capital purchase in four of the six cells (I30, as F14 left it).
+
+**Also found, and left for its own look:** round 0's size guide card says it moves
+parcels sent back, while the grade bar beside it rises by two.
+
+**Built** 2026-09-17 as DECISIONS I38, measured against gates agreed first.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.
