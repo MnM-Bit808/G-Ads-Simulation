@@ -13,7 +13,7 @@ import { startGame } from '../setup.js';
 import { createDraft, effectiveGrades } from '../ui/decisions.js';
 import * as r0 from '../ui/roundzero/rules.js';
 import { adModel, worthShape, GRADE_TOP, DRAWN_RUNGS } from '../ui/ad/read.js';
-import { PAGE_FEATURES } from '../ui/landing-page.js';
+import { PAGE_FEATURES } from '../content/landingPage.js';
 import { asOldSave, OLD_SAVE_LIVE_ROUND } from './fixtures/oldSave.js';
 
 const SEED = 20260902;
@@ -348,7 +348,7 @@ describe('what each thing bought for the page actually moves', () => {
 /**
  * WHAT THE DRAWN PAGE SHOWS IS THE RUNG THAT IS LIVE (the owner, 2026-09-16:
  * "show when the page goes live"). The stars are the reviews rung and the chart
- * is the size guide's first rung (ui/landing-page.js, PAGE_FEATURES). The page
+ * is the size guide's first rung (content/landingPage.js, PAGE_FEATURES). The page
  * used to draw both once EVERY tranche on the target had landed, whatever rung
  * was live, which went wrong both ways: ₹55,000 then ₹25,000 hid reviews bought
  * and live since week 4 until week 8, and ₹25,000 alone — a page that loads

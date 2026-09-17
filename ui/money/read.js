@@ -21,7 +21,8 @@ import {
   ROUNDS_PER_MONTH,
 } from '../../engine/constants.js';
 import { STRATEGIES } from '../../engine/strategies.js';
-import { capexChoices, featureAt, pageShape } from '../landing-page.js';
+import { capexChoices, pageShape } from '../landing-page.js';
+import { featureAt } from '../../content/landingPage.js';
 import { rankOf } from '../ending.js';
 import {
   monthBudgetAfter, weekBudgetsAtRun, setWeekBudget, bidOutlook, willTriggerLearning,

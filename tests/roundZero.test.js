@@ -45,7 +45,7 @@ import { minimumBidToShowPaise } from '../engine/auction.js';
 import { qualitySignalBase, applyHourAndNoise } from '../engine/quality.js';
 import { tagKeywordOffline } from '../agents/keywordTagger.js';
 import { QUERY_SET } from '../content/querySet.js';
-import { composeDescription } from '../ui/landing-page.js';
+import { composeDescription } from '../content/landingPage.js';
 import {
   WRITER_TIERS, CAPEX_ALLOCATION_PAISE,
   CREATIVE_ALLOCATION_PAISE, PRICE_TIERS, PURPOSES,

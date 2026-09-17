@@ -24,7 +24,7 @@ import {
 import {
   writerTier, isDiy, hiredCopyGrades, openingCopyGrades,
 } from '../../content/writers.js';
-import { composeDescription, PAGE_FEATURES } from '../landing-page.js';
+import { composeDescription, PAGE_FEATURES } from '../../content/landingPage.js';
 import { lowestBidToShowPaise, wholeRupeeBid } from '../reserve.js';
 
 /**

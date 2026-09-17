@@ -17,7 +17,7 @@ import { liveCapexPaise } from '../../engine/positions.js';
 import { LOCATIONS } from '../../content/locations.js';
 import { SETTLES_AFTER_ROUNDS, allocationWindowPhrase } from '../dashboard.js';
 import { prepaidRungs, setPrepaidDiscount } from '../decisions.js';
-import { featureAt } from '../landing-page.js';
+import { featureAt } from '../../content/landingPage.js';
 import { whyButton } from '../guide/drawer.js';
 import { SECTIONS } from '../shell/sections.js';
 import { RETURNS, RETURNS_STUDIO as W } from '../words/returns.js';

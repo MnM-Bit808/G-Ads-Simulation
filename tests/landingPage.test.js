@@ -16,8 +16,26 @@ import { describe, test, expect } from 'vitest';
 import { explainGrade } from '../agents/grader.js';
 import { CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS } from '../engine/constants.js';
 import {
-  PAGE_FEATURES, CAPEX_STEPS, stepsFor, composeDescription, featureAt, capexChoices,
-} from '../ui/landing-page.js';
+  PAGE_FEATURES, CAPEX_STEPS, stepsFor, composeDescription, featureAt,
+} from '../content/landingPage.js';
+import * as cards from '../ui/landing-page.js';
+
+const { capexChoices } = cards;
+
+/**
+ * THE LADDER HAS ONE HOME, and it is not a screen. The weekly loop re-writes a
+ * page from the capital live that week (the owner, 2026-09-17: grade the page as
+ * it stands), and game.js reads nothing from ui/. So the ladder and the
+ * sentences the grader reads live in content/, and the cards keep only what
+ * draws them — a second copy in ui/ would be a second model of the page.
+ */
+describe('where the page ladder lives', () => {
+  test('in content/, and ui/ keeps only what the cards draw', () => {
+    expect(Object.keys(cards).sort()).toEqual(['capexChoices', 'pageShape']);
+    expect(typeof composeDescription).toBe('function');
+    expect(Object.keys(PAGE_FEATURES)).toEqual(['landingPage', 'sizeGuide', 'photography', 'orderConfirmation']);
+  });
+});
 
 const NOTHING = { sizeGuide: 0, photography: 0, landingPage: 0 };
 const adWith = (capex) => ({

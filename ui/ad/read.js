@@ -18,7 +18,8 @@
 import { TOTAL_ROUNDS } from '../../engine/constants.js';
 import { writerTier, isDiy } from '../../content/writers.js';
 import { effectiveGrades } from '../decisions.js';
-import { pageShape, tiersFunded } from '../landing-page.js';
+import { pageShape } from '../landing-page.js';
+import { tiersFunded } from '../../content/landingPage.js';
 import { capexEffect, liveCapexPaise } from '../../engine/positions.js';
 
 const PARTS = ['expectedCtr', 'adRelevance', 'landingPage'];
@@ -161,7 +162,7 @@ export function pageParts(block, round, grade) {
 
 /**
  * The rungs the drawn page shows as pictures: the stars are the reviews, and
- * the chart is the size guide's first rung (ui/landing-page.js, PAGE_FEATURES).
+ * the chart is the size guide's first rung (content/landingPage.js, PAGE_FEATURES).
  * Named by label because that ladder names them; a test holds that both labels
  * are rungs the ladder has, so renaming one fails rather than drawing nothing.
  */
