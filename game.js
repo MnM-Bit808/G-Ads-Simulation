@@ -33,7 +33,7 @@ import { reportedScore } from './engine/quality.js';
 import { getPublicView, getSelfView } from './engine/insights.js';
 import { logDecisions, decisionsForRound } from './engine/serialise.js';
 import { reposition, canReposition } from './engine/positions.js';
-import { pageAsItStands } from './content/landingPage.js';
+import { pageAsItStands, rulesFor } from './content/landingPage.js';
 import {
   LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, TOTAL_ROUNDS,
   CAPEX_TARGETS, PREPAID_DISCOUNT_MAX_PAISE,
@@ -300,6 +300,10 @@ function landCreative(advertiser, round) {
  * their authored character, and games saved before this change, which keep the
  * rule they were played under (the owner's choice).
  *
+ * And graded by the rules the game was begun under (`rulesFor`): a game saved
+ * before grading only what Google names (C, 2026-09-17) keeps the length rule,
+ * the owner's choice again.
+ *
  * @param {object} advertiser
  * @param {number} round the round about to run
  * @returns {object} the advertiser, unchanged unless its page has moved
@@ -308,7 +312,7 @@ function landPage(advertiser, round) {
   const [first, ...rest] = advertiser.adGroups ?? [];
   if (!first?.pageBuiltFromCapital) return advertiser;
 
-  const page = pageAsItStands(advertiser.capex, round);
+  const page = pageAsItStands(advertiser.capex, round, { rules: rulesFor(first) });
   if (first.ad?.landingPageDescription === page.description && first.gradedQuality?.landingPage === page.landingPage) {
     return advertiser;
   }

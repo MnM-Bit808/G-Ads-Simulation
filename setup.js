@@ -56,7 +56,7 @@ import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
 import { LOCATIONS } from './content/locations.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
 import { gradeAdOffline } from './agents/grader.js';
-import { pageAsItStands } from './content/landingPage.js';
+import { pageAsItStands, PAGE_RULES_NOW } from './content/landingPage.js';
 import { RIVAL_CAST } from './agents/policies.js';
 import {
   isDiy, openingCopyGrades, creativeSpend, tierForPolicy,
@@ -788,6 +788,9 @@ function buildPlayer(identity, choices, querySet) {
       // 2026-09-17 has no mark either, and keeps the rule it was played under
       // (the owner's choice), so it replays exactly.
       pageBuiltFromCapital: true,
+      // Graded only by what Google names (the owner's C, 2026-09-17): no point for
+      // length. A game saved before carries no mark and keeps the length rule.
+      pageRules: PAGE_RULES_NOW,
       // Spec 17 step 12: grade the player's assets before round 1. Offline
       // unless a grade was supplied, because round 0 has to complete without
       // an API key - and because leaving it null is not a neutral choice.

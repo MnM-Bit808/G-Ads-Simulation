@@ -51,7 +51,7 @@ import {
 } from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
-import { pageAsItStands } from '../content/landingPage.js';
+import { pageAsItStands, rulesFor } from '../content/landingPage.js';
 
 /** The three string negatives of 8.2, and no fourth. Tags never appear (H3). */
 export const NEGATIVE_TYPES = ['broad', 'phrase', 'exact'];
@@ -784,8 +784,10 @@ export function effectiveGrades(draft) {
   // A page built from capital is graded AS IT STANDS in the week asked about
   // (the owner, 2026-09-17): the function game.js lands before that week's
   // auctions, so a future week reads the page it will have, not the stored one.
+  // By the rules the game was begun under: a game saved before grading only what
+  // Google names keeps the length rule (C, 2026-09-17).
   const page = draft.adGroups?.[0]?.pageBuiltFromCapital
-    ? pageAsItStands(draft.capexBlock ?? {}, draft.round).landingPage
+    ? pageAsItStands(draft.capexBlock ?? {}, draft.round, { rules: rulesFor(draft.adGroups[0]) }).landingPage
     : graded.landingPage;
   return {
     expectedCtr: graded.expectedCtr,

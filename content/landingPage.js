@@ -203,9 +203,10 @@ export function composeDescription(capex = {}) {
 export const PAGE_GRADE_BASE = 5;
 
 /**
- * How long a description must run, in characters, before the page counts as
- * described. One number, because the screen now says it (Your ad's breakdown)
- * and a sentence may not carry a digit of its own.
+ * How long a description must run, in characters, before the page counted as
+ * described, in a game saved before grading only what Google names (`LENGTH_RULES`).
+ * One number, because the screen says it (Your ad's breakdown) and a sentence may
+ * not carry a digit of its own.
  */
 export const DESCRIBED_AT = 40;
 
@@ -214,6 +215,28 @@ export const DESCRIBED_AT = 40;
  * however many points it earns (round.js, `withLandingBonus`; `effectiveGrades`).
  */
 export const GRADE_CAP = 10;
+
+const SIZING = Object.freeze({
+  key: 'sizing',
+  points: 1,
+  hit: ({ page }) => /size|fit|guide|chart/.test(page),
+  whenHit: 'it mentions sizing, which is what apparel buyers leave over',
+  whenMissed: 'no mention of size or fit — the main reason apparel visitors bounce',
+});
+const REVIEWS = Object.freeze({
+  key: 'reviews',
+  points: 1,
+  hit: ({ page }) => /review|rating/.test(page),
+  whenHit: 'it mentions reviews',
+  whenMissed: 'no reviews or ratings on the page',
+});
+const BARELY = Object.freeze({
+  key: 'barely',
+  points: -2,
+  hit: ({ page }) => page.length < 15,
+  whenHit: 'there is barely a description at all',
+  whenMissed: null,
+});
 
 /**
  * What a page description earns, rule by rule. The grader's own rules for the
@@ -225,8 +248,38 @@ export const GRADE_CAP = 10;
  * reach agents/, where a model can be called (R2, tests/game.test.js). These
  * rules read the description and nothing else — no model, no copy, no keywords —
  * so the page and what it is worth sit together.
+ *
+ * GRADING ONLY WHAT GOOGLE NAMES (the owner's C, 2026-09-17,
+ * design/photography-point/). A point for a description over 40 characters went
+ * to any sentence at all, since the plain page is 21: a caption for product
+ * shots, the faster page, a size chart alone by one character. Neither Google
+ * help page fetched for it names pictures or length ("Optimize your ads and
+ * landing pages", "Landing page experience"); Google's advice for a mobile page
+ * is to keep it quick. So the faster page's own sentence earns that point, for
+ * speed, and every rung above it keeps it. Over all 64 combinations of the three
+ * ladders, a page with capital on the page itself grades as it did, and one
+ * without loses exactly one point when a chart or shots are bought. Sizing stays:
+ * Google asks for useful information about the product, and size is that, which
+ * is inferred, not named. DECISIONS I38.
  */
 export const LANDING_RULES = Object.freeze([
+  {
+    key: 'speed',
+    points: 1,
+    hit: ({ page }) => /loads quickly/.test(page),
+    whenHit: 'it loads quickly on a phone',
+    whenMissed: 'nothing says the page loads quickly on a phone',
+  },
+  SIZING,
+  REVIEWS,
+  BARELY,
+]);
+
+/**
+ * The rules a game saved before grading only what Google names keeps (the
+ * owner's choice, 2026-09-17), so it replays as it was played.
+ */
+export const LENGTH_RULES = Object.freeze([
   {
     key: 'described',
     points: 1,
@@ -234,38 +287,37 @@ export const LANDING_RULES = Object.freeze([
     whenHit: 'you have actually described the page',
     whenMissed: 'the description is too short to tell anyone what is on the page',
   },
-  {
-    key: 'sizing',
-    points: 1,
-    hit: ({ page }) => /size|fit|guide|chart/.test(page),
-    whenHit: 'it mentions sizing, which is what apparel buyers leave over',
-    whenMissed: 'no mention of size or fit — the main reason apparel visitors bounce',
-  },
-  {
-    key: 'reviews',
-    points: 1,
-    hit: ({ page }) => /review|rating/.test(page),
-    whenHit: 'it mentions reviews',
-    whenMissed: 'no reviews or ratings on the page',
-  },
-  {
-    key: 'barely',
-    points: -2,
-    hit: ({ page }) => page.length < 15,
-    whenHit: 'there is barely a description at all',
-    whenMissed: null,
-  },
+  SIZING,
+  REVIEWS,
+  BARELY,
 ]);
+
+/**
+ * What a new game's page carries to say `LANDING_RULES` grade it (setup.js).
+ * A page without it was saved before those rules and keeps `LENGTH_RULES`.
+ */
+export const PAGE_RULES_NOW = 'speed';
+
+/**
+ * The rules that grade a played game's page: the ones it was begun under.
+ *
+ * @param {object} [adGroup] the advertiser's first ad group, which carries the mark
+ * @returns {readonly object[]}
+ */
+export function rulesFor(adGroup) {
+  return adGroup?.pageRules === PAGE_RULES_NOW ? LANDING_RULES : LENGTH_RULES;
+}
 
 /**
  * The landing page grade a description earns: 1-10, a whole number.
  *
  * @param {string} description
+ * @param {readonly object[]} [rules] `LENGTH_RULES` for a game saved before C
  * @returns {number}
  */
-export function gradePage(description) {
+export function gradePage(description, rules = LANDING_RULES) {
   const page = (description ?? '').toLowerCase();
-  const total = LANDING_RULES.reduce((sum, rule) => sum + (rule.hit({ page }) ? rule.points : 0), PAGE_GRADE_BASE);
+  const total = rules.reduce((sum, rule) => sum + (rule.hit({ page }) ? rule.points : 0), PAGE_GRADE_BASE);
   return Math.max(1, Math.min(10, Math.round(total)));
 }
 
@@ -286,12 +338,14 @@ export function gradePage(description) {
  *
  * @param {{committed?: object, pending?: object[]}} capex a capex block
  * @param {number} round the week the page is read in
+ * @param {{rules?: readonly object[]}} [options] the rules the game was begun
+ *   under (`rulesFor`); a new game's by default
  * @returns {{description: string, landingPage: number}}
  */
-export function pageAsItStands(capex, round) {
+export function pageAsItStands(capex, round, { rules = LANDING_RULES } = {}) {
   const live = Object.fromEntries(COMPOSE_ORDER.map((target) => [target, liveCapexPaise(capex, target, round)]));
   const description = composeDescription(live);
-  return { description, landingPage: gradePage(description) };
+  return { description, landingPage: gradePage(description, rules) };
 }
 
 /**
@@ -312,14 +366,21 @@ export function pageAsItStands(capex, round) {
  *
  * @param {{committed?: object, pending?: object[]}} capex a capex block
  * @param {number} round
- * @param {{describedFrom?: 'live'|'committed'}} [options] 'committed' reads the
- *   description from everything committed, as a game saved before the page was
- *   graded as it stands still does; the site work is always what is live
+ * SHARING NEEDS THE LENGTH RULE. Under `LANDING_RULES` every rule is earned by
+ * one ladder's sentences, so nothing is shared; only a game saved before C, still
+ * on `LENGTH_RULES`, can split a point.
+ *
+ * @param {{committed?: object, pending?: object[]}} capex a capex block
+ * @param {number} round
+ * @param {{describedFrom?: 'live'|'committed', rules?: readonly object[]}} [options]
+ *   'committed' reads the description from everything committed, as a game saved
+ *   before the page was graded as it stands still does; the site work is always
+ *   what is live. `rules` are the ones the game was begun under (`rulesFor`).
  * @returns {{start: number, lines: Array<{rule: string, points: number, by: string[]}>,
  *   total: number, grade: number}} `by` names capex targets; empty for a point the
  *   plain page earns (none does today)
  */
-export function pagePoints(capex, round, { describedFrom = 'live' } = {}) {
+export function pagePoints(capex, round, { describedFrom = 'live', rules = LANDING_RULES } = {}) {
   const paise = (target) => (describedFrom === 'committed'
     ? capex?.committed?.[target] ?? 0
     : liveCapexPaise(capex, target, round));
@@ -331,7 +392,7 @@ export function pagePoints(capex, round, { describedFrom = 'live' } = {}) {
   const alone = (target) => composeDescription({ [target]: funded[target] }).toLowerCase();
 
   const lines = [];
-  for (const rule of LANDING_RULES) {
+  for (const rule of rules) {
     if (!rule.hit({ page })) continue;
     const by = earners.filter((target) => rule.hit({ page: alone(target) }));
     // Hit only by sentences together: every earner shares it.
@@ -344,6 +405,6 @@ export function pagePoints(capex, round, { describedFrom = 'live' } = {}) {
     start: PAGE_GRADE_BASE,
     lines,
     total: PAGE_GRADE_BASE + lines.reduce((sum, line) => sum + line.points, 0),
-    grade: Math.min(GRADE_CAP, gradePage(page) + bonus),
+    grade: Math.min(GRADE_CAP, gradePage(page, rules) + bonus),
   };
 }

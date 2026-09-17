@@ -20,7 +20,7 @@ import { writerTier, isDiy } from '../../content/writers.js';
 import { effectiveGrades } from '../decisions.js';
 import { pageShape } from '../landing-page.js';
 import {
-  tiersFunded, pageAsItStands, pagePoints, PAGE_FEATURES, GRADE_CAP,
+  tiersFunded, pageAsItStands, pagePoints, PAGE_FEATURES, GRADE_CAP, LANDING_RULES, rulesFor,
 } from '../../content/landingPage.js';
 import { capexEffect, liveCapexPaise } from '../../engine/positions.js';
 
@@ -119,8 +119,9 @@ function pageStrips(block, round) {
  * @param {(block: object, round: number) => number|null} grade - the landing page
  *   grade the auction runs on in `round` with that capital (`effectiveGrades`),
  *   or null for an account with no ad to grade
- * @param {{describedFrom?: 'live'|'committed'}} [options] 'committed' for a game
- *   saved before the page was graded as it stands (`pagePoints`)
+ * @param {{describedFrom?: 'live'|'committed', rules?: readonly object[]}} [options]
+ *   'committed' for a game saved before the page was graded as it stands, and the
+ *   rules the game was begun under (`pagePoints`, `rulesFor`)
  * @returns {Array<{target: string, label: string|null, bought: boolean, paise: number,
  *   week: number|null, moves: 'grade'|'returns'|'conversions', points: number, now: number,
  *   lift: number, gradeLines: Array<{rule: string, points: number}>,
@@ -132,7 +133,7 @@ function pageStrips(block, round) {
  *   `wouldAdd`, for an unbought page only, the cheapest rung that adds grade to
  *   this account
  */
-export function pageParts(block, round, grade, { describedFrom = 'live' } = {}) {
+export function pageParts(block, round, grade, { describedFrom = 'live', rules = LANDING_RULES } = {}) {
   const committed = block?.committed ?? {};
   const pending = (target) => (block?.pending ?? []).filter((p) => p.target === target && p.liveAtRound > round);
   const label = new Map(pageShape(committed).strips.map((s) => [s.target, s.label]));
@@ -156,17 +157,19 @@ export function pageParts(block, round, grade, { describedFrom = 'live' } = {}) 
     return all === null ? 0 : all - grade(withoutPage(b), r);
   };
   // WHAT AN UNBOUGHT PAGE WOULD ADD: the cheapest rung that adds anything to THIS
-  // account, and how much. Not "it would raise the grade": the cheapest rung earns
-  // its point only by lengthening the description, which a size chart or product
-  // shots may already have done — beside a ₹25,000 size guide it adds nothing, and
-  // ₹55,000 is the first to add, 3. Measured on the page as it stands (2026-09-17).
+  // account, and how much. Not "it would raise the grade": under the length rule
+  // the cheapest rung earned its point only by lengthening the description, which a
+  // size chart or product shots may already have done — beside a ₹25,000 size guide
+  // it added nothing, and ₹55,000 was the first to add, 3. Measured on the page as
+  // it stands (2026-09-17). Since C it earns that point for speed, so in a new game
+  // it always adds one; a game saved before C still meets the case.
   const wouldAdd = (committed.landingPage ?? 0) > 0 ? null : PAGE_FEATURES.landingPage
     .map((tier) => tier.paise)
     .filter((paise) => paise > 0)
     .map((paise) => ({ paise, points: pageAdds({ ...settled, committed: { ...committed, landingPage: paise } }, round) }))
     .find((rung) => rung.points > 0) ?? null;
 
-  const pointsAt = (b, r) => pagePoints(b, r, { describedFrom });
+  const pointsAt = (b, r) => pagePoints(b, r, { describedFrom, rules });
   const settledPoints = pointsAt(settled, round);
   const nowPoints = pointsAt(block, round);
   // The page's own weeks: each week after this one in which its points rise. A
@@ -219,14 +222,17 @@ const pointTotal = (lines) => lines.reduce((sum, line) => sum + line.points, 0);
  * is the last week after `round` in which the total still rises, or null. With
  * nothing that earns a point, there is nothing to add up and `sum` is null.
  *
+ * Only a game saved before grading only what Google names (C, 2026-09-17) can have
+ * a shared line: every rule a new game grades by is one ladder's own.
+ *
  * @param {object} block - the draft's `capexBlock`
  * @param {number} round
- * @param {{describedFrom?: 'live'|'committed'}} [options]
+ * @param {{describedFrom?: 'live'|'committed', rules?: readonly object[]}} [options]
  * @returns {{shared: Array<{rule: string, points: number, by: string[]}>,
  *   sum: {start: number, parts: number[], total: number, capped: boolean, week: number|null}|null}}
  */
-export function pageBreakdown(block, round, { describedFrom = 'live' } = {}) {
-  const pointsAt = (b, r) => pagePoints(b, r, { describedFrom });
+export function pageBreakdown(block, round, { describedFrom = 'live', rules = LANDING_RULES } = {}) {
+  const pointsAt = (b, r) => pagePoints(b, r, { describedFrom, rules });
   const settled = pointsAt({ ...block, pending: [] }, round);
   const shared = settled.lines.filter((line) => line.by.length > 1);
   if (settled.lines.length === 0) return { shared, sum: null };
@@ -385,6 +391,8 @@ export function adModel({ draft, creative, name, domain }) {
   // A game saved before the page was graded as it stands carries no mark, and its
   // description still counts everything committed from week 1 (I37).
   const describedFrom = draft.adGroups[0]?.pageBuiltFromCapital ? 'live' : 'committed';
+  // And one saved before grading only what Google names keeps the length rule (C).
+  const rules = rulesFor(draft.adGroups[0]);
   return {
     name,
     domain,
@@ -401,8 +409,8 @@ export function adModel({ draft, creative, name, domain }) {
         ? pageAsItStands(block, week).description
         : ad.landingPageDescription ?? '',
       strips: pageStrips(block, week),
-      parts: pageParts(block, week, pageGrade, { describedFrom }),
-      ...pageBreakdown(block, week, { describedFrom }),
+      parts: pageParts(block, week, pageGrade, { describedFrom, rules }),
+      ...pageBreakdown(block, week, { describedFrom, rules }),
       worth: pageWorth(block, pageGrade),
       drawn: pageDrawn(block, week),
     },

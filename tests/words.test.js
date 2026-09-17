@@ -410,6 +410,8 @@ describe('the weekly Your ad', () => {
     // page's own capital alone (the owner's call, 2026-09-17).
     expect(AD.gradeRule({ rule: 'siteWork', points: 2 })).toBe('+2 the work on the page');
     expect(AD.gradeRule({ rule: 'sizing', points: 1 })).toBe('+1 it mentions sizing');
+    // Grading only what Google names (C, 2026-09-17): the faster page's own sentence.
+    expect(AD.gradeRule({ rule: 'speed', points: 1 })).toBe('+1 it loads quickly on a phone');
     expect(AD.gradeRule({ rule: 'described', points: 1 })).toBe('+1 the page is described');
     // A lost point carries a minus sign, never colour alone.
     expect(AD.gradeRule({ rule: 'barely', points: -2 })).toBe('−2 there is barely a description');

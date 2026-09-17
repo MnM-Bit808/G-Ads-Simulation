@@ -45,10 +45,10 @@ const CHART_AND_SHOTS = { sizeGuide: 2500000, photography: 5000000 };
  * writes it, and `week5` committed at week 5. Each round's state is kept from
  * before it ran, for what the screen would have shown that week.
  */
-function play(capex, week5 = {}) {
-  let state = startGame({
+function play(capex, week5 = {}, begin = (s) => s) {
+  let state = begin(startGame({
     rootSeed: 1, playerBrandId: PLAYER, querySet: QUERY_SET, player: harnessPlayer(CELL, 'agency', capex),
-  });
+  }));
   const before = {};
   while (state.round <= TOTAL_ROUNDS) {
     before[state.round] = state;
@@ -79,7 +79,8 @@ describe('the page as it stands, in any week', () => {
       pending: [{ target: 'sizeGuide', paise: 2500000, liveAtRound: ROUND0_LIVE }],
     };
     expect(pageAsItStands(block, ROUND0_LIVE - 1)).toEqual(pageAsItStands({}, 1));
-    expect(pageAsItStands(block, ROUND0_LIVE)).toEqual({ description: composeDescription(SIZE_CHART), landingPage: 7 });
+    // 6: sizing. It was 7 while a page over 40 characters earned a point (C, 2026-09-17).
+    expect(pageAsItStands(block, ROUND0_LIVE)).toEqual({ description: composeDescription(SIZE_CHART), landingPage: 6 });
   });
 
   test('its grade is the grader\'s own, on the description alone', () => {
@@ -112,10 +113,15 @@ describe('G3: what the auctions ran on, from their own record', { timeout: 180_0
    * "Like today from week 4", as the owner agreed: the grades round 0's capital
    * used to earn from week 1 — reviews 7, and 9 once the site work's points
    * land; a size chart 7 (87d797e) — are what it earns from the week it lands.
+   *
+   * Except the size chart, since grading only what Google names (C, 2026-09-17):
+   * bought without the page it earns sizing alone, 6. Its 7 had a point for
+   * running the page past 40 characters, by one. Reviews keep 9: the faster
+   * page's sentence earns for speed the point it earned for length.
    */
-  test('from the week it lands, it grades as it used to from week 1', () => {
+  test('from the week it lands, it grades as it used to from week 1, less the length point a chart alone lost', () => {
     expect(at('reviews', ROUND0_LIVE)).toBeCloseTo(landingFactor(9), 12);
-    expect(at('sizeChart', ROUND0_LIVE)).toBeCloseTo(landingFactor(7), 12);
+    expect(at('sizeChart', ROUND0_LIVE)).toBeCloseTo(landingFactor(6), 12);
     expect(at('nothing', ROUND0_LIVE)).toBeCloseTo(landingFactor(5), 12);
   });
 
@@ -150,10 +156,11 @@ describe('G4: the screen reads the page the auction runs on', { timeout: 180_000
 });
 
 describe('who it applies to', () => {
-  test('the player\'s page is marked as built from capital; no rival\'s is', () => {
+  test('the player\'s page is marked as built from capital, and graded by what Google names; no rival\'s is', () => {
     const state = startGame({ rootSeed: 1, playerBrandId: PLAYER, querySet: QUERY_SET, player: harnessPlayer(CELL) });
     for (const a of state.advertisers) {
       expect(Boolean(a.adGroups[0].pageBuiltFromCapital), a.id).toBe(a.id === PLAYER);
+      expect(a.adGroups[0].pageRules, a.id).toBe(a.id === PLAYER ? 'speed' : undefined);
     }
   });
 
@@ -193,5 +200,40 @@ describe('who it applies to', () => {
     };
     const next = submitRound(old, {}, { mode: 'expected' }).nextGameState;
     expect(ranOn(next.advertisers.find((a) => a.id === PLAYER), 1)).toBeCloseTo(landingFactor(7), 12);
+  });
+});
+
+/**
+ * GRADING ONLY WHAT GOOGLE NAMES (the owner's C, 2026-09-17). The owner's choice
+ * again: a game saved before it keeps the rule it was played under. Such a game
+ * is graded as it stands each week but carries no `pageRules`, so its weekly
+ * grade still counts the 40-character point.
+ */
+describe('a game saved before grading only what Google names', { timeout: 180_000 }, () => {
+  const beforeC = (state) => ({
+    ...state,
+    advertisers: state.advertisers.map((a) => (a.id !== PLAYER ? a : {
+      ...a, adGroups: a.adGroups.map(({ pageRules: _mark, ...group }) => group),
+    })),
+  });
+
+  test('keeps the length point each week, where a new game does not', () => {
+    const shots = { photography: 5000000 };
+    const now = { chart: play(SIZE_CHART), shots: play(shots) };
+    const saved = { chart: play(SIZE_CHART, {}, beforeC), shots: play(shots, {}, beforeC) };
+    expect(ranOn(now.chart.player, ROUND0_LIVE)).toBeCloseTo(landingFactor(6), 12);
+    expect(ranOn(saved.chart.player, ROUND0_LIVE)).toBeCloseTo(landingFactor(7), 12);
+    expect(ranOn(now.shots.player, ROUND0_LIVE)).toBeCloseTo(landingFactor(5), 12);
+    expect(ranOn(saved.shots.player, ROUND0_LIVE)).toBeCloseTo(landingFactor(6), 12);
+    // And before anything is live, both are the plain page.
+    expect(ranOn(saved.chart.player, 1)).toBeCloseTo(ranOn(now.chart.player, 1), 12);
+  });
+
+  test('its screen reads the length rule too, every week', () => {
+    const { player, before } = play(SIZE_CHART, CHART_AND_SHOTS, beforeC);
+    for (let round = 1; round <= TOTAL_ROUNDS; round++) {
+      const draft = createDraft(getSelfView(before[round], PLAYER));
+      expect(landingFactor(effectiveGrades(draft).landingPage), `round ${round}`).toBeCloseTo(ranOn(player, round), 12);
+    }
   });
 });

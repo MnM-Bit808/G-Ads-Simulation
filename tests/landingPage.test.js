@@ -17,7 +17,8 @@ import { explainGrade } from '../agents/grader.js';
 import { CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS } from '../engine/constants.js';
 import {
   PAGE_FEATURES, CAPEX_STEPS, stepsFor, composeDescription, featureAt,
-  LANDING_RULES, DESCRIBED_AT, PAGE_GRADE_BASE, GRADE_CAP, pagePoints, pageAsItStands,
+  LANDING_RULES, LENGTH_RULES, DESCRIBED_AT, PAGE_GRADE_BASE, GRADE_CAP, pagePoints, pageAsItStands,
+  gradePage, rulesFor,
 } from '../content/landingPage.js';
 import { landingPageBonus } from '../engine/positions.js';
 import * as cards from '../ui/landing-page.js';
@@ -141,10 +142,19 @@ describe('a player who funds nothing still has a page', () => {
       .toBeGreaterThan(explainGrade(stunted, {}).grade.landingPage);
   });
 
-  test('every target that is ABOUT the page can still beat it', () => {
-    for (const target of ['landingPage', 'sizeGuide', 'photography']) {
+  test('the page itself and the size guide can still beat it', () => {
+    for (const target of ['landingPage', 'sizeGuide']) {
       expect(gradeOf({ ...NOTHING, [target]: TOP }), target)
         .toBeGreaterThan(gradeOf(NOTHING));
+    }
+  });
+
+  test('and photography cannot, since the grade counts only what Google names', () => {
+    // C, 2026-09-17. Photography used to beat it by lengthening the description
+    // past 40 characters — a point for a caption, which neither Google help page
+    // fetched supports. It buys conversions, and the grade is not its road.
+    for (const paise of stepsFor('photography')) {
+      expect(gradeOf({ ...NOTHING, photography: paise }), String(paise)).toBe(gradeOf(NOTHING));
     }
   });
 
@@ -413,19 +423,21 @@ describe('a partly funded target can still climb its own ladder', () => {
 describe('where the grade comes from, point by point', () => {
   const live = (committed) => ({ committed, pending: [] });
   const byRule = (points) => Object.fromEntries(points.lines.map((l) => [l.rule, { points: l.points, by: l.by }]));
+  const LENGTH = { rules: LENGTH_RULES };
 
-  test('the rules have names, and "described" reads its threshold from one number', () => {
-    expect(LANDING_RULES.map((r) => r.key)).toEqual(['described', 'sizing', 'reviews', 'barely']);
-    const described = LANDING_RULES.find((r) => r.key === 'described');
+  test('the rules have names, and the length rule of a game saved before C reads its threshold from one number', () => {
+    expect(LANDING_RULES.map((r) => r.key)).toEqual(['speed', 'sizing', 'reviews', 'barely']);
+    expect(LENGTH_RULES.map((r) => r.key)).toEqual(['described', 'sizing', 'reviews', 'barely']);
+    const described = LENGTH_RULES.find((r) => r.key === 'described');
     expect(described.hit({ page: 'x'.repeat(DESCRIBED_AT) })).toBe(false);
     expect(described.hit({ page: 'x'.repeat(DESCRIBED_AT + 1) })).toBe(true);
   });
 
-  test('reviews and a size chart: every point, and the one they share', () => {
+  test('reviews and a size chart: every point has one source, so nothing is shared', () => {
     const points = pagePoints(live({ landingPage: 5500000, sizeGuide: 2500000 }), 6);
     expect(points.start).toBe(PAGE_GRADE_BASE);
     expect(byRule(points)).toEqual({
-      described: { points: 1, by: ['landingPage', 'sizeGuide'] },
+      speed: { points: 1, by: ['landingPage'] },
       sizing: { points: 1, by: ['sizeGuide'] },
       reviews: { points: 1, by: ['landingPage'] },
       siteWork: { points: 2, by: ['landingPage'] },
@@ -434,17 +446,34 @@ describe('where the grade comes from, point by point', () => {
     expect(points.grade).toBe(10);
   });
 
-  test('product shots beside them share the described point and earn nothing else', () => {
-    const points = pagePoints(live({ landingPage: 5500000, sizeGuide: 2500000, photography: 5000000 }), 8);
-    expect(byRule(points).described.by).toEqual(['landingPage', 'sizeGuide', 'photography']);
-    expect(points.lines.some((l) => l.by.length === 1 && l.by[0] === 'photography')).toBe(false);
+  test('under the length rule, a game saved before C shares the described point between them', () => {
+    const points = pagePoints(live({ landingPage: 5500000, sizeGuide: 2500000 }), 6, LENGTH);
+    expect(byRule(points)).toEqual({
+      described: { points: 1, by: ['landingPage', 'sizeGuide'] },
+      sizing: { points: 1, by: ['sizeGuide'] },
+      reviews: { points: 1, by: ['landingPage'] },
+      siteWork: { points: 2, by: ['landingPage'] },
+    });
     expect(points.total).toBe(10);
   });
 
-  test('bought alone, a purchase that lengthens the page earns the described point itself', () => {
+  test('product shots beside them earn nothing, and under the length rule share the described point', () => {
+    const committed = { landingPage: 5500000, sizeGuide: 2500000, photography: 5000000 };
+    const points = pagePoints(live(committed), 8);
+    expect(points.lines.some((l) => l.by.includes('photography'))).toBe(false);
+    expect(points.total).toBe(10);
+    const before = pagePoints(live(committed), 8, LENGTH);
+    expect(byRule(before).described.by).toEqual(['landingPage', 'sizeGuide', 'photography']);
+    expect(before.total).toBe(10);
+  });
+
+  test('product shots bought alone earn no point; under the length rule, their caption earned one', () => {
     const points = pagePoints(live({ photography: 5000000 }), 1);
-    expect(byRule(points)).toEqual({ described: { points: 1, by: ['photography'] } });
-    expect(points.total).toBe(6);
+    expect(points.lines).toEqual([]);
+    expect(points.total).toBe(5);
+    const before = pagePoints(live({ photography: 5000000 }), 1, LENGTH);
+    expect(byRule(before)).toEqual({ described: { points: 1, by: ['photography'] } });
+    expect(before.total).toBe(6);
   });
 
   test('nothing bought is the plain page: no points but the start', () => {
@@ -464,31 +493,104 @@ describe('where the grade comes from, point by point', () => {
   test('capital not yet live earns nothing yet', () => {
     const block = { committed: { sizeGuide: 2500000 }, pending: [{ target: 'sizeGuide', paise: 2500000, liveAtRound: 4 }] };
     expect(pagePoints(block, 3).total).toBe(5);
-    expect(pagePoints(block, 4).total).toBe(7);
+    expect(pagePoints(block, 4).total).toBe(6);
+    expect(pagePoints(block, 4, LENGTH).total).toBe(7);
   });
 
   /**
    * THE BREAKDOWN IS THE GRADE, NOT A SECOND MODEL OF IT. Across every rung of the
    * three page targets and the weeks either side of the live week, the points add
-   * up to the grade the auction runs on, capped as it caps it.
+   * up to the grade the auction runs on, capped as it caps it — under the rules a
+   * new game plays and the length rule a game saved before C keeps.
    */
   test('the points always add up to the grade the auction runs on', () => {
     const rungs = (target) => PAGE_FEATURES[target].map((t) => t.paise);
-    for (const landingPage of rungs('landingPage')) {
-      for (const sizeGuide of rungs('sizeGuide')) {
-        for (const photography of rungs('photography')) {
-          const committed = { landingPage, sizeGuide, photography };
-          const pending = Object.entries(committed).filter(([, p]) => p > 0)
-            .map(([target, paise]) => ({ target, paise, liveAtRound: 4 }));
-          for (const round of [3, 4]) {
-            const block = { committed, pending };
-            const auction = Math.min(GRADE_CAP, pageAsItStands(block, round).landingPage + landingPageBonus(block, round));
-            const points = pagePoints(block, round);
-            expect(points.grade, `${JSON.stringify(committed)} week ${round}`).toBe(auction);
-            expect(points.start + points.lines.reduce((sum, l) => sum + l.points, 0)).toBe(points.total);
+    for (const rules of [LANDING_RULES, LENGTH_RULES]) {
+      for (const landingPage of rungs('landingPage')) {
+        for (const sizeGuide of rungs('sizeGuide')) {
+          for (const photography of rungs('photography')) {
+            const committed = { landingPage, sizeGuide, photography };
+            const pending = Object.entries(committed).filter(([, p]) => p > 0)
+              .map(([target, paise]) => ({ target, paise, liveAtRound: 4 }));
+            for (const round of [3, 4]) {
+              const block = { committed, pending };
+              const auction = Math.min(GRADE_CAP, pageAsItStands(block, round, { rules }).landingPage + landingPageBonus(block, round));
+              const points = pagePoints(block, round, { rules });
+              expect(points.grade, `${rules[0].key} ${JSON.stringify(committed)} week ${round}`).toBe(auction);
+              expect(points.start + points.lines.reduce((sum, l) => sum + l.points, 0)).toBe(points.total);
+            }
           }
         }
       }
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Grading only what Google names (the owner's C, 2026-09-17, design/photography-point/)
+// ---------------------------------------------------------------------------
+
+/**
+ * THE 40-CHARACTER RULE IS GONE. It gave a point to any description longer than
+ * 40 characters, and the plain page is 21, so any sentence at all earned it: a
+ * caption for product shots ("Product shots on white.", 45), the faster page (50),
+ * a size chart alone (41, by one character). Neither Google help page fetched for
+ * it names pictures or length; Google's advice for a mobile page is to keep it
+ * quick, so the faster page's sentence earns that point instead.
+ *
+ * Games saved before the change keep the length rule (the owner's choice), so a
+ * page carries which rules grade it.
+ */
+describe('grading only what Google names', () => {
+  const rungs = (target) => PAGE_FEATURES[target].map((t) => t.paise);
+
+  test('speed is earned by the faster page and every page above it, and by nothing a chart or a photograph says', () => {
+    const speed = LANDING_RULES.find((r) => r.key === 'speed');
+    for (const tier of PAGE_FEATURES.landingPage) {
+      const page = composeDescription({ landingPage: tier.paise }).toLowerCase();
+      expect(speed.hit({ page }), tier.label).toBe(tier.paise > 0);
+    }
+    for (const target of ['sizeGuide', 'photography']) {
+      for (const paise of rungs(target)) {
+        expect(speed.hit({ page: composeDescription({ [target]: paise }).toLowerCase() }), `${target} ${paise}`).toBe(false);
+      }
+    }
+  });
+
+  test('no photograph\'s sentence earns any point, at any rung', () => {
+    for (const paise of rungs('photography')) {
+      expect(gradePage(composeDescription({ photography: paise })), String(paise)).toBe(PAGE_GRADE_BASE);
+    }
+  });
+
+  /**
+   * The rule the gates were agreed on, checked by hand before any run: with money
+   * on the page itself, every one of the 64 combinations grades as it did; without
+   * it, a chart or shots lose exactly one point, and nothing bought loses nothing.
+   */
+  test('over all 64 combinations, only a chart or shots without the page lose a point, and exactly one', () => {
+    let same = 0;
+    let lower = 0;
+    for (const landingPage of rungs('landingPage')) {
+      for (const sizeGuide of rungs('sizeGuide')) {
+        for (const photography of rungs('photography')) {
+          const page = composeDescription({ landingPage, sizeGuide, photography });
+          const before = gradePage(page, LENGTH_RULES);
+          const loses = landingPage === 0 && (sizeGuide > 0 || photography > 0) ? 1 : 0;
+          expect(gradePage(page), JSON.stringify({ landingPage, sizeGuide, photography })).toBe(before - loses);
+          if (loses) lower += 1; else same += 1;
+        }
+      }
+    }
+    expect({ same, lower }).toEqual({ same: 49, lower: 15 });
+  });
+
+  test('a page marked for these rules is graded by them; an unmarked one, saved before, by the length rule', () => {
+    expect(rulesFor({ pageBuiltFromCapital: true, pageRules: 'speed' })).toBe(LANDING_RULES);
+    expect(rulesFor({ pageBuiltFromCapital: true })).toBe(LENGTH_RULES);
+    expect(rulesFor({})).toBe(LENGTH_RULES);
+    const chart = { committed: { sizeGuide: 2500000 }, pending: [] };
+    expect(pageAsItStands(chart, 4).landingPage).toBe(6);
+    expect(pageAsItStands(chart, 4, { rules: LENGTH_RULES }).landingPage).toBe(7);
   });
 });

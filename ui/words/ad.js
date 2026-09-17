@@ -45,6 +45,9 @@ const SHARER = Object.freeze({
  * work too, the same words named two things (the owner's call, 2026-09-17).
  */
 const RULE_NAME = Object.freeze({
+  // Grading only what Google names (C, 2026-09-17): the faster page's own sentence,
+  // word for word. "The page is described" stays for games saved before it.
+  speed: 'it loads quickly on a phone',
   described: 'the page is described',
   sizing: 'it mentions sizing',
   reviews: 'it mentions reviews',
