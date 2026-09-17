@@ -19,7 +19,7 @@ import { TOTAL_ROUNDS } from '../../engine/constants.js';
 import { writerTier, isDiy } from '../../content/writers.js';
 import { effectiveGrades } from '../decisions.js';
 import { pageShape } from '../landing-page.js';
-import { tiersFunded } from '../../content/landingPage.js';
+import { tiersFunded, pageAsItStands } from '../../content/landingPage.js';
 import { capexEffect, liveCapexPaise } from '../../engine/positions.js';
 
 const PARTS = ['expectedCtr', 'adRelevance', 'landingPage'];
@@ -129,13 +129,26 @@ export function pageParts(block, round, grade) {
   // which is true and says the opposite of what it means (found by playing it).
   // So `points` and `lift` are the settled answer and `now` is today's.
   const settled = { ...block, pending: [] };
-  const without = grade({}, round);
-  const gained = (withCapital) => (without === null ? 0 : grade(withCapital, round) - without);
-  // Read off the same weekly grades the chart is drawn from, so the row and the
-  // chart's risers cannot name different weeks. A step in `round` itself is
-  // already counted in `now`: that is the week about to run.
-  const worth = pageWorth(block, grade);
-  const steps = worth.length === 0 ? [] : worthShape(worth, GRADE_TOP).risers
+  // WHAT THE PAGE'S OWN CAPITAL ADDS, against the same account without it. Since
+  // the page is graded as it stands (the owner, 2026-09-17), a size chart bought
+  // beside it lands its sentence on the page too; measured against no capital at
+  // all, the page's row would have been credited with the size chart's points.
+  const withoutPage = (b) => ({
+    ...b,
+    committed: { ...(b?.committed ?? {}), landingPage: 0 },
+    pending: (b?.pending ?? []).filter((p) => p.target !== 'landingPage'),
+  });
+  const pageAdds = (b, r) => {
+    const all = grade(b, r);
+    return all === null ? 0 : all - grade(withoutPage(b), r);
+  };
+  const gained = (withCapital) => pageAdds(withCapital, round);
+  // The weeks the PAGE's part of the grade moves, from the same capped weekly
+  // grades the chart is drawn from, so the row cannot name a week the chart does
+  // not step in. A step in `round` itself is already counted in `now`: that is
+  // the week about to run.
+  const ownWorth = pageWorth(block, grade).map(({ round: r }) => ({ round: r, value: pageAdds(block, r) }));
+  const steps = ownWorth.length === 0 ? [] : worthShape(ownWorth, GRADE_TOP).risers
     .filter((riser) => riser.round > round)
     .map((riser) => ({ week: riser.round, points: riser.points }));
 
@@ -150,8 +163,9 @@ export function pageParts(block, round, grade) {
       paise,
       week: waiting.length > 0 ? Math.max(...waiting.map((p) => p.liveAtRound)) : null,
       moves: MOVES[target],
-      // Only the page earns site-work points, and they are the WHOLE of the site
-      // work's gain rather than a share: no other target adds any.
+      // The page's row carries what the page's own capital adds: its sentences and
+      // its site work's points. The other two rows claim no grade yet; how to show
+      // what their sentences add is the owner's design to come.
       points: target === 'landingPage' ? gained(settled) : 0,
       now: target === 'landingPage' ? gained(block) : capexEffect(live, target),
       lift: target === 'landingPage' ? 1 : capexEffect(paise, target),
@@ -306,7 +320,12 @@ export function adModel({ draft, creative, name, domain }) {
     week,
     grades: now ? PARTS.map((key) => ({ key, value: now[key], later: firstChange(draft, creative, key, now[key], week) })) : [],
     page: {
-      description: ad.landingPageDescription ?? '',
+      // What the grader reads in the week about to run. For a page built from
+      // capital that is the page as it stands then, which game.js has not yet
+      // written into the account if a tranche lands this very week.
+      description: draft.adGroups[0]?.pageBuiltFromCapital
+        ? pageAsItStands(block, week).description
+        : ad.landingPageDescription ?? '',
       strips: pageStrips(block, week),
       parts: pageParts(block, week, pageGrade),
       worth: pageWorth(block, pageGrade),

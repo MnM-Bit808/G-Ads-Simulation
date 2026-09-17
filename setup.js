@@ -56,6 +56,7 @@ import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
 import { LOCATIONS } from './content/locations.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
 import { gradeAdOffline } from './agents/grader.js';
+import { pageAsItStands } from './content/landingPage.js';
 import { RIVAL_CAST } from './agents/policies.js';
 import {
   isDiy, openingCopyGrades, creativeSpend, tierForPolicy,
@@ -685,7 +686,14 @@ function buildPlayer(identity, choices, querySet) {
     throw new RangeError('the player needs at least one keyword to enter an auction');
   }
 
-  const playerAd = ad ?? { headlines: [], descriptions: [], landingPageDescription: '' };
+  // THE PAGE AS IT STANDS IN WEEK 1 (the owner, 2026-09-17). Round 0 writes the
+  // page from every rupee committed, but none of it is live before week 4, so the
+  // game opens on the page as it stands and game.js re-writes it each week from
+  // the capital live then (`landPage`). Graded from what round 0 wrote, it used to
+  // count three weeks before the work existed.
+  const capexBlock = capitalBlock(capex);
+  const page = pageAsItStands(capexBlock, 1);
+  const playerAd = { ...(ad ?? { headlines: [], descriptions: [] }), landingPageDescription: page.description };
 
   // Who writes it (I11), BEFORE the budget, because what the writer did not
   // cost is advertising money and the split has to be planned across the month
@@ -721,7 +729,6 @@ function buildPlayer(identity, choices, querySet) {
   // allocation round to arrive at: the writer is chosen at round 0, so the
   // money is in the budget from round 1 and nothing downstream adds it again.
   const monthBase = MONTHLY_BUDGET_PAISE + creative.unspentPaise;
-  const capexBlock = capitalBlock(capex);
   const monthCeiling = monthBase + capexBlock.remainingUnallocatedPaise;
 
   const split = weeklySplitPaise
@@ -775,6 +782,12 @@ function buildPlayer(identity, choices, querySet) {
         taggedContentHash: k.taggedContentHash,
       })), querySet),
       ad: playerAd,
+      // A page built from capital, so game.js re-writes it each week from the
+      // capital live then. Data, not "this is the player": a rival's page grade is
+      // its authored character and carries no mark. A game saved before
+      // 2026-09-17 has no mark either, and keeps the rule it was played under
+      // (the owner's choice), so it replays exactly.
+      pageBuiltFromCapital: true,
       // Spec 17 step 12: grade the player's assets before round 1. Offline
       // unless a grade was supplied, because round 0 has to complete without
       // an API key - and because leaving it null is not a neutral choice.
@@ -786,7 +799,11 @@ function buildPlayer(identity, choices, querySet) {
       // The components the tier decided, over the metadata the grader produced.
       // 5.2 caches on contentHash, so a grade that lost it would be regraded
       // every round and the "unchanged ad is never regraded" guarantee would go.
-      gradedQuality: choices.gradedQuality ?? { ...ownGrade, ...creative.openingGrade },
+      // A supplied grade's COPY parts win; its landing page part is the page as it
+      // stands, because the page is built from capital and nothing else writes it.
+      gradedQuality: choices.gradedQuality
+        ? { ...choices.gradedQuality, landingPage: page.landingPage }
+        : { ...ownGrade, ...creative.openingGrade },
     }],
     creative,
     bidding: {

@@ -51,6 +51,7 @@ import {
 } from '../engine/constants.js';
 import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
+import { pageAsItStands } from '../content/landingPage.js';
 
 /** The three string negatives of 8.2, and no fourth. Tags never appear (H3). */
 export const NEGATIVE_TYPES = ['broad', 'phrase', 'exact'];
@@ -780,10 +781,16 @@ export function effectiveGrades(draft) {
   // writes them back, so the stored grade understates an account that invested.
   // The engine's own function, not a restatement of the curve.
   const bonus = landingPageBonus(draft.capexBlock ?? {}, draft.round);
+  // A page built from capital is graded AS IT STANDS in the week asked about
+  // (the owner, 2026-09-17): the function game.js lands before that week's
+  // auctions, so a future week reads the page it will have, not the stored one.
+  const page = draft.adGroups?.[0]?.pageBuiltFromCapital
+    ? pageAsItStands(draft.capexBlock ?? {}, draft.round).landingPage
+    : graded.landingPage;
   return {
     expectedCtr: graded.expectedCtr,
     adRelevance: graded.adRelevance,
-    landingPage: Math.min(10, graded.landingPage + bonus),
+    landingPage: Math.min(10, page + bonus),
   };
 }
 

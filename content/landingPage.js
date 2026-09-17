@@ -25,7 +25,7 @@
  */
 
 import { CAPEX_TIER_CURVE } from '../engine/constants.js';
-import { capexCurveFor } from '../engine/positions.js';
+import { capexCurveFor, liveCapexPaise } from '../engine/positions.js';
 
 /**
  * The amounts the S-curve actually distinguishes (13.3).
@@ -193,4 +193,86 @@ export function composeDescription(capex = {}) {
     }
   }
   return sentences.join(' ');
+}
+
+/**
+ * Where every grade starts before anything on the page counts: mid-scale, not
+ * good. The offline grader starts all three parts here (agents/grader.js reads
+ * this number rather than keeping its own), so there is one.
+ */
+export const PAGE_GRADE_BASE = 5;
+
+/**
+ * What a page description earns, rule by rule. The grader's own rules for the
+ * landing page part: `agents/grader.js` scores and explains the landing page
+ * from this list, so the advice on screen and the number cannot drift apart.
+ *
+ * WHY THEY LIVE WITH THE LADDER, NOT IN agents/. Since the owner's decision of
+ * 2026-09-17 the weekly loop grades the page as it stands, and game.js may not
+ * reach agents/, where a model can be called (R2, tests/game.test.js). These
+ * rules read the description and nothing else — no model, no copy, no keywords —
+ * so the page and what it is worth sit together.
+ */
+export const LANDING_RULES = Object.freeze([
+  {
+    points: 1,
+    hit: ({ page }) => page.length > 40,
+    whenHit: 'you have actually described the page',
+    whenMissed: 'the description is too short to tell anyone what is on the page',
+  },
+  {
+    points: 1,
+    hit: ({ page }) => /size|fit|guide|chart/.test(page),
+    whenHit: 'it mentions sizing, which is what apparel buyers leave over',
+    whenMissed: 'no mention of size or fit — the main reason apparel visitors bounce',
+  },
+  {
+    points: 1,
+    hit: ({ page }) => /review|rating/.test(page),
+    whenHit: 'it mentions reviews',
+    whenMissed: 'no reviews or ratings on the page',
+  },
+  {
+    points: -2,
+    hit: ({ page }) => page.length < 15,
+    whenHit: 'there is barely a description at all',
+    whenMissed: null,
+  },
+]);
+
+/**
+ * The landing page grade a description earns: 1-10, a whole number.
+ *
+ * @param {string} description
+ * @returns {number}
+ */
+export function gradePage(description) {
+  const page = (description ?? '').toLowerCase();
+  const total = LANDING_RULES.reduce((sum, rule) => sum + (rule.hit({ page }) ? rule.points : 0), PAGE_GRADE_BASE);
+  return Math.max(1, Math.min(10, Math.round(total)));
+}
+
+/**
+ * The page as it stands in `round`: the description this ladder writes from the
+ * capital LIVE that week, and the landing page grade that description earns.
+ *
+ * THE OWNER'S DECISION, 2026-09-17: GRADE THE PAGE AS IT STANDS. Round 0 used to
+ * write the description once, from all the capital committed, and it was graded
+ * from week 1 — so page capital counted three weeks before the work existed, and
+ * capital committed at week 5 never reached the description at all. Measured:
+ * a size guide and product shots bought at round 0 graded the page 7 from week
+ * 1; the same bought at week 5 left it at 5 all game.
+ *
+ * One function for every reader, so the auction and the screens cannot disagree:
+ * game.js lands it before each round's auctions, setup.js opens a game on it,
+ * and round 0 and Your ad read it for what they show.
+ *
+ * @param {{committed?: object, pending?: object[]}} capex a capex block
+ * @param {number} round the week the page is read in
+ * @returns {{description: string, landingPage: number}}
+ */
+export function pageAsItStands(capex, round) {
+  const live = Object.fromEntries(COMPOSE_ORDER.map((target) => [target, liveCapexPaise(capex, target, round)]));
+  const description = composeDescription(live);
+  return { description, landingPage: gradePage(description) };
 }

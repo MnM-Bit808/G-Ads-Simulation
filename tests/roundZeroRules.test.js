@@ -190,12 +190,16 @@ describe('the landing page grade, as the engine will run it (spec section 6)', (
   };
 
   test('its rows, from the game\'s own code', () => {
-    // These are the figures the owner approved in the spec. If the landing
-    // page's timing changes (spec section 12), this test and step 5 change with it.
+    // The landing page's timing was the spec's open question (section 12), and
+    // this test said it would change with it. The owner settled it on 2026-09-17:
+    // grade the page as it stands. So nothing round 0 commits is on the page in
+    // week 1, and from week 4 the page grades as it used to from week 1 — reviews
+    // 7 plus the site work's 2, the top page 7 plus 3, a size chart 7 — which
+    // step 5 now draws as a second bar where it used to draw one.
     expect(grade({})).toMatchObject({ fromWeek1: 5, fromWeek4: 5 });
-    expect(grade({ landingPage: 5500000 })).toMatchObject({ fromWeek1: 7, fromWeek4: 9 });
-    expect(grade({ landingPage: 8000000 })).toMatchObject({ fromWeek1: 7, fromWeek4: 10 });
-    expect(grade({ sizeGuide: 2500000 })).toMatchObject({ fromWeek1: 7, fromWeek4: 7 });
+    expect(grade({ landingPage: 5500000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 9 });
+    expect(grade({ landingPage: 8000000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 10 });
+    expect(grade({ sizeGuide: 2500000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 7 });
   });
 
   test('it never falls when the site goes live, and never passes ten', () => {

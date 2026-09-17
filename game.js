@@ -33,6 +33,7 @@ import { reportedScore } from './engine/quality.js';
 import { getPublicView, getSelfView } from './engine/insights.js';
 import { logDecisions, decisionsForRound } from './engine/serialise.js';
 import { reposition, canReposition } from './engine/positions.js';
+import { pageAsItStands } from './content/landingPage.js';
 import {
   LEARNING_ROUNDS, CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, TOTAL_ROUNDS,
   CAPEX_TARGETS, PREPAID_DISCOUNT_MAX_PAISE,
@@ -97,9 +98,9 @@ export function submitRound(gameState, decisions, options = {}) {
   // only, which is all it declares.
   const prepared = {
     ...gameState,
-    advertisers: gameState.advertisers.map((a) => landCreative(applyStructural(
+    advertisers: gameState.advertisers.map((a) => landPage(landCreative(applyStructural(
       a, decisions[a.id], gameState.round, gameState.budgetSchedule,
-    ), gameState.round)),
+    ), gameState.round), gameState.round)),
   };
 
   const result = runRound(prepared, {
@@ -276,6 +277,52 @@ function landCreative(advertiser, round) {
     ],
     // Cleared, so a later round cannot apply the same copy twice.
     creative: { ...creative, pendingGrade: null },
+  };
+}
+
+/**
+ * Put the page as it stands in front of this round's auctions.
+ *
+ * THE OWNER'S DECISION, 2026-09-17. A page built from capital is re-written each
+ * week from the capital live that week, and its landing page grade re-scored
+ * (`pageAsItStands`). It used to be written once, in round 0, from everything
+ * committed and graded from week 1, so page capital counted three weeks before
+ * the work existed and capital committed at week 5 never reached the page.
+ *
+ * Here, beside `landCreative`, for that function's reason: it changes a grade
+ * when its week arrives, which is the caller's business, not the auction's.
+ *
+ * Only the landing page part moves. The copy grades read headlines and
+ * descriptions alone, so a hired writer's level and a self-writer's words stand.
+ * It is not an edit to the ad: no decision was made, so nothing starts learning.
+ *
+ * An advertiser without the mark is left alone: rivals, whose page grade is
+ * their authored character, and games saved before this change, which keep the
+ * rule they were played under (the owner's choice).
+ *
+ * @param {object} advertiser
+ * @param {number} round the round about to run
+ * @returns {object} the advertiser, unchanged unless its page has moved
+ */
+function landPage(advertiser, round) {
+  const [first, ...rest] = advertiser.adGroups ?? [];
+  if (!first?.pageBuiltFromCapital) return advertiser;
+
+  const page = pageAsItStands(advertiser.capex, round);
+  if (first.ad?.landingPageDescription === page.description && first.gradedQuality?.landingPage === page.landingPage) {
+    return advertiser;
+  }
+
+  // The grade's `contentHash` is left as it was. It is the grader's (agents/),
+  // which this loop may not reach (R2), and it matters only to a model regrade
+  // (5.2), which no played game runs: nothing here reads it.
+  return {
+    ...advertiser,
+    adGroups: [{
+      ...first,
+      ad: { ...first.ad, landingPageDescription: page.description },
+      gradedQuality: { ...first.gradedQuality, landingPage: page.landingPage },
+    }, ...rest],
   };
 }
 

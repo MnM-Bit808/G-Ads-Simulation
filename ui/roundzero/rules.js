@@ -24,7 +24,7 @@ import {
 import {
   writerTier, isDiy, hiredCopyGrades, openingCopyGrades,
 } from '../../content/writers.js';
-import { composeDescription, PAGE_FEATURES } from '../../content/landingPage.js';
+import { composeDescription, PAGE_FEATURES, pageAsItStands } from '../../content/landingPage.js';
 import { lowestBidToShowPaise, wholeRupeeBid } from '../reserve.js';
 
 /**
@@ -257,7 +257,9 @@ export function gradeAsSubmitted(draft) {
  * No landing-page bonus is added, and that is not an omission: round 0's capital
  * goes live at round 4 (`liveAtRound`), so `landingPageBonus` is zero for the
  * first three rounds and the copy lands before the capital does. Capital cannot
- * lower this floor.
+ * lower this floor. Nor, since 2026-09-17, can the page it builds: the first
+ * auction runs on the page as it stands in week 1 (`pageAsItStands`), which is
+ * the plain page whatever round 0 committed.
  *
  * @param {object} draft round 0's own draft
  * @param {object} querySet
@@ -269,8 +271,9 @@ export function openingReserve(draft, querySet) {
   const written = gradeAsSubmitted(draft).written;
   const grade = {
     ...openingCopyGrades(draft.writerTier, 0, written),
-    // The player's own page, graded from what the capital built (I9).
-    landingPage: written.landingPage,
+    // The player's own page as it stands in the first week (I9; the owner,
+    // 2026-09-17): nothing round 0 commits is live yet.
+    landingPage: pageAsItStands(capitalOf(draft), 1).landingPage,
   };
 
   const rows = (draft.keywords ?? []).map((keyword) => {
@@ -521,21 +524,24 @@ export function setCapex(draft, key, paise) {
 
 /**
  * The landing page grade, the third part of Quality Score, as the engine will
- * run it: the page the capital describes, graded (I9), which counts from week
- * 1; plus the page's own capital as points once the site goes live
- * (`landingPageBonus`, 13.3), capped at 10 as `round.js` caps it.
+ * run it: the page as it stands that week, graded (I9), plus the page's own
+ * capital as points once the site goes live (`landingPageBonus`, 13.3), capped
+ * at 10 as `round.js` caps it.
  *
- * The engine's own functions, so if the open question on the description's
- * timing (the spec's section 12) changes the rule, this follows.
+ * THE TIMING QUESTION IS SETTLED (the owner, 2026-09-17: grade the page as it
+ * stands). The page the capital describes used to count from week 1, three weeks
+ * before the work existed. Week 1 now runs on the plain page and week 4 on the
+ * page the capital builds, read from `pageAsItStands`, the function game.js lands
+ * before each week's auctions, so this screen and the auction cannot disagree.
  *
  * @returns {{fromWeek1: number, fromWeek4: number, liveAt: number}}
  */
 export function landingGrade(draft) {
-  const graded = gradeAsSubmitted(draft).applied.landingPage;
   const block = capitalOf(draft);
+  const at = (round) => Math.min(10, pageAsItStands(block, round).landingPage + landingPageBonus(block, round));
   return {
-    fromWeek1: Math.min(10, graded + landingPageBonus(block, 1)),
-    fromWeek4: Math.min(10, graded + landingPageBonus(block, CAPITAL_LIVE_AT)),
+    fromWeek1: at(1),
+    fromWeek4: at(CAPITAL_LIVE_AT),
     liveAt: CAPITAL_LIVE_AT,
   };
 }
