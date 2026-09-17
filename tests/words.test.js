@@ -395,6 +395,12 @@ describe('the weekly Your ad', () => {
     expect(AD.stepNote({ graded: 8, steps: [{ points: 2, week: 4 }] })).toMatch(/^Your page’s description was graded 8\. /);
   });
 
+  /** An unbought page buys grade, not sales per click (the owner, 2026-09-17). */
+  test('an unbought page\'s row names what it would add to the grade, and never sales', () => {
+    expect(AD.wouldGrade({ amount: '₹55,000', points: 3 })).toBe('₹55,000 would add 3 to the landing page grade');
+    expect(AD.wouldGrade({ amount: '₹55,000', points: 3 })).not.toMatch(/sales/);
+  });
+
   /** The four cases the owner chose between, 2026-09-16, as the row reads them. */
   test('the page row names the weeks the grade moves, in the note\'s own words', () => {
     // One step to come and nothing live yet: the common case reads as it always did.

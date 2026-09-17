@@ -19,7 +19,7 @@ import { TOTAL_ROUNDS } from '../../engine/constants.js';
 import { writerTier, isDiy } from '../../content/writers.js';
 import { effectiveGrades } from '../decisions.js';
 import { pageShape } from '../landing-page.js';
-import { tiersFunded, pageAsItStands } from '../../content/landingPage.js';
+import { tiersFunded, pageAsItStands, PAGE_FEATURES } from '../../content/landingPage.js';
 import { capexEffect, liveCapexPaise } from '../../engine/positions.js';
 
 const PARTS = ['expectedCtr', 'adRelevance', 'landingPage'];
@@ -113,11 +113,12 @@ function pageStrips(block, round) {
  *   or null for an account with no ad to grade
  * @returns {Array<{target: string, label: string|null, bought: boolean, paise: number,
  *   week: number|null, moves: 'grade'|'returns'|'conversions', points: number, lift: number,
- *   steps: Array<{week: number, points: number}>}>}
+ *   steps: Array<{week: number, points: number}>, wouldAdd: {paise: number, points: number}|null}>}
  *   in the order the page draws them; `points` is grade points, `lift` the
  *   multiplier the other two apply, 1 when nothing is bought; `steps` the weeks
  *   after `round` in which the grade still moves, and by how much — empty for the
- *   two that move no grade, and once the grade has finished moving
+ *   two that move no grade, and once the grade has finished moving; `wouldAdd`,
+ *   for an unbought page only, the cheapest rung that adds grade to this account
  */
 export function pageParts(block, round, grade) {
   const committed = block?.committed ?? {};
@@ -147,6 +148,16 @@ export function pageParts(block, round, grade) {
   // grades the chart is drawn from, so the row cannot name a week the chart does
   // not step in. A step in `round` itself is already counted in `now`: that is
   // the week about to run.
+  // WHAT AN UNBOUGHT PAGE WOULD ADD: the cheapest rung that adds anything to THIS
+  // account, and how much. Not "it would raise the grade": the cheapest rung earns
+  // its point only by lengthening the description, which a size chart or product
+  // shots may already have done — beside a ₹25,000 size guide it adds nothing, and
+  // ₹55,000 is the first to add, 3. Measured on the page as it stands (2026-09-17).
+  const wouldAdd = (committed.landingPage ?? 0) > 0 ? null : PAGE_FEATURES.landingPage
+    .map((tier) => tier.paise)
+    .filter((paise) => paise > 0)
+    .map((paise) => ({ paise, points: pageAdds({ ...settled, committed: { ...committed, landingPage: paise } }, round) }))
+    .find((rung) => rung.points > 0) ?? null;
   const ownWorth = pageWorth(block, grade).map(({ round: r }) => ({ round: r, value: pageAdds(block, r) }));
   const steps = ownWorth.length === 0 ? [] : worthShape(ownWorth, GRADE_TOP).risers
     .filter((riser) => riser.round > round)
@@ -170,6 +181,7 @@ export function pageParts(block, round, grade) {
       now: target === 'landingPage' ? gained(block) : capexEffect(live, target),
       lift: target === 'landingPage' ? 1 : capexEffect(paise, target),
       steps: target === 'landingPage' ? steps : [],
+      wouldAdd: target === 'landingPage' ? wouldAdd : null,
     };
   });
 }

@@ -127,8 +127,19 @@ function movedBy(part) {
   return part.moves === 'returns' ? AD.fewerBack({ percent }) : AD.moreSales({ percent });
 }
 
-/** And what it would move, for a target nothing was spent on. */
-const wouldMove = (part) => (part.moves === 'returns' ? AD.wouldReturns() : AD.wouldSales());
+/**
+ * And what it would move, for a target nothing was spent on. The page moves the
+ * grade, and it once fell through to "would buy more sales per click": it now
+ * names the cheapest amount that adds grade to this account (read.js, wouldAdd).
+ */
+function wouldMove(part) {
+  if (part.moves === 'grade') {
+    return part.wouldAdd
+      ? AD.wouldGrade({ amount: rupees(part.wouldAdd.paise), points: part.wouldAdd.points })
+      : AD.noGrade();
+  }
+  return part.moves === 'returns' ? AD.wouldReturns() : AD.wouldSales();
+}
 
 function landingPage(model, openGuide) {
   const box = el('div', 'yad-card');

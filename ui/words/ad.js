@@ -86,6 +86,10 @@ export const AD = Object.freeze({
   notBought: line('label', 'not bought'),
   wouldReturns: line('label', 'would buy fewer orders sent back'),
   wouldSales: line('label', 'would buy more sales per click'),
+  // The page buys grade, and its row used to say it would buy sales per click.
+  // It names the cheapest amount that adds anything to this account, because the
+  // cheapest rung adds nothing beside a size chart or product shots (read.js).
+  wouldGrade: line('label', ({ amount, points }) => `${amount} would add ${points} to the landing page grade`),
   liveWeek: line('label', ({ week }) => `live from week ${week}`),
   // The page row's weeks are the weeks the GRADE moves (read.js, `steps`), in
   // the words the note under the chart uses. One step with nothing live yet

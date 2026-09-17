@@ -374,6 +374,39 @@ describe('what each thing bought for the page actually moves', () => {
     const shots = find(read(game).page.parts, 'photography');
     expect(shots).toMatchObject({ target: 'photography', paise: 0, bought: false, moves: 'conversions' });
   });
+
+  /**
+   * An unbought page's row said "would buy more sales per click" (073e05f): the
+   * fallback knew returns and conversions and nothing else, and the page buys
+   * grade. Fixed at the owner's request, 2026-09-17.
+   *
+   * NOT "would raise the grade", which is false for the player who has built
+   * anything else first. The page's cheapest rung earns its point only by making
+   * the description longer, and a size chart or product shots already have.
+   * Measured on the page as it stands: with nothing else, ₹25,000 adds 1; beside
+   * a ₹25,000 size guide it adds nothing, and ₹55,000 is the first to add, 3.
+   * So the row names the cheapest amount that adds anything to THIS account, and
+   * how much, read from the same capped grade the auction runs on.
+   */
+  describe('an unbought page says what it would add, to this account', () => {
+    const LIVE = 1 + CAPEX_DELAY_ROUNDS;
+    const pageRow = (game) => find(read(game, LIVE).page.parts, 'landingPage');
+
+    test('with nothing else on the page, its cheapest rung adds one', () => {
+      expect(pageRow(opened())).toMatchObject({ bought: false, moves: 'grade', wouldAdd: { paise: 2500000, points: 1 } });
+    });
+
+    test('beside a size chart, the cheapest rung adds nothing, so the row names the first that does', () => {
+      expect(pageRow(opened({ guidePaise: 2500000 })).wouldAdd).toEqual({ paise: PAGE_RUNG_PAISE, points: 3 });
+      expect(pageRow(opened({ photoPaise: 5000000 })).wouldAdd).toEqual({ paise: PAGE_RUNG_PAISE, points: 3 });
+    });
+
+    test('a bought page, and the other two rows, carry none', () => {
+      const game = opened({ landingPaise: PAGE_RUNG_PAISE, guidePaise: 2500000 });
+      expect(find(read(game, LIVE).page.parts, 'landingPage').wouldAdd).toBeNull();
+      expect(find(read(opened(), LIVE).page.parts, 'sizeGuide').wouldAdd).toBeNull();
+    });
+  });
 });
 
 /**
