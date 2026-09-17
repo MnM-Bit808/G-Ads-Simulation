@@ -17,7 +17,9 @@ import { explainGrade } from '../agents/grader.js';
 import { CAPEX_TIER_CURVE, CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS } from '../engine/constants.js';
 import {
   PAGE_FEATURES, CAPEX_STEPS, stepsFor, composeDescription, featureAt,
+  LANDING_RULES, DESCRIBED_AT, PAGE_GRADE_BASE, GRADE_CAP, pagePoints, pageAsItStands,
 } from '../content/landingPage.js';
+import { landingPageBonus } from '../engine/positions.js';
 import * as cards from '../ui/landing-page.js';
 
 const { capexChoices } = cards;
@@ -390,5 +392,103 @@ describe('a partly funded target can still climb its own ladder', () => {
 
   test('an unknown target throws rather than offering nothing', () => {
     expect(() => capexChoices('billboards', 0)).toThrow(RangeError);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Where the grade comes from (the owner's choice B, 2026-09-17, design/grade-breakdown/)
+// ---------------------------------------------------------------------------
+
+/**
+ * WHERE THE LANDING PAGE GRADE COMES FROM, point by point, and who earned each.
+ *
+ * By rule, not by purchase. Asked per purchase — the grade with it against the
+ * grade without it — a real game does not add up: reviews and a size chart grade
+ * 10, without the page's money 7, without the chart 9, so +3 and +1 against a
+ * gain of 5 over the plain page. The missing point is "described", which either
+ * earns alone, so neither finds it missing. Split by the grader's rules every
+ * point has one source, and the point more than one purchase earns alone is
+ * shared, and says so.
+ */
+describe('where the grade comes from, point by point', () => {
+  const live = (committed) => ({ committed, pending: [] });
+  const byRule = (points) => Object.fromEntries(points.lines.map((l) => [l.rule, { points: l.points, by: l.by }]));
+
+  test('the rules have names, and "described" reads its threshold from one number', () => {
+    expect(LANDING_RULES.map((r) => r.key)).toEqual(['described', 'sizing', 'reviews', 'barely']);
+    const described = LANDING_RULES.find((r) => r.key === 'described');
+    expect(described.hit({ page: 'x'.repeat(DESCRIBED_AT) })).toBe(false);
+    expect(described.hit({ page: 'x'.repeat(DESCRIBED_AT + 1) })).toBe(true);
+  });
+
+  test('reviews and a size chart: every point, and the one they share', () => {
+    const points = pagePoints(live({ landingPage: 5500000, sizeGuide: 2500000 }), 6);
+    expect(points.start).toBe(PAGE_GRADE_BASE);
+    expect(byRule(points)).toEqual({
+      described: { points: 1, by: ['landingPage', 'sizeGuide'] },
+      sizing: { points: 1, by: ['sizeGuide'] },
+      reviews: { points: 1, by: ['landingPage'] },
+      siteWork: { points: 2, by: ['landingPage'] },
+    });
+    expect(points.total).toBe(10);
+    expect(points.grade).toBe(10);
+  });
+
+  test('product shots beside them share the described point and earn nothing else', () => {
+    const points = pagePoints(live({ landingPage: 5500000, sizeGuide: 2500000, photography: 5000000 }), 8);
+    expect(byRule(points).described.by).toEqual(['landingPage', 'sizeGuide', 'photography']);
+    expect(points.lines.some((l) => l.by.length === 1 && l.by[0] === 'photography')).toBe(false);
+    expect(points.total).toBe(10);
+  });
+
+  test('bought alone, a purchase that lengthens the page earns the described point itself', () => {
+    const points = pagePoints(live({ photography: 5000000 }), 1);
+    expect(byRule(points)).toEqual({ described: { points: 1, by: ['photography'] } });
+    expect(points.total).toBe(6);
+  });
+
+  test('nothing bought is the plain page: no points but the start', () => {
+    const points = pagePoints(live({}), 1);
+    expect(points.lines).toEqual([]);
+    expect(points).toMatchObject({ start: 5, total: 5, grade: 5 });
+  });
+
+  /** The owner's choice, 2026-09-17: the cap is shown openly, not hidden in a smaller number. */
+  test('the top page and a size chart earn eleven, and the grade stops at ten', () => {
+    const points = pagePoints(live({ landingPage: 8000000, sizeGuide: 2500000 }), 4);
+    expect(byRule(points).siteWork).toEqual({ points: 3, by: ['landingPage'] });
+    expect(points.total).toBe(11);
+    expect(points.grade).toBe(GRADE_CAP);
+  });
+
+  test('capital not yet live earns nothing yet', () => {
+    const block = { committed: { sizeGuide: 2500000 }, pending: [{ target: 'sizeGuide', paise: 2500000, liveAtRound: 4 }] };
+    expect(pagePoints(block, 3).total).toBe(5);
+    expect(pagePoints(block, 4).total).toBe(7);
+  });
+
+  /**
+   * THE BREAKDOWN IS THE GRADE, NOT A SECOND MODEL OF IT. Across every rung of the
+   * three page targets and the weeks either side of the live week, the points add
+   * up to the grade the auction runs on, capped as it caps it.
+   */
+  test('the points always add up to the grade the auction runs on', () => {
+    const rungs = (target) => PAGE_FEATURES[target].map((t) => t.paise);
+    for (const landingPage of rungs('landingPage')) {
+      for (const sizeGuide of rungs('sizeGuide')) {
+        for (const photography of rungs('photography')) {
+          const committed = { landingPage, sizeGuide, photography };
+          const pending = Object.entries(committed).filter(([, p]) => p > 0)
+            .map(([target, paise]) => ({ target, paise, liveAtRound: 4 }));
+          for (const round of [3, 4]) {
+            const block = { committed, pending };
+            const auction = Math.min(GRADE_CAP, pageAsItStands(block, round).landingPage + landingPageBonus(block, round));
+            const points = pagePoints(block, round);
+            expect(points.grade, `${JSON.stringify(committed)} week ${round}`).toBe(auction);
+            expect(points.start + points.lines.reduce((sum, l) => sum + l.points, 0)).toBe(points.total);
+          }
+        }
+      }
+    }
   });
 });

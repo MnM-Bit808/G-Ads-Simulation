@@ -373,6 +373,9 @@ describe('the weekly Your ad', () => {
     points: 2, percent: '4%', graded: 5, target: 'sizeGuide',
     // Two steps, the harder case: capital has two windows (design/page-worth/).
     steps: [{ points: 1, week: 4 }, { points: 2, week: 8 }],
+    // Where the grade comes from (design/grade-breakdown/, B): a rule, the point
+    // two purchases share, and the total they add up to.
+    rule: 'reviews', targets: ['landingPage', 'sizeGuide'], at: 40, start: 5, parts: [3, 1, 1], top: 10,
   };
 
   /**
@@ -391,8 +394,31 @@ describe('the weekly Your ad', () => {
     for (const [name, entry] of Object.entries(AD)) {
       expect(entry(FIGURES), name).not.toMatch(/only the page itself moves the grade|neither worth a point/i);
     }
-    expect(AD.toGrade({ points: 2 })).toBe('+2 on the landing page grade, from the site work');
     expect(AD.stepNote({ graded: 8, steps: [{ points: 2, week: 4 }] })).toMatch(/^Your page’s description was graded 8\. /);
+  });
+
+  /**
+   * Design B (the owner's choice, 2026-09-17, design/grade-breakdown/): each row
+   * names the rules its sentences earn, a shared line names the point more than
+   * one earns alone and every one that does, and a total adds them up — saying
+   * openly when the grade stops at ten.
+   */
+  test('the grade breakdown reads rule by rule, shares out loud, and shows the cap', () => {
+    expect(AD.gradeRule({ rule: 'reviews', points: 1 })).toBe('+1 it mentions reviews');
+    expect(AD.gradeRule({ rule: 'siteWork', points: 2 })).toBe('+2 the site work');
+    expect(AD.gradeRule({ rule: 'sizing', points: 1 })).toBe('+1 it mentions sizing');
+    expect(AD.gradeRule({ rule: 'described', points: 1 })).toBe('+1 the page is described');
+    // A lost point carries a minus sign, never colour alone.
+    expect(AD.gradeRule({ rule: 'barely', points: -2 })).toBe('−2 there is barely a description');
+    expect(AD.noOwnPoint()).toBe('no grade point of its own');
+    expect(AD.sharedWhy({ rule: 'described', at: 40, targets: ['landingPage', 'sizeGuide'] }))
+      .toBe('Its words run past 40 characters, which the page itself or a size chart would each have done alone.');
+    expect(AD.sharedWhy({ rule: 'described', at: 40, targets: ['landingPage', 'sizeGuide', 'photography'] }))
+      .toBe('Its words run past 40 characters, which the page itself, a size chart or product shots would each have done alone.');
+    expect(AD.sumStart({ start: 5, parts: [3, 1, 1] })).toBe('5 to start, +3 +1 +1');
+    expect(AD.sumScale({ top: 10 })).toBe('/10');
+    expect(AD.sumStops({ top: 10 })).toBe('the grade stops at 10');
+    expect(AD.sumFrom({ week: 8 })).toBe('from week 8');
   });
 
   /** An unbought page buys grade, not sales per click (the owner, 2026-09-17). */

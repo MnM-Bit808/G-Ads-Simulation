@@ -27,6 +27,34 @@ const PART_NAME = Object.freeze({
   photography: 'Product shots',
 });
 
+/** The same, mid-sentence, for the purchases that share a point. */
+const SHARER = Object.freeze({
+  landingPage: 'the page itself',
+  sizeGuide: 'a size chart',
+  photography: 'product shots',
+});
+
+/**
+ * Each of the grader's landing page rules (content/landingPage.js), and the site
+ * work's points, as a row says them (design/grade-breakdown/, B).
+ */
+const RULE_NAME = Object.freeze({
+  described: 'the page is described',
+  sizing: 'it mentions sizing',
+  reviews: 'it mentions reviews',
+  barely: 'there is barely a description',
+  siteWork: 'the site work',
+});
+
+/** A point with its sign: a lost one carries a minus, never colour alone. */
+const signed = (points) => (points < 0 ? `−${Math.abs(points)}` : `+${points}`);
+
+/** "a, b or c": the purchases that each earn a shared point alone. */
+const eitherOf = (targets) => {
+  const names = targets.map((target) => SHARER[target]);
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} or ${names.at(-1)}` : names.join('');
+};
+
 export const AD = Object.freeze({
   intro: line('reading', ({ week }) => `Written once, before week ${week}. It runs every week as it is.`),
   asSearchersSee: line('label', 'As searchers see it'),
@@ -75,11 +103,21 @@ export const AD = Object.freeze({
   worthSub: line('label', 'the landing page grade the auction uses'),
   gradedOn: line('label', 'Graded on its words'),
   withWork: line('label', ({ week }) => `With the site work, from week ${week}`),
-  // "From the site work", because it is only that: the description the same
-  // capital writes is graded too, and a size guide earns more there than ₹25,000
-  // on the page. Read bare, "+0 on the landing page grade" said ₹25,000 did
-  // nothing, and it had raised the grade by one.
-  toGrade: line('label', ({ points }) => `+${points} on the landing page grade, from the site work`),
+  // WHERE THE GRADE COMES FROM (design B, the owner's choice, 2026-09-17). A row
+  // once said "+3 on the landing page grade, from the site work" while the chart
+  // stepped +5, and nothing said where the other two came from. Each row now names
+  // the rules its own sentences earn; the point more than one earns alone is
+  // shared, out loud; and the total says when the grade stops at ten.
+  gradeRule: line('label', ({ rule, points }) => `${signed(points)} ${RULE_NAME[rule]}`),
+  noOwnPoint: line('label', 'no grade point of its own'),
+  sharedHead: line('label', 'shared'),
+  sharedWhy: line('reading', ({ rule, at, targets }) => (rule === 'described'
+    ? `Its words run past ${at} characters, which ${eitherOf(targets)} would each have done alone.`
+    : `Each of ${eitherOf(targets)} would have earned it alone.`)),
+  sumStart: line('label', ({ start, parts }) => `${start} to start, ${parts.map(signed).join(' ')}`),
+  sumScale: line('label', ({ top }) => `/${top}`),
+  sumStops: line('label', ({ top }) => `the grade stops at ${top}`),
+  sumFrom: line('label', ({ week }) => `from week ${week}`),
   fewerBack: line('label', ({ percent }) => `${percent} fewer orders sent back`),
   moreSales: line('label', ({ percent }) => `${percent} more sales for the same clicks`),
   noGrade: line('label', 'nothing on the grade'),

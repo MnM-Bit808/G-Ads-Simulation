@@ -12,6 +12,7 @@ import { whyButton } from '../guide/drawer.js';
 import { serp } from '../kit/serp.js';
 import { AD } from '../words/ad.js';
 import { adModel, worthShape, GRADE_TOP as GRADE_SCALE } from './read.js';
+import { DESCRIBED_AT, GRADE_CAP } from '../../content/landingPage.js';
 
 const PART_WORD = { expectedCtr: AD.expectedCtr, adRelevance: AD.adRelevance, landingPage: AD.landingPage };
 const width = (value) => `${(100 * value) / GRADE_SCALE}%`;
@@ -117,14 +118,52 @@ function sizeChart() {
 }
 
 /**
- * What one purchase BUYS, in the unit it moves — the settled value, not today's.
- * Played at week 1, today's value reads "+0 on the landing page grade · live
- * from week 4", which is true and says the opposite of what it means.
+ * What a bought size guide or photography does to the business, in the unit it
+ * moves — the settled value, not today's. Their grade points are drawn apart.
  */
 function movedBy(part) {
-  if (part.moves === 'grade') return AD.toGrade({ points: part.points });
   const percent = pct(part.moves === 'returns' ? 1 - 1 / part.lift : part.lift - 1);
   return part.moves === 'returns' ? AD.fewerBack({ percent }) : AD.moreSales({ percent });
+}
+
+/**
+ * The grade points a bought purchase's own sentences earn, one line a rule, or a
+ * line saying it earns none of its own (design B, 2026-09-17). Gains are mint; a
+ * lost point is amber and carries a minus sign.
+ */
+function gradeLines(part) {
+  if (part.gradeLines.length === 0) return [el('span', 'yad-buy-moves none', AD.noOwnPoint())];
+  return part.gradeLines.map((line) => el('span', line.points < 0 ? 'yad-buy-moves lost' : 'yad-buy-moves grade',
+    AD.gradeRule(line)));
+}
+
+/** The point more than one purchase earns alone, on a line of its own. */
+function sharedLines(shared) {
+  if (shared.length === 0) return null;
+  const box = el('div', 'yad-shared');
+  box.append(el('div', 'yad-buy-top', AD.sharedHead()));
+  for (const line of shared) {
+    box.append(el('span', 'yad-buy-moves grade', AD.gradeRule(line)),
+      el('span', 'yad-small', AD.sharedWhy({ rule: line.rule, at: DESCRIBED_AT, targets: line.by })));
+  }
+  return box;
+}
+
+/**
+ * The total the rows and the shared line add up to, and the week it will all
+ * have arrived. THE CAP IS SHOWN OPENLY (the owner, 2026-09-17): a total past ten
+ * says the grade stops there, where the chart draws the grade the auction uses.
+ */
+function sumLine(sum) {
+  if (!sum) return null;
+  const box = el('div', 'yad-sum');
+  box.append(el('span', 'yad-sum-parts', AD.sumStart({ start: sum.start, parts: sum.parts })));
+  const total = el('span', 'yad-sum-right');
+  total.append(el('strong', 'yad-sum-total', String(sum.total)),
+    el('span', 'yad-small', sum.capped ? AD.sumStops({ top: GRADE_CAP }) : AD.sumScale({ top: GRADE_CAP })));
+  if (sum.week !== null) total.append(el('span', 'yad-small', AD.sumFrom({ week: sum.week })));
+  box.append(total);
+  return box;
 }
 
 /**
@@ -183,11 +222,15 @@ function landingPage(model, openGuide) {
     const top = el('div', 'yad-buy-top');
     top.append(el('span', null, part.label ?? AD.partName({ target: part.target })),
       el('span', 'yad-value', part.bought ? rupees(part.paise) : AD.notBought()));
-    const said = el('span', part.moves === 'grade' && part.points > 0 ? 'yad-buy-moves grade' : 'yad-buy-moves');
-    said.textContent = part.bought ? movedBy(part) : wouldMove(part);
-    row.append(top, said);
-    // The page names the weeks its GRADE moves, which a purchase the cap leaves
-    // nothing to add does not; the other two name the week their work lands.
+    row.append(top);
+    if (part.bought) {
+      row.append(...gradeLines(part));
+      if (part.moves !== 'grade') row.append(el('span', 'yad-buy-moves', movedBy(part)));
+    } else {
+      row.append(el('span', 'yad-buy-moves', wouldMove(part)));
+    }
+    // The page names the weeks its own points arrive; the other two name the
+    // week their work lands, which is when their points arrive too.
     if (part.moves === 'grade') {
       if (part.steps.length > 0) row.append(el('span', 'yad-small', AD.gradeWeeks({ steps: part.steps, started: part.now > 0 })));
     } else if (part.week !== null) {
@@ -195,9 +238,9 @@ function landingPage(model, openGuide) {
     }
     list.append(row);
   }
-  // A disclosure stood here, "only the page itself moves the grade", and it was
-  // false: the size guide and photography write sentences into the graded page
-  // description. How that should be shown is being designed.
+  // Where the grade comes from, beneath the rows (design B, 2026-09-17): the point
+  // more than one purchase earns alone, then the total they all add up to.
+  add(list, sharedLines(model.page.shared), sumLine(model.page.sum));
   side.append(list);
 
   const top = el('div', 'yad-page-top');

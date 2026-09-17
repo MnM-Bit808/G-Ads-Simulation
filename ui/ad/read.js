@@ -19,7 +19,9 @@ import { TOTAL_ROUNDS } from '../../engine/constants.js';
 import { writerTier, isDiy } from '../../content/writers.js';
 import { effectiveGrades } from '../decisions.js';
 import { pageShape } from '../landing-page.js';
-import { tiersFunded, pageAsItStands, PAGE_FEATURES } from '../../content/landingPage.js';
+import {
+  tiersFunded, pageAsItStands, pagePoints, PAGE_FEATURES, GRADE_CAP,
+} from '../../content/landingPage.js';
 import { capexEffect, liveCapexPaise } from '../../engine/positions.js';
 
 const PARTS = ['expectedCtr', 'adRelevance', 'landingPage'];
@@ -93,34 +95,44 @@ function pageStrips(block, round) {
  * rate (`businessFor`). Every figure is asked of the engine, so a change to a
  * curve moves the screen with it rather than leaving it stating an old number.
  *
- * THE GRADE POINTS ARE WHAT THE AUCTION GAINS, not the bonus the capital earns.
- * The auction caps the landing page grade at 10 (round.js, `withLandingBonus`),
- * so a page graded 9 with the top rung gains 1, not 3. This row used to add the
- * bonus uncapped and said "+3". So the points are asked of `grade` — the same
- * capped reading the rest of the screen uses — with the capital and without it.
+ * EACH ROW CARRIES THE POINTS ITS OWN SENTENCES EARN, rule by rule (design B, the
+ * owner's choice, 2026-09-17, design/grade-breakdown/). A row used to count what
+ * the page's capital added against the account without it: +3, while the chart
+ * stepped +5 and nothing said where the other two came from — a size chart's
+ * sizing point, and the described point that either earns alone, so neither's
+ * marginal ever found it. `pagePoints` credits each rule to whoever earns it
+ * alone; a point more than one earns alone is shared, and `pageBreakdown` puts it
+ * on a line of its own.
  *
- * AND ITS WEEKS ARE THE WEEKS THE GRADE MOVES (`steps`), not the week the last
+ * THE CAP IS SHOWN OPENLY (the owner, 2026-09-17). A row's `points` are what its
+ * rules earn, uncapped; the total beneath the rows says when the grade stops at
+ * 10, and the chart draws the grade the auction runs on.
+ *
+ * ITS WEEKS ARE THE WEEKS ITS OWN POINTS ARRIVE (`steps`), not the week the last
  * purchase lands (`week`, which the drawn page still reads, since that is when
- * the site work appears). They part company twice. A page bought in both capital
- * windows can step twice, and one week cannot say so. And a purchase the cap
- * leaves nothing to add still lands: ₹55,000 at round 0 and ₹25,000 at week 5,
- * on a page graded 8, gained all of its +2 at week 4, yet read "live from week 8".
+ * the site work appears). A page bought in both capital windows can earn twice,
+ * and one week cannot say so. Where the cap takes a point, the row still says
+ * when it arrives; until the cap was shown openly, it said nothing there.
  *
  * @param {object} block - the draft's `capexBlock`
  * @param {number} round
  * @param {(block: object, round: number) => number|null} grade - the landing page
  *   grade the auction runs on in `round` with that capital (`effectiveGrades`),
  *   or null for an account with no ad to grade
+ * @param {{describedFrom?: 'live'|'committed'}} [options] 'committed' for a game
+ *   saved before the page was graded as it stands (`pagePoints`)
  * @returns {Array<{target: string, label: string|null, bought: boolean, paise: number,
- *   week: number|null, moves: 'grade'|'returns'|'conversions', points: number, lift: number,
+ *   week: number|null, moves: 'grade'|'returns'|'conversions', points: number, now: number,
+ *   lift: number, gradeLines: Array<{rule: string, points: number}>,
  *   steps: Array<{week: number, points: number}>, wouldAdd: {paise: number, points: number}|null}>}
- *   in the order the page draws them; `points` is grade points, `lift` the
- *   multiplier the other two apply, 1 when nothing is bought; `steps` the weeks
- *   after `round` in which the grade still moves, and by how much — empty for the
- *   two that move no grade, and once the grade has finished moving; `wouldAdd`,
- *   for an unbought page only, the cheapest rung that adds grade to this account
+ *   in the order the page draws them; `points` and `gradeLines` the grade points
+ *   this purchase's own sentences earn once live, `now` what it earns this week,
+ *   `lift` the multiplier the size guide and photography apply, 1 when nothing is
+ *   bought; `steps`, for the page, the weeks after `round` its own points arrive;
+ *   `wouldAdd`, for an unbought page only, the cheapest rung that adds grade to
+ *   this account
  */
-export function pageParts(block, round, grade) {
+export function pageParts(block, round, grade, { describedFrom = 'live' } = {}) {
   const committed = block?.committed ?? {};
   const pending = (target) => (block?.pending ?? []).filter((p) => p.target === target && p.liveAtRound > round);
   const label = new Map(pageShape(committed).strips.map((s) => [s.target, s.label]));
@@ -143,11 +155,6 @@ export function pageParts(block, round, grade) {
     const all = grade(b, r);
     return all === null ? 0 : all - grade(withoutPage(b), r);
   };
-  const gained = (withCapital) => pageAdds(withCapital, round);
-  // The weeks the PAGE's part of the grade moves, from the same capped weekly
-  // grades the chart is drawn from, so the row cannot name a week the chart does
-  // not step in. A step in `round` itself is already counted in `now`: that is
-  // the week about to run.
   // WHAT AN UNBOUGHT PAGE WOULD ADD: the cheapest rung that adds anything to THIS
   // account, and how much. Not "it would raise the grade": the cheapest rung earns
   // its point only by lengthening the description, which a size chart or product
@@ -158,15 +165,21 @@ export function pageParts(block, round, grade) {
     .filter((paise) => paise > 0)
     .map((paise) => ({ paise, points: pageAdds({ ...settled, committed: { ...committed, landingPage: paise } }, round) }))
     .find((rung) => rung.points > 0) ?? null;
-  const ownWorth = pageWorth(block, grade).map(({ round: r }) => ({ round: r, value: pageAdds(block, r) }));
-  const steps = ownWorth.length === 0 ? [] : worthShape(ownWorth, GRADE_TOP).risers
-    .filter((riser) => riser.round > round)
-    .map((riser) => ({ week: riser.round, points: riser.points }));
+
+  const pointsAt = (b, r) => pagePoints(b, r, { describedFrom });
+  const settledPoints = pointsAt(settled, round);
+  const nowPoints = pointsAt(block, round);
+  // The page's own weeks: each week after this one in which its points rise. A
+  // step in `round` itself is already counted in `now`: that is the week about to run.
+  const ownAt = (target, r) => pointTotal(ownLines(pointsAt(block, r), target));
+  const steps = Array.from({ length: Math.max(0, TOTAL_ROUNDS - round) }, (_, i) => round + 1 + i)
+    .map((r) => ({ week: r, points: ownAt('landingPage', r) - ownAt('landingPage', r - 1) }))
+    .filter((step) => step.points !== 0);
 
   return PAGE_PARTS.map((target) => {
     const paise = committed[target] ?? 0;
     const waiting = pending(target);
-    const live = liveCapexPaise(block, target, round);
+    const gradeLines = ownLines(settledPoints, target).map(({ rule, points }) => ({ rule, points }));
     return {
       target,
       label: label.get(target) ?? null,
@@ -174,16 +187,62 @@ export function pageParts(block, round, grade) {
       paise,
       week: waiting.length > 0 ? Math.max(...waiting.map((p) => p.liveAtRound)) : null,
       moves: MOVES[target],
-      // The page's row carries what the page's own capital adds: its sentences and
-      // its site work's points. The other two rows claim no grade yet; how to show
-      // what their sentences add is the owner's design to come.
-      points: target === 'landingPage' ? gained(settled) : 0,
-      now: target === 'landingPage' ? gained(block) : capexEffect(live, target),
+      points: pointTotal(gradeLines),
+      now: pointTotal(ownLines(nowPoints, target)),
       lift: target === 'landingPage' ? 1 : capexEffect(paise, target),
+      gradeLines,
       steps: target === 'landingPage' ? steps : [],
       wouldAdd: target === 'landingPage' ? wouldAdd : null,
     };
   });
+}
+
+/**
+ * The points one purchase earns on its own: every line only it earns, and for the
+ * page itself any line no purchase earns (the plain page's, of which there are
+ * none today). A shared line is no single purchase's.
+ */
+function ownLines(points, target) {
+  return points.lines.filter((line) => (line.by.length === 1
+    ? line.by[0] === target
+    : line.by.length === 0 && target === 'landingPage'));
+}
+
+const pointTotal = (lines) => lines.reduce((sum, line) => sum + line.points, 0);
+
+/**
+ * The lines beneath the rows: the points more than one purchase earns alone, and
+ * the total the rows and those lines add up to (design B, 2026-09-17).
+ *
+ * `total` is the plain sum once everything committed is live, and may pass ten —
+ * the cap is shown openly (the owner, 2026-09-17), with `capped` saying so. `week`
+ * is the last week after `round` in which the total still rises, or null. With
+ * nothing that earns a point, there is nothing to add up and `sum` is null.
+ *
+ * @param {object} block - the draft's `capexBlock`
+ * @param {number} round
+ * @param {{describedFrom?: 'live'|'committed'}} [options]
+ * @returns {{shared: Array<{rule: string, points: number, by: string[]}>,
+ *   sum: {start: number, parts: number[], total: number, capped: boolean, week: number|null}|null}}
+ */
+export function pageBreakdown(block, round, { describedFrom = 'live' } = {}) {
+  const pointsAt = (b, r) => pagePoints(b, r, { describedFrom });
+  const settled = pointsAt({ ...block, pending: [] }, round);
+  const shared = settled.lines.filter((line) => line.by.length > 1);
+  if (settled.lines.length === 0) return { shared, sum: null };
+
+  const parts = [
+    ...PAGE_PARTS.map((target) => pointTotal(ownLines(settled, target))).filter((points) => points !== 0),
+    ...shared.map((line) => line.points),
+  ];
+  let week = null;
+  for (let r = round + 1; r <= TOTAL_ROUNDS; r++) {
+    if (pointsAt(block, r).total !== pointsAt(block, r - 1).total) week = r;
+  }
+  return {
+    shared,
+    sum: { start: settled.start, parts, total: settled.total, capped: settled.total > GRADE_CAP, week },
+  };
 }
 
 /**
@@ -323,6 +382,9 @@ export function adModel({ draft, creative, name, domain }) {
   // the chart alike, so the three cannot disagree.
   const pageGrade = (block, round) => gradesAt({ ...draft, capexBlock: block }, creative, round)?.landingPage ?? null;
   const block = draft.capexBlock ?? {};
+  // A game saved before the page was graded as it stands carries no mark, and its
+  // description still counts everything committed from week 1 (I37).
+  const describedFrom = draft.adGroups[0]?.pageBuiltFromCapital ? 'live' : 'committed';
   return {
     name,
     domain,
@@ -339,7 +401,8 @@ export function adModel({ draft, creative, name, domain }) {
         ? pageAsItStands(block, week).description
         : ad.landingPageDescription ?? '',
       strips: pageStrips(block, week),
-      parts: pageParts(block, week, pageGrade),
+      parts: pageParts(block, week, pageGrade, { describedFrom }),
+      ...pageBreakdown(block, week, { describedFrom }),
       worth: pageWorth(block, pageGrade),
       drawn: pageDrawn(block, week),
     },

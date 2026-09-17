@@ -13,7 +13,7 @@ import { startGame } from '../setup.js';
 import { createDraft, effectiveGrades } from '../ui/decisions.js';
 import * as r0 from '../ui/roundzero/rules.js';
 import { adModel, worthShape, GRADE_TOP, DRAWN_RUNGS } from '../ui/ad/read.js';
-import { PAGE_FEATURES } from '../content/landingPage.js';
+import { PAGE_FEATURES, composeDescription, gradePage } from '../content/landingPage.js';
 import { asOldSave, OLD_SAVE_LIVE_ROUND } from './fixtures/oldSave.js';
 
 const SEED = 20260902;
@@ -209,26 +209,27 @@ describe('what each thing bought for the page actually moves', () => {
   /**
    * The auction caps the landing page grade at 10 (round.js, `withLandingBonus`),
    * and so does every other screen that shows it (`effectiveGrades`). This row
-   * added capital's points without the cap, so a strong page read "+3" where the
-   * auction gained less. It only bites the player who builds a strong page AND
+   * once added capital's points without the cap and said so as if the auction
+   * gained them all. It only bites the player who builds a strong page AND
    * invests in it — the one doing it well.
    *
-   * Built rather than forced since the page is graded as it stands: the top page
-   * with a size chart describes 8, and its site work adds 3, which is 11. Without
-   * the page's own capital the size chart alone describes 7, so the page gains 3,
-   * not the 4 the sum would say.
+   * THE CAP IS SHOWN OPENLY NOW (the owner's choice, 2026-09-17, with design B).
+   * The row carries every point its rules earn — the top page with a size chart
+   * earns reviews +1 and site work +3 — and the total beneath the rows says 11,
+   * and that the grade stops at 10. The chart draws the 10 the auction runs on.
    */
-  test('a strong page is not credited with points the cap takes away', () => {
+  test('a strong page shows every point it earns, and the total says where the cap takes one', () => {
     const game = opened({ landingPaise: TOP_RUNG_PAISE, guidePaise: 2500000 });
     const live = game.draft.capexBlock.pending[0].liveAtRound;
     expect(landingPageBonus(game.draft.capexBlock, live), 'the rung is worth more than the cap allows').toBe(3);
     expect(auctionGrade(game.draft, live)).toBe(10);
-    const before = find(read(game, live - 1).page.parts, 'landingPage');
-    const after = find(read(game, live).page.parts, 'landingPage');
-    expect(before.points).toBe(3);
-    expect(before.now).toBe(0);
-    expect(after.points).toBe(3);
-    expect(after.now).toBe(3);
+    const before = read(game, live - 1).page;
+    const after = read(game, live).page;
+    expect(find(after.parts, 'landingPage').gradeLines).toEqual([{ rule: 'reviews', points: 1 }, { rule: 'siteWork', points: 3 }]);
+    expect(find(before.parts, 'landingPage')).toMatchObject({ points: 4, now: 0 });
+    expect(find(after.parts, 'landingPage')).toMatchObject({ points: 4, now: 4 });
+    expect(after.sum).toMatchObject({ total: 11, capped: true });
+    expect(after.worth.at(-1).value, 'the chart draws what the auction runs on').toBe(10);
   });
 
   /**
@@ -250,52 +251,100 @@ describe('what each thing bought for the page actually moves', () => {
     expect(after.week).toBeNull();
   });
 
-  test('the size guide moves returns, and earns no site-work points', () => {
+  test('the size guide moves returns, and carries the sizing point its sentence earns', () => {
     const game = opened({ landingPaise: PAGE_RUNG_PAISE, guidePaise: 2500000 });
     const live = Math.max(...game.draft.capexBlock.pending.map((p) => p.liveAtRound));
     const guide = find(read(game, live).page.parts, 'sizeGuide');
     expect(guide.moves).toBe('returns');
-    expect(guide.points).toBe(0);
+    expect(guide.gradeLines).toEqual([{ rule: 'sizing', points: 1 }]);
     expect(guide.lift).toBeCloseTo(capexEffect(2500000, 'sizeGuide'), 10);
     expect(guide.lift).toBeGreaterThan(1);
   });
 
-  test('photography moves conversions, and earns no site-work points', () => {
+  test('photography moves conversions, and beside a described page earns no point of its own', () => {
     const game = opened({ landingPaise: PAGE_RUNG_PAISE, photoPaise: 5000000 });
     const live = Math.max(...game.draft.capexBlock.pending.map((p) => p.liveAtRound));
     const shots = find(read(game, live).page.parts, 'photography');
     expect(shots.moves).toBe('conversions');
+    expect(shots.gradeLines).toEqual([]);
     expect(shots.points).toBe(0);
     expect(shots.lift).toBeCloseTo(capexEffect(5000000, 'photography'), 10);
     expect(shots.lift).toBeGreaterThan(1);
   });
 
   /**
-   * With the page graded as it stands, a size chart and product shots bought
-   * beside the page land their sentences on it too. So the page's row is what the
-   * PAGE's capital adds against the same account without it, never against no
-   * capital at all: all three describe 8 and the site work adds 2, which is 10;
-   * the chart and shots alone describe 7. The page adds 3, not the 5 that
-   * counting from nothing would have credited it with.
+   * DESIGN B (the owner's choice, 2026-09-17, design/grade-breakdown/): each row
+   * carries the grade points its own sentences earn, rule by rule; the point more
+   * than one earns alone is SHARED on a line of its own; and a total beneath the
+   * rows adds them to the start. The real game the canvas drew: ₹55,000 of
+   * reviews and a ₹25,000 size chart at round 0, ₹50,000 of product shots at week
+   * 5, read at week 6.
+   *
+   * It replaces a page row that counted what the page's capital added against the
+   * account without it (+3) while the chart stepped +5 and nothing said where the
+   * other two came from: the chart's sizing point, and the described point that
+   * either earns alone and so neither's marginal ever found.
    */
-  test('only the page\'s row carries grade points, and they are the page\'s own', () => {
-    const game = opened({ landingPaise: PAGE_RUNG_PAISE, guidePaise: 2500000, photoPaise: 5000000 });
-    const live = Math.max(...game.draft.capexBlock.pending.map((p) => p.liveAtRound));
-    const { parts } = read(game, live).page;
-    expect(parts.filter((p) => p.points > 0).map((p) => p.target)).toEqual(['landingPage']);
-    const block = game.draft.capexBlock;
-    const withoutPage = {
-      ...game.draft,
-      capexBlock: {
-        ...block,
-        committed: { ...block.committed, landingPage: 0 },
-        pending: block.pending.filter((p) => p.target !== 'landingPage'),
-      },
-    };
-    expect(auctionGrade(game.draft, live)).toBe(10);
-    expect(auctionGrade(withoutPage, live)).toBe(7);
-    expect(find(parts, 'landingPage').points).toBe(3);
-    expect(auctionGrade(game.draft, live) - auctionGrade(bare(game.draft), live), 'what counting from nothing said').toBe(5);
+  describe('where the grade comes from, on the rows', () => {
+    const game = andAtWeekFive(opened({ landingPaise: PAGE_RUNG_PAISE, guidePaise: 2500000 }), 5000000, 'photography');
+    const { page } = read(game, 6);
+
+    test('each row carries the points its own sentences earn', () => {
+      expect(find(page.parts, 'landingPage').gradeLines).toEqual([{ rule: 'reviews', points: 1 }, { rule: 'siteWork', points: 2 }]);
+      expect(find(page.parts, 'sizeGuide').gradeLines).toEqual([{ rule: 'sizing', points: 1 }]);
+      expect(find(page.parts, 'photography').gradeLines).toEqual([]);
+    });
+
+    test('the point more than one earns alone is shared, and names every one', () => {
+      expect(page.shared).toEqual([{ rule: 'described', points: 1, by: ['landingPage', 'sizeGuide', 'photography'] }]);
+    });
+
+    test('the total adds the rows and the shared line to the start, and is the chart\'s grade', () => {
+      expect(page.sum).toEqual({ start: 5, parts: [3, 1, 1], total: 10, capped: false, week: null });
+      expect(page.worth.find((w) => w.round === 6).value).toBe(10);
+    });
+
+    test('bought alone, the described point is that purchase\'s own, and nothing is shared', () => {
+      const { page: alone } = read(opened({ photoPaise: 5000000 }), 1 + CAPEX_DELAY_ROUNDS);
+      expect(find(alone.parts, 'photography').gradeLines).toEqual([{ rule: 'described', points: 1 }]);
+      expect(alone.shared).toEqual([]);
+      expect(alone.sum).toMatchObject({ parts: [1], total: 6 });
+    });
+
+    test('a total still to arrive says the week it will have arrived', () => {
+      const pending = opened({ landingPaise: PAGE_RUNG_PAISE });
+      expect(read(pending, 1).page.sum).toMatchObject({ total: 9, week: 1 + CAPEX_DELAY_ROUNDS });
+      expect(read(pending, 1 + CAPEX_DELAY_ROUNDS).page.sum.week).toBeNull();
+    });
+
+    test('with nothing bought there is nothing to add up', () => {
+      expect(read(opened(), 1).page.sum).toBeNull();
+      expect(read(opened(), 1).page.shared).toEqual([]);
+    });
+
+    /**
+     * A game saved before the page was graded as it stands keeps the old rule
+     * (the owner's choice, I37): its description counts everything committed from
+     * week 1. Its breakdown reads it the same way, so its rows agree with its grade.
+     */
+    test('a game saved before the change breaks its grade down by the rule it plays under', () => {
+      const fresh = opened({ landingPaise: PAGE_RUNG_PAISE });
+      const written = composeDescription({ landingPage: PAGE_RUNG_PAISE });
+      const [group, ...groups] = fresh.draft.adGroups;
+      const { pageBuiltFromCapital: _mark, ...unmarked } = group;
+      const old = {
+        ...fresh,
+        draft: {
+          ...fresh.draft,
+          adGroups: [{ ...unmarked, ad: { ...unmarked.ad, landingPageDescription: written } }, ...groups],
+          gradedQuality: { ...fresh.draft.gradedQuality, landingPage: gradePage(written) },
+        },
+      };
+      const row = find(read(old, 1).page.parts, 'landingPage');
+      expect(effectiveGrades({ ...old.draft, round: 1 }).landingPage).toBe(7);
+      expect(row.now, 'described and reviews, from week 1, as the old rule graded them').toBe(2);
+      expect(read(old, 1).page.sum).toMatchObject({ total: 9, week: 1 + CAPEX_DELAY_ROUNDS });
+    });
   });
 
   /**
@@ -341,17 +390,26 @@ describe('what each thing bought for the page actually moves', () => {
       expect(row.now).toBeGreaterThan(0);
     });
 
-    // Built, not forced: reviews and a size chart describe 8 and the site work
-    // adds 2, which is 10, so ₹25,000 more on the page at week 5 has nothing left
-    // to add. Measured on the dev server before the page was graded as it stands.
-    test('a purchase the cap swallows moves no week, though it is still being built', () => {
+    /**
+     * Reviews and a size chart describe 8 and the site work adds 2, which is 10,
+     * so ₹25,000 more on the page at week 5 lands a site-work point the cap takes.
+     *
+     * CHANGED ON THE OWNER'S WORD, 2026-09-17. Until design B the row named no
+     * week here, because the capped grade does not move at week 8. The owner then
+     * chose to show the cap openly: the row carries every point it earns, so it
+     * says the third site-work point arrives at week 8, and the total beneath the
+     * rows says 11 from week 8 and that the grade stops at 10. In every game the
+     * cap does not reach, the two rules name the same weeks.
+     */
+    test('a point the cap takes still says when it arrives, and the total says the cap takes it', () => {
       const game = andAtWeekFive(opened({ landingPaise: PAGE_RUNG_PAISE, guidePaise: 2500000 }), 2500000);
       const early = page(game, 1);
-      expect(early.steps.map((s) => s.week)).toEqual([game.draft.capexBlock.pending[0].liveAtRound]);
+      expect(early.steps).toEqual([{ week: game.draft.capexBlock.pending[0].liveAtRound, points: 3 }, { week: WEEK_FIVE_LIVE, points: 1 }]);
       const late = page(game, 6);
       expect(late.week, 'the site work is still landing').toBe(WEEK_FIVE_LIVE);
-      expect(late.steps, 'but the grade has finished moving').toEqual([]);
-      expect(late.now).toBe(late.points);
+      expect(late.steps).toEqual([{ week: WEEK_FIVE_LIVE, points: 1 }]);
+      expect(late).toMatchObject({ now: 3, points: 4 });
+      expect(read(game, 6).page.sum).toMatchObject({ total: 11, capped: true, week: WEEK_FIVE_LIVE });
     });
 
     test('the week a step lands, it is live, not to come', () => {

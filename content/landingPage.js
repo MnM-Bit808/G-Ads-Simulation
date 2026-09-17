@@ -25,7 +25,7 @@
  */
 
 import { CAPEX_TIER_CURVE } from '../engine/constants.js';
-import { capexCurveFor, liveCapexPaise } from '../engine/positions.js';
+import { capexCurveFor, liveCapexPaise, landingPageBonus } from '../engine/positions.js';
 
 /**
  * The amounts the S-curve actually distinguishes (13.3).
@@ -203,6 +203,19 @@ export function composeDescription(capex = {}) {
 export const PAGE_GRADE_BASE = 5;
 
 /**
+ * How long a description must run, in characters, before the page counts as
+ * described. One number, because the screen now says it (Your ad's breakdown)
+ * and a sentence may not carry a digit of its own.
+ */
+export const DESCRIBED_AT = 40;
+
+/**
+ * The top of the grader's scale, where the auction stops a landing page grade
+ * however many points it earns (round.js, `withLandingBonus`; `effectiveGrades`).
+ */
+export const GRADE_CAP = 10;
+
+/**
  * What a page description earns, rule by rule. The grader's own rules for the
  * landing page part: `agents/grader.js` scores and explains the landing page
  * from this list, so the advice on screen and the number cannot drift apart.
@@ -215,24 +228,28 @@ export const PAGE_GRADE_BASE = 5;
  */
 export const LANDING_RULES = Object.freeze([
   {
+    key: 'described',
     points: 1,
-    hit: ({ page }) => page.length > 40,
+    hit: ({ page }) => page.length > DESCRIBED_AT,
     whenHit: 'you have actually described the page',
     whenMissed: 'the description is too short to tell anyone what is on the page',
   },
   {
+    key: 'sizing',
     points: 1,
     hit: ({ page }) => /size|fit|guide|chart/.test(page),
     whenHit: 'it mentions sizing, which is what apparel buyers leave over',
     whenMissed: 'no mention of size or fit — the main reason apparel visitors bounce',
   },
   {
+    key: 'reviews',
     points: 1,
     hit: ({ page }) => /review|rating/.test(page),
     whenHit: 'it mentions reviews',
     whenMissed: 'no reviews or ratings on the page',
   },
   {
+    key: 'barely',
     points: -2,
     hit: ({ page }) => page.length < 15,
     whenHit: 'there is barely a description at all',
@@ -275,4 +292,58 @@ export function pageAsItStands(capex, round) {
   const live = Object.fromEntries(COMPOSE_ORDER.map((target) => [target, liveCapexPaise(capex, target, round)]));
   const description = composeDescription(live);
   return { description, landingPage: gradePage(description) };
+}
+
+/**
+ * Where the landing page grade comes from in `round`, point by point, and which
+ * purchase earned each (the owner's choice B, 2026-09-17, design/grade-breakdown/).
+ *
+ * BY RULE, NOT BY PURCHASE. Asked per purchase — the grade with it against the
+ * grade without it — the answers do not add up: reviews and a size chart grade
+ * 10, 7 without the page's money and 9 without the chart, so +3 and +1 against a
+ * gain of 5. The missing point is "described", which either earns alone, so
+ * neither finds it missing. Split by the grader's own rules, each point is
+ * credited to every purchase whose sentences alone would earn it: one earner owns
+ * it, more than one SHARE it. The site work's points are the page's.
+ *
+ * THE CAP IS SHOWN, NOT HIDDEN (the owner, 2026-09-17). `total` is the plain sum
+ * and may pass ten; `grade` is what the auction runs on, computed as it computes
+ * it, and never does. Where they differ, the cap took the difference.
+ *
+ * @param {{committed?: object, pending?: object[]}} capex a capex block
+ * @param {number} round
+ * @param {{describedFrom?: 'live'|'committed'}} [options] 'committed' reads the
+ *   description from everything committed, as a game saved before the page was
+ *   graded as it stands still does; the site work is always what is live
+ * @returns {{start: number, lines: Array<{rule: string, points: number, by: string[]}>,
+ *   total: number, grade: number}} `by` names capex targets; empty for a point the
+ *   plain page earns (none does today)
+ */
+export function pagePoints(capex, round, { describedFrom = 'live' } = {}) {
+  const paise = (target) => (describedFrom === 'committed'
+    ? capex?.committed?.[target] ?? 0
+    : liveCapexPaise(capex, target, round));
+  const funded = Object.fromEntries(COMPOSE_ORDER.map((target) => [target, paise(target)]));
+  const page = composeDescription(funded).toLowerCase();
+  // A purchase earns a rule if its own sentences, on the plain page, hit it.
+  const earners = COMPOSE_ORDER.filter((target) => tiersFunded(target, funded[target])
+    .some((tier) => tier.paise > 0 && tier.sentence));
+  const alone = (target) => composeDescription({ [target]: funded[target] }).toLowerCase();
+
+  const lines = [];
+  for (const rule of LANDING_RULES) {
+    if (!rule.hit({ page })) continue;
+    const by = earners.filter((target) => rule.hit({ page: alone(target) }));
+    // Hit only by sentences together: every earner shares it.
+    lines.push({ rule: rule.key, points: rule.points, by: by.length > 0 || rule.points < 0 ? by : earners });
+  }
+  const bonus = landingPageBonus(capex, round);
+  if (bonus > 0) lines.push({ rule: 'siteWork', points: bonus, by: ['landingPage'] });
+
+  return {
+    start: PAGE_GRADE_BASE,
+    lines,
+    total: PAGE_GRADE_BASE + lines.reduce((sum, line) => sum + line.points, 0),
+    grade: Math.min(GRADE_CAP, gradePage(page) + bonus),
+  };
 }

@@ -441,7 +441,8 @@ body.studio .yad-value { font-variant-numeric: tabular-nums; }
    beneath. The pictures are SVG in ui/ad/render.js: the game ships no
    photographs, and a stylised garment cannot be mistaken for a real product. */
 body.studio .yad-page { display: flex; flex-direction: column; gap: 18px; }
-body.studio .yad-page-top { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 22px; align-items: start; }
+/* 280, not 260: the rows carry their grade points now (design B), as drawn. */
+body.studio .yad-page-top { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; align-items: start; }
 body.studio .yad-sheet { overflow: hidden; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: #141216; }
 body.studio .yad-bar { padding: 7px 12px; background: var(--studio-raised); font-size: 12px; color: var(--studio-muted); }
 body.studio .yad-hero { display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 14px; padding: 14px; }
@@ -468,10 +469,22 @@ body.studio .yad-buy { display: flex; flex-direction: column; gap: 2px; }
 body.studio .yad-buy.off .yad-buy-top { color: var(--studio-faint); }
 body.studio .yad-buy-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
 body.studio .yad-buy-moves { font-size: 12px; color: var(--studio-muted); }
-/* Mint is money made, and the grade is the one purchase that buys a cheaper
-   click; the other two say what they move in plain muted text, so the eye
-   finds the single thing that is a Quality Score point. */
+/* Mint is money made, and a grade point buys a cheaper click; what else a
+   purchase moves is plain muted text, so the eye finds the Quality Score points.
+   Where the grade comes from (design B, 2026-09-17): a purchase with no point of
+   its own says so in faint, and a lost point is amber with a minus sign. */
 body.studio .yad-buy-moves.grade { color: var(--studio-mint); }
+body.studio .yad-buy-moves.none { color: var(--studio-faint); }
+body.studio .yad-buy-moves.lost { color: var(--studio-amber); }
+body.studio .yad-shared { display: flex; flex-direction: column; gap: 3px; padding-top: 10px; border-top: 1px dashed var(--studio-line-strong); }
+body.studio .yad-shared .yad-small { margin: 0; }
+/* A capped total with its week is wider than the column beside its parts: the
+   parts keep one line and the total takes the next, rather than both breaking. */
+body.studio .yad-sum { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 10px; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 12px; }
+body.studio .yad-sum-parts { color: var(--studio-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+body.studio .yad-sum-right { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; gap: 0 5px; margin-left: auto; text-align: right; }
+body.studio .yad-sum-right .yad-small { margin: 0; }
+body.studio .yad-sum-total { font: 800 16px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 body.studio .yad-worth { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--studio-line); }
 body.studio .yad-worth-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 /* Drawn as a step (design/page-worth/, B): twelve bars read as one flat row. */
