@@ -385,12 +385,18 @@ size guide at round 0.
 The pictures are SVG. The game ships no photographs, the owner chose to keep it
 that way, and a stylised garment cannot be mistaken for a real product.
 
-**What drawing it caught.** C first tagged "+1 reviews" and "+1 size chart",
-splitting the grade between them. `landingPageBonus` reads the `landingPage`
-target ALONE: the size guide divides the return rate and photography multiplies
-the conversion rate, and neither is worth a point of Quality Score. Corrected, C
-says what each purchase buys in the unit it moves — which is a thing the game
-had never told a player, and the reason this direction was worth building.
+**What drawing it caught — and got wrong.** C first tagged "+1 reviews" and "+1
+size chart". That was "corrected" on the grounds that `landingPageBonus` reads
+the `landingPage` target alone, so the size guide and photography are worth no
+point of Quality Score, and the built screen said so. **That correction was the
+error** (found 2026-09-17, fixed in `2d5359c`). The bonus is one of two roads:
+round 0 writes the page description from all the capital, and the grader gives
+it a point for mentioning reviews and a point for mentioning size — so the
+mock-up's first two tags were nearer the truth than what replaced them. Measured
+through a real round 0, a ₹25,000 size guide takes the grade from 5 to 7. The
+lesson is the project's own: a number written by two mechanisms has to be
+checked at both, and a test game that types its own description never meets
+the second.
 
 **Built** 2026-09-16 (`073e05f`). Three more falsehoods were caught between the
 guards and playing it: a row reading "+0 on the landing page grade · live from

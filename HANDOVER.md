@@ -331,13 +331,20 @@ engine does: the page's parts marked "week 4", its description graded now.
    is LIVE — plain until the site work lands, then the stars and the chart
    arrive. Beneath it, the landing page grade the auction runs on, week by week,
    which STEPS rather than climbs.
-   - **It says which purchase buys the grade, and the other two do not.**
-     `landingPageBonus` reads the `landingPage` target alone; the size guide
-     divides the return rate and photography multiplies the conversion rate. So
-     the screen reads "+2 on the landing page grade", "4% fewer orders sent
-     back", "would buy more sales per click", with a disclosure that only the
-     page itself moves the grade. A player buying a size guide for a better
-     Quality Score was buying the wrong thing and nothing said so.
+   - **~~It says which purchase buys the grade, and the other two do not.~~
+     WRONG, corrected 2026-09-17 (`2d5359c`).** This entry said
+     `landingPageBonus` reads the `landingPage` target alone, so only the page
+     moves the grade, and the screen carried a disclosure saying so. The
+     bonus is one road of two. Round 0 writes the page description from ALL the
+     capital (`composeDescription`) and the grader scores it from week 1: +1
+     for more than 40 characters, +1 for mentioning size, +1 for reviews
+     (`agents/grader.js`, LANDING_RULES). Measured through a real round 0: a
+     ₹25,000 size guide takes the grade 5 → 7, photography 5 → 6, ₹25,000 on the
+     page 5 → 6. The disclosure is gone, the page row's points say "from the
+     site work", and how to show the description's points is being designed —
+     the owner's choice. Found when the owner asked for a round-0 warning that
+     ₹25,000 on the page moves nothing, on my word; it moves the grade by one.
+     The test games had typed their descriptions by hand, which skips this road.
    - **Four things were caught before it shipped**, three of them by the guards:
      an invented per-part split of the grade (caught in the mock-up); a row
      reading "+0 on the landing page grade · live from week 4", true and the
