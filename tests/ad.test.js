@@ -158,23 +158,43 @@ describe('the landing page', () => {
 });
 
 /**
- * THREE PURCHASES, THREE DIFFERENT MECHANISMS, and the screen used to imply one.
+ * CAPITAL REACHES THE LANDING PAGE GRADE BY TWO ROADS, and this describe was
+ * first written knowing only one.
  *
- * Drawing the page (design/landing-page/, C, the owner's choice 2026-09-16) the
- * mock-up first tagged "+1 reviews" and "+1 size chart", splitting the grade
- * evenly between them. `landingPageBonus` reads the `landingPage` target ALONE:
- * the size guide divides the return rate (`businessFor`, returnRate /
- * sizeGuideEffect) and photography multiplies the conversion rate, and neither
- * touches the grade. A player who buys a size guide for a better Quality Score
- * is buying the wrong thing, and nothing on screen said so.
+ * 073e05f read `landingPageBonus`, found it reads the `landingPage` target
+ * alone, and put on screen that "only the page itself moves the grade" and that
+ * a size guide and photography are "neither worth a point of Quality Score".
+ * That was false. Round 0 writes the page's description from ALL the capital
+ * (`composeDescription`), and the grader scores that description from week 1:
+ * a point for being described at all, a point for mentioning size, a point for
+ * reviews (agents/grader.js, LANDING_RULES). Measured through a real round 0,
+ * marlow, seed 20260902: nothing grades 5, a ₹25,000 size guide 7, ₹50,000 of
+ * photography 6, ₹25,000 on the page 6. The size guide is worth more grade than
+ * the same money on the page. The owner asked for a round-0 warning that ₹25,000
+ * on the page moves nothing, and measuring that before building it found this.
  *
- * So every figure here is asked of the engine rather than typed: a change to a
- * curve or to CAPEX_LANDING_PAGE_MAX_POINTS moves the screen with it.
+ * So a row's `points` is named for what it is — the SITE WORK's points, from
+ * `landingPageBonus`, which only the page earns — and the screen no longer says
+ * the other two leave the grade alone. How the description's points should be
+ * shown is being designed (the owner's choice, 2026-09-16).
  */
 describe('what each thing bought for the page actually moves', () => {
   const find = (parts, target) => parts.find((p) => p.target === target);
 
-  test('the page itself moves the grade, by what the auction gains', () => {
+  test('the size guide and photography move the grade too, through the page description', () => {
+    const grade = (game) => effectiveGrades(game.draft).landingPage;
+    const nothing = grade(opened());
+    expect(grade(opened({ guidePaise: 2500000 })), 'a size chart is a sentence the grader rewards twice')
+      .toBe(nothing + 2);
+    expect(grade(opened({ photoPaise: 5000000 })), 'product shots lengthen the description').toBe(nothing + 1);
+    expect(grade(opened({ landingPaise: 2500000 })), 'and so does a faster page, though its site work adds nothing')
+      .toBe(nothing + 1);
+    // From week 1, before any of that work is live: the description counts at once.
+    const guide = opened({ guidePaise: 2500000 });
+    expect(effectiveGrades({ ...guide.draft, round: 1 }).landingPage).toBe(nothing + 2);
+  });
+
+  test('the page itself adds site-work points, by what the auction gains', () => {
     const game = opened({ landingPaise: PAGE_RUNG_PAISE });
     const live = game.draft.capexBlock.pending[0].liveAtRound;
     const page = find(read(game, live).page.parts, 'landingPage');
@@ -221,7 +241,7 @@ describe('what each thing bought for the page actually moves', () => {
     expect(after.week).toBeNull();
   });
 
-  test('the size guide moves returns and claims no grade point', () => {
+  test('the size guide moves returns, and earns no site-work points', () => {
     const game = opened({ landingPaise: PAGE_RUNG_PAISE, guidePaise: 2500000 });
     const live = Math.max(...game.draft.capexBlock.pending.map((p) => p.liveAtRound));
     const guide = find(read(game, live).page.parts, 'sizeGuide');
@@ -231,7 +251,7 @@ describe('what each thing bought for the page actually moves', () => {
     expect(guide.lift).toBeGreaterThan(1);
   });
 
-  test('photography moves conversions and claims no grade point', () => {
+  test('photography moves conversions, and earns no site-work points', () => {
     const game = opened({ landingPaise: PAGE_RUNG_PAISE, photoPaise: 5000000 });
     const live = Math.max(...game.draft.capexBlock.pending.map((p) => p.liveAtRound));
     const shots = find(read(game, live).page.parts, 'photography');
@@ -241,12 +261,12 @@ describe('what each thing bought for the page actually moves', () => {
     expect(shots.lift).toBeGreaterThan(1);
   });
 
-  test('only one of them is ever a grade point, whatever is bought', () => {
+  test('only the page earns site-work points, whatever is bought', () => {
     const game = opened({ landingPaise: PAGE_RUNG_PAISE, guidePaise: 2500000, photoPaise: 5000000 });
     const live = Math.max(...game.draft.capexBlock.pending.map((p) => p.liveAtRound));
     const { parts } = read(game, live).page;
     expect(parts.filter((p) => p.points > 0).map((p) => p.target)).toEqual(['landingPage']);
-    // And the points on screen are the whole gain, not a share of it.
+    // And they are the whole of the site work's gain, not a share of it.
     expect(find(parts, 'landingPage').points).toBe(auctionGrade(game.draft, live) - auctionGrade(bare(game.draft), live));
   });
 

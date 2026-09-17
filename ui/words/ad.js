@@ -56,8 +56,10 @@ export const AD = Object.freeze({
   stripFrom: line('label', ({ from, label, week }) => `${from} → ${label} · week ${week}`),
 
   // The page drawn as a page (design/landing-page/, C, the owner 2026-09-16).
-  // Three purchases, three mechanisms: the sentences exist so the screen cannot
-  // imply that any of them but the page itself moves the grade.
+  // Capital reaches the landing page grade by two roads: the page description,
+  // which round 0 writes from ALL of it and the grader scores from week 1, and
+  // the site work's points from the page's own capital (`landingPageBonus`). A
+  // row's grade points are the second road only, and say so.
   // The page's own furniture. The price is the account's OWN average order
   // (`aovMeanPaise`), not a number typed to look like a shop: a figure on this
   // screen that no part of the game produced would be read as one that is.
@@ -73,7 +75,11 @@ export const AD = Object.freeze({
   worthSub: line('label', 'the landing page grade the auction uses'),
   gradedOn: line('label', 'Graded on its words'),
   withWork: line('label', ({ week }) => `With the site work, from week ${week}`),
-  toGrade: line('label', ({ points }) => `+${points} on the landing page grade`),
+  // "From the site work", because it is only that: the description the same
+  // capital writes is graded too, and a size guide earns more there than ₹25,000
+  // on the page. Read bare, "+0 on the landing page grade" said ₹25,000 did
+  // nothing, and it had raised the grade by one.
+  toGrade: line('label', ({ points }) => `+${points} on the landing page grade, from the site work`),
   fewerBack: line('label', ({ percent }) => `${percent} fewer orders sent back`),
   moreSales: line('label', ({ percent }) => `${percent} more sales for the same clicks`),
   noGrade: line('label', 'nothing on the grade'),
@@ -104,10 +110,9 @@ export const AD = Object.freeze({
   // IT READS EVERY STEP, not one. Capital has two windows, so a page bought in
   // both can step twice, and naming the total points and the last week alone
   // said the grade was unchanged through weeks it had already risen in.
-  stepNote: line('reading', ({ graded, steps }) => `Your page was graded ${graded} on its own words. `
+  // "Its description", not "its own words": round 0 writes that description
+  // from the capital, so the grade it gets already counts what the capital bought.
+  stepNote: line('reading', ({ graded, steps }) => `Your page’s description was graded ${graded}. `
     + `The site work adds ${eachStep(steps)}, when ${steps.length > 1 ? 'each goes' : 'it goes'} live — `
     + 'the money leaves the week you commit it, and the page is unchanged until then.'),
-  onlyPage: line('disclosure', 'Only the page itself moves the grade. A size guide buys fewer orders sent back, and '
-    + 'photography buys more sales for the same clicks — both worth money, neither worth a point of Quality Score.',
-  { why: 'qualityScore' }),
 });

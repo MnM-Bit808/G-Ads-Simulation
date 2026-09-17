@@ -380,6 +380,21 @@ describe('the weekly Your ad', () => {
    * so a page bought in both windows read "adds 3 from week 8" while the grade
    * had already risen at week 4. Found drawing the chart as a step, 2026-09-16.
    */
+  /**
+   * 073e05f put "Only the page itself moves the grade … neither worth a point of
+   * Quality Score" on screen, and it was false: round 0 writes the page
+   * description from all the capital, and the grader rewards a size chart twice
+   * and product shots once (tests/ad.test.js). The page row's points are the
+   * site work's alone, so they say so rather than standing for the whole grade.
+   */
+  test('Your ad no longer says the size guide and photography leave the grade alone', () => {
+    for (const [name, entry] of Object.entries(AD)) {
+      expect(entry(FIGURES), name).not.toMatch(/only the page itself moves the grade|neither worth a point/i);
+    }
+    expect(AD.toGrade({ points: 2 })).toBe('+2 on the landing page grade, from the site work');
+    expect(AD.stepNote({ graded: 8, steps: [{ points: 2, week: 4 }] })).toMatch(/^Your page’s description was graded 8\. /);
+  });
+
   /** The four cases the owner chose between, 2026-09-16, as the row reads them. */
   test('the page row names the weeks the grade moves, in the note\'s own words', () => {
     // One step to come and nothing live yet: the common case reads as it always did.

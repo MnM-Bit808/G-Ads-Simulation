@@ -81,13 +81,16 @@ function pageStrips(block, round) {
 /**
  * What each thing bought for the page moves, and by how much.
  *
- * THREE PURCHASES, THREE MECHANISMS, and only one of them is the grade.
- * `landingPageBonus` reads the `landingPage` target alone; the size guide
- * divides the return rate and photography multiplies the conversion rate
- * (`businessFor`). Drawing the page as a page (design/landing-page/, C) made it
- * possible to imply otherwise, so every figure here is asked of the engine: a
- * change to a curve, or to how many points a page can be worth, moves the
- * screen with it rather than leaving it stating an old number.
+ * CAPITAL REACHES THE GRADE BY TWO ROADS, and this was first written knowing
+ * one. Round 0 writes the page description from all the capital and the grader
+ * scores it from week 1 — a size chart earns two points there, product shots
+ * one — and the page's own capital adds the site work's points from the week it
+ * goes live (`landingPageBonus`, which reads the `landingPage` target alone).
+ * `points` below is the second road only, which is why only the page has any;
+ * the first is already inside the grade the description was given. The size
+ * guide also divides the return rate and photography multiplies the conversion
+ * rate (`businessFor`). Every figure is asked of the engine, so a change to a
+ * curve moves the screen with it rather than leaving it stating an old number.
  *
  * THE GRADE POINTS ARE WHAT THE AUCTION GAINS, not the bonus the capital earns.
  * The auction caps the landing page grade at 10 (round.js, `withLandingBonus`),
@@ -146,8 +149,8 @@ export function pageParts(block, round, grade) {
       paise,
       week: waiting.length > 0 ? Math.max(...waiting.map((p) => p.liveAtRound)) : null,
       moves: MOVES[target],
-      // Only the page itself is a grade point, and it is the WHOLE gain rather
-      // than a share of it: nothing else contributes for it to share with.
+      // Only the page earns site-work points, and they are the WHOLE of the site
+      // work's gain rather than a share: no other target adds any.
       points: target === 'landingPage' ? gained(settled) : 0,
       now: target === 'landingPage' ? gained(block) : capexEffect(live, target),
       lift: target === 'landingPage' ? 1 : capexEffect(paise, target),

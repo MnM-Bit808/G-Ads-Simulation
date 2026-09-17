@@ -184,9 +184,9 @@ function landingPage(model, openGuide) {
     }
     list.append(row);
   }
-  const only = el('p', 'yad-small', AD.onlyPage());
-  add(only, whyButton(AD.onlyPage, openGuide));
-  list.append(only);
+  // A disclosure stood here, "only the page itself moves the grade", and it was
+  // false: the size guide and photography write sentences into the graded page
+  // description. How that should be shown is being designed.
   side.append(list);
 
   const top = el('div', 'yad-page-top');
