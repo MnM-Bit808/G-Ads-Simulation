@@ -105,6 +105,32 @@ look and no parameter for another. A saved game is met at the front door on
 every load, so choose *Start a new game* to reach round 0. To see the classic
 game as it was, check out the tag `classic-last`.
 
+**DONE 2026-09-18: a rival is handed its own revised history** (DECISIONS C9,
+the owner's option B, built 2026-09-16 and landed today). Three rival rules read
+returns off the report a controller is handed — the week just played, which never
+carries one, because a return is written back into its click week two to five
+weeks later. So every rival believed the briefing's 40% return rate all game,
+`grossOptimiser`'s geography was `disciplined`'s, and the place rule see-sawed.
+A controller is now handed a fourth thing, its own report for every week played
+as revised (spec R3a and CLAUDE.md hard rule 5 amended, no engine change); the
+return rate reads settled weeks only, places sum every week played, and a place
+adjustment moves halfway toward its reading. `tests/rivalsInPlay.test.js` holds
+all three in play, and each failed before its fix.
+- **It sat unmerged while `main` moved 221 commits** — F17, the switch-over, I37
+  and I38 — so it was merged and re-measured before landing, against gates agreed
+  first: the suite green (2,383 tests), calibration's 22 figures identical, the
+  player's median rank still 5th and losing in 0 of 72 markets; paired net profit
+  +0.3% median (−3.2% to +4.1%, 10th to 90th), cost per click unchanged at ₹12.0,
+  rivals' month-2 budgets identical.
+- **D12's week-9 gate, which C9 left open, is closed.** On the pre-F17 market the
+  step into week 9 fell to 1.83 times an ordinary week, under the double D12 was
+  taken on. On today's market it is 4.19 before C9 and 3.53 after, so the gate
+  clears and the figure the screens quote is now 3.53.
+- **Still open, the same root cause:** the rivals' `wastefulQueries` asks for an
+  exact zero off the week just played (I8's addendum) and could now read settled
+  weeks. And `npm run test:perf`'s sampled-round test sits on its 2,200ms bound on
+  this machine, on unchanged code.
+
 **DONE 2026-09-17: the landing page is graded as it stands** (DECISIONS I37,
 the owner's decision; commits `88c2c98`, `6246367`, `a163633`). The timing
 question this entry held open is settled. A page built from capital is

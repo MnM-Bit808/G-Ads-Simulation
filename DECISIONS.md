@@ -821,6 +821,29 @@ markets, before and after), but its step against ordinary weeks is now 1.80×
 the re-split and the spend — still stands, the gate no longer clears. Recorded in
 D12; the owner's to retake.
 
+**RETAKEN ON TODAY'S MARKET, AND LANDED (2026-09-18).** This fix sat unmerged on
+`claude/rival-history-main` while `main` moved 221 commits: F17 (the throttled
+ladder), the Studio switch-over, I37 and I38. Merged and re-measured against
+`main` at `26391d9`, over the same 72 markets, against gates the owner agreed
+first:
+
+- **Hard, all passed.** The suite green including `tests/rivalsInPlay.test.js`,
+  which holds the three fixes in play. Calibration's 22 printed figures identical.
+  The player's median rank still 5th, losing money in 0 of 72 markets.
+- **Stop-and-show, all passed.** The player's final net profit, paired market by
+  market: **+0.3% median** (10th percentile −3.2%, 90th +4.1%; worst −6.2%, best
+  +16.7%), ranks better in 6 markets, the same in 63, worse in 3. Weeks 1-7: the
+  player's cost per click ₹12.0 either way, net ROAS 6.46 → 6.45, profit per
+  rupee 1.90 → 1.89; the rivals' cost per click ₹10.0, net ROAS 6.20 → 6.16,
+  profit per rupee 1.96 unchanged. Rivals' month-2 budgets identical, median
+  ₹2,48,000 across ₹1,68,000 to ₹2,88,000.
+- **D12's week-9 gate clears on this market**, 3.53 times an ordinary week
+  against 4.19 before, so the concern above is closed rather than carried; the
+  screens that quote the figure now say 3.53×.
+
+The table above stands as what this change did to the market of its own day; this
+note is what it does to the market players meet.
+
 **Found on the way.** Seed 7's `cautious` rival nearly vanishes in week 2 in five
 cells of six — 3,995 impressions against 39,291 in week 1 before this change,
 1,703 after. It recovers by week 4 either way and is never dark; it is the
@@ -1301,16 +1324,16 @@ on the committed harness**, whose player has its round-0 money: before C8's fix
 and after it, the best investment against keeping the money keeps its sign in
 every cell, so the capital card's premise stands (C8 has the figures).
 
-**Moved again by C9 (2026-09-16), and not retaken.** With rivals reading their
-own history, the step into week 9 measures 1.83 times ordinary (at least double
-in 33 of 72 markets, from 43), under the gate. The week-9 move itself did not
-change — a median 19.7 points of impression share against 20.2, and market spend
-still falls 26% — but ordinary weeks got busier, 10.2 points against 8.0, because
-rivals now settle into their places over several weeks and move their ceilings
-once their returns settle. For the Auction Insights card, a rival's overlap moves
-five points or more into week 9 in 39 of 72 markets, as before, now 1.80 times
-ordinary against 2.27. What the week-9 line says — the re-split and the spend —
-still stands. Whether a gate of double still decides it is the owner's call.
+**Moved again by C9 (2026-09-16), and retaken on the market as it is now
+(2026-09-18).** On the market of the day C9 was built, rivals reading their own
+history took the step into week 9 to 1.83 times an ordinary week, under the gate
+of double this line was taken on, because ordinary weeks got busier rather than
+because the week-9 move shrank. **That reading was on the pre-F17 market.** F17,
+which came to `main` with the switch-over, changed how far a throttled rival
+reaches, and the step is larger on both sides of C9 now: measured over the same
+72 markets on 2026-09-18, **4.19 times ordinary before C9 and 3.53 times after**
+(and into week 5, 4.40 → 3.75). The gate clears comfortably, so this line stands
+as written, and C9's concern is closed rather than carried.
 
 **Dated note, 2026-09-17: week-5 capital now reaches the page (I37).** The table
 above measured a week-5 investment whose page sentence never reached the grader,
