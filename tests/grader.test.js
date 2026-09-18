@@ -474,7 +474,9 @@ describe('the grade explains itself (explainGrade)', () => {
 
     expect(said(bare).join(' ')).toMatch(/not filled out/);
     expect(said(bare).join(' ')).toMatch(/no reason to act/);
-    expect(said(bare).join(' ')).toMatch(/too short/);
+    // Since grading only what Google names (C, 2026-09-17) the landing page rules
+    // are speed, sizing and reviews, and a stub of a page still trips "barely".
+    expect(said(bare).join(' ')).toMatch(/barely a description/);
     // One headline cannot be three different things, so the new uniqueness
     // rule has to fire here too rather than passing by default on a thin ad.
     expect(said(bare).join(' ')).toMatch(/one message reworded/);
@@ -482,7 +484,7 @@ describe('the grade explains itself (explainGrade)', () => {
     const fixed = {
       headlines: ['Gym Leggings From 799', 'Squat Proof Every Rep', 'Free Size Exchange'],
       descriptions: ['Workout leggings that hold through the session.', 'Sizes XS to XXL.'],
-      landingPageDescription: 'A long page with a size chart, fit guide and customer reviews.',
+      landingPageDescription: 'It loads quickly on a phone, with a size chart, fit guide and customer reviews.',
     };
     expect(said(fixed)).toEqual([]);
     expect(explainGrade(fixed, ctx).grade.expectedCtr)

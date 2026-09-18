@@ -11,10 +11,11 @@
  */
 
 import { ARRIVAL_SHAPE, SETTLES_AFTER_ROUNDS } from '../dashboard.js';
-import { pct, rupees } from '../dom.js';
+import { pct, rupees, whole } from '../dom.js';
 import {
   RTO_RATE_COD, RTO_RATE_PREPAID, POST_DELIVERY_RETURN_RATE, RTO_FREIGHT_PAISE,
   LEARNING_ROUNDS, LEARNING_ERROR_MULTIPLIER, BRAND_OWNER_MULTIPLIER, BRAND_POACHER_MULTIPLIER,
+  QUALITY_MIN_IMPRESSIONS, MAX_BID_MULTIPLE,
 } from '../../engine/constants.js';
 
 /**
@@ -32,5 +33,7 @@ export function guideFigures() {
     learningError: `${LEARNING_ERROR_MULTIPLIER} times`,
     ownerConv: `${BRAND_OWNER_MULTIPLIER} times`,
     poacherConv: `${BRAND_POACHER_MULTIPLIER} times`,
+    qsImpressions: whole(QUALITY_MIN_IMPRESSIONS),
+    bidCap: `${MAX_BID_MULTIPLE} times`,
   });
 }

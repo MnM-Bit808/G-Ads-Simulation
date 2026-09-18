@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #0D0C0E; color: #EDE8E3;
+      font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+    a { color: #FF6166; } a:hover { color: #D7262F; }
+    .disp { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .num { font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="padding: 28px 30px; display: flex; flex-direction: column; gap: 18px;">
+
+  <div style="display: flex; flex-direction: column; gap: 4px;">
+    <h1 class="disp" style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em;">Today</h1>
+    <p style="margin: 0; font-size: 13px; color: #A19A94;">Vella &amp; Co. &middot; mid-price performance &middot; product shots, &#8377;50,000 at round 0, and nothing else</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start;">
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Round 0 &middot; step 5</div>
+      <div style="padding: 18px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px;">
+          <h3 class="disp" style="margin: 0; font-size: 17px; font-weight: 700;">Capital</h3>
+          <span style="font-size: 12px; line-height: 1.45; color: #A19A94;">site work goes live at week 4 &middot; until then the money is spent and the site unchanged</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 8px; font-size: 14px; color: #A19A94;"><strong class="disp num" style="font-size: 24px; font-weight: 800; color: #EDE8E3;">&#8377;70,000</strong><span>not committed</span></div>
+
+        <div style="padding: 12px 16px; border: 1px solid #3A363E; border-radius: 14px; display: flex; flex-direction: column; gap: 8px;">
+          <h3 class="disp" style="margin: 0; font-size: 15px; font-weight: 700;">Landing page grade</h3>
+          <p style="margin: 0; font-size: 12px; color: #A19A94;">the third part of Quality Score &middot; the ad&rsquo;s two are in Your ad</p>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center;">
+            <span style="position: relative; height: 8px; overflow: hidden; border-radius: 4px; background: #2E2A33;"><span style="position: absolute; inset: 0 50% 0 0; background: #EDE8E3;"></span></span>
+            <strong class="num" style="font-size: 14px;">5/10 from week 1</strong>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center;">
+            <span style="position: relative; height: 8px; overflow: hidden; border-radius: 4px; background: #2E2A33;"><span style="position: absolute; inset: 0 40% 0 0; background: #EDE8E3;"></span></span>
+            <strong class="num" style="font-size: 14px;">6/10 from week 4</strong>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid #D7262F; border-radius: 16px;">
+          <strong style="font-size: 14px;">Photography</strong>
+          <span style="font-size: 12px; font-weight: 700; color: #CFC9C3;">moves: how many visitors buy</span>
+          <p style="margin: 0; font-size: 12px; line-height: 1.45; color: #A19A94;">More of your visitors buy. Worth most where the decision is considered.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+            <span style="padding: 5px 10px; border: 1px solid #3A363E; border-radius: 999px; font-size: 12px; color: #CFC9C3;">none</span>
+            <span style="padding: 5px 10px; border: 1px solid #D7262F; border-radius: 999px; background: #D7262F; font-size: 12px; color: #FFF5F4;">product shots &middot; &#8377;50,000</span>
+            <span style="padding: 5px 10px; border: 1px solid #3A363E; border-radius: 999px; font-size: 12px; color: #CFC9C3;">on real bodies &middot; &#8377;1,10,000</span>
+            <span style="padding: 5px 10px; border: 1px solid #2A272D; border-radius: 999px; font-size: 12px; color: #6D6770;">video &middot; &#8377;1,60,000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Your ad &middot; week 6</div>
+      <div style="padding: 18px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px;">
+        <h3 class="disp" style="margin: 0; font-size: 16px; font-weight: 700; line-height: 1.2;">Your landing page</h3>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5;">&ldquo;A plain product page. Product shots on white.&rdquo;</p>
+        <p style="margin: 0; font-size: 12px; color: #A19A94;">what the grader read</p>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 4px; padding-top: 12px; border-top: 1px solid #2A272D;">
+          <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: #A19A94;">What each one buys</div>
+
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: #A19A94;"><span>plain</span><span>not bought</span></div>
+            <span style="font-size: 12px; color: #A19A94;">&#8377;55,000 would add 3 to the landing page grade</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: #A19A94;"><span>A size chart</span><span>not bought</span></div>
+            <span style="font-size: 12px; color: #A19A94;">would buy fewer orders sent back</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <div style="display: flex; justify-content: space-between; gap: 10px; font-size: 12px;"><span>product shots</span><span class="num">&#8377;50,000</span></div>
+            <span style="font-size: 12px; color: #9FD3B5;">+1 the page is described</span>
+            <span style="font-size: 12px; color: #A19A94;">2% more sales for the same clicks</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding-top: 10px; border-top: 1px solid #2A272D; font-size: 12px;">
+            <span style="color: #A19A94;">5 to start, <span class="num">+1</span></span>
+            <span class="disp num" style="font-size: 16px; font-weight: 800;">6<span style="font-size: 12px; font-weight: 600; color: #A19A94;"> /10</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 16px 18px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px;">
+    <h3 class="disp" style="margin: 0; font-size: 16px; font-weight: 700;">Where length alone earns a point today</h3>
+    <div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 2fr) 70px; gap: 8px 16px; font-size: 13px; align-items: baseline;">
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E;">bought alone</span>
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E;">the sentence that passes 40 characters</span>
+      <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; text-align: right;">grade</span>
+
+      <span>product shots, &#8377;50,000</span><span style="color: #CFC9C3;">&ldquo;Product shots on white.&rdquo; &middot; 45 characters</span><span class="num" style="text-align: right;">6</span>
+      <span>faster page, &#8377;25,000</span><span style="color: #CFC9C3;">&ldquo;It loads quickly on a phone.&rdquo; &middot; 50</span><span class="num" style="text-align: right;">6</span>
+      <span>a size chart, &#8377;25,000</span><span style="color: #CFC9C3;">&ldquo;A basic size chart.&rdquo; &middot; 41, by one character &middot; plus sizing</span><span class="num" style="text-align: right;">7</span>
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px; border: 1px solid #2A272D; border-radius: 14px; background: #131215;">
+    <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #CFC9C3;"><strong style="color: #EDE8E3;">A picture earns a grade point by its caption.</strong> The grader gives a point to any page description longer than 40 characters. The plain page is 21; &ldquo;Product shots on white.&rdquo; takes it to 45. Round 0&rsquo;s card says photography moves how many visitors buy, and the grade bar above it rises by one.</p>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

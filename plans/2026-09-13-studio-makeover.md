@@ -1,7 +1,9 @@
 # The Studio makeover
 
-*Design, 2026-09-13. Decided with the owner one part at a time. No code has
-been written against it.*
+*Design, 2026-09-13. Decided with the owner one part at a time. The pilot was
+built on `makeover` (`plans/2026-09-13-studio-makeover-plan.md`), and the owner
+played it and called it alive on 2026-09-15; where the build departs from this
+text, section 10 says so.*
 
 *It changes the route in `reviews/slc-review.md` section 12. The review's C3
 (round 0 as steps), C4 (a dashboard that reveals itself) and E (game feel) are
@@ -437,3 +439,214 @@ Vella & Co. at mid-price performance, with four phrase keywords, two broad, and
 the brand on exact; the figures are weeks 1–4 added up, as today's keyword card
 does. The one invented detail is the pending change (gym leggings ₹33 → ₹25),
 drawn to show where changes wait.
+
+## 10. Corrected by the build
+
+The plan's tasks carry the detail, in their *Found when built* notes and Task
+10's play record.
+
+- **Round 0 came first and built the kit (section 7).** Round 0 was redesigned
+  and rebuilt in this layout before the pilot section
+  (`plans/2026-09-14-round-zero-redesign.md`), and it built the keyword card,
+  the planner drawer and the controls in `ui/kit/`. Your keywords draws that
+  same card with its week's parts switched on (the running switch, "was", the
+  tick, the outlines), and the planner shares the classic planner's own state.
+- **Today's cards are filtered by section, never moved (section 5).** The
+  decision form redraws every card it owns into its own region, so a card moved
+  into a section would be drawn into nothing. The stylesheet shows a section's
+  cards by `data-slot`, and Your keywords, rebuilt, draws its own.
+- **The tray (section 2, behaviour 2)** replaces the *Next week* card, as
+  written; *This week only* stays a card in Your money. `ui/shell/tray.js`
+  holds only the lines' order, and the tray is drawn in `ui/shell/shell.js`
+  (section 5's table).
+- **The field guide gained a chapter,** *What the Quality Score is, and is
+  not*, which the card's QS "why?" opens (section 4, item 3).
+- **The planner kept *Add all*** (section 4, item 4), and a keyword added this
+  week reads "new: no clicks yet".
+- **A bid under the reserve is warned on every week's card,** as round 0's is
+  (the owner, 2026-09-14; DECISIONS I17), with the hour and place adjustments
+  the week will run, under manual bidding.
+- **Your ad (section 2's table)** had no weekly card to take over, and the
+  pilot's section said so. The owner chose on 2026-09-15 to build it
+  read-only, and it is built (`ui/ad/`): the ad as searchers see it, its
+  writer and fee, the three grades out of ten the auctions use that week, with
+  a grade still to change outlined and dated (capital going live, or an old
+  save's own words landing), and the landing page as the grader read it,
+  sketched with each part's week. It draws itself, as Your keywords does,
+  since the classic page has no ad card to filter. Designing it found that the
+  Studio's Quality Score panel had dropped the grade out of ten that DECISIONS
+  I1 puts beside each rating; the card shows it again.
+- **Where and when (section 7, item 4)** is built as the owner chose from the
+  mock-ups on `design/where-when/` (2026-09-15): the three kinds of place as
+  rows with a bar each beside the India map, a city's dot sized by the bid
+  there, and the hours as the day drawn to scale, each block as wide as its
+  hours with the day's clicks by hour beneath. It draws itself, as Your
+  keywords does, and the classic cards are retired in the Studio. Bars stop
+  where a bid stops (four times the keyword, once over hour and place, G4's
+  dated note), and read "+30% · bids ×1.3". Its layout follows the section's
+  width by container queries rather than the window's, because the sidebar
+  takes 300px of any window.
+- **Motion (section 3).** The tray's entrance is the weekly tray's only, since
+  round 0's redraws its chips on every change; the strip scrolls to the line
+  just made. A section's first visit plays once and staggers top to bottom, and
+  its dot waits, on a phone, until the list behind the menu is seen. Row 2, the
+  revised figures, plays in Your week (below). `/review-animations` was not
+  available, and `improve-animations` reviewed the motion instead.
+- **Your week (section 7, item 1)** is built as the owner chose from the
+  mock-ups on `design/your-week/` (2026-09-15): the week's six figures, every
+  week's net profit as a bar with a dashed tick where it stood before this week
+  ran and the change in grey under it, one sentence on what moved, and where
+  the impressions went. It draws itself (`ui/week/`), and the classic three
+  cards are retired in the Studio. The engine keeps only the revised history,
+  so the interface keeps the one from before the latest week (`ui/app.js`,
+  `ui/save.js`). Three choices came from seeing it: the tick says "before week
+  N ran", since the game cannot know when you looked; a losing week hangs below
+  a zero line in amber, while the changes stay grey; and the palette's "a loss
+  is amber" is set aside for the changes, because a week revised down is a
+  correction, not money leaving. Row 2's motion plays the first time the section
+  is seen after a week has run, and on "replay the revision"; `improve-animations`
+  reviewed it, and the one finding taken hides where a week stood from screen
+  readers, which read it at opacity 0 as a second current figure. On a phone
+  the chart scrolls sideways in its own box rather than shortening its figures.
+- **What people typed (section 7, item 2)** is built as the owner chose from
+  the mock-ups on `design/what-people-typed/` (2026-09-15): every search the
+  account bought in one list, most spent first, with its sales, what a sale
+  cost there and how many came back, and Block words beside it, whose preview
+  outlines the rows a block would catch as it is typed. It draws itself
+  (`ui/typed/`) and retires the classic two cards in the Studio; every block
+  goes through the form's own staging, so the tray words it. Not chosen: the
+  searches grouped under the keyword that bought each, which would have needed
+  the engine to keep that keyword. Drawing it found that today's "five
+  clicks, no sale" mark never fires on the game's fractional sales, so a sale
+  costing over twice the account's average is marked instead; the classic
+  look's fix is its own task. A blocked row is muted grey rather than faded,
+  which measured under 4.5:1.
+- **Your money (section 7, item 3)** is built as the owner chose from the
+  mock-ups on `design/your-money/` (2026-09-15): this month as one bar, where
+  a line between two weeks moves money between those two and no others, so a
+  drag can never leave money unplanned or plan more than the month holds;
+  bidding and what week 8 decides side by side; and at week 5 the capital and
+  the one move on top, on the panel colour. It draws itself (`ui/money/`) and
+  retires the classic five cards in the Studio. Not chosen: twelve weeks at a
+  glance, each week's budget against what it spent, with month 3's range
+  shaded (the canvas's *Not chosen* page). Planning it found the tray quoting
+  a plan the week-5 round re-spreads, and naming weeks of the month rather
+  than of the game; both are fixed for both looks. Building it dropped one
+  mock-up sentence, a threshold of thirty conversions the engine never uses
+  (17.2: that consequence is discovered, not read off a card). Committing
+  capital is red, as the player's change; money no week is given is amber and
+  dashed, since the month's end loses it; a cell out of reach is muted rather
+  than faded. After week 8 the card gives the rank alone: history is revised
+  after the snapshot, so a total summed later would not be the one that set
+  month 3.
+- **Returns (section 7, item 4)** is built as the owner chose from the
+  mock-ups on `design/returns/` (2026-09-15): the five figures over settled
+  weeks, every week as one bar split into refused at the door (amber) and
+  sent back (grey) with a week still coming back faint, the prepaid
+  discount's rungs each drawing what it saves a week against what it costs,
+  and what else moves returns with the half each reaches. It draws itself
+  (`ui/returns/`) and retires the classic two cards in the Studio; it still
+  unlocks at week 6. Not chosen: the two halves as two cards, each with its
+  own weeks and levers, whose two strips sat side by side on different
+  scales. Building it depended on the prepaid fix (I34), merged in first, so
+  every rung's rate is the arithmetic the round books with. Row 3's motion,
+  a first visit's entrance, had only ever played on classic cards: rebuilding
+  Your money had taken its week-5 entrance away, and the shell now enters a
+  rebuilt section's own parts. The mock-up said the half an investment cannot
+  reach "held"; the section reads that half before and after instead, since
+  the mix of places can move it. The rung you move to is red, your change; the
+  account's own setting is bone, as a chosen chip is everywhere else.
+- **The Market area (section 7, item 6)** is built as the owner chose from the
+  mock-ups on `design/market/` (2026-09-15), and is one section, Rivals, where
+  section 2's table had two: the market card alone did not fill a section.
+  The market's four public figures and the player's own share sit on top;
+  each rival you meet is a card with how often you meet, week by week, its ad,
+  and who comes out above. Not chosen: one grid of every rival's weeks. Left
+  out on purpose: the trends chart's per-advertiser lines (impression share,
+  top of page, absolute top) for rivals, which read as a leaderboard, the
+  thing that chart warns against. Mapping today's cards found the market
+  reading naming the rival "above you most often when you meet" by that rate
+  alone, which picked one in 2% of the player's auctions; it now names the
+  rival above the player in the most of all its auctions, in both looks. A
+  second read of the mock-ups found a move judged on unrounded figures while
+  the screen printed rounded ones; moves are judged as printed. With this
+  section no Studio section shows a classic card, and the dashboard behind the
+  Studio is drawn only for the form's context. Still for the owner: a results
+  page for one search, which needs a DECISIONS entry before any design.
+- **Results (section 7, item 8)** is built as the owner chose from the mock-ups
+  on `design/results/` (2026-09-15): four sections after the last week, where
+  section 2's table had one, because the end screen was today's longest page
+  (about 5,000px drawn as one; not chosen). Twelve weeks, What you learned,
+  Where they sat and Everyone's books, each with a dot until opened and a link
+  to the next; the Every week table and the What you did list become the
+  chart's weeks, tapped. Drawing it with real replays found both end-of-game
+  replays teaching false answers, fixed first at the owner's word, in both
+  looks: "What if I hadn't?" keeps the change out and runs to the end, and the
+  budget question's raise survives capital. It also found two things the
+  game counts that the owner chose to say plainly rather than change for now:
+  net profit never counts capital, and the last weeks' returns come back after
+  the game ends. Round 0's notes on the rivals are now kept for the reveal,
+  which reopens section 12 of the round 0 design in the direction it asked.
+- **The Guide as a page (section 7, item 8)** is built as the owner chose from
+  the mock-ups on `design/guide/` (2026-09-15): the Guide area's list is
+  Contents and the numbered chapters, the contents a card a chapter, and a
+  chapter its two halves side by side with the section it explains, Show me,
+  the chapters to read beside it, and previous and next. Section 2's "'why?'
+  links still open it from any section" is kept as the drawer, whose Contents
+  now opens the page. Checking the mock-ups found Show me marking nothing in
+  any rebuilt section (the ring was the classic cards' alone), three chapters
+  pointing where their idea is not shown, two naming a classic card, and the
+  rail losing the player's place; all fixed first. A chapter may now name a
+  part only the Studio draws (`studioAccount`).
+- **The switch-over (section 7, item 9), part 1** is built as the owner chose
+  from the mock-ups on `design/switch-over/` (2026-09-16):
+  `plans/2026-09-16-switch-over-plan.md`, nine tasks. The Studio is the default
+  look — the page is served as `body.studio` and a `?look=classic` visit takes
+  the class off, so the game everyone gets paints in its own colours before any
+  script runs. Section 5's "built beside today's screens, behind a link" ends
+  here; part 2 removes the classic look and this design's `?look=studio`
+  entirely. Three things the Studio never had, because the classic page was
+  always underneath it: its own context (`ui/shell/context.js`, where the shell
+  drew the whole classic page hidden to borrow the decision form's), a front
+  door before a game opens (`ui/door/`, five states, and the only thing that
+  catches a restore that throws), and the playtest questions as a Results
+  section rather than a card under the fourth one. The playtest file now names
+  the build it was recorded on (`ui/version.js`), so a game that spans a deploy
+  says where. Merging `main` in was a `-s ours` merge of 22 commits that are all
+  twins of makeover's own, leaving the tree byte-identical; F17 and the rival
+  prepaid fix, both in the release by the owner's choice, were measured with the
+  market harness against gates agreed first.
+- **The switch-over, part 2** (`plans/2026-09-16-switch-over-part-2-plan.md`)
+  removed the classic look: 6,153 lines over eight commits, the tag
+  `classic-last` on the last one that runs it. Section 5's "built beside today's
+  screens, behind a link" is finished, and so is the mechanism section 5
+  describes — `slots`, `RETIRED_SLOTS` and `visibilityRules` are gone, since
+  there are no cards left to filter. The estimate in section 7 was "about 4,500
+  lines" and read as a deletion; it was mostly carving classic-only regions out
+  of six SHARED files, only two being wholly classic. Two things the deletion
+  nearly took, both kept by reading before cutting: DECISIONS D11's disclosure,
+  which is accepted "and told" and now lives in Where and when, and round 0's
+  reserve-warning tests, which read as the classic page's and are the shared
+  rules'. What a player sees was held by measurement rather than by eye — every
+  element of every screen fingerprinted from its computed styles before and
+  after the stylesheet was cut, 4,853 of them, with no differences.
+- **A bid drag refreshes only the tray,** and the rest of the page once the
+  slider is let go: the whole refresh on every step cost 41ms with sixty
+  keywords.
+- **The reading load (section 4)** measured 158 words with seven keywords,
+  against about 120; 105 are the cards' repeated labels. Put to the owner.
+- **Sixty keywords (section 4's risk)** drag smoothly and the reading panel
+  folds the rest together, but a click that redraws the section took 274ms
+  and the section runs to twenty screens. The compact list view was put to the
+  owner, not built.
+- **Phone (section 2, behaviour 3)** as written, and the top bar drops its week
+  dots and saved note under 900px, which pushed its end off a 375px screen.
+- **Desktop, after the gate (2026-09-15).** Playing it in a desktop browser, the
+  owner asked for the window rather than the phone. A section's cards take its
+  full width, one to a row, where the classic page's four-column grid left most
+  at half width; a table's height is its own, so the page is the one scroll;
+  scrollbars are slim; the guide's contents are numbered.
+- **The gate (section 6) passed on 2026-09-15:** the owner played it and said
+  it is alive. Of section 7, the owner's next are the brand as a pick from the
+  nine in round 0 (reopening the round 0 design's drawn brand, DECISIONS I35),
+  Your ad, and Where and when, drawn first as mock-ups.

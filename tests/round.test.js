@@ -1,9 +1,11 @@
 import { describe, test, expect } from 'vitest';
 import { runRound } from '../engine/round.js';
+import { allocate } from '../engine/money.js';
 import { LOCATION_TIERS } from '../engine/constants.js';
 import { locationSharesFor, refusalRateFor } from '../engine/locations.js';
 import { businessFor, realisedBreakEvenCpcPaise, refusalOutlook } from '../engine/positions.js';
 import { homeCell } from '../engine/querySet.js';
+import { locationMultiplier, clampBidPaise } from '../engine/strategies.js';
 import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -248,10 +250,10 @@ describe('an open cell is not a free ride (spec 17.1)', () => {
   // central decision rests on that being true.
   //
   // It IS true, and the first attempt to check it looked at the wrong number.
-  // The player here loses NOT ONE IMPRESSION to rank: it outranks or ties with
-  // everyone who reaches it, and with four slots against typically fewer
-  // entrants, everyone above the floor shows anyway. Measured on lostToRank the
-  // rivals appear to cost nothing.
+  // The player here loses NOT ONE IMPRESSION to rank: with four slots against
+  // typically fewer entrants, everyone above the floor shows, the player
+  // included, though a rival sits above it in about a quarter of its
+  // impressions. Measured on lostToRank the rivals appear to cost nothing.
   //
   // The cost lands entirely on PRICE. Second price charges what it takes to beat
   // the entrant below you (10.2, W8), so a rival who never outranks you and
@@ -274,10 +276,14 @@ describe('an open cell is not a free ride (spec 17.1)', () => {
     // test's point arriving a little early, not a rival winning auctions.
     expect((market.impressions + market.lostToBudget) / market.eligibleAuctions)
       .toBeCloseTo(1, 3);
-    // Relative, because "loses no impressions" is a claim about proportion,
-    // not about integers — and the gap to playing alone is that same sliver of
-    // budget, not rank.
-    expect(Math.abs(market.impressions / alone.impressions - 1)).toBeLessThan(0.005);
+    // So the whole gap to playing alone is the player's own budget, never rank.
+    // It used to be a sliver, 0.17%, and was asserted as one: under half a
+    // percent. Since F17 it is 15%. A nearly-spent rival no longer holds a slot
+    // above the player in searches it is not in, so the player sits first in
+    // 73% of its impressions rather than 55%, clicks more, and spends its whole
+    // week. Held as what it is, so the claim cannot hide behind the budget.
+    expect(alone.impressions - market.impressions, 'the gap to playing alone')
+      .toBeCloseTo(market.lostToBudget - alone.lostToBudget, 3);
   });
 
   test('and cost it half its margin anyway, through the price', () => {
@@ -352,6 +358,40 @@ describe('the counterfactual (spec 11.2, W4, L13)', () => {
     const report = out.report.byAdvertiser[CONSTRAINED];
     expect(report.missedToBudget.impressions).toBe(0);
     expect(report.missedToBudget.clicks).toBe(0);
+  });
+
+  test('a week that capital joins the budget keeps its lift', () => {
+    // Found drawing Results (2026-09-15). The lift went onto the state BEFORE
+    // the round applied its budget adjustments, and at an allocation round the
+    // rollover re-spreads the month over the week's weights, which were the
+    // lifted ones: every week got a quarter of the month again, and a week
+    // that lost 46% of its impressions to budget was told it missed nothing.
+    // Where the capital arrived cannot change what the rest of the month buys,
+    // so the answer must be the one for a month already raised.
+    const rolling = deformed(STATE, (x) => {
+      x.advertisers.find((a) => a.id === CONSTRAINED).capex.remainingUnallocatedPaise = CAPEX_ALLOCATION_PAISE;
+    });
+    const raised = deformed(STATE, (x) => {
+      const campaign = x.advertisers.find((a) => a.id === CONSTRAINED).campaign;
+      campaign.monthlyBudgetPaise += CAPEX_ALLOCATION_PAISE;
+      campaign.weeklySplitPaise = allocate(campaign.monthlyBudgetPaise, campaign.weeklySplitPaise);
+    });
+    const a = runRound(rolling, { mode: 'expected', counterfactualFor: [CONSTRAINED] }).raw.byAdvertiser[CONSTRAINED];
+    const b = runRound(raised, { mode: 'expected', counterfactualFor: [CONSTRAINED] }).raw.byAdvertiser[CONSTRAINED];
+    expect(a.costPaise).toBe(b.costPaise);
+    expect(a.lostToBudget).toBeGreaterThan(0);
+    expect(a.counterfactual.costPaise).toBeGreaterThan(a.costPaise);
+    expect(a.counterfactual.impressions).toBeCloseTo(b.counterfactual.impressions, 6);
+  });
+
+  test('and so does a week whose own decision re-plans the split', () => {
+    // The decision was merged over the lifted split too, so a player who sent
+    // a plan that week undid the lift the same way.
+    const split = [...STATE.advertisers.find((a) => a.id === CONSTRAINED).campaign.weeklySplitPaise];
+    const decisions = { [CONSTRAINED]: { campaign: { weeklySplitPaise: split } } };
+    const planned = runRound(STATE, { mode: 'expected', decisions, counterfactualFor: [CONSTRAINED] });
+    expect(planned.raw.byAdvertiser[CONSTRAINED].counterfactual.impressions)
+      .toBeCloseTo(target.counterfactual.impressions, 6);
   });
 
   test('it does not recurse (L13)', () => {
@@ -826,57 +866,119 @@ describe('a round knows where its traffic was', () => {
   });
 });
 
-describe('the two paths through the auction agree when they should', () => {
+describe('the two paths through the auction agree when the bids do (G4, F17)', () => {
   /**
-   * THE GUARD THE STEP 3 TRIPWIRE WAS STANDING IN FOR, now that the control it
-   * was waiting for exists.
+   * The guard the step 3 tripwire stood in for, and the second attempt at it.
    *
-   * Three locations are three separate auctions and the honest implementation
-   * resolves three - measured at 531ms against a 400ms budget. When nobody
-   * adjusts their bid by location the ladders are identical, so one resolution
-   * apportioned across the tiers is exact rather than approximate, and the round
-   * takes that path. A player who never touches the control pays nothing for it.
+   * The first set every advertiser's place adjustments to [0, 0, 0] to force
+   * the per-place path. But 0% is a multiplier of exactly 1, so the round never
+   * took it: both states ran the flat path, and the test compared that path
+   * with itself (found 2026-09-15). Meanwhile the paths disagreed with equal
+   * bids, by 5% of one rival's impressions and 13% of its cost in this
+   * fixture, because a nearly-spent advertiser held a slot in every search it
+   * entered and a paisa of rounding decided whether it entered (F17).
    *
-   * The risk in having two paths is that they quietly stop agreeing. So this
-   * runs the same round both ways and holds them to the same numbers: the fast
-   * path is only legitimate while it is indistinguishable.
+   * So the tilt here is a millionth of a percent: a multiplier that is not 1,
+   * which sends the round down the three-auction path, on bids it leaves where
+   * they were. Both premises are asserted first, because the old test failed
+   * on a premise nobody checked.
    */
-  const flat = makeGameState();
-  const tilted = makeGameState();
-  // Neutral in every tier: a different SHAPE of the same instruction, which
-  // forces the per-tier path while asking for exactly what the flat path does.
-  for (const advertiser of tilted.advertisers) {
-    advertiser.campaign.locationAdjustments = [0, 0, 0];
-  }
-  // ...and one advertiser tilted, for the tests below.
-  const targeted = makeGameState();
-  targeted.advertisers[0].campaign.locationAdjustments = [0, -100, -100];
+  const TILT = [0, 0, 0.0001];
+  const tilted = () => {
+    const state = makeGameState();
+    state.advertisers[1].campaign.locationAdjustments = TILT;
+    return state;
+  };
 
-  test('a neutral tilt gives the same round as no tilt at all', () => {
-    // Both states are neutral, so both paths must produce the same market. If
-    // this ever fails, the apportionment has stopped being exact and the fast
-    // path is quietly wrong for every player who never touched the control.
-    const a = runRound(flat, { mode: 'expected' });
-    const b = runRound(tilted, { mode: 'expected' });
-    for (const advertiser of flat.advertisers) {
-      const x = a.raw.byAdvertiser[advertiser.id];
-      const y = b.raw.byAdvertiser[advertiser.id];
-      expect(y.impressions, `${advertiser.id} impressions`).toBeCloseTo(x.impressions, 6);
-      expect(y.clicks, `${advertiser.id} clicks`).toBeCloseTo(x.clicks, 6);
-      expect(y.costPaise, `${advertiser.id} cost`).toBeCloseTo(x.costPaise, 6);
+  test('the tilt really forces the three-auction path, and moves no bid', () => {
+    expect(locationMultiplier(TILT, 2)).not.toBe(1);
+    for (const advertiser of makeGameState().advertisers) {
+      for (const group of advertiser.adGroups) {
+        for (const keyword of group.keywords) {
+          // The fixture bids manually with no hour adjustments, so every
+          // hour's bid is the keyword's.
+          expect(clampBidPaise(keyword.bidPaise * locationMultiplier(TILT, 2), keyword))
+            .toBe(clampBidPaise(keyword.bidPaise, keyword));
+        }
+      }
     }
   });
 
-  test('and the location breakdown matches too, not just the totals', () => {
-    const a = runRound(flat, { mode: 'expected' });
-    const b = runRound(tilted, { mode: 'expected' });
-    const x = a.raw.byAdvertiser[PLAYER_ID].byLocation;
-    const y = b.raw.byAdvertiser[PLAYER_ID].byLocation;
-    expect([...y.keys()].sort()).toEqual([...x.keys()].sort());
-    for (const [tier, row] of x) {
-      expect(y.get(tier).impressions, `tier ${tier}`).toBeCloseTo(row.impressions, 6);
-      expect(y.get(tier).costPaise, `tier ${tier}`).toBeCloseTo(row.costPaise, 6);
+  test('and the market it plays is one where pacing throttles, which is where the paths parted', () => {
+    const throttled = Object.values(EXPECTED.raw.byAdvertiser).filter((r) => r.lostToBudget > 0);
+    expect(throttled.length).toBeGreaterThanOrEqual(3);
+  });
+
+  for (const mode of ['expected', 'sampled']) {
+    test(`a tilt that moves no bid moves nothing, to the paisa (${mode})`, () => {
+      const a = runRound(makeGameState(), { mode, seed: 3 }).raw.byAdvertiser;
+      const b = runRound(tilted(), { mode, seed: 3 }).raw.byAdvertiser;
+      for (const id of Object.keys(a)) {
+        expect(b[id].costPaise, `${id} cost`).toBe(a[id].costPaise);
+        expect(b[id].impressions, `${id} impressions`).toBeCloseTo(a[id].impressions, 6);
+        expect(b[id].clicks, `${id} clicks`).toBeCloseTo(a[id].clicks, 6);
+        expect(b[id].lostToRank, `${id} lost to rank`).toBeCloseTo(a[id].lostToRank, 6);
+        expect(b[id].lostToBudget, `${id} lost to budget`).toBeCloseTo(a[id].lostToBudget, 6);
+        for (const [tier, row] of a[id].byLocation) {
+          expect(b[id].byLocation.get(tier).impressions, `${id} tier ${tier}`).toBeCloseTo(row.impressions, 6);
+          expect(b[id].byLocation.get(tier).costPaise, `${id} tier ${tier}`).toBe(row.costPaise);
+        }
+      }
+    });
+  }
+
+  test('and so does Auction Insights', () => {
+    const a = runRound(makeGameState(), { mode: 'expected' }).insights;
+    const b = runRound(tilted(), { mode: 'expected' }).insights;
+    for (const [id, row] of Object.entries(a)) {
+      for (const [rival, r] of Object.entries(row.rivals)) {
+        expect(b[id].rivals[rival].overlapRate, `${id}/${rival}`).toBeCloseTo(r.overlapRate, 9);
+        expect(b[id].rivals[rival].positionAboveRate, `${id}/${rival}`).toBeCloseTo(r.positionAboveRate, 9);
+        expect(b[id].rivals[rival].outrankingShare, `${id}/${rival}`).toBeCloseTo(r.outrankingShare, 9);
+      }
     }
+  });
+});
+
+describe('an hour and a place adjustment share one cap (DECISIONS G4)', () => {
+  /**
+   * G4 says both adjustments compound and are clamped ONCE, at MIN_BID_PAISE
+   * and MAX_BID_MULTIPLE x the keyword bid, as `effectiveBidPaise` does when it
+   * is handed both. The round built each hour's bid clamped, then multiplied by
+   * the place with only a floor, so a place could carry a bid past four times
+   * its keyword and an hour above the cap was cut before a place could bring it
+   * back (found drawing Where and when's controls, 2026-09-15).
+   */
+  const same = (a, b) => {
+    const x = runRound(a, { mode: 'expected' }).raw.byAdvertiser;
+    const y = runRound(b, { mode: 'expected' }).raw.byAdvertiser;
+    for (const advertiser of a.advertisers) {
+      expect(y[advertiser.id].impressions, `${advertiser.id} impressions`).toBeCloseTo(x[advertiser.id].impressions, 6);
+      expect(y[advertiser.id].costPaise, `${advertiser.id} cost`).toBeCloseTo(x[advertiser.id].costPaise, 6);
+    }
+  };
+  // Keywords at ₹3, so four times is ₹12: under the rivals, where a bid still
+  // changes who wins, and far from the budget, which would otherwise hide it.
+  // Every state tilts by place, so all take the same, three-auction path.
+  const with_ = (hours, places) => {
+    const state = makeGameState();
+    const player = state.advertisers[0];
+    for (const group of player.adGroups) for (const keyword of group.keywords) keyword.bidPaise = 300;
+    player.campaign.daypartAdjustments = new Array(6).fill(hours);
+    player.campaign.locationAdjustments = new Array(3).fill(places);
+    return state;
+  };
+  // +300% on the hour is the cap already; +1% on the place would pass it.
+  const atTheCap = () => with_(300, 1);
+
+  test('a place cannot carry a bid past four times its keyword', () => {
+    // Six times the keyword, reached through the place, is four.
+    same(atTheCap(), with_(300, 50));
+  });
+
+  test('an hour past the cap still compounds with a place that lowers it', () => {
+    // Eight times the keyword, then halved, is four: the cap, reached once.
+    same(atTheCap(), with_(700, -50));
   });
 });
 
@@ -910,17 +1012,23 @@ describe('turning a location down', () => {
     // stops bidding in two of three does not get those searches somewhere else,
     // which is what makes narrowing a real cost rather than a filter.
     //
-    // NOT EXACTLY UNCHANGED, and the reason is worth knowing. Giving up two
-    // locations means spending the day's budget more slowly, so pacing lets the
-    // advertiser participate a little more in the one it kept: the metros gain
-    // 0.02%. That is the budget following, not the volume - the searches stayed
-    // where they were.
-    const wasMetros = before.raw.byAdvertiser[PLAYER_ID].byLocation.get(0).impressions;
-    const nowMetros = after.raw.byAdvertiser[PLAYER_ID].byLocation.get(0).impressions;
-    expect(Math.abs(nowMetros / wasMetros - 1), 'metros moved by more than a budget effect')
-      .toBeLessThan(0.01);
-    expect(after.raw.byAdvertiser[PLAYER_ID].impressions)
-      .toBeLessThan(before.raw.byAdvertiser[PLAYER_ID].impressions * 0.5);
+    // What it CAN gain in the metros is what its own budget used to cost it
+    // there. Giving up two places spends the day more slowly, so pacing lets it
+    // into more of the metro searches. That was 0.02% here until F17, and was
+    // asserted as under 1%. Since F17 the player spends its whole week (see
+    // "an open cell is not a free ride"), which was costing it 15% of its metro
+    // searches too, so freeing the budget gives the metros 17.6%: the budget
+    // following, not the volume. So the claim is held where it cannot hide
+    // behind the budget. The metros never win more searches than the metros
+    // have, and freeing money never costs them any.
+    const was = before.raw.byAdvertiser[PLAYER_ID];
+    const now = after.raw.byAdvertiser[PLAYER_ID];
+    const wasMetros = was.byLocation.get(0).impressions;
+    const nowMetros = now.byLocation.get(0).impressions;
+    expect(nowMetros, 'more metro impressions than metro searches')
+      .toBeLessThanOrEqual(now.eligibleByLocation[0] + 1e-6);
+    expect(nowMetros, 'freeing budget cost the metros something').toBeGreaterThanOrEqual(wasMetros);
+    expect(now.impressions).toBeLessThan(was.impressions * 0.5);
   });
 
   test('somebody else picks up what it stopped bidding for', () => {

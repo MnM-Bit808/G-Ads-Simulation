@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #0D0C0E; color: #EDE8E3;
+      font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; }
+    .disp { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .num { font-variant-numeric: tabular-nums; }
+    text { font-family: 'Instrument Sans', 'Segoe UI', Arial, sans-serif; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="padding: 28px 30px; display: flex; flex-direction: column; gap: 18px;">
+
+  <div style="display: flex; flex-direction: column; gap: 4px;">
+    <h1 class="disp" style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.01em;">What the page is worth</h1>
+    <p style="margin: 0; font-size: 13px; color: #A19A94;">B &middot; flat, then a step, then flat</p>
+  </div>
+
+  <div style="padding: 18px 20px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A;
+      display: flex; flex-direction: column; gap: 14px;">
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+      <h3 class="disp" style="margin: 0; font-size: 17px; font-weight: 700;">What the page is worth</h3>
+      <span style="font-size: 12px; color: #A19A94;">the landing page grade the auction uses</span>
+    </div>
+
+    <svg viewBox="0 0 720 206" width="100%" role="img"
+         aria-label="The landing page grade, week by week: 8 for weeks 1 to 3, stepping to 10 from week 4">
+
+      <!-- the scale it is read against, so nothing is exaggerated -->
+      <g stroke="#2A272D" stroke-width="1">
+        <line x1="36" y1="178.5" x2="708" y2="178.5"/>
+        <line x1="36" y1="103.5" x2="708" y2="103.5"/>
+        <line x1="36" y1="28.5" x2="708" y2="28.5"/>
+      </g>
+      <g fill="#8A847E" font-size="10" text-anchor="end">
+        <text x="28" y="182">0</text>
+        <text x="28" y="107">5</text>
+        <text x="28" y="32">10</text>
+      </g>
+
+      <!-- where it stood before the site work landed -->
+      <line x1="204" y1="58.5" x2="708" y2="58.5" stroke="#57525C" stroke-width="1" stroke-dasharray="3 4"/>
+
+      <!-- the week the site work goes live -->
+      <line x1="204" y1="22" x2="204" y2="186" stroke="#9FD3B5" stroke-width="1" stroke-dasharray="4 4" opacity="0.7"/>
+
+      <!-- the grade itself: a step, never a slope, because it does not drift -->
+      <path d="M36 58 H204 V28 H708 V178 H36 Z" fill="#EDE8E3" opacity="0.06"/>
+      <path d="M36 58 H204" fill="none" stroke="#EDE8E3" stroke-width="2" stroke-linecap="round"/>
+      <path d="M204 28 H708" fill="none" stroke="#EDE8E3" stroke-width="2" stroke-linecap="round"/>
+      <!-- the riser is the change, so it is drawn in the player's own colour -->
+      <path d="M204 58 V28" fill="none" stroke="#D7262F" stroke-width="3" stroke-linecap="round"/>
+      <text x="213" y="47" fill="#FF6166" font-size="12" font-weight="700">+2</text>
+
+      <!-- each week, so the flat runs are twelve readings and not one guess -->
+      <g fill="#EDE8E3">
+        <circle cx="64" cy="58" r="3"/><circle cx="120" cy="58" r="3"/><circle cx="176" cy="58" r="3"/>
+        <circle cx="288" cy="28" r="3"/><circle cx="344" cy="28" r="3"/><circle cx="400" cy="28" r="3"/>
+        <circle cx="456" cy="28" r="3"/><circle cx="512" cy="28" r="3"/><circle cx="568" cy="28" r="3"/>
+        <circle cx="624" cy="28" r="3"/><circle cx="680" cy="28" r="3"/>
+      </g>
+      <circle cx="232" cy="28" r="4" fill="#9FD3B5"/>
+
+      <!-- the week being played -->
+      <circle cx="288" cy="28" r="6" fill="none" stroke="#EDE8E3" stroke-width="1.5"/>
+
+      <g font-size="10" fill="#8A847E" text-anchor="middle">
+        <text x="64" y="197">1</text><text x="120" y="197">2</text><text x="176" y="197">3</text>
+        <text x="232" y="197" fill="#EDE8E3" font-weight="600">4</text>
+        <text x="288" y="197" fill="#EDE8E3" font-weight="600">5</text>
+        <text x="344" y="197">6</text><text x="400" y="197">7</text><text x="456" y="197">8</text>
+        <text x="512" y="197">9</text><text x="568" y="197">10</text><text x="624" y="197">11</text>
+        <text x="680" y="197">12</text>
+      </g>
+    </svg>
+
+    <div style="display: flex; align-items: center; gap: 18px; font-size: 11px; color: #A19A94; margin-top: -4px;">
+      <span style="display: flex; align-items: center; gap: 6px;">
+        <span style="width: 10px; height: 10px; border-radius: 999px; background: #9FD3B5; flex: none;"></span>the site work goes live</span>
+      <span style="display: flex; align-items: center; gap: 6px;">
+        <span style="width: 12px; height: 12px; border-radius: 999px; border: 1.5px solid #EDE8E3; flex: none;"></span>the week you are playing</span>
+    </div>
+
+    <p style="margin: 6px 0 0; font-size: 13px; line-height: 1.55; color: #CFC9C3;">Your page was graded 8 on its own
+      words. The site work adds 2 from week 4, when it goes live &mdash; the money leaves the week you commit it, and
+      the page is unchanged until then.</p>
+  </div>
+
+  <div style="padding: 14px 16px; border: 1px solid #2A272D; border-radius: 14px; background: #131215;">
+    <p style="margin: 0; font-size: 13px; line-height: 1.55; color: #CFC9C3;"><strong style="color: #EDE8E3;">The
+      shape is the lesson.</strong> A flat run, one jump, another flat run &mdash; that is what waiting three weeks
+      for site work to land actually looks like, and a reader sees it before reading a word. The scale still runs
+      from 0 to 10 and is labelled, so the jump is not made to look bigger than it is; it is legible because the eye
+      reads a break in a line, not the area of a bar. Drawn as a true step, never a slope, because the grade does not
+      drift between weeks &mdash; it sits still and then moves once.</p>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

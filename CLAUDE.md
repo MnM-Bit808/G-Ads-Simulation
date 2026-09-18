@@ -165,6 +165,14 @@ number in the simulation without ever throwing an error.
 - **Pacing throttles by reducing participation fraction, never by skipping an
   auction.** One auction resolution carries a whole slice of an hour's volume, so
   skipping produces exactly the budget cliff the design exists to remove.
+- **A throttled advertiser is in only its share of the searches, and the ladder
+  has to know it.** Participation used to scale what an advertiser paid for but
+  not where it stood, so a nearly-spent rival held a slot, and priced whoever sat
+  above it, in searches it was not in. A paisa of rounding decided when, and the
+  round's two paths disagreed by 13% with equal bids while their test compared
+  one path with itself (F17). `resolveSlice` weighs every combination of who is
+  present. Anything new that enters the ladder enters it with its
+  participation, and a test that means to force a code path asserts that it did.
 - **The counterfactual raises only the focal advertiser's budget.** Raising
   everyone's measures a different, more competitive market and answers the wrong
   question.
@@ -220,7 +228,73 @@ number in the simulation without ever throwing an error.
   guesses the folder to publish on every deploy, and a wrong guess publishes the
   repository — docs and tests — while still reporting success.
   `tests/build.test.js` holds it, and holds `dist/` to exactly the files the
-  game loads — 54 since `ui/words/form.js` (2026-09-13).
+  game loads — 54 on `main` since `ui/words/form.js` (2026-09-13), 112 on the
+  branch `makeover` since the switch-over (2026-09-16), whose
+  stylesheet and fonts the build finds by following `url()` inside CSS. The
+  build also WRITES one file it did not copy: `ui/version.js`, stamped with the
+  commit, so a playtest file names the build it was recorded on.
+- **The Studio is the only look, since the switch-over (2026-09-16).** There is
+  no `?look=`, no classic page, no `ui/look.js`. The page is served as
+  `<body class="studio">` so it paints in its own colours before any script
+  runs, every rule in `studio.css` is still scoped under that class, and red
+  there is the player's colour, so losses and warnings are amber with a minus
+  sign. Each section draws its own parts and names them in `draws`; that is how
+  the guide's "Show me in your account" finds one (`sectionOf`) and how a first
+  visit knows what to bring in (`entranceSlots`). Show me rings any part
+  carrying a `data-slot` and focuses its own heading, an h3.
+- **It was built beside the classic page, and that shaped everything.** Worth
+  knowing before you wonder why the screens are put together as they are: the
+  decision form redraws every card it owns into its own region on each change,
+  so a card MOVED into a sidebar section would have been redrawn into nothing.
+  The shell therefore filtered the classic page by CSS on `data-slot` and each
+  section listed the cards it claimed, until section by section each was rebuilt
+  to draw its own. Part 2 deleted the page and the filtering with it
+  (`RETIRED_SLOTS`, `visibilityRules` and `slots` are gone), but the sections
+  are still shaped by having grown that way, and `ui/shell/sections.js` keeps
+  the history.
+- **The shell builds its own context** (`ui/shell/context.js`, `studioContext`).
+  It used to draw the whole classic page hidden just to borrow the decision
+  form's context. A Studio section that draws nothing of its own now throws
+  rather than quietly showing an empty screen.
+- **Before a game opens the Studio draws the front door** (`ui/door/`), which is
+  also the only thing that catches a restore that throws. Until it existed, a
+  save the engine could no longer replay left "Restoring your game" on screen
+  for ever.
+- **Round 0's rules live in `ui/roundzero/rules.js`,** not in a drawing module:
+  a figure round 0 shows (the month, the reserve, the grades, the landing page
+  grade) comes from there, so its five steps cannot disagree with the account Go
+  opens. They were lifted out of the classic page for exactly that reason, and
+  `tests/roundZero.test.js` — round 0's reserve warning, measured against the
+  engine's own auction — reads them directly.
+- **The landing page grade has two writers, and the page is graded as it
+  stands (I37, 2026-09-17).** The page description is written from ALL the
+  capital's sentences (the size guide's and photography's too) and graded by
+  `LANDING_RULES`; the site work's points come from the page's own capital
+  (`landingPageBonus`). Each week `game.js` re-writes a page marked
+  `pageBuiltFromCapital` from the capital live that week (`pageAsItStands`,
+  `content/landingPage.js`), and every screen reads the same function. A claim
+  about what a purchase does to the grade has to check both writers, through a
+  real round 0 (`r0.startChoices`): a test game that types its own description
+  meets only the second, which is how the screen once said a size guide is worth
+  no point when it is worth two. `game.js` may not import `agents/`, which is why
+  the page's grading rules live in `content/`.
+- **Since 2026-09-14 a self-written ad runs on its words from week 1 (I11).** No
+  new game sets `pendingGrade`, and `game.js`'s `landCreative` stays only for
+  saves made before then; `tests/fixtures/oldSave.js` builds one, and the game
+  and dashboard tests load it.
+- **A new screen's drawing module holds no sentence, and joins the drawing
+  guard.** Every sentence is a `line` in `ui/words/`; the guard in
+  `tests/words.test.js` lists each drawing module (the shell, the kit, the map,
+  round 0's steps, each rebuilt section) and fails any string of three words. So a
+  class list holds at most two names in one string: add a third with
+  `classList.add`, as `ui/roundzero/studio.js` does.
+- **The browser pane's page reports itself hidden.** Animations, smooth
+  scrolling and the playtest recorder's card timer all wait on a visible page,
+  so in the pane they freeze or record nothing, which says nothing about the
+  code. Finish animations by script (`getAnimations().forEach((a) =>
+  a.finish())`) before measuring, and test a smooth scroll with
+  `scroll-behavior: auto`. The pane cannot download either: post a file to a
+  one-off local receiver instead.
 - **The engine's `replayGame` is not a game replay.** It runs `runRound` alone,
   so it skips everything `game.js` adds: capital, repositioning, a self-written
   ad landing, Quality Scores. Measured, its costs do not match a played game.
@@ -265,4 +339,9 @@ number in the simulation without ever throwing an error.
   quoting it (the apparel page F15 cited gives search click-through as 3.2% and
   6.8%). A chapter's `yourAccount` must be a slot that exists once the page is
   drawn: the decision form replaces the page's `decisions` placeholder, so its
-  cards set their own `dataset.slot`, and the guide test checks both.
+  cards set their own `dataset.slot`, and the guide test checks both. Where
+  the Studio shows an idea on a part the classic page has no card for, the
+  chapter names it as `studioAccount` too (Your ad's writer, Results'
+  replays), and `tests/sections.test.js` checks the section's own module
+  draws it. The Studio's Guide page shows each chapter's `related` list as
+  "Read beside it", so a chapter's links are read by players now.

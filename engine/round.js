@@ -34,10 +34,10 @@
 import {
   ADVERTISER_COUNT, ROUNDS_PER_MONTH, POSITION_CTR_MULTIPLIERS, TOP_SLOTS,
   AUCTIONS_PER_QUERY_HOUR, MAX_SLOTS, ATTRIBUTION_LAG_DISTRIBUTION,
-  LOCATION_TIERS, MIN_BID_PAISE,
+  LOCATION_TIERS,
   REPOSITION_COST_PAISE,
 } from './constants.js';
-import { assertPaise, mulRate, allocate } from './money.js';
+import { assertPaise, allocate, roundPaise } from './money.js';
 import { substream } from './rng.js';
 import { searches, DAYS_PER_WEEK, HOURS_PER_DAY } from './querySet.js';
 import { isBlocked, findMatches, selectAdGroup, normalise } from './matching.js';
@@ -46,15 +46,17 @@ import { businessFor, landingPageBonus, returnHalves } from './positions.js';
 import {
   locationSharesFor, locationEffects, codShareFor,
 } from './locations.js';
-import { resolveAuction } from './auction.js';
-import { estimatedConvRate, effectiveBidPaise, locationMultiplier } from './strategies.js';
+import { resolveSlice } from './auction.js';
+import {
+  estimatedConvRate, unclampedBidPaise, clampBidPaise, locationMultiplier,
+} from './strategies.js';
 import {
   dailyTargetPaise, pacingContext, participationFrom,
   opensNewMonth, rankAllocations, allocationForRound,
 } from './pacing.js';
 import { buildRoundOutput, reviseReports } from './report.js';
 import {
-  effectiveConvRate, sampleOrderValuePaise,
+  effectiveConvRate, expectedOrderValuePaise, orderValuePaise,
   queueConversions, landDueConversions, queueReturns, resolveReturns,
 } from './attribution.js';
 
@@ -70,6 +72,7 @@ const COMPONENTS = ['expectedCtr', 'adRelevance', 'landingPage'];
  * @param {object} [options.decisions] pre-computed, keyed by advertiser id (R2)
  * @param {string[]} [options.counterfactualFor] advertiser ids; see 11.2
  * @param {boolean} [options._isCounterfactual] internal guard (L13)
+ * @param {string} [options._liftWeekFor] internal: the counterfactual's advertiser
  * @returns {{round: number, raw: object, nextGameState: object}}
  */
 export function runRound(gameState, options = {}) {
@@ -79,6 +82,7 @@ export function runRound(gameState, options = {}) {
     decisions = {},
     counterfactualFor = [],
     _isCounterfactual = false,
+    _liftWeekFor = null,
   } = options;
 
   if (mode !== 'expected' && mode !== 'sampled') {
@@ -91,6 +95,7 @@ export function runRound(gameState, options = {}) {
   const advertisers = gameState.advertisers
     .map((a) => applyDecision(a, decisions[a.id]))
     .map((a) => applyBudgetAdjustments(a, round, gameState.budgetSchedule))
+    .map((a) => (a.id === _liftWeekFor ? liftWeek(a) : a))
     .filter((a) => a.active !== false);
 
   const n = advertisers.length;
@@ -98,7 +103,12 @@ export function runRound(gameState, options = {}) {
 
   // --- precompute -----------------------------------------------------------
   const business = advertisers.map((a) => businessFor(a.position, a.capex, round));
-  const entryPlan = buildEntryPlans(advertisers, business, queries, round);
+  // Per advertiser, because each position is centred on its own country: a value
+  // brand's territory is mostly towns and a premium brand's is mostly metros, and
+  // measuring both against the market's average moved profit between them.
+  // Worked out before the entry plans, which read each search's returns off it.
+  const effectsByAdvertiser = advertisers.map((a) => locationEffects(querySet, a.position?.price));
+  const entryPlan = buildEntryPlans(advertisers, business, queries, round, effectsByAdvertiser);
   const bids = buildBidTable(advertisers, business, entryPlan, queries, perAdvertiserRng, mode);
   const budgets = buildBudgets(advertisers, round);
 
@@ -128,10 +138,6 @@ export function runRound(gameState, options = {}) {
   // the market keeps the return rate and basket size F8 documents - see
   // locations.js for what applying the raw tables would have cost.
   const shares = queries.map((query) => locationSharesFor(query));
-  // Per advertiser, because each position is centred on its own country: a value
-  // brand's territory is mostly towns and a premium brand's is mostly metros, and
-  // measuring both against the market's average moved profit between them.
-  const effectsByAdvertiser = advertisers.map((a) => locationEffects(querySet, a.position?.price));
   const tiers = LOCATION_TIERS.length;
 
   // WHO IS BIDDING DIFFERENTLY BY PLACE, and therefore which path the loop takes.
@@ -139,13 +145,14 @@ export function runRound(gameState, options = {}) {
   // Three locations are three genuinely separate auctions and the honest
   // implementation resolves three. Measured, that is 531ms against a 400ms
   // budget. But when nobody adjusts their bid by location, the entrants, their
-  // bids and their quality are identical in all three - so the ladder is too,
-  // everything that differs is linear in volume, and splitting the RESULT of one
-  // resolution is exact rather than approximate.
+  // bids and their quality are identical in all three, so the three results
+  // are too: the flat path resolves the slice once and records it place by
+  // place, adding exactly what three resolutions would.
   //
-  // So: one ladder while the market is flat, three the moment anyone tilts. A
-  // player who never touches the control pays nothing for it, and
-  // `round.test.js` asserts the two paths agree when they should.
+  // So: one resolution while the market is flat, three the moment anyone
+  // tilts. A player who never touches the control pays nothing for it, and
+  // `round.test.js` holds the two paths to the paisa with a tilt that moves no
+  // bid. The test that stood there before never took the second path (F17).
   const locationMultipliers = advertisers.map(
     (a) => LOCATION_TIERS.map((_, tier) => locationMultiplier(a.campaign.locationAdjustments, tier)),
   );
@@ -200,10 +207,15 @@ export function runRound(gameState, options = {}) {
 
             entrants.push({
               id: advertisers[i].id,
-              bidPaise: bids[i][q][hour],
+              bidPaise: clampBidPaise(bids[i][q][hour], plan.keyword),
+              // Kept unclamped, so a place's adjustment compounds with the
+              // hour's before the one clamp (G4).
+              _unclamped: bids[i][q][hour],
               qualitySignal: applyHourAndNoise(plan.base, hour, perAdvertiserRng[i], mode),
+              // The share of this slice's searches it enters. It is in the
+              // ladder for those and no others (F17).
+              participation,
               _i: i,
-              _volume: hourVolume * participation,
               _plan: plan,
             });
           }
@@ -211,14 +223,15 @@ export function runRound(gameState, options = {}) {
           if (entrants.length === 0) continue;
 
           if (!anyoneTargets) {
-            // FLAT MARKET: one ladder, apportioned. Exact, because nothing here
-            // depends on the location.
-            const { ladder } = resolveAuction(entrants);
-            recordAuction({
-              ladder, entrants, acc, pairwise, convAccum,
-              advertisers, business, query, hour,
-              shares: shares[q], effectsByAdvertiser, tiers,
-              budgets, perAdvertiserRng, mode,
+            // FLAT MARKET: one resolution, recorded one place at a time. Cost
+            // is rounded to the paisa once per place, so recording the whole
+            // auction at once would part this path from the three-auction one
+            // by a paisa here and there.
+            recordSlice({
+              result: resolveSlice(entrants),
+              volumes: shares[q].map((share) => hourVolume * share),
+              entrants, acc, pairwise, convAccum, advertisers, business, query,
+              hour, effectsByAdvertiser, budgets, perAdvertiserRng, mode,
             });
             continue;
           }
@@ -234,21 +247,20 @@ export function runRound(gameState, options = {}) {
               const multiplier = locationMultipliers[e._i][tier];
               here.push({
                 ...e,
-                // Re-clamped, not just scaled: MIN_BID_PAISE is a floor on what
-                // anybody can bid, so -100% is a bid of one rupee rather than no
-                // bid at all - which behaves like an off switch only because a
-                // rupee sits under AD_RANK_FLOOR.
-                bidPaise: Math.max(MIN_BID_PAISE, Math.round(e.bidPaise * multiplier)),
-                _volume: e._volume * share,
+                // Clamped once, from the unclamped hour's bid: MIN_BID_PAISE is a
+                // floor on what anybody can bid, so -100% is a bid of one rupee
+                // rather than no bid at all - which behaves like an off switch
+                // only because a rupee sits under AD_RANK_FLOOR - and no place
+                // takes a bid past MAX_BID_MULTIPLE x its keyword (G4).
+                bidPaise: clampBidPaise(e._unclamped * multiplier, e._plan.keyword),
               });
             }
-            const { ladder } = resolveAuction(here);
-            recordAuction({
-              ladder, entrants: here, acc, pairwise, convAccum,
-              advertisers, business, query, hour,
-              // One tier at a time now, so the apportionment inside is the
-              // identity on this tier and zero elsewhere.
-              shares: onlyTier(tiers, tier), effectsByAdvertiser, tiers,
+            // This place's searches, and none of the others'.
+            const volumes = new Array(tiers).fill(0);
+            volumes[tier] = hourVolume * share;
+            recordSlice({
+              result: resolveSlice(here), volumes, entrants: here, acc, pairwise,
+              convAccum, advertisers, business, query, hour, effectsByAdvertiser,
               budgets, perAdvertiserRng, mode,
             });
           }
@@ -320,14 +332,21 @@ export function runRound(gameState, options = {}) {
 
 /**
  * For every advertiser-query pair: are they eligible, through which ad group,
- * and what is the hour-independent part of their quality signal?
+ * what is the hour-independent part of their quality signal, and what is an
+ * order there worth and how often does it come back, place by place?
  *
  * 1,350 entries for a nine-advertiser, 150-query game. The alternative is
  * 226,800 and the round misses its budget.
  */
-function buildEntryPlans(advertisers, business, queries, round) {
-  return advertisers.map((advertiser) => {
+function buildEntryPlans(advertisers, business, queries, round, effectsByAdvertiser) {
+  return advertisers.map((advertiser, i) => {
     const bonus = landingPageBonus(advertiser.capex, round);
+    const price = advertiser.position.price;
+    const discountPaise = advertiser.campaign?.prepaidDiscountPaise ?? 0;
+    // The share of this advertiser's orders in each place that are prepaid,
+    // which is what its discount is paid on (I34). One per advertiser, shared
+    // by all its searches.
+    const prepaidShare = LOCATION_TIERS.map((_, t) => 1 - codShareFor(price, t, discountPaise));
     return queries.map((query) => {
       if (isBlocked(query, advertiser.campaign.negatives)) return null;
       const hits = findMatches(query, advertiser.adGroups);
@@ -358,6 +377,22 @@ function buildEntryPlans(advertisers, business, queries, round) {
         // Only searches that literally were the keyword count toward the
         // reported score (spec 9.3, A4).
         literal: normalise(query.text) === normalise(chosen.keyword.text),
+        // The basket before any noise. Fixed for this advertiser and search
+        // all round, so worked out here once rather than at every record.
+        orderValuePaise: expectedOrderValuePaise(business[i], query),
+        // What comes back from an order in each place, refused at the door or
+        // sent back after it, each half with its own lever (I28, I29, I34).
+        // Fixed all round too. The arithmetic is `returnHalves`, so the prepaid
+        // card's forecast is this and not a copy of it.
+        returns: LOCATION_TIERS.map((_, t) => returnHalves({
+          business: business[i],
+          queryReturnMultiplier: query.returnRateMultiplier ?? 1,
+          placeReturnMultiplier: effectsByAdvertiser[i].returnMultiplier[t],
+          price,
+          tierIndex: t,
+          discountPaise,
+        })),
+        prepaidShare,
       };
     });
   });
@@ -390,8 +425,11 @@ function buildBidTable(advertisers, business, entryPlan, queries, rngs, mode) {
       const plan = entryPlan[i][q];
       if (!plan) return null;
       const row = new Array(HOURS_PER_DAY);
+      // Rounded to paise, as this table always was, but not clamped: the clamp
+      // waits for the place's adjustment (G4). Rounding here rather than once at
+      // the end keeps every bid the clamp does not touch exactly what it was.
       for (let hour = 0; hour < HOURS_PER_DAY; hour++) {
-        row[hour] = effectiveBidPaise({
+        row[hour] = Math.round(unclampedBidPaise({
           strategy: advertiser.campaign.strategy,
           strategyParams: advertiser.campaign.strategyParams,
           keyword: plan.keyword,
@@ -400,7 +438,7 @@ function buildBidTable(advertisers, business, entryPlan, queries, rngs, mode) {
           daypartAdjustments: advertiser.campaign.daypartAdjustments,
           hour,
           rng: null,
-        });
+        }));
       }
       return row;
     });
@@ -428,147 +466,147 @@ function buildBudgets(advertisers, round) {
 // The hot path
 // ---------------------------------------------------------------------------
 
-function recordAuction({
-  ladder, entrants, acc, pairwise, convAccum,
-  advertisers, business, query, hour, shares, effectsByAdvertiser, tiers,
+/**
+ * Record a resolved slice, place by place.
+ *
+ * `volumes` is the slice's searches in each place: the query's whole split on
+ * the flat path, and one place's searches with zeros elsewhere on the
+ * three-auction path. Each advertiser's numbers are added one place at a time
+ * either way, in the same order, rounded at the same points and drawing the
+ * same random numbers, so the flat path records exactly what three
+ * resolutions would (F17).
+ *
+ * Every entrant is recorded, not only the shown: one that takes part in a
+ * share of the searches shows in a share of them, and lostToRank is the rest
+ * of what it entered.
+ */
+function recordSlice({
+  result, volumes, entrants, acc, pairwise, convAccum,
+  advertisers, business, query, hour, effectsByAdvertiser,
   budgets, perAdvertiserRng, mode,
 }) {
-  const byId = new Map(entrants.map((e) => [e.id, e]));
-  const shown = [];
+  let total = 0;
+  for (const volume of volumes) total += volume;
 
-  for (const row of ladder) {
-    const e = byId.get(row.id);
+  for (let x = 0; x < entrants.length; x++) {
+    const e = entrants[x];
     const i = e._i;
-
-    if (!row.shown) {
-      acc[i].lostToRank += e._volume;
+    const a = acc[i];
+    const shownShare = result.shown[x];
+    // What it entered and did not show in. Clamped, because the share is a
+    // sum of products and can pass the participation by a rounding error.
+    const unshown = Math.max(0, e.participation - shownShare);
+    if (shownShare <= 0) {
+      for (const volume of volumes) a.lostToRank += volume * unshown;
       continue;
     }
 
-    const impressions = e._volume;
-    const ctr = row.qualitySignal * POSITION_CTR_MULTIPLIERS[row.position - 1];
-    const clicks = impressions * ctr;
-    const cost = mulRate(row.cpcPaise, clicks);
-
-    const a = acc[i];
-    a.impressions += impressions;
-    a.clicks += clicks;
-    a.hourlyClicks[hour] += clicks;
-    a.costPaise += cost;
-    a.spentTodayPaise += cost;
-    a.positionCounts[row.position - 1] += impressions;
-    if (row.position <= TOP_SLOTS) a.topImpressions += impressions;
-    if (row.position === 1) a.absTopImpressions += impressions;
-    budgets[i].weekSpentPaise += cost;
-    budgets[i].monthSpentPaise += cost;
-
-    bump(a.byKeyword, e._plan.keyword.id, impressions, clicks, cost);
-    bump(a.byQuery, query.id, impressions, clicks, cost);
-    // Where this query's traffic actually was. Everything above is linear in
-    // volume, so the split is exact.
-    for (let t = 0; t < tiers; t++) {
-      const share = shares[t];
-      if (share > 0) bump(a.byLocation, t, impressions * share, clicks * share, cost * share);
+    // Each slot's share of the searches, weighted by that slot's click-through.
+    // Where the search was changes none of this, so it is worked out once.
+    const at = x * MAX_SLOTS;
+    let ctrShare = 0;
+    let topShare = 0;
+    for (let k = 0; k < MAX_SLOTS; k++) {
+      ctrShare += result.positions[at + k] * POSITION_CTR_MULTIPLIERS[k];
+      if (k < TOP_SLOTS) topShare += result.positions[at + k];
     }
+    // NOT touched by location, deliberately. Conversion already carries query
+    // affinity, PURPOSE_MODIFIERS and the hourly curve, and F10 and F11 are
+    // both records of what two mechanisms pushing one number costs. Where you
+    // are changes the basket and the odds it comes back, not the odds of a sale.
+    const convRate = effectiveConvRate({
+      business: business[i], query, position: advertisers[i].position,
+      advertiserId: advertisers[i].id, hour,
+    });
 
-    // Conversions accumulate per advertiser-query and are queued once at the
-    // end of the round: 1,350 queue calls instead of 226,800.
-    if (clicks > 0) {
-      // NOT touched by location, deliberately. Conversion already carries query
-      // affinity, PURPOSE_MODIFIERS and the hourly curve, and F10 and F11 are
-      // both records of what two mechanisms pushing one number costs. Where you
-      // are changes the basket and the odds it comes back, not the odds of a sale.
-      const convRate = effectiveConvRate({
-        business: business[i], query, position: advertisers[i].position,
-        advertiserId: advertisers[i].id, hour,
-      });
-      if (convRate > 0) {
-        const base = sampleOrderValuePaise(business[i], query, perAdvertiserRng[i], mode);
-        const discountPaise = advertisers[i].campaign?.prepaidDiscountPaise ?? 0;
+    for (let tier = 0; tier < volumes.length; tier++) {
+      const volume = volumes[tier];
+      if (volume <= 0) continue;
+      a.lostToRank += volume * unshown;
+
+      const impressions = volume * shownShare;
+      const clicks = volume * e.qualitySignal * ctrShare;
+      // An average of whole-paise prices, so it becomes money here, once.
+      const cost = roundPaise(result.cpcPaise[x] * clicks);
+
+      a.impressions += impressions;
+      a.clicks += clicks;
+      a.hourlyClicks[hour] += clicks;
+      a.costPaise += cost;
+      a.spentTodayPaise += cost;
+      for (let k = 0; k < MAX_SLOTS; k++) a.positionCounts[k] += volume * result.positions[at + k];
+      a.topImpressions += volume * topShare;
+      a.absTopImpressions += volume * result.positions[at];
+      budgets[i].weekSpentPaise += cost;
+      budgets[i].monthSpentPaise += cost;
+
+      bump(a.byKeyword, e._plan.keyword.id, impressions, clicks, cost);
+      bump(a.byQuery, query.id, impressions, clicks, cost);
+      bump(a.byLocation, tier, impressions, clicks, cost);
+
+      // Conversions accumulate per advertiser, query and place, and are queued
+      // once at the end of the round: 1,350 queue calls instead of 226,800.
+      if (clicks > 0 && convRate > 0) {
         const converted = clicks * convRate;
-        // ONE BUCKET PER QUERY AND LOCATION. The basket and the return rate are
-        // both per location, and they are the only two things location changes -
-        // so merging the tiers here would leave the location report able to show
-        // clicks and cost and nothing about what the money did, which is the
-        // whole lesson. Conversion RATE is location-independent by design, so
-        // the counts still divide in proportion to the clicks.
-        const effects = effectsByAdvertiser[i];
-        for (let t = 0; t < tiers; t++) {
-          const share = shares[t];
-          if (share <= 0) continue;
-          const here = converted * share;
-          const key = `${query.id}\u0000${t}`;
-          // One keyword per bucket: an advertiser catches a search through one
-          // ad group, with one keyword, for the whole round (8.6).
-          const bucket = convAccum[i].get(key)
-            ?? {
-              queryId: query.id, keywordId: e._plan.keyword.id, tier: t, count: 0, valuePaise: 0,
-              returnWeighted: 0, refusedWeighted: 0,
-            };
-          bucket.count += here;
-          // The discount is paid on PREPAID orders only — that is what it is for
-          // — so it costs the discount times the prepaid share of the mix it
-          // just created. Flat rupees, so it is 4.2% of a value basket and 1.0%
-          // of a premium one (I34).
-          const prepaidShare = 1 - codShareFor(advertisers[i].position.price, t, discountPaise);
-          bucket.valuePaise += here * Math.max(
-            0, base * effects.aovMultiplier[t] - discountPaise * prepaidShare,
-          );
-
-          // What comes back from these orders, refused at the door or sent back
-          // after it, each half with its own lever (I28, I29, I34). The arithmetic
-          // is `returnHalves`, so the prepaid card's forecast is this line and
-          // not a copy of it.
-          const back = returnHalves({
-            business: business[i],
-            queryReturnMultiplier: query.returnRateMultiplier ?? 1,
-            placeReturnMultiplier: effects.returnMultiplier[t],
-            price: advertisers[i].position.price,
-            tierIndex: t,
-            discountPaise,
-          });
-          bucket.returnWeighted += here * back.returned;
-          // Carried so the freight on a refused parcel can be charged to the
-          // round that earned it. Weighted the same way, because a bucket is a
-          // cohort and not a single order.
-          bucket.refusedWeighted += here * back.refused;
-          convAccum[i].set(key, bucket);
-        }
+        recordConversions({
+          i, e, tier, converted, advertisers, business, query,
+          effectsByAdvertiser, convAccum, perAdvertiserRng, mode,
+        });
         // Kept separately from the money buckets, which are per query because
         // order value and return rate are. This one is per hour and counts
         // only, which is all the hour-of-day history needs.
         a.hourlyConv[hour] += converted;
       }
     }
-
-    shown.push({ i, impressions, plan: e._plan, position: row.position });
   }
 
-  recordPairwise(pairwise, ladder, byId, shown);
-  recordQualityRows(acc, shown);
+  // Once per resolution, over all the searches it carried.
+  recordPairwise(pairwise, result, entrants, total);
+  recordQualityRows(acc, result, entrants, total);
 }
 
 /**
- * A share vector that is all of one tier and none of the others.
+ * One place's conversions, into this query's bucket for that place.
  *
- * Lets `recordAuction` keep one shape whichever path the loop took: on the flat
- * path it is handed the query's real split, and on the targeted path a resolution
- * that already belongs entirely to one place.
- *
- * Cached because the loop asks for it up to 75,600 times a round and there are
- * only ever three answers.
+ * ONE BUCKET PER QUERY AND LOCATION. The basket and the return rate are both
+ * per location, and they are the only two things location changes - so merging
+ * the tiers here would leave the location report able to show clicks and cost
+ * and nothing about what the money did, which is the whole lesson. Conversion
+ * RATE is location-independent by design, so each place's count is its own
+ * clicks times the one rate.
  */
-const ONLY_TIER = new Map();
-function onlyTier(tiers, tier) {
-  const key = `${tiers}:${tier}`;
-  let vector = ONLY_TIER.get(key);
-  if (!vector) {
-    vector = new Array(tiers).fill(0);
-    vector[tier] = 1;
-    Object.freeze(vector);
-    ONLY_TIER.set(key, vector);
-  }
-  return vector;
+function recordConversions({
+  i, e, tier, converted, advertisers, business, query,
+  effectsByAdvertiser, convAccum, perAdvertiserRng, mode,
+}) {
+  const base = orderValuePaise(e._plan.orderValuePaise, business[i], perAdvertiserRng[i], mode);
+  const discountPaise = advertisers[i].campaign?.prepaidDiscountPaise ?? 0;
+  const effects = effectsByAdvertiser[i];
+  const key = `${query.id}\x00${tier}`;
+  // One keyword per bucket: an advertiser catches a search through one ad
+  // group, with one keyword, for the whole round (8.6).
+  const bucket = convAccum[i].get(key)
+    ?? {
+      queryId: query.id, keywordId: e._plan.keyword.id, tier, count: 0, valuePaise: 0,
+      returnWeighted: 0, refusedWeighted: 0,
+    };
+  bucket.count += converted;
+  // The discount is paid on PREPAID orders only — that is what it is for
+  // — so it costs the discount times the prepaid share of the mix it
+  // just created. Flat rupees, so it is 4.2% of a value basket and 1.0%
+  // of a premium one (I34).
+  bucket.valuePaise += converted * Math.max(
+    0, base * effects.aovMultiplier[tier] - discountPaise * e._plan.prepaidShare[tier],
+  );
+
+  // What comes back from these orders, worked out once in the entry plan.
+  const back = e._plan.returns[tier];
+  bucket.returnWeighted += converted * back.returned;
+  // Carried so the freight on a refused parcel can be charged to the
+  // round that earned it. Weighted the same way, because a bucket is a
+  // cohort and not a single order.
+  bucket.refusedWeighted += converted * back.refused;
+  convAccum[i].set(key, bucket);
 }
 
 function bump(map, key, impressions, clicks, cost) {
@@ -579,21 +617,24 @@ function bump(map, key, impressions, clicks, cost) {
   map.set(key, row);
 }
 
-/** Auction Insights is computable only because the ladder keeps its losers (L3). */
-function recordPairwise(pairwise, ladder, byId, shown) {
-  for (const a of shown) {
-    pairwise.aShown[a.i] += a.impressions;
-    for (const b of shown) {
-      if (a.i === b.i) continue;
-      pairwise.bothShown[a.i][b.i] += a.impressions;
-      if (b.position < a.position) pairwise.bAbove[a.i][b.i] += a.impressions;
+/**
+ * Auction Insights is computable only because the ladder keeps its losers
+ * (L3), and each count is now the searches in which it happened: a pair is
+ * counted only in the searches both were in (F17).
+ */
+function recordPairwise(pairwise, result, entrants, volume) {
+  const n = entrants.length;
+  for (let x = 0; x < n; x++) {
+    if (result.shown[x] <= 0) continue;
+    const i = entrants[x]._i;
+    pairwise.aShown[i] += volume * result.shown[x];
+    for (let y = 0; y < n; y++) {
+      if (y === x) continue;
+      const j = entrants[y]._i;
+      pairwise.bothShown[i][j] += volume * result.both[x * n + y];
+      pairwise.bAbove[i][j] += volume * result.above[x * n + y];
+      pairwise.aShownBnot[i][j] += volume * result.shownNot[x * n + y];
     }
-  }
-  // Everyone who entered and did not show, from everyone who did.
-  for (const row of ladder) {
-    if (row.shown) continue;
-    const loser = byId.get(row.id)._i;
-    for (const a of shown) pairwise.aShownBnot[a.i][loser] += a.impressions;
   }
 }
 
@@ -602,13 +643,16 @@ function recordPairwise(pairwise, ladder, byId, shown) {
  *
  * The only accumulator that reaches across advertisers: the field is the
  * impression-weighted average of every OTHER advertiser shown on the same
- * literal query, and it is what makes "above average" mean anything.
+ * literal query, weighted by the searches in which both showed, and it is
+ * what makes "above average" mean anything.
  */
-function recordQualityRows(acc, shown) {
-  for (const a of shown) {
-    if (!a.plan.literal) continue;
-    const rows = acc[a.i].qualityRows;
-    const key = a.plan.keyword.id;
+function recordQualityRows(acc, result, entrants, volume) {
+  const n = entrants.length;
+  for (let x = 0; x < n; x++) {
+    const e = entrants[x];
+    if (result.shown[x] <= 0 || !e._plan.literal) continue;
+    const rows = acc[e._i].qualityRows;
+    const key = e._plan.keyword.id;
     let row = rows.get(key);
     if (!row) {
       row = {
@@ -619,13 +663,15 @@ function recordQualityRows(acc, shown) {
       };
       rows.set(key, row);
     }
-    row.impressions += a.impressions;
-    for (const c of COMPONENTS) row.ownSum[c] += a.impressions * a.plan.components[c];
-
-    for (const b of shown) {
-      if (b.i === a.i) continue;
-      row.fieldImpressions += b.impressions;
-      for (const c of COMPONENTS) row.fieldSum[c] += b.impressions * b.plan.components[c];
+    const own = volume * result.shown[x];
+    row.impressions += own;
+    for (const c of COMPONENTS) row.ownSum[c] += own * e._plan.components[c];
+    for (let y = 0; y < n; y++) {
+      if (y === x) continue;
+      const together = volume * result.both[x * n + y];
+      if (together <= 0) continue;
+      row.fieldImpressions += together;
+      for (const c of COMPONENTS) row.fieldSum[c] += together * entrants[y]._plan.components[c];
     }
   }
 }
@@ -751,40 +797,53 @@ function finaliseQualityRows(rows, round) {
  * passes was 2.2s against a 1.5s ceiling.
  */
 function runCounterfactual(gameState, options, advertiserId) {
-  const lifted = {
-    ...gameState,
-    advertisers: gameState.advertisers.map((a) => {
-      if (a.id !== advertiserId) return a;
-      // THE REMAINING pot, not the whole one. Spec 11.2 and DECISIONS G1 both
-      // say "raised to its remaining monthly pot", and this used to zero
-      // monthSpentPaise instead - which hands back the entire month and asks
-      // what the advertiser could have earned with money it does not have.
-      // In week four of a month that is 90% spent, that is ten times the real
-      // answer, and missedToBudget is a teaching output whose whole value is
-      // being believable.
-      //
-      // Keeping monthSpentPaise intact also keeps the month cap binding during
-      // the pass (13.2), so the hypothetical obeys the one ceiling that is not
-      // negotiable.
-      const remaining = Math.max(
-        0, a.campaign.monthlyBudgetPaise - (a.campaign.monthSpentPaise ?? 0),
-      );
-      return {
-        ...a,
-        campaign: {
-          ...a.campaign,
-          weeklySplitPaise: new Array(ROUNDS_PER_MONTH).fill(remaining),
-        },
-      };
-    }),
-  };
-  const { raw } = runRound(lifted, {
+  const { raw } = runRound(gameState, {
     ...options,
     mode: 'expected',
     counterfactualFor: [],
     _isCounterfactual: true,
+    _liftWeekFor: advertiserId,
   });
   return raw.byAdvertiser[advertiserId];
+}
+
+/**
+ * The counterfactual's one change: this week may spend the rest of the month.
+ *
+ * AFTER THE ROUND'S OWN CHANGES, not before them. It used to be written onto
+ * the state before `runRound` merged the week's decision and applied its
+ * budget adjustments, and both of those rewrite the weekly split: a decision
+ * that sent a plan replaced the lift with it, and at an allocation round the
+ * capital rollover re-spread the month over the lifted weights, which gave
+ * every week a quarter of the month again. Either way the week was told it
+ * missed nothing. Found drawing Results (2026-09-15): week 5 lost 46% of its
+ * impressions to budget and reported no extra clicks.
+ *
+ * THE REMAINING pot, not the whole one. Spec 11.2 and DECISIONS G1 both say
+ * "raised to its remaining monthly pot", and this used to zero monthSpentPaise
+ * instead - which hands back the entire month and asks what the advertiser
+ * could have earned with money it does not have. In week four of a month that
+ * is 90% spent, that is ten times the real answer, and missedToBudget is a
+ * teaching output whose whole value is being believable.
+ *
+ * Keeping monthSpentPaise intact also keeps the month cap binding during the
+ * pass (13.2), so the hypothetical obeys the one ceiling that is not
+ * negotiable.
+ *
+ * @param {object} advertiser after its decision and budget adjustments
+ * @returns {object} the advertiser with this week allowed the rest of the month
+ */
+function liftWeek(advertiser) {
+  const remaining = Math.max(
+    0, advertiser.campaign.monthlyBudgetPaise - (advertiser.campaign.monthSpentPaise ?? 0),
+  );
+  return {
+    ...advertiser,
+    campaign: {
+      ...advertiser.campaign,
+      weeklySplitPaise: new Array(ROUNDS_PER_MONTH).fill(remaining),
+    },
+  };
 }
 
 // ---------------------------------------------------------------------------

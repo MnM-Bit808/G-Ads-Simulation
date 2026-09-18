@@ -44,7 +44,7 @@ import {
   RIVAL_PLACEMENT_CONSTRAINTS, POSITION_ECONOMICS,
   CAPEX_ALLOCATION_PAISE, CAPEX_TARGETS, CAPEX_TIER_CURVE, CAPEX_DELAY_ROUNDS, RANK_BUDGET_MULTIPLIERS,
   PRICE_TIERS, PURPOSES, TOTAL_ROUNDS, QUERY_SET_RULES,
-  CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND,
+  CREATIVE_ALLOCATION_PAISE,
   LOCATION_TIERS, LOCATION_VOLUME_BY_PRICE,
 } from './engine/constants.js';
 import { mulberry32, deriveSeed } from './engine/rng.js';
@@ -56,6 +56,7 @@ import { assignIdentities, BRAND_IDENTITIES } from './content/brands.js';
 import { LOCATIONS } from './content/locations.js';
 import { adCopyFor, RIVAL_GRADE_VARIATION } from './content/adCopy.js';
 import { gradeAdOffline } from './agents/grader.js';
+import { pageAsItStands, PAGE_RULES_NOW } from './content/landingPage.js';
 import { RIVAL_CAST } from './agents/policies.js';
 import {
   isDiy, openingCopyGrades, creativeSpend, tierForPolicy,
@@ -169,11 +170,11 @@ export function placementIsLegal(placement) {
  * which matters more than usual, because 17.1 makes the eight ads the only
  * thing the player can observe about a rival at all.
  *
- * Hiring is immediate: the grade is what the tier guarantees, shaped by the
- * advertiser's own lean so two buyers of one tier are still different ads.
- * Writing it yourself is DELAYED, never faded: the copy is graded now, held in
- * `pendingGrade`, and applied whole at `liveAtRound`. Until then the advertiser
- * runs the ungraded default (9.5), which is what makes the delay cost anything.
+ * Hiring buys a guaranteed level, shaped by the advertiser's own lean so two
+ * buyers of one tier are still different ads; writing it yourself is graded on
+ * the words. Both run from round 1. `liveAtRound` and `pendingGrade` stay in the
+ * block because saves made before 2026-09-14 carry a self-written ad due at
+ * round 3, and `game.js` still lands it (I11).
  *
  * A WRITER WRITES COPY, so a tier only ever sets `expectedCtr` and
  * `adRelevance`. `landingPage` is passed in and never touched here: for a rival
@@ -198,32 +199,13 @@ function creativeBlock({ tierId, bias = 0, landingPage, ad, keywords, writtenGra
   const { pricePaise, unspentPaise } = creativeSpend(tierId, CREATIVE_ALLOCATION_PAISE);
   const base = { tier: tierId, spentPaise: pricePaise, unspentPaise };
 
+  // One grader pass, whoever writes: a hire discards it, and a self-written
+  // ad runs on it from week 1 (I11).
+  const written = isDiy(tierId) ? (writtenGrade ?? gradeAdOffline(ad, { keywords }, 0)) : null;
   // One source for "what grade does this advertiser open on", because round 0's
   // reserve warning needs the same answer and a second copy of it would drift.
-  const opening = { ...openingCopyGrades(tierId, bias), landingPage };
-
-  if (!isDiy(tierId)) {
-    return {
-      ...base,
-      liveAtRound: 1,
-      pendingGrade: null,
-      openingGrade: opening,
-    };
-  }
-
-  const written = writtenGrade ?? gradeAdOffline(ad, { keywords }, 0);
-  return {
-    ...base,
-    liveAtRound: CREATIVE_DIY_LIVE_ROUND,
-    // Graded now, applied later. The grade cannot depend on when it lands, or
-    // an advertiser could improve by doing nothing but waiting.
-    pendingGrade: {
-      expectedCtr: written.expectedCtr, adRelevance: written.adRelevance, landingPage,
-    },
-    // The ungraded default until it ships (9.5). This is the cost of writing it
-    // yourself, and the entire reason hiring anyone is worth paying for.
-    openingGrade: opening,
-  };
+  const opening = { ...openingCopyGrades(tierId, bias, written), landingPage };
+  return { ...base, liveAtRound: 1, pendingGrade: null, openingGrade: opening };
 }
 
 /**
@@ -704,13 +686,18 @@ function buildPlayer(identity, choices, querySet) {
     throw new RangeError('the player needs at least one keyword to enter an auction');
   }
 
-  const playerAd = ad ?? { headlines: [], descriptions: [], landingPageDescription: '' };
+  // THE PAGE AS IT STANDS IN WEEK 1 (the owner, 2026-09-17). Round 0 writes the
+  // page from every rupee committed, but none of it is live before week 4, so the
+  // game opens on the page as it stands and game.js re-writes it each week from
+  // the capital live then (`landPage`). Graded from what round 0 wrote, it used to
+  // count three weeks before the work existed.
+  const capexBlock = capitalBlock(capex);
+  const page = pageAsItStands(capexBlock, 1);
+  const playerAd = { ...(ad ?? { headlines: [], descriptions: [] }), landingPageDescription: page.description };
 
   // Who writes it (I11), BEFORE the budget, because what the writer did not
   // cost is advertising money and the split has to be planned across the month
-  // the player will actually have. The default is DIY because writing their own
-  // copy is what the player has always done here; the delay is the new cost of
-  // doing so, not a new behaviour.
+  // the player will actually have. The default is DIY, as it always was here.
   const gradingContext = {
     keywords,
     rivalNames: BRAND_IDENTITIES.filter((b) => b.id !== identity.id).map((b) => b.name),
@@ -742,7 +729,6 @@ function buildPlayer(identity, choices, querySet) {
   // allocation round to arrive at: the writer is chosen at round 0, so the
   // money is in the budget from round 1 and nothing downstream adds it again.
   const monthBase = MONTHLY_BUDGET_PAISE + creative.unspentPaise;
-  const capexBlock = capitalBlock(capex);
   const monthCeiling = monthBase + capexBlock.remainingUnallocatedPaise;
 
   const split = weeklySplitPaise
@@ -796,6 +782,15 @@ function buildPlayer(identity, choices, querySet) {
         taggedContentHash: k.taggedContentHash,
       })), querySet),
       ad: playerAd,
+      // A page built from capital, so game.js re-writes it each week from the
+      // capital live then. Data, not "this is the player": a rival's page grade is
+      // its authored character and carries no mark. A game saved before
+      // 2026-09-17 has no mark either, and keeps the rule it was played under
+      // (the owner's choice), so it replays exactly.
+      pageBuiltFromCapital: true,
+      // Graded only by what Google names (the owner's C, 2026-09-17): no point for
+      // length. A game saved before carries no mark and keeps the length rule.
+      pageRules: PAGE_RULES_NOW,
       // Spec 17 step 12: grade the player's assets before round 1. Offline
       // unless a grade was supplied, because round 0 has to complete without
       // an API key - and because leaving it null is not a neutral choice.
@@ -807,7 +802,11 @@ function buildPlayer(identity, choices, querySet) {
       // The components the tier decided, over the metadata the grader produced.
       // 5.2 caches on contentHash, so a grade that lost it would be regraded
       // every round and the "unchanged ad is never regraded" guarantee would go.
-      gradedQuality: choices.gradedQuality ?? { ...ownGrade, ...creative.openingGrade },
+      // A supplied grade's COPY parts win; its landing page part is the page as it
+      // stands, because the page is built from capital and nothing else writes it.
+      gradedQuality: choices.gradedQuality
+        ? { ...choices.gradedQuality, landingPage: page.landingPage }
+        : { ...ownGrade, ...creative.openingGrade },
     }],
     creative,
     bidding: {
@@ -878,6 +877,21 @@ export function canRedoRoundZero(gameState) {
   return Boolean(gameState.roundZero)
     && !gameState.roundZero.redoUsed
     && gameState.round <= REDO_DEADLINE_ROUND;
+}
+
+/**
+ * The player's brand, drawn from the seed (plans/2026-09-14-round-zero-redesign.md).
+ *
+ * Picking one of nine decided almost nothing: a brand's own searches run to
+ * within two percent of each other whichever brand it is, so the pick was ten
+ * buttons and a paragraph for no decision. Drawn from its own substream, so the
+ * same seed is always the same brand and nothing else in the market moves.
+ *
+ * @param {number} rootSeed
+ * @returns {string} a brand id from BRAND_IDENTITIES
+ */
+export function assignPlayerBrand(rootSeed) {
+  return BRAND_IDENTITIES[deriveSeed(rootSeed, 'player-brand') % BRAND_IDENTITIES.length].id;
 }
 
 export { REDO_DEADLINE_ROUND };

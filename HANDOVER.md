@@ -12,37 +12,483 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, 2026-09-16.** `main` is at the latest push and the game is
-live and invite-only; 1714 tests pass, 1 todo; the build publishes 54 files.
-`main` is no longer the only branch: `makeover`, pushed for a preview but not
-merged, carries the new look (`plans/2026-09-13-studio-makeover.md`) and F17,
-a fix to how an advertiser low on budget is ranked; its own HANDOVER says where
-both stand. The owner put the stranger playtests on hold on 2026-09-13 for that
-makeover, so the list below is as it stood that day: **the next step was the
-owner's, the stranger playtests** (*Deployment → Running a playtest* has the
-steps and the invite), and everything else waits on their files or on the
-owner's judgement.
+**Current state, 2026-09-16: the Studio is LIVE, and it is the only game.** The
+switch-over is deployed — `main` is `e29648f`, 194 commits ahead of where it
+stood this morning, pushed at the owner's word. There is no other look and no
+`?look=` to reach one with: the classic page, its round 0, its end screen and
+the 6,153 lines behind them are deleted, and the tag `classic-last` is the last
+commit where they run. The owner put the stranger playtests on hold for a
+visual makeover.
+Their own sessions with two other people kept raising the same complaints: too
+much to read, fiddly click-and-edit controls, and a static look. "It needs to
+feel alive." Round 0 went first, after the owner opened it in the new look and
+called it horrid, and they then played its five new steps and said "it feels
+alive". The weekly *Your keywords* followed, the makeover pilot's own section;
+the owner played it on 2026-09-15 and said "Alive".
 
-**2026-09-16, on the unpushed branch `claude/rival-history-main`** (cut from
-`42eeebf`, the rival prepaid fix, which `main` has since merged as `2044072`; it
-merges into `main` cleanly, and the makeover line has the same work on
-`claude/rival-history-makeover`): **DECISIONS C9.** Three rival rules read returns
-off the week just played, which never carries one, so in every game a rival's
-belief about returns stayed the briefing's 40% and `grossOptimiser`'s places were
-`disciplined`'s; and the place rule see-sawed. Chosen with the owner: a controller
-is also handed its own revised history (spec R3a and hard rule 5 amended), both
-rules read it, and a place bid moves halfway toward its reading each week. On the
-harness the player's median rank is unchanged (5th, 0 of 72 losing), net +0.8%
-paired median here and +0.3% on the makeover line. Found on the way and fixed on
-both lines: a place adjustment could be written as a negative zero, which JSON
-cannot carry, so a saved game no longer round-tripped exactly — the makeover
-line's `save.test.js` caught it and this line's did not. **Two things for the
-owner, in C9:** D12's week-9 gate now reads 1.83× an ordinary week here, under its
-double (on the makeover line it stays over, at 3.53×), though the week-9 move
-itself barely changed; and `npm run test:perf`'s sampled-round test fails at its
-2,200ms bound on unchanged code on this machine.
+- **The live site runs `main`**: Cloudflare deploys each push to it that
+  passes `npm run ci`. Since 2026-09-16 that is the Studio, F17 included —
+  `main` and `makeover` are the same commit, `e29648f`. Four tags mark what came
+  before: `playtest-1` and `playtest-2` are the versions the two playtests were
+  played on, `live-before-studio` (`760a6b1`) is the last classic version the
+  site served, and `classic-last` (`b7f6726`) is the last commit the classic
+  look runs on at all.
+- **The makeover, which `makeover` was built on and `main` now carries.**
+  Cloudflare builds every other branch a preview behind the same sign-in; only a
+  push to `main` deploys.
+  - Makeover Tasks 1–6: `?look=studio` and the Red signal colours, the two
+    typefaces, the sidebar layout (sections, the tray's order and the shell,
+    played through twelve weeks), and the Quality Score chapter.
+  - Round 0, all sixteen tasks of `plans/2026-09-14-round-zero-redesign-plan.md`
+    (`98610c4` onward), as designed in `plans/2026-09-14-round-zero-redesign.md`
+    (DECISIONS I35). Five steps in the sidebar layout: the market, where you
+    sit, your keywords, your ad, your money. The brand starts on the seed's
+    draw and, since 2026-09-15, is the player's to pick in step 2; the India map has 32 cities that pulse by searches, and the shared kit
+    (`ui/kit/`) is built for the weekly *Your keywords* to reuse. Two rules
+    changed: a self-written ad is graded on its words from week 1 (I11, measured
+    on the harness first), and a hired writer's ad is always the writer's copy
+    (I25).
+  - What playing it measured: four accounts matched round 0; 781 words against
+    2,648; every enabled text passes contrast; nothing is wider than a 375px
+    phone. The record is the round 0 plan's Task 15.
+  - Makeover Tasks 7–11 (`3ccd239` onward): the weekly *Your keywords*, drawn
+    with round 0's kit card and planner (`ui/keywords/`), with the reading
+    panel, *Adjust several* in the tray, and round 0's reserve warning on every
+    week's card; the motion (tray lines, a section's dot and first visit, the
+    switch); the play-through (the plan's Task 10). Building the warning found
+    round 0's floor figure wrong three ways, each fixed and tested against the
+    engine's own auction (`ui/reserve.js`, DECISIONS I17). Playing found and
+    fixed, among others, a prepaid discount the tray never listed and a bid
+    drag that redrew the whole form on every step.
+  - After the gate, for a desktop browser (the owner's call): a section's cards
+    at full width, one scroll, slim scrollbars, the guide's contents numbered.
+    The design doc's section 10 lists every departure.
+  - Then, in the owner's order: the brand as a pick in round 0's step 2; each
+    Quality Score part's grade out of ten on the Studio keyword card, as I1
+    says and the Studio had dropped; the weekly *Your ad*, read-only
+    (`ui/ad/`); and *Where and when* as bars to drag (`ui/where/`), chosen from
+    the mock-ups on `design/where-when/`. Drawing those found the round
+    clamping a place's bid adjustment separately from the hour's; one clamp
+    now covers both (DECISIONS G4's dated note, the market measured
+    identical). Then *Your week* (`ui/week/`), chosen from the mock-ups on
+    `design/your-week/`: every week's net profit against a dashed tick where it
+    stood before this week ran, the revision played once a week. Then *What
+    people typed* (`ui/typed/`), from `design/what-people-typed/`: the search
+    terms as one list by spend, with Block words beside it. Then *Your money*
+    (`ui/money/`), from `design/your-money/`: this month as one bar whose
+    weeks you move money between, bidding and week 8 beside it, and at week 5
+    the capital and the one move on top. Then *Returns* (`ui/returns/`), from
+    `design/returns/`: every week split into refused and sent back, and the
+    prepaid discount's rungs, each drawing what it saves against what it
+    costs, on the prepaid fix (I34) merged in for it. Then the Market area as
+    one section, *Rivals* (`ui/rivals/`), from `design/market/`: the market's
+    public figures and your share on top, each rival you meet as a card with
+    its ad. Then *Results* after the last week (`ui/results/`), from
+    `design/results/`, as four sections, on fixes to both end-of-game replays.
+    No Studio screen shows a classic card any more. Then the Guide as a page
+    (`ui/guide/page.js`), from `design/guide/`: the field guide as a book,
+    with Show me fixed to mark what it opens in every rebuilt section.
+  - Part 1 of the switch-over (2026-09-16, `638cf47`..`77e63bc`): `main` merged
+    in, the Studio standing on its own context, the front door, the playtest
+    questions as a Results section, the version in the playtest file, and the
+    Studio as the default look. Part 2 removes the classic look.
+  - Part 2 of the switch-over (2026-09-16, `bae274d`..`d3c3476`): the classic
+    look and its code are gone — 6,153 lines, and with them `ui/look.js`,
+    `ui/round-zero.js` and the page's own markup. The tag `classic-last`
+    (`b7f6726`) is the last commit where it runs.
+  - On `makeover` (2026-09-16, after part 2): 2273 tests pass, 1 todo, and the
+    build publishes 112 files. On `main` it is 54.
+- **The tag `playtest-2`** exists on this computer only.
 
-**What to do next, in order:**
+**To play it:** `npm run dev`, then `http://localhost:5173/ui/`. There is one
+look and no parameter for another. A saved game is met at the front door on
+every load, so choose *Start a new game* to reach round 0. To see the classic
+game as it was, check out the tag `classic-last`.
+
+**DONE 2026-09-17: the landing page is graded as it stands** (DECISIONS I37,
+the owner's decision; commits `88c2c98`, `6246367`, `a163633`). The timing
+question this entry held open is settled. A page built from capital is
+re-written each week from the capital LIVE that week and its landing page grade
+re-scored (`pageAsItStands`, `content/landingPage.js`), so round-0 capital no
+longer counts three weeks before the work exists, and week-5 capital — which
+used to never reach the page — does from week 8. Old saves keep the old rule.
+Measured against gates the owner agreed before any run, all passing: `market`
+mode byte-identical; week-5 page purchases worth more (the size guide's median
+advantage over keeping ₹21,491 → ₹46,435); round-0 purchases worth 13-17% less,
+none flipping; no rival moved more than 5%; calibration's figures identical.
+- **Measure through a real round 0.** The landing page grade has two writers,
+  the page description (all capital's sentences) and the site work's points
+  (the page's own capital), and a test game that types its own description
+  meets only the second. That is how 073e05f came to say the size guide and
+  photography move no grade (corrected in `2d5359c`).
+- **The harness can see the page now**, and has a `page` mode and a
+  `pagegates` check (`scripts/market-harness.js`). Before `6246367` its player
+  typed "A plain product page." and bought nothing at round 0, so it was blind
+  to all of this.
+- The kept measurement of the old timing, branch
+  `claude/cranky-montalcini-b7c4de` (`87d797e`), is superseded by
+  `tests/pageAsItStands.test.js`, which reads the same auction record.
+- **DONE 2026-09-17: the grade counts only what Google names** (DECISIONS I38,
+  the owner's decision, from `design/photography-point/`, direction C). The rule
+  that gave a point to any description over 40 characters is gone: the plain page
+  is 21, so any sentence at all earned it — a caption for product shots, the
+  faster page, a size chart alone by one character. The faster page's own
+  sentence now earns that point for SPEED, which Google's mobile advice names;
+  photography earns no landing page point at any rung. Over all 64 rung
+  combinations, 49 grade as before (every page with capital on the page itself)
+  and 15 lose exactly one point (a chart or shots with nothing on the page).
+  Games saved before keep the length rule (`pageRules`, `rulesFor`), the owner's
+  choice as for I37. Gates agreed first: all three hard gates passed (the
+  no-capital market identical; week-5 keep, order confirmation and the page
+  identical; round-0 keep, reviews, top page and faster page identical), and all
+  five stop-and-show gates tripped and were accepted — the purchases that lose a
+  point lost 28-53% of their median advantage over keeping the money, while every
+  one still beats keeping it in about the same share of markets, and no rival
+  moved more than 3.1%.
+- **DONE 2026-09-17: Your ad shows where the grade comes from** (`523301f`,
+  from `design/grade-breakdown/`, direction B). Each row names the grader's
+  rules its own sentences earn ("+1 it mentions sizing", "+2 the work on the
+  page" — not "the site work", which the game uses for everything capital builds),
+  the point more than one purchase earns alone is shown once as shared, and a
+  sum under the rows matches the chart, saying "the grade stops at 10" when
+  the rows add to more. Split by RULE, not by what removing a purchase costs,
+  because those do not add up (`pagePoints`, `content/landingPage.js`, with a
+  property test against the auction's grade over every rung).
+
+**What to do next, in the owner's order (2026-09-15):**
+1. **DONE 2026-09-15: the brand as a pick from the nine,** in round 0's step
+   2, starting on the one the seed draws (DECISIONS I35's dated note). A note
+   on a rival follows the ad it was made about, because another brand deals
+   the eight names onto the eight ads differently.
+2. **DONE 2026-09-15: Your ad, read-only** (`ui/ad/read.js`, `render.js`): the
+   ad as searchers see it, who wrote it, the three grades out of ten the
+   auctions use that week with any change to come and its week, and the
+   landing page. Rewriting an ad mid-game waits for the message project. The
+   keyword card's Quality Score shows each part's grade out of ten again (I1).
+3. **DONE 2026-09-15: Where and when** (`ui/where/`), from the canvas
+   https://claude.ai/code/artifact/84535b5e-0d58-4228-b2b5-fbfcf8d7383b: the
+   three kinds of place as rows with a bar each beside the India map, and the
+   hours as the day drawn to scale. Bars stop where a bid stops, +300% under
+   manual bidding and +150% under Maximise clicks.
+4. **DONE 2026-09-15: Your week** (`ui/week/`), from the canvas
+   https://claude.ai/code/artifact/ae97f8b4-111a-451d-b37a-e8e237b4866f: the
+   week's six figures; every week's net profit with a dashed tick where it
+   stood before this week ran, the change in grey under it, a losing week in
+   amber below a zero line; one sentence on what moved, whose "as" is said only
+   when its count moved; and where the impressions went. The engine keeps only
+   the revised history, so `ui/app.js` and `ui/save.js` keep the one from
+   before the latest week.
+   **DONE 2026-09-15: What people typed** (`ui/typed/`), from the canvas
+   https://claude.ai/code/artifact/9564f078-b493-4538-94aa-90b6c035ffc0: every
+   search bought, most spent first, with what a sale cost there and how many
+   came back, and Block words beside it, whose preview shows what a block
+   would catch before it is made. A sale costing over twice the account's
+   average is marked, because today's "five clicks, no sale" never fires on
+   the game's fractional sales (the classic look's fix is its own task).
+   **DONE 2026-09-15: Your money** (`ui/money/`), from the canvas
+   https://claude.ai/code/artifact/6f331294-d17c-48e9-9804-b7b37227e2c8: this
+   month as one bar, where a line between two weeks moves money between those
+   two and no others (drag it, or arrow keys); bidding and what week 8 decides
+   side by side, the rank said once after week 8 and nothing summed again; and
+   at week 5 the capital chips, the one step and the page they would build.
+   The bar is what each week will be given, the engine's own re-spread at
+   week 5 (`weekBudgetsAtRun`), and the tray says the same by game week.
+   Still open from the canvas's notes: the classic deadline card prints the
+   rank sentence twice after week 8, and ₹1,00,000 is left in stale comments
+   and spec 13.3.
+   **DONE 2026-09-15: Returns** (`ui/returns/`), from the canvas
+   https://claude.ai/code/artifact/ca2f5ce0-0c5c-4935-8179-55337e6fc9c5: the
+   five figures over settled weeks; every week split into refused at the door
+   and sent back, the week order confirmation or the size guide went live
+   marked and read before and after; the discount's rungs, each drawing what
+   it saves a week (refusals prevented, at freight plus margin) against what
+   it costs (the discount on every prepaid order), at `refusalOutlook`'s rates,
+   said to be next week's; and what else moves returns. Before building it:
+   the prepaid fix merged into `makeover` (the owner's choice; harness market
+   byte-identical before and after); the returns card's arithmetic lifted into
+   `ui/returns/read.js` for both looks; the classic note now names the discount
+   and says capital has closed; and a first visit's entrance restored for
+   rebuilt sections, which rebuilding Your money had quietly taken away.
+   **DONE 2026-09-15: the Market area** (`ui/rivals/`), from the canvas
+   https://claude.ai/code/artifact/230864af-39a1-4789-8631-158a34316d7a: one
+   section, Rivals (the owner's choice, merging today's Rivals and The market):
+   the market's four public figures this week beside last, the median click in
+   paise; your share and one reading; each rival you meet as a card, most met
+   first, with how often you met week by week, its ad, above-you and
+   you-outrank, and a five-point move marked. Only what R3 allows. Two fixes to
+   the shared market reading came first, for both looks: it names the rival
+   above you in the most of your auctions (overlap times position-above), where
+   it had named one in 2% of them; and a move is judged on the printed figures.
+   Left for the owner: a results page for one search (a DECISIONS entry
+   first).
+   **DONE 2026-09-15: Results** (`ui/results/`), from the canvas
+   https://claude.ai/code/artifact/e03ab7c2-eeb8-473b-b80c-d67e1932a5b7: four
+   sections after the last week (the owner's choice, over one long page).
+   *Twelve weeks*: the figures, every week's net profit against its first
+   report with the weeks you changed something marked, a strip for the week
+   tapped. *What you learned*: the six lessons, the weeks you changed
+   something with "What if I hadn't?", the budget question. *Where they sat*:
+   round 0's ads and squares, scored on round 0's notes where the save has them.
+   *Everyone's books*: every brand by net profit, gross as an outline, your
+   three ranks, Play again. Drawing it found both end-of-game replays wrong,
+   and the owner chose to fix them first: "What if I hadn't?" deleted the week
+   and stopped at the next decision of any kind, so a later list carried the
+   change back, capital vanished at week 5, and the week-8 ranking's knock-on
+   was cut off (blocking "cheap" read Rs 8,067, worth Rs 75,021; the size
+   guide's answer reversed), now `logWithoutChange`, to the end of the game;
+   and the budget question's raise was undone by the capital rollover and by a
+   plan sent that week (`liftWeek` in `engine/round.js`, the harness
+   byte-identical). The budget question now sorts weeks into paid, about broke
+   even (within a rupee a click) and lost money, and names a week with nothing
+   left in its month; "Numbers keep moving" reads net profit; round 0's notes
+   are kept in the save (`notesFor`; an older save asks at the end, as today).
+   Said plainly on the screens, by the owner's choice, not fixed: net profit
+   never counts capital, and the last five weeks read high because their
+   returns come back after the game ends (item 8).
+   **DONE 2026-09-15: the Guide as a page** (`ui/guide/book.js`,
+   `ui/guide/page.js`), from the canvas
+   https://claude.ai/code/artifact/5a912577-a5cc-4107-9923-c351e61837fd: the
+   Guide area is the field guide as a book (the owner's choice, over a panel
+   of the player's own figure on each chapter). Its list is Contents and the
+   thirteen chapters by number; the contents a card a chapter, with the
+   section it explains; a chapter its two halves side by side, Show me in
+   your account, "Read beside it" and previous and next. "why?" still opens
+   the drawer, and its Contents opens the page; the classic look and round 0
+   keep the drawer's own list. Checking the mock-ups found, and the build
+   fixed first: Show me marked nothing in any rebuilt section (the ring was
+   drawn on classic cards only, and focus looked for their h2); three
+   chapters pointed where their idea is not shown ("Who writes the ad" at
+   Your keywords, now Your ad's writer; "Defending your own name" at the
+   auction insights, now the search terms; "What only a simulation can tell
+   you" at a month bar, now Results' replays after week 12); Show me now
+   waits while its section is locked; two chapters named a classic card, and
+   the returns chapter's 30% is now the country's, which places move; six
+   related links from the owner's read-through; and each area remembers its
+   last section, so the rail goes back to where the player was.
+   **DONE 2026-09-16: the switch-over, part 1** (`plans/2026-09-16-switch-over-plan.md`),
+   from the canvas
+   https://claude.ai/code/artifact/54dadd5c-e4db-43fd-90ef-dd8117aa2c19: the
+   Studio becomes the game. The owner chose the front door on its own, the
+   classic look removed, and F17 and the rival prepaid fix in the release.
+   - **The three merges.** `main` came in as one `-s ours` merge: all 22 of its
+     commits are twins of makeover's own, and the tree is byte-identical to
+     makeover's before it, so the gate held by construction. F17 and the rival
+     fix were already merged here by other sessions; F17's gate held the same
+     way (no file the market reads differs), and the rival fix was measured with
+     F17 in place — rank 5th, no losing weeks, the player's net within ₹2, the
+     rivals' profit per rupee 1.94 to 1.96.
+   - **The Studio stands on its own** (`ui/shell/context.js`). It was drawing
+     the whole classic page hidden, only to borrow the decision form's context;
+     it now builds its own, and a section with nothing to draw throws rather
+     than falling back to a card that is no longer there.
+   - **The front door** (`ui/door/`): before a game opens, one card in the
+     page's own space, in five states — the game in progress, restoring it, a
+     game the simulator has changed under (the weeks that differ, as saved
+     against replayed now), a game this version cannot open, and a finished
+     game. The weeks played stay red while a replay runs, with a bar and a
+     line a screen reader can follow. Nothing caught a restore that threw
+     before this, so "Restoring your game" stayed on screen for ever.
+   - **"Before you go"** is a fifth Results section on the playtest link, where
+     the questions were a card under Everyone's books and a tester who stopped
+     at the first section never met them. Play again moves there, since
+     starting again clears the saved game the file carries.
+   - **The playtest file names its version** (`ui/version.js`): 'dev' in the
+     repository, the commit in a built site, noted on a load only when it
+     differs from the last, so a game that spans a deploy says where.
+   - **The Studio is the default.** The page is served as `body.studio` and a
+     classic visit takes the class off, so the game everyone now gets paints in
+     its own colours before any script runs.
+   **DONE 2026-09-16: the switch-over, part 2**
+   (`plans/2026-09-16-switch-over-part-2-plan.md`): the classic look and its
+   code are gone, 6,153 lines over eight commits, each with the suite green.
+   The owner chose to delete first and deploy once, and to cut the look off
+   before carving the shared files.
+   - **What it actually was.** The design said "about 4,500 lines" and read
+     like a deletion; an inventory found only TWO wholly classic files
+     (`ui/look.js` and `ui/round-zero.js`), with everything else shared. So it
+     was carving classic-only regions out of six files: `ui/dashboard.js`
+     1,208 lines to 248, `ui/decisions.js` 3,047 to 1,824, `ui/chart.js` 487 to
+     189, `ui/dom.js` 146 to 35, `ui/ending.js` and `ui/debrief/render.js` down
+     to their readings, and `ui/style.css` 1,581 to 992.
+   - **The header was not inert markup.** `ui/app.js` wrote to `#brand`,
+     `#round-label`, `#next`, `#redo` and `#guide` on every render in BOTH
+     looks, and the Studio only hid the header with CSS. Deleting the markup
+     without stripping that wiring would have broken the Studio, not the
+     classic page, so they went in one commit (`bae274d`).
+   - **Two things nearly went that should not have.** DECISIONS D11 is accepted
+     "and told", and the classic daypart card was the only place telling the
+     player that an hour adjustment counts twice under the strategies that
+     predict conversions; the owner chose to move it, so Where and when says it
+     now (`WHERE.hoursTwice`, shown while `hoursModel().countsTwice`). And
+     `tests/roundZero.test.js` was written off as the classic page's; reading it
+     first showed it is round 0's RESERVE WARNING, measured against the engine's
+     own auction, so 37 tests moved to `ui/roundzero/rules.js` instead of dying.
+   - **The stylesheet was cut by measurement.** A rule went only if every class
+     in its selector appears nowhere in `ui/**.js`, `ui/index.html` or
+     `studio.css`; 142 classes that do appear somewhere were left, most of them
+     English words used as variables. Then every element on every screen was
+     fingerprinted from its computed styles before and after: 4,853 elements
+     across round 0, the six Brand sections, the guide drawer and the five
+     Results sections, with zero differences.
+   **DEPLOYED 2026-09-16 at the owner's word** ("deploy it"). `main` went
+   `760a6b1` → `e29648f`, 194 commits, +39,627 / −7,086 over 204 files: the
+   whole makeover at once, F17 and the one-clamp bid fix included, neither of
+   which `main` had ever had.
+   - **Before `main` moved**, the versions the playtests were played on were
+     pushed as tags, since a playtest file is read by checking out the build it
+     was recorded on and `playtest-2` existed on this computer only:
+     `playtest-2`, `live-before-studio` (`760a6b1`, the last classic version
+     the site served) and `classic-last`.
+   - **`main` had sixteen commits `makeover` did not**, and an ordinary merge
+     conflicted in six files. Every one was a document or a twin of work this
+     branch already carried by its own route (F18, I36, the harness's move
+     mode, I34's cash share), and the only file `main` held that `makeover` did
+     not was the classic round 0, deleted on purpose. So it was merged `-s
+     ours` (`e29648f`), which made the deploy a fast-forward rather than a
+     second conflicted merge.
+   - **`npm run ci` was run locally first**, exactly as Cloudflare runs it:
+     lint, 2,273 tests, then the build, exit 0. The built copy was then served
+     from `dist/` and played — it stamps `e29648f`, opens in the Studio with no
+     classic header and a clean console, and round 0 into week 1 saved.
+   - **The live site itself was NOT opened from here**: it is behind Cloudflare
+     Access, and signing in is the owner's. Confirming Cloudflare's own build
+     passed and published is theirs too.
+   - **Nobody needed telling.** No playtester has ever been added to the Access
+     list, so no saved game existed on the live site and nobody met the front
+     door's "This game has changed" — which is what they WILL meet, since F17
+     moves almost any game whose budget ran short.
+   **DONE 2026-09-16, from the owner playing the deployed game: the landing page
+   is drawn as a page** (`073e05f`, from `design/landing-page/`, direction C).
+   It was a domain bar and grey strips reading "product shots"; it is now the
+   garment, the sizes, review stars and a size chart, in SVG, showing only what
+   is LIVE — plain until the site work lands, then the stars and the chart
+   arrive. Beneath it, the landing page grade the auction runs on, week by week,
+   which STEPS rather than climbs.
+   - **~~It says which purchase buys the grade, and the other two do not.~~
+     WRONG, corrected 2026-09-17 (`2d5359c`).** This entry said
+     `landingPageBonus` reads the `landingPage` target alone, so only the page
+     moves the grade, and the screen carried a disclosure saying so. The
+     bonus is one road of two. Round 0 writes the page description from ALL the
+     capital (`composeDescription`) and the grader scores it from week 1: +1
+     for more than 40 characters, +1 for mentioning size, +1 for reviews
+     (`agents/grader.js`, LANDING_RULES). Measured through a real round 0: a
+     ₹25,000 size guide takes the grade 5 → 7, photography 5 → 6, ₹25,000 on the
+     page 5 → 6. The disclosure is gone, the page row's points say "from the
+     site work", and the description's points are shown rule by rule since
+     `523301f` (design B, the owner's choice). Found when the owner asked for a round-0 warning that
+     ₹25,000 on the page moves nothing, on my word; it moves the grade by one.
+     The test games had typed their descriptions by hand, which skips this road.
+   - **Four things were caught before it shipped**, three of them by the guards:
+     an invented per-part split of the grade (caught in the mock-up); a row
+     reading "+0 on the landing page grade · live from week 4", true and the
+     opposite of its meaning; "the money leaves in week 1", false for the week-5
+     capital window; and a drawn price read from `businessFor`, refused by the
+     R3 guard because that function blends in what 16.1 withholds from every
+     viewer. The page carries no price now.
+   - **And one wording fix from the same play-through** (`da65154`): the
+     attribution chapter said a Monday click buying on Friday "adds a conversion
+     to Monday, on Friday". Google Ads Help confirms the fact, but two dates in
+     one clause read as a typo in the chapter whose job is why numbers move.
+   - **The worth chart was redrawn the same day as a step** (`1cfdf33`,
+     `37c7e58`, from `design/page-worth/`, direction B), because the owner
+     could not see it change: twelve bars stepping 8 → 10 read as one flat row.
+     Its geometry is `worthShape` in `ui/ad/read.js`, so a full 0-10 scale and a
+     riser on the week the grade steps are tests. Its labels are laid OVER the
+     SVG rather than drawn in it: text inside a scaled SVG shrinks with it, and
+     measured 8.2px on screen.
+   - **And it showed the landing page ignoring the cap** (`bc60a13`). The
+     auction caps the landing page grade at 10; this screen added capital's
+     points without the cap, so ₹80,000 on a page graded 8 charted 11 and a row
+     read "+3" for a gain of 2. The screen now reads `effectiveGrades` for every
+     figure, as its header always said it did.
+   - **The page row names the weeks the grade moves** (`543cda7`, the owner's
+     choice). It named the latest capital tranche's week, so ₹55,000 then
+     ₹25,000 on a page graded 8 read "live from week 8" at week 6, when its whole
+     +2 arrived at week 4. It now reads `steps`, off the chart's own capped
+     grades: "live from week 4", "1 more from week 8", or nothing once the grade
+     has finished moving. The size guide and photography rows still fold two
+     purchases into one week; they move no grade, and were not the choice.
+   - **The drawn page shows a picture when its rung is live** (`6be00c7`, the
+     owner's word). It drew stars once no page tranche was pending, so ₹55,000
+     then ₹25,000 stayed plain through weeks 4-7 with its grade at 10, and
+     ₹25,000 alone — a faster page, no reviews — was drawn with review stars.
+     `pageDrawn` runs the LIVE money through `tiersFunded`, the ladder that
+     writes the description: stars when "reviews" is live, the chart when "a
+     chart" is. **Still open, the owner's:** what the other rungs draw —
+     "faster" and "built around the search" on the page, and product shots,
+     draw nothing yet.
+5. **The message project** (the round 0 design, section 11): angles that change
+   who clicks, images from week 9. Its own design doc, a spec change and
+   DECISIONS entries come before any build.
+6. **Then the playtests**, below, on whatever the makeover has become.
+7. **Still open for the owner, none blocking:** from the pilot's play-through,
+   whether sixty keywords want the compact list view (a click redraws in 274ms,
+   and the section runs to twenty screens), whether to trim the cards' repeated
+   words (158 against about 120), and whether Redo round 0 should start from the
+   last choices rather than afresh, in both looks. Older: A9, F15 (b)/(c) and
+   E8's formula (item 5 below). Round 0's rival guesses now carry into the end
+   reveal (the round 0 design, section 12; the owner, 2026-09-15).
+8. **Found drawing Results (2026-09-15), said plainly on the screens and left
+   for the owner's rules:** net profit never counts capital spent on the
+   business (`engine/report.js`, `moneyBlock`), so capital is free in every
+   end-of-game figure, the books' ranking and D12's measurement (the size
+   guide's Rs 28,625 against the clicks becomes Rs 83,625 counted), which wants
+   a DECISIONS entry; and a return comes back two weeks after its sale, so the
+   last five weeks read high and weeks 11 and 12 count no returns, which
+   settling at the game's end would fix, as an engine change measured first.
+   Both replay fixes are live since the switch-over deployed (2026-09-16);
+   until then they were on `makeover` only.
+9. **FIXED 2026-09-15 (DECISIONS F17), built on the branch
+   `claude/lucid-bhabha-395dd1`, merged into `makeover` on 2026-09-16 and live
+   since the switch-over deployed that day:** the round's two paths through the auction disagreed with equal
+   bids, and the test meant to hold them together never took the second path.
+   The cause was deeper: a budget-throttled advertiser held its slot, and
+   priced the advertiser above it, in searches it was not in. It now takes part
+   in only its share of the searches (`resolveSlice`), and the two paths agree
+   to the paisa. The market is kinder for it, which the owner accepted: the
+   player's cost per click went ₹19.6 to ₹12.0 and its profit per rupee 1.05 to
+   1.90, its rank is still a median 5th, and it still loses money in 0 of 72
+   markets. So the end screen and the guide now say returns sit above the
+   Indian range (F15's addendum). A played week costs 8–15% more time. One
+   full `npm test` run in three failed a single test on identical code during
+   F17, most likely a time limit under another session's load; its output was
+   not kept, so which test is not known. Every figure is in the plan's
+   *Measurements*, `plans/2026-09-15-throttled-ladder-plan.md`.
+   Found the same day and still as it was: the prepaid discount card that quoted the smaller towns'
+   refusal rate for every account is fixed on `makeover` since 2026-09-15
+   (merged from `claude/refusal-outlook-makeover`, I34); `main`'s twin,
+   `claude/refusal-outlook`, is still unmerged. The market harness's `compare` reads only `writer` runs;
+   compare `market` runs by their summaries or files. The bid's floor and cap
+   (`MIN_BID_PAISE`, `MAX_BID_MULTIPLE`) now have their entry, D13, with
+   Google's own combined cap for comparison (ten times against the game's
+   four), and the `hours` and `cashOnDelivery` chapters say it. Rivals now
+   offer the prepaid discount too (I34: none ever had), merged into `makeover`
+   on 2026-09-16 (`7096b96`); `main`'s twin `claude/rival-prepaid-main` is
+   unmerged. Measured on top of F17, it moves
+   rivals' returns half a point and the player's figures not at all (I34's
+   dated note).
+
+**Decided about the makeover, not to re-open:**
+- a sidebar shell like Claude's app, not the real Google Ads layout;
+- Studio drop's cards and type;
+- the Red signal palette, where red means *you and your changes*, so warnings
+  and losses are amber with a minus sign;
+- six motions, none of them the week playing out, plus the map's pulse as the
+  one named exception;
+- round 0 inside the sidebar layout as five steps, the freelancer as the writer
+  a player arrives on, and capital in plain view with nothing recommended (the
+  brand, drawn at first, becomes a pick from the nine: the owner, 2026-09-15);
+- built for a desktop browser first, the phone kept working.
+
+The two design docs record each choice and what was rejected (round 0's in its
+section 2).
+
+**End of 2026-09-13, kept for its list.** `main` was at the latest push and was the
+only branch; the game is live and invite-only; 1656 tests passed, 1 todo; the
+build published 54 files. The next step was the owner's: the stranger playtests
+(*Deployment → Running a playtest* has the steps and the invite).
+
+**What was next, in order, before the makeover:**
 1. **Run the stranger playtests on the live site.** Owner: pick three people
    (two alone, one on a video call), add their exact emails in Cloudflare
    Access, send the invite. Session: on the day, `git tag playtest-2 && git push
@@ -1223,18 +1669,15 @@ are three separate auctions and resolving three costs 531ms against a 400ms budg
 When nobody adjusts by location the ladders are identical, so one resolution
 apportioned is exact — and `round.test.js` runs the same round both ways and holds
 them to the same numbers, because the danger of two paths is that they quietly stop
-agreeing.
+agreeing. (Until 2026-09-15 that test compared one path with itself, and the two
+had stopped agreeing: F17.)
 
 **A rival learns where to bid; it is not told.** `policies.js` imports nothing from
 `engine/`, which is what makes its guard absolute, so a policy cannot read the
-volume table. `locationTilt` reads the rival's own `byLocation` reports, every week
-played, summed — net of returns, which arrive late, so a rival leans metro-ward
-first and corrects later, on the same terms the player does. `grossOptimiser` reads
-GROSS deliberately: section 14's missing multiplication, applied to geography.
-**True only since C9 (2026-09-16).** Until then it read the week just played,
-which never carries a return, so net and gross came out identical in every game,
-and it jumped all the way to each week's reading, so rivals see-sawed. It now
-also moves halfway toward its reading each week.
+volume table. `locationTilt` reads the rival's own `byLocation` report — net of
+returns, which arrive late, so a rival leans metro-ward first and corrects later, on
+the same terms the player does. `grossOptimiser` reads GROSS deliberately: section
+14's missing multiplication, applied to geography.
 
 **The leans are 200/320/100 and provisional.** At 40/70/20 rivals adjusted by 1-17%
 and nothing they did was visible in the market. They are policy numbers rather than
@@ -1404,6 +1847,10 @@ records twice already.
 
 ## Round 0 has a design, and part of it is built
 
+**This is the classic look's round 0**, which `?look=classic` still draws. The
+Studio look rebuilt round 0 on `makeover` on 2026-09-14 (*Start here*, DECISIONS
+I35), and the hired-writer fix this section calls open was built as I25.
+
 **The canvas:** https://claude.ai/code/artifact/5e9555b3-28fa-4d12-8479-5f10812a086a
 
 Six interactive artboards covering all ten round 0 cards, built on the
@@ -1502,6 +1949,7 @@ F13's rejected volume option has to come back.
     code, so nothing breaks — but they would teach the old numbers to anyone
     building from them.
   - **F13 is now 1.73x**, from 1.58x on the same harness. See F13's F14 note.
+
 
 - **Deployment, a database and a backend are planned, in that order** (agreed
   2026-09-08). Everything runs in the player's browser, so there is no backend,
@@ -1929,26 +2377,26 @@ tooling and one untested claim.
   rivals' `wastefulQueries` still blocks only a search with no conversions at
   all, which changes the market and wants the harness before and after.
 - ~~A revision re-prices the weeks sold before a price move.~~ **Fixed
-  2026-09-16** (F18, merged into `main` the same day): each week's report
-  records the margin its orders were sold at
+  2026-09-16** (F18, on `main` the same day; this is its `makeover` twin):
+  each week's report records the margin its orders were sold at
   (`money.marginPct`), and every revision uses it. A week-5 move had been
   re-pricing all of month 1 at the new tier's margin, which moved the week-8
   rank and the end screen for a player who moved; F18 has the before and after.
   The harness has a `move` mode for it.
 - ~~An old week's late sales go to whichever keyword catches the search when
-  they land.~~ **Fixed 2026-09-16** (I36, merged with F18): each order now carries
+  they land.~~ **Fixed 2026-09-16** (I36, with F18): each order now carries
   the keyword that caught its click (`keywordId`), as it carries its search and
   place, and `keywordForQuery` is gone. It hit every player who blocked a
   search with a negative, since nothing catches a blocked search any more;
   removing or replacing a keyword did it too. The keywords table showed it,
   the search terms report never did, and the market harness came out identical.
-- **F18 and I36 are not on `makeover` yet.** It carries the same
-  `reviseReports` and `keywordForQuery`, so it wants both fixes. F17 sits just
-  before I6 there, where F18 goes, and I35 just after I34, where I36 goes: keep
-  both each time, the lower number first. The `reviseBreakdown` call is already
-  the cash share's there, so it becomes `reviseBreakdown(existing.breakdown,
-  lateLanded, lateReturns)`, as on `main`. F17 moved the market, so run the
-  harness's `market` and `move` modes before and after on `makeover` itself.
+- **What the twin took, since `makeover`'s engine is not `main`'s.** F18 applied
+  as it stands. I36 did not: F17 moved the conversion bucket into
+  `recordConversions`, so `keywordId` is set there from `e._plan.keyword.id`,
+  and `report.js` differs by about thirty lines from main's, so only the map
+  argument came out of `reviseBreakdown` and its three `byKeyword` lookups. The
+  harness kept `makeover`'s `writer` and `compare` modes beside the new `move`
+  one. In DECISIONS, F17 stays before F18 and I35 before I36.
 
 ---
 
@@ -1971,8 +2419,10 @@ backend will run anyway.
 
 **How it works, in one paragraph.** Nothing is compiled. `scripts/build-site.js`
 follows the imports from `ui/index.html` exactly as a browser does and copies the
-54 files it reaches into `dist/` — the page, its stylesheet and 52 modules, about
-990 KB — plus a front page that sends visitors to `ui/` and a `_headers` file.
+files it reaches into `dist/` — 112 since the switch-over (54 before it), about
+1.6 MB with the two typefaces — plus a front page that sends visitors to `ui/`
+and a `_headers` file. It also WRITES one file it did not copy, `ui/version.js`,
+stamped with the commit, so a playtest file names the build it was made on.
 Docs, tests, the design canvas and `files.zip` are never published, and
 `tests/build.test.js` holds both halves: nothing missing (Node imports every
 module from the built copy, so the check does not trust the build's own reader)
@@ -2091,15 +2541,23 @@ before-and-after later if one is wanted.
 
 **When the invites go out:**
 1. **Tag the live version the same day,** so the files can be read on the engine
-   they were played on:
+   they were played on. `playtest-1` and `playtest-2` are both used —
+   `playtest-2` is the classic game, and `live-before-studio` is the last
+   version the site served before the Studio — so the next one is
+   `playtest-3`:
 
    ```
-   git tag playtest-2
-   git push origin playtest-2
+   git tag playtest-3
+   git push origin playtest-3
    ```
 
    Then keep engine changes off `main` until the files are back. Words and
    docs are safe; anything that moves a number in a played week is not.
+
+   Since the switch-over (2026-09-16) a playtest file also NAMES the build each
+   of its loads ran on (`ui/version.js`), so a game that spans a deploy says so
+   in the file itself and `scripts/read-playtest.js` prints the versions. The
+   tag still matters — it is how you get that build back to read the file on.
 2. Add each tester's address to the Access list (*Invite-only* below).
 3. Send `https://g-ads-simulation.manikhorocks.workers.dev/ui/?playtest=1` with
    the message below.
@@ -2119,9 +2577,13 @@ the Access list):
 > 2. It asks for your email: use *address*, and type in the code it emails you.
 > 3. Play it the way you would on your own. There is no right answer, and you
 >    don't need to read everything.
-> 4. When you finish, or if you give up partway, press **Send playtest file** at
->    the top, save the file, and send it back to me here. At the end it asks
->    what the game taught you and what confused you; a few words is plenty.
+> 4. When you finish, the last thing on the results is **Before you go**: two
+>    questions about what the game taught you and what confused you, and a
+>    **Download the playtest file** button under them. A few words is plenty.
+>    Send me the file it saves.
+> 5. If you give up partway, that is useful too — press **Playtest** at the
+>    bottom of the black strip on the left, which saves the same file straight
+>    away, and send me that.
 >
 > The file holds how long you spent on each screen, what you clicked, your
 > browser and screen size, and your game, so I can replay it. It never records
@@ -2134,6 +2596,13 @@ screen in order, cards by time on screen, week compute times, rank and
 contribution replayed from their save, the weeks in the red, the weeks they
 decided something (with how many of weeks 7–12, stage D's gate, and the week-5
 capital card marked when it was left alone), and their answers.
+
+It counts clicks per screen; it does not list them. What was clicked, named by
+card or region and control, is in the file's `recording.clicks`, each with its
+`where`: read those directly when the names matter. In the Studio's round 0 the
+regions are *Round 0 steps*, *Tray*, each step by name, and the planner drawer
+(*Add keywords*); a control with no text, such as a guess cell, is named by its
+label for screen readers.
 
 **For the one played on a call,** use the same link and record the call
 yourself. Watching changes how people read, so its timings are not pooled with

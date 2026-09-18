@@ -78,14 +78,19 @@ describe('the phases, grouped the way the one human game was reported', () => {
     expect(groups[1].clicks).toBe(4);
   });
 
-  test('screens that are not play, such as restoring a save, are kept apart', () => {
+  // The front door's screens are their own group since the switch-over's part 1
+  // (2026-09-16): they are what a tester meets before a game opens, and a
+  // restore that failed is worth seeing apart from play.
+  test('the front door\'s screens are kept together, apart from play', () => {
     const file = recordedFile();
-    file.recording.phases.push({
-      name: 'restoring', startAt: 0, endAt: 3000, lastSeenAt: 3000,
-      hiddenMs: 0, idleMs: 0, clicks: 0, keys: 0, cardMs: {},
-    });
+    for (const name of ['resume offer', 'restoring', 'restore failed']) {
+      file.recording.phases.push({
+        name, startAt: 0, endAt: 3000, lastSeenAt: 3000,
+        hiddenMs: 0, idleMs: 0, clicks: 0, keys: 0, cardMs: {},
+      });
+    }
     const groups = phaseGroups(file);
-    expect(groups.at(-1)).toMatchObject({ name: 'other', activeSeconds: 3 });
+    expect(groups.at(-1)).toMatchObject({ name: 'front door', activeSeconds: 9 });
   });
 });
 

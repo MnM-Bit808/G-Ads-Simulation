@@ -28,7 +28,9 @@
  * Neither is stated outright in spec 10.2; both are recorded in DECISIONS B5.
  */
 
-import { AD_RANK_FLOOR, MAX_SLOTS, TOP_SLOTS, MIN_INCREMENT_PAISE } from './constants.js';
+import {
+  AD_RANK_FLOOR, MAX_SLOTS, TOP_SLOTS, MIN_INCREMENT_PAISE, ADVERTISER_COUNT,
+} from './constants.js';
 import { assertPaise } from './money.js';
 
 /**
@@ -152,4 +154,196 @@ export function resolveAuction(entrants) {
   }
 
   return { ladder: rows };
+}
+
+/**
+ * @typedef {object} SliceEntrant
+ * @property {string} id
+ * @property {number} bidPaise integer paise
+ * @property {number} qualitySignal > 0
+ * @property {number} participation the share of the slice's searches it enters, (0, 1]
+ */
+
+/**
+ * @typedef {object} SliceResult
+ * Every array is indexed in the entrants' order as given, never the ladder's,
+ * and every value is a share of the slice's searches. With n entrants:
+ * @property {Float64Array} shown [x] the share x shows in
+ * @property {Float64Array} positions [x * MAX_SLOTS + k] the share it shows in slot k + 1
+ * @property {Float64Array} cpcPaise [x] its average price per click when it shows:
+ *   an average of whole-paise prices, so not itself whole
+ * @property {Float64Array} both [x * n + y] the share in which x and y both show
+ * @property {Float64Array} above [x * n + y] the share in which both show and y is above x
+ * @property {Float64Array} shownNot [x * n + y] the share in which x shows and y
+ *   takes part without showing
+ */
+
+/**
+ * Resolve one slice of searches in which some entrants take part in only a
+ * share of them (DECISIONS F17).
+ *
+ * Pacing throttles an advertiser by letting it into a share of a slice's
+ * searches, never by skipping the auction (spec 13.4, H1). In the searches it
+ * stays out of, it is not in the ladder: it takes no slot and sets nobody's
+ * price. `resolveAuction` ranks everyone it is handed in every search, and the
+ * round used to hand it throttled advertisers, so a nearly-spent rival held a
+ * slot, and priced the advertiser above it, on searches it was not in.
+ *
+ * Each advertiser's share is its own pacer's, so who is present in a search is
+ * independent from one advertiser to the next. Every combination of who is
+ * present is then a ladder of its own, as likely as its members' shares times
+ * its absentees' complements. This resolves each with `resolveAuction`'s rules
+ * and weighs it. Exact, not sampled.
+ *
+ * COST: an entrant in every search adds no combinations, so a slice with k
+ * throttled entrants resolves 2^k ladders - one when nobody is throttled, 512
+ * if all nine are. Ranked once, because an absentee changes nobody else's order.
+ *
+ * WHY POSITION AND PRICE ARE AVERAGED APART: where an entrant sits depends only
+ * on who is present above it, and what it pays only on who is present below
+ * it. Those are separate sets of independent advertisers, so its average price
+ * is the same whatever slot it lands in, and clicks times average price is its
+ * expected cost exactly.
+ *
+ * @param {SliceEntrant[]} entrants
+ * @returns {SliceResult}
+ */
+export function resolveSlice(entrants) {
+  if (!Array.isArray(entrants)) {
+    throw new TypeError('entrants must be an array');
+  }
+  const n = entrants.length;
+  const seen = new Set();
+  for (const entrant of entrants) {
+    if (seen.has(entrant.id)) {
+      throw new Error(`duplicate entrant id "${entrant.id}" in one auction`);
+    }
+    seen.add(entrant.id);
+    const p = entrant.participation;
+    if (!Number.isFinite(p) || p <= 0 || p > 1) {
+      throw new RangeError(`participation must be in (0, 1], got ${String(p)} for "${entrant.id}"`);
+    }
+  }
+
+  const rows = rankEntrants(entrants);
+  // The ranks of the entrants that are sometimes absent. Only they make
+  // combinations: one in every search is present in all of them.
+  const throttled = [];
+  for (let r = 0; r < n; r++) {
+    if (entrants[rows[r].index].participation < 1) throttled.push(r);
+  }
+  if (throttled.length > ADVERTISER_COUNT) {
+    throw new RangeError(
+      `${throttled.length} throttled entrants in one slice; the game has ${ADVERTISER_COUNT} advertisers`,
+    );
+  }
+
+  const shown = new Float64Array(n);
+  const positions = new Float64Array(n * MAX_SLOTS);
+  const cpcPaise = new Float64Array(n);
+  const both = new Float64Array(n * n);
+  const above = new Float64Array(n * n);
+  const shownNot = new Float64Array(n * n);
+
+  // One ladder's worth, by rank, reused across the combinations.
+  const present = new Uint8Array(n).fill(1);
+  const position = new Int32Array(n);
+  const cpc = new Float64Array(n);
+  const shownRanks = new Int32Array(MAX_SLOTS);
+  const unshownRanks = new Int32Array(n);
+
+  const combinations = 2 ** throttled.length;
+  for (let mask = 0; mask < combinations; mask++) {
+    // Bit j says whether the j-th throttled entrant is present.
+    let weight = 1;
+    for (let j = 0; j < throttled.length; j++) {
+      const r = throttled[j];
+      const p = entrants[rows[r].index].participation;
+      present[r] = (mask >> j) & 1;
+      weight *= present[r] ? p : 1 - p;
+    }
+    if (weight === 0) continue;
+    settleLadder(rows, present, position, cpc);
+
+    let nShown = 0;
+    let nUnshown = 0;
+    for (let r = 0; r < n; r++) {
+      if (!present[r]) continue;
+      const x = rows[r].index;
+      if (position[r]) {
+        shownRanks[nShown] = r;
+        nShown += 1;
+        shown[x] += weight;
+        positions[x * MAX_SLOTS + position[r] - 1] += weight;
+        cpcPaise[x] += weight * cpc[r];
+      } else {
+        unshownRanks[nUnshown] = r;
+        nUnshown += 1;
+      }
+    }
+    // Pairs are only ever made with somebody shown, and at most MAX_SLOTS are.
+    for (let s = 0; s < nShown; s++) {
+      const r = shownRanks[s];
+      const x = rows[r].index;
+      for (let t = 0; t < nShown; t++) {
+        if (t === s) continue;
+        const y = rows[shownRanks[t]].index;
+        both[x * n + y] += weight;
+        if (position[shownRanks[t]] < position[r]) above[x * n + y] += weight;
+      }
+      for (let t = 0; t < nUnshown; t++) {
+        shownNot[x * n + rows[unshownRanks[t]].index] += weight;
+      }
+    }
+  }
+
+  // A sum of weighted prices until now; the average, over the searches shown in.
+  for (let x = 0; x < n; x++) {
+    if (shown[x] > 0) cpcPaise[x] /= shown[x];
+  }
+  return { shown, positions, cpcPaise, both, above, shownNot };
+}
+
+/** Everyone in ladder order, once: descending ad rank, ties on id as resolveAuction breaks them. */
+function rankEntrants(entrants) {
+  const rows = entrants.map((entrant, index) => ({
+    index,
+    id: entrant.id,
+    bidPaise: entrant.bidPaise,
+    qualitySignal: entrant.qualitySignal,
+    adRank: adRank(entrant.bidPaise, entrant.qualitySignal),
+  }));
+  rows.sort((a, b) => (b.adRank - a.adRank) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  return rows;
+}
+
+/**
+ * Slots and prices among the rows present in one search, by resolveAuction's
+ * rules: slots in rank order to present rows that clear the floor, and each
+ * shown row priced against the next PRESENT row beneath it, shown or not,
+ * never below the reserve (B5).
+ *
+ * resolveSlice's test holds this to resolveAuction on every combination of
+ * random auctions, so the two sets of rules cannot drift apart.
+ */
+function settleLadder(rows, present, position, cpc) {
+  let filled = 0;
+  for (let r = 0; r < rows.length; r++) {
+    if (present[r] && rows[r].adRank >= AD_RANK_FLOOR && filled < MAX_SLOTS) {
+      filled += 1;
+      position[r] = filled;
+    } else {
+      position[r] = 0;
+    }
+  }
+  let belowRank = AD_RANK_FLOOR;
+  for (let r = rows.length - 1; r >= 0; r--) {
+    if (!present[r]) continue;
+    const row = rows[r];
+    const beatRank = Math.max(belowRank, AD_RANK_FLOOR);
+    cpc[r] = position[r]
+      ? Math.min(row.bidPaise, Math.ceil(beatRank / row.qualitySignal) + MIN_INCREMENT_PAISE)
+      : 0;
+    belowRank = row.adRank;
+  }
 }

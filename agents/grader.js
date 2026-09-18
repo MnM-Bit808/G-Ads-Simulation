@@ -36,6 +36,7 @@
 
 import { contentHash } from './hash.js';
 import { HEADLINE_MAX_CHARS, DESCRIPTION_MAX_CHARS } from '../engine/constants.js';
+import { LANDING_RULES, PAGE_GRADE_BASE, gradePage } from '../content/landingPage.js';
 
 /** How far a rival's trademark in the ad text pulls `adRelevance` down (8.7). */
 const TRADEMARK_PENALTY = 4;
@@ -43,8 +44,12 @@ const TRADEMARK_PENALTY = 4;
 /** The ceiling an ad that does not fit Google's limits can reach. */
 const OVERLONG_CEILING = 4;
 
-/** What the heuristic returns before evidence moves it. Mid-scale, not good. */
-const HEURISTIC_BASE = 5;
+/**
+ * What the heuristic returns before evidence moves it. Mid-scale, not good. One
+ * number with the page's own rules (content/landingPage.js), which moved there
+ * so the weekly loop can grade a page without reaching agents/.
+ */
+const HEURISTIC_BASE = PAGE_GRADE_BASE;
 
 const GRADE_COMPONENTS = ['expectedCtr', 'adRelevance', 'landingPage'];
 
@@ -316,32 +321,8 @@ const CTR_RULES = Object.freeze([
   },
 ]);
 
-const LANDING_RULES = Object.freeze([
-  {
-    points: 1,
-    hit: ({ page }) => page.length > 40,
-    whenHit: 'you have actually described the page',
-    whenMissed: 'the description is too short to tell anyone what is on the page',
-  },
-  {
-    points: 1,
-    hit: ({ page }) => /size|fit|guide|chart/.test(page),
-    whenHit: 'it mentions sizing, which is what apparel buyers leave over',
-    whenMissed: 'no mention of size or fit — the main reason apparel visitors bounce',
-  },
-  {
-    points: 1,
-    hit: ({ page }) => /review|rating/.test(page),
-    whenHit: 'it mentions reviews',
-    whenMissed: 'no reviews or ratings on the page',
-  },
-  {
-    points: -2,
-    hit: ({ page }) => page.length < 15,
-    whenHit: 'there is barely a description at all',
-    whenMissed: null,
-  },
-]);
+// LANDING_RULES live with the page ladder (content/landingPage.js): the weekly
+// loop grades the page as it stands and may not reach agents/ (R2).
 
 /** The words a grader compares an ad against: its own keywords. */
 function relevanceCoverage(ad, context) {
@@ -379,8 +360,9 @@ export function heuristicGrade(ad, context = {}) {
     // copy say what the keywords say?
     adRelevance: clampGrade(HEURISTIC_BASE + Math.round(inputs.relevance.coverage * 8) - 2),
     // Graded from the advertiser's own description, which is all anybody has
-    // until there is a page to look at (DECISIONS C2).
-    landingPage: clampGrade(scoreRules(LANDING_RULES, inputs)),
+    // until there is a page to look at (DECISIONS C2). The page's own function,
+    // so the weekly loop's grade of the page as it stands is this one.
+    landingPage: gradePage(ad?.landingPageDescription),
   };
 }
 

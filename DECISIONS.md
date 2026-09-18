@@ -614,6 +614,11 @@ D12 records, which gave no line at 1.51×, now clears its own gate of double at
 2.40×.** That decision was taken on the defective market and is reopened; it
 is the owner's to retake.
 
+*Since F17 (2026-09-15)* the same harness reads 4.40× into week 5 and 4.29×
+into week 9. Ordinary weeks are calmer and both budget events move the market
+more, because a rival whose budget changes no longer keeps phantom slots. F17
+has the figures.
+
 Played on the dev server into week 5, the two `spender` rivals, which keep their
 allocation as ads, rose in the player's Auction Insights: one from 97% overlap
 and 53% above the player to 100% and 88%, the other from 28% overlap to 49%.
@@ -1123,6 +1128,15 @@ adjustments and Smart Bidding pages re-read that day (schedule adjustments
 −90% to +900%, "not used" under Smart Bidding, which already bids by time of
 day), citing this entry, H4 and D2.
 
+**Where the telling moved, 2026-09-16.** The switch-over deleted the classic
+decision form, and that daypart card was the only place saying it. Because this
+entry is accepted *and told*, the sentence moved rather than went: the Studio's
+*Where and when* says it under the hours, while the strategy it describes is the
+one running (`WHERE.hoursTwice` in `ui/words/where.js`, shown on
+`hoursModel().countsTwice`, which still asks `hourAdjustmentStacks`). Its "why?"
+opens the same chapter. `ui/where/read.js` also stopped keeping its own list of
+which strategies lean by hour, which was this same fact typed a second time.
+
 **What would change the answer:** a playtest in which automated bidding plus an
 hour adjustment visibly overbids, or a player who carries "you can set −100%" to
 a real account and is surprised.
@@ -1263,6 +1277,13 @@ step into week 5 was 3.60 times ordinary, which is C8.
 step into week 9 measures 2.40 times ordinary, over the gate. The "no line"
 above was decided on the defective market.
 
+*Since F17 (2026-09-15).* The step into week 9 measures 4.29 times ordinary
+and into week 5 4.40 times (the harness, 72 markets). Taken apart on 24 of
+them, ordinary weeks are 18% calmer and the two moves 75% and 34% larger,
+because a rival whose budget changes no longer keeps phantom slots. The line
+taken below stands with a wider margin. Its spend drop (26.2%) and its count of
+overlap movers (14 of 24 games) were not re-measured.
+
 **And taken, with the owner (2026-09-13).** Total market spend drops a median
 26.2% into week 9 (13.3–31.5% over 24 games), against about 1% in an ordinary
 week and +2.7% into week 5, so week 9 is the one month change worth a line. The
@@ -1290,6 +1311,48 @@ once their returns settle. For the Auction Insights card, a rival's overlap move
 five points or more into week 9 in 39 of 72 markets, as before, now 1.80 times
 ordinary against 2.27. What the week-9 line says — the re-split and the spend —
 still stands. Whether a gate of double still decides it is the owner's call.
+
+**Dated note, 2026-09-17: week-5 capital now reaches the page (I37).** The table
+above measured a week-5 investment whose page sentence never reached the grader,
+because the description was written only in round 0. It now does, from the week
+the work lands, so those investments are worth more. On the committed harness
+(full account, week 5, median over keeping the money): photography ₹21,824 →
+₹34,204, size guide ₹21,491 → ₹46,435, the page ₹36,789 → ₹60,841; order
+confirmation writes no sentence and did not move. The week-7 question was not
+re-run: moving the window would now also move when the page is re-graded, so the
+table's week-7 column describes the old rule and should be re-measured before
+anyone reopens it.
+
+### D13. A bid lies between ₹1 and four times its keyword bid — `OPEN`, recorded 2026-09-15
+
+**What the game does.** Every bid, whatever the strategy and however the hour's
+and the place's adjustments stack, is clamped once between `MIN_BID_PAISE`
+(₹1) and `MAX_BID_MULTIPLE` (4) × the keyword's bid (`clampBidPaise`,
+`engine/strategies.js`; G4's dated note for the single clamp). So under manual
+bidding an adjustment past +300% changes nothing on its own, and under Maximise
+clicks, which already bids `MAX_CLICKS_AGGRESSION` (1.6) × the keyword, past
++150%. The Studio's Where and when bars stop there and say why, and the `hours`
+and `cashOnDelivery` chapters say it.
+
+**In Google Ads**, bid adjustments are "typically multiplied together", and
+"combined bid adjustments can't exceed a 900% bid increase", with −90% the
+lowest combined adjustment; a location or ad-schedule adjustment alone runs
+−90% to +900% (Google Ads Help, *About bid adjustments*,
+https://support.google.com/google-ads/answer/2732132, fetched 2026-09-15). The
+page names no cap relative to the keyword's own bid. So Google's ceiling is a
+combined ten times the bid and the game's is four: stricter, and of the same
+shape since G4's single clamp. Google's floor is −90%, where the game's −100%
+is a bid of one rupee, which D11 and G4 already record.
+
+**Why four is not known.** Both bounds arrived with the bid strategies
+(`ba3f227`, 2026-09-03) as `INVENTED`, and no reason was recorded, which R7
+asks for; this entry is written after the fact, when Where and when first
+showed the cap to players. What the ceiling does is keep a strategy that sets
+its own bid from a forecast (Target CPA and Target ROAS multiply a target by an
+estimated rate, D2) or from stacked adjustments from bidding far past anything
+the player set. Nothing measured sets it at four rather than Google's ten, and
+moving it moves the market, rivals' target strategies and place tilts included,
+so a change is measured on `scripts/market-harness.js` first.
 
 ---
 
@@ -1544,6 +1607,12 @@ churn, which one resolution per query-hour cannot produce.
 resolution, a single auction can consume most of a day's budget. So pacing throttles
 by reducing *participation fraction*, never by skipping an auction. The obvious
 implementation reproduces exactly the cliff D1 exists to remove.
+
+*Completed 2026-09-15 (F17).* Fractional participation removed the cliff but
+left the throttled advertiser in the ladder for every search, when in any one
+real search it is either there or not. So one resolution was not yet
+statistically equivalent to simulating each search, and a nearly-spent rival
+held slots it was not in. `resolveSlice` makes the claim above true.
 
 ### F3. Order value was a fixed number — `FIXED v0.2`
 Now a distribution via `aovSpread`, which is what ROAS bidding exists to predict.
@@ -2397,6 +2466,21 @@ would teach the wrong lesson about where the traffic went.
 compound the way two bid adjustments do, rather than each being floored separately
 at `MIN_BID_PAISE`.
 
+*Made true in the round on 2026-09-15.* `effectiveBidPaise` clamped once, but the
+round builds each hour's bid once and applies the place afterwards: it clamped
+the hour's bid, then only floored the place's. So a place carried a bid past
+`MAX_BID_MULTIPLE` × its keyword (+300% on the hour and +100% on a place bid 8×),
+and an hour above the cap was cut before a place could bring it back. Found
+drawing the Studio's Where and when controls. The round now keeps each hour's
+bid unclamped (`unclampedBidPaise`, still rounded to paise per hour as the
+table always was) and clamps once, after the place (`clampBidPaise`), on both
+paths through the auction. Measured on the market harness, 72 games before and
+after: identical to the byte, so the rivals never reach the cap and the change
+reaches only a player who stacks the two adjustments. A first version that
+rounded once at the end instead moved every game by a paisa's worth and one by
+15% of the player's profit, so the rounding stays where it was. Two tests in
+`tests/round.test.js` hold the cap.
+
 **TWO PATHS THROUGH THE AUCTION, and a test that they agree.** When nobody adjusts
 by location the ladders are identical, so one resolution apportioned is exact and
 the round takes it — a player who never touches the control pays nothing. The
@@ -2404,11 +2488,28 @@ moment anyone tilts, all three are resolved properly. The risk of two paths is
 that they quietly stop agreeing, so the same round runs both ways and is held to
 the same numbers, breakdown included.
 
+*Corrected 2026-09-15 (F17).* The test named here set every place adjustment to
+0%, a multiplier of exactly 1, so both of its states took the flat path and it
+compared that path with itself. The paths disagreed with equal bids, by up to
+13% of one rival's cost, because a nearly-spent advertiser held a slot in every
+search it entered and a paisa of rounding decided when. They now agree to the
+paisa: the flat path records its one resolution place by place, and the test
+tilts one place by a millionth of a percent, asserting first that this forces
+the second path and moves no bid. This entry's own dated note on the bid cap, a
+rounding step that moved one game by 15% of the player's profit, was the same
+defect.
+
 **One finding from turning a location off**, and it is not a defect: the metros
 gain **0.02%**. Giving up two locations means spending the day's budget more
 slowly, so pacing lets the advertiser participate a little more where it stayed.
 That is the budget following, not the volume — the searches stayed where they
 were, and total impressions more than halve.
+
+*Since F17 (2026-09-15)* the metros gain 17.6% in the same fixture. The player
+now spends its whole week, which had been costing it 15% of its metro
+searches, so freeing the budget gives them back. Still the budget following,
+not the volume: all 4,850 metro searches and not one more, which is the bound
+the test now holds rather than the size.
 
 **ALL NINE STEPS ARE DONE**, and two attempts to shrink the payoff both failed in
 a way worth recording. Narrowing the return spread 1.5 to 1.35 moved value gain
@@ -2461,6 +2562,9 @@ player's place card does, and moves halfway toward the reading each week. By wee
 12 `disciplined` bids the towns −37% and `grossOptimiser` −19%, where both sat at
 about −19 before. The engine side of this entry is untouched: the tables, their
 normalisation and the conservation test are as above.
+
+**Round 0 names 32 cities (8 / 12 / 12) since 2026-09-14**, placed from the
+geonames-derived dataset; display geography only, nothing in `engine/` reads them.
 
 ---
 
@@ -2789,6 +2893,16 @@ graded by token presence — a digit anywhere, one of `free|save|off|buy|shop`
 round 0 and never revised, though spec 12.3 is explicit that editing copy costs
 no learning period.
 
+**Corrected, 2026-09-17.** Three things above no longer hold, and the first was
+never true. *"Bounded at one point out of ten"*: a ₹25,000 size guide takes the
+page from 5 to 7, because its sentence both mentions size and carries the
+description past the 40-character rule; product shots earn a point by length
+alone. Measured through a real round 0; Your ad said the size guide and
+photography were worth no point until `2d5359c`. The ladder is no longer in
+`ui/landing-page.js` but `content/landingPage.js`, with the landing page rules
+beside it. And the description is no longer composed once in round 0: it is
+re-written each week from the capital live that week (I37).
+
 ### I10. The offline grader rewards craft, and still refuses to award a 9 — `FIXED`
 
 `CTR_RULES` gave a point each for **three headlines**, **a digit anywhere**, and
@@ -2843,12 +2957,16 @@ those three: the rubric's own numbers live with the rubric, and no formula in
 
 ### I11. Ad copy is bought or written, and the choice is a real one — `FIXED`
 
+*Changed 2026-09-14 (plans/2026-09-14-round-zero-redesign.md): a self-written
+ad is graded on its words from week 1. Until then it waited until week 3; the
+paragraphs below keep both rules and say which is which.*
+
 Real Google Ads has no notion of who wrote your ad. This one does: at round 0
 every advertiser hires a writer or writes its own.
 
 | tier | price | copy grades | live |
 |---|---|---|---|
-| Write it yourself | ₹0 | whatever you actually wrote, up to the grader's 8 | **week 3** |
+| Write it yourself | ₹0 | whatever you actually wrote, up to the grader's 8 | **week 1** (week 3 until 2026-09-14) |
 | Freelance copywriter | ₹10,000 | 6 | week 1 |
 | Creative agency | ₹25,000 | 7 | week 1 |
 | Premium retainer | ₹50,000 | 8 | week 1 |
@@ -2862,9 +2980,15 @@ at a ₹50,000 agency fee one point still repays four times over. To make price
 balance the choice you would have to charge about ₹2,00,000 for three headlines,
 which is more than a month's media and a lie about what copy costs.
 
-So the currency is **time and certainty, not money**. Hiring is immediate and
-guaranteed and capped; writing your own is delayed, uncapped to the grader's
-ceiling, and only as good as what you wrote.
+**The fee buys not having to write, and insurance** (since 2026-09-14). Writing
+your own is free and graded on the words from week 1; hiring guarantees the
+writer's level from week 1. A player who writes a 4 loses far more than any
+fee, since one grade point is worth about ₹1,33,986 over a game; a player who
+writes an 8 keeps the fee and runs a better ad than the retainer's. Until
+2026-09-14 the currency was time: a self-written ad ran on the ungraded 3/3
+until week 3, an invented wait whose only job was to make the choice cost
+something. The owner kept the fee so round 0 introduces the idea that copy can
+be bought, and moved what it buys.
 
 **THE TIER GRADES WERE MEASURED, TWICE.** The first run put them at 5/6/7 — and
 was taken against a market where every rival ran a no-op controller (see
@@ -2886,11 +3010,41 @@ around the tier's level.
 the page the capital built (I9), and letting a copywriter move it would rebuild
 the double model I9 was written to remove.
 
-**THE DELIVERY IS DELAYED, NEVER THE EFFECT.** `CLAUDE.md` requires an ad copy
-change to move `qualitySignal` immediately and leave `reportedScore` unchanged;
-a grade that faded in over rounds would break the split the whole diagnostic
-rests on. The grade is computed at round 0, held whole, and applied whole by
-`game.js` on the round it was due.
+**MEASURED BEFORE AND AFTER, AND ONE GATE FAILED.** On
+`scripts/market-harness.js`, `writer` mode: 72 markets (seeds 1–12, the six
+squares), F15's player hiring the agency, and the same player writing its own
+ad. The self-written ad was agreed with the owner before the run: one per
+square in that square's own keyword words, grading 8/10 everywhere, the
+strongest self-writer the game allows. Gates agreed before the run: the
+self-writer's median rank improves by at most one place; the hiring player
+does not move; no rival's median profit, in the self-writer's markets, falls
+by more than 5%.
+
+| | before (week 3) | after (week 1) |
+|---|---|---|
+| self-writer's median rank | 5 | 4 |
+| self-writer's median net profit | ₹7,56,231 | ₹9,56,167 |
+| markets where writing beat hiring | 53 of 72 | 63 of 72 |
+| hiring player (median rank, net) | 5, ₹6,57,635 | identical in every market |
+| all eight rivals together, median | ₹68,31,323 | ₹67,57,215 (−1.1%) |
+
+Rank passed, at the limit. The hiring player did not move. Seven rivals stayed
+within ±2.1%; **Torvi fell 5.8%** (₹1,19,620 to ₹1,12,640) and failed the 5%
+gate. Its loss is mixed by market (it fell in 40 of 72 and rose in 32; median
+change −₹852) and sits where the player sells mid-price lifestyle (mean
+−₹30,068 there; it gains where the player sells value). **The owner accepted
+the rule with the failure recorded here**, rather than loosen a gate after
+seeing the result: the one small rival, the strongest possible writer, and the
+market as a whole down 1.1%.
+
+The finding worth keeping is the 26%: under this rule writing well pays a lot,
+and a careful writer beats the agency in almost every market. That is the rule
+doing what it says, and it is now a measured fact rather than a design claim.
+
+The delivery was always delayed, never the effect, and that still holds for
+saves made before the change: `CLAUDE.md` requires an ad copy change to move
+`qualitySignal` immediately and leave `reportedScore` unchanged, so a waiting
+grade is held whole and applied whole by `game.js` on the round it was due.
 
 **THE ROLLOVER IS LOAD-BEARING, not tidiness.** Whatever the writer did not cost
 becomes advertising budget. Without it the retainer was 20% ahead of a perfectly
@@ -2899,7 +3053,9 @@ measures self-written against retainer at **1.002** — within 0.2%. **Re-measur
 at 1.014** through a replica of that test's own fixtures once rivals stopped
 writing their own ads, which raised the field it is measured against. **Read at
 1.034 on 2026-09-12** (E9), identical before and after that change, so it had
-drifted there unseen. Still far inside the test's 0.85-1.15 bounds.
+drifted there unseen. Still far inside the test's 0.85-1.15 bounds. Under the
+2026-09-14 rule `tests/writerBalance.test.js` holds writing well above the
+retainer rather than level with it.
 
 It arrives differently from the capital rollover and the two must not be
 confused: capital has allocation rounds and `round.js` adds it there, rescaling
@@ -2923,7 +3079,8 @@ on the ungraded 3/3/3 default, and A8 measured that as sitting below
 rounds. A8 exists to keep the PLAYER out of exactly that state; dealing rivals a
 DIY tier recreated it. Measured at round 0: Marlow needed 1551 paise to appear
 and bid 1078. Over a played game it went from ₹0 spend and ₹0 profit to
-₹1,93,623 and fourth place once it hired.
+₹1,93,623 and fourth place once it hired. The 3/3 opening it describes no
+longer applies to anyone new (2026-09-14).
 
 **This is not a privileged player path (R6).** Round 0 is asymmetric by
 construction — the player DECIDES their position, keywords and copy while a
@@ -3194,6 +3351,35 @@ hour, against anyone. That is the test `setup.test.js` already runs over every
 rival, now run for the player before the fact. Verified live: two keywords at ₹14
 warned that neither could appear, and the week they bought returned ₹0, zero
 impressions and lost-to-rank 100%.
+
+**Corrected 2026-09-14: "at any hour" was not yet true.** The auction's signal is
+the ad's quality times an hourly factor (`CONTEXT_FACTOR_CURVE`, 0.95 at night to
+1.05 at 7pm), and the floor was priced without it, so it sat about 5% above the
+lowest bid that shows. The table above has the evidence: ₹16 took 16,612
+impressions under a floor this entry gave as ₹16.24. The floor is now priced at
+the hour the signal is strongest (`lowestBidToShowPaise`, `ui/reserve.js`), and
+tested against the engine's own auction: at the figure a bid clears the reserve
+in some hour, a paise under it clears it in none. **And it priced the keyword
+without its tags**, where `startGame` tags it (E9) and a keyword whose tags match
+its search runs a fit of up to 1.15 against an untagged one's 1.0, so the floor
+sat up to 15% high: in `tests/roundZero.test.js`'s own draft, ₹3.59 where the
+account's own keyword clears at ₹3.12. It is
+now priced as the account will hold it, and tested against the account
+`startGame` builds. A played week could not prove
+it in today's market: at such low bids rivals take every slot, and bids a paise
+under and at 1.1 times the figure both showed nothing, which says nothing about
+the reserve. So the warning is necessary, not sufficient: clearing the reserve
+still leaves the rivals to beat.
+
+**And every week's card, since 2026-09-14, the owner's call.** The weekly
+*Your keywords* card gives the same warning, priced at the grade the week's
+auctions run on (the live landing-page points included) and with the hour and
+place bid adjustments that week will run, so a bid that clears at every hour can
+be warned once the evenings are cut. Manual bidding only: under a bid strategy
+the keyword's bid is not what it bids, and the strategy's own warning says
+whether its bid shows. A paused keyword enters no auction and is not warned. The
+figure is the lowest whole-rupee bid at or over the floor, since bids are slid
+and typed in rupees.
 
 **It names two levers and recommends neither** (I13). The floor is set by the
 unwritten ad, so hiring lowers it and so does raising the bid; which of those is
@@ -3613,6 +3799,23 @@ round 0 beside the rivals'.
 2. **It never overwrites what the player wrote.** `draft.adIsSeeded` records whose
    words are in the boxes; without it, typing three headlines and then changing
    your mind about the writer would silently discard them.
+
+   **Changed 2026-09-14, by the owner.** A hired writer's ad is now always the
+   writer's copy, and the player's own words are set aside in `draft.ownAd`, not
+   lost: they come back when the player chooses Write it yourself, and only then
+   does rule 1 fall back to empty boxes. Keeping the player's words under a hired
+   writer suited the classic page, whose boxes show for every writer. The Studio's
+   round 0 shows them only for Write it yourself, so the words sat in the account
+   unseen, and if they broke Google's limits Go stayed blocked with nothing on
+   screen to fix; found by playing its step 4. The classic page follows the same
+   rule when a writer or square is chosen. Its boxes still show for a hired
+   writer, so typing over the writer's copy there still runs the player's words
+   at the writer's grade; the Studio, with no boxes for a hired writer, cannot.
+
+   **Dated note, 2026-09-16.** The switch-over deleted the classic page, so the
+   last two sentences describe something that no longer exists: there are no
+   boxes for a hired writer anywhere, and the words in `draft.ownAd` come back
+   only on Write it yourself. The rule as decided is unchanged.
 3. **The variant follows `rootSeed`**, which `app.js` increments for a new market,
    so a restart shows a different ad. `content/adCopy.js` carries the scar of the
    alternative: with one ad per cell, two rivals in a cell ran the same ad word
@@ -4415,7 +4618,9 @@ median gain in final net profit over no discount, before → after):
 | premium / lifestyle | 0.9 → 1.3% | 1.1 → 1.7% | 1.0 → 1.6% | 0.6 → 1.3% | ₹50 |
 
 ₹30, ₹50 and ₹70 win in 71 of 72 markets before and after; ₹100 went from 56 of
-72 to 71, and no longer loses at value/performance. So the lever is about half
+72 to 71, and no longer loses at value/performance. Measured on `main` and again
+on the makeover line, whose bid clamp (D13) binds nowhere in these markets: both
+tables, and the market before and after, came out byte-identical on the two. So the lever is about half
 as large again and still a few percent, and "a lot hurts" now holds against
 ₹50 rather than against doing nothing: ₹100 is worse than ₹50 in every cell and
 better than none in every cell. The curve is unchanged.
@@ -4518,18 +4723,33 @@ paired market by market against the code before the change:
 rest. The stated rate on its own, before the rule read it, moved nothing
 (`market` mode byte-identical), and I1's solo account, which runs on
 `disciplined`, measured the same to three decimals.
-When it merged into `main` (2026-09-16), I2 and I3 were measured as well, by
-replaying the calibration file's own games and printing their figures, since
-its tests assert only bounds. I2's single round and I3's six settled profits at
-both budgets came out identical, the profits to the paisa, and I1 again, so
-F14's calibration table stands as recorded: I1 lostToBudget 10.5%, I2 median
-CPC ₹15.84, I3 11.3% worst deviation (7.8% at the raised budget), lifestyle ÷
-performance 1.012. No `CALIBRATE` constant moves.
 The player's table above still stands with rivals discounting: re-measured on
 `prepaid` mode, every cell's best rung and every win count are unchanged, and
 one figure moved — value/lifestyle at ₹100, from 2.4% to 2.6%. Measured on the
 makeover line and again on `main`: the market before and after, and every
 rival's figures, came out identical market by market.
+
+*Re-measured with F17 (2026-09-16),* after the owner merged both into
+`makeover`. Every figure above was taken on the market before F17, whose
+throttled rivals held slots they were not in. Same harness, F17 alone against
+F17 with this rule:
+
+| | F17 alone | with rivals discounting |
+|---|---|---|
+| all eight rivals, weeks 1–7: returned / net ROAS / profit per ₹ | 41.4% / 6.17 / 1.94 | 40.9% / 6.20 / 1.96 |
+| the player: final net / median rank / loses money in | ₹11,90,785 / 5th / 0 of 72 | ₹11,90,787 / 5th / 0 of 72 |
+| largest rival move into week 5 · week 9 | 4.40× · 4.29× | 4.40× · 4.19× |
+
+The same small shift as before F17, and the player's figures stay put. The
+per-rival rows of the table above, re-measured the same way on this market
+(each rival's own history, paired market by market): 144 of 144 still offer
+₹50 from week 2 and hold it; their refused share of settled orders 16.6% →
+15.3%; freight on refused parcels −8.1%; gross revenue, weeks 1–7, −0.6%; net
+profit, whole game, **+1.7%** median, −1.6% to +6.3%, up in 141 of 144
+(`disciplined` 70 of 72, `grossOptimiser` 71); the other six rivals 0.0%
+median, ₹126 either way. I1's solo account measured the same to three decimals
+here too. Not re-measured on this market: the player's prepaid table,
+`prepaid` mode.
 
 **Found on the way, not fixed here:** `observedReturnRate` and `locationTilt`'s
 net-of-returns reading read returns off the same one-week report and are dead the
@@ -4542,38 +4762,129 @@ moves halfway toward its reading. This rule still reads the week just played, as
 it should: its rate is stated, not counted, and the search weighting stays,
 because the searches a rival is in do not follow its bids at all.
 
-**THE MIX THE SCREENS SHOWED NEVER MOVED — `FIXED` 2026-09-15.** "Paid at door"
-on the returns card, the places table and the location note is `codShare`, on
-each location row of a week's report, and it was the one figure there worked out
-from the advertiser rather than added up from orders. It was worked out without
-the discount: a mid account at ₹30 read 60 / 72 / 80% paid at the door, metros to
-towns, where the round sold at 54 / 64.8 / 72%, and after nine weeks the returns
-card read 72.6% whether the player never discounted, discounted every week or
-tried it once. And it was worked out again at every revision, from the account as
-it stood that later week: a move from mid to premium at week 5 rewrote weeks 1–4
-to premium's 42% in the metros, though those orders were sold at mid's 60%. The
-refusal counts beside it were right throughout, because they ride on the orders.
+**THE MIX THE SCREENS SHOWED NEVER MOVED — `FIXED` 2026-09-15.** "Paid at the
+door", on Returns in both looks, on the places table and its note, and on Where
+and when, is `codShare`, on each location row of a week's report, and it was the
+one figure there worked out from the advertiser rather than added up from orders.
+It was worked out without the discount: a mid account at ₹30 read 60 / 72 / 80%
+paid at the door, metros to towns, where the round sold at 54 / 64.8 / 72%, and
+after nine weeks the returns card read 72.6% whether the player never discounted,
+discounted every week or tried it once. And it was worked out again at every
+revision, from the account as it stood that later week: a move from mid to
+premium at week 5 rewrote weeks 1–4 to premium's 42% in the metros, though those
+orders were sold at mid's 60%. The refusal counts beside it were right
+throughout, because they ride on the orders.
 
 *Fixed in two halves* (decided with the owner: option A). The report records each
 week's share once, when it is built, from that round's price and discount, and a
 revision keeps it. Each screen then reads the share over the same orders as the
-refusals beside it: the returns card over its settled weeks, the places table and
-its note over every week, both weighted by orders. The rejected option fixed the
-report alone. It would have shown a discount on the returns card at once, beside
-refusals that cannot move until its weeks settle, and paired this week's mix with
-every week's refusals in the note.
+refusals beside it: `returnsReading` and `placeReturns` (`ui/returns/read.js`,
+which both looks draw Returns from) over their settled weeks, and `locationRows`
+(the places table, its note and Where and when) over every week, all weighted by
+orders. The rejected option fixed the report alone. It would have shown a
+discount on Returns at once, beside refusals that cannot move until its weeks
+settle, and paired this week's mix with every week's refusals in the note.
 
-*What a player now sees*, played in the browser (mid/performance, ₹30 from week
-3): the returns card reads 74% after week 7, the same as with no discount,
+*What a player now sees*, played in the browser in both looks (mid/performance,
+₹30 from week 3): Returns reads 74% after week 7, the same as with no discount,
 because only weeks 1–2 have settled, and 71% after week 8, when week 3 and the
-refusals it prevented arrive together. The places table reads 56 / 68 / 75%, the
-weeks blended, where it would have shown the latest week's 54 / 65 / 72%. What a
-discount will do is still said at once, by the prepaid card's forecast.
+refusals it prevented arrive together; the Studio's place table there reads 60 /
+72 / 80% and then 58 / 70 / 78%, over the same settled weeks. The places table
+and Where and when read 56 / 68 / 75%, the weeks blended, where they would have
+shown the latest week's 54 / 65 / 72%. What a discount will do is still said at
+once, by the prepaid card's forecast.
 
 Nothing in `engine/` or `agents/` reads `codShare`, so no economics moved, and a
 save replays onto the corrected figures with its fingerprint unchanged. The tests
 read the share the round used back off the revenue it booked, since the discount
 is paid on prepaid orders only, rather than off `codShareFor`.
+
+*And measured rather than left at that, 2026-09-16:* `market` mode over 72
+markets, this line with the fix against this line without it, the two trees
+differing in `engine/report.js` alone. Every row came out byte-identical, so no
+market figure moves and the F17 figures in the dated note above still describe
+this line. The rule that has rivals discount is untouched by it: `statedRefusals`
+builds their `refusalRate` from `refusalOutlook`, never from `codShare`.
+
+**Dated note, 2026-09-16.** "Both looks" above means what it meant when this was
+written. The switch-over deleted the classic page, so `ui/returns/read.js` and
+`locationRows` now feed the Studio alone; the fix and the reasoning are
+unchanged, and the screens named are the Studio's Returns and Where and when.
+
+### I35. Round 0 is five steps in the sidebar layout, and the brand is drawn — `FIXED` (2026-09-14)
+
+**What was measured before.** Round 0 was 2,648 words across eleven sections
+and 97 buttons, and 1,170 of the words were 35 blocks of explanation. The one
+recorded human game spent 18 of its 28 minutes there (`reviews/slc-review.md`,
+section 5). Opened in the Studio look it also wore a second palette the new
+stylesheet never reached, with red on every rival ad and 32 texts failing
+contrast (`plans/2026-09-14-round-zero-redesign.md`, section 1).
+
+**What it is now, behind `?look=studio`.** Five steps in the sidebar layout,
+open in any order from the list, *Next* moving forward: the market (read only),
+where you sit, your keywords, your ad, your money, then Go. Each step is a
+drawing module in `ui/roundzero/`. Every figure a step shows comes from
+`ui/roundzero/rules.js`, which the classic page reads too, and Go sends exactly
+what the classic page sends (`startChoices`). Measured at the end of the build
+with the plan's script: 281, 119, 23 (plus 15 a keyword), 150 and 208 words,
+781 in all against 2,648 (the plan's Task 15). Without the link, round 0 is the
+classic page.
+
+**THE BRAND IS DRAWN, NOT PICKED.** A brand's own searches run 2,838 to 2,881 a
+week whichever of the nine it is, within two percent of each other, so choosing
+one was ten buttons and a paragraph for no decision. `assignPlayerBrand` in
+`setup.js` draws it from the seed (`deriveSeed(rootSeed, 'player-brand')`): the
+same seed is always the same brand, a new market can be another, and the redo
+keeps it. The engine was not touched; `startGame` already took `playerBrandId`.
+
+**REOPENED BY THE OWNER, 2026-09-15: the brand is a pick from the nine.** After
+playing the pilot the owner asked why they could not choose their brand. The
+figures above still hold, so the pick decides almost nothing about the
+economics; it is the player's name. Step 2 now opens with the nine names,
+starting on the seed's draw, and one line for the search the chosen name brings
+(`ownSearch`, the classic page's figure). A typed name was considered and is
+not workable: the query set holds searches for these nine names only, so a
+tenth would have no search of its own. Choosing another brand makes the one
+left a rival, and a hired writer's copy is written again for the new name
+(`setBrand` in `ui/roundzero/rules.js`, which the classic page's picker now
+calls too). Rivals are dealt around the player in the brands' fixed order, so a
+different brand moves up to seven names onto different ads, while the eight ads
+and their squares stay the same. **The notes follow the ads:** a note is the
+player's reading of an ad, so it goes wherever that ad went. Step 2 grew by
+about 54 words, 19 of them the names and domains. The redo still opens on the
+brand the game was played as, and the player may choose again there.
+
+**The freelancer is the arrival.** A player arrives with the freelance
+copywriter hired and its copy in the ad, so someone who does not want to write
+never meets five empty boxes. Writing it yourself is one choice away and graded
+on its words from week 1 (I11); a hired writer's ad is always the writer's
+copy, with the player's own words set aside until they choose to write (I25).
+
+**GUESSES ARE NOTES, NEVER CONFIRMED AND NEVER SENT.** Step 2 lets the player
+mark where they think each rival sits, and shows the rivals they placed in each
+square. The game never says whether a guess is right: the player learns where
+rivals sit from Auction Insights and at the end (G1). The guesses live in round
+0's draft (`draft.guesses`) and Go does not send them, so nothing keeps them
+once week 1 begins, because nothing reads them yet. Carrying them into the end
+reveal is a later decision (the design's section 12). Nothing in round 0 plots
+a territory or states a rival's square (I3, C5).
+
+**Capital in plain view, and neutral.** Kept is the default and nothing is
+recommended: measured, every allocation beat keeping it in the one cell tested,
+so tucking capital behind "advanced" would have steered players to the worst
+option. The landing page grade sits in step 5 beside the capital that moves it.
+How that grade is timed is open (the design's section 12): a page bought in
+round 0 raises the graded page from week 1, though the site work goes live at
+week 4. *Settled 2026-09-17 (I37): the page is graded as it stands, so week 1
+runs on the plain page and step 5 draws the built page's grade from week 4.*
+
+**Not changed:** the engine's economics, the query set, the rival policies, and
+every constant but I11's `CREATIVE_DIY_LIVE_ROUND`, which went. The map's 32
+cities (G4) are display geography; nothing in `engine/` reads them.
+
+The design, decided with the owner one question at a time on a canvas, is
+`plans/2026-09-14-round-zero-redesign.md`; the build and its play record are
+`plans/2026-09-14-round-zero-redesign-plan.md`.
 
 ### I36. An old week's late sales went to whichever keyword caught the search when they landed — `FIXED` (2026-09-16)
 
@@ -4625,6 +4936,163 @@ before the fix, and failed there.
 every field. Rivals block searches too, so their own old keyword rows did
 change; nothing in the market reads an old week's keyword rows, so nothing it
 decides moved.
+
+### I37. The landing page is graded as it stands each week — `FIXED` (2026-09-17)
+
+**The question, open since the round 0 redesign (its section 12).** Round 0
+writes the player's page description from every rupee of capital committed
+(I9), and the grader scored it from week 1. None of that work is live before
+week 4. Measured on real round-0 games played to week 10:
+
+| capital | when | landing page grade the auctions ran on |
+|---|---|---|
+| reviews ₹55,000 | round 0 | 7 from week 1, 9 from week 4 |
+| size guide ₹25,000 + photography ₹50,000 | round 0 | 7 from week 1 |
+| the same | week 5 | 5 all game — the description was never written again |
+| reviews ₹55,000 | week 5 | 5, then 7 at week 8 (the site work's points only) |
+
+So round-0 page capital counted three weeks before the work existed, capital
+committed at week 5 never reached the page at all, and the same money was worth
+up to three grade points more for being spent early. Nobody decided that; it
+fell out of when the description happened to be written.
+
+**The owner's decision: grade the page as it stands.** Each week a page built
+from capital is re-written from the capital LIVE that week and its landing page
+grade re-scored (`pageAsItStands`, `content/landingPage.js`). `game.js` lands it
+before each round's auctions beside `landCreative`; `setup.js` opens a game on
+the page as it stands in week 1, the plain page; round 0's step 5, its reserve
+warning, and Your ad read the same function. Only the landing page part moves:
+the copy grades read headlines and descriptions alone. A page built from capital
+carries a mark (`pageBuiltFromCapital`) — data, not "this is the player": a
+rival's page grade is its authored character and has none. **Games saved before
+the change keep the rule they were played under** (the owner's choice): their
+stored start has no mark, so they replay exactly, as saves from before I11 still
+land their copy at week 3.
+
+**Where it departs from Google.** The field guide's sourced sentence describes
+landing page experience as "how relevant and useful your page is to people who
+click" (`ui/guide/chapters.js`, *Who writes the ad*). Inferred from that, not
+separately sourced: people who click reach the page as it is, not work still
+being built, so grading the page as it stands departs less than grading it
+early did. What remains of I9's departure is that the page is a description
+graded by rules, not a page.
+
+**The landing page's grading rules moved beside the ladder.** `game.js` may not
+import `agents/` (R2, `tests/game.test.js`), and the rules read the description
+and nothing else, so `LANDING_RULES`, `gradePage` and the base grade live in
+`content/landingPage.js`, and `agents/grader.js` reads them from there to score
+and explain the landing page.
+
+**Measured, against gates the owner agreed before any run** (the market harness
+at `6246367`, whose player first learned to write its page from capital):
+- **Hard, all passed.** `market` mode byte-identical (72 markets). At week 5,
+  keeping the money and order confirmation identical in every market. From the
+  auctions' own record, round-0 capital grades like none in weeks 1-3 and like
+  it used to from week 4; week-5 capital leaves the page alone to week 7 and
+  matches the same bought at round 0 from week 8 (`tests/pageAsItStands.test.js`).
+  The screen's grade equals the auction's every week. Calibration's 22 printed
+  figures identical.
+- **Stop-and-show, all passed.** Week-5 capital's median advantage over keeping
+  rose: photography ₹21,824 → ₹34,204, size guide ₹21,491 → ₹46,435, the page
+  ₹36,789 → ₹60,841. Round-0 capital's fell by no more than the owner's 25%:
+  size guide ₹77,387 → ₹63,951 (−17.4%), reviews ₹1,15,455 → ₹99,832 (−13.5%),
+  top page ₹1,40,553 → ₹1,20,169 (−14.5%), photography ₹56,419 → ₹47,641
+  (−15.6%), each still beating keeping in 51 to 58 of 72 markets. No rival's
+  median profit moved more than 5%; the widest, −4.1%.
+
+**What it changes on screen.** Round 0's step 5 draws the grade as 5 for week 1
+and the built page's grade from week 4, so a size chart that used to show one
+bar at 7 shows two. Your ad's chart steps at the week the work lands, and the
+page's row counts what the page's own capital adds against the same account
+without it — a size chart bought beside it lands its sentence on the page too.
+
+**Both things this left open are now settled.** Photography earned its landing
+page point only by lengthening the description past 40 characters: the rule is
+gone (I38). How Your ad shows what each purchase's sentence adds was designed
+and built (`523301f`, design/grade-breakdown/, direction B).
+
+### I38. The landing page grade counts only what Google names — `FIXED` (2026-09-17)
+
+**The rule nobody chose.** `LANDING_RULES` gave a point to any page description
+longer than 40 characters. The plain page every advertiser starts with is 21
+characters, so ANY sentence the capital ladder wrote earned it:
+
+| bought alone at round 0 | the sentence | characters | grade from week 4 |
+|---|---|---|---|
+| product shots ₹50,000 | "Product shots on white." | 45 | 6 |
+| the faster page ₹25,000 | "It loads quickly on a phone." | 50 | 6 |
+| a size chart ₹25,000 | "A basic size chart." | 41 | 7 (with sizing) |
+
+So a photograph earned Quality Score through its caption, and a size chart
+cleared the threshold by a single character. I9's correction of 2026-09-17 had
+already recorded the first as a fact; the owner asked whether it should be one.
+
+**What Google says, fetched 2026-09-17.** Google Ads Help, *Optimize your ads and
+landing pages* (`support.google.com/google-ads/answer/6238826`): useful, original
+information about what you advertise; being clear about the product; adding
+reviews from real customers; for mobile, keep it quick and use simple navigation;
+and a page that matches the ad and its keywords. Search Ads 360 Help, *Landing
+page experience* (`support.google.com/sa360/answer/9351020`): the usefulness and
+relevance of the information, ease of navigation, the number of links, and what
+the ad led people to expect. **Neither names images, photographs, video, or the
+length of the text.**
+
+**The owner's decision (design/photography-point/, direction C).** The length
+rule goes. The faster page's own sentence earns that point for SPEED, which
+Google's mobile advice names, and every page rung above it keeps it, since the
+ladder is cumulative. Sizing and reviews stay; reviews is named by Google, sizing
+is inferred from "useful information about the product" and is marked as inferred
+rather than sourced. Photography earns no landing page point at any rung: it buys
+conversions, which is its road.
+
+Two directions were drawn and not taken: saying plainly on screen what the length
+point was for (no number moves, but the game still pays a grade point for a
+caption), and counting length from what the page SAYS rather than what it shows
+(smaller, but the faster page and the size chart would still earn by character
+count). **Refused outright:** a grade point of photography's own. No source names
+pictures, and photography is already the best single capital purchase in four of
+the six cells (I30, as F14 left it).
+
+**What it changes, over all 64 combinations of the three ladders:** 49 grade
+exactly as before — every page with capital on the page itself, and the page with
+nothing bought. 15 lose exactly one point: no page capital, but a size chart or
+product shots. Rivals' page grades are authored numbers, not scored, so only the
+player's grade moves directly.
+
+**Games saved before this keep the length rule** (the owner's choice, as for I37
+and I11). A new game's page carries `pageRules: 'speed'`; a page without it is
+graded by `LENGTH_RULES`. `game.js`, Your ad and the week-5 capital card all read
+`rulesFor`, so a saved game replays exactly and never meets "This game has changed".
+
+**Measured, against gates the owner agreed before any run** (`speedgates`, from
+`market`, `capital` and `page` runs before and after):
+
+- **Hard, all passed.** The 72 markets of `market` mode identical. At week 5,
+  keeping the money, order confirmation and ₹80,000 on the page identical, the
+  player's profit and every rival's. At round 0, keeping, reviews, the top page
+  and the faster page identical.
+- **Stop-and-show: all five tripped, and the owner accepted them.** Median
+  advantage over keeping the money: round-0 size chart ₹63,951 → ₹38,029
+  (−40.5%), round-0 product shots ₹47,641 → ₹22,245 (−53.3%), the two together
+  ₹85,397 → ₹57,238 (−33.0%), week-5 size guide ₹46,435 → ₹33,263 (−28.4%),
+  week-5 photography ₹34,204 → ₹21,824 (−36.2%). The limit was a quarter, carried
+  over from I37 where the change was about timing; here a whole grade point is
+  removed, which is a fifth of the way from 5 to 10, so a third to a half of the
+  advantage is the size to expect. **Nothing stopped being worth buying**: each
+  still beats keeping the money in about the same share of markets (the size chart
+  in 55 of 72, down from 58; product shots in 51 of 72, unchanged; the pair in 52,
+  up from 51; week-5 size guide in 47, unchanged; week-5 photography in 38, down
+  from 41).
+- **Rivals within 5%**, the widest 3.1% (Torvi, round-0 photography).
+- **Shown, not a gate:** the round-0 purchases rank by advantage as before — the
+  top page, reviews, chart-and-shots, the size chart — except that product shots
+  now sit below the faster page. A first ₹50,000 rung of photography buys 2% more
+  sales and nothing else, which is what it always bought.
+
+**What it costs.** The size chart was the best-value first purchase for a
+beginner and is now worth about 60% of what it was. Making it worth more again
+would need a second sourced rule about the page's usefulness, which is a design
+question rather than a tuning knob, and is not open.
 
 ### F14. The engine contradicts itself about returns — `FIXED`
 
@@ -5042,6 +5510,29 @@ figures and the three choices behind the kindness (B6, the invented base
 conversion rate, F4). Options (b) and (c) still want better data than an
 internally inconsistent industry page.
 
+#### Addendum: F17 made it kinder still (2026-09-15)
+
+F17 removed a defect that had been making the market harsher: a budget-limited
+advertiser held its slot, and priced whoever sat above it, in searches it was
+not in, so ads sat lower and paid more than the model meant. Re-measured on the
+same harness:
+
+| settled weeks 1–7 | click-through | cost per click | conversion | gross ROAS | net ROAS | profit per ₹ spent | returned |
+|---|---|---|---|---|---|---|---|
+| player, before F17 | 8.2% | ₹19.6 | 5.0% | 7.81 | 4.36 | 1.05 | 42% |
+| player, after | 10.1% | ₹12.0 | 5.0% | 11.14 | 6.45 | 1.90 | 42% |
+| all rivals, before | 5.5% | ₹11.7 | 4.9% | 8.63 | 5.04 | 1.39 | 41% |
+| all rivals, after | 7.1% | ₹10.0 | 5.1% | 10.48 | 6.17 | 1.94 | 41% |
+
+**The robust claim above no longer stands as written.** The player's gross ROAS
+is 11.1, above the Indian agency range (4.5–8×) rather than at its top, and its
+click-through is 10.1% against the page's 3.2% and 6.8%. So the defect had been
+hiding part of the click-through excess this entry is about. The end screen and
+the guide chapter now say "above the range". The player still loses money in 0
+of 72 and finishes a median 5th, so "winning is easy" still does not follow.
+Options (b) and (c) matter more than they did. They still want better data, and
+the owner chose not to recalibrate with F17 (2026-09-15).
+
 ### F16. India has no January surge in activewear searches, so the January event is not built — `WONTFIX`, measured (2026-09-13)
 
 **The question.** Route B of the SLC review's recommendation 7, chosen after D12
@@ -5200,6 +5691,105 @@ per click", and nothing on screen says so while it can be acted on (the
 debrief's *Rank or budget* says it after the game). It rests on one scripted
 player bidding 0.7 × realised break-even with rivals untold, so it is a lead to
 measure properly, not yet a claim for the screen.
+
+### F17. A throttled advertiser held its place in every search — `FIXED` (2026-09-15)
+
+**Real:** Google says little about the mechanism. Its help page on campaigns
+not running or getting low traffic, under *6. Low budget*: "When you have a low
+budget, your ads may not serve as often while Google Ads ensures your campaign
+doesn't spend more than your spending limit." Its *Fix "Limited by budget"
+status* page says only that the campaign "is underperforming". The game's
+reading, in its own voice: an ad not served in an auction takes no place in it.
+
+**Sim, before.** Pacing gives each advertiser a participation fraction for each
+auction (spec 13.4, H1): the share of the slice's searches it enters. The round
+billed it for that share, but `resolveAuction` ranked it in all of them. So in
+the searches it was not in, it still held its slot: the rivals beneath it
+dropped a place or off the page, and the one above paid as though it were
+bidding against them. F2's "statistically equivalent to simulating each search"
+was false.
+
+A trigger made it chaotic. An advertiser that has nearly spent its day enters
+with a tiny share, each auction then costs it a fraction of a paisa, which
+rounds to zero, so it never spends its last paisa and holds a slot for the rest
+of the day. Whether it lands on its day target and drops out, or stalls a paisa
+short, is rounding luck. G4's two paths round differently, so with equal bids
+they disagreed by up to 5.1% of one rival's impressions and 12.9% of its cost.
+At the first auction where they parted, marlow had spent 600,000 paise of a
+600,000 day target on one path and 599,999 on the other. The ladder itself
+never differed given the same entrants (0 of 45,774 resolutions). The test
+meant to hold the paths together forced the second path with a 0% adjustment, a
+multiplier of exactly 1, so it never took it.
+
+Against an exact reference, built in scratch copies of the round: the engine
+was up to 58% off in impressions and 105% in cost on the test fixture. In nine
+played markets, 67–95% of auctions had a throttled entrant and the worst-hit
+advertiser's clicks were 30–82% off. A cutoff (ignore participation under
+0.001) made the paths agree but left clicks about 37% off whatever the
+threshold, because advertisers throttled to 25–99% held slots they were not in
+too.
+
+**The fix**, decided with the owner ("only its share"). Each advertiser's share
+comes from its own pacer, so who is present in a search is independent from one
+advertiser to the next. `resolveSlice` (`engine/auction.js`) resolves every
+combination of who is present, each as likely as its members' shares times its
+absentees' complements, by `resolveAuction`'s rules, ranked once because an
+absentee changes nobody else's order. Where an entrant sits depends only on who
+is present above it, and what it pays only on who is present below, so its
+average price is the same whatever slot it lands in, and clicks times that
+price is its expected cost exactly. k throttled entrants cost 2^k ladders: one
+when nobody is throttled, 13.7 a search on the test fixture, 5.4–8.0 in played
+markets. Both paths record a slice place by place, each advertiser's numbers
+added in the same order and rounded at the same points (`roundPaise`), so they
+agree to the paisa. `tests/round.test.js` holds them there with a tilt of a
+millionth of a percent, after asserting that it forces the second path and
+moves no bid. Not a sampled draw of who is present: that would put a whole
+slice's volume on or off one advertiser, the cliff H1 removed.
+
+**What it cost.** A played week (three-auction, sampled, with a counterfactual)
+went from about 1.33s to 1.45s on the development machine: 8–15% dearer in plain
+Node, which is what a browser runs, and about 30% under the test runner. So the
+three-auction timing test, added the same day with a bound copied from the flat
+one, was set from its own cost to 2,800ms (the owner). Two speed-ups that move
+no number came with it: `roundHalfUp` skips its string conversion unless a
+value is close enough to a half for it to matter, and each search's return
+halves and each advertiser's prepaid share per place are worked out once per
+round.
+
+**Measured**, 72 markets on `scripts/market-harness.js`, before and after, with
+gates agreed with the owner first (the plan,
+`plans/2026-09-15-throttled-ladder-plan.md`, has every figure):
+
+| | before | after |
+|---|---|---|
+| player, settled weeks 1–7: CTR · CPC · profit per ₹ | 8.2% · ₹19.6 · 1.05 | 10.1% · ₹12.0 · 1.90 |
+| rivals, the same | 5.5% · ₹11.7 · 1.39 | 7.1% · ₹10.0 · 1.94 |
+| player's gross ROAS · net ROAS | 7.81 · 4.36 | 11.14 · 6.45 |
+| player's final net profit, median | ₹6,57,635 | ₹11,90,785 |
+| player loses money | 0 of 72 | 0 of 72 |
+| player's final rank, median | 5th | 5th |
+| rivals' largest move into week 5 · week 9, against an ordinary week | 2.23× · 2.40× | 4.40× · 4.29× |
+
+The five gates that had to hold held. `resolveSlice` equals every combination
+to 1e-9, the paths agree to the paisa, the suite and the timing suite pass, and
+calibration passes, I1 and I3 to the last digit because they play one entrant
+per auction. Two tripwires fired and the owner accepted both (2026-09-15). The
+market is kinder (F15's addendum), and the budget events at weeks 5 and 9 move
+it more: the week-5 move 75% larger and the week-9 move 34%, against ordinary
+weeks 18% calmer (24 markets; C8 and D12 have notes).
+
+Two claim tests had bounds that assumed the fixture's player barely spent its
+budget. It now sits first in 73% of its impressions rather than 55% and spends
+its whole week, so both were restated with the owner. An open cell costs the
+player nothing through rank, and its whole gap to playing alone is its own
+budget (6,061 impressions). Turning a location down gives the metros only their
+own searches.
+
+**Why it survived.** I1 and I3 play one entrant per auction, so nobody was ever
+in anybody's way. The two-paths test compared one path with itself. And a
+fixture round's numbers looked plausible either way. G4's dated note on the bid
+cap had already seen it without naming it: moving one rounding step changed one
+game by 15% of the player's profit.
 
 ### F18. A price move re-priced the weeks already sold — `FIXED` (2026-09-16)
 

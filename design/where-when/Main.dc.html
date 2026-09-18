@@ -1,0 +1,277 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #FF6166; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: #FF8A8E; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .why { color: #FF6166; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+    .grab { cursor: ns-resize; touch-action: none; }
+    .grabx { cursor: ew-resize; touch-action: none; }
+    .pick { cursor: pointer; }
+    .ease { transition: height 120ms cubic-bezier(0.23, 1, 0.32, 1), top 120ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease, border-color 150ms ease; }
+    @keyframes ring { from { opacity: 0.7; transform: scale(0.5); } to { opacity: 0; transform: scale(2.4); } }
+    .ring { fill: none; stroke: #CFC9C3; stroke-width: 1.5; opacity: 0; transform-box: fill-box; transform-origin: center; animation-name: ring; animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1); animation-iteration-count: infinite; }
+    @media (prefers-reduced-motion: reduce) { .ring { animation: none; } .ease { transition: none; } }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: #2A1216; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #F3EEEA;">Brand</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M16 14.2c2.9.4 5 2.8 5 5.8"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Market</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Guide</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#68636B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #68636B;">Results</div>
+    </div>
+  </div>
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">mid · performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Your brand</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M11 20V5M17 20v-6M3 20h18"></path></svg>
+      <div style="flex-grow: 1;">Your week</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8L3 12z"></path><path d="M6 7.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path></svg>
+      <div style="flex-grow: 1;">Your keywords</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a6 6 0 1 0 12 0a6 6 0 1 0 -12 0"></path><path d="M20 20l-4.5-4.5"></path></svg>
+      <div style="flex-grow: 1;">What people typed</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4h4l6 4V6L7 10H3z"></path><path d="M16.5 9a4 4 0 0 1 0 6"></path></svg>
+      <div style="flex-grow: 1;">Your ad</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M3 10h18M16 14.5h2"></path></svg>
+      <div style="flex-grow: 1;">Your money</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; background: #1F1C22; color: #F3EEEA; box-shadow: 0 0 0 1px #2E2A33;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><path d="M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path></svg>
+      <div style="flex-grow: 1;">Where and when</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4V8z"></path><path d="M4 8l8 4 8-4M12 12v8"></path></svg>
+      <div style="flex-grow: 1;">Returns</div>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="display" style="font-weight: 700; font-size: 20px;">Week 6 of 12</div>
+        <div style="font-size: 13px; color: #8A847E;">saved</div>
+        <div style="display: flex; gap: 5px;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div></div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 13px;">
+        <div style="color: #A19A94;">Month 2</div>
+        <div class="num" style="font-weight: 700;">₹1,44,000 of ₹2,88,000 spent</div>
+      </div>
+    </div>
+    <div style="flex-grow: 1; min-height: 0; padding: 22px 40px 20px; display: flex; flex-direction: column; gap: 14px;">
+      <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Where and when</div>
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 16px;">
+        <div style="display: flex; align-items: baseline; gap: 12px;">
+          <div class="display" style="font-weight: 700; font-size: 22px;">Hours of the day</div>
+          <div style="font-size: 13px; color: #A19A94;">when you bid more, and when you bid less</div>
+        </div>
+        <div style="font-size: 12px; color: #A19A94;">drag a block up to bid more, down to bid less · clicks and sales from weeks 1–6</div>
+      </div>
+      <div style="background: #17161A; border: 1px solid #2A272D; border-radius: 20px; padding: 20px 24px 16px; display: grid; grid-template-columns: 64px 944px; column-gap: 0; row-gap: 0;">
+        <div style="position: relative; height: 280px;">
+          <div style="position: absolute; right: 12px; top: -7px; font-size: 11px; color: #A19A94; text-align: right; line-height: 1.2;">×4<br>the most</div>
+          <div style="position: absolute; right: 12px; top: 133px; font-size: 11px; color: #8A847E;">×2</div>
+          <div style="position: absolute; right: 12px; top: 202px; font-size: 12px; font-weight: 700; color: #EDE8E3;">even</div>
+          <div style="position: absolute; right: 12px; bottom: -6px; font-size: 11px; color: #A19A94;">off</div>
+        </div>
+        <div style="position: relative; height: 280px; border-bottom: 1px solid #3A363E;">
+          <div style="position: absolute; left: 0; right: 0; top: 0; border-top: 1px dashed #68636B;"></div>
+          <div style="position: absolute; left: 0; right: 0; top: 140px; border-top: 1px solid #26232A;"></div>
+          <sc-for list="{{blocks}}" as="b" hint-placeholder-count="6">
+            <div class="grab" onPointerDown="{{b.down}}" onDoubleClick="{{b.reset}}" style="position: absolute; top: 0; bottom: 0; left: {{b.x}}px; width: {{b.w}}px; background: {{b.hover}}; border-radius: 10px 10px 0 0;">
+              <div class="ease" style="position: absolute; left: 3px; right: 3px; bottom: 0; height: {{b.h}}px; background: {{b.fill}}; border: {{b.outline}}; border-top: 3px solid {{b.edge}}; border-radius: 8px 8px 0 0; box-sizing: border-box;"></div>
+              <div class="ease" style="position: absolute; left: 0; right: 0; top: {{b.labelTop}}px; display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: none;">
+                <div class="display num" style="font-weight: 800; font-size: 16px; color: {{b.labelColor}};">{{b.setting}}</div>
+                <div class="num" style="font-size: 11px; color: #CFC9C3; white-space: nowrap;">{{b.bid}}</div>
+              </div>
+            </div>
+          </sc-for>
+          <div style="position: absolute; left: 0; right: 0; top: 210px; border-top: 1px solid #A19A94; pointer-events: none;"></div>
+        </div>
+        <div style="position: relative; height: 92px; padding-top: 10px;">
+          <div style="position: absolute; right: 12px; top: 40px; font-size: 11px; color: #A19A94; text-align: right; line-height: 1.25;">clicks<br>by hour</div>
+        </div>
+        <div style="position: relative; height: 92px; padding-top: 10px; box-sizing: border-box;">
+          <sc-for list="{{hourly}}" as="c" hint-placeholder-count="24">
+            <div style="position: absolute; bottom: 0; left: {{c.x}}px; width: {{c.w}}px; height: {{c.h}}px; background: {{c.fill}}; border-radius: 3px 3px 0 0;"></div>
+          </sc-for>
+        </div>
+        <div></div>
+        <div style="position: relative; height: 18px; border-top: 1px solid #3A363E;">
+          <div style="position: absolute; top: 4px; left: 0px; transform: translateX(0); font-size: 11px; color: #A19A94;">00:00</div>
+          <div style="position: absolute; top: 4px; left: 236px; transform: translateX(-50%); font-size: 11px; color: #A19A94;">06:00</div>
+          <div style="position: absolute; top: 4px; left: 354px; transform: translateX(-50%); font-size: 11px; color: #A19A94;">09:00</div>
+          <div style="position: absolute; top: 4px; left: 472px; transform: translateX(-50%); font-size: 11px; color: #A19A94;">12:00</div>
+          <div style="position: absolute; top: 4px; left: 669px; transform: translateX(-50%); font-size: 11px; color: #A19A94;">17:00</div>
+          <div style="position: absolute; top: 4px; left: 826px; transform: translateX(-50%); font-size: 11px; color: #A19A94;">21:00</div>
+          <div style="position: absolute; top: 4px; left: 944px; transform: translateX(-100%); font-size: 11px; color: #A19A94;">midnight</div>
+        </div>
+        <div></div>
+        <div style="position: relative; height: 58px; margin-top: 8px;">
+          <sc-for list="{{blocks}}" as="b" hint-placeholder-count="6">
+            <div style="position: absolute; top: 0; left: {{b.x}}px; width: {{b.w}}px; padding: 0 6px; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px;">
+              <div style="font-size: 13px; font-weight: 700; white-space: nowrap;">{{b.label}}</div>
+              <div class="num" style="font-size: 12px; color: #A19A94; white-space: nowrap;">{{b.clicks}} clicks</div>
+              <div class="num" style="font-size: 12px; color: #A19A94; white-space: nowrap;">{{b.rate}}% bought</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="font-size: 13px; line-height: 1.5; color: #CFC9C3; max-width: 820px;">An adjustment multiplies what you bid in those hours. It adds no money: the day's budget is the same, so bidding harder in one block leaves less for the rest of the day. <span class="why">why?</span></div>
+    </div>
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <div style="display: flex; align-items: center; gap: 8px; min-width: 0; overflow: hidden;">
+        <sc-if value="{{noChanges}}" hint-placeholder-val="{{true}}">
+          <div style="font-size: 14px; color: #A19A94;">No changes yet. Anything you change, in any section, lands here.</div>
+        </sc-if>
+        <sc-for list="{{changes}}" as="c" hint-placeholder-count="0">
+          <div style="padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">{{c}}</div>
+        </sc-for>
+      </div>
+      <div class="display" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"></path></svg>
+        <div>Run week 7</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+/*
+ * Where and when, hours of the day, option A: the day drawn to scale. Each
+ * block is as wide as its hours; its height is how hard you bid there, from
+ * off (−100%) through even to four times your bid (+300%), the most a bid can
+ * ever be (MAX_BID_MULTIPLE). Underneath, on the same clock, the account's
+ * clicks by hour. Real figures: seed 1, weeks 1–6 (observedByHour).
+ */
+
+const BID_PAISE = 3300;
+const MOST = 300;
+const signed = (pct) => (pct === 0 ? '0%' : `${pct > 0 ? '+' : '−'}${Math.abs(pct)}%`);
+const setting = (pct) => {
+  if (pct === 0) return 'even';
+  if (pct <= -100) return 'off';
+  return signed(pct);
+};
+const rupees = (paise) => `₹${Math.round(paise / 100).toLocaleString('en-IN')}`;
+const bidLine = (pct) => {
+  if (pct === 0) return '';
+  if (pct <= -100) return '₹1 · under the reserve';
+  return `${rupees(BID_PAISE)} → ${rupees(BID_PAISE * (1 + pct / 100))}`;
+};
+// Height or length on the scale: off is 0, even is a quarter, four times your bid is all of it.
+const share = (pct) => (pct + 100) / (MOST + 100);
+const snap = (pct) => {
+  const stepped = Math.round(pct / 5) * 5;
+  const clamped = Math.max(-100, Math.min(MOST, stepped));
+  return Math.abs(clamped) <= 5 ? 0 : clamped;
+};
+function drag(e, read, set, done) {
+  e.preventDefault();
+  const rect = e.currentTarget.getBoundingClientRect();
+  const apply = (ev) => set(snap(read(ev, rect)));
+  apply(e);
+  const move = (ev) => apply(ev);
+  const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); done(); };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+}
+const fromY = (ev, rect) => ((rect.bottom - ev.clientY) / rect.height) * (MOST + 100) - 100;
+const fromX = (ev, rect) => ((ev.clientX - rect.left) / rect.width) * (MOST + 100) - 100;
+
+const BLOCKS = [{"label":"Late night","start":0,"end":6,"clicks":941,"rate":"2.15","hours":6},{"label":"Early morning","start":6,"end":9,"clicks":2022,"rate":"3.36","hours":3},{"label":"Late morning","start":9,"end":12,"clicks":3973,"rate":"4.16","hours":3},{"label":"Afternoon","start":12,"end":17,"clicks":6940,"rate":"4.86","hours":5},{"label":"Evening","start":17,"end":21,"clicks":5502,"rate":"4.24","hours":4},{"label":"Night","start":21,"end":24,"clicks":1285,"rate":"3.57","hours":3}];
+const HOURLY = [267,169,116,94,106,189,382,656,984,1201,1340,1432,1353,1274,1314,1435,1565,1674,1682,1301,844,561,482,242];
+const PER_HOUR = 39.333333333333336;
+const BID_H = 280;
+const TOP = Math.max(...HOURLY);
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = { adj: [0, 0, 0, 0, 0, 0], active: null, hover: null };
+  }
+
+  setAdj(i, pct) {
+    const adj = [...this.state.adj];
+    adj[i] = pct;
+    this.setState({ adj, active: i });
+  }
+
+  renderVals() {
+    const { adj, active } = this.state;
+    const blocks = BLOCKS.map((b, i) => {
+      const pct = adj[i];
+      const h = Math.round(BID_H * share(pct));
+      const off = pct <= -100;
+      let fill = '#2A272D';
+      let edge = '#68636B';
+      if (pct > 0) { fill = '#D7262F'; edge = '#FF6166'; }
+      if (pct < 0 && !off) { fill = '#4A1A1F'; edge = '#D7262F'; }
+      return {
+        label: b.label,
+        clicks: b.clicks.toLocaleString('en-IN'),
+        rate: b.rate,
+        x: Math.round(b.start * PER_HOUR),
+        w: Math.round(b.hours * PER_HOUR),
+        h: off ? Math.round(BID_H * share(0)) : h,
+        fill: off ? 'transparent' : fill,
+        edge: off ? 'transparent' : edge,
+        outline: off ? '1px dashed #68636B' : 'none',
+        hover: active === i ? '#1F1C22' : 'transparent',
+        labelTop: Math.max(4, BID_H - (off ? Math.round(BID_H * share(0)) : h) - 40),
+        labelColor: pct === 0 ? '#A19A94' : '#EDE8E3',
+        setting: setting(pct),
+        bid: bidLine(pct),
+        down: (e) => drag(e, fromY, (v) => this.setAdj(i, v), () => this.setState({ active: null })),
+        reset: () => this.setAdj(i, 0),
+      };
+    });
+    const hourly = HOURLY.map((clicks, hour) => {
+      const block = BLOCKS.findIndex((b) => hour >= b.start && hour < b.end);
+      return {
+        x: Math.round(hour * PER_HOUR) + 3,
+        w: Math.round(PER_HOUR) - 6,
+        h: Math.max(2, Math.round((76 * clicks) / TOP)),
+        fill: active === block ? '#A19A94' : '#3A363E',
+      };
+    });
+    const changes = BLOCKS.map((b, i) => (adj[i] === 0 ? null : `${b.label} bid 0% → ${signed(adj[i])}`)).filter(Boolean);
+    return { blocks, hourly, changes, noChanges: changes.length === 0 };
+  }
+}
+</script>
+</body>
+</html>

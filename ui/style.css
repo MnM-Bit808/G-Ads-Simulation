@@ -48,8 +48,6 @@ body {
 .identity strong { font-size: 1rem; }
 .identity span { margin-left: 0.6rem; font-size: 0.85rem; }
 
-.round-nav { display: flex; align-items: center; gap: 0.9rem; }
-
 button {
   font: inherit;
   font-weight: 600;
@@ -160,7 +158,6 @@ main { padding: 1.25rem; max-width: 1500px; margin: 0 auto; }
 
 .bars { display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 0.9rem; }
 
-.bar-row { display: grid; grid-template-columns: 5.5rem 1fr 3.2rem; align-items: center; gap: 0.6rem; }
 .bar-row .k { font-size: 0.78rem; color: var(--muted); }
 .bar-row .v { font-family: var(--mono); font-size: 0.8rem; text-align: right; }
 .track { height: 9px; background: var(--panel-2); border-radius: 5px; overflow: hidden; }
@@ -189,8 +186,6 @@ td {
   vertical-align: top;
 }
 tbody tr:last-child td { border-bottom: 0; }
-td.num, th.num { text-align: right; font-family: var(--mono); padding-right: 0; }
-td.num { font-variant-numeric: tabular-nums; }
 
 /*
  * A gap before every column after the first.
@@ -213,7 +208,6 @@ td + td, th + th { padding-left: 0.9rem; }
 /* A table that may outgrow its card scrolls inside it, not the page with it
    (`scrollX` in ui/dom.js). On a desktop every such table fits, so nothing
    here changes there. */
-.scroll-x { max-width: 100%; overflow-x: auto; }
 
 /*
  * The location card's headers may break onto two lines. Adding "kept per click"
@@ -232,9 +226,6 @@ table.negatives th { white-space: pre-line; vertical-align: bottom; }
    so it was never red. */
 .terms .bad { color: var(--bad); }
 
-.tag-row { margin-top: 0.2rem; }
-/* How far a keyword reaches on its match type (E8), under the match select. */
-.kw-reach { margin-top: 0.2rem; font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
 .tag {
   display: inline-block;
   font-size: 0.68rem;
@@ -259,71 +250,13 @@ table.negatives th { white-space: pre-line; vertical-align: bottom; }
 
 /* --- burn-down ---------------------------------------------------------- */
 
-.burn { margin-bottom: 0.7rem; }
 .burn .track { height: 14px; }
 .burn .fill { background: var(--accent); }
 .burn .legend { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.78rem; margin-top: 0.35rem; }
 
-/*
- * The location card. The bid adjustment sits on the row it belongs to, because
- * the control and the evidence for using it are the same object.
- */
-.place-control { display: flex; gap: 0.25rem; justify-content: flex-end; }
 .small { font-size: 0.7rem; }
-tr.best-place td { background: rgba(126, 198, 153, 0.06); }
 
-/*
- * A search's weekly volume as a figure and a bar. 151 rows of digits cannot show
- * how steeply the list falls away, which is exactly what the card's own warning
- * about planner order is about.
- */
-.vol { display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; }
-.vol-figure { font-variant-numeric: tabular-nums; }
-.vol-track {
-  display: block;
-  width: 68px;
-  height: 5px;
-  border-radius: 3px;
-  background: var(--panel-2);
-  overflow: hidden;
-  flex: none;
-}
-.vol-fill { display: block; height: 100%; background: var(--accent); opacity: 0.75; }
-
-/*
- * The month's shape. Four numbers state the money and hide the decision - a
- * front-loaded month and a flat one read identically as digits.
- */
-.split-bar {
-  display: flex;
-  height: 32px;
-  margin-top: 0.9rem;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
-}
 .split-bar.over { border-color: var(--bad); }
-
-.split-week {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  color: var(--bg);
-  background: var(--accent);
-  border-right: 1px solid var(--panel);
-}
-.split-week:last-child { border-right: 0; }
-/* Stepped down the row so four segments of one hue stay countable. */
-.split-week:nth-child(2) { background: #6b92e4; }
-.split-week:nth-child(3) { background: #5d82d1; }
-.split-week:nth-child(4) { background: #4f72be; }
-
-.split-summary { margin: 0.5rem 0 0; font-size: 0.8rem; }
 
 /*
  * The ad as a searcher meets it. Restrained on purpose: no favicon, no ratings,
@@ -338,70 +271,12 @@ tr.best-place td { background: rgba(126, 198, 153, 0.06); }
 }
 /* The margin lives on the slot, not the block: eight in a grid must not each
    carry one, and the grid's own gap does that job there. */
-.serp-slot { margin-bottom: 0.9rem; }
-.serp-name { margin-left: auto; color: var(--ink); font-weight: 600; }
-.serp-tag {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  color: var(--muted);
-}
-.serp-domain { color: var(--ink); }
+
 .serp-head {
   color: var(--accent);
   font-size: 1rem;
   line-height: 1.3;
   margin: 0.35rem 0 0.3rem;
-}
-.serp-sep { color: var(--muted); }
-.serp-desc { margin: 0; font-size: 0.82rem; line-height: 1.45; color: var(--ink); opacity: 0.86; }
-
-/*
- * The grader's own note about why it marked an ad down. Warning-coloured because
- * every note it writes is a penalty, and it sits inside the grade panel rather
- * than under it so it reads as part of the number it explains.
- */
-.grade-note {
-  color: var(--warn);
-  border-top: 0;
-  margin: 0.3rem 0 0;
-  padding-top: 0;
-}
-
-/*
- * Round 0's reserve warning. It is a note rather than a pill because it is a
- * paragraph, and it takes the warning colour because an account that cannot
- * appear is not a style preference.
- */
-.reserve-note {
-  color: var(--warn);
-  border-top-color: var(--warn);
-}
-
-/*
- * The one sentence on the dashboard that explains a number the player cannot
- * otherwise account for: a self-written ad that is not live yet, or that landed
- * this week. It sits inside the provisional note but must not read as part of
- * it, so it takes the foreground colour the rest of that note gives up.
- */
-.copy-note {
-  display: block;
-  color: var(--ink);
-  font-weight: 600;
-  margin-bottom: 0.4rem;
-}
-
-.warn-pill {
-  display: inline-block;
-  background: rgba(224, 175, 104, 0.14);
-  border: 1px solid var(--warn);
-  color: var(--warn);
-  font-size: 0.74rem;
-  border-radius: 5px;
-  padding: 0.1rem 0.4rem;
-  margin-right: 0.35rem;
 }
 
 /* =========================================================================
@@ -428,12 +303,10 @@ tr.best-place td { background: rgba(126, 198, 153, 0.06); }
   gap: 1rem;
   align-items: start;
 }
-.setup-card { padding: 1.1rem 1.25rem 1.25rem; }
+
 /* Cards whose content genuinely needs the width: tables, planners, wide grids. */
 .setup .wide { grid-column: 1 / -1; }
 
-/* The ad: what you write, beside what it scores. */
-.ad-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem 1.5rem; }
 @media (max-width: 1100px) { .ad-split { grid-template-columns: minmax(0, 1fr); } }
 
 /* --- round 0's own skin -------------------------------------------------- */
@@ -590,19 +463,11 @@ tr.best-place td { background: rgba(126, 198, 153, 0.06); }
 /* Two cards sharing one grid cell, so the lower one fills the slack the upper
    one leaves. `.setup` aligns to start, so a short card otherwise strands its
    column for the rest of the row. */
-.setup-stack { display: grid; gap: 1rem; align-content: start; }
 
 /* Where the search happens: the table beside its note, not above it. Four
    columns stretched over the full width leave a hole in the middle; measured,
    this is 59px shorter and reads as one thing. */
-.where-split {
-  display: grid;
-  /* The country is very nearly square, so a square-ish column fits it without
-     letterboxing. A wider one just paints background either side of it. */
-  grid-template-columns: 430px minmax(0, 1fr);
-  gap: 1rem 1.75rem;
-  align-items: start;
-}
+
 @media (max-width: 1100px) { .where-split { grid-template-columns: minmax(0, 1fr); } }
 
 @media (max-width: 1100px) {
@@ -650,22 +515,12 @@ button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none
   border-left: 3px solid var(--accent);
   border-radius: 0 7px 7px 0;
 }
-.anchor-formula { font-size: 0.78rem; color: var(--muted); }
-.anchor-sum { font-family: var(--mono); font-size: 1.05rem; margin: 0.35rem 0 0.5rem; }
-.anchor-caveat { margin: 0; font-size: 0.84rem; line-height: 1.5; color: var(--warn); }
 
 .hints { margin: 0.4rem 0 0; padding-left: 1.1rem; color: var(--muted); font-size: 0.84rem; }
 .hints li { margin-bottom: 0.35rem; }
 
 /* --- rival ads ---------------------------------------------------------- */
 
-/*
- * FOUR ACROSS, NOT auto-fill. There are exactly eight rivals, so four columns is
- * two full rows and nothing sits alone in a ragged one. `auto-fill` fitted five
- * once the ads became `.serp` blocks, which left a row of three - and the card's
- * own comment always said the intent was four.
- */
-.rival-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; }
 @media (max-width: 1100px) { .rival-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 620px) { .rival-grid { grid-template-columns: 1fr; } }
 /* The eight rival ads are drawn in `.serp`, the same block the player's own ad is
@@ -687,35 +542,12 @@ button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none
   gap: 0.5rem;
 }
 
-.cell-colhead, .cell-rowhead {
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-}
-.cell-colhead { justify-content: center; }
-/* Rotated so the row label costs a label's width rather than a word's. */
-.cell-rowhead { writing-mode: vertical-rl; transform: rotate(180deg); justify-content: center; }
-
-.cell-axis {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  font-family: var(--mono);
-  font-size: 0.68rem;
-  margin: 0.7rem 0 0;
-}
-
 @media (max-width: 700px) {
   /* Below this the matrix cannot hold three columns, so the axes are dropped
      rather than squeezed: one column of six named cells reads better than a grid
      too narrow to show its own labels. */
   .cell-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .cell-colhead, .cell-rowhead, .cell-corner { display: none; }
-  .cell-axis { display: none; }
+
 }
 
 .cell {
@@ -728,34 +560,12 @@ button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none
   cursor: pointer;
 }
 .cell.on { border-color: var(--accent); background: rgba(122, 162, 247, 0.12); }
-.cell-name { font-weight: 600; margin-bottom: 0.3rem; text-transform: capitalize; }
-.cell-econ { font-family: var(--mono); font-size: 0.76rem; color: var(--ink); }
-.cell-vol { font-size: 0.74rem; color: var(--muted); margin-top: 0.15rem; }
 
 /* --- capex -------------------------------------------------------------- */
 
-.capex-row {
-  display: grid;
-  grid-template-columns: 8rem auto;
-  gap: 0.4rem 0.9rem;
-  align-items: center;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid #21252e;
-}
-.capex-label { font-weight: 600; font-size: 0.88rem; }
-.capex-why { grid-column: 2; font-size: 0.76rem; line-height: 1.4; }
 .capex-summary { margin: 0.9rem 0 0; font-size: 0.86rem; }
 .capex-summary strong { font-family: var(--mono); color: var(--accent); }
 
-/* The page the capital builds, drawn as the strips it has paid for. */
-.page-preview { margin-top: 0.9rem; }
-.page-sheet {
-  border: 1px solid #21252e;
-  border-radius: 6px;
-  overflow: hidden;
-  margin: 0.4rem 0 0.6rem;
-  background: #14171d;
-}
 .page-strip {
   padding: 0.5rem 0.7rem;
   font-size: 0.78rem;
@@ -800,33 +610,17 @@ button.ghost:hover { color: var(--ink); border-color: var(--muted); filter: none
   border-color: var(--accent);
   background: rgba(122, 162, 247, 0.12);
 }
-.writer-name { font-weight: 600; font-size: 0.85rem; }
+
 .writer-price { font-family: var(--mono); font-size: 0.78rem; color: var(--accent); }
-.writer-what { font-size: 0.76rem; line-height: 1.45; }
-.grade-was { font-size: 0.72rem; font-family: var(--mono); margin-left: 0.5rem; }
 
 /* The final standings. The player's own row, so they can find themselves. */
 tr.you td { background: rgba(122, 162, 247, 0.10); font-weight: 600; }
 tr.you td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 
-/* Starting over. Two steps, so twelve rounds cannot go to one stray click. */
-.restart-row {
-  display: grid;
-  grid-template-columns: 11rem auto;
-  gap: 0.4rem 0.9rem;
-  align-items: center;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #21252e;
-}
-.restart-row:last-child { border-bottom: none; }
-.restart-pick { width: 100%; }
-.restart-why { font-size: 0.76rem; line-height: 1.45; }
-
 /* --- forms -------------------------------------------------------------- */
 
 .field { display: block; margin-bottom: 0.7rem; }
 .field-label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.25rem; }
-.field-hint { display: inline-block; font-size: 0.74rem; color: var(--muted); margin-top: 0.2rem; }
 
 input, select, textarea {
   font: inherit;
@@ -863,7 +657,6 @@ button.add:disabled { color: var(--muted); }
 .picked select, .picked input { padding: 0.2rem 0.4rem; font-size: 0.78rem; }
 .picked td { vertical-align: middle; }
 
-.split-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; }
 @media (max-width: 620px) { .split-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .problems {
@@ -886,66 +679,33 @@ p.problems { padding-left: 0.8rem; }
 
 /* --- the decision form (slice three) ------------------------------------- */
 
-/*
- * `display: contents` so the cards inside take part in the dashboard grid.
- * The region exists to be redrawn in one go when something is staged; it is
- * not a box and must not become one.
- */
-.decision-region, .decision-summary, .decision-forms { display: contents; }
-
 .range { display: flex; gap: 0.4rem; margin-bottom: 0.7rem; }
 
 .terms td:last-child, .picked td:last-child { width: 1%; white-space: nowrap; }
-.blocked-row td { color: var(--muted); text-decoration: line-through; }
-.blocked-row td:last-child { text-decoration: none; }
 
 /* --- staged changes ------------------------------------------------------ */
 
 .staged { display: flex; flex-direction: column; gap: 0.4rem; }
-.staged-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.9rem;
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
-  border-radius: 7px;
-  padding: 0.5rem 0.7rem;
-}
+
 .staged-row.negative-added, .staged-row.keyword-paused { border-left-color: var(--warn); }
 .staged-row.keyword-added { border-left-color: var(--good); }
-.staged-label { font-size: 0.87rem; }
-.staged-detail { font-size: 0.75rem; color: var(--muted); margin-top: 0.1rem; }
 
 /* --- negatives ----------------------------------------------------------- */
 
-.neg-compose {
-  display: grid;
-  grid-template-columns: 1fr 9rem auto;
-  gap: 0.7rem;
-  align-items: end;
-  margin: 0.9rem 0 0.2rem;
-}
 .neg-compose .field { margin-bottom: 0; }
 .neg-compose > button.add { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
 @media (max-width: 620px) { .neg-compose { grid-template-columns: 1fr; align-items: stretch; } }
 
-.neg-preview { margin-top: 0.6rem; }
-.neg-preview table { margin-top: 0.5rem; }
-.neg-headline { margin: 0; font-size: 0.86rem; }
-.neg-headline strong { font-family: var(--mono); color: var(--warn); }
 /* The same mark as the search terms report's (I8), on the searches a block
    would catch. Its headers break onto two lines, as the negatives list's do:
    "Per sale" beside "Your cost" and "Your conv" took the table 49px past a
    375px phone. */
 .neg-preview .bad { color: var(--bad); }
-.neg-preview th { white-space: pre-line; vertical-align: bottom; }
 
 /* --- keywords ------------------------------------------------------------ */
 
 .kw-text.paused { color: var(--muted); }
-.paused-row td { opacity: 0.55; }
+
 .tag.warn { color: var(--warn); border-color: var(--warn); }
 
 .planner { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: 0.8rem; }
@@ -960,12 +720,6 @@ p.problems { padding-left: 0.8rem; }
 
 /* --- bidding ------------------------------------------------------------- */
 
-.strategy-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 0.6rem;
-  margin-bottom: 0.9rem;
-}
 .strategy {
   text-align: left;
   background: var(--panel-2);
@@ -977,36 +731,15 @@ p.problems { padding-left: 0.8rem; }
 }
 .strategy.on { border-color: var(--accent); background: rgba(122, 162, 247, 0.12); }
 .strategy-name { font-weight: 600; margin-bottom: 0.25rem; }
-.strategy-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
-.strategy-predicts {
-  font-size: 0.7rem;
-  font-family: var(--mono);
-  color: var(--muted);
-  margin-top: 0.4rem;
-  padding-top: 0.35rem;
-  border-top: 1px solid var(--line);
-}
+
 .strategy.on .strategy-name { color: var(--accent); }
 
-.bid-warn:empty { display: none; }
 .bid-warn .note { border: 0; padding-left: 0; }
 
-.learning-now {
-  margin: 0 0 0.9rem;
-  padding: 0.6rem 0.8rem;
-  background: rgba(224, 175, 104, 0.1);
-  border: 1px solid var(--warn);
-  border-radius: 7px;
-  color: var(--warn);
-  font-size: 0.83rem;
-  line-height: 1.45;
-}
 .staged-row.strategy, .staged-row.strategy-param { border-left-color: var(--bad); }
 
 /* --- the one-round window (13.3, 4.5) ------------------------------------ */
 
-.window-section { padding-bottom: 0.6rem; }
-.window-section + .window-section { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: 1rem; }
 .window-section .field-label { margin-bottom: 0.6rem; }
 
 .capex-already { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); margin-top: 0.15rem; }
@@ -1041,39 +774,8 @@ tr.unsettled td:first-child::after { content: " ← still arriving"; font-size: 
 .rank-line { margin: 0.9rem 0 0; font-size: 0.88rem; line-height: 1.5; }
 .rank-line strong { font-family: var(--mono); color: var(--accent); }
 
-.rank-note {
-  margin: 0.9rem 0 0;
-  padding: 0.6rem 0.8rem;
-  background: rgba(224, 175, 104, 0.08);
-  border-left: 3px solid var(--warn);
-  border-radius: 0 7px 7px 0;
-  font-size: 0.8rem;
-  line-height: 1.5;
-}
-.rank-note strong { font-family: var(--mono); color: var(--warn); }
-
-.decision-log { display: flex; flex-direction: column; gap: 0.5rem; }
-.log-row { display: grid; grid-template-columns: 4.5rem 1fr; gap: 0.7rem; align-items: baseline; }
-.log-week {
-  font-size: 0.7rem;
-  font-family: var(--mono);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-}
-.log-lines { font-size: 0.82rem; line-height: 1.55; }
-.log-lines div + div { margin-top: 0.15rem; }
-
 /* --- the weekly split ---------------------------------------------------- */
 
-.week-done {
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 0.35rem 0.55rem;
-}
-.week-spent { font-family: var(--mono); font-size: 0.85rem; }
-.week-planned { font-size: 0.7rem; color: var(--muted); margin-top: 0.1rem; }
 .staged-row.budget { border-left-color: var(--accent); }
 
 /* --- dayparting ---------------------------------------------------------- */
@@ -1082,90 +784,38 @@ tr.unsettled td:first-child::after { content: " ← still arriving"; font-size: 
 .daypart .track { height: 8px; }
 .daypart input[type="number"] { width: 5.5rem; padding: 0.2rem 0.4rem; font-size: 0.78rem; }
 .daypart td { vertical-align: middle; }
-.thin-hours td:nth-child(5) { color: var(--muted); }
-.thin-hours td:first-child::after { content: " ·"; color: var(--warn); }
+
 .staged-row.daypart { border-left-color: var(--warn); }
 
 /* --- the quality score, decomposed --------------------------------------- */
 
-.quality-cell { min-width: 9rem; }
-.quality-score { font-family: var(--mono); font-size: 1.05rem; text-align: right; }
 .quality-score.muted { color: var(--muted); }
-.quality-parts { margin-top: 0.25rem; }
-.quality-part {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 0.68rem;
-  line-height: 1.5;
-  cursor: help;
-}
-.quality-part-label { color: var(--muted); }
-.quality-part-rating { font-family: var(--mono); }
+
 .quality-part.above .quality-part-rating { color: var(--good); }
 .quality-part.average .quality-part-rating { color: var(--muted); }
 .quality-part.below .quality-part-rating { color: var(--bad); }
-.quality-part-grade { font-family: var(--mono); color: var(--ink); margin-left: auto; margin-right: 0.4rem; }
 
 /* --- brand terms in the search terms report (spec 3.1, 8.7) -------------- */
 
-.brand-tag {
-  display: inline-block;
-  margin-left: 0.45rem;
-  padding: 0 0.32rem;
-  border-radius: 4px;
-  font-size: 0.66rem;
-  font-family: var(--mono);
-  border: 1px solid;
-}
 .brand-tag.own { color: var(--good); border-color: var(--good); }
 .brand-tag.rival { color: var(--bad); border-color: var(--bad); }
 
-.own-brand {
-  margin: 0.9rem 0 0;
-  padding: 0.6rem 0.8rem;
-  background: rgba(126, 198, 153, 0.08);
-  border-left: 3px solid var(--good);
-  border-radius: 0 7px 7px 0;
-  font-size: 0.84rem;
-  line-height: 1.5;
-}
-.own-brand strong { font-family: var(--mono); color: var(--good); }
-
 /* --- bulk add, and the second action on a keyword row -------------------- */
 
-.bulk-add { margin: 0.5rem 0 0.6rem; }
-.bulk-add:empty { display: none; }
-.row-actions { display: flex; gap: 0.35rem; justify-content: flex-end; }
 button.add.danger { color: var(--bad); }
 button.add.danger:disabled { color: var(--muted); }
 
 /* --- the live ad grade in round 0 ---------------------------------------- */
 
-.grade-panel { margin-top: 1rem; border-top: 1px solid var(--line); padding-top: 0.8rem; }
-.grade-row { margin-bottom: 0.7rem; }
-.grade-head { display: flex; justify-content: space-between; align-items: baseline; }
-.grade-name { font-size: 0.85rem; font-weight: 600; }
-.grade-value { font-family: var(--mono); font-size: 0.95rem; }
-.grade-checks { margin: 0.25rem 0 0; padding-left: 1.1rem; font-size: 0.79rem; line-height: 1.5; }
 .grade-checks li.ok { color: var(--good); }
-.grade-checks li.miss { color: var(--warn); }
 
 /* --- the negatives verdict, and the trend chart -------------------------- */
 
-.neg-verdict {
-  margin: 0 0 0.9rem;
-  padding: 0.6rem 0.8rem;
-  border-radius: 0 7px 7px 0;
-  font-size: 0.84rem;
-  line-height: 1.5;
-}
 .neg-verdict.live { background: rgba(224, 175, 104, 0.09); border-left: 3px solid var(--warn); }
 .neg-verdict.live strong { color: var(--warn); }
 .neg-verdict.quiet { background: var(--panel-2); border-left: 3px solid var(--line); color: var(--muted); }
 .neg-verdict.quiet strong { color: var(--ink); }
 
-.metric-chips { margin-bottom: 0.8rem; }
 svg.trend { width: 100%; height: auto; display: block; }
 svg.trend .grid { stroke: var(--line); stroke-width: 1; }
 svg.trend .axis { fill: var(--muted); font-size: 9px; font-family: var(--mono); }
@@ -1175,33 +825,8 @@ svg.trend .line.focused { stroke: var(--good); stroke-width: 2.5; opacity: 1; }
 svg.trend .dot { fill: var(--muted); }
 svg.trend .dot.self { fill: var(--accent); }
 
-.legend-lines { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.6rem; }
-.legend-line {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  width: auto;
-  background: var(--panel-2);
-  color: var(--muted);
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  padding: 0.15rem 0.4rem;
-  font-size: 0.72rem;
-}
 .legend-line.self { color: var(--ink); border-color: var(--accent); }
 .legend-line.on { border-color: var(--good); color: var(--ink); }
-.legend-swatch { width: 10px; height: 2px; background: currentColor; display: inline-block; }
-.legend-value { font-family: var(--mono); margin-left: 0.15rem; }
-
-.chart-warn {
-  margin: 0.7rem 0 0;
-  padding: 0.55rem 0.75rem;
-  background: rgba(240, 113, 120, 0.08);
-  border-left: 3px solid var(--bad);
-  border-radius: 0 6px 6px 0;
-  font-size: 0.78rem;
-  line-height: 1.5;
-}
 
 /* --- conversions arriving (I27) ------------------------------------------ */
 
@@ -1216,14 +841,6 @@ svg.trend .dot.self { fill: var(--accent); }
  */
 .arrival { display: flex; flex-direction: column; gap: 0.3rem; margin: 0.7rem 0 0.9rem; }
 
-.arrival-lead { margin-top: 0; border-top: 0; padding-top: 0; }
-
-.arrival-row {
-  display: grid;
-  grid-template-columns: 4.2rem 1fr 5.4rem;
-  align-items: center;
-  gap: 0.55rem;
-}
 .arrival-row .k { font-size: 0.74rem; color: var(--muted); }
 .arrival-row .track { height: 11px; position: relative; display: flex; }
 .arrival-row .v {
@@ -1251,28 +868,6 @@ svg.trend .dot.self { fill: var(--accent); }
 }
 .arrival-row .fill.landed:only-child { border-radius: 5px; }
 
-.arrival-tick {
-  position: absolute;
-  top: -2px;
-  width: 2px;
-  height: 15px;
-  background: var(--ink);
-  opacity: 0.75;
-}
-
-.arrival-more { color: var(--muted); }
-
-.arrival-key {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  font-size: 0.7rem;
-  color: var(--muted);
-  margin-top: 0.45rem;
-}
-.arrival-key span:not(.arrival-swatch) { margin-right: 0.7rem; }
-.arrival-swatch { width: 11px; height: 9px; border-radius: 2px; flex-shrink: 0; }
 .arrival-swatch.landed { background: var(--good); }
 .arrival-swatch.pending {
   background: repeating-linear-gradient(
@@ -1299,7 +894,6 @@ svg.trend .dot.self { fill: var(--accent); }
   border-radius: 0 5px 5px 0;
 }
 .arrival-swatch.refused { background: var(--bad); }
-.arrival-swatch.sent-back { background: var(--warn); opacity: 0.55; }
 
 /* A week that has not finished arriving reads dimmer than one that has. It is
    still shown, because hiding it would leave a gap where a week should be. */
@@ -1500,9 +1094,6 @@ button.guide-next:hover { filter: none; color: #a9c1fa; }
 
 /* --- the debrief and the reveal (plans/2026-09-13-debrief.md) ------------ */
 
-.debrief-part + .debrief-part { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line); }
-.debrief-head { margin: 0 0 0.7rem; font-size: 0.95rem; font-weight: 650; color: var(--ink); }
-
 .moments { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 0.9rem; }
 .moment {
   background: var(--panel-2);
@@ -1513,24 +1104,16 @@ button.guide-next:hover { filter: none; color: #a9c1fa; }
   flex-direction: column;
   gap: 0.5rem;
 }
-.moment-week { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-.moment-lines { margin: 0; padding-left: 1.1rem; font-size: 0.85rem; }
+
 .moment .note { margin-top: 0.2rem; }
 button.replay { align-self: flex-start; }
-.whatif-result p { margin: 0.35rem 0 0; font-size: 0.85rem; line-height: 1.5; }
-.whatif-window { font-weight: 600; }
-.budget-result p { margin: 0.5rem 0 0; font-size: 0.88rem; line-height: 1.5; }
 
-.lesson-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1rem 1.5rem; }
-.lesson-group-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
 .lesson { padding: 0.55rem 0; border-top: 1px solid var(--line); }
-.lesson-title { font-weight: 600; font-size: 0.88rem; }
+
 .lesson p { margin: 0.2rem 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--ink); opacity: 0.92; }
 
-.reveal-grid { margin-top: 0.8rem; }
 .guess { display: flex; flex-direction: column; gap: 0.5rem; }
-/* The same grid the player chose from at round 0: price across, purpose down. */
-.guess-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.3rem; }
+
 button.guess-cell {
   font-size: 0.72rem;
   font-weight: 600;
@@ -1545,7 +1128,7 @@ button.guess-cell:hover { color: var(--ink); border-color: var(--muted); filter:
 button.guess-cell[aria-pressed="true"] { color: #0f1115; background: var(--accent); border-color: var(--accent); }
 button.guess-cell:disabled { opacity: 0.55; cursor: default; }
 button.guess-cell[aria-pressed="true"]:disabled { opacity: 0.85; }
-.guess-result { margin: 0; font-size: 0.8rem; line-height: 1.4; }
+
 /* The one moment of delight (review section 6): the answers arrive a rival at
    a time, in reading order, and the score after them. It happens once a game.
    A transition from @starting-style, as the drawer does, because each line is
@@ -1560,12 +1143,6 @@ button.guess-cell[aria-pressed="true"]:disabled { opacity: 0.85; }
 @starting-style {
   .reveal .arriving { opacity: 0; transform: translateY(4px); }
 }
-.result-exact { color: var(--good); }
-.result-price, .result-purpose { color: var(--warn); }
-.result-wrong { color: var(--bad); }
-.result-skipped { color: var(--muted); }
-.reveal-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
-.reveal-summary p { margin: 0.6rem 0 0; font-size: 0.9rem; }
 
 @media (max-width: 620px) {
   button.guess-cell, .reveal-actions button, button.replay { min-height: 44px; }

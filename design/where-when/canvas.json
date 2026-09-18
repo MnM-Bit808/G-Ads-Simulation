@@ -1,0 +1,128 @@
+{
+  "pages": [
+    {
+      "id": "hours",
+      "name": "Hours of the day"
+    },
+    {
+      "id": "places",
+      "name": "Where you advertise"
+    },
+    {
+      "id": "not-chosen",
+      "name": "Not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "Hours · A · The day to scale (chosen)",
+      "page": "hours",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "file": "HoursSliders.dc.html",
+      "title": "Hours · B · Six sliders side by side",
+      "page": "not-chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "file": "PlacesBeside.dc.html",
+      "title": "Places · A · The map beside three bars (chosen)",
+      "page": "places",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "file": "PlacesOnMap.dc.html",
+      "title": "Places · B · Set on the map",
+      "page": "not-chosen",
+      "is_interactive": true,
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    }
+  ],
+  "annotations": [
+    {
+      "id": "hours-brief",
+      "page": "hours",
+      "x": 0,
+      "y": -470,
+      "w": 3000,
+      "text": "Where and when, hours of the day: two ways to set a bid by the hour, replacing the number boxes. Drag a block (or a slider) to try it; the tray lists the change as today's form words it, and a double-click puts a block back to even.\nReal figures from the engine: seed 1, Vella & Co. at mid-price performance, manual bids of ₹33, six weeks played with no adjustments yet. Clicks and \"bought\" (sales per click) are over weeks 1-6, as today's card counts them; the game keeps no cost per hour, so none is shown.\nBoth use the same scale, the one a bid really has: off (−100%, a bid of ₹1, under the reserve), even (your keyword bid), and four times your bid at the top (+300%), the most any bid can be."
+    },
+    {
+      "id": "hours-a",
+      "page": "hours",
+      "x": 0,
+      "y": -250,
+      "w": 1440,
+      "text": "Chosen by the owner, 2026-09-15. A · The day to scale. Each block is as wide as its hours, so the six-hour late night is half as wide again as the four-hour evening, and the day's clicks by hour line up underneath on the same clock.\nFor: when people search and where your money goes, in one picture; it fills the width that was empty.\nAgainst: the three-hour blocks are narrow targets on a phone."
+    },
+    {
+      "id": "hours-b",
+      "page": "not-chosen",
+      "x": 0,
+      "y": -250,
+      "w": 1440,
+      "text": "B · Six sliders side by side. Equal columns, one per block, each with its own clicks and sales per click underneath.\nFor: every block is the same size to grab, which suits a phone, and each block's figures sit with its control.\nAgainst: the day loses its shape; six hours of late night look the same as three of early morning."
+    },
+    {
+      "id": "hours-cap",
+      "page": "hours",
+      "x": 1560,
+      "y": 0,
+      "w": 480,
+      "text": "Found while drawing this. Today's box accepts up to +900%, but a bid can never be more than four times the keyword's bid (MAX_BID_MULTIPLE), so under manual bidding anything past +300% changes nothing, and past +150% under Maximise clicks, which already bids 1.6 times. Both options stop where the bid stops. Under Maximise clicks the top would be +150%."
+    },
+    {
+      "id": "places-brief",
+      "page": "places",
+      "x": 0,
+      "y": -470,
+      "w": 3000,
+      "text": "Where and when, where you advertise: two ways to set a bid by place on the India map, replacing the five preset buttons. The game knows three kinds of place, not single cities (8 metros, 12 large cities, 12 smaller cities and towns), so a city stands for its kind and every city of a kind moves together.\nReal figures from the same game, weeks 1-6: a click kept ₹47 in metros against ₹15 paid, and ₹34 in the towns against ₹23. Dots grow with your bid there; rings pulse with where this account's clicks came from (towns 53%, large cities 32%, metros 15%), the round 0 map's motion."
+    },
+    {
+      "id": "places-a",
+      "page": "places",
+      "x": 0,
+      "y": -250,
+      "w": 1440,
+      "text": "Chosen by the owner, 2026-09-15. A · The map beside three bars. Each kind is a row with its figures and a bar; hover or drag a row and its cities light up and name themselves.\nFor: all three kinds, their figures and their bars in view at once, so kept-a-click compares at a glance; the rows stay the control a screen reader can use.\nAgainst: the map shows the choice rather than being where you make it."
+    },
+    {
+      "id": "places-b",
+      "page": "not-chosen",
+      "x": 1560,
+      "y": -250,
+      "w": 1440,
+      "text": "B · Set on the map. Tap a city, or a kind above the map, to pick it; its figures and its bar open beside the map, with all three kinds compared underneath.\nFor: the map is the control, as the makeover design planned, and the chosen kind gets room for its figures.\nAgainst: one kind at a time, so setting all three means switching, and the map needs the list beside it for keyboards and screen readers."
+    },
+    {
+      "id": "places-cap",
+      "page": "places",
+      "x": 1560,
+      "y": 0,
+      "w": 480,
+      "text": "A question for you, found while drawing this. The engine applies a place adjustment on top of the hour's without the four-times cap: the code means one cap to cover both, but the round multiplies by the place after capping. So +900% on a place really does bid ten times, and hours and places together can go further still. Rivals already tilt places by up to +320%. Changing the engine moves the market, so the owner chose to measure it on the harness first and then decide (2026-09-15); until then the bar stops at +300%, matching the hours."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "hours"
+  }
+}

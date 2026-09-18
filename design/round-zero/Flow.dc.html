@@ -1,0 +1,314 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: inherit; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .tap { cursor: pointer; user-select: none; }
+    .hov:hover { background: rgba(127, 127, 127, 0.14); }
+    .link { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .tile { transition: border-color 150ms ease, box-shadow 150ms ease; }
+    .tile:hover { border-color: #4A454F; }
+    .mini:hover { border-color: #CFC9C3; }
+    .press { transition: transform 160ms ease-out; }
+    .press:active { transform: scale(0.97); }
+    @media (prefers-reduced-motion: reduce) { .press:active { transform: none; } }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: flex; flex-direction: column; background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+
+  <div style="height: 72px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 32px; border-bottom: 1px solid #26232A;">
+    <div style="display: flex; align-items: center; gap: 12px; width: 230px;">
+      <div class="display" style="width: 40px; height: 40px; border-radius: 12px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px;">V&amp;</div>
+      <div style="display: flex; flex-direction: column; gap: 1px;">
+        <div class="display" style="font-weight: 800; font-size: 18px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+        <div style="font-size: 12px; color: #8A847E;">your brand this game</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 999px; background: {{s.bg}};">
+            <div style="width: 24px; height: 24px; border-radius: 50%; box-sizing: border-box; display: flex; align-items: center; justify-content: center; background: {{s.dotBg}}; border: 1.5px solid {{s.dotLine}}; color: {{s.dotFg}}; font-size: 12px; font-weight: 700;">
+              <sc-if value="{{s.done}}" hint-placeholder-val="{{false}}">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>
+              </sc-if>
+              <sc-if value="{{s.notDone}}" hint-placeholder-val="{{true}}">
+                <div>{{s.n}}</div>
+              </sc-if>
+            </div>
+            <div style="font-size: 13px; font-weight: {{s.weight}}; color: {{s.fg}}; white-space: nowrap;">{{s.label}}</div>
+          </div>
+          <sc-if value="{{s.hasJoin}}" hint-placeholder-val="{{true}}">
+            <div style="width: 14px; height: 1px; background: #3A363E;"></div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+    <div style="width: 230px; display: flex; justify-content: flex-end;">
+      <div class="tap hov" style="height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3A363E; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+        <div>Field guide</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1; min-height: 0; padding: 24px 56px 20px; display: flex; flex-direction: column; gap: 18px;">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Where you sit</div>
+      <div style="font-size: 15px; line-height: 1.5; color: #A19A94;">Nobody tells you where the other eight sit. Their ads are the only evidence before the first auction. <span class="link">why?</span></div>
+    </div>
+
+    <div style="flex-grow: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px;">
+      <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+          <div class="display" style="font-weight: 700; font-size: 20px;">The other eight</div>
+          <div style="font-size: 12px; color: #8A847E;">{{rivalsNote}}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+          <sc-for list="{{rivals}}" as="r" hint-placeholder-count="8">
+            <div style="background: #17161A; border: 1px solid #2A272D; border-radius: 16px; padding: 10px 12px 11px 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 22px;">
+                <div style="display: flex; align-items: baseline; gap: 8px; min-width: 0;">
+                  <div style="font-size: 12px; font-weight: 700; color: #CFC9C3; white-space: nowrap;">{{r.name}}</div>
+                  <div style="font-size: 12px; color: #8A847E; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Sponsored · {{r.domain}}</div>
+                </div>
+                <sc-if value="{{guessing}}" hint-placeholder-val="{{true}}">
+                  <div title="Where do you think {{r.name}} sits?" style="display: grid; grid-template-columns: repeat(3, 14px); gap: 2px; flex-shrink: 0;">
+                    <sc-for list="{{r.minis}}" as="m" hint-placeholder-count="6">
+                      <div class="tap mini" onClick="{{m.pick}}" title="{{m.label}}" style="width: 14px; height: 10px; border-radius: 2px; box-sizing: border-box; border: 1px solid {{m.line}}; background: {{m.bg}};"></div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="font-size: 13px; font-weight: 700; line-height: 1.3; color: #EDE8E3; text-wrap: pretty;">{{r.head}}</div>
+              <div style="font-size: 12px; line-height: 1.4; color: #A19A94; text-wrap: pretty;">{{r.desc}}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+          <div class="display" style="font-weight: 700; font-size: 20px;">Pick your square</div>
+          <div style="font-size: 12px; color: #8A847E;">fixed until week 5</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 96px repeat(3, minmax(0, 1fr)); gap: 8px;">
+          <div></div>
+          <sc-for list="{{prices}}" as="p" hint-placeholder-count="3">
+            <div style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px 4px;">
+              <div class="display" style="font-weight: 700; font-size: 17px;">{{p.label}}</div>
+              <div class="num" style="font-size: 12px; color: #CFC9C3;">{{p.order}} order · {{p.margin}}</div>
+              <div class="num" style="font-size: 12px; color: #8A847E;">{{p.searches}} a week</div>
+            </div>
+          </sc-for>
+          <sc-for list="{{rows}}" as="row" hint-placeholder-count="2">
+            <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px;">
+              <div style="font-size: 13px; font-weight: 700; color: #CFC9C3;">{{row.label}}</div>
+              <div style="font-size: 12px; line-height: 1.3; color: #8A847E;">{{row.note}}</div>
+            </div>
+            <sc-for list="{{row.cells}}" as="c" hint-placeholder-count="3">
+              <div class="tap tile" onClick="{{c.pick}}" style="height: 122px; box-sizing: border-box; border-radius: 16px; border: 1px solid {{c.line}}; box-shadow: 0 0 0 1px {{c.ring}}; background: {{c.bg}}; padding: 11px 12px 10px; display: flex; flex-direction: column; gap: 4px;">
+                <sc-if value="{{c.showIdentity}}" hint-placeholder-val="{{true}}">
+                  <div style="font-size: 12px; color: #8A847E;">{{c.name}}</div>
+                  <div class="display" style="font-weight: 700; font-size: 15px; line-height: 1.15; color: {{c.fg}}; text-wrap: pretty;">{{c.identity}}</div>
+                </sc-if>
+                <sc-if value="{{c.nameOnly}}" hint-placeholder-val="{{false}}">
+                  <div style="font-size: 13px; font-weight: 600; color: {{c.fg}}; line-height: 1.3;">{{c.name}}</div>
+                </sc-if>
+                <div style="margin-top: auto; display: flex; flex-wrap: wrap; gap: 4px;">
+                  <sc-if value="{{c.on}}" hint-placeholder-val="{{false}}">
+                    <div style="padding: 2px 9px; border-radius: 999px; background: #D7262F; color: #FFF5F4; font-size: 12px; font-weight: 700;">You</div>
+                  </sc-if>
+                  <sc-for list="{{c.guessed}}" as="g" hint-placeholder-count="0">
+                    <div style="padding: 2px 8px; border-radius: 999px; background: #221F25; border: 1px dashed #4A454F; color: #CFC9C3; font-size: 12px; font-weight: 600;">{{g.name}}?</div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </sc-for>
+        </div>
+        <div style="display: flex; justify-content: space-between; gap: 12px; padding-left: 104px; font-size: 12px; color: #8A847E;">
+          <div>← cheaper clicks, more searches</div>
+          <div>higher ceiling, fewer searches →</div>
+        </div>
+        <div style="font-size: 13px; line-height: 1.5; color: #A19A94; text-wrap: pretty;">{{readout}} <span class="link">why?</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 84px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 32px 0 56px;">
+    <div class="tap hov press" style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid #3A363E; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>
+      <div>The market</div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; flex-grow: 1; min-width: 0;">
+      <div style="font-size: 13px; color: #8A847E; white-space: nowrap;">So far</div>
+      <div style="padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">Vella &amp; Co.</div>
+      <div style="padding: 6px 12px; border-radius: 999px; background: #221F25; font-size: 13px; white-space: nowrap;">{{chosenLabel}}</div>
+    </div>
+    <div class="display tap press" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+      <div>Next: your keywords</div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"squares":{"editor":"enum","options":["Both","Who you would be","Your guesses"],"default":"Both"},"$preview":{"width":1440,"height":900}}'>
+/*
+ * Round 0 as its own flow, step 2 of five. The rival ads are the default
+ * market's own (seed 20260902, the player as Vella & Co.), built by setup.js's
+ * buildRivals and sorted by name, as round 0 shows them today.
+ *
+ * WHAT A SQUARE MAY CARRY. The briefing gives figures by price level only, so
+ * those sit on the columns; a figure per square would be worked out from the
+ * affinities round 0 withholds (DECISIONS I3). The rows carry the briefing's
+ * own public line on competition. The squares carry two things that are not
+ * the game's statements: who you would be there (the identity lines drafted on
+ * the earlier round 0 canvas, design/Grid.dc.html) and the player's own
+ * guesses about the rivals, which the game never confirms (C5). Three guesses
+ * are placed to show it, read from the ads; tap the small grid on any ad to
+ * change one.
+ */
+const RIVALS = [
+  { name: 'Auren', domain: 'auren.in', headlines: ['Recycled Nylon, Built To Last', 'Tested Over A Training Block', 'No Chafe, No Ride, No Fuss'], descriptions: ['Recycled technical nylon with bonded panels, tested through a full training block.', 'Talk to a fitter before you order. Thirty days to change your mind, either way.'] },
+  { name: 'Halcyon', domain: 'halcyon.in', headlines: ['Leggings Built To Train In', 'Holds Up, Wash After Wash', 'Squat-Proof, Sweat-Wicking'], descriptions: ['Gym wear that survives four sessions a week and a hot Indian summer.', 'Sizes XS to XXL, with a fit guide that admits when to size up. 30-day returns.'] },
+  { name: 'Kestrel', domain: 'kestrel.in', headlines: ['Modal And Cashmere Blend', 'Considered Athleisure', 'Made To Outlast Trends'], descriptions: ['Loungewear in modal and cashmere blend, cut to hold its shape for years.', 'Fit consultation, and a care card in every box. 30-day returns.'] },
+  { name: 'Lumen', domain: 'lumenlabel.in', headlines: ['Seamless Compression Kit', 'Japanese Technical Knit', 'Made For Heavy Lifts'], descriptions: ['Seamless, sculpting, second-skin. Japanese yarn, knitted to hold under load.', 'Fit consultation before you buy. 30-day returns, free delivery both ways.'] },
+  { name: 'Marlow', domain: 'marlowlabel.in', headlines: ['Co-ord Sets From ₹1199', 'Comfy Everyday, Low Price', 'Buy 2 Sets, Save 20%'], descriptions: ['Soft co-ord sets and joggers that look put together, for a lot less.', 'New drops monthly, sizes XS to XXL. Easy 15-day returns, no questions asked.'] },
+  { name: 'Nira', domain: 'nira.in', headlines: ['Gym Leggings From ₹799', 'Squat Proof, Not Pricey', '2 Sports Bras For ₹999'], descriptions: ['Train hard, spend little. Squat-proof leggings and high-impact bras that hold.', 'Free delivery over ₹799. Easy 15-day returns, because gym fit is hard to guess.'] },
+  { name: 'Satva', domain: 'satva.in', headlines: ['Athleisure For All Day', 'Studio To Street Co-ords', 'The Set You Reach For'], descriptions: ['Everyday athleisure for the school run, the studio, and whatever comes after.', 'Sizes XS to XXL, with a fit guide for between-sizes. 30-day returns.'] },
+  { name: 'Torvi', domain: 'torvi.in', headlines: ['Gym Tees From ₹299', 'Kit Out The Whole Week', 'Buy 3 Tees, Save ₹200'], descriptions: ['Quick-dry tees and running shorts for people who turn up four times a week.', 'One swap within 15 days, no charge, because the first guess is rarely right.'] },
+];
+
+const PRICES = [
+  { key: 'value', label: 'Value', order: '₹1,200', margin: '40% margin', searches: '2,23,600' },
+  { key: 'mid', label: 'Mid', order: '₹2,400', margin: '52% margin', searches: '1,20,400' },
+  { key: 'premium', label: 'Premium', order: '₹4,800', margin: '62% margin', searches: '86,000' },
+];
+// The briefing's competition hint (setup.js, briefing), cut to a caption.
+const PURPOSES = [
+  { key: 'performance', label: 'Performance', note: 'the most contested searches' },
+  { key: 'lifestyle', label: 'Lifestyle', note: 'fewer bidders' },
+];
+const IDENTITY = {
+  'value|performance': 'An affordable gym-wear brand',
+  'value|lifestyle': 'A budget loungewear label',
+  'mid|performance': 'A serious training brand',
+  'mid|lifestyle': 'An everyday athleisure label',
+  'premium|performance': 'A technical performance house',
+  'premium|lifestyle': 'A considered luxury label',
+};
+const CELLS = PURPOSES.flatMap((u) => PRICES.map((p) => ({ key: `${p.key}|${u.key}`, label: `${p.label} · ${u.label}` })));
+const STEPS = ['The market', 'Where you sit', 'Your keywords', 'Your ad', 'Your money'];
+const CURRENT = 1;
+
+const names = (list) => (list.length <= 1 ? list.join('') : `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`);
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = {
+      cell: 'mid|performance',
+      guess: { Nira: 'value|performance', Marlow: 'value|lifestyle', Kestrel: 'premium|lifestyle' },
+    };
+  }
+
+  renderVals() {
+    const mode = this.props.squares ?? 'Both';
+    const guessing = mode !== 'Who you would be';
+    const identity = mode !== 'Your guesses';
+    const guess = this.state.guess;
+    const setGuess = (name, key) => () => {
+      const next = { ...this.state.guess };
+      if (next[name] === key) delete next[name];
+      else next[name] = key;
+      this.setState({ guess: next });
+    };
+
+    const steps = STEPS.map((label, i) => {
+      const done = i < CURRENT;
+      const on = i === CURRENT;
+      return {
+        label, n: String(i + 1), done, notDone: !done, hasJoin: i < STEPS.length - 1,
+        bg: on ? '#221F25' : 'transparent',
+        dotBg: on ? '#D7262F' : (done ? '#EDE8E3' : 'transparent'),
+        dotLine: on ? '#D7262F' : (done ? '#EDE8E3' : '#4A454F'),
+        dotFg: on ? '#FFF5F4' : (done ? '#0D0C0E' : '#A19A94'),
+        fg: on ? '#EDE8E3' : (done ? '#CFC9C3' : '#8A847E'),
+        weight: on ? 700 : 500,
+      };
+    });
+
+    const rivals = RIVALS.map((r) => ({
+      ...r,
+      head: r.headlines.join(' · '),
+      desc: r.descriptions.join(' '),
+      minis: CELLS.map((c) => {
+        const placed = guess[r.name] === c.key;
+        return {
+          label: `${r.name}: ${c.label}`,
+          bg: placed ? '#EDE8E3' : 'transparent',
+          line: placed ? '#EDE8E3' : '#4A454F',
+          pick: setGuess(r.name, c.key),
+        };
+      }),
+    }));
+
+    const rows = PURPOSES.map((purpose) => ({
+      label: purpose.label,
+      note: purpose.note,
+      cells: PRICES.map((price) => {
+        const key = `${price.key}|${purpose.key}`;
+        const on = this.state.cell === key;
+        return {
+          name: `${price.label} · ${purpose.label}`,
+          identity: IDENTITY[key],
+          showIdentity: identity,
+          nameOnly: !identity,
+          guessed: guessing ? RIVALS.filter((r) => guess[r.name] === key).map((r) => ({ name: r.name })) : [],
+          on,
+          line: on ? '#D7262F' : '#2A272D',
+          ring: on ? '#D7262F' : 'transparent',
+          bg: on ? '#1C1417' : '#17161A',
+          fg: on ? '#EDE8E3' : '#CFC9C3',
+          pick: () => this.setState({ cell: key }),
+        };
+      }),
+    }));
+
+    const placed = Object.keys(guess).length;
+    const here = RIVALS.filter((r) => guess[r.name] === this.state.cell).map((r) => r.name);
+    let readout = 'Price sets what a click can be worth to you. Purpose sets which searches are yours.';
+    if (guessing && here.length > 0) {
+      readout = `You've placed ${names(here)} here. If you're right, you'll be competing for exactly the same searches.`;
+    } else if (guessing) {
+      readout = `${readout} You haven't placed any rival here.`;
+    }
+
+    const [price, purpose] = this.state.cell.split('|');
+    return {
+      steps,
+      guessing,
+      rivalsNote: guessing ? `tap the small grid to note where each sits · ${placed} of 8 placed, if you like` : 'in no particular order',
+      rivals,
+      prices: PRICES,
+      rows,
+      readout,
+      chosenLabel: `${PRICES.find((p) => p.key === price).label} · ${PURPOSES.find((p) => p.key === purpose).label}`,
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -20,51 +20,52 @@
  * a way no screenshot shows: saying it in the wrong week, saying it to a player
  * who hired a writer, or saying it forever. The prose is verified in a browser,
  * the same way `termsOutlook`'s is.
+ *
+ * SINCE 2026-09-14 ONLY OLD SAVES REACH IT (I11). A self-written ad now runs on
+ * its words from week 1, so a new game never waits; the measurement above was
+ * taken under the old rule. A game saved before then still carries its week-3
+ * ad and must still be told, so these tests build that save
+ * (tests/fixtures/oldSave.js) and check a new game says nothing.
  */
 
 import { describe, test, expect } from 'vitest';
-import {
-  creativeOutlook, allocationWindowPhrase, rankSentence, profitSubLabel, formContext,
-  paidAtDoorShare, SETTLES_AFTER_ROUNDS,
-} from '../ui/dashboard.js';
-import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
-import { createDraft, prepaidReading } from '../ui/decisions.js';
+import { creativeOutlook, allocationWindowPhrase, formContext } from '../ui/dashboard.js';
+import { createDraft, prepaidOutlook } from '../ui/decisions.js';
 import { startGame } from '../setup.js';
 import { getSelfView } from '../engine/insights.js';
-import { rankOf } from '../ui/ending.js';
 import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
 import { businessFor, realisedBreakEvenCpcPaise, refusalOutlook } from '../engine/positions.js';
 import {
-  CREATIVE_DIY_LIVE_ROUND, DEFAULT_UNGRADED_QUALITY,
-  MONTHLY_BUDGET_PAISE, RANK_BUDGET_MULTIPLIERS,
-  LOCATION_TIERS, COD_SHARE_BY_PRICE_LOCATION, RTO_RATE_COD, RTO_RATE_PREPAID,
+  DEFAULT_UNGRADED_QUALITY, LOCATION_TIERS, COD_SHARE_BY_PRICE_LOCATION,
+  RTO_RATE_COD, RTO_RATE_PREPAID,
 } from '../engine/constants.js';
+import { OLD_SAVE_LIVE_ROUND, asOldSave } from './fixtures/oldSave.js';
 
-const diy = (over = {}) => ({ tier: 'diy', liveAtRound: CREATIVE_DIY_LIVE_ROUND, ...over });
+const diy = (over = {}) => ({ tier: 'diy', liveAtRound: OLD_SAVE_LIVE_ROUND, ...over });
 const hired = (over = {}) => ({ tier: 'freelancer', liveAtRound: 1, ...over });
 
-describe('whether the dashboard says anything about the copy', () => {
+describe('whether the dashboard says anything about the copy, in a game saved before I11 changed', () => {
   test('a self-written ad is flagged as not live, in every week before it lands', () => {
-    for (let round = 1; round < CREATIVE_DIY_LIVE_ROUND; round++) {
+    for (let round = 1; round < OLD_SAVE_LIVE_ROUND; round++) {
       const out = creativeOutlook(diy(), round);
       expect(out, `round ${round}`).toBeTruthy();
       expect(out.state, `round ${round}`).toBe('pending');
-      expect(out.liveAtRound, `round ${round}`).toBe(CREATIVE_DIY_LIVE_ROUND);
+      expect(out.liveAtRound, `round ${round}`).toBe(OLD_SAVE_LIVE_ROUND);
     }
   });
 
   test('and it is flagged as landed on the round it lands, which is the point', () => {
-    const out = creativeOutlook(diy(), CREATIVE_DIY_LIVE_ROUND);
+    const out = creativeOutlook(diy(), OLD_SAVE_LIVE_ROUND);
     expect(out.state).toBe('landed');
   });
 
   test('and never mentioned again', () => {
     // A card that keeps announcing a thing that happened four weeks ago trains
     // the player to stop reading the card.
-    for (const round of [CREATIVE_DIY_LIVE_ROUND + 1, 8, 12]) {
+    for (const round of [OLD_SAVE_LIVE_ROUND + 1, 8, 12]) {
       expect(creativeOutlook(diy(), round), `round ${round}`).toBeNull();
     }
   });
@@ -129,8 +130,8 @@ describe('it agrees with the game rather than restating it', () => {
     // stored grade still reads the ungraded default while the auction that round
     // runs on the written one. The grade in `nextGameState` is the one the round
     // actually used, which is what this compares against.
-    let state = start('diy');
-    for (let round = 1; round <= CREATIVE_DIY_LIVE_ROUND; round++) {
+    let state = asOldSave(start('diy'));
+    for (let round = 1; round <= OLD_SAVE_LIVE_ROUND; round++) {
       const outlook = creativeOutlook(state.advertisers[0].creative, state.round);
       const next = submitRound(state, {}, { mode: 'expected' }).nextGameState;
       const ranAt = next.advertisers[0].adGroups[0].gradedQuality.expectedCtr;
@@ -141,10 +142,10 @@ describe('it agrees with the game rather than restating it', () => {
   });
 
   test('and the round it calls landed is the round the copy actually changed', () => {
-    let state = start('diy');
+    let state = asOldSave(start('diy'));
     let landedAt = null;
     let before = state.advertisers[0].adGroups[0].gradedQuality.expectedCtr;
-    while (state.round <= CREATIVE_DIY_LIVE_ROUND + 1) {
+    while (state.round <= OLD_SAVE_LIVE_ROUND + 1) {
       const round = state.round;
       const said = creativeOutlook(state.advertisers[0].creative, round)?.state;
       const next = submitRound(state, {}, { mode: 'expected' }).nextGameState;
@@ -155,7 +156,16 @@ describe('it agrees with the game rather than restating it', () => {
       state = next;
     }
     expect(landedAt, 'the copy never landed, so this test proves nothing')
-      .toBe(CREATIVE_DIY_LIVE_ROUND);
+      .toBe(OLD_SAVE_LIVE_ROUND);
+  });
+
+  test('a new self-written account has nothing to report, at any round', () => {
+    // Since I11 changed, a self-written ad runs from week 1: nothing waits.
+    let state = start('diy');
+    while (state.round <= 4) {
+      expect(creativeOutlook(state.advertisers[0].creative, state.round), `round ${state.round}`).toBeNull();
+      state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
+    }
   });
 
   test('a hired account never has anything to report, at any round', () => {
@@ -189,97 +199,6 @@ describe('when capital can be spent, in the weeks the player actually sees', () 
     expect(allocationWindowPhrase([5])).toBe('before week 5');
     expect(allocationWindowPhrase([1, 5, 9])).toBe('before week 1, before week 5 and before week 9');
     expect(allocationWindowPhrase([])).toBe('only in its allocation weeks');
-  });
-});
-
-describe('the week-8 rank is told to every finisher, not only the ones whose month moved', () => {
-  test('nothing is claimed before the snapshot', () => {
-    expect(rankSentence(null, MONTHLY_BUDGET_PAISE, 8)).toBeNull();
-  });
-
-  test('every position gets a sentence, including the one whose month 3 is unchanged', () => {
-    // The budget card only drew its rank note when month 3 differed from
-    // MONTHLY_BUDGET_PAISE, and 5th place's multiplier is exactly 1 - so the
-    // one player guaranteed a normal-sized month was never told why.
-    RANK_BUDGET_MULTIPLIERS.forEach((multiplier, i) => {
-      const of = RANK_BUDGET_MULTIPLIERS.length;
-      const text = rankSentence({ position: i + 1, of }, MONTHLY_BUDGET_PAISE * multiplier, 8);
-      expect(text, `position ${i + 1}`).toContain(`ranked ${i + 1} of ${of}`);
-      if (multiplier > 1) expect(text).toMatch(/more than/);
-      if (multiplier < 1) expect(text).toMatch(/less than/);
-      if (multiplier === 1) expect(text).toMatch(/the same/);
-    });
-  });
-
-  test('the week it names is the snapshot the state carries, not a typed 8', () => {
-    expect(rankSentence({ position: 2, of: 9 }, MONTHLY_BUDGET_PAISE, 6)).toContain('week 6');
-  });
-});
-
-describe('the headline profit says when returns have not landed yet', () => {
-  const money = { grossProfitPaise: 19145700, netProfitPaise: 19145700, rtoFreightPaise: 0 };
-
-  test('a week with orders and no returns resolved is marked, because net equals gross', () => {
-    // The week just played can never have a resolved return - the window is two
-    // rounds after the conversion - so its "net profit" was gross in green.
-    expect(profitSubLabel(money, { final: 181.4, returned: 0 })).toMatch(/returns not in yet/);
-  });
-
-  test('once any return has resolved, the marker goes', () => {
-    expect(profitSubLabel(money, { final: 181.4, returned: 12 })).not.toMatch(/returns not in yet/);
-  });
-
-  test('a week with no orders has nothing to come back, so no marker', () => {
-    expect(profitSubLabel(money, { final: 0, returned: 0 })).not.toMatch(/returns not in yet/);
-  });
-
-  test('gross and freight still read as they did', () => {
-    expect(profitSubLabel(money, { final: 0, returned: 0 })).toBe('gross ₹1,91,457');
-    expect(profitSubLabel({ ...money, rtoFreightPaise: 20000 }, { final: 0, returned: 0 }))
-      .toBe('gross ₹1,91,457, less ₹200 freight');
-  });
-});
-
-describe('the month the rank sentence quotes is the month the rank bought', () => {
-  // Found by playing it: at the week-8 dashboard the REPORT row still carries
-  // month 2's budget, which includes any capital rolled in at round 5. A 5th-place
-  // player read "month 3 is ₹2,88,000, more than ₹1,68,000" - the month-2 figure
-  // with ₹1,20,000 of uncommitted capital in it. Month 3 lives on the account the
-  // form is built from (getSelfView), which is what the dashboard must quote.
-  test('after the snapshot, the self view carries exactly the rank\'s allocation', () => {
-    const own = QUERY_SET.queries.filter((q) => homeCell(q) === 'mid|lifestyle').slice(0, 4);
-    let state = startGame({
-      rootSeed: 20260902,
-      playerBrandId: BRAND_IDENTITIES[0].id,
-      querySet: QUERY_SET,
-      player: {
-        position: { price: 'mid', purpose: 'lifestyle' },
-        capex: { sizeGuide: 0, photography: 0, landingPage: 0 },
-        keywords: own.map((q) => ({ text: q.text, matchType: 'phrase', bidPaise: 1500 })),
-        ad: {
-          headlines: ['Everyday Co-ord Sets', 'Soft Lounge Sets', 'Sizes XS To XXL'],
-          descriptions: [
-            'Soft co-ord sets and lounge pants to wear all day.',
-            'Free delivery over Rs 1,499 and 30-day returns.',
-          ],
-          landingPageDescription: 'A plain product page.',
-        },
-        writerTier: 'freelancer',
-      },
-    });
-    const snapshot = state.budgetSchedule.rankSnapshotRound;
-    while (state.round <= snapshot) {
-      state = submitRound(state, {}, { mode: 'expected' }).nextGameState;
-    }
-    const rank = rankOf(state, state.advertisers[0].id);
-    expect(rank, 'the snapshot was taken').not.toBeNull();
-
-    const month = getSelfView(state, state.advertisers[0].id).campaign.monthlyBudgetPaise;
-    expect(month).toBe(Math.round(MONTHLY_BUDGET_PAISE * RANK_BUDGET_MULTIPLIERS[rank.position - 1]));
-
-    const text = rankSentence(rank, month, snapshot);
-    const unchanged = RANK_BUDGET_MULTIPLIERS[rank.position - 1] === 1;
-    expect(/the same/.test(text), text).toBe(unchanged);
   });
 });
 
@@ -375,7 +294,11 @@ describe('the prepaid card shows the refusal rate this account runs at (I29, I34
     });
     expect(Math.abs(towns - booked(game)), 'the towns\' places, not this account\'s').toBeGreaterThan(0.015);
 
-    expect(Math.abs(prepaidReading(formContext(game)).none - booked(game))).toBeLessThan(0.01);
+    // Through `prepaidOutlook` itself. It used to go through `prepaidReading`,
+    // a two-line wrapper that took the classic card's context and went with it;
+    // this is the arithmetic both the wrapper and the Studio's rungs call.
+    const ctx = formContext(game);
+    expect(Math.abs(prepaidOutlook(ctx.draft, ctx.places()).none - booked(game))).toBeLessThan(0.01);
   });
 
   test('and the form is handed no other advertiser\'s figures to do it', () => {
@@ -388,62 +311,5 @@ describe('the prepaid card shows the refusal rate this account runs at (I29, I34
     const ctx = formContext(played());
     const handed = JSON.stringify({ ...ctx, places: ctx.places() });
     expect(handed).not.toMatch(/byAdvertiser/);
-  });
-});
-
-/**
- * The returns card's "Paid at door" is the cash share of the orders its
- * refusal figures count.
- *
- * Those figures read only SETTLED weeks, because a recent week has not had its
- * returns yet. The cash share read every week played, which made no difference
- * while every week had the same one. Now each week carries its own (I34), and
- * read over every week a discount started this week would show at once, beside
- * refusals that cannot move until its weeks settle: a discount that seemed to do
- * nothing.
- */
-describe('the returns card\'s cash share covers the weeks its refusals do (I34)', { timeout: 60_000 }, () => {
-  const games = new Map();
-  // ₹30 from week 3 on, or never; the history as it stood after weeks 7 and 8.
-  const played = (discounted) => {
-    if (games.has(discounted)) return games.get(discounted);
-    let state = makeGameState({ round: 1 });
-    const after = {};
-    for (let week = 1; week <= 8; week++) {
-      const decisions = discounted && week === 3
-        ? { [PLAYER_ID]: { campaign: { prepaidDiscountPaise: 3000 } } } : {};
-      state = submitRound(state, decisions, { mode: 'expected' }).nextGameState;
-      after[week] = state.history;
-    }
-    games.set(discounted, after);
-    return after;
-  };
-  // What the card reads: the settled weeks, as `renderReturns` picks them.
-  const card = (history) => {
-    const latest = history[history.length - 1].round;
-    const settled = history.filter((h) => latest - h.round >= SETTLES_AFTER_ROUNDS).map((h) => h.round);
-    return paidAtDoorShare(history, PLAYER_ID, settled);
-  };
-
-  test('while the discounted weeks are settling, it reads as if there were no discount', () => {
-    // After week 7 only weeks 1 and 2 have settled, and both were sold without it.
-    expect(card(played(true)[7])).toBeCloseTo(card(played(false)[7]), 12);
-  });
-
-  test('and it falls from the week the first of them settles', () => {
-    // After week 8, week 3 has settled too: the refusals it prevented arrive with it.
-    expect(card(played(true)[8])).toBeLessThan(card(played(false)[8]) - 0.005);
-  });
-
-  test('weighted by orders, over the weeks it is given and no others', () => {
-    const week = (round, byLocation) => ({ round, byAdvertiser: { [PLAYER_ID]: { breakdown: { byLocation } } } });
-    const history = [
-      week(1, { 0: { clicks: 900, conversions: 10, codShare: 0.6 }, 1: { clicks: 100, conversions: 30, codShare: 0.72 } }),
-      week(2, { 0: { clicks: 100, conversions: 5, codShare: 0.54 } }),
-      week(3, { 0: { clicks: 500, conversions: 50, codShare: 0.1 } }),
-    ];
-    // (10 x 0.60 + 30 x 0.72 + 5 x 0.54) / 45, week 3 left out.
-    expect(paidAtDoorShare(history, PLAYER_ID, [1, 2])).toBeCloseTo(30.3 / 45, 12);
-    expect(paidAtDoorShare(history, PLAYER_ID, [])).toBeNull();
   });
 });

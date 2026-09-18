@@ -14,7 +14,9 @@
  *          entries and spec sections it rests on. It types no number: figures
  *          arrive from `ui/guide/figures.js`, named in `needs`.
  *
- * Then `yourAccount`, the card where the player can watch it happen.
+ * Then `yourAccount`, the card where the player can watch it happen, and
+ * `studioAccount` where the Studio shows it in a part the classic page has no
+ * card for (found drawing the Guide as a page, 2026-09-15).
  *
  * WHEN A CITED DECISIONS ENTRY CHANGES, re-read the chapters that cite it.
  * `tests/guide.test.js` proves a citation exists, not that the chapter agrees.
@@ -36,11 +38,13 @@ const CITATION = /^([A-Z]\d+[a-z]?|§\d+(\.\d+)*)$/;
  * @param {(figures: object) => string} spec.game - in this game
  * @param {string[]} spec.cites
  * @param {string} spec.yourAccount - the card's `data-slot`
+ * @param {string|null} [spec.studioAccount] - the Studio part's `data-slot`,
+ *   where it differs: a part only the Studio draws
  * @param {string[]} [spec.related]
  */
 export function chapter({
   title, real, realSources = [], device = false, needs = [], game, cites = [],
-  yourAccount, related = [],
+  yourAccount, studioAccount = null, related = [],
 }) {
   if (!title) throw new TypeError('a chapter needs a title');
   if (typeof real !== 'function') throw new TypeError(`"${title}" needs its real half`);
@@ -55,7 +59,7 @@ export function chapter({
   if (!yourAccount) throw new TypeError(`"${title}" needs a card in your account`);
   return Object.freeze({
     title, real, realSources: Object.freeze(realSources), device, needs: Object.freeze(needs),
-    game, cites: Object.freeze(cites), yourAccount, related: Object.freeze(related),
+    game, cites: Object.freeze(cites), yourAccount, studioAccount, related: Object.freeze(related),
   });
 }
 
@@ -112,6 +116,18 @@ const GOOGLE = {
     label: 'Google Ads Help: Duration of the learning period for campaigns',
     url: 'https://support.google.com/google-ads/answer/13020501',
   },
+  qualityScore: {
+    label: 'Google Ads Help: About Quality Score for Search campaigns',
+    url: 'https://support.google.com/google-ads/answer/6167118',
+  },
+  responsiveSearchAds: {
+    label: 'Google Ads Help: About responsive search ads',
+    url: 'https://support.google.com/google-ads/answer/7684791',
+  },
+  dailyBudgets: {
+    label: 'Google Ads Help: About average daily budgets',
+    url: 'https://support.google.com/google-ads/answer/6385083',
+  },
 };
 
 const INDIA = {
@@ -143,9 +159,14 @@ const INDUSTRY = {
 export const CHAPTERS = Object.freeze({
   attributionLag: chapter({
     title: 'Why this week’s numbers keep moving',
+    // Two days, two jobs: the day the sale is counted on, and the day the figure
+    // moves. Said in one clause ("adds a conversion to Monday, on Friday") it is
+    // true and reads as a typo — which the owner caught by playing it, in the one
+    // chapter whose whole job is why a number changes after you have read it.
     real: () => 'Google Ads dates a conversion by the click that led to it, not by the day '
-      + 'of the sale. Someone who clicks on Monday and buys on Friday adds a conversion to '
-      + 'Monday, on Friday. So your newest days always look weakest: their spend is counted '
+      + 'of the sale. Someone who clicks on Monday and buys on Friday has that sale counted '
+      + 'on Monday, the day of the click. Monday’s figures change on Friday — days after you '
+      + 'read them. So your newest days always look weakest: their spend is counted '
       + 'in full, but many of their buyers have not bought yet. Depending on the conversion '
       + 'window you set, a sale can still be added up to 90 days after the click.',
     realSources: [GOOGLE.byClickTime, GOOGLE.howLong],
@@ -158,7 +179,8 @@ export const CHAPTERS = Object.freeze({
       + 'advertiser shares one fixed shape, counted in weeks because each turn is a week.',
     cites: ['I27', '§11.3', '§11.4'],
     yourAccount: 'revised',
-    related: ['returnsSplit'],
+    // Smart bidding learns only from conversions that have landed.
+    related: ['returnsSplit', 'smartBidding'],
   }),
 
   returnsSplit: chapter({
@@ -172,10 +194,11 @@ export const CHAPTERS = Object.freeze({
       + 'on ad spend it shows you is before returns.',
     realSources: [INDIA.pragmaRto, GOOGLE.adjustments],
     needs: ['rtoCod', 'rtoPrepaid', 'postDelivery', 'freight'],
-    game: ({ rtoCod, rtoPrepaid, postDelivery, freight }) => 'Here the returns card is your '
-      + 'shop’s own books, which Google Ads would show only if you uploaded them. Every order '
+    game: ({ rtoCod, rtoPrepaid, postDelivery, freight }) => 'Here the game shows your returns from '
+      + 'your shop’s own books, which Google Ads would show only if you uploaded them. Every order '
       + `can be refused at the door, ${rtoCod} of the time when paid in cash and ${rtoPrepaid} `
-      + `when prepaid, and ${postDelivery} of delivered orders are sent back. Each refused `
+      + `when prepaid, and ${postDelivery} of delivered orders across the country are sent back, `
+      + 'more or less for you depending on where you sell. Each refused '
       + `parcel also costs ${freight} in freight. The two halves have different fixes: a size `
       + 'guide reaches only send-backs, while order confirmation and a prepaid discount reach '
       + 'only refusals. The refusal rates come from one named study; newer reports put cash '
@@ -195,17 +218,20 @@ export const CHAPTERS = Object.freeze({
       + 'place: you can raise or lower bids by location, from −90% to +900%, though not under '
       + 'Smart Bidding strategies.',
     realSources: [INDIA.firstResort, INDIA.unicommerce, GOOGLE.bidAdjustments],
-    game: () => 'The game makes cash commoner outside the metros and at lower prices, so '
+    needs: ['bidCap'],
+    game: ({ bidCap }) => 'The game makes cash commoner outside the metros and at lower prices, so '
       + 'orders from smaller cities and towns come back more often and cost more to carry. '
-      + 'The Where you advertise card is the lever: it shows what a click kept in each place '
-      + 'after returns, and lets you bid up or down there. It departs in two ways: an '
+      + 'Where you advertise is the lever: it shows what a click kept in each place '
+      + 'after returns, and lets you bid up or down there. It departs in three ways: an '
       + 'adjustment can switch a place off entirely, where Google’s lowest adjustment still '
-      + 'leaves it on; and it applies under every bidding strategy, including the automated '
-      + 'ones Google does not allow it with. How cash varies by price is the game’s own '
-      + 'estimate.',
-    cites: ['G4', 'I28', 'D11'],
+      + 'leaves it on; it applies under every bidding strategy, including the automated '
+      + `ones Google does not allow it with; and no bid goes past ${bidCap} your keyword bid, `
+      + 'however the place’s and the hour’s adjustments stack. How cash varies by price is '
+      + 'the game’s own estimate.',
+    cites: ['G4', 'I28', 'D11', 'D13'],
     yourAccount: 'places',
-    related: ['returnsSplit'],
+    // A place and an hour are both bid adjustments, under the one cap (D13).
+    related: ['returnsSplit', 'hours'],
   }),
 
   counterfactuals: chapter({
@@ -226,6 +252,10 @@ export const CHAPTERS = Object.freeze({
       + 'impossible outside it.',
     cites: ['G1', 'G1a'],
     yourAccount: 'budget',
+    // Both replays are drawn after the last week, in Results' What you learned.
+    studioAccount: 'results-moments',
+    // The budget "what if" answers lost to budget.
+    related: ['rankOrBudget'],
   }),
 
   kindMarket: chapter({
@@ -239,13 +269,13 @@ export const CHAPTERS = Object.freeze({
       + 'these as a rough range rather than a fact.',
     realSources: [INDUSTRY.ppcChief, INDIA.balistro],
     game: () => 'Measured across many markets, ads here are clicked, and clicks buy, at least as '
-      + 'often as those benchmarks, and a player bidding sensibly earns returns at the top of the '
+      + 'often as those benchmarks, and a player bidding sensibly earns returns above the '
       + 'Indian range and made money in every market measured. Three choices make it kinder '
       + 'than a real market: the results page holds nothing but ads, so no organic results or '
       + 'shopping units compete for the click; the base conversion rate is the game’s own '
       + 'estimate; and there is no lifetime value, so the first order must carry everything, '
       + 'and here it does so easily. A careless player can still lose money.',
-    cites: ['F15', 'B6', 'F4'],
+    cites: ['F15', 'F17', 'B6', 'F4'],
     yourAccount: 'headline',
   }),
 
@@ -258,7 +288,7 @@ export const CHAPTERS = Object.freeze({
       + 'were eligible for. Google presents the figure as telling you whether your ads might '
       + 'reach more people with a higher bid or a bigger budget.',
     realSources: [GOOGLE.impressionShareData, GOOGLE.impressionShare],
-    game: () => 'The share card splits every week the same way, but exactly, because this game '
+    game: () => 'This game splits every week’s missed searches the same way, but exactly, because it '
       + 'counts every auction you could have entered. The two point at different fixes. Lost to '
       + 'budget means the money ran out first: more money helps, and so do cheaper clicks, while '
       + 'a higher bid makes each click dearer and the money runs out sooner. Lost to rank means '
@@ -288,6 +318,35 @@ export const CHAPTERS = Object.freeze({
       + 'under any strategy.',
     cites: ['E8', 'E9', 'H5', 'H6', '§8.2'],
     yourAccount: 'terms',
+    // A poorer fit lowers your ad rank.
+    related: ['qualityScore'],
+  }),
+
+  qualityScore: chapter({
+    title: 'What the Quality Score is, and is not',
+    real: () => 'Google Ads gives each keyword a Quality Score from 1 to 10, a diagnostic of '
+      + 'how your ad quality compares to other advertisers. Three parts make it up: expected '
+      + 'clickthrough rate, the likelihood your ad is clicked when shown; ad relevance, how '
+      + 'closely your ad matches the intent behind a search; and landing page experience, how '
+      + 'relevant and useful your page is to people who click. Each is rated above average, '
+      + 'average or below average, against advertisers whose ads showed for the exact same '
+      + 'search over the last 90 days. Google says it is not an input in the ad auction. A '
+      + 'dash means too few searches exactly match the keyword to score it.',
+    realSources: [GOOGLE.qualityScore],
+    needs: ['qsImpressions'],
+    game: ({ qsImpressions }) => 'Here too the score is a report, never an input: the '
+      + 'auction weighs your ad’s quality afresh on every search, and the score is worked out '
+      + 'afterwards. It counts only the keyword’s own literal search, in finished weeks, so a '
+      + 'better ad counts in the very next auction, in your position and its price, while the '
+      + 'score catches up late or never. Each part has three levels against everyone on the '
+      + 'same search, so a real improvement can leave it unmoved, and landing page reads '
+      + `above average only rarely. A keyword has no score until its own search earns `
+      + `${qsImpressions} impressions. Where it departs: the overall score comes from the `
+      + 'three ratings through a table this game invented.',
+    cites: ['A1', 'A2', 'A5', 'A6'],
+    yourAccount: 'keywords',
+    // The writer sets two of the score's three parts.
+    related: ['broadMatch', 'writers'],
   }),
 
   ownName: chapter({
@@ -307,7 +366,9 @@ export const CHAPTERS = Object.freeze({
       + 'contest it and the owner can afford to bid higher, not because searchers prefer the '
       + 'name they typed.',
     cites: ['A9', '§12.1'],
-    yourAccount: 'insights',
+    // The search terms, where a search for the player's own name is marked as
+    // theirs; the auction insights say nothing about a name.
+    yourAccount: 'terms',
   }),
 
   smartBidding: chapter({
@@ -335,26 +396,75 @@ export const CHAPTERS = Object.freeze({
   hours: chapter({
     title: 'Bidding by the hour',
     real: () => 'Google Ads lets you raise or lower your bids by day and hour through the ad '
-      + 'schedule, from −90% to +900%. Your ads follow the days and times the schedule sets, '
+      + 'schedule, from −90% to +900%. Adjustments usually multiply, and together they cannot raise a '
+      + 'bid by more than 900%. Your ads follow the days and times the schedule sets, '
       + 'so to stop showing at an hour you leave it out. With Smart Bidding strategies such as '
       + 'Target CPA, Target ROAS and Maximise conversions, schedule adjustments are not used at '
       + 'all: Smart Bidding already sets each bid from performance by time of day.',
     realSources: [GOOGLE.bidAdjustments, GOOGLE.smartBidding],
-    game: () => 'Here searches peak at one time of day and buying at another, which is what '
+    needs: ['bidCap'],
+    game: ({ bidCap }) => 'Here searches peak at one time of day and buying at another, which is what '
       + 'makes an hour adjustment pay: it can move money toward the hours that convert rather '
-      + 'than the hours that are busy. It departs twice. The lowest setting takes you out of an '
-      + 'hour altogether, where Google’s lowest still leaves you in it. And the adjustment '
+      + 'than the hours that are busy. It departs three times. The lowest setting takes you out '
+      + 'of an hour altogether, where Google’s lowest still leaves you in it. The adjustment '
       + 'works under every strategy: under the ones that predict conversions it lands on top '
       + 'of the strategy’s own lean by hour, so the hour counts twice, which Google does not '
-      + 'allow.',
-    cites: ['D11', 'H4', 'D2'],
+      + `allow. And no bid goes past ${bidCap} your keyword bid, however the hour’s and the `
+      + 'place’s adjustments stack.',
+    cites: ['D11', 'H4', 'D2', 'D13'],
     yourAccount: 'hours',
-    related: ['smartBidding'],
+    related: ['smartBidding', 'cashOnDelivery'],
+  }),
+
+  writers: chapter({
+    title: 'Who writes the ad',
+    real: () => 'A search ad in Google Ads is built from headlines and descriptions: up to 15 '
+      + 'headlines of up to 30 characters and 4 descriptions of up to 90, which Google '
+      + 'assembles into combinations, testing them to learn which are most relevant. At least '
+      + 'one headline and one description show at a time. Two of Quality Score’s three parts '
+      + 'are about the ad: expected clickthrough rate, the likelihood it is clicked when shown, '
+      + 'and ad relevance, how closely it matches the intent behind a search. The third, '
+      + 'landing page experience, is how relevant and useful your page is to people who click.',
+    realSources: [GOOGLE.responsiveSearchAds, GOOGLE.qualityScore],
+    game: () => 'Before the first week you choose who writes the ad, which sets two of Quality '
+      + 'Score’s three parts: expected click-through and ad relevance. A hired writer’s ad runs '
+      + 'at the writer’s level whatever the words say, because this game cannot judge '
+      + 'professional writing. Writing it yourself costs nothing, and the game’s grader scores '
+      + 'your words by rules, not taste: echoing your own keywords counts for more than reading '
+      + 'well. Both run from the first week, and what the writer does not cost goes to your ads, '
+      + 'so the fee buys not having to write, and insurance against writing badly. The landing '
+      + 'page is built with capital. Where it departs: Google’s Quality Score has no part for '
+      + 'who wrote the ad.',
+    cites: ['I11', 'I10', 'I25', 'I9'],
+    // The classic page draws the ad on no card; the Studio's Your ad does.
+    yourAccount: 'keywords',
+    studioAccount: 'writer',
+    related: ['qualityScore'],
+  }),
+
+  weeklySplit: chapter({
+    title: 'Splitting the month into weeks',
+    real: () => 'Google Ads budgets by the day: you set an average daily budget for each '
+      + 'campaign, the average amount it spends per day. On a particular day it may spend up to '
+      + 'twice that, for most campaigns, because Google leans spend toward the days of the month '
+      + 'when you are more likely to get clicks and conversions. Across a month it stays within '
+      + '30.4 times the daily figure.',
+    realSources: [GOOGLE.dailyBudgets],
+    game: () => 'Here each month’s money is a fixed amount you divide across its four weeks, '
+      + 'evenly unless you change the split, and within a week it is paced across the days and '
+      + 'hours. A week spends what it was given and no more, and money left when the month ends '
+      + 'is lost: nothing carries over, so hoarding cannot win. Where it departs: Google works '
+      + 'from a daily average and moves spend between days for you; here the shape of the month '
+      + 'is yours to set, which is why the split exists, and yours to read afterwards.',
+    cites: ['D10', '§13.2', 'D1'],
+    yourAccount: 'split',
+    related: ['rankOrBudget'],
   }),
 });
 
 /** The guide's contents list, in reading order. */
 export const CONTENTS = Object.freeze([
   'attributionLag', 'returnsSplit', 'cashOnDelivery', 'rankOrBudget', 'broadMatch',
-  'ownName', 'smartBidding', 'hours', 'counterfactuals', 'kindMarket',
+  'qualityScore', 'writers', 'ownName', 'smartBidding', 'hours', 'weeklySplit',
+  'counterfactuals', 'kindMarket',
 ]);

@@ -37,6 +37,9 @@ const GROUPS = [
   ['weeks 1-4', (name) => /^week [1-4]$/.test(name)],
   ['weeks 5-11', (name) => /^week (5|6|7|8|9|10|11)$/.test(name)],
   ['end screen', (name) => name === 'end screen'],
+  // Before a game opens (the switch-over, part 1): the offer, the replay, a
+  // game the simulator changed under, and one it could not open at all.
+  ['front door', (name) => ['resume offer', 'restoring', 'replay changed', 'restore failed'].includes(name)],
   ['other', () => true],
 ];
 
@@ -185,6 +188,13 @@ export async function report(file) {
   }
   if (env.userAgent) lines.push(`Browser: ${env.userAgent}`);
   lines.push(`Page loads: ${file.recording.loads.length}`);
+  // Only when it changed mid-game: otherwise the version is the tag you read it
+  // on, and a line saying so on every file would be noise.
+  const versions = file.versions ?? file.recording.versions ?? [];
+  if (versions.length > 1) {
+    lines.push(`Versions: ${versions.map((v) => `${v.version} from `
+      + `${new Date(v.at).toISOString().slice(11, 16)} UTC`).join(', ')}`);
+  }
 
   lines.push('', 'Time on each part (active = hidden and idle time taken off)');
   lines.push(`  ${pad('', 12)}${num('active', 8)}${num('hidden', 8)}${num('idle', 8)}${num('clicks', 8)}${num('keys', 7)}`);

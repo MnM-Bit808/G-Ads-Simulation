@@ -194,10 +194,10 @@ describe('every interface module at least loads', () => {
     'decisions.js': () => import('../ui/decisions.js'),
     'ending.js': () => import('../ui/ending.js'),
     'landing-page.js': () => import('../ui/landing-page.js'),
-    'round-zero.js': () => import('../ui/round-zero.js'),
     'india-map.js': () => import('../ui/india-map.js'),
     'save.js': () => import('../ui/save.js'),
     'recorder.js': () => import('../ui/recorder.js'),
+    'version.js': () => import('../ui/version.js'),
     'words/line.js': () => import('../ui/words/line.js'),
     'words/returns.js': () => import('../ui/words/returns.js'),
     'words/guide.js': () => import('../ui/words/guide.js'),
@@ -208,9 +208,60 @@ describe('every interface module at least loads', () => {
     'guide/chapters.js': () => import('../ui/guide/chapters.js'),
     'guide/figures.js': () => import('../ui/guide/figures.js'),
     'guide/drawer.js': () => import('../ui/guide/drawer.js'),
+    'guide/book.js': () => import('../ui/guide/book.js'),
+    'guide/page.js': () => import('../ui/guide/page.js'),
     'debrief/read.js': () => import('../ui/debrief/read.js'),
     'debrief/render.js': () => import('../ui/debrief/render.js'),
     'season/read.js': () => import('../ui/season/read.js'),
+    'shell/sections.js': () => import('../ui/shell/sections.js'),
+    'shell/tray.js': () => import('../ui/shell/tray.js'),
+    'shell/shell.js': () => import('../ui/shell/shell.js'),
+    'shell/context.js': () => import('../ui/shell/context.js'),
+    'door/read.js': () => import('../ui/door/read.js'),
+    'door/render.js': () => import('../ui/door/render.js'),
+    'words/door.js': () => import('../ui/words/door.js'),
+    'words/shell.js': () => import('../ui/words/shell.js'),
+    'roundzero/rules.js': () => import('../ui/roundzero/rules.js'),
+    'kit/controls.js': () => import('../ui/kit/controls.js'),
+    'kit/card.js': () => import('../ui/kit/card.js'),
+    'kit/planner.js': () => import('../ui/kit/planner.js'),
+    'kit/serp.js': () => import('../ui/kit/serp.js'),
+    'words/keywords.js': () => import('../ui/words/keywords.js'),
+    'keywords/read.js': () => import('../ui/keywords/read.js'),
+    'keywords/render.js': () => import('../ui/keywords/render.js'),
+    'words/ad.js': () => import('../ui/words/ad.js'),
+    'ad/read.js': () => import('../ui/ad/read.js'),
+    'ad/render.js': () => import('../ui/ad/render.js'),
+    'words/where.js': () => import('../ui/words/where.js'),
+    'where/read.js': () => import('../ui/where/read.js'),
+    'where/render.js': () => import('../ui/where/render.js'),
+    'words/week.js': () => import('../ui/words/week.js'),
+    'week/read.js': () => import('../ui/week/read.js'),
+    'week/render.js': () => import('../ui/week/render.js'),
+    'words/typed.js': () => import('../ui/words/typed.js'),
+    'typed/read.js': () => import('../ui/typed/read.js'),
+    'typed/render.js': () => import('../ui/typed/render.js'),
+    'words/money.js': () => import('../ui/words/money.js'),
+    'money/read.js': () => import('../ui/money/read.js'),
+    'money/render.js': () => import('../ui/money/render.js'),
+    'returns/read.js': () => import('../ui/returns/read.js'),
+    'returns/render.js': () => import('../ui/returns/render.js'),
+    'words/rivals.js': () => import('../ui/words/rivals.js'),
+    'rivals/read.js': () => import('../ui/rivals/read.js'),
+    'rivals/render.js': () => import('../ui/rivals/render.js'),
+    'words/results.js': () => import('../ui/words/results.js'),
+    'words/playtest.js': () => import('../ui/words/playtest.js'),
+    'results/read.js': () => import('../ui/results/read.js'),
+    'results/render.js': () => import('../ui/results/render.js'),
+    'reserve.js': () => import('../ui/reserve.js'),
+    'map/india.js': () => import('../ui/map/india.js'),
+    'roundzero/studio.js': () => import('../ui/roundzero/studio.js'),
+    'roundzero/market.js': () => import('../ui/roundzero/market.js'),
+    'roundzero/position.js': () => import('../ui/roundzero/position.js'),
+    'roundzero/keywords.js': () => import('../ui/roundzero/keywords.js'),
+    'roundzero/ad.js': () => import('../ui/roundzero/ad.js'),
+    'roundzero/money.js': () => import('../ui/roundzero/money.js'),
+    'words/roundZero.js': () => import('../ui/words/roundZero.js'),
   };
 
   test('the list of modules to load is complete', () => {
@@ -227,14 +278,13 @@ describe('every interface module at least loads', () => {
     }
   });
 
-  test('and the ones that draw a screen export a render function', async () => {
-    for (const file of ['chart.js', 'dashboard.js', 'decisions.js', 'ending.js', 'round-zero.js']) {
-      const module = await LOADABLE[file]();
-      const renders = Object.entries(module).filter(([name]) => name.startsWith('render'));
-      expect(renders.length, file).toBe(1);
-      expect(typeof renders[0][1], file).toBe('function');
-    }
-  });
+  // There was a test here that the five classic screens each exported exactly
+  // one render function: chart.js, dashboard.js, decisions.js, ending.js and
+  // round-zero.js. The switch-over's part 2 emptied the list one screen at a
+  // time, and a loop over nothing asserts nothing, so it went with the last of
+  // them. Every module that draws now is a Studio section, held by
+  // tests/sections.test.js (each draws the parts its section claims) and by
+  // tests/words.test.js's drawing guard (a drawing module writes no sentence).
 });
 
 describe('the dev server serves the project, not just the interface', () => {

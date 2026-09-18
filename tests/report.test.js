@@ -11,12 +11,13 @@ import {
   CAPEX_TIER_CURVE, CAPEX_PHOTOGRAPHY_CURVE,
 } from '../engine/constants.js';
 import { codShareFor } from '../engine/locations.js';
-import { businessFor, realisedBreakEvenCpcPaise, refusalOutlook } from '../engine/positions.js';
+import { refusalOutlook } from '../engine/positions.js';
 import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { homeCell } from '../engine/querySet.js';
+import { businessFor, realisedBreakEvenCpcPaise } from '../engine/positions.js';
 
 const STATE = makeGameState();
 const R1 = runRound(STATE, { mode: 'expected', counterfactualFor: ['halcyon'] });

@@ -1,0 +1,46 @@
+{
+  "artboards": [
+    { "file": "Today.dc.html", "x": 0, "y": 0, "w": 920, "h": 1000, "title": "Today · a caption earns a point" },
+    { "file": "Main.dc.html", "x": 1020, "y": 0, "w": 920, "h": 1180, "title": "C · Grade only what Google names" },
+    { "file": "Say.dc.html", "x": 0, "y": 1300, "w": 920, "h": 1040, "title": "A · Keep the point, and say what earns it" },
+    { "file": "Words.dc.html", "x": 1020, "y": 1300, "w": 920, "h": 1180, "title": "B · The length counts what the page says" }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "x": -440,
+      "y": 0,
+      "w": 400,
+      "text": "Product shots and the landing page grade.\n\nYour question: should product shots earn a landing page point only by making the description longer?\n\nThe grader gives +1 to any page description over 40 characters. The plain page is 21 (\"A plain product page.\"). Product shots add \"Product shots on white.\", which takes it to 45: +1, for a caption.\n\nMeasured through round 0's own rules, Vella & Co. at mid-price performance, grade from week 4:\nproduct shots alone: 6\na faster page alone: 6 (also by length)\na size chart alone: 7 (41 characters, plus sizing)\nreviews and a size chart: 10\n\nDrawn on product shots alone, ₹50,000 at round 0, because that is the game the question changes. C also shows the week-6 game from the last canvas, because C changes how its rows read."
+    },
+    {
+      "id": "sources",
+      "x": -440,
+      "y": 640,
+      "w": 400,
+      "text": "WHAT GOOGLE SAYS, fetched 2026-09-17.\n\nGoogle Ads Help, \"Optimize your ads and landing pages\" (support.google.com/google-ads/answer/6238826): useful, original information about what you advertise; being clear about the product; adding reviews from real customers; for mobile, keep it quick and use simple navigation; a page that matches the ad and keywords.\n\nSearch Ads 360 Help, \"Landing page experience\" (support.google.com/sa360/answer/9351020): usefulness and relevance of the information, ease of navigation, the number of links, and what the ad led people to expect.\n\nNeither page mentions images, photos, video, or how long the text is."
+    },
+    {
+      "id": "pick",
+      "x": 1980,
+      "y": 0,
+      "w": 360,
+      "text": "C — RECOMMENDED. Every point a player sees has a reason they can check, and two of the four are ones Google names. The shared line goes, so the breakdown gets simpler. Cost: the biggest market move. Every game where a chart or shots are live with nothing spent on the page loses a point.\n\nB — the smallest change that answers your question. Only players who buy shots first lose a point, and round 0's photography card becomes true. Cost: length stays the rule, so the faster page and the size chart still earn by character count.\n\nA — no number moves; the screen owns up. Cost: the game keeps paying a grade point for a caption, with a label on it.\n\nB and C move the market (the player's grade only; rivals' page grades are written, not graded), so either is measured with the harness against gates we agree before any run."
+    },
+    {
+      "id": "not-drawn",
+      "x": 1980,
+      "y": 1300,
+      "w": 360,
+      "text": "CONSIDERED, NOT DRAWN: a grade point of their own for pictures (\"+1 it shows the product\").\n\nNeither Google page names pictures, so it would be a new unsourced rule rather than a fix. And photography is already the best single capital purchase in 4 of the 6 cells (I30, as F14 left it), for raising how many visitors buy. A grade point on top would widen a lead I30 worked to cut."
+    },
+    {
+      "id": "also-found",
+      "x": 1980,
+      "y": 1720,
+      "w": 360,
+      "text": "ALSO FOUND, NOT PART OF THIS QUESTION.\n\nRound 0's size guide card says it moves \"parcels sent back\", but its grade bar rises by two when you pick a chart (sizing, and length). The same kind of gap as the photography card. Worth its own look once this is decided, since C changes it to one point."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

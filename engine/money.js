@@ -85,6 +85,25 @@ export function mulRate(paise, rate) {
 }
 
 /**
+ * Round an amount that is not yet money to integer paise, half up.
+ *
+ * For a price that is an AVERAGE of whole-paise prices: an advertiser taking
+ * part in only a share of a slice's searches pays each ladder's whole-paise
+ * price weighted by how often that ladder happens, which is rarely whole
+ * (DECISIONS F17). It becomes money here, once, where it is spent, by the same
+ * rule mulRate uses.
+ *
+ * @param {number} value finite
+ * @returns {number} integer paise
+ */
+export function roundPaise(value) {
+  if (!Number.isFinite(value)) {
+    throw new TypeError(`value must be finite, got ${String(value)}`);
+  }
+  return roundHalfUp(value);
+}
+
+/**
  * Sum integer paise, asserting every element on the way through.
  *
  * @param {number[]} values
@@ -179,9 +198,19 @@ export function formatINR(paise, opts = {}) {
  * wrong way. Snapping to 12 significant decimals first removes that class of
  * surprise without affecting any value the engine legitimately produces.
  *
+ * ONLY WHERE IT CAN MATTER. The snap is a string conversion, and since F17 the
+ * round rounds a price for every advertiser that shows in any share of a
+ * slice, so it was a fifth of a round's time. It moves a value by at most half
+ * a unit in the twelfth digit, which is under |v| x 1e-11, so it can change the
+ * answer only for a value that close to a half. Any other rounds the same
+ * without it. `money.test.js` holds this to the snap-then-round rule at every
+ * scale, right at the edges.
+ *
  * @param {number} v
  * @returns {number} integer
  */
 function roundHalfUp(v) {
+  const fromHalf = Math.abs(Math.abs(v % 1) - 0.5);
+  if (fromHalf > Math.abs(v) * 1e-11 + 1e-9) return Math.round(v);
   return Math.round(Number(v.toPrecision(12)));
 }

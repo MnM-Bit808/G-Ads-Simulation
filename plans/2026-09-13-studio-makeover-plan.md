@@ -24,6 +24,43 @@ in `ui/keywords/read.js`, drawing in `ui/keywords/render.js`, words in
 working mock-up is `design/makeover/Main.dc.html` (canvas
 https://claude.ai/code/artifact/d881fe56-251c-4ded-9173-b8616924bbc4).
 
+## Amended by the round 0 plan (2026-09-14)
+
+Round 0 was rebuilt in the Studio look between this plan's Tasks 6 and 7
+(`plans/2026-09-14-round-zero-redesign-plan.md`), and on the way it built the
+keyword card, the planner drawer and the kit's controls that Tasks 7 to 9 here
+were to write. Read those tasks with these changes:
+
+- **Task 6** was built before round 0 (`f75a3a3`): the keyword card opens its
+  chapter from the *QS* button.
+- **Task 7:** `SLIDER_FLOOR_PAISE`, `SLIDER_HEADROOM`, `SLIDER_STEP_PAISE` and
+  `sliderMaxPaise` live in `ui/kit/card.js`; import them from there instead of
+  defining them in `ui/keywords/read.js`. `ui/words/keywords.js` exists, so
+  Task 7 adds only the weekly lines, and `KEYWORDS.isNew` reads "new: no clicks
+  yet".
+- **Task 8:** Step 3 is done: `ui/kit/controls.js` holds `icon`, `button`,
+  `pills`, `toggle`, `stat`, `slider` and `typeIn`, and the shell imports
+  `icon` and `button` from it. Step 2's drawing guard already lists the kit, so
+  it adds only `ui/keywords/render.js`. Step 4 draws each card with the kit's
+  `keywordCard` (`ui/kit/card.js`), adding the weekly parts to it (the running
+  switch, *was*, the checkbox, the changed and paused outlines) rather than
+  drawing its own, and opens the drawer with the kit's `openPlanner`
+  (`ui/kit/planner.js`). Step 6 appends only the section's own rules (`khead`,
+  `kpanel`, `klever`, `kbar`, `klegend`, `kcheck`, `kbulk`, `kswitch`,
+  `kadjust`, and the card's changed, paused and selected states); the card,
+  pills, slider, menu, planner and text box are styled already.
+- **Task 9:** the press, the planner drawer's entrance and exit, the menu's
+  grow and round 0's step transition are in the motion block at the end of
+  `ui/studio.css`, reduced motion included. Task 9 adds only the tray's chips,
+  the switch's knob, the section dot and a section's first visit, and does not
+  declare the others twice. **Keep the chip entrance to the weekly tray**
+  (`body.studio .studio-tray:not(.r0-tray) .studio-chip`): round 0 redraws its
+  tray's *So far* chips on every change, so an entrance there would replay
+  under every drag of a bid.
+- **Task 11:** CLAUDE.md and HANDOVER already give `makeover`'s file count (80
+  at the end of round 0); `wrangler.jsonc`'s comment still says 54, for the
+  switch-over to change.
+
 ## Global constraints
 
 - Branch `makeover`, cut from `main`. Commit after each green `npm test`, one
@@ -1982,6 +2019,18 @@ no chapter exists for it yet.
   purpose, and confirm each is caught; restore. `npm test`. Commit: *Work out what
   each keyword card shows, and write its words*.
 
+  *Found when built:* two of the tests above could not fail. The "was" test
+  reads `a.bidPaise` after `updateKeyword` has changed that same object, so it
+  expected the new bid as the old one; it now reads the bid first. The
+  percentage test took ₹33 down 20% to ₹26.40, where rounding and rounding down
+  agree; it now takes ₹33 down 10% to ₹29.70, which must come out ₹30. As
+  amended above, the slider's range and its tests are the kit's
+  (`tests/kit.test.js`). The weekly model also carries `needPaise: null`, so it
+  has exactly the keys round 0's `setupKeywordCards` gives the kit's card, and a
+  test holds the two shapes together. Broken on purpose, each of the rounding
+  of a click's price, the rounding of a percentage and the tags rule failed its
+  test.
+
 ---
 
 ### Task 8: Your keywords, drawn
@@ -2855,6 +2904,27 @@ kit; `renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride
   Then play one classic week. Commit: *Draw Your keywords: cards, the reading
   panel, the planner and adjust several*.
 
+  *Found when built:* as amended above, the section draws the kit's card and
+  planner rather than its own. The kit's `keywordCard` gained two optional parts,
+  `onActive` (the running switch) and `select` (the tick), and draws "was", the
+  slider's was-marker and the changed, paused and selected outlines from the
+  model, which gained `changed` (round 0's is false). `render.js` is the head,
+  the reading panel, the grid and Adjust several, about 300 lines where the plan
+  had 540. The planner shares `ctx.planner`, the classic planner's own state.
+  The section exposes `leave()`, which the shell calls on leaving it while
+  picking, or the tray would keep the bar in another section; and the shell
+  refreshes it on the way in, since another section may have staged a change.
+  The owner asked for round 0's reserve warning on every week's card (commits
+  before this one). `ctx.refresh` exists: `renderDecisions` writes it back.
+  Playing it found three things, each its own commit or fixed here: the tray
+  showed "0 changes waiting" beside "No changes yet", because a class's
+  `display` outranked `hidden` (fixed for the whole Studio); a played week's
+  top bar ran to 497px on a 375px phone, as round 0's once did; and Adjust
+  several's bar, on one line, pushed the page sideways at 673px, so it wraps
+  and the tray grows at any width. Its tick measured 1.52:1 against a card and
+  now uses the 3:1 grey. The Enter key does not reach the typed-bid box in the
+  browser pane, so that was committed with Tab. The build publishes 83 files.
+
 ---
 
 ### Task 9: the motion
@@ -2946,6 +3016,30 @@ kit; `renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride
   flags; `npm test`; commit: *Move only where it explains: the tray, drawers,
   the menu, press, the switch and a section's first visit*.
 
+  *Found when built:* as amended above, only the tray's lines, the switch's
+  knob, the section dot and a section's first visit were new; the press, the
+  drawer and the menu came with round 0. Row 2 (revised figures) waits for Your
+  week to be rebuilt. Two things in Step 2's code were wrong. `view.firstOpen`
+  lasts until another section is opened, so every other redraw of the section
+  (the menu, on a phone) played the cards' entrance again; it is now spent as
+  it plays, in the shell's `arrive`. And a dot's entrance was spent in the
+  first draw even where the list is hidden behind the menu (under 900px), so on
+  a phone it never showed; it now waits for the list to be seen, asked of the
+  width (`LIST_BEHIND_MENU`), because the first draw happens before the shell
+  is on the page. No rebuilt section is ever fresh yet (Your keywords has no
+  `opensAt`), so the rebuilt-section case in Step 2 has nothing to act on. The
+  browser pane cannot turn on reduced motion; the rules were read back from the
+  page as written.
+
+  *The review:* `/review-animations` was not in the session, so the owner had
+  `improve-animations` run on this task's diff instead, as in round 0's Task 14.
+  It found two things; the owner took the first. The tray's strip scrolls
+  sideways and never scrolled to a new line, so at 673px the second line showed
+  41 of its 271px and every later one none: the change just made entered out of
+  sight. The strip now scrolls to a line as it arrives, smoothly, or at once
+  under reduced motion. Declined: fading the "changes waiting" badge in with the
+  week's first line.
+
 ---
 
 ### Task 10: play it through, and measure
@@ -2978,6 +3072,43 @@ kit; `renderKeywordsSection({ game, ctx, openGuide, openSection, setTrayOverride
   branch preview, if the owner has said to push) and ask the spec's own question:
   does it feel alive, or only tidier? Their answer decides whether the pilot is
   done, and what the next section changes first.
+
+  *Played, 2026-09-14.* Twelve weeks in the Studio with seven keywords, recorded
+  with `?playtest=1`: every section; the keyword controls, a blocked search, a
+  place and two hours; the guide from three places (the head, the reading panel,
+  a card's QS) and from its contents; Redo round 0 once, which starts round 0
+  afresh in both looks and is then gone; the capital week, its window's five
+  cards arriving; Returns at week 6 and a prepaid discount; the debrief, whose
+  What if I hadn't? answered for week 2, and the reveal's eight answers. A
+  classic week played after, with sixty keywords. Word count with seven
+  keywords: 158 against about 120, of which 105 are the cards' repeated labels
+  (15 each), the panel 45, the head 9 and the add card 9. Sixty broad keywords
+  (and a sixty-two keyword round 0): a drag 4 to 7ms a step after the fix below,
+  the reading panel folds the rest into "14 others", but a click that redraws
+  the section took 274ms and the section is about 11,600px, twenty screens; put
+  to the owner with the compact list view the spec names, not built. Phone at
+  375 x 812: every section 375px wide by element edges, the menu, one card a
+  row, the planner 375px wide once its entrance is finished, the bar in a 146px
+  tray. The playtest file, read with `read-playtest.js`: every screen named in
+  order, the replay matched, the clicks named by region (Round 0 steps, Your
+  keywords, Add keywords, Tray, Sections, Icon strip, each chapter, Where did
+  they sit?). Its cards-by-time list was empty because the browser pane's page
+  is hidden and the sampler skips hidden ticks; its own logic, run by hand,
+  names the sections and cards on screen.
+
+  Found and fixed, one commit each: a prepaid discount was sent and listed
+  nowhere, in the tray or the classic summary (`54d5229`); a first visit's
+  stagger followed the slot list, not the page, so Your money's top card came
+  last (`b711db5`); a bid drag ran the form's whole refresh every step, 41ms
+  with sixty keywords, now the tray alone and one refresh on release
+  (`42fd67f`); round 0's drag worked out every card, 18ms, now one (`00308b3`).
+
+  *The gate passed, 2026-09-15:* the owner played it and said "Alive". Their
+  follow-ups, playing it in a desktop browser: the guide's contents numbered
+  (`9b89a14`); a section's cards at full width, one to a row, with one page
+  scroll and slim scrollbars (`0665225`); and, to come, the brand as a pick
+  from the nine, Your ad read-only, and Where and when's controls redrawn as
+  mock-ups first.
 
 ---
 

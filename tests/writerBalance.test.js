@@ -7,7 +7,9 @@
  * configurations — `startGame`, live rival policies, twelve rounds — and holds
  * the ordering the mechanic exists to create:
  *
- *   write it well  ->  roughly what the retainer would have bought you
+ *   write it well  ->  better than the retainer: the fee buys not having to
+ *                      write, and insurance, never a better ad than a careful
+ *                      writer's (I11, since 2026-09-14)
  *   write it badly ->  worse than the cheapest writer you could have hired
  *   pay more       ->  get more
  *
@@ -145,23 +147,20 @@ describe('paying more buys more', () => {
 });
 
 describe('writing it yourself is a real bet, not a trap or a free win', () => {
-  test('written well, it lands close to what the retainer would have bought', async () => {
-    // The whole mechanic. Writing it yourself is slower and capped lower, and
-    // what pays for that is the entire creative budget staying in the account.
-    // If this fails HIGH the top tier is pointless; if it fails LOW nobody
-    // would ever write their own and the choice is decoration.
+  test('written well, it beats the retainer, which is the point (I11)', async () => {
+    // The fee buys not having to write. A player who writes as well as the
+    // grader can see keeps the whole creative budget and runs a better ad, so
+    // writing well has to come out ahead. If it does not, the rule is not
+    // doing what I11 says.
     const [own, retainer] = await Promise.all([
       profitOf('diy', WELL_WRITTEN),
       profitOf('retainer', WELL_WRITTEN),
     ]);
-    const ratio = own / retainer;
-    expect(ratio, `diy/retainer ${ratio.toFixed(3)}`).toBeGreaterThan(0.85);
-    expect(ratio, `diy/retainer ${ratio.toFixed(3)}`).toBeLessThan(1.15);
+    expect(own).toBeGreaterThan(retainer);
   }, 120000);
 
   test('written badly, you should have hired the cheapest writer going', async () => {
-    // The downside that makes it a bet. Without this the delay is the only
-    // cost, and the delay alone is not enough to price the option.
+    // The downside that makes it a bet. It is the insurance the fee buys.
     const [bad, freelancer] = await Promise.all([
       profitOf('diy', BADLY_WRITTEN),
       profitOf('freelancer', WELL_WRITTEN),

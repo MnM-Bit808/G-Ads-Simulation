@@ -1,0 +1,72 @@
+{
+  "pages": [
+    {
+      "id": "returns",
+      "name": "Returns"
+    },
+    {
+      "id": "not-chosen",
+      "name": "Not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "A · Week by week (chosen)",
+      "page": "returns",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1220
+    },
+    {
+      "file": "Halves.dc.html",
+      "title": "B · Two halves",
+      "page": "not-chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1220
+    }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "page": "returns",
+      "x": 0,
+      "y": -620,
+      "w": 1440,
+      "text": "Returns: two ways to draw it, replacing today's two cards (What came back, Prepaid discount). It opens at week 6, the first week anything has settled; the switch top right shows it then, and after week 11. Try it: pick a discount rung and see what it saves against what it costs.\nReal figures from the engine: seed 1, Vella & Co. at mid-price performance, the makeover canvas's keywords, and this time ₹80,000 of round-0 capital on order confirmation, so the weeks show the step it made at week 4 (the earlier canvases' player bought no capital, and its bars would be flat). Every discount figure is the round's own arithmetic from the I34 fix, which is on its own branch and not yet in makeover. A week's rates count only once it has settled; later weeks are drawn faint, as today's card dims them."
+    },
+    {
+      "id": "a",
+      "page": "returns",
+      "x": 1560,
+      "y": 0,
+      "w": 480,
+      "text": "Chosen by the owner, 2026-09-15. A · Week by week. The five figures on top, then one chart of every week split in two, refused at the door on the bottom and sent back on top, with the week order confirmation went live marked. Below, the prepaid discount as five rungs that each draw what they save against what they cost, and what else moves returns, with which half each reaches.\nFor: one chart shows what changed and when, the way today's card does, and the discount's trade is two bars you compare at a glance.\nAgainst: that each lever reaches only its own half is told in a list, not seen."
+    },
+    {
+      "id": "b",
+      "page": "not-chosen",
+      "x": 0,
+      "y": -330,
+      "w": 1440,
+      "text": "B · Two halves. Refused at the door and sent back after delivery as two cards, each with its own weeks, what one costs you and the levers that reach only it: the discount and order confirmation under refusals, the size guide under send-backs. Where you advertise and blocking a search reach both, so they sit apart.\nFor: the rule that each lever reaches only its own half is the layout itself; order confirmation's step shows in one strip and not the other.\nAgainst: two charts to read instead of one, and the refused card is long."
+    },
+    {
+      "id": "found",
+      "page": "returns",
+      "x": 0,
+      "y": 1320,
+      "w": 1440,
+      "text": "Found while mapping today's cards:\n1. The prepaid card on makeover reads the wrong places: it shows every account the small towns' refusal rate and ignores order confirmation. The fix, which you decided on 2026-09-15 (card and round share one arithmetic, and a discount removes refusals at the sourced rate), is on the branch claude/refusal-outlook-makeover, never merged. These mock-ups use its figures.\n2. Today's returns note says \"three things move it\" and names bids by place, blocking searches and capital, but not the discount on the card beside it (it came later, I34). And from week 6 on it says capital \"opens only before week 1 and before week 5\", which has closed for the rest of the game by then. Both options say what is true.\n3. With order confirmation live, this account has fewer refusals left to prevent: ₹30 saves about ₹1,796 a week against ₹1,436 it costs, and ₹50 already costs more than it saves. The harness found ₹50 best for this cell with no capital. So the best rung depends on the account, and both options draw the trade rather than name a winner."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "returns"
+  }
+}

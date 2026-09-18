@@ -29,7 +29,9 @@ import { siteFiles, buildSite } from '../scripts/build-site.js';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 // ui/ alone may hold one level of folders: ui/words/ carries the screens'
 // sentences (stage C1) and is loaded by the game like any other module.
-const RUNTIME = /^(ui|engine|content|agents)\/[^/]+\.(js|html|css)$|^ui\/[a-z]+\/[^/]+\.js$|^(setup|game)\.js$/;
+// ui/fonts/ holds the Studio look's two typefaces and their licences, which
+// ship together (plans/2026-09-13-studio-makeover.md, section 3).
+const RUNTIME = /^(ui|engine|content|agents)\/[^/]+\.(js|html|css)$|^ui\/[a-z]+\/[^/]+\.js$|^ui\/fonts\/[^/]+\.(woff2|txt)$|^(setup|game)\.js$/;
 
 describe('the site holds what the game loads', () => {
   const files = siteFiles(ROOT);
@@ -38,6 +40,8 @@ describe('the site holds what the game loads', () => {
     for (const f of [
       'ui/index.html', 'ui/style.css', 'ui/app.js', 'engine/round.js',
       'engine/constants.js', 'content/querySet.js', 'setup.js', 'game.js',
+      'ui/studio.css', 'ui/fonts/bricolage-grotesque-latin.woff2',
+      'ui/fonts/instrument-sans-latin-ext.woff2', 'ui/fonts/OFL-bricolage-grotesque.txt',
     ]) {
       expect(files, f).toContain(f);
     }
@@ -120,6 +124,28 @@ describe('the build refuses what a browser could not run', () => {
     expect(() => siteFiles(root)).toThrow(/dynamic/i);
   });
 
+  test('it follows the fonts a stylesheet names, and nothing inline or remote', () => {
+    const root = fakeRoot('fonts', '');
+    writeFileSync(join(root, 'ui/index.html'),
+      '<link rel="stylesheet" href="./look.css"><script type="module" src="./app.js"></script>');
+    writeFileSync(join(root, 'ui/look.css'),
+      "@font-face { src: url('./fonts/a.woff2') format('woff2'); }\n"
+      + '.x { background: url(data:image/png;base64,AAAA); }\n'
+      + ".y { background: url('https://example.com/b.png'); }\n");
+    mkdirSync(join(root, 'ui/fonts'), { recursive: true });
+    writeFileSync(join(root, 'ui/fonts/a.woff2'), 'x');
+    const files = siteFiles(root);
+    expect(files).toEqual(expect.arrayContaining(['ui/look.css', 'ui/fonts/a.woff2']));
+    expect(files.some((f) => f.includes('example.com') || f.includes('data:'))).toBe(false);
+  });
+
+  test('and refuses a stylesheet naming a font that is not there', () => {
+    const root = fakeRoot('font-missing', '');
+    writeFileSync(join(root, 'ui/index.html'), '<link rel="stylesheet" href="./look.css">');
+    writeFileSync(join(root, 'ui/look.css'), "@font-face { src: url('./fonts/gone.woff2'); }\n");
+    expect(() => siteFiles(root)).toThrow(/gone\.woff2/);
+  });
+
   test('and it reads an import written across several lines', () => {
     // The usual shape in this codebase — `import {\n  a, b,\n} from '...'` — and
     // the one a line-by-line reader would miss.
@@ -171,6 +197,12 @@ describe('the built copy runs', () => {
       },
     });
     expect(state.advertisers).toHaveLength(9);
+  });
+
+  // A playtest file names the build it was recorded on (the switch-over,
+  // 2026-09-16), and 'dev' in a built site would name nothing.
+  test('the built copy carries the commit it was built from, not \'dev\'', () => {
+    expect(readFileSync(join(out, 'ui/version.js'), 'utf8')).toMatch(/GAME_VERSION = '(?!dev')[0-9a-f]{7,}'/);
   });
 
   test('the address a visitor types sends them to the game', () => {

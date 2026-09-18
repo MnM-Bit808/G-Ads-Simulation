@@ -910,22 +910,13 @@ export const CAPEX_DELAY_ROUNDS = 3;
 export const CREATIVE_ALLOCATION_PAISE = 5000000; // ₹50,000
 
 /**
- * The round a player's own copy goes live.
- *
- * The DELIVERY is delayed, never the effect: when the copy ships, its quality
- * applies from that auction onward. An ad copy change must move `qualitySignal`
- * immediately or the split against `reportedScore` is broken, so a "quality
- * that fades in" would be a different and wrong mechanic.
- */
-export const CREATIVE_DIY_LIVE_ROUND = 3;
-
-/**
  * Who writes the ad, what it costs, and what it reliably delivers.
  *
  * `grade` is what the tier GUARANTEES for the two components copy sets,
  * `expectedCtr` and `adRelevance`. `null` means nobody is hired: the advertiser
  * writes its own, is graded on what it actually wrote, and can reach the
- * offline grader's ceiling of 8 — but not until CREATIVE_DIY_LIVE_ROUND.
+ * offline grader's ceiling of 8. Since 2026-09-14 that runs from week 1, like a
+ * hire (I11).
  *
  * MEASURED, NOT CHOSEN. Over 12-round games against a live market, hired grades
  * of 5/6/7 were beaten by a competent DIY writer at every rung, so the ladder
@@ -934,6 +925,11 @@ export const CREATIVE_DIY_LIVE_ROUND = 3;
  * freelancer. Write well and you beat what you would have paid for; write
  * badly and you should have hired. `tests/writers.test.js` plays the real
  * configurations and holds that ordering.
+ *
+ * That ladder was measured while a self-written ad waited two weeks. Without the
+ * wait a careful self-written ad beats the retainer; the ladder is left where
+ * it was, because what a hire guarantees did not change, and I11 records the
+ * harness figures for the change.
  *
  * The prices are the honest ones for SEARCH copy, which is three headlines and
  * two descriptions — no footage, no artwork. A retainer costs more than
@@ -1170,9 +1166,9 @@ export const PROVENANCE = {
   CREATIVE_ALLOCATION_PAISE: 'INVENTED',
   // ESTIMATED, not CALIBRATE, and the distinction is not pedantry: CALIBRATE
   // means "provisional until calibration.test.js passes", and that file governs
-  // exactly the two constants spec 18.2 names. These two were set from
-  // measurement over whole games and are held by tests/writers.test.js instead.
-  // Tagging them CALIBRATE would claim a reader they do not have.
-  CREATIVE_DIY_LIVE_ROUND: 'ESTIMATED',
+  // exactly the constants it names. This was set from measurement over whole
+  // games and is held by tests/writers.test.js instead. Tagging it CALIBRATE
+  // would claim a reader it does not have. (CREATIVE_DIY_LIVE_ROUND stood beside
+  // it until 2026-09-14, when I11 removed the wait it set.)
   WRITER_TIERS: 'ESTIMATED',
 };

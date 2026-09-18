@@ -65,6 +65,449 @@ Co. at mid-price performance, four phrase keywords, two broad and the brand on
 exact), added up over weeks 1–4 as the keyword card does. The one invented detail
 is a pending bid change, drawn to show the tray.
 
+## `where-when/`: the controls for Where and when (2026-09-15)
+
+A fourth canvas, https://claude.ai/code/artifact/84535b5e-0d58-4228-b2b5-fbfcf8d7383b,
+asked for after the Studio pilot: the owner found the hours cramped and disliked
+the number boxes and preset buttons. Two options for each half of the section,
+every bar draggable, drawn inside the weekly sidebar layout.
+
+- **Page 1, hours of the day:** `Main.dc.html` (A · the day to scale: each block
+  as wide as its hours, with the day's clicks by hour on the same clock) and
+  `HoursSliders.dc.html` (B · six equal sliders, each with its own figures).
+- **Page 2, where you advertise:** `PlacesBeside.dc.html` (A · the three kinds of
+  place as rows with a bar each, beside the India map, which lights and names a
+  row's cities) and `PlacesOnMap.dc.html` (B · tap a city or a kind to set it,
+  with its figures beside the map).
+
+Both scales run from off through even to four times the keyword bid, the most a
+bid can be under manual bidding (`MAX_BID_MULTIPLE`). Its numbers come from one
+game played six weeks with the engine (seed 1, Vella & Co. at mid-price
+performance, manual bids of ₹33, no adjustments), read with the form's own
+`daypartRows` and `locationRows`; the map and the 32 cities are
+`ui/india-map.js` and `content/locations.js`. The notes on the canvas carry each
+option's case and cost, and two findings for the owner: the hours box accepts
++900% though nothing past +300% changes a bid, and the engine applies a place
+adjustment without the four-times cap its own comment describes.
+
+## `your-week/`: the Your week overview (2026-09-15)
+
+A fifth canvas, https://claude.ai/code/artifact/ae97f8b4-111a-451d-b37a-e8e237b4866f,
+the first section on the makeover design's section 7 list: the overview, where
+revised figures visibly give way. Two options, each opening by playing the
+revision (every earlier week shows what you saw when you last looked, then
+crossfades to what it is now, 250ms, opacity only):
+
+- **Page 1**, `Main.dc.html` (A · money first), **chosen by the owner on
+  2026-09-15**: the week's six figures, then every week's net profit as a bone
+  bar, a faint dashed tick where it stood before this week ran, and the change
+  in grey under the week with its plus or minus. Beneath it,
+  `LossAmber.dc.html`: a week that lost money, hanging below a zero line in
+  amber, the owner's choice after seeing it beside bone.
+- **Page 2**, `DelayFirst.dc.html` (B · the delay first): every week's
+  conversions, landed against still to arrive with a tick where you read them;
+  tap a week for its six figures. Beneath it, `LossBone.dc.html`, the losing
+  week in bone.
+
+The tick says "before week 6 ran" rather than "when you last looked", at the
+owner's word: the game knows the figures before a week ran, not when you
+looked. The losing week comes from the same game with one mistake made in it,
+every bid raised from ₹33 to ₹82.50 at week 5: week 6 lost ₹20,570, and week
+5, a loss of ₹17,265 before week 6 ran, is a profit of ₹10,600 once its late
+conversions landed.
+
+The colours took three tries, and the note on page 1 keeps the reasoning. Mint
+and amber on the changes looked out of place; hatched caps with dark figures
+did not mesh with the rest of the dashboard. What stayed uses only what the
+Studio already does: bone and greys, and the keyword slider's "was" marker
+made for a bar. It sets aside the palette's "a loss is amber" on this one
+screen for the changes, because a week revised down is a correction to what
+you were told, not money leaving now; a week that itself lost money stays
+amber.
+
+Its numbers come from one game played six weeks with the engine (seed 1,
+Vella & Co. at mid-price performance, manual bids), with every week's figures
+captured before and after week 6 ran: week 5's profit rose ₹53,317 as its
+conversions landed, and weeks 1 to 4 fell ₹51,143 between them as returns
+came back.
+
+## `what-people-typed/`: search terms and negatives (2026-09-15)
+
+A sixth canvas, https://claude.ai/code/artifact/9564f078-b493-4538-94aa-90b6c035ffc0,
+the second section on the makeover design's section 7 list, replacing today's
+Search terms and Negatives cards. Both options work: block a search from its
+row, or a family of them by their words, with what the block would catch
+outlined before it is made, and the change landing in the tray.
+
+- **Page 1**, `Main.dc.html` (A · one list, the money down it), **chosen by
+  the owner on 2026-09-15**: every search the account bought, most spent
+  first, with its sales, what a sale cost there and how many came back, and
+  Block words beside it.
+- **Page 2**, `ByKeyword.dc.html` (B · by the keyword that bought them): the
+  same searches under the keyword that reached each, a broad keyword's
+  searches marked with the words they lack. It would have needed the engine
+  to record which keyword bought each search, which it works out every week
+  and then drops.
+
+Its numbers come from one game played six weeks with the engine (seed 1,
+Vella & Co. at mid-price performance, with the makeover canvas's keywords:
+four phrase at ₹33, two broad at ₹24, the brand on exact at ₹57), 33 searches
+from 7 keywords. A block matches as the engine's negatives do, on the words
+themselves. Drawing it found two marks in today's cards that the game's
+fractional sales defeat: "five clicks, no sale" never fires, and the block
+preview's warning about searches that sold nearly always does. Both options
+mark instead a sale that costs over twice the account's average, and show the
+sales a block would stop.
+
+## `your-money/`: budget, bidding, week 8 and capital (2026-09-15)
+
+A seventh canvas, https://claude.ai/code/artifact/6f331294-d17c-48e9-9804-b7b37227e2c8,
+the third section on the makeover design's section 7 list, merging today's
+five cards (This week only, Budget, This month's budget, Bidding, What week 8
+decides). Both options open at week 5 with the capital and position window
+on top; a switch shows an ordinary week 6. Every bid a strategy shows is the
+engine's own (`bidOutlook`, computed for each target the slider reaches).
+
+- **Page 1**, `Main.dc.html` (A · this month, as one bar), **chosen by the
+  owner on 2026-09-15**: the month as one bar whose four weeks you move money
+  between by dragging the lines, so the plan always equals the money; bidding
+  and what week 8 decides side by side below, with the whole ladder of month-3
+  budgets; at week 5 the capital card on top, its uncommitted money visibly
+  joining the month.
+- **Page 2**, `Timeline.dc.html` (B · twelve weeks at a glance): all three
+  months as one chart, each week's budget against what it spent, the weeks
+  that ran out marked, and month 3 shaded because week 8 decides it.
+
+Its numbers come from the game the makeover canvas's keywords played (seed 1,
+Vella & Co. at mid-price performance), after week 4 and after week 5 with the
+capital left for ads: month 1 was ₹3,13,000 and ran out in weeks 2 to 4,
+losing 41% of impressions to budget; month 2 is ₹1,68,000, or ₹2,88,000 with
+the capital. Mapping today's cards found the rank sentence printed twice
+after week 8, "counted so far" re-added from revised history (so it can drift
+from the figure the engine ranked on), and ₹1,00,000 left in comments and the
+spec from before the allocation became ₹1,20,000.
+
+## `returns/`: what came back, and the prepaid discount (2026-09-15)
+
+An eighth canvas, https://claude.ai/code/artifact/ca2f5ce0-0c5c-4935-8179-55337e6fc9c5,
+the fourth section on the makeover design's section 7 list, replacing today's
+What came back and Prepaid discount cards. Both options open at week 6, when
+the section unlocks, and a switch shows week 11. Pick a discount rung and it
+draws what it saves a week against what it costs, from the round's own
+arithmetic.
+
+- **Page 1**, `Main.dc.html` (A · week by week), **chosen by the owner on
+  2026-09-15**: the five figures, one chart of every week split into refused
+  at the door and sent back, the week order confirmation went live marked and
+  unsettled weeks faint; below, the discount's five rungs, and what else moves
+  returns with the half each reaches.
+- **Page 2**, `Halves.dc.html` (B · two halves): refused and sent back as two
+  cards, each with its own weeks and only the levers that reach it. Its two
+  strips sat side by side on different scales, which invites comparing bars
+  that do not mean the same.
+
+Its numbers come from the makeover canvas's player (seed 1, Vella & Co. at
+mid-price performance, the same keywords) with ₹80,000 of round-0 capital on
+order confirmation, live from week 4, so the weeks show the step: refused fell
+from 16.2% of orders to 13.5%, sent back held at about 24%. The discount
+figures are `refusalOutlook`'s, from the prepaid fix on the branch
+`claude/refusal-outlook-makeover`, which the owner chose to merge before the
+build. Mapping today's cards found the returns note naming three levers but
+not the discount beside it, and saying capital "opens only before week 1 and
+before week 5" once it has closed for the game; and, with order confirmation
+live, ₹30 saves about ₹1,796 a week against ₹1,436 while ₹50 costs more than
+it saves, so the section draws the trade rather than naming a rung.
+
+## `market/`: the Market area, rivals as players (2026-09-15)
+
+A ninth canvas, https://claude.ai/code/artifact/230864af-39a1-4789-8631-158a34316d7a,
+the Market area on the makeover design's section 7 list, replacing today's
+Auction insights, Week by week (the trends chart) and The market cards. Both
+options make it one section, Rivals, with the market's four public figures and
+the player's own share on top; the owner agreed to the one section.
+
+- **Page 1**, `Main.dc.html` (A · the field, rival by rival), **chosen by the
+  owner on 2026-09-15**: each rival you meet as a card, how often they are in
+  your auctions with every week so far as small bars, their ad as searchers see
+  it, and who comes out above; sorted by how often you meet, one you never meet
+  a line at the end.
+- **Page 2**, `Grid.dc.html` (B · week by week, every rival at once): a row a
+  rival and a bar a week for the figure picked, and the picked rival's ad and
+  figures beside it.
+
+Only what a player may see (R3): names, sites and ads from the public view, the
+player's own Auction Insights, and the market's public totals. Its numbers come
+from the makeover canvas's game (seed 1, Vella & Co. at mid-price performance,
+its keywords), after week 6 and week 9. Mapping today's cards found the reading
+naming the rival "above you most often when you meet" by that rate alone, which
+picked one in 2% of the player's auctions; the mock-ups name the rival above
+the player in the most of all the auctions it shows in. A second read fixed
+five wordings, recorded on the canvas. Left for the owner: a results page for
+one search (a DECISIONS entry first), and keeping round 0's notes on rivals.
+
+## `results/`: the Results area, after the last week (2026-09-15)
+
+A tenth canvas, https://claude.ai/code/artifact/e03ab7c2-eeb8-473b-b80c-d67e1932a5b7,
+the Results area on the makeover design's section 7 list, replacing today's end
+screen (Twelve weeks, the debrief, Where did they sit?, Everyone with the books
+open, Every week, The account, What you did, Play again), which the Studio
+still showed as classic cards.
+
+- **Page 1**, four artboards (A · four sections), **chosen by the owner on
+  2026-09-15**: `Main.dc.html`, Twelve weeks: the figures, every week's net
+  profit as it stands against its first report (a dashed tick) with the weeks
+  the player changed something marked red, and a strip for the week tapped,
+  which replaces Every week and What you did; `Learned.dc.html`, What you
+  learned: the six lessons as cards, the weeks you changed something with
+  "What if I hadn't?", and the budget question; `Reveal.dc.html`, Where they
+  sat: round 0's eight ads and six squares, guessed and then revealed, with a
+  switch showing round 0's notes kept; `Books.dc.html`, Everyone's books: every
+  brand ranked by net profit with gross profit as an outline, where each sat
+  hidden until the reveal is answered, the player's three ranks, and Play again.
+- **Page 2**, `OnePage.dc.html` (B · one page, told in order): the same four
+  parts on one scroll, about 5,000px, today's length again.
+
+Its numbers come from the makeover canvas's game (seed 1, Vella & Co. at
+mid-price performance, its keywords) played to week 12 with four decisions a
+player could make from the screens: block "cheap" at week 4, ₹55,000 to the
+size guide at week 5, the broad bids ₹24 → ₹18 at week 7, "gym leggings" ₹33 →
+₹40 at week 10. Only the guesses are invented. Drawing it, and a second reader
+checking every figure against the code, found four faults, recorded on the
+canvas: "What if I hadn't?" deletes a decision where it should keep the change
+out, stops at the next decision of any kind, and at week 5 makes the capital
+vanish (blocking "cheap" read ₹8,067, worth ₹75,021 to the end; the size
+guide's answer reversed); the budget question cannot answer for a capital week,
+because the rollover re-spreads the month and undoes its raise; net profit never
+counts capital spent on the business; and returns come back two weeks after a
+sale, so the last five weeks read high and weeks 11 and 12 count none. The owner
+chose to fix both replays first and to say the other two plainly on the
+screens; the mock-ups show the corrected answers and those sentences. Still
+open: keeping round 0's notes for the reveal.
+
+## `guide/`: the Guide as a page (2026-09-15)
+
+An eleventh canvas, https://claude.ai/code/artifact/5a912577-a5cc-4107-9923-c351e61837fd,
+the last item on the makeover design's section 7 list. Today the rail's Guide
+button opens the field guide's drawer at its contents, over whichever section
+the player was in; the layout table gives the Guide area "the field guide as its
+own page".
+
+- **Page 1**, `Main.dc.html` and `Contents.dc.html` (A · the guide as a book),
+  **chosen by the owner on 2026-09-15**: the Guide area's list is Contents and
+  the thirteen numbered chapters; the contents are thirteen cards (number, the
+  section each explains, title, the first sentence of its real half); a chapter
+  is its two halves side by side with the sources, the section it explains with
+  Show me in your account, the chapters to read beside it, and previous and next.
+- **Page 2**, `Beside.dc.html` (B · beside your account): A's page with a panel
+  of the chapter's own figure in the player's account, drawn for four chapters.
+
+Every chapter is the game's own, read through the drawer's `guideView`; B's
+figures come from the makeover canvas's game after week 6. A second reader
+checked every chapter, figure and claim against the code. It found B's
+broad-match panel listing phrase match's longer searches as broad match's
+wandering (redrawn with only what broad match alone reached), and five things
+the build must answer, recorded on the canvas: Show me marks nothing in the
+Studio (the ring exists only on the classic cards, and focus looks for their
+heading); three chapters point where their idea is not shown ("Who writes the
+ad" at Your keywords, "Defending your own name" at Rivals, "What only a
+simulation can tell you" at a month bar with no "what if"); two chapters name a
+classic card; the rail's area buttons always open the first section, so a trip
+to the Guide loses the player's place; and the page needs a handful of new
+labels. The owner also chose: chapter 12's Show me points at Results' replays
+after week 12 and is hidden before; "Read beside it" stays after a read-through
+of every related list; "why?" still opens the drawer.
+
+## `switch-over/`: the switch-over (2026-09-16)
+
+A twelfth canvas, https://claude.ai/code/artifact/54dadd5c-e4db-43fd-90ef-dd8117aa2c19,
+for section 7's last item: the new look becomes the default and the old
+screens and their code are removed. It draws what the Studio never drew and
+maps what goes live.
+
+- **Page 1**, `Main.dc.html` (A · the front door on its own), **chosen by the
+  owner on 2026-09-16**: before a game opens, one card with the brand, the
+  twelve weeks as dots and the choices, in every state the door has (the
+  resume offer, restoring, a game that has changed, a game this version cannot
+  open, a finished game), with the playtest file on the playtest link; and
+  `Playtest.dc.html`, the playtest questions as a fifth Results section,
+  "Before you go", with Play again after the file.
+- **Page 2**, `Release.dc.html`, what goes live: every branch waiting, what it
+  brings, and what it does to a game a tester has saved on the live site.
+- **Page 3**, `Shell.dc.html` (B · the door in the Studio's frame), not chosen.
+
+With the pick the owner chose the classic look removed, as the makeover design
+recommended, and F17 and the rival prepaid fix in the release. Measured, with
+saves made on the live site's code: a hired writer's six weeks, a self-written
+ad's six weeks and a finished twelve all replay exactly on `makeover`; F17
+changes almost any game whose budget ran short (week 1's Rs 55,939 on 4,284
+clicks becomes Rs 78,247 on 6,536). A second reader checked the words, the
+figures and every branch against the code and git: "Try again" went from the
+door that cannot open a game (a replay fails the same way every time), the
+changed game lists only the weeks that differ as saved against replayed now,
+and the release's housekeeping is on the canvas.
+
+**Built, part 1** (2026-09-16, `638cf47`..`77e63bc`, plan
+`plans/2026-09-16-switch-over-plan.md`): page 1 as drawn — the front door in all
+five states and "Before you go" as a fifth Results section with Play again after
+the file — plus the Studio's own context, the version in the playtest file, and
+the Studio as the default look. Page 2's table is the release: `main` merged in
+as twins, F17 and the rival prepaid fix measured in place. Two things the
+mock-ups did not settle, decided by measuring while building: a changed game
+lists a week only where whole rupees or clicks differ, because the save compares
+fractional clicks exactly and a table of identical rows reads as a mistake; and
+the answer boxes take the kit's own field colours, because the line tokens put
+the box's only visible edge at 1.5:1.
+
+**Built, part 2** (2026-09-16, `bae274d`..`d3c3476`, plan
+`plans/2026-09-16-switch-over-part-2-plan.md`): page 2's table carried out — the
+classic look, its round 0, its end screen and the 6,153 lines behind them are
+gone, and the tag `classic-last` is the last commit that runs them. The canvas
+said "about 4,500 lines" and drew it as a deletion; it was mostly carving
+classic-only regions out of six files both looks shared, since only `ui/look.js`
+and `ui/round-zero.js` were wholly classic. The deploy, which page 2 also
+describes, is the owner's word to give and has not happened.
+
+## `landing-page/`: Your ad's landing page (2026-09-16)
+
+A thirteenth canvas, https://claude.ai/code/artifact/fa1be81b-6e6f-44f3-9418-a16ead16a2b3,
+asked for after the owner played the deployed game: the landing page half of
+Your ad was a domain bar and grey strips reading "plain", "reviews", "a chart",
+"product shots" — a label for a picture rather than a picture. Three directions,
+each with a chart of what the page is worth, on a real game: Vella & Co. at
+mid-price performance writing its own ad, ₹55,000 on the page and ₹25,000 on the
+size guide at round 0.
+
+- **A**, `Main.dc.html`: the page drawn full width, its worth beneath.
+- **B**, `Beside.dc.html`: the page beside its worth, today's two-column shape.
+- **C**, `Graded.dc.html`, **chosen by the owner**: each part of the page marked
+  with what it buys, so the picture and the number are the same object.
+
+The pictures are SVG. The game ships no photographs, the owner chose to keep it
+that way, and a stylised garment cannot be mistaken for a real product.
+
+**What drawing it caught — and got wrong.** C first tagged "+1 reviews" and "+1
+size chart". That was "corrected" on the grounds that `landingPageBonus` reads
+the `landingPage` target alone, so the size guide and photography are worth no
+point of Quality Score, and the built screen said so. **That correction was the
+error** (found 2026-09-17, fixed in `2d5359c`). The bonus is one of two roads:
+round 0 writes the page description from all the capital, and the grader gives
+it a point for mentioning reviews and a point for mentioning size — so the
+mock-up's first two tags were nearer the truth than what replaced them. Measured
+through a real round 0, a ₹25,000 size guide takes the grade from 5 to 7. The
+lesson is the project's own: a number written by two mechanisms has to be
+checked at both, and a test game that types its own description never meets
+the second.
+
+**Built** 2026-09-16 (`073e05f`). Three more falsehoods were caught between the
+guards and playing it: a row reading "+0 on the landing page grade · live from
+week 4" (true, and the opposite of its meaning — a row says what it BUYS now);
+"the money leaves in week 1", which is false for the week-5 capital window; and
+a drawn price taken from `businessFor`, which the R3 guard refused because that
+function blends in what 16.1 withholds from every viewer. The page has no price
+now: decoration is not worth reaching into a withheld block for.
+
+## `page-worth/`: what the page is worth (2026-09-16)
+
+A fourteenth canvas, https://claude.ai/code/artifact/0cffae9d-9e2c-43e1-be0a-0c96404f6871,
+for one chart. Built beneath the landing page above, it was twelve bars, and
+the owner looking for it could not see what had changed: a page graded 8
+stepping to 10 is 19 pixels inside a 96-pixel bar, and twelve of them read as a
+flat row. The chart's whole job is to show that capital leaves now and the grade
+moves weeks later, so a chart that reads flat teaches nothing.
+
+- **Today**, `Today.dc.html`: the bars as built, measured.
+- **A**, `Main.dc.html`: the same bars, the bought points as their own red band.
+- **B**, `Step.dc.html`, **chosen by the owner**: the grade as a step line —
+  flat, one red riser, flat — against a labelled scale from 0 to 10.
+
+Drawn at 8 → 10 rather than the landing page canvas's 5 → 7, because the higher
+the grade the smaller the step looks: it is the hardest case the game produces.
+
+**Refused, and said so on the canvas:** starting the scale at 7. It makes the
+step enormous by drawing a 25% gain as a fourfold one, which is the oldest way
+to mislead with a chart. Both options keep a full scale; neither makes the step
+bigger, only legible.
+
+**Built** 2026-09-16 in three commits, each finding something the mock-up could
+not. `1cfdf33`: the shape moved into `read.js` (`worthShape`) so "the scale is
+never cut short" is a test; the labels, drawn inside a scaled SVG, measured 8.2px
+on the real screen, so they are laid over it instead; and a page bought in both
+capital windows can step twice, which the note beneath had named as one step.
+`37c7e58`: the gain moved above its riser, where beside it it covered the ring of
+the week you run next. `bc60a13`: played with ₹80,000 on a page graded 8, the
+line sat ABOVE its own 10 — the screen added capital's points without the cap
+the auction applies. The bars had hidden that for a day; a labelled scale showed
+it in one look.
+
+## `grade-breakdown/`: where the landing page grade comes from (2026-09-17)
+
+A fifteenth canvas, https://claude.ai/code/artifact/84824b26-f048-478f-84da-1a0d9d59983a,
+because the page's row said +3 while the chart beside it stepped +5, and no line
+on the screen held the other two. Drawn on a real game measured on the page as
+it stands: Vella & Co. at mid-price performance, ₹55,000 on the page and ₹25,000
+on the size guide at round 0, ₹50,000 of product shots at week 5, at week 6.
+
+- **Today**, `Today.dc.html`: the rows as built, +3 here and +5 there.
+- **A**, `Ledger.dc.html`: one ledger block, every point and one total.
+- **B**, `Main.dc.html`, **chosen by the owner**: each row carries the rules its
+  own sentences earn, a shared line for the point more than one earns alone,
+  and a sum that matches the chart.
+- **C**, `Step.dc.html`: the chart's riser cut into labelled parts, the only one
+  showing when each point arrives.
+
+**What designing it found.** The obvious split, asking each purchase what the
+grade would be without it, does not add up: with page and chart 10, without the
+page 7, without the chart 9, so +3 and +1 for a gain of 5. The missing point is
+"described", which either purchase earns alone, so asking about either finds it
+already there. All three directions split by the grader's rules instead, where
+every point has one source except that one, and say so.
+
+**Built** 2026-09-17 (`523301f`), with the cap shown openly, the owner's call:
+rows keep every point they earn, the total reads "11, the grade stops at 10", and
+the chart still draws the grade the auction uses. Hiding the eleventh point
+would have meant choosing which purchase lost it. Playing it caught the capped
+total breaking across three lines in a 280-pixel column.
+
+## `photography-point/`: what product shots earn on the grade (2026-09-17)
+
+A sixteenth canvas, https://claude.ai/code/artifact/a40e2ecc-162e-416b-a011-12943a474625,
+for the question the canvas above left open: product shots earned a landing page
+point only by making the description longer. The grader gave a point to any
+description over 40 characters, and the plain page is 21, so any sentence at all
+earned it — a caption for product shots (45), the faster page (50), a size chart
+alone (41, by one character).
+
+Drawn on product shots bought alone, ₹50,000 at round 0, at round 0's step 5 and
+Your ad in week 6, because that is the game the question changes.
+
+- **Today**, `Today.dc.html`: the caption earns a point, and round 0's photography
+  card says it moves how many visitors buy while the bar beside it rises by one.
+- **A**, `Say.dc.html`: keep the point and say what earns it. No number moves.
+- **B**, `Words.dc.html`: the length rule counts what the page SAYS, so a
+  photograph's line does not lengthen it. Only shots-first games lose a point.
+- **C**, `Main.dc.html`, **chosen by the owner**: no rule for length; the faster
+  page's own sentence earns its point for speed, which Google's advice names.
+
+**What Google says, fetched 2026-09-17** and quoted on the canvas: Google Ads
+Help's *Optimize your ads and landing pages* (answer 6238826) asks for useful,
+original information about what you advertise, suggests adding reviews from real
+customers, and for mobile says to keep it quick and use simple navigation; Search
+Ads 360 Help's *Landing page experience* (9351020) names usefulness and relevance,
+ease of navigation, the number of links, and what the ad led people to expect.
+**Neither mentions images, photographs, video, or how long the text is.**
+
+**Refused, and said so on the canvas:** a grade point of photography's own ("it
+shows the product"). No source names pictures, and photography is already the
+best single capital purchase in four of the six cells (I30, as F14 left it).
+
+**Also found, and fixed next (2026-09-18):** round 0's size guide card said it
+moves parcels sent back, while the grade bar beside it rose. The card now names
+both, and under the bars a line says which purchase earned the grade — "5 to
+start, +5 the page itself, +1 a size chart", with "the grade stops at 10" where
+the cap takes one, in the words Your ad's total uses.
+
+**Built** 2026-09-17 as DECISIONS I38, measured against gates agreed first.
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

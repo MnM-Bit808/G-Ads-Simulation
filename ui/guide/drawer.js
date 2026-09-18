@@ -20,7 +20,9 @@ import { el } from '../dom.js';
  * @param {string} id - a chapter id
  * @param {Readonly<Record<string, string>>} figures - from `guideFigures()`
  * @returns {{id: string, title: string, real: string, sources: Array<{label: string, url: string}>,
- *   game: string, yourAccount: string, next: {id: string, title: string}|null}}
+ *   game: string, yourAccount: string, studioAccount: string, next: {id: string, title: string}|null}}
+ *   `studioAccount` is where the Studio shows it: the chapter's own Studio part,
+ *   or the same slot as the classic page's
  */
 export function guideView(id, figures) {
   const chapter = CHAPTERS[id];
@@ -34,6 +36,7 @@ export function guideView(id, figures) {
     sources: chapter.realSources.map(({ label, url }) => ({ label, url })),
     game: chapter.game(figures),
     yourAccount: chapter.yourAccount,
+    studioAccount: chapter.studioAccount ?? chapter.yourAccount,
     next: nextId ? { id: nextId, title: CHAPTERS[nextId].title } : null,
   };
 }
@@ -96,10 +99,23 @@ function button(className, label, onClick, iconPaths = null, iconAfter = false) 
  *
  * @param {object} options
  * @param {Readonly<Record<string, string>>} options.figures - from `guideFigures()`
+ * @param {((slot: string) => boolean)|null} [options.reveal] - in the Studio
+ *   layout, opens the section a card sits in before it is shown
+ * @param {(slot: string) => boolean} [options.canShowCard] - whether a
+ *   chapter's card is on the page to be shown; false before week 1, and in the
+ *   Studio while the section holding it is locked
+ * @param {() => boolean} [options.inStudio] - whether the Studio look is on,
+ *   asked as a chapter opens: it points at the Studio's part, in its words
+ * @param {() => boolean} [options.contentsPage] - opens the Studio's Guide page
+ *   at its contents, and says whether it could; the classic look and round 0
+ *   have no page, so the drawer shows its own list there
  * @returns {{node: HTMLElement, open: (id: string, opener?: Element) => void,
- *   openContents: (opener?: Element) => void, close: () => void}}
+ *   openContents: (opener?: Element) => void, close: () => void, showCard: (slot: string) => void}}
+ *   `showCard` is Show me, which the Guide page uses too
  */
-export function createGuide({ figures }) {
+export function createGuide({
+  figures, reveal: revealCard = null, canShowCard = () => true, inStudio = () => false, contentsPage = () => false,
+}) {
   const node = el('aside', 'card guide');
   node.id = 'field-guide';
   node.hidden = true;
@@ -113,8 +129,14 @@ export function createGuide({ figures }) {
   const tools = el('div', 'guide-tools');
   const closeButton = button('ghost guide-icon', null, () => close(), ICONS.close);
   closeButton.setAttribute('aria-label', GUIDE.close());
+  // In the Studio the book is a page of its own (the owner's choice,
+  // 2026-09-15), so Contents opens that rather than a second, narrower list.
+  const toContents = () => {
+    if (contentsPage()) close({ restoreFocus: false });
+    else openContents();
+  };
   tools.append(
-    button('ghost', GUIDE.contents(), () => openContents(), ICONS.contents),
+    button('ghost', GUIDE.contents(), toContents, ICONS.contents),
     closeButton,
   );
   top.append(el('span', 'guide-label', GUIDE.name()), tools);
@@ -162,12 +184,21 @@ export function createGuide({ figures }) {
 
     body.replaceChildren(heading(view.title), real, game);
 
-    foot.replaceChildren(button('ghost', GUIDE.showCard(), () => showCard(view.yourAccount), ICONS.back));
+    // Before week 1 there is no card to show, and a button that does nothing is
+    // worse than none (plans/2026-09-14-round-zero-redesign-plan.md). In the
+    // Studio what it marks is often one part of a section, not a card.
+    foot.replaceChildren();
+    const studio = inStudio();
+    const slot = studio ? view.studioAccount : view.yourAccount;
+    if (canShowCard(slot)) {
+      foot.append(button('ghost', studio ? GUIDE.showAccount() : GUIDE.showCard(), () => showCard(slot), ICONS.back));
+    }
     if (view.next) {
       foot.append(button('guide-next', GUIDE.next({ title: view.next.title }),
         () => open(view.next.id), ICONS.next, true));
     }
-    foot.hidden = false;
+    // The last chapter, before week 1, has neither.
+    foot.hidden = foot.children.length === 0;
     reveal(opener);
   }
 
@@ -195,18 +226,21 @@ export function createGuide({ figures }) {
   // Close, bring the card into view, and mark it until the player next does
   // something, so the eye lands on it without the mark lingering. Focus goes to
   // the card's heading, not back to the "why?": a keyboard player pressing Tab
-  // would otherwise be thrown back to wherever they started.
+  // would otherwise be thrown back to wherever they started. A classic card's
+  // heading is an h2; a Studio section's part draws its own as an h3, and a
+  // part with none (a list, a note) takes focus itself.
   function showCard(slot) {
     close({ restoreFocus: false });
+    // In the Studio layout the card may sit in a section that is not open.
+    // (`revealCard`, because the drawer's own `reveal` shows the drawer.)
+    revealCard?.(slot);
     const card = document.querySelector(`[data-slot="${slot}"]`);
     if (!card) return;
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     card.scrollIntoView({ block: 'start', behavior: still ? 'auto' : 'smooth' });
-    const heading = card.querySelector('h2');
-    if (heading) {
-      heading.tabIndex = -1;
-      heading.focus({ preventScroll: true });
-    }
+    const heading = card.querySelector('h2, h3') ?? card;
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
     card.classList.add(MARKED);
     const clear = () => {
       card.classList.remove(MARKED);
@@ -221,7 +255,7 @@ export function createGuide({ figures }) {
     if (event.key === 'Escape' && !node.hidden) close();
   });
 
-  return { node, open, openContents, close };
+  return { node, open, openContents, close, showCard };
 }
 
 /**

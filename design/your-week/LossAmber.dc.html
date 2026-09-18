@@ -1,0 +1,288 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #FF6166; text-decoration: underline; text-underline-offset: 3px; }
+    a:hover { color: #FF8A8E; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .why { color: #FF6166; text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+    .pick { cursor: pointer; }
+    .fade { transition: opacity 250ms cubic-bezier(0.23, 1, 0.32, 1); }
+    @media (prefers-reduced-motion: reduce) { .fade { transition: opacity 250ms linear; } }
+  </style>
+</helmet>
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; overflow: hidden;">
+  <div style="background: #060507; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0;">
+    <div class="display" style="width: 44px; height: 44px; border-radius: 14px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; margin-bottom: 18px;">V&amp;</div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: #2A1216; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"></path><path d="M9 7a3 3 0 0 1 6 0"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #F3EEEA;">Brand</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"></path><path d="M14.5 9a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path><path d="M16 14.2c2.9.4 5 2.8 5 5.8"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Market</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8A8389" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"></path><path d="M4 19a2 2 0 0 1 2-2h13"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #8A8389;">Guide</div>
+    </div>
+    <div style="width: 60px; padding: 8px 0 6px; border-radius: 14px; background: transparent; display: flex; flex-direction: column; align-items: center; gap: 4px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#68636B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"></path><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4"></path><path d="M12 13v4M9 20h6"></path></svg>
+      <div style="font-size: 10px; font-weight: 600; color: #68636B;">Results</div>
+    </div>
+  </div>
+  <div style="background: #131215; border-right: 1px solid #26232A; padding: 22px 12px; display: flex; flex-direction: column; gap: 4px;">
+    <div style="padding: 0 10px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <div class="display" style="font-weight: 800; font-size: 22px; letter-spacing: -0.01em;">Vella &amp; Co.</div>
+      <div style="font-size: 12px; color: #A19A94;">mid · performance</div>
+    </div>
+    <div style="padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E;">Your brand</div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; background: #1F1C22; color: #F3EEEA; box-shadow: 0 0 0 1px #2E2A33;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F3EEEA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M11 20V5M17 20v-6M3 20h18"></path></svg>
+      <div style="flex-grow: 1;">Your week</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4h8l10 10-8 8L3 12z"></path><path d="M6 7.5a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"></path></svg>
+      <div style="flex-grow: 1;">Your keywords</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11a6 6 0 1 0 12 0a6 6 0 1 0 -12 0"></path><path d="M20 20l-4.5-4.5"></path></svg>
+      <div style="flex-grow: 1;">What people typed</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10v4h4l6 4V6L7 10H3z"></path><path d="M16.5 9a4 4 0 0 1 0 6"></path></svg>
+      <div style="flex-grow: 1;">Your ad</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M3 10h18M16 14.5h2"></path></svg>
+      <div style="flex-grow: 1;">Your money</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><path d="M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0"></path></svg>
+      <div style="flex-grow: 1;">Where and when</div>
+    </div>
+    <div style="height: 42px; padding: 0 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; background: transparent; color: #CFC9C3; box-shadow: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A19A94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 4v8l-8 4-8-4V8z"></path><path d="M4 8l8 4 8-4M12 12v8"></path></svg>
+      <div style="flex-grow: 1;">Returns</div>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; min-width: 0; min-height: 0;">
+    <div style="height: 64px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid #26232A;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div class="display" style="font-weight: 700; font-size: 20px;">Week 6 of 12</div>
+        <div style="font-size: 13px; color: #8A847E;">saved</div>
+        <div style="display: flex; gap: 5px;"><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #EDE8E3;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div><div style="width: 7px; height: 7px; border-radius: 50%; background: #3A363E;"></div></div>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 10px; font-size: 13px;">
+        <div style="color: #A19A94;">Month 2</div>
+        <div class="num" style="font-weight: 700;">₹1,44,000 of ₹2,88,000 spent</div>
+      </div>
+    </div>
+    <div style="flex-grow: 1; min-height: 0; padding: 22px 40px 20px; display: flex; flex-direction: column; gap: 16px;">
+      <div class="display" style="font-weight: 800; font-size: 48px; line-height: 0.95; letter-spacing: -0.025em;">Your week</div>
+      <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: 16px 22px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A;">
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+            <div style="font-size: 12px; color: #A19A94;">Spend</div>
+            <div class="display num" style="font-weight: 800; font-size: 28px; line-height: 1;">₹72,000</div>
+            
+            <div class="num" style="font-size: 12px; color: #A19A94;">1,739 clicks</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+            <div style="font-size: 12px; color: #A19A94;">Avg CPC</div>
+            <div class="display num" style="font-weight: 800; font-size: 28px; line-height: 1;">₹41</div>
+            
+            <div class="num" style="font-size: 12px; color: #A19A94;">16,681 impressions</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+            <div style="font-size: 12px; color: #A19A94;">Conversions</div>
+            <div class="display num" style="font-weight: 800; font-size: 28px; line-height: 1;">41.2</div>
+            <div style="display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin: 2px 0;"><div style="width: 55%; background: #EDE8E3;"></div><div style="flex: 1; border: 1px dashed #68636B; border-left: none; border-radius: 0 3px 3px 0; box-sizing: border-box;"></div></div>
+            <div class="num" style="font-size: 12px; color: #A19A94;">33.7 still to arrive</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+            <div style="font-size: 12px; color: #A19A94;">Net profit</div>
+            <div class="display num" style="font-weight: 800; font-size: 28px; line-height: 1; color: #F2A53A;">−₹20,570</div>
+            
+            <div class="num" style="font-size: 12px; color: #A19A94;">returns not in yet</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+            <div style="font-size: 12px; color: #A19A94;">Net ROAS</div>
+            <div class="display num" style="font-weight: 800; font-size: 28px; line-height: 1;">1.37</div>
+            
+            <div class="num" style="font-size: 12px; color: #A19A94;">gross 1.37</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+            <div style="font-size: 12px; color: #A19A94;">CPA</div>
+            <div class="display num" style="font-weight: 800; font-size: 28px; line-height: 1;">₹1,748</div>
+            
+            <div class="num" style="font-size: 12px; color: #A19A94;">per conversion</div>
+          </div>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 16px; align-items: start;">
+        <div style="padding: 16px 20px 14px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+              <div class="display" style="font-weight: 700; font-size: 18px;">Every week so far</div>
+              <div style="font-size: 12px; color: #A19A94;">net profit by week · the dashed tick is where it stood before week 6 ran</div>
+            </div>
+            <div class="pick" onClick="{{replay}}" style="flex-shrink: 0; font-size: 12px; color: #CFC9C3; border: 1px solid #3A363E; border-radius: 999px; padding: 4px 10px; white-space: nowrap;">replay the revision</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) repeat(6, minmax(0, 0.45fr)); gap: 10px; align-items: end; height: 252px; padding-top: 6px;">
+            <sc-for list="{{weeks}}" as="w" hint-placeholder-count="12">
+              <div style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch;">
+                <div style="position: absolute; left: -5px; right: -5px; bottom: {{w.zero}}px; border-top: 1px solid #3A363E; opacity: {{w.zeroOpacity}};"></div>
+                <sc-if value="{{w.played}}" hint-placeholder-val="{{true}}">
+                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: {{w.sawBottom}}px; height: {{w.sawH}}px; border-radius: {{w.sawRadius}}; background: #7A7480; opacity: {{w.sawOpacity}};"></div>
+                  <div class="fade num" style="position: absolute; left: -6px; right: -6px; bottom: {{w.labelSaw}}px; text-align: center; font-size: 11px; font-weight: 700; color: #A19A94; opacity: {{w.sawOpacity}};">{{w.sawText}}</div>
+                  <div class="fade" style="position: absolute; left: 3px; right: 3px; bottom: {{w.nowBottom}}px; height: {{w.nowH}}px; border-radius: {{w.nowRadius}}; background: {{w.nowColor}}; opacity: {{w.nowOpacity}};"></div>
+                  <div class="fade" style="position: absolute; left: -3px; right: -3px; bottom: {{w.tickBottom}}px; border-top: 2px dashed #8A847E; opacity: {{w.tickOpacity}};"></div>
+                  <div class="fade num" style="position: absolute; left: -6px; right: -6px; bottom: {{w.labelNow}}px; text-align: center; font-size: 11px; font-weight: 700; color: {{w.netColor}}; opacity: {{w.nowOpacity}};">{{w.netText}}</div>
+                </sc-if>
+                <sc-if value="{{w.future}}" hint-placeholder-val="{{false}}">
+                  <div style="position: absolute; left: 3px; right: 3px; bottom: {{w.zero}}px; height: 10px; border-radius: 5px; border: 1px dashed #3A363E; box-sizing: border-box;"></div>
+                </sc-if>
+                <div style="height: 36px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px;">
+                  <div style="font-size: 11px; font-weight: {{w.labelWeight}}; color: {{w.labelColor}};">{{w.label}}</div>
+                  <div class="fade num" style="font-size: 11px; color: {{w.deltaColor}}; font-weight: {{w.deltaWeight}}; white-space: nowrap; opacity: {{w.deltaOpacity}};">{{w.delta}}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 13px; line-height: 1.5; color: #CFC9C3; max-width: 680px;">While week 6 ran, week 5 rose ₹27,865 as 22 more conversions landed, and weeks 1 to 4 fell ₹51,143 between them as returns came back. <span class="why">why?</span></div>
+        </div>
+        <div style="padding: 16px 20px; border: 1px solid #2A272D; border-radius: 20px; background: #17161A; display: flex; flex-direction: column; gap: 12px;">
+          <div class="display" style="font-weight: 700; font-size: 18px;">Where the impressions went</div>
+          <div style="display: flex; gap: 2px; height: 14px; border-radius: 7px; overflow: hidden; background: #221F25;">
+            <div style="width: 22%; background: #EDE8E3;"></div>
+            <div style="width: 78%; background: #7A7480;"></div>
+            <div style="width: 0%; background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px);"></div>
+          </div>
+          <div class="num" style="display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 10px; height: 10px; border-radius: 2px; background: #EDE8E3;"></div><b style="font-weight: 700;">22%</b> <span style="color: #A19A94;">shown</span></div>
+            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 10px; height: 10px; border-radius: 2px; background: #7A7480;"></div><b style="font-weight: 700;">78%</b> <span style="color: #A19A94;">lost to budget</span></div>
+            <div style="display: flex; align-items: center; gap: 6px;"><div style="width: 10px; height: 10px; border-radius: 2px; background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px); box-shadow: inset 0 0 0 1px #7A7480;"></div><b style="font-weight: 700;">0%</b> <span style="color: #A19A94;">lost to rank</span></div>
+          </div>
+          <div style="font-size: 12px; color: #A19A94;">where you showed on the page</div>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: end; height: 70px;">
+            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 96%; min-height: 3px; border-radius: 4px 4px 0 0; background: #EDE8E3;"></div></div>
+            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 4%; min-height: 3px; border-radius: 4px 4px 0 0; background: #7A7480;"></div></div>
+            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 3%; min-height: 3px; border-radius: 4px 4px 0 0; background: #7A7480;"></div></div>
+            <div style="display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%;"><div style="height: 3%; min-height: 3px; border-radius: 4px 4px 0 0; background: #7A7480;"></div></div>
+          </div>
+          <div class="num" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: #A19A94; text-align: center;">
+            <div><b style="color: #EDE8E3; font-weight: 700;">96%</b><br>top</div>
+            <div><b style="color: #EDE8E3; font-weight: 700;">4%</b><br>2nd</div>
+            <div><b style="color: #EDE8E3; font-weight: 700;">0%</b><br>3rd</div>
+            <div><b style="color: #EDE8E3; font-weight: 700;">0%</b><br>4th</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="height: 76px; flex-shrink: 0; background: #131215; border-top: 1px solid #26232A; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 0 40px;">
+      <div style="font-size: 14px; color: #A19A94;">No changes yet. Anything you change, in any section, lands here.</div>
+      <div class="display" style="height: 52px; flex-shrink: 0; padding: 0 28px; border-radius: 999px; background: #D7262F; color: #FFF5F4; display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"></path></svg>
+        <div>Run week 7</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+/*
+ * Your week, option A: money first. The week's six figures, then every week's
+ * net profit in solid bone, a faint dashed tick where it stood before this
+ * week ran, and the change under the week in the dashboard's grey with
+ * its + or − (the owner's choice, 2026-09-15: no yellow or green, nothing the
+ * rest of the Studio does not already do). A week that lost money hangs below
+ * a zero line, in amber. Opening the section
+ * plays the revision: each week shows what you saw, then crossfades to what
+ * it is now (250ms, opacity only, never a counting ticker). Real figures:
+ * seed 1, weeks 1-6.
+ */
+const WEEKS = [{"round":1,"net":84894,"netSaw":89914,"conv":192.6,"pending":0,"convFirst":106,"convSaw":192.6,"pendingSaw":0,"spend":"₹55,939","clicks":"4,284","cpc":"₹13","roas":"5.05","roasSaw":"5.22","cpa":"₹290"},{"round":2,"net":44054,"netSaw":54206,"conv":162.3,"pending":0,"convFirst":89.2,"convSaw":162.3,"pendingSaw":0,"spend":"₹78,250","clicks":"3,400","cpc":"₹23","roas":"3.13","roasSaw":"3.36","cpa":"₹482"},{"round":3,"net":46629,"netSaw":60317,"conv":157.6,"pending":0,"convFirst":86.7,"convSaw":149.7,"pendingSaw":7.9,"spend":"₹78,250","clicks":"3,352","cpc":"₹23","roas":"3.18","roasSaw":"3.48","cpa":"₹496"},{"round":4,"net":54464,"netSaw":76747,"conv":144.7,"pending":7.6,"convFirst":83.8,"convSaw":126.4,"pendingSaw":25.9,"spend":"₹78,250","clicks":"3,195","cpc":"₹24","roas":"3.33","roasSaw":"3.81","cpa":"₹541"},{"round":5,"net":10600,"netSaw":-17265,"conv":66.2,"pending":13.5,"convFirst":43.8,"convSaw":43.8,"pendingSaw":35.9,"spend":"₹72,000","clicks":"1,836","cpc":"₹39","roas":"2.21","roasSaw":"1.46","cpa":"₹1,088"},{"round":6,"net":-20570,"netSaw":null,"conv":41.2,"pending":33.7,"convFirst":41.2,"convSaw":null,"pendingSaw":null,"spend":"₹72,000","clicks":"1,739","cpc":"₹41","roas":"1.37","roasSaw":null,"cpa":"₹1,748"}];
+const TOP = 89914;
+const LOW = 20570;
+const H = 190;
+const GUTTER = 16;
+const LOSS = '#F2A53A';
+const SCALE = (H - GUTTER) / (TOP + LOW);
+const ZERO = 36 + GUTTER + Math.round(LOW * SCALE);
+const px = (v) => Math.round(Math.abs(v) * SCALE);
+// Where a value's bar sits: up from the zero line, or hanging below it.
+const bar = (v) => {
+  const h = px(v);
+  return v >= 0
+    ? { bottom: ZERO, h, radius: '5px 5px 0 0', end: ZERO + h, label: ZERO + h + 4 }
+    : { bottom: ZERO - h, h, radius: '0 0 5px 5px', end: ZERO - h, label: ZERO - h - 15 };
+};
+const rupees = (r) => `₹${Math.round(r).toLocaleString('en-IN')}`;
+const signed = (r) => (r >= 0 ? `+${rupees(r)}` : `−${rupees(-r)}`);
+const money = (r) => (r < 0 ? `−${rupees(-r)}` : rupees(r));
+
+class Component extends DCLogic {
+  constructor(...args) {
+    super(...args);
+    this.state = { revealed: false };
+  }
+
+  componentDidMount() { this.play(); }
+
+  play() {
+    this.setState({ revealed: false });
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.setState({ revealed: true }), 900);
+  }
+
+  renderVals() {
+    const { revealed } = this.state;
+    const weeks = Array.from({ length: 12 }, (_, i) => {
+      const w = WEEKS[i];
+      const zero = { zero: ZERO, zeroOpacity: LOW > 0 ? 1 : 0 };
+      if (!w) {
+        return { ...zero, played: false, future: true, label: String(i + 1), labelWeight: 400, labelColor: '#68636B' };
+      }
+      const current = w.netSaw === null;
+      const now = bar(w.net);
+      const saw = current ? { bottom: ZERO, h: 0, radius: '0', end: ZERO, label: ZERO } : bar(w.netSaw);
+      // The label clears the old bar too, on whichever side of the line it sits.
+      const clears = !current && (w.netSaw >= 0) === (w.net >= 0) && saw.h > now.h;
+      // The Studio's own idiom for an old value (the bid slider's was-marker):
+      // solid bone bars, a faint dashed tick where the week stood before this
+      // week ran, poking out either side of the bar, and the change in the
+      // dashboard's muted grey under the week (the owner's choice, 2026-09-15).
+      return {
+        ...zero,
+        played: true, future: false, label: String(w.round),
+        labelWeight: current ? 700 : 400, labelColor: current ? '#EDE8E3' : '#8A847E',
+        netText: money(w.net), sawText: current ? '' : money(w.netSaw),
+        netColor: w.net < 0 ? LOSS : '#EDE8E3',
+        nowColor: w.net < 0 ? LOSS : '#EDE8E3',
+        nowBottom: now.bottom, nowH: now.h, nowRadius: now.radius,
+        sawBottom: saw.bottom, sawH: saw.h, sawRadius: saw.radius,
+        tickBottom: saw.end - 1,
+        labelNow: clears ? saw.label : now.label, labelSaw: saw.label,
+        nowOpacity: revealed || current ? 1 : 0,
+        sawOpacity: revealed || current ? 0 : 1,
+        tickOpacity: !current && revealed ? 1 : 0,
+        delta: current ? 'this week' : signed(w.net - w.netSaw),
+        deltaColor: current ? '#EDE8E3' : '#A19A94',
+        deltaWeight: current ? 700 : 400,
+        deltaOpacity: revealed || current ? 1 : 0,
+      };
+    });
+    return { weeks, replay: () => this.play() };
+  }
+}
+</script>
+</body>
+</html>

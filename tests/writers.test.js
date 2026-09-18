@@ -9,11 +9,11 @@
 
 import { describe, test, expect } from 'vitest';
 import {
-  writerTier, isDiy, hiredCopyGrades, creativeSpend, tierForPolicy, POLICY_TIERS,
+  writerTier, isDiy, hiredCopyGrades, openingCopyGrades, creativeSpend, tierForPolicy, POLICY_TIERS,
 } from '../content/writers.js';
 import { POLICIES, RIVAL_CAST } from '../agents/policies.js';
 import {
-  WRITER_TIERS, CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND, PROVENANCE,
+  WRITER_TIERS, CREATIVE_ALLOCATION_PAISE, PROVENANCE,
 } from '../engine/constants.js';
 
 const HIRED = WRITER_TIERS.filter((t) => t.grade !== null);
@@ -49,12 +49,11 @@ describe('the tier table is a ladder, not a list', () => {
     for (const tier of HIRED) expect(tier.grade, tier.id).toBeLessThanOrEqual(8);
   });
 
-  test('both measured constants are declared, and not as CALIBRATE', () => {
-    // CALIBRATE is reserved for the two constants spec 18.2 names, which
-    // calibration.test.js governs. These were measured over whole games and are
-    // held HERE, so claiming CALIBRATE would name a reader they do not have.
+  test('the measured ladder is declared, and not as CALIBRATE', () => {
+    // CALIBRATE is reserved for the constants calibration.test.js governs. This
+    // was measured over whole games and is held HERE, so claiming CALIBRATE
+    // would name a reader it does not have.
     expect(PROVENANCE.WRITER_TIERS).toBe('ESTIMATED');
-    expect(PROVENANCE.CREATIVE_DIY_LIVE_ROUND).toBe('ESTIMATED');
   });
 });
 
@@ -176,11 +175,22 @@ describe('the creative budget', () => {
   });
 });
 
-describe('the delay is a delivery date, not a fade-in', () => {
-  test('self-written copy lands after the game has started but early in it', () => {
-    // Late enough to cost something real, early enough that the player still
-    // has most of the game to run with what they wrote.
-    expect(CREATIVE_DIY_LIVE_ROUND).toBeGreaterThan(1);
-    expect(CREATIVE_DIY_LIVE_ROUND).toBeLessThan(5);
+describe('what an advertiser opens on (I11)', () => {
+  test('writing it yourself opens on what was written', () => {
+    const written = { expectedCtr: 7, adRelevance: 9, landingPage: 5 };
+    expect(openingCopyGrades('diy', 0, written)).toEqual({ expectedCtr: 7, adRelevance: 9 });
+  });
+
+  test('and asking without the writing is an error, not a default', () => {
+    // The old answer was the ungraded 3/3. Returning it now would quietly put
+    // the two-week wait back for any caller that forgot the grade.
+    expect(() => openingCopyGrades('diy')).toThrow(RangeError);
+  });
+
+  test('a hire opens on what it bought, whatever was written', () => {
+    const written = { expectedCtr: 2, adRelevance: 2, landingPage: 5 };
+    for (const tier of HIRED) {
+      expect(openingCopyGrades(tier.id, 0, written)).toEqual(hiredCopyGrades(tier.id, 0));
+    }
   });
 });

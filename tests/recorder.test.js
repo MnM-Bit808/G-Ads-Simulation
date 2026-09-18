@@ -257,6 +257,19 @@ describe('it survives the things a stranger will do', () => {
     expect(log.clicks).toHaveLength(1);
   });
 
+  // A tester whose game spans a deploy sends one file from two versions; without
+  // this, nothing in the file says where one ends (the switch-over, 2026-09-16).
+  test('the first load notes its version, a second load on the same one adds nothing, a new one is noted', () => {
+    const storage = memoryStorage();
+    const now = clock();
+    const first = createRecorder({ storage, now, version: 'abc1234' });
+    first.load();
+    createRecorder({ storage, now, version: 'abc1234' }).load();
+    const third = createRecorder({ storage, now, version: 'def5678' });
+    third.load();
+    expect(third.log().versions.map((v) => v.version)).toEqual(['abc1234', 'def5678']);
+  });
+
   test('answers typed at the end survive a reload', () => {
     const storage = memoryStorage();
     const now = clock();

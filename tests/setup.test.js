@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import {
   placeRivals, placementIsLegal, briefing, rivalAdsForBriefing, buildRivals,
-  startGame, redoRoundZero, canRedoRoundZero, REDO_DEADLINE_ROUND,
+  startGame, redoRoundZero, canRedoRoundZero, REDO_DEADLINE_ROUND, assignPlayerBrand,
 } from '../setup.js';
 import { playGame, submitRound } from '../game.js';
 import { disciplined, controllerFor, RIVAL_CAST } from '../agents/policies.js';
@@ -17,8 +17,9 @@ import { formatINR } from '../engine/money.js';
 import {
   ADVERTISER_COUNT, MONTHLY_BUDGET_PAISE,
   ROUNDS_PER_MONTH, PRICE_TIERS, CAPEX_ALLOCATION_PAISE, TAG_VOCABULARY,
-  CREATIVE_ALLOCATION_PAISE, CREATIVE_DIY_LIVE_ROUND, DEFAULT_UNGRADED_QUALITY,
+  CREATIVE_ALLOCATION_PAISE, DEFAULT_UNGRADED_QUALITY,
 } from '../engine/constants.js';
+import { gradeAdOffline } from '../agents/grader.js';
 
 const PLAYER_BRAND = BRAND_IDENTITIES[0].id;
 const SEEDS = [1, 7, 42, 20260902, 999983, 12345, 2, 3, 5, 8, 13, 21];
@@ -44,6 +45,17 @@ const start = (over = {}) => startGame({
   rootSeed: 20260902, playerBrandId: PLAYER_BRAND, player: choices(), querySet: QUERY_SET, ...over,
 });
 
+describe('round 0 starts on a brand drawn from the seed (the player may pick another, I35)', () => {
+  test('the same seed is always the same brand', () => {
+    expect(assignPlayerBrand(20260902)).toBe(assignPlayerBrand(20260902));
+  });
+
+  test('every brand turns up across seeds, so no name is never yours', () => {
+    const drawn = new Set(Array.from({ length: 500 }, (_, i) => assignPlayerBrand(i + 1)));
+    expect([...drawn].sort()).toEqual(BRAND_IDENTITIES.map((b) => b.id).sort());
+  });
+});
+
 describe('every advertiser chose who writes its ad (DECISIONS I11)', () => {
   // Hard rule 6: one advertiser type. The player picks a writer tier at round 0
   // and so does every rival, by the same table and through the same functions.
@@ -67,20 +79,19 @@ describe('every advertiser chose who writes its ad (DECISIONS I11)', () => {
     }
   });
 
-  test('a self-written ad runs weak until it lands, then becomes what was written', () => {
+  test('a self-written ad runs on its own words from week 1 (I11)', () => {
     const diy = start().advertisers.filter((a) => isDiy(a.creative.tier));
-    expect(diy.length, 'nobody writes their own, so the mechanic is unreachable')
-      .toBeGreaterThan(0);
+    expect(diy.length, 'nobody writes their own, so the rule is unreachable').toBeGreaterThan(0);
     for (const a of diy) {
-      expect(a.creative.liveAtRound, a.id).toBe(CREATIVE_DIY_LIVE_ROUND);
-      expect(a.creative.pendingGrade, a.id).toBeTruthy();
-      // Until it lands they run the ungraded default (9.5, DECISIONS A8) —
-      // which is the cost of writing it yourself, and the whole reason hiring
-      // is worth anything.
-      expect(a.adGroups[0].gradedQuality.expectedCtr, a.id)
-        .toBe(DEFAULT_UNGRADED_QUALITY.expectedCtr);
-      expect(a.creative.pendingGrade.expectedCtr, a.id)
-        .toBeGreaterThan(DEFAULT_UNGRADED_QUALITY.expectedCtr);
+      const group = a.adGroups[0];
+      const written = gradeAdOffline(group.ad, {
+        keywords: group.keywords,
+        rivalNames: BRAND_IDENTITIES.filter((b) => b.id !== a.id).map((b) => b.name),
+      }, 0);
+      expect(a.creative.liveAtRound, a.id).toBe(1);
+      expect(a.creative.pendingGrade, a.id).toBeNull();
+      expect(group.gradedQuality.expectedCtr, a.id).toBe(written.expectedCtr);
+      expect(group.gradedQuality.adRelevance, a.id).toBe(written.adRelevance);
     }
   });
 

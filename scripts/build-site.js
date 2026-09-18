@@ -29,6 +29,7 @@
 import {
   readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync, existsSync,
 } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -40,6 +41,10 @@ const ENTRY = 'ui/index.html';
 const STATIC_IMPORT = /(?:^|[;\s])(?:import|export)\s[^'"]*?from\s*['"]([^'"]+)['"]|(?:^|[;\s])import\s*['"]([^'"]+)['"]/g;
 const DYNAMIC_IMPORT = /\bimport\s*\(/;
 const HTML_REF = /(?:src|href)="([^"]+)"/g;
+// A stylesheet's own references: the Studio look's fonts. A `data:` URI is
+// inline and an absolute address is somebody else's, so neither is a file to copy.
+const CSS_URL = /url\(\s*['"]?([^'")]+?)['"]?\s*\)/g;
+const NOT_A_FILE = /^(data:|https?:|\/\/)/;
 
 const posix = (path) => path.split(sep).join('/');
 
@@ -65,6 +70,13 @@ export function siteFiles(root) {
       throw new Error(`${from} loads ${path}, which does not exist`);
     }
     found.add(path);
+    if (absolute.endsWith('.css')) {
+      for (const match of readFileSync(absolute, 'utf8').matchAll(CSS_URL)) {
+        const target = match[1].trim();
+        if (!NOT_A_FILE.test(target)) visit(resolve(dirname(absolute), target), path);
+      }
+      return;
+    }
     if (!absolute.endsWith('.js')) return;
 
     const source = readFileSync(absolute, 'utf8');
@@ -135,6 +147,16 @@ export function buildSite(root, outDir) {
     mkdirSync(dirname(target), { recursive: true });
     copyFileSync(join(root, file), target);
   }
+  // The commit this site was built from, over the copy of ui/version.js, so a
+  // playtest file names the version each of its loads ran (ui/recorder.js).
+  // Cloudflare builds from a git checkout; anywhere else, 'unknown'.
+  let commit = 'unknown';
+  try {
+    commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  } catch {
+    // Not a git checkout: the file still says something, just not which commit.
+  }
+  writeFileSync(join(outDir, 'ui', 'version.js'), `export const GAME_VERSION = '${commit}';\n`);
   writeFileSync(join(outDir, 'index.html'), ROOT_INDEX);
   writeFileSync(join(outDir, '_headers'), HEADERS);
   return files;

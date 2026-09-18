@@ -1,0 +1,1546 @@
+/*
+ * The Studio makeover's look (plans/2026-09-13-studio-makeover.md, section 3):
+ * Studio drop's cards and type in the Red signal palette. Every rule is under
+ * body.studio, so a visit without ?look=studio never sees any of it.
+ */
+
+/* The two typefaces, stored with the game (spec section 3) under the SIL Open
+   Font License, whose texts ship beside them and are linked from index.html.
+   Each family comes as Google Fonts serves it: a latin file for everyday text
+   and a latin-ext file, which is the one that carries ₹ (U+20B9). The ranges
+   are copied from the stylesheet Google served for these files. */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-display: swap;
+  src: url('./fonts/bricolage-grotesque-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-display: swap;
+  src: url('./fonts/bricolage-grotesque-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./fonts/instrument-sans-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./fonts/instrument-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+body.studio {
+  --studio-page: #0D0C0E;
+  --studio-rail: #060507;
+  --studio-sidebar: #131215;
+  --studio-card: #17161A;
+  --studio-raised: #221F25;
+  --studio-line: #2A272D;
+  --studio-line-strong: #3A363E;
+  --studio-text: #EDE8E3;
+  --studio-soft: #CFC9C3;
+  --studio-muted: #A19A94;
+  --studio-faint: #8A847E;
+  --studio-red: #D7262F;
+  --studio-red-text: #FF6166;
+  --studio-on-red: #FFF5F4;
+  --studio-amber: #F2A53A;
+  --studio-mint: #9FD3B5;
+  --studio-panel: #1A0C0F;
+  --studio-panel-edge: #4A1A1F;
+  --studio-display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif;
+  --studio-body: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --studio-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Round 0's step transition only: the makeover spec's motion row 4 names this
+     curve, the one motion not on --studio-ease; kept by the owner, 2026-09-14. */
+  --studio-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* Today's cards read these names. Restating them re-themes every card that
+     has not been rebuilt yet, with no change to style.css. Losses are amber:
+     red is the player's colour in Red signal, so it cannot also mean "bad". */
+  --bg: var(--studio-page);
+  --panel: var(--studio-card);
+  --panel-2: var(--studio-raised);
+  --line: var(--studio-line);
+  --ink: var(--studio-text);
+  --muted: var(--studio-muted);
+  --accent: var(--studio-red);
+  --good: var(--studio-mint);
+  --warn: var(--studio-amber);
+  --bad: var(--studio-amber);
+
+  background: var(--studio-page);
+  color: var(--studio-text);
+  font-family: var(--studio-body);
+}
+
+/* style.css writes near-black text on every filled button, which on red falls
+   under 4.5:1. Link-like buttons keep a light colour of their own. */
+body.studio button { color: var(--studio-on-red); }
+body.studio button.ghost,
+body.studio button.guess-cell { color: var(--studio-text); }
+body.studio button.add,
+body.studio button.why,
+body.studio button.guide-next { color: var(--studio-red-text); }
+body.studio button.add.danger { color: var(--studio-amber); }
+body.studio button.guess-cell[aria-pressed="true"] { color: var(--studio-on-red); }
+body.studio button:focus-visible,
+body.studio input:focus-visible { outline: 2px solid var(--studio-red-text); outline-offset: 2px; }
+
+/* style.css also uses the accent as a TEXT colour, and red at text size falls
+   under 4.5:1 on these cards (3.6:1, measured). The small-text red carries it
+   instead: every selector below is one style.css colours with the accent. */
+body.studio :is(.serp-head, .chip.on strong, .capex-summary strong, .page-strip,
+  .writer-price, .planner summary, .strategy.on .strategy-name, .capex-already,
+  .cell.on .cell-here, .month-after strong, .rank-line strong, .guide-sources a) {
+  color: var(--studio-red-text);
+}
+
+/* A chosen option's tint, the player's own row and the why links are blue in
+   style.css, written as colours rather than the accent; they follow it here. */
+body.studio :is(.chip.on, .cell.on, .strategy.on, .writer-row.on .writer-pick) { background: rgba(215, 38, 47, 0.14); }
+body.studio tr.you td { background: rgba(215, 38, 47, 0.12); }
+body.studio button.why { border-bottom-color: rgba(255, 97, 102, 0.6); }
+body.studio :is(button.why, button.guide-next, .guide-sources a):hover { color: #FF8A8E; }
+
+/* Where "Show me" lands. style.css rings only the classic cards
+   (.card[data-slot]), and every Studio section draws its own parts, so the mark
+   reached nothing here (found drawing the Guide as a page, 2026-09-15). The same
+   ring on any part carrying a slot, fading by opacity; no Studio part is
+   positioned otherwise, so each can hold it. Focus lands on the part's heading,
+   and the ring is its mark, so the heading draws no outline of its own. */
+body.studio [data-slot] { position: relative; scroll-margin-top: 16px; }
+body.studio [data-slot]::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; box-shadow: 0 0 0 2px var(--studio-red-text); opacity: 0; pointer-events: none; transition: opacity 200ms var(--studio-ease); }
+body.studio [data-slot].guide-marked::after { opacity: 1; }
+body.studio [data-slot] :is(h2, h3)[tabindex="-1"]:focus { outline: none; }
+body.studio [data-slot][tabindex="-1"]:focus { outline: none; }
+
+/* A class that sets display outranks the browser's own rule for hidden, so the
+   Studio says it once for everything it hides (tests/kit.test.js). */
+body.studio [hidden] { display: none !important; }
+
+/* --- the shell (spec section 2) ------------------------------------------ */
+/* Round 0 keeps the page and its header; the shell takes the window. */
+body.studio:has(.studio-shell) .bar { display: none; }
+body.studio main:has(> .studio-shell) { padding: 0; max-width: none; }
+
+/* The first frame, before app.js has run: the page is served as body.studio
+   (the switch-over, 2026-09-16), so the classic header must not paint and the
+   loading line sits in the Studio's own space. Without this the game everyone
+   now gets opens with a white bar that disappears a moment later. */
+body.studio:has(.loading) .bar { display: none; }
+body.studio .loading { display: grid; place-items: center; min-height: 100vh; margin: 0; color: var(--studio-faint); }
+
+/* --- the front door (design/switch-over/, A, the owner's choice 2026-09-16) --- */
+/* One card before a game opens: the page's own space, no header, as the shell. */
+body.studio:has(.door) .bar { display: none; }
+body.studio main:has(> .door) { padding: 0; max-width: none; }
+body.studio .door { display: grid; place-items: center; min-height: 100vh; min-height: 100dvh; padding: 24px 16px; box-sizing: border-box; }
+body.studio .door-column { display: flex; flex-direction: column; gap: 22px; width: min(600px, 100%); }
+body.studio .door-head { display: flex; align-items: center; gap: 14px; }
+body.studio .door-logo { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--studio-red); color: var(--studio-on-red); font: 800 17px/1 var(--studio-display); }
+body.studio .door-brand { display: flex; flex: 1; flex-direction: column; gap: 2px; }
+body.studio .door-brand strong { font: 800 20px/1.1 var(--studio-display); }
+body.studio .door-brand span { font-size: 12px; color: var(--studio-muted); }
+body.studio .door-playtest { padding: 6px 14px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 13px; font-weight: 600; }
+body.studio .door-card { display: flex; flex-direction: column; gap: 16px; padding: 30px 32px; border: 1px solid var(--studio-line); border-radius: 24px; background: var(--studio-card); }
+body.studio .door-eyebrow { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio h2.door-title { margin: 0; font: 800 40px/1 var(--studio-display); letter-spacing: -0.02em; text-transform: none; color: var(--studio-text); }
+body.studio .door-title:focus { outline: none; }
+body.studio .door-dots { display: flex; flex-wrap: wrap; gap: 6px; }
+body.studio .door-dots i { width: 12px; height: 12px; border: 1.5px solid var(--studio-line-strong); border-radius: 50%; box-sizing: border-box; }
+body.studio .door-dots i.on { border-color: var(--studio-red); background: var(--studio-red); }
+body.studio .door-count { margin: -6px 0 0; font-size: 14px; font-variant-numeric: tabular-nums; color: var(--studio-muted); }
+body.studio .door-note { margin: 0; font-size: 15px; line-height: 1.55; color: var(--studio-soft); }
+body.studio .door-bar { height: 8px; overflow: hidden; border-radius: 4px; background: #2E2A33; }
+body.studio .door-bar span { display: block; width: 0; height: 100%; background: var(--studio-red); transition: width 120ms var(--studio-ease); }
+body.studio .door-table { display: grid; grid-template-columns: 80px minmax(0, 1fr) minmax(0, 1fr); gap: 8px 16px; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 16px; background: var(--studio-page); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--studio-soft); }
+body.studio .door-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .door-week, body.studio .door-more { color: var(--studio-muted); }
+body.studio .door-more { grid-column: 2 / -1; }
+body.studio .door-choice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+body.studio .door-go { height: 52px; padding: 0 28px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font: 700 18px/1 var(--studio-display); }
+body.studio .door-other { height: 44px; padding: 0 22px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 15px; font-weight: 600; }
+body.studio .door-why { flex: 1 1 200px; margin: 0; font-size: 13px; line-height: 1.4; color: var(--studio-muted); }
+/* A phone: the title and the table take what room there is. */
+@media (max-width: 560px) {
+  body.studio .door-card { padding: 22px 18px; }
+  body.studio h2.door-title { font-size: 30px; }
+  body.studio .door-table { grid-template-columns: 60px minmax(0, 1fr) minmax(0, 1fr); font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { body.studio .door-bar span { transition: none; } }
+
+body.studio .studio-shell { display: grid; grid-template-columns: 72px 232px minmax(0, 1fr); height: 100vh; height: 100dvh; }
+body.studio .studio-icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+body.studio .studio-rail { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 0; background: var(--studio-rail); }
+body.studio .studio-logo { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 18px; border-radius: 14px; background: var(--studio-red); color: var(--studio-on-red); font: 800 17px/1 var(--studio-display); }
+body.studio .studio-area { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; padding: 8px 0 6px; border-radius: 14px; background: none; color: #8A8389; font-size: 10px; font-weight: 600; }
+body.studio .studio-area[aria-current="true"] { background: #2A1216; color: #F3EEEA; }
+/* Readable at 3:1 and still plainly off beside an area that works
+   (tests/roundZeroLook.test.js). */
+body.studio .studio-area:disabled { opacity: 1; color: #68636B; }
+body.studio .studio-playtest { margin-top: auto; }
+
+body.studio .studio-list { display: flex; flex-direction: column; gap: 4px; padding: 22px 12px; overflow-y: auto; background: var(--studio-sidebar); border-right: 1px solid #26232A; }
+body.studio .studio-brand { display: flex; flex-direction: column; gap: 2px; padding: 0 10px 16px; }
+body.studio .studio-brand strong { font: 800 22px/1.1 var(--studio-display); }
+body.studio .studio-brand span { font-size: 12px; color: var(--studio-muted); }
+body.studio .studio-redo { align-self: flex-start; margin: 0 10px 12px; padding: 6px 12px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 12px; }
+body.studio .studio-area-title { margin: 0; padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .studio-item { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 12px; border-radius: 12px; background: none; color: var(--studio-soft); font: 500 14px/1 var(--studio-body); text-align: left; }
+body.studio .studio-item .grow { flex: 1; }
+body.studio .studio-item[aria-current="true"] { background: #1F1C22; color: #F3EEEA; font-weight: 700; box-shadow: 0 0 0 1px #2E2A33; }
+body.studio .studio-item[aria-current="true"] .studio-icon { color: var(--studio-red); }
+body.studio .studio-item.locked { color: #6D6770; }
+body.studio .studio-lock { padding: 2px 8px; border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 11px; font-weight: 600; color: var(--studio-faint); }
+body.studio .studio-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--studio-red); }
+
+body.studio .studio-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+body.studio .studio-top { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 16px; height: 64px; padding: 0 40px; border-bottom: 1px solid #26232A; }
+body.studio .studio-top-left, body.studio .studio-month { display: flex; align-items: center; gap: 14px; }
+body.studio .studio-week { font: 700 20px/1 var(--studio-display); }
+body.studio .studio-dots { display: flex; gap: 6px; }
+body.studio .studio-dots i { width: 9px; height: 9px; border: 1.5px solid var(--studio-line-strong); border-radius: 50%; box-sizing: border-box; }
+body.studio .studio-dots i.on { background: var(--studio-red); border-color: var(--studio-red); }
+body.studio .studio-saved, body.studio .studio-month span { font-size: 13px; color: var(--studio-faint); }
+body.studio .studio-meter { width: 160px; height: 6px; overflow: hidden; border-radius: 3px; background: #2E2A33; }
+body.studio .studio-meter span { display: block; height: 100%; background: var(--studio-red); }
+body.studio .studio-month strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+body.studio .studio-menu { display: none; width: 40px; height: 40px; padding: 0; background: none; color: var(--studio-text); }
+
+body.studio .studio-body { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 40px 28px; }
+body.studio .studio-section.card { padding: 0; border: 0; border-radius: 0; background: none; }
+body.studio .studio-section > h2.studio-title { margin: 0 0 16px; font: 800 48px/0.95 var(--studio-display); letter-spacing: -0.025em; text-transform: none; color: var(--studio-text); }
+body.studio .studio-panel { max-width: 620px; margin: 0; padding: 22px 24px; border: 1px dashed var(--studio-line-strong); border-radius: 20px; background: var(--studio-card); font-size: 15px; line-height: 1.55; color: var(--studio-soft); }
+
+/* A section's cards, one to a row at the section's full width. The classic page
+   pairs them in a four-column grid, which in a section of one to five cards left
+   half the page empty: the search terms at 513px of 1,041 (the owner, after
+   playing the pilot, 2026-09-15). A note keeps a readable line. */
+body.studio .studio-cards.grid { grid-template-columns: minmax(0, 1fr); }
+body.studio .studio-cards :is(.span-2, .span-4) { grid-column: 1 / -1; }
+body.studio .studio-cards .note { max-width: 75ch; }
+/* One scroll, the page's: a table no longer scrolls in its own box, and only
+   goes sideways where it cannot fit, as on a phone. */
+body.studio .studio-cards .scroll { max-height: none; overflow-x: auto; }
+/* Slim scrollbars in the 3:1 grey, where the browser's own stood out. */
+body.studio, body.studio * { scrollbar-width: thin; scrollbar-color: #68636B transparent; }
+
+body.studio .studio-tray { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 18px; height: 76px; padding: 0 24px 0 40px; background: var(--studio-sidebar); border-top: 1px solid #26232A; }
+body.studio .studio-tray.bulk { background: #1F1C22; border-top-color: var(--studio-red); }
+body.studio .studio-lines { display: flex; flex: 1; align-items: center; gap: 12px; min-width: 0; }
+body.studio .studio-count { display: grid; flex-shrink: 0; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--studio-red); color: var(--studio-on-red); font-size: 13px; font-weight: 700; }
+body.studio .studio-count-word { font-size: 15px; font-weight: 600; white-space: nowrap; }
+body.studio .studio-chips { display: flex; gap: 8px; min-width: 0; padding: 4px 0; overflow-x: auto; }
+body.studio .studio-chip { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 999px; background: var(--studio-raised); font-size: 13px; white-space: nowrap; }
+body.studio .studio-undo { display: grid; place-items: center; width: 20px; height: 20px; padding: 0; border-radius: 50%; background: #2E2A33; color: var(--studio-muted); }
+body.studio .studio-undo .studio-icon { width: 10px; height: 10px; stroke-width: 3; }
+body.studio .studio-empty { flex: 1; margin: 0; font-size: 14px; color: var(--studio-muted); }
+body.studio .studio-override { display: contents; }
+body.studio .studio-run { flex-shrink: 0; height: 52px; padding: 0 28px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font: 700 18px/1 var(--studio-display); }
+
+@media (max-width: 900px) {
+  body.studio .studio-shell { grid-template-columns: minmax(0, 1fr); }
+  body.studio .studio-rail, body.studio .studio-list { display: none; }
+  body.studio .studio-shell.menu-open .studio-rail,
+  body.studio .studio-shell.menu-open .studio-list { display: flex; position: fixed; top: 0; bottom: 0; z-index: 30; }
+  body.studio .studio-shell.menu-open .studio-rail { left: 0; width: 72px; }
+  body.studio .studio-shell.menu-open .studio-list { left: 72px; width: min(260px, calc(100vw - 72px)); }
+  body.studio .studio-menu { display: inline-grid; place-items: center; }
+  body.studio .studio-top, body.studio .studio-body { padding-left: 16px; padding-right: 16px; }
+  body.studio .studio-month .studio-meter { display: none; }
+  body.studio .studio-tray { padding: 0 12px; }
+  body.studio .studio-section > h2.studio-title { font-size: 34px; }
+}
+
+/* The field guide's contents, numbered, one chapter to a row (the owner, 2026-09-15). */
+body.studio .guide-contents { counter-reset: chapter; gap: 0; }
+body.studio .guide-contents li { counter-increment: chapter; display: flex; align-items: baseline; gap: 4px; border-bottom: 1px solid var(--studio-line); }
+body.studio .guide-contents li:last-child { border-bottom: 0; }
+body.studio .guide-contents li::before { content: counter(chapter); flex: 0 0 26px; font: 700 13px var(--studio-display); color: var(--studio-faint); text-align: right; font-variant-numeric: tabular-nums; }
+body.studio .guide-contents button { padding: 10px 8px; }
+
+/* --- the kit: pills, the card, the planner, the ad block ------------------ */
+body.studio .kpills { display: flex; gap: 4px; }
+body.studio .kpill { padding: 4px 9px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+body.studio .kpill[aria-checked="true"] { border-color: var(--studio-red); background: var(--studio-red); color: var(--studio-on-red); }
+
+body.studio .kgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+body.studio .kcard { position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px 16px 16px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .kcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 26px; }
+body.studio .kcard-left, body.studio .kcard-right { display: flex; align-items: center; gap: 6px; }
+body.studio .knew { padding: 2px 8px; border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 11px; font-weight: 700; color: var(--studio-muted); }
+body.studio .kcard-name { display: -webkit-box; height: 44px; margin: 0; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; font: 700 19px/1.15 var(--studio-display); }
+body.studio .kcard-inner { display: flex; flex: 1; flex-direction: column; }
+body.studio .kcard-body, body.studio .kqs-panel { display: flex; flex: 1; flex-direction: column; gap: 6px; min-width: 0; }
+body.studio .kreach, body.studio .ktags, body.studio .kpaid { height: 16px; margin: 0; overflow: hidden; font-size: 12px; line-height: 16px; color: var(--studio-muted); text-overflow: ellipsis; white-space: nowrap; }
+body.studio .ktags.warn, body.studio .kwarn { color: var(--studio-amber); }
+body.studio .kwarn { margin: 0; font-size: 12px; line-height: 1.4; }
+body.studio .kbid-row { display: flex; align-items: center; gap: 8px; height: 30px; margin-top: 4px; }
+body.studio .klabel { font-size: 12px; color: var(--studio-muted); }
+body.studio .kbid { margin-left: auto; padding: 0; border: 0; border-bottom: 1px dashed #4A454F; border-radius: 0; background: none; color: var(--studio-text); font: 800 22px/28px var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .kbid-input { width: 84px; height: 30px; margin-left: auto; text-align: right; font-weight: 700; }
+body.studio .kslider { position: relative; height: 18px; }
+body.studio .kslider input[type="range"] { width: 100%; margin: 0; accent-color: var(--studio-red); }
+body.studio .kslider-was { position: absolute; top: 3px; width: 12px; height: 12px; margin-left: -6px; border: 2px dashed var(--studio-faint); border-radius: 50%; box-sizing: border-box; pointer-events: none; }
+body.studio .kstats { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid #232026; }
+body.studio .kstat-value { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+body.studio .kstat-label { font-size: 12px; color: var(--studio-muted); }
+body.studio .ktoggle { display: flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--studio-red-text); font-size: 12px; font-weight: 600; }
+body.studio .ktoggle-track { position: relative; flex-shrink: 0; width: 34px; height: 20px; border-radius: 999px; background: var(--studio-red); }
+body.studio .ktoggle-knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #F3EEEA; transform: translateX(14px); }
+body.studio .ktoggle[aria-checked="false"] { color: var(--studio-muted); }
+body.studio .ktoggle[aria-checked="false"] .ktoggle-track { background: var(--studio-line-strong); }
+body.studio .ktoggle[aria-checked="false"] .ktoggle-knob { transform: none; }
+body.studio .kqs { padding: 3px 9px; border-radius: 999px; background: var(--studio-raised); color: var(--studio-text); font-size: 12px; font-weight: 700; }
+body.studio .kqs[aria-expanded="true"] { background: var(--studio-text); color: var(--studio-page); }
+body.studio .kmore { width: 26px; height: 26px; padding: 0; border-radius: 8px; background: none; color: var(--studio-muted); }
+body.studio .kmenu { position: absolute; top: 44px; right: 12px; z-index: 5; display: flex; flex-direction: column; min-width: 170px; padding: 6px; border: 1px solid var(--studio-line-strong); border-radius: 12px; background: #1F1C22; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); transform-origin: top right; }
+body.studio .kmenu button { padding: 8px 10px; border-radius: 8px; background: none; color: var(--studio-muted); font-size: 13px; text-align: left; }
+body.studio .kmenu .kmenu-danger { color: var(--studio-amber); font-weight: 600; }
+body.studio .kqs-title { margin: 0; font-size: 13px; font-weight: 700; }
+body.studio .kqs-parts { display: grid; grid-template-columns: 1fr auto; gap: 8px 10px; margin: 0; }
+body.studio .kqs-parts dt { font-size: 13px; color: var(--studio-soft); }
+body.studio .kqs-parts dd { margin: 0; font-size: 12px; font-weight: 700; white-space: nowrap; }
+body.studio .rating-above { color: var(--studio-mint); }
+body.studio .rating-average { color: var(--studio-muted); }
+body.studio .rating-below { color: var(--studio-amber); }
+body.studio .kqs-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .kback { align-self: flex-start; margin-top: auto; padding: 0; background: none; color: var(--studio-text); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+body.studio .kadd { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 280px; border: 2px dashed var(--studio-line-strong); border-radius: 20px; background: none; color: var(--studio-muted); }
+body.studio .kadd strong { color: var(--studio-text); font: 700 16px/1.2 var(--studio-display); }
+body.studio .kadd span { font-size: 12px; font-weight: 400; }
+
+/* Outlined 3:1 or more on the page, a card and the planner (tests/kit.test.js). */
+body.studio .kfield { height: 34px; padding: 0 10px; border: 1px solid #68636B; border-radius: 10px; background: #141216; color: var(--studio-text); font: inherit; font-size: 14px; }
+body.studio .knum { font-variant-numeric: tabular-nums; }
+
+body.studio .kplanner-overlay { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, 0.55); }
+body.studio .kplanner { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; display: flex; flex-direction: column; gap: 12px; width: min(480px, 100vw); padding: 24px; box-sizing: border-box; border-left: 1px solid #26232A; background: #141216; box-shadow: -12px 0 32px rgba(0, 0, 0, 0.5); }
+body.studio .kplanner-head { display: flex; align-items: center; justify-content: space-between; }
+body.studio .kplanner-head h3 { margin: 0; font: 800 26px/1 var(--studio-display); }
+body.studio .kplanner-close { width: 34px; height: 34px; padding: 0; border-radius: 10px; background: none; color: var(--studio-text); font-size: 20px; }
+body.studio .kplanner-controls, body.studio .kplanner-extra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+body.studio .kplanner-bid { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--studio-muted); }
+body.studio .kplanner-bid input { width: 72px; }
+body.studio .kplanner-mine, body.studio .kplanner-all { padding: 7px 14px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font-size: 13px; }
+body.studio .kplanner-all { border: 1px solid var(--studio-line-strong); background: none; color: var(--studio-text); }
+body.studio .kplanner-cols, body.studio .kplanner-row { display: grid; grid-template-columns: minmax(0, 1fr) 76px 64px 86px; gap: 10px; align-items: center; }
+body.studio .kplanner-cols { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .kplanner-cols span:nth-child(2), body.studio .kplanner-cols span:nth-child(3), body.studio .kplanner-row .knum { text-align: right; font-size: 13px; }
+body.studio .kplanner-list { flex: 1; min-height: 0; overflow-y: auto; }
+body.studio .kplanner-row { padding: 9px 0; border-bottom: 1px solid #211E24; }
+body.studio .kplanner-name { display: flex; flex-direction: column; min-width: 0; }
+body.studio .kplanner-name strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+body.studio .kplanner-name span { font-size: 12px; color: var(--studio-faint); }
+body.studio .kplanner-add, body.studio .kplanner-held { justify-self: end; padding: 5px 12px; border-radius: 999px; font-size: 12px; }
+body.studio .kplanner-add { background: var(--studio-red); color: var(--studio-on-red); }
+body.studio .kplanner-held { border: 1px solid var(--studio-line-strong); background: none; color: var(--studio-faint); }
+body.studio .kplanner-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+
+body.studio .kserp { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 16px; background: var(--studio-card); }
+body.studio .kserp-tag { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; font-size: 12px; color: var(--studio-faint); }
+body.studio .kserp-name { margin-left: auto; font-weight: 700; color: var(--studio-soft); }
+body.studio .kserp-head { margin: 0; font: 700 16px/1.25 var(--studio-display); color: var(--studio-text); }
+body.studio .kserp-desc { margin: 0; font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .kserp-head.empty, body.studio .kserp-desc.empty { color: var(--studio-faint); font-style: italic; }
+
+@media (max-width: 1280px) { body.studio .kgrid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 1000px) { body.studio .kgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { body.studio .kgrid { grid-template-columns: minmax(0, 1fr); } }
+
+/* --- Your keywords, a played week (spec section 4): the card's weekly parts,
+   the head, the reading panel and Adjust several ------------------------- */
+body.studio .kcard.changed { border-color: var(--studio-red); box-shadow: 0 0 0 1px var(--studio-red); }
+body.studio .kcard.selected { border-color: var(--studio-text); box-shadow: 0 0 0 1px var(--studio-text); }
+body.studio .kcard.paused { background: #121114; }
+body.studio .kcard.paused .kcard-name { color: #6E6872; }
+body.studio .kcard.paused .kslider input[type="range"] { accent-color: #5A5560; }
+body.studio .kwas { font-size: 12px; font-weight: 600; color: var(--studio-red-text); }
+body.studio .kbid-row .kwas { margin-left: auto; }
+body.studio .kbid-row .kwas + .kbid, body.studio .kbid-row .kwas + .kbid-input { margin-left: 0; }
+/* No words, so its outline is all that shows it: 3:1 on any card (tests/kit.test.js). */
+body.studio .kcheck { width: 20px; height: 20px; padding: 0; border: 2px solid #68636B; border-radius: 6px; background: none; }
+body.studio .kcheck[aria-checked="true"] { border-color: var(--studio-text); background: var(--studio-text); }
+
+body.studio .khead { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin: -8px 0 16px; }
+body.studio .ksub { margin: 0; font-size: 14px; color: var(--studio-muted); }
+body.studio .ktools { display: flex; align-items: center; gap: 10px; }
+body.studio .kswitch { gap: 2px; padding: 3px; border-radius: 999px; background: #211E24; }
+body.studio .kswitch .kpill { padding: 6px 14px; border: 0; font-size: 13px; }
+body.studio .kadjust { height: 38px; padding: 0 16px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-text); font-size: 14px; }
+
+body.studio .kpanel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.95fr); gap: 28px; align-items: center; margin-bottom: 16px; padding: 16px 22px; border: 1px solid var(--studio-panel-edge); border-radius: 20px; background: var(--studio-panel); color: #F3EEEA; }
+body.studio .kpanel h3 { margin: 2px 0 4px; font: 800 24px/1.1 var(--studio-display); }
+body.studio .kpanel p { margin: 0; font-size: 13px; line-height: 1.45; color: #D9D1CB; }
+body.studio .kpanel .kpanel-eyebrow, body.studio .kpanel .kpanel-small { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A8989A; }
+body.studio .kbar { display: flex; gap: 2px; height: 12px; margin: 8px 0; overflow: hidden; border-radius: 6px; }
+body.studio .kbar span { flex-basis: 0; min-width: 2px; background: #4A444A; }
+body.studio .kbar span.lead { background: var(--studio-red); }
+body.studio .kbar span:nth-child(2) { background: #8F8589; }
+body.studio .kbar span:nth-child(3) { background: #6F676C; }
+body.studio .klegend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: #D9D1CB; }
+body.studio .klegend li { display: flex; align-items: center; gap: 6px; }
+body.studio .klegend strong { color: #F3EEEA; font-variant-numeric: tabular-nums; }
+body.studio .klegend-key { width: 8px; height: 8px; border-radius: 2px; background: #8F8589; }
+body.studio .klegend li.lead .klegend-key { background: var(--studio-red); }
+body.studio .kpanel-levers { display: flex; flex-direction: column; gap: 8px; }
+body.studio .klever { display: flex; flex-direction: column; gap: 1px; padding: 8px 12px; border: 1px solid #5A262C; border-radius: 12px; background: none; color: #F3EEEA; text-align: left; }
+body.studio .klever strong { font-size: 13px; }
+body.studio .klever span { font-size: 12px; font-weight: 400; color: #A8989A; }
+
+/* The bar wraps and the tray grows to hold it, at any width it does not fit:
+   on one line it pushed the page sideways at 673px. */
+body.studio .studio-tray.bulk { height: auto; min-height: 76px; padding-top: 10px; padding-bottom: 10px; }
+body.studio .kbulk { display: flex; flex: 1; flex-wrap: wrap; align-items: center; gap: 8px 14px; min-width: 0; color: var(--studio-text); }
+body.studio .kbulk-count { min-width: 92px; font-size: 14px; white-space: nowrap; }
+body.studio .kbulk-group, body.studio .kbulk-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--studio-muted); white-space: nowrap; }
+body.studio .kbulk-label input { width: 64px; }
+body.studio .kbulk-apply { padding: 7px 14px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font-size: 13px; }
+body.studio .kbulk-pill { padding: 6px 11px; border: 1px solid #4A454F; border-radius: 999px; background: none; color: var(--studio-text); font-size: 12px; }
+body.studio .kbulk-note { flex: 1; min-width: 0; overflow: hidden; font-size: 12px; color: var(--studio-amber); text-overflow: ellipsis; white-space: nowrap; }
+body.studio .kbulk-done { padding: 9px 18px; border: 1px solid #4A454F; border-radius: 999px; background: none; color: var(--studio-text); font-size: 14px; }
+
+@media (max-width: 1000px) { body.studio .kpanel { grid-template-columns: minmax(0, 1fr); gap: 14px; } }
+@media (max-width: 620px) { body.studio .khead { flex-direction: column; align-items: flex-start; } }
+
+/* --- Your ad, a played week (read-only, the owner's call 2026-09-15) ------- */
+body.studio .yad h3 { margin: 0 0 8px; font: 700 16px/1.2 var(--studio-display); }
+body.studio .yad-intro { max-width: 720px; margin: 0 0 18px; font-size: 16px; line-height: 1.5; color: var(--studio-soft); }
+body.studio .yad-preview { max-width: 640px; margin-bottom: 16px; }
+body.studio .yad-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; margin-bottom: 14px; }
+body.studio .yad-card { padding: 16px 18px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .yad-writer { margin: 0; font: 800 20px/1.2 var(--studio-display); }
+body.studio .yad-small { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .yad-note { margin: 10px 0 0; font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .yad-grades { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; gap: 10px 12px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+body.studio .yad-track { position: relative; height: 10px; border-radius: 5px; background: var(--studio-raised); }
+body.studio .yad-fill, body.studio .yad-ghost { position: absolute; inset: 0 auto 0 0; border-radius: 5px; }
+body.studio .yad-fill { background: var(--studio-text); }
+/* The grade still to come, outlined behind this week's (3:1 against the track). */
+body.studio .yad-ghost { border: 1px dashed var(--studio-muted); }
+body.studio .yad-value { font-variant-numeric: tabular-nums; }
+/* The landing page drawn as a page (design/landing-page/, C, the owner's choice
+   2026-09-16), with what each purchase buys beside it and the grade it earns
+   beneath. The pictures are SVG in ui/ad/render.js: the game ships no
+   photographs, and a stylised garment cannot be mistaken for a real product. */
+body.studio .yad-page { display: flex; flex-direction: column; gap: 18px; }
+/* 280, not 260: the rows carry their grade points now (design B), as drawn. */
+body.studio .yad-page-top { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; align-items: start; }
+body.studio .yad-sheet { overflow: hidden; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: #141216; }
+body.studio .yad-bar { padding: 7px 12px; background: var(--studio-raised); font-size: 12px; color: var(--studio-muted); }
+body.studio .yad-hero { display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 14px; padding: 14px; }
+body.studio .yad-hero svg { border-radius: 9px; }
+body.studio .yad-detail { display: flex; flex-direction: column; gap: 7px; }
+body.studio .yad-product { font-size: 14px; font-weight: 700; line-height: 1.25; }
+body.studio .yad-price { font: 800 19px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .yad-reviews { display: flex; align-items: center; gap: 7px; }
+body.studio .yad-sizes { display: flex; gap: 5px; }
+body.studio .yad-size { padding: 2px 8px; border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 10px; color: var(--studio-soft); }
+body.studio .yad-size.on { border-color: var(--studio-text); color: var(--studio-text); }
+body.studio .yad-chart { margin: 0 14px 14px; padding: 10px 12px; border: 1px solid var(--studio-line); border-radius: 9px; }
+body.studio .yad-chart-head { font-size: 11px; font-weight: 700; }
+body.studio .yad-chart-bars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; margin-top: 8px; align-items: end; height: 38px; }
+body.studio .yad-chart-bar { border-radius: 2px; background: #57525C; }
+body.studio .yad-chart-bar.on { background: var(--studio-text); }
+body.studio .yad-side { display: flex; flex-direction: column; gap: 10px; }
+body.studio .yad-buys { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--studio-line); }
+body.studio .yad-buys-head { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--studio-muted); }
+body.studio .yad-buy { display: flex; flex-direction: column; gap: 2px; }
+/* A row for something not bought is set back by colour, not by opacity: dimming
+   an already-muted colour measured 2.85:1 on the line that says what the money
+   would buy, which is the one part of that row worth reading. */
+body.studio .yad-buy.off .yad-buy-top { color: var(--studio-faint); }
+body.studio .yad-buy-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; }
+body.studio .yad-buy-moves { font-size: 12px; color: var(--studio-muted); }
+/* Mint is money made, and a grade point buys a cheaper click; what else a
+   purchase moves is plain muted text, so the eye finds the Quality Score points.
+   Where the grade comes from (design B, 2026-09-17): a purchase with no point of
+   its own says so in faint, and a lost point is amber with a minus sign. */
+body.studio .yad-buy-moves.grade { color: var(--studio-mint); }
+body.studio .yad-buy-moves.none { color: var(--studio-faint); }
+body.studio .yad-buy-moves.lost { color: var(--studio-amber); }
+body.studio .yad-shared { display: flex; flex-direction: column; gap: 3px; padding-top: 10px; border-top: 1px dashed var(--studio-line-strong); }
+body.studio .yad-shared .yad-small { margin: 0; }
+/* A capped total with its week is wider than the column beside its parts: the
+   parts keep one line and the total takes the next, rather than both breaking. */
+body.studio .yad-sum { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 10px; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 12px; }
+body.studio .yad-sum-parts { color: var(--studio-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+body.studio .yad-sum-right { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; gap: 0 5px; margin-left: auto; text-align: right; }
+body.studio .yad-sum-right .yad-small { margin: 0; }
+body.studio .yad-sum-total { font: 800 16px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .yad-worth { display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--studio-line); }
+body.studio .yad-worth-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+/* Drawn as a step (design/page-worth/, B): twelve bars read as one flat row. */
+/* Lines in the SVG, marks and words laid over it (ui/ad/render.js, pin): text
+   inside a scaled SVG shrinks with it, and measured 8.2px at 592px wide. */
+body.studio .yad-worth-frame { position: relative; aspect-ratio: 720 / 206; min-height: 160px; }
+body.studio .yad-worth-plot { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* Strokes hold their width however far the plot is scaled down. */
+body.studio .yad-worth-plot line, body.studio .yad-worth-plot path { vector-effect: non-scaling-stroke; }
+body.studio .yad-worth-rule { stroke: var(--studio-line); stroke-width: 1; }
+body.studio .yad-worth-before { stroke: #57525C; stroke-width: 1; stroke-dasharray: 3 4; }
+body.studio .yad-worth-live { stroke: var(--studio-mint); stroke-width: 1; stroke-dasharray: 4 4; opacity: 0.7; }
+body.studio .yad-worth-under { fill: var(--studio-text); opacity: 0.06; }
+body.studio .yad-worth-line { fill: none; stroke: var(--studio-text); stroke-width: 2; stroke-linecap: round; }
+/* The step is the player's own doing, so it is red: the palette's colour for you. */
+body.studio .yad-worth-riser { fill: none; stroke: var(--studio-red); stroke-width: 3; stroke-linecap: round; }
+body.studio .yad-worth-frame > span { position: absolute; font-variant-numeric: tabular-nums; line-height: 1; white-space: nowrap; }
+body.studio .yad-worth-axis { transform: translate(-100%, -50%); font-size: 10px; color: var(--studio-faint); }
+body.studio .yad-worth-week { transform: translate(-50%, -50%); font-size: 10px; color: var(--studio-faint); }
+body.studio .yad-worth-week.on { color: var(--studio-text); font-weight: 600; }
+/* Written above the riser's top; the card colour behind it parts the dashed
+   live line where the two cross, rather than printing over it. */
+body.studio .yad-worth-gain { transform: translate(-50%, calc(-100% - 11px)); padding: 0 3px; background: var(--studio-card);
+  font-size: 12px; font-weight: 700; color: var(--studio-red-text); }
+body.studio .yad-worth-dot { transform: translate(-50%, -50%); width: 7px; height: 7px; border-radius: 999px; background: var(--studio-text); }
+body.studio .yad-worth-dot.live { background: var(--studio-mint); }
+/* The week you run next: the dot, ringed. */
+body.studio .yad-worth-dot.now { box-shadow: 0 0 0 3px var(--studio-card), 0 0 0 4.5px var(--studio-text); }
+body.studio .yad-worth-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 11px; color: var(--studio-muted); }
+body.studio .yad-worth-keyitem { display: inline-flex; align-items: center; gap: 6px; }
+body.studio .yad-worth-keydot { flex: none; width: 10px; height: 10px; border-radius: 999px; }
+body.studio .yad-worth-keydot.live { background: var(--studio-mint); }
+body.studio .yad-worth-keydot.now { width: 12px; height: 12px; border: 1.5px solid var(--studio-text); }
+body.studio .yad-quote { margin: 0; font-size: 14px; line-height: 1.5; color: var(--studio-text); }
+@media (max-width: 900px) {
+  body.studio .yad-row, body.studio .yad-page-top { grid-template-columns: minmax(0, 1fr); }
+  /* The garment gives up its column before the words do. */
+  body.studio .yad-hero { grid-template-columns: 96px minmax(0, 1fr); }
+  body.studio .yad-hero svg { width: 96px; height: auto; }
+}
+
+/* --- Where and when, a played week (design/where-when/, the owner's choice 2026-09-15) --- */
+/* Sized by the section's own width, not the window's: the sidebar takes 300px
+   whatever the window, so a laptop's section is narrower than a phone rule knows. */
+body.studio .ww { display: flex; flex-direction: column; gap: 30px; container-type: inline-size; }
+body.studio .ww-part { display: flex; flex-direction: column; gap: 14px; }
+body.studio .ww-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+body.studio .ww-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+body.studio .ww-title h3 { margin: 0; font: 700 22px/1.2 var(--studio-display); }
+body.studio .ww-sub { font-size: 13px; color: var(--studio-muted); }
+body.studio .ww-hint { font-size: 12px; color: var(--studio-muted); }
+body.studio .ww-note { max-width: 760px; margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
+body.studio .ww-small { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .ww-notes { display: flex; flex-direction: column; gap: 6px; }
+body.studio .ww-track:focus-visible, body.studio .ww-block:focus-visible { outline: 2px solid var(--studio-text); outline-offset: 3px; }
+
+/* where you advertise: three rows, each with its bar, beside the map */
+body.studio .ww-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 460px); gap: 28px; align-items: start; }
+body.studio .ww-left, body.studio .ww-rows { display: flex; flex-direction: column; gap: 12px; }
+body.studio .ww-row { display: flex; flex-direction: column; gap: 8px; padding: 14px 18px 10px; border: 1px solid var(--studio-line); border-radius: 18px; background: var(--studio-card); transition: border-color 150ms ease; }
+body.studio .ww-row.lit { border-color: #4A454F; }
+body.studio .ww-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+body.studio .ww-named { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+body.studio .ww-named strong { font: 700 18px/1.2 var(--studio-display); white-space: nowrap; }
+body.studio .ww-cities { overflow: hidden; font-size: 12px; color: var(--studio-muted); text-overflow: ellipsis; white-space: nowrap; }
+body.studio .ww-now { display: flex; flex-shrink: 0; align-items: baseline; gap: 8px; }
+body.studio .ww-setting { font: 800 18px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .ww-times { font-size: 12px; color: var(--studio-soft); font-variant-numeric: tabular-nums; }
+body.studio .ww-row[data-tone="even"] .ww-setting { color: var(--studio-muted); }
+body.studio .ww-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 22px; }
+body.studio .ww-figure { display: flex; align-items: baseline; gap: 6px; }
+body.studio .ww-figure strong { font: 800 24px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .ww-figure .ww-paid { color: var(--studio-soft); }
+body.studio .ww-figure span { font-size: 12px; color: var(--studio-muted); }
+body.studio .ww-figures .ww-small { flex: 1 1 260px; text-align: right; }
+body.studio .ww-track { position: relative; height: 30px; cursor: ew-resize; touch-action: none; border-radius: 8px; }
+body.studio .ww-track::before { position: absolute; top: 10px; right: 0; left: 0; height: 10px; border-radius: 5px; background: var(--studio-raised); content: ''; }
+body.studio .ww-fill { position: absolute; top: 10px; left: 0; height: 10px; border-radius: 5px; background: #7A7480; transition: width 120ms var(--studio-ease); }
+body.studio .ww-row[data-tone="up"] .ww-fill { background: var(--studio-red); }
+/* Lowered is striped red: apart from raised by more than its colour, and each
+   stripe clears 3:1 on the track. */
+body.studio .ww-row[data-tone="down"] .ww-fill { background: repeating-linear-gradient(135deg, var(--studio-red) 0 4px, transparent 4px 8px); }
+body.studio .ww-even { position: absolute; top: 5px; height: 20px; border-left: 2px solid var(--studio-muted); transform: translateX(-1px); }
+body.studio .ww-knob { position: absolute; top: 3px; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%; background: var(--studio-text); box-shadow: 0 0 0 4px var(--studio-card); transition: left 120ms var(--studio-ease); }
+body.studio .ww-scale { position: relative; height: 14px; font-size: 11px; color: var(--studio-muted); }
+body.studio .ww-scale span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+body.studio .ww-scale span:first-child { transform: none; }
+body.studio .ww-scale .ww-tick-top { transform: translateX(-100%); }
+body.studio .ww-scale .ww-tick-even { font-weight: 700; color: var(--studio-soft); }
+body.studio .ww-map { display: flex; flex-direction: column; gap: 10px; }
+body.studio .ww-map .r0-map { max-width: 460px; }
+
+/* hours of the day: each block as wide as its hours, as tall as the bid */
+body.studio .ww-day { display: grid; grid-template-columns: 64px minmax(0, 1fr); padding: 20px 24px 16px 12px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .ww-yscale { position: relative; height: 280px; }
+body.studio .ww-yscale span { position: absolute; right: 12px; font-size: 11px; color: var(--studio-muted); white-space: nowrap; transform: translateY(50%); }
+body.studio .ww-yscale .ww-y-even { font-size: 12px; font-weight: 700; color: var(--studio-text); }
+body.studio .ww-yscale .ww-y-hourly { top: calc(100% + 34px); bottom: auto; line-height: 1.25; text-align: right; white-space: normal; transform: none; }
+body.studio .ww-chart { display: flex; flex-direction: column; min-width: 0; }
+body.studio .ww-plot { position: relative; height: 280px; border-bottom: 1px solid var(--studio-line-strong); }
+body.studio .ww-top-line { position: absolute; top: 0; right: 0; left: 0; border-top: 1px dashed #68636B; }
+body.studio .ww-even-line { position: absolute; right: 0; left: 0; z-index: 1; border-top: 1px solid var(--studio-muted); pointer-events: none; }
+body.studio .ww-block { position: absolute; top: 0; bottom: 0; left: var(--x); width: var(--w); border-radius: 10px 10px 0 0; cursor: ns-resize; touch-action: none; }
+body.studio .ww-block:hover { background: #1F1C22; }
+body.studio .ww-bar { position: absolute; right: 3px; bottom: 0; left: 3px; box-sizing: border-box; border-top: 3px solid #68636B; border-radius: 8px 8px 0 0; background: #2A272D; transition: height 120ms var(--studio-ease); }
+body.studio .ww-block[data-tone="up"] .ww-bar { border-top-color: var(--studio-red-text); background: var(--studio-red); }
+body.studio .ww-block[data-tone="down"] .ww-bar { border-top-color: var(--studio-red); background: repeating-linear-gradient(135deg, var(--studio-red) 0 4px, transparent 4px 10px); }
+body.studio .ww-block[data-tone="off"] .ww-bar { border: 1px dashed #68636B; background: none; }
+body.studio .ww-read { position: absolute; right: 0; left: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding-bottom: 8px; pointer-events: none; transition: bottom 120ms var(--studio-ease); }
+body.studio .ww-read strong { font: 800 16px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .ww-read span { font-size: 11px; color: var(--studio-soft); white-space: nowrap; }
+body.studio .ww-block[data-tone="even"] .ww-read strong { color: var(--studio-muted); }
+body.studio .ww-hourly { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); align-items: end; gap: 6px; height: 86px; padding: 10px 3px 0; box-sizing: border-box; }
+/* The day's clicks are read from these, so they clear 3:1 on the card; the
+   block under the pointer lifts its own hours. */
+body.studio .ww-hour { border-radius: 3px 3px 0 0; background: #68636B; }
+body.studio .ww-hour.mine { background: var(--studio-soft); }
+body.studio .ww-axis { position: relative; height: 20px; border-top: 1px solid var(--studio-line-strong); font-size: 11px; color: var(--studio-muted); }
+body.studio .ww-axis span { position: absolute; top: 4px; transform: translateX(-50%); }
+body.studio .ww-axis span:first-child { transform: none; }
+body.studio .ww-axis span:last-child { transform: translateX(-100%); }
+body.studio .ww-labels { position: relative; height: 58px; margin-top: 6px; }
+body.studio .ww-label { position: absolute; top: 0; left: var(--x); width: var(--w); display: flex; flex-direction: column; gap: 2px; padding: 0 6px; box-sizing: border-box; font-size: 12px; color: var(--studio-muted); }
+body.studio .ww-label strong { font-size: 13px; color: var(--studio-text); white-space: nowrap; }
+body.studio .ww-label span { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* A rate built on hours with too few clicks to trust: muted, and marked. */
+body.studio .ww-label .ww-thin::after { color: var(--studio-amber); content: ' ·'; }
+/* A drag moves the bar under the pointer, so nothing may lag behind it. */
+body.studio .ww.dragging :is(.ww-bar, .ww-read, .ww-fill, .ww-knob) { transition: none; }
+/* A section under 1000px wide: the map narrows beside the rows, and a
+   three-hour block, under 80px, takes its name on two lines. */
+@container (max-width: 1000px) {
+  body.studio .ww-split { grid-template-columns: minmax(0, 1fr) minmax(0, 300px); }
+  body.studio .ww-labels { height: 80px; }
+  body.studio .ww-label { padding: 0 4px; font-size: 11px; }
+  body.studio .ww-label strong { white-space: normal; }
+}
+@container (max-width: 700px) { body.studio .ww-split { grid-template-columns: minmax(0, 1fr); } }
+/* On a phone the three-hour blocks are a finger wide: the readout keeps only
+   the setting, and the block names move into a grid under the chart. */
+@container (max-width: 560px) {
+  body.studio .ww-day { grid-template-columns: 38px minmax(0, 1fr); padding: 14px 12px 12px 4px; }
+  body.studio .ww-yscale, body.studio .ww-plot { height: 220px; }
+  body.studio .ww-yscale span { right: 6px; }
+  body.studio .ww-yscale .ww-y-hourly { display: none; }
+  body.studio .ww-read span { display: none; }
+  body.studio .ww-read strong { font-size: 12px; }
+  body.studio .ww-hourly { gap: 2px; height: 60px; }
+  body.studio .ww-labels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; height: auto; }
+  body.studio .ww-label { position: static; width: auto; padding: 0; }
+  body.studio .ww-label strong { white-space: normal; }
+  body.studio .ww-figures .ww-small { text-align: left; }
+  body.studio .ww-named { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.studio :is(.ww-bar, .ww-read, .ww-fill, .ww-knob, .ww-row) { transition: none; }
+}
+
+/* --- Your week, a played week (design/your-week/, the owner's choice 2026-09-15) --- */
+/* Sized by the section's own width, as Where and when is. */
+body.studio .yw { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .yw h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
+body.studio .yw-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px 14px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .yw-sub { margin: 0; font-size: 12px; color: var(--studio-muted); }
+body.studio .yw-note { max-width: 760px; margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
+
+/* the week's six figures */
+body.studio .yw-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: 16px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .yw-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+body.studio .yw-label { font-size: 12px; color: var(--studio-muted); }
+body.studio .yw-big { font: 800 28px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+/* Money lost is amber, with its minus sign, everywhere in the Studio. */
+body.studio .yw-big.loss { color: var(--studio-amber); }
+body.studio .yw-stat .yw-sub { font-variant-numeric: tabular-nums; }
+body.studio .yw-landed { display: flex; height: 6px; margin: 2px 0; overflow: hidden; border-radius: 3px; }
+body.studio .yw-landed span:first-child { background: var(--studio-text); }
+body.studio .yw-landed span:last-child { flex: 1; box-sizing: border-box; border: 1px dashed #68636B; border-left: none; border-radius: 0 3px 3px 0; }
+
+/* every week so far, beside where the impressions went */
+body.studio .yw-row { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+body.studio .yw-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+body.studio .yw-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+body.studio .yw-replay { flex-shrink: 0; padding: 4px 10px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; white-space: nowrap; }
+body.studio .yw-replay:hover { border-color: #4A454F; }
+body.studio .yw-scroll { overflow-x: auto; }
+/* Played weeks share the width; weeks to come take under half a share each.
+   The side padding holds what pokes out of the end columns (the zero line,
+   a tick, a figure), or the box would scroll by those few pixels. */
+body.studio .yw-chart { display: flex; gap: 10px; padding: 24px 6px 0; }
+body.studio .yw-col { flex: 1 1 0; min-width: 0; }
+body.studio .yw-col.future { flex-grow: 0.45; }
+body.studio .yw-bars { position: relative; height: 190px; }
+/* Room under the zero line for a losing week's figure. */
+body.studio .yw-chart.has-loss .yw-bars { margin-bottom: 16px; }
+body.studio .yw-bar { position: absolute; right: 3px; left: 3px; border-radius: 5px 5px 0 0; }
+body.studio .yw-bar.below { border-radius: 0 0 5px 5px; }
+body.studio .yw-bar.yw-now { background: var(--studio-text); }
+body.studio .yw-bar.loss { background: var(--studio-amber); }
+body.studio .yw-bar.yw-was { background: #7A7480; }
+body.studio .yw-value { position: absolute; right: -6px; left: -6px; font-size: 11px; font-weight: 700; line-height: 1; text-align: center; white-space: nowrap; font-variant-numeric: tabular-nums; }
+body.studio .yw-value.loss { color: var(--studio-amber); }
+body.studio .yw-value.yw-was { color: var(--studio-muted); }
+/* Where the week stood before this week ran: the keyword slider's "was", made for a bar. */
+body.studio .yw-tick { position: absolute; right: -3px; left: -3px; height: 0; border-top: 2px dashed var(--studio-faint); }
+/* Where a losing week hangs from, so it clears 3:1 on the card (the canvas's
+   #3A363E measured 1.52:1). The stubs of weeks to come stay faint: their
+   numbers say they are to come. */
+body.studio .yw-zero { position: absolute; right: -5px; left: -5px; border-top: 1px solid #68636B; }
+body.studio .yw-stub { position: absolute; right: 3px; left: 3px; height: 10px; box-sizing: border-box; border: 1px dashed var(--studio-line-strong); border-radius: 5px; }
+body.studio .yw-foot { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; height: 36px; font-size: 11px; font-variant-numeric: tabular-nums; }
+body.studio .yw-week { color: var(--studio-faint); }
+body.studio .yw-change { color: var(--studio-muted); white-space: nowrap; }
+body.studio .yw-col.latest :is(.yw-week, .yw-change) { font-weight: 700; color: var(--studio-text); }
+body.studio .yw-reading { max-width: 680px; margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
+/* The revision (spec section 3, row 2): where each week stood gives way to
+   where it is now, on opacity alone, 250ms. Reduced motion keeps it, since a
+   fade moves nothing. */
+body.studio .yw-was { opacity: 0; }
+body.studio :is(.yw-was, .yw-now, .yw-tick, .yw-change) { transition: opacity 250ms var(--studio-ease); }
+body.studio .yw-chart.was .moved .yw-was { opacity: 1; }
+body.studio .yw-chart.was .moved :is(.yw-now, .yw-tick, .yw-change) { opacity: 0; }
+body.studio .yw-chart.instant * { transition: none; }
+
+body.studio .yw-strip { display: flex; gap: 2px; height: 14px; overflow: hidden; border-radius: 7px; background: var(--studio-raised); }
+body.studio :is(.yw-strip, .yw-key) .shown { background: var(--studio-text); }
+body.studio :is(.yw-strip, .yw-key) .budget { background: #7A7480; }
+body.studio :is(.yw-strip, .yw-key) .rank { background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px); }
+body.studio .yw-keys { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; font-variant-numeric: tabular-nums; }
+body.studio .yw-key { display: flex; align-items: center; gap: 6px; }
+body.studio .yw-key i { width: 10px; height: 10px; border-radius: 2px; }
+body.studio .yw-key .rank { box-shadow: inset 0 0 0 1px #7A7480; }
+body.studio .yw-key b { font-weight: 700; }
+body.studio .yw-key span { color: var(--studio-muted); }
+body.studio .yw-positions { display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column; gap: 8px; }
+body.studio .yw-pos { display: flex; flex-direction: column; gap: 6px; text-align: center; }
+body.studio .yw-posplot { display: flex; align-items: flex-end; height: 70px; }
+body.studio .yw-posbar { width: 100%; min-height: 3px; border-radius: 4px 4px 0 0; background: #7A7480; }
+body.studio .yw-posbar.top { background: var(--studio-text); }
+body.studio .yw-posfig { display: flex; flex-direction: column; font-size: 12px; color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .yw-posfig b { font-weight: 700; color: var(--studio-text); }
+
+/* A section under 1000px wide: the impressions go under the chart. */
+@container (max-width: 1000px) { body.studio .yw-row { grid-template-columns: minmax(0, 1fr); } }
+@container (max-width: 760px) { body.studio .yw-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* On a phone: two figures to a row, and the chart scrolls sideways at a
+   width where every week's figures fit. */
+@container (max-width: 560px) {
+  body.studio .yw-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
+  body.studio .yw-big { font-size: 24px; }
+  body.studio .yw-card { padding: 14px 14px 12px; }
+  body.studio .yw-head { flex-wrap: wrap; }
+  body.studio .yw-scroll { padding-bottom: 8px; }
+  body.studio .yw-chart { min-width: 600px; }
+}
+
+/* --- What people typed, a played week (design/what-people-typed/, the owner's choice 2026-09-15) --- */
+body.studio .wt { display: flex; flex-direction: column; gap: 14px; container-type: inline-size; }
+body.studio .wt h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
+body.studio .wt-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+body.studio .wt-summary { margin: 0; font-size: 14px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .wt-range { display: flex; flex-wrap: wrap; gap: 6px; }
+body.studio .wt-chip { padding: 5px 12px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; font-weight: 600; }
+body.studio .wt-chip[aria-pressed="true"] { border-color: var(--studio-text); background: var(--studio-text); color: var(--studio-page); }
+body.studio .wt-split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+body.studio .wt-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 14px 12px 12px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .wt-blocker { gap: 10px; padding: 16px 18px; }
+
+/* the list: one row a search, the money down it */
+body.studio .wt-row { display: grid; grid-template-columns: minmax(0, 1fr) 128px 48px 72px 82px 64px; gap: 10px; align-items: center; padding: 6px 8px; border-radius: 10px; }
+body.studio .wt-cols { padding-block: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; color: var(--studio-faint); }
+body.studio .wt-rows { display: flex; flex-direction: column; gap: 2px; }
+body.studio .wt-term { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; min-width: 0; }
+body.studio .wt-text { font-size: 13px; }
+body.studio .wt-tag { padding: 1px 7px; border: 1px solid #6A646E; border-radius: 999px; font-size: 10px; font-weight: 700; white-space: nowrap; color: var(--studio-soft); }
+body.studio .wt-spent { display: flex; align-items: center; gap: 8px; }
+body.studio .wt-track { flex: 1; height: 6px; overflow: hidden; border-radius: 3px; background: var(--studio-raised); }
+body.studio .wt-track span { display: block; height: 100%; background: var(--studio-text); }
+body.studio .wt-num { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; color: var(--studio-soft); }
+body.studio .wt-spent .wt-num { width: 58px; color: var(--studio-text); }
+/* Where to look (I13): a sale costing over twice the account's average, or
+   more of its sales come back than the account's. Bold too, and the figure's
+   title says which, so the mark does not rest on colour alone. */
+body.studio .wt-num.mark { font-weight: 700; color: var(--studio-amber); }
+body.studio .wt-act { justify-self: end; padding: 0; border: 0; background: none; font-size: 12px; white-space: nowrap; color: var(--studio-red-text); cursor: pointer; }
+body.studio span.wt-act { color: var(--studio-muted); cursor: default; }
+/* A blocked search greys out and is struck through, all but its undo. Grey
+   rather than faded: at the planned 0.45 opacity its figures measured 3.21:1
+   on the card; muted is 6.49:1. */
+body.studio .wt-row.blocked :is(.wt-text, .wt-num, .wt-tag) { font-weight: 400; color: var(--studio-muted); }
+body.studio .wt-row.blocked .wt-track span { background: #68636B; }
+body.studio .wt-row.blocked .wt-text { text-decoration: line-through; }
+/* The rows the block being typed would catch. */
+body.studio .wt-row.caught { background: #1F1C22; box-shadow: inset 0 0 0 1px var(--studio-muted); }
+body.studio .wt-legend { margin: 0; padding: 2px 8px 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+
+/* Block words */
+body.studio .wt-small { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .wt-input { height: 40px; padding: 0 14px; border: 1px solid var(--studio-line-strong); border-radius: 12px; background: var(--studio-page); color: var(--studio-text); font: inherit; font-size: 14px; }
+body.studio .wt-input::placeholder { color: var(--studio-muted); }
+body.studio .wt-preview { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: #1F1C22; }
+body.studio .wt-preview[hidden] { display: none; }
+body.studio .wt-headline { margin: 0; font-size: 13px; line-height: 1.45; }
+body.studio .wt-caught { display: flex; flex-direction: column; gap: 4px; }
+body.studio .wt-hit { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; }
+body.studio .wt-hit .wt-text { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; color: var(--studio-soft); }
+body.studio .wt-go { align-self: flex-start; padding: 7px 14px; border: 1px solid #4A454F; border-radius: 999px; background: none; color: var(--studio-text); font-size: 13px; font-weight: 600; }
+body.studio .wt-label { margin: 4px 0 0; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .wt-blocks { display: flex; flex-direction: column; gap: 6px; }
+body.studio .wt-block { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 12px; border-radius: 12px; background: #1F1C22; }
+body.studio .wt-block .wt-text { flex: 1; min-width: 0; }
+body.studio .wt-remove { display: grid; flex-shrink: 0; place-items: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 50%; background: #2E2A33; color: var(--studio-muted); font-size: 11px; }
+
+/* A section under 960px wide: Block words goes under the list. */
+@container (max-width: 960px) { body.studio .wt-split { grid-template-columns: minmax(0, 1fr); } }
+/* On a phone a row takes two lines: the search, then its figures under the
+   column names, which fold the same way. */
+@container (max-width: 560px) {
+  body.studio .wt-row { grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)) auto; row-gap: 4px; }
+  body.studio .wt-row > :first-child { grid-column: 1 / -1; }
+  body.studio .wt-cols { font-size: 10px; letter-spacing: 0.02em; white-space: normal; }
+  body.studio .wt-track { display: none; }
+  body.studio .wt-spent .wt-num { width: auto; text-align: left; }
+  body.studio .wt-blocker { padding: 14px; }
+}
+
+/* --- Your money, a played week (design/your-money/, the owner's choice 2026-09-15) --- */
+body.studio .wm { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .wm h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
+body.studio .wm p { margin: 0; }
+body.studio .wm-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .wm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
+body.studio .wm-titles { display: flex; flex-direction: column; gap: 2px; }
+body.studio .wm-card[data-slot="budget"] h3 { font-size: 20px; }
+body.studio .wm-read { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .wm-read strong { color: var(--studio-text); }
+body.studio .wm-small { font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .wm-warn { font-size: 12px; line-height: 1.45; color: var(--studio-amber); }
+body.studio .wm-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .wm-num { font-variant-numeric: tabular-nums; }
+body.studio .wm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+body.studio .wm-chip { padding: 5px 12px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; font-weight: 600; white-space: nowrap; }
+body.studio .wm-chip[aria-pressed="true"] { border-color: var(--studio-text); background: var(--studio-text); color: var(--studio-page); }
+body.studio .wm-chip:disabled { border-color: #26232A; color: #68636B; cursor: not-allowed; }
+
+/* this week only: the one-off window, on the panel colour round 0 uses */
+body.studio .wm-window { display: flex; flex-direction: column; gap: 12px; padding: 18px 22px; border: 1px solid var(--studio-panel-edge); border-radius: 20px; background: var(--studio-panel); }
+body.studio .wm-window .wm-head { justify-content: flex-start; }
+body.studio .wm-window h3 { font: 800 22px/1.1 var(--studio-display); }
+body.studio .wm-window .wm-read { max-width: 900px; }
+body.studio .wm-split { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+body.studio .wm-split > :only-child { grid-column: 1 / -1; }
+body.studio .wm-column, body.studio .wm-part { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+body.studio .wm-column { gap: 16px; }
+body.studio .wm-target { display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; border-radius: 14px; background: var(--studio-card); }
+body.studio .wm-target-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 14px; }
+/* Committing capital is the player's change, so it is red; the rest joins the ads. */
+body.studio .wm-window .wm-chip[aria-pressed="true"] { border-color: var(--studio-red); background: var(--studio-red); color: var(--studio-on-red); }
+body.studio .wm-capbar { display: flex; height: 12px; overflow: hidden; border-radius: 6px; background: var(--studio-line); }
+body.studio .wm-committed { background: var(--studio-red); }
+body.studio .wm-joins { background: #7A7480; }
+body.studio .wm-capfigures { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--studio-soft); }
+body.studio .wm-yours { color: var(--studio-red-text); }
+body.studio .wm-cells { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+body.studio .wm-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; border: 1px solid var(--studio-line); border-radius: 12px; background: var(--studio-card); color: var(--studio-soft); font-size: 11px; text-align: left; }
+body.studio .wm-cell strong { font-size: 13px; color: var(--studio-text); }
+body.studio .wm-cell[aria-pressed="true"] { border-color: var(--studio-red); background: #2A1216; }
+/* A cell out of reach is muted rather than faded, for What people typed's
+   reason: faded, its figures would fall under 4.5:1. */
+body.studio .wm-cell:disabled { cursor: not-allowed; }
+body.studio .wm-cell:disabled :is(strong, span) { color: var(--studio-muted); }
+body.studio .wm-page { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--studio-line-strong); border-radius: 12px; }
+body.studio .wm-strip { margin: 6px 8px; padding: 7px; border-radius: 8px; background: var(--studio-raised); font-size: 11px; text-align: center; color: var(--studio-soft); }
+
+/* the month, one bar: a line between two weeks moves money between them */
+body.studio .wm-bar { position: relative; }
+body.studio .wm-segs { display: flex; min-height: 62px; }
+/* The gap between weeks is each week's own transparent right edge, so a week's
+   width is exactly its share and a line sits exactly where the next begins. */
+body.studio .wm-seg { display: flex; flex: 0 1 auto; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; overflow: hidden; box-sizing: border-box; border-right: 3px solid transparent; border-radius: 10px; background-clip: padding-box; font-size: 12px; white-space: nowrap; }
+body.studio .wm-seg:last-child { border-right: 0; }
+body.studio .wm-seg > * { padding: 0 10px; }
+body.studio .wm-seg.spent { background-color: var(--studio-line); color: var(--studio-muted); }
+body.studio .wm-seg.next { background-color: var(--studio-text); color: var(--studio-page); }
+body.studio .wm-seg.planned { background-color: #5E5963; color: var(--studio-text); }
+/* Money no week is given is lost at the month's end: amber, and dashed, so it
+   does not read as a week. */
+body.studio .wm-seg.unplanned { outline: 1.5px dashed var(--studio-amber); outline-offset: -1.5px; color: var(--studio-amber); }
+body.studio .wm-lines { position: absolute; inset: 0; pointer-events: none; }
+body.studio .wm-line { position: absolute; top: -4px; bottom: -4px; width: 18px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: ew-resize; pointer-events: auto; touch-action: none; transform: translateX(calc(-50% - 1.5px)); }
+body.studio .wm-line::after { content: ''; position: absolute; top: 50%; left: 50%; width: 4px; height: 55%; border-radius: 2px; background: var(--studio-text); box-shadow: 0 0 0 2px var(--studio-card); transform: translate(-50%, -50%); }
+body.studio .wm-line:hover::after, body.studio .wm-line:focus-visible::after { width: 6px; }
+body.studio .wm-line:focus-visible { outline: 2px solid var(--studio-red-text); outline-offset: 0; }
+
+/* bidding and what week 8 decides, side by side */
+body.studio .wm-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+body.studio .wm-targetbox { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 12px; background: #1F1C22; }
+body.studio .wm-targetbox .wm-target-head { font-size: 13px; color: var(--studio-soft); }
+body.studio .wm-targetbox strong { color: var(--studio-text); }
+body.studio .wm-slider { width: 100%; accent-color: var(--studio-red); }
+body.studio .wm-bid { display: flex; flex-direction: column; gap: 6px; }
+body.studio .wm-ladder { display: flex; flex-direction: column; gap: 4px; }
+body.studio .wm-rung { display: grid; grid-template-columns: 34px minmax(0, 1fr) 80px 56px; gap: 8px; align-items: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+body.studio .wm-rung > :first-child { color: var(--studio-muted); }
+body.studio .wm-rung > :nth-child(3), body.studio .wm-rung > :last-child { text-align: right; }
+body.studio .wm-track { height: 8px; overflow: hidden; border-radius: 4px; background: var(--studio-raised); }
+body.studio .wm-track span { display: block; height: 100%; border-radius: 4px; background: #7A7480; }
+body.studio .wm-rung.average { font-weight: 700; }
+body.studio .wm-rung.average .wm-track span { background: var(--studio-muted); }
+body.studio .wm-rung.you { font-weight: 700; color: var(--studio-text); }
+body.studio .wm-rung.you > :first-child { color: var(--studio-red-text); }
+body.studio .wm-rung.you .wm-track span { background: var(--studio-red); }
+
+/* A section under 900px wide: one column. */
+@container (max-width: 900px) {
+  body.studio .wm-split, body.studio .wm-row { grid-template-columns: minmax(0, 1fr); }
+}
+/* A phone: a week's figure wraps inside its piece of the bar. */
+@container (max-width: 560px) {
+  body.studio .wm-window, body.studio .wm-card { padding: 14px; }
+  body.studio .wm-seg { justify-content: flex-start; padding-block: 8px; font-size: 11px; white-space: normal; }
+  body.studio .wm-seg > * { padding: 0 6px; }
+  body.studio .wm-cells { grid-template-columns: minmax(0, 1fr); }
+  body.studio .wm-rung { grid-template-columns: 30px minmax(0, 1fr) 72px 44px; }
+}
+
+/* --- Returns, a played week (design/returns/, the owner's choice 2026-09-15) --- */
+body.studio .wr { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .wr h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
+body.studio .wr p { margin: 0; }
+body.studio .wr-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .wr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
+body.studio .wr-small { font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .wr-read, body.studio .wr-reading p { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .wr-num { font-variant-numeric: tabular-nums; }
+/* Refused at the door is amber, money lost at the door with its freight;
+   sent back is the Studio's grey for what is past; a week still coming back
+   is faint, as today's card dims it. */
+body.studio .wr-swatch { display: inline-block; flex-shrink: 0; width: 10px; height: 10px; border-radius: 3px; }
+body.studio .wr-swatch.refused { background: var(--studio-amber); }
+body.studio .wr-swatch.sent { background: #7A7480; }
+body.studio .wr-swatch.still { background: var(--studio-muted); opacity: 0.32; }
+
+/* the five figures */
+body.studio .wr-figures { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px 18px; }
+body.studio .wr-figure { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+body.studio .wr-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+/* The why link is a line taller than the label; held to the label's height, so
+   the five figures below stay on one line (measured 18.3px against 16.5). */
+body.studio .wr-label { min-height: 17px; }
+body.studio .wr-label .why { line-height: 1; letter-spacing: 0; text-transform: none; }
+body.studio .wr-value { font: 800 30px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+
+/* week by week */
+body.studio .wr-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12px; color: var(--studio-muted); }
+body.studio .wr-key { display: inline-flex; align-items: center; gap: 6px; }
+body.studio .wr-scroll { overflow-x: auto; }
+body.studio .wr-chart { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; padding: 0 4px; }
+body.studio .wr-col { display: flex; flex-direction: column; min-width: 0; }
+body.studio .wr-plot { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 206px; border-bottom: 1px solid #68636B; }
+body.studio .wr-total { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+body.studio .wr-stack { display: flex; flex-direction: column; gap: 2px; width: 100%; max-width: 46px; }
+body.studio .wr-stack span { display: block; }
+body.studio .wr-sent { border-radius: 6px 6px 0 0; background: #7A7480; }
+body.studio .wr-refused { background: var(--studio-amber); }
+body.studio .wr-col.still .wr-stack { opacity: 0.32; }
+/* The week an investment went live: a dashed line down the column's left. */
+body.studio .wr-col.marked .wr-plot::before { content: ''; position: absolute; top: 0; bottom: 0; left: -6px; border-left: 1.5px dashed var(--studio-faint); }
+body.studio .wr-mark { position: absolute; top: -2px; left: -2px; padding-right: 4px; background: var(--studio-card); font-size: 11px; white-space: nowrap; color: var(--studio-soft); }
+body.studio .wr-week { display: flex; flex-direction: column; align-items: center; gap: 1px; padding-top: 4px; font-size: 11px; color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .wr-col.future .wr-week { color: var(--studio-faint); }
+body.studio .wr-still { min-height: 15px; white-space: nowrap; }
+body.studio .wr-reading { display: flex; flex-direction: column; gap: 4px; }
+
+/* the prepaid discount, and what else moves it */
+body.studio .wr-row { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+body.studio .wr-rungs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+body.studio .wr-rung { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 10px 12px; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: none; color: var(--studio-soft); text-align: left; }
+body.studio .wr-rung strong { font: 700 16px/1.1 var(--studio-display); }
+/* The account's own setting is bone, as a chosen chip is everywhere in the
+   Studio; a rung you move to is red, your change. */
+body.studio .wr-rung[aria-pressed="true"] { border-color: var(--studio-text); background: var(--studio-text); color: var(--studio-page); }
+body.studio .wr-rung.change[aria-pressed="true"] { border-color: var(--studio-red); background: #2A1216; color: var(--studio-on-red); }
+body.studio .wr-bars { display: flex; flex-direction: column; gap: 3px; }
+body.studio .wr-track { display: block; height: 5px; overflow: hidden; border-radius: 3px; background: var(--studio-raised); }
+body.studio .wr-track span { display: block; height: 100%; border-radius: 3px; }
+body.studio .wr-track .saves { background: var(--studio-mint); }
+body.studio .wr-track .costs { background: var(--studio-amber); }
+body.studio .wr-detail { display: flex; flex-direction: column; gap: 8px; }
+body.studio .wr-trade { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 4px 12px; align-items: center; font-size: 13px; }
+body.studio .wr-trade .wr-track { height: 8px; }
+body.studio .wr-lever { display: flex; flex-direction: column; gap: 8px; }
+body.studio .wr-lever + .wr-lever { padding-top: 12px; border-top: 1px solid var(--studio-line); }
+body.studio .wr-lever-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+body.studio .wr-lever-head strong { font-size: 14px; }
+body.studio .wr-places { display: grid; grid-template-columns: minmax(0, 1fr) 76px 76px 96px; gap: 4px 12px; align-items: baseline; font-size: 12px; color: var(--studio-soft); }
+body.studio .wr-places .wr-num { text-align: right; color: var(--studio-text); }
+body.studio .wr-col-head { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-align: right; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .wr-go { align-self: flex-start; padding: 4px 10px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 12px; font-weight: 600; color: var(--studio-soft); }
+body.studio .wr-go::after { content: ' →'; }
+
+/* A section under 900px wide: the discount and the levers stack. */
+@container (max-width: 900px) {
+  body.studio .wr-row { grid-template-columns: minmax(0, 1fr); }
+  body.studio .wr-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* A phone: the weeks scroll sideways in their own box, as Your week's do. */
+@container (max-width: 560px) {
+  body.studio .wr-card { padding: 14px; }
+  body.studio .wr-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .wr-chart { min-width: 560px; }
+  body.studio .wr-rungs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.studio .wr-trade { grid-template-columns: minmax(0, 1fr); }
+  body.studio .wr-places { grid-template-columns: minmax(0, 1fr) 58px 64px 70px; }
+}
+
+/* --- Rivals, the Market area (design/market/, the owner's choice 2026-09-15) --- */
+body.studio .rv { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .rv h3 { margin: 0; font: 800 20px/1.1 var(--studio-display); }
+body.studio .rv p { margin: 0; }
+body.studio .rv-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rv-small { font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .rv-read { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .rv-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .rv-num { font-variant-numeric: tabular-nums; }
+body.studio .rv-value { font: 800 26px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+
+/* the market, and you */
+body.studio .rv-figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; }
+body.studio .rv-figure { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+body.studio .rv-you { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 13px; font-variant-numeric: tabular-nums; }
+body.studio .rv-pair { display: inline-flex; align-items: baseline; gap: 5px; }
+
+/* the rivals, a card each */
+body.studio .rv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+body.studio .rv-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+body.studio .rv-meet { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: end; }
+body.studio .rv-big { display: flex; flex-direction: column; gap: 2px; }
+body.studio .rv-big .rv-value { font-size: 30px; }
+/* How often you met, a bar a week: past weeks grey, this week bone, weeks to
+   come a bare line. */
+body.studio .rv-bars { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; align-items: end; height: 34px; border-bottom: 1px solid var(--studio-line-strong); }
+body.studio .rv-bars span { display: block; border-radius: 2px 2px 0 0; background: #7A7480; }
+body.studio .rv-bars span.now { background: var(--studio-text); }
+body.studio .rv-bars span.future { background: none; }
+body.studio .rv-card .kserp { padding: 10px 12px; border-radius: 14px; background: var(--studio-sidebar); }
+body.studio .rv-card .kserp-head { font-size: 14px; }
+body.studio .rv-card .kserp-desc { font-size: 12px; }
+body.studio .rv-line { display: grid; grid-template-columns: 150px minmax(0, 1fr) 44px; gap: 10px; align-items: center; }
+body.studio .rv-line strong { text-align: right; font-size: 12px; }
+body.studio .rv-track { display: block; height: 6px; overflow: hidden; border-radius: 3px; background: var(--studio-raised); }
+body.studio .rv-track span { display: block; height: 100%; border-radius: 3px; background: var(--studio-muted); }
+
+/* A section under 900px wide: the cards one to a row, the figures two. */
+@container (max-width: 900px) {
+  body.studio .rv-grid { grid-template-columns: minmax(0, 1fr); }
+  body.studio .rv-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 560px) {
+  body.studio .rv-card { padding: 14px; }
+  body.studio .rv-line { grid-template-columns: minmax(0, 1fr) 70px 40px; }
+}
+
+/* --- Results, after the last week (design/results/, the owner's choice 2026-09-15) --- */
+body.studio .rs { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .rs h3 { margin: 0; font: 700 20px/1.2 var(--studio-display); }
+body.studio .rs h4 { margin: 0; font: 800 20px/1.15 var(--studio-display); }
+body.studio .rs-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rs-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .rs-sub { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .rs-faint { font-size: 11px; color: var(--studio-faint); }
+body.studio .rs-read { margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
+body.studio .rs-quiet { color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .rs-big { font: 800 28px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+/* Money lost is amber, with its minus sign, everywhere in the Studio. */
+body.studio :is(.rs-big, .rs-value, .rs-money, .rs-then strong).loss { color: var(--studio-amber); }
+body.studio .rs-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+body.studio .rs-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+/* Red is the player and the player's own changes: a week they changed something. */
+body.studio .rs-dot { display: inline-block; flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--studio-red); }
+body.studio .rs-key { display: flex; flex-shrink: 0; align-items: center; gap: 6px; font-size: 12px; color: var(--studio-muted); white-space: nowrap; }
+body.studio .rs-next { align-self: flex-start; padding: 0; border: 0; background: none; font-size: 14px; font-weight: 700; color: var(--studio-red-text); }
+body.studio .rs-next:hover { text-decoration: underline; }
+body.studio .rs-pill { align-self: flex-start; padding: 8px 16px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 13px; font-weight: 600; color: var(--studio-soft); }
+body.studio .rs-pill:hover:not(:disabled) { border-color: #4A454F; }
+body.studio .rs-pill:disabled { opacity: 0.55; }
+body.studio .rs-pairs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+body.studio .rs-pairs.wide { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+
+/* Twelve weeks: the figures, then every week against its first report. */
+body.studio .rs-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rs-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+body.studio .rs-stat .rs-label { font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--studio-muted); }
+body.studio .rs-stat .rs-sub { font-variant-numeric: tabular-nums; }
+body.studio .rs-scroll { overflow-x: auto; }
+body.studio .rs-chart { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; }
+body.studio :is(.rs-brackets, .rs-cols) { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; }
+body.studio .rs-brackets { min-height: 16px; }
+body.studio .rs-bracket { padding-top: 2px; border-top: 1px solid #68636B; font-size: 11px; color: var(--studio-faint); text-align: center; }
+body.studio .rs-col { display: flex; flex-direction: column; min-width: 0; padding: 26px 0 6px; border: 0; border-radius: 10px; background: none; color: inherit; cursor: pointer; }
+body.studio .rs-col:hover { background: #1B191E; }
+body.studio .rs-col.on { background: var(--studio-raised); }
+body.studio .rs-plot { position: relative; height: var(--rs-bars, 200px); }
+body.studio .rs-bar { position: absolute; right: 10px; left: 10px; border-radius: 3px 3px 0 0; background: var(--studio-text); }
+body.studio .rs-bar.below { border-radius: 0 0 3px 3px; }
+body.studio .rs-bar.loss { background: var(--studio-amber); }
+/* Each week's first report: the keyword slider's "was", made for a bar. */
+body.studio .rs-tick { position: absolute; right: 4px; left: 4px; height: 0; border-top: 2px dashed var(--studio-faint); }
+body.studio .rs-zero { position: absolute; right: -5px; left: -5px; border-top: 1px solid #68636B; }
+body.studio .rs-value { position: absolute; right: -6px; left: -6px; font-size: 11px; font-weight: 700; line-height: 1; text-align: center; white-space: nowrap; color: var(--studio-soft); font-variant-numeric: tabular-nums; }
+body.studio .rs-foot { display: flex; flex-direction: column; align-items: center; gap: 3px; padding-top: 7px; font-size: 12px; font-variant-numeric: tabular-nums; }
+body.studio .rs-week { display: inline-flex; align-items: center; gap: 5px; color: var(--studio-muted); }
+body.studio .rs-col.on .rs-week { font-weight: 700; color: var(--studio-text); }
+body.studio .rs-change { font-size: 11px; color: var(--studio-muted); white-space: nowrap; }
+body.studio .rs-strip { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.3fr); gap: 24px; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 14px; background: var(--studio-sidebar); }
+body.studio .rs-block { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+body.studio .rs-then { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+body.studio .rs-pairfig { display: flex; flex-direction: column; gap: 2px; }
+body.studio .rs-pairfig .rs-label { font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+body.studio .rs-pairfig strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+body.studio .rs-pairfig strong.rs-quiet { font-weight: 400; }
+body.studio .rs-did { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+body.studio .rs-did li { display: flex; align-items: baseline; gap: 8px; }
+body.studio .rs-did .rs-dot { transform: translateY(-2px); }
+
+/* What you learned: the lessons, the weeks you changed something, the budget. */
+body.studio .rs-lessons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+body.studio .rs-lesson { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rs-lesson.untried { border-style: dashed; border-color: #4A454F; }
+body.studio .rs-lesson h4 { font-size: 16px; font-weight: 700; }
+body.studio .rs-shares { display: flex; flex-direction: column; gap: 6px; }
+body.studio .rs-sharebar { display: flex; gap: 2px; height: 10px; overflow: hidden; border-radius: 5px; background: var(--studio-raised); }
+body.studio .rs-sharebar .shown { background: var(--studio-text); }
+body.studio .rs-sharebar .budget { background: #7A7480; }
+body.studio .rs-sharebar .rank { background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px); }
+body.studio .rs-sharekeys { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 11px; color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .rs-moments { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+body.studio .rs-compare { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 4px 12px; font-size: 13px; font-variant-numeric: tabular-nums; }
+body.studio .rs-compare > :nth-child(3n + 2), body.studio .rs-compare > :nth-child(3n) { text-align: right; }
+body.studio .rs-compare .rs-label { font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+body.studio .rs-answer { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 13px; }
+body.studio .rs-weeks { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; max-width: 720px; }
+body.studio .rs-weekcell { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--studio-muted); }
+body.studio :is(.rs-weekcell, .rs-legend) i { display: block; box-sizing: border-box; border-radius: 4px; }
+body.studio .rs-weekcell i { width: 100%; height: 18px; }
+body.studio :is(.rs-weekcell, .rs-legend) i.lost { background: #7A7480; }
+body.studio :is(.rs-weekcell, .rs-legend) i.even { border: 2px solid #7A7480; }
+body.studio :is(.rs-weekcell, .rs-legend) i.paid { background: var(--studio-text); }
+body.studio :is(.rs-weekcell, .rs-legend) i.nothing { border: 1px solid #7A7480; background: repeating-linear-gradient(135deg, #7A7480 0 3px, transparent 3px 6px); }
+body.studio :is(.rs-weekcell, .rs-legend) i.left { border: 1px dashed #68636B; }
+body.studio .rs-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--studio-muted); }
+body.studio .rs-legend > span { display: flex; align-items: center; gap: 6px; }
+body.studio .rs-legend i { width: 12px; height: 10px; border-radius: 2px; }
+
+/* Where they sat: round 0's ads and squares, guessed, then revealed. */
+body.studio .rs-intro { max-width: 760px; margin: 0; font-size: 14px; line-height: 1.5; color: var(--studio-soft); }
+body.studio .rs-rivals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+body.studio .rs-rival { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+body.studio .rs-rival .kserp { flex: 1; padding: 10px 12px; border: 1px solid var(--studio-line); border-radius: 14px; background: var(--studio-sidebar); }
+body.studio .rs-rival .kserp-head { font-size: 14px; }
+body.studio .rs-rival .kserp-desc { font-size: 12px; }
+body.studio .rs-rivalfoot { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; min-height: 44px; }
+body.studio .rs-verdict { margin: 0; font-size: 12px; line-height: 1.4; color: var(--studio-soft); }
+body.studio .rs-verdict.right { color: var(--studio-text); }
+/* The player's mark is red (the Studio's colour for them); the truth, once
+   revealed, is bone, and the player's mark rings it. */
+body.studio .r0-mini-cell.mine { border-color: var(--studio-red); background: var(--studio-red); }
+body.studio .r0-mini-cell.truth { border-color: var(--studio-text); background: var(--studio-text); }
+body.studio .r0-mini-cell.ring { border-color: var(--studio-red); box-shadow: 0 0 0 2px var(--studio-red); }
+/* Locked, not faded: a round-0 note and a revealed answer are read, not
+   greyed (the page's button:disabled would take them to 40%). */
+body.studio .r0-mini-cell:disabled { opacity: 1; cursor: default; }
+body.studio .rs .r0-diagram { margin: 0; }
+body.studio .rs .r0-square { min-height: 96px; cursor: default; }
+body.studio .rs-who { font-size: 13px; font-weight: 700; color: var(--studio-text); }
+body.studio .rs-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+body.studio .rs-reveal { padding: 12px 26px; border: 0; border-radius: 999px; background: var(--studio-red); font: 700 16px/1 var(--studio-display); color: var(--studio-on-red); }
+/* The answers arrive once, 50ms apart, fading up 4px over 200ms
+   (plans/2026-09-13-debrief.md, section 6); reduced motion keeps the fade. */
+body.studio .rs-arrive { transition: opacity 200ms var(--studio-ease), transform 200ms var(--studio-ease); }
+@starting-style { body.studio .rs-arrive { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) {
+  @starting-style { body.studio .rs-arrive { transform: none; } }
+}
+
+/* Everyone's books: the one place R3 is lifted. */
+body.studio .rs-warning { display: flex; flex-direction: column; gap: 6px; max-width: 880px; padding: 14px 18px; border: 1px solid var(--studio-panel-edge); border-radius: 16px; background: var(--studio-panel); }
+body.studio .rs-warning strong { font: 800 18px/1.2 var(--studio-display); }
+body.studio .rs-brand { display: grid; grid-template-columns: 28px 170px 150px minmax(0, 1fr) 110px 92px 90px; gap: 2px 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--studio-raised); font-size: 13px; }
+body.studio .rs-brand.head { padding: 4px 0 8px; border-top: 0; }
+body.studio .rs-brand > :nth-child(n + 5):nth-child(-n + 7) { text-align: right; }
+body.studio .rs-rank { font: 800 18px/1 var(--studio-display); color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .rs-brandname { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 15px; white-space: nowrap; }
+body.studio .rs-track { position: relative; height: 14px; }
+body.studio .rs-gross { position: absolute; top: 0; bottom: 0; left: 0; box-sizing: border-box; border: 1px solid #68636B; border-radius: 3px; }
+body.studio .rs-net { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 3px; background: var(--studio-text); }
+body.studio .rs-brand.you .rs-net { background: var(--studio-red); }
+body.studio .rs-money { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+body.studio .rs-brandline { grid-column: 2 / -1; font-size: 12px; color: var(--studio-faint); font-variant-numeric: tabular-nums; }
+body.studio .rs-ranks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+body.studio .rs-rankbox { display: flex; flex-direction: column; gap: 4px; }
+body.studio .rs-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: none; color: var(--studio-text); text-align: left; }
+body.studio .rs-choice:hover { border-color: var(--studio-red); }
+body.studio .rs-choice strong { font-size: 14px; }
+/* Before you go, on the playtest link only: the two questions, in the kit's own
+   text box (.kfield). Built first with the line tokens, which measured 1.5:1
+   against the card: a box whose only cue is its outline has to reach 3:1 (WCAG
+   1.4.11), and the kit's #68636B is 3.08:1. */
+body.studio .rs-ask { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 600; color: var(--studio-soft); }
+body.studio .rs-answer { padding: 10px 12px; border: 1px solid #68636B; border-radius: 12px; background: #141216; color: var(--studio-text); font: inherit; font-size: 14px; font-weight: 400; resize: vertical; }
+body.studio .rs-answer::placeholder { color: var(--studio-muted); }
+
+/* A section under 900px wide (a tablet): two of most things to a row, and
+   the books without their bars, which need the width. */
+@container (max-width: 900px) {
+  body.studio .rs-lessons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .rs-rivals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .rs-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.studio :is(.rs-moments, .rs-pairs, .rs-pairs.wide) { grid-template-columns: minmax(0, 1fr); }
+  body.studio .rs-strip { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  body.studio .rs-brand { grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) 100px 76px 76px; }
+  body.studio .rs-brand > .rs-track, body.studio .rs-brand.head > :nth-child(4) { display: none; }
+}
+/* On a phone: one of everything to a row, and the chart scrolls sideways at a
+   width where every week's figures fit, as Your week's does. */
+@container (max-width: 560px) {
+  body.studio :is(.rs-lessons, .rs-rivals) { grid-template-columns: minmax(0, 1fr); }
+  body.studio .rs-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
+  body.studio .rs-big { font-size: 24px; }
+  body.studio :is(.rs-card, .rs-lesson) { padding: 14px; }
+  body.studio .rs-head { flex-wrap: wrap; }
+  body.studio .rs-chart { min-width: 640px; }
+  body.studio .rs-scroll { padding-bottom: 8px; }
+  body.studio .rs-ranks { grid-template-columns: minmax(0, 1fr); }
+  /* The rank, the brand, net profit and where it placed on gross: the trap. */
+  body.studio .rs-brand { grid-template-columns: 22px minmax(0, 1fr) 92px 58px; }
+  body.studio .rs-brand > :nth-child(3), body.studio .rs-brand > :nth-child(6) { display: none; }
+  body.studio .rs-brandline { grid-column: 2 / -1; }
+}
+
+/* --- the Guide as a page (design/guide/, the owner's choice 2026-09-15) --- */
+/* The Guide area's list: a chapter's number sits where a section has its
+   icon, ringed as round 0's steps are and filled red on the one being read,
+   and a long title wraps rather than running under the next. */
+body.studio .studio-item.studio-chapter { align-items: flex-start; height: auto; min-height: 42px; padding-top: 10px; padding-bottom: 10px; line-height: 1.3; }
+body.studio .studio-num { display: grid; flex-shrink: 0; place-items: center; width: 22px; height: 22px; margin-top: -2px; border: 1.5px solid #4A454F; border-radius: 50%; box-sizing: border-box; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--studio-muted); }
+body.studio .studio-item[aria-current="true"] .studio-num { border-color: var(--studio-red); background: var(--studio-red); color: var(--studio-on-red); }
+body.studio .studio-title[tabindex="-1"]:focus { outline: none; }
+body.studio .studio-title[tabindex="-1"]:focus-visible { outline: 2px solid var(--studio-red-text); outline-offset: 4px; }
+
+/* Sized by the page's own width, as every section is. */
+body.studio .gb { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
+body.studio .gb-intro { max-width: 760px; margin: 0; font-size: 14px; line-height: 1.5; color: var(--studio-soft); }
+
+/* the contents: a card a chapter, its first sentence cut at three lines */
+body.studio .gb-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+body.studio .gb-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 18px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); color: var(--studio-text); text-align: left; }
+body.studio .gb-card:hover { border-color: var(--studio-line-strong); }
+body.studio .gb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+body.studio .gb-num { font: 800 22px/1 var(--studio-display); font-variant-numeric: tabular-nums; color: var(--studio-faint); }
+body.studio .gb-where { font-size: 11px; line-height: 1.3; color: var(--studio-muted); text-align: right; }
+body.studio .gb-name { font: 700 17px/1.2 var(--studio-display); }
+body.studio .gb-opening { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+
+/* a chapter: where it sits, its two halves, what to read beside it */
+body.studio .gb-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 13px; color: var(--studio-muted); }
+body.studio .gb-explains b { font-weight: 700; color: var(--studio-text); }
+body.studio .gb-show { padding: 7px 14px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 13px; font-weight: 600; color: var(--studio-soft); }
+body.studio .gb-show:hover { border-color: var(--studio-faint); color: var(--studio-text); }
+body.studio .gb-halves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+body.studio .gb-half { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .gb-half h3 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .gb-half p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--studio-soft); }
+body.studio .gb-sources { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px solid var(--studio-line); font-size: 12px; line-height: 1.4; }
+body.studio .gb-sources span { font-size: 11px; color: var(--studio-faint); }
+body.studio .gb-sources a { color: var(--studio-red-text); text-underline-offset: 3px; }
+body.studio .gb-sources a:hover { color: #FF8A8E; }
+body.studio .gb-related { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: var(--studio-faint); }
+body.studio .gb-chip { padding: 4px 11px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 12px; color: var(--studio-soft); }
+body.studio .gb-chip:hover { border-color: var(--studio-faint); color: var(--studio-text); }
+body.studio .gb-turns { display: flex; justify-content: space-between; gap: 16px; padding-top: 14px; border-top: 1px solid #26232A; }
+body.studio .gb-turn { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--studio-soft); text-align: left; }
+body.studio .gb-turns > .gb-turn:last-child { font-weight: 700; color: var(--studio-red-text); text-align: right; }
+body.studio .gb-turn .studio-icon { flex-shrink: 0; width: 16px; height: 16px; }
+
+/* A page under 1000px wide (a 1280px laptop's is about 900): three cards to a
+   row. Under 720px (a tablet) two, and the halves stack; on a phone, one card. */
+@container (max-width: 1000px) { body.studio .gb-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container (max-width: 720px) {
+  body.studio .gb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .gb-halves { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 440px) {
+  body.studio .gb-grid { grid-template-columns: minmax(0, 1fr); }
+  body.studio .gb-half { padding: 14px; }
+}
+
+/* --- the map (spec section 7: the pulse is the one named exception) ------- */
+body.studio .r0-map { display: block; width: 100%; height: auto; }
+/* The coastline and a dimmed city both clear 3:1 (tests/indiaMap.test.js). */
+body.studio .r0-land { fill: #1C1A1F; stroke: #68636B; stroke-width: 1; }
+body.studio .r0-backdrop circle { fill: #3A363E; }
+body.studio .r0-pin { cursor: pointer; }
+body.studio .r0-city { fill: var(--studio-soft); }
+body.studio .r0-ring { fill: none; stroke: var(--studio-soft); stroke-width: 1.5; opacity: 0; transform-box: fill-box; transform-origin: center; animation: r0-ring 1.6s var(--studio-ease) infinite; }
+body.studio .r0-label { fill: var(--studio-text); font: 600 11px var(--studio-body); opacity: 0; pointer-events: none; }
+body.studio .r0-place.lit .r0-label { opacity: 1; }
+body.studio .r0-place.lit .r0-city { fill: var(--studio-text); }
+/* A kind of place bid off: hollow, since it is still eligible there (ui/map/india.js, dotFor). */
+body.studio .r0-city.off { fill: none; stroke: var(--studio-soft); stroke-width: 1.2; }
+body.studio .r0-place.dim { opacity: 0.45; }
+@keyframes r0-ring { from { opacity: 0.7; transform: scale(0.5); } to { opacity: 0; transform: scale(2.4); } }
+@media (prefers-reduced-motion: reduce) { body.studio .r0-ring { animation: none; } }
+
+/* --- round 0 in the sidebar layout (plans/2026-09-14-round-zero-redesign.md) --- */
+body.studio .r0-mark { display: grid; flex-shrink: 0; place-items: center; width: 22px; height: 22px; border: 1.5px solid #4A454F; border-radius: 50%; box-sizing: border-box; font-size: 11px; font-weight: 700; color: var(--studio-muted); }
+body.studio .r0-mark.done { border-color: var(--studio-text); background: var(--studio-text); color: var(--studio-page); }
+body.studio .studio-item[aria-current="true"] .r0-mark { border-color: var(--studio-red); background: var(--studio-red); color: var(--studio-on-red); }
+body.studio .r0-stepof { font-size: 13px; color: var(--studio-faint); }
+body.studio .r0-sofar { display: flex; flex: 1; align-items: center; gap: 8px; min-width: 0; padding: 4px 0; overflow-x: auto; }
+body.studio .r0-sofar-label { font-size: 13px; font-weight: 700; color: var(--studio-muted); white-space: nowrap; }
+body.studio .r0-finish { display: flex; align-items: center; gap: 16px; }
+body.studio .r0-checks { display: flex; gap: 12px; margin: 0; padding: 0; list-style: none; font-size: 13px; }
+body.studio .r0-checks li.done { color: var(--studio-soft); }
+body.studio .r0-checks li.need { color: var(--studio-amber); }
+body.studio .r0-need { display: block; font-size: 11px; }
+body.studio .r0-redo { max-width: 200px; margin: 0; font-size: 12px; line-height: 1.35; color: var(--studio-muted); }
+body.studio .r0-go:disabled { opacity: 0.45; }
+
+body.studio .r0-intro { max-width: 720px; margin: 0 0 18px; font-size: 16px; line-height: 1.5; color: var(--studio-soft); }
+body.studio .r0-small { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
+body.studio .r0-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 14px; }
+body.studio .r0-level { padding: 16px 18px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .r0-step h3 { margin: 0 0 6px; font: 700 16px/1.2 var(--studio-display); }
+body.studio .r0-figure { margin: 0; font: 800 30px/1.1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .r0-panel { margin-bottom: 14px; padding: 18px 22px; border: 1px solid var(--studio-panel-edge); border-radius: 20px; background: var(--studio-panel); color: #F3EEEA; }
+body.studio .r0-panel p { margin: 0 0 6px; font-size: 14px; line-height: 1.5; color: #D9D1CB; }
+body.studio .r0-panel .r0-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A8989A; }
+body.studio .r0-panel .r0-formula { font-size: 13px; color: #A8989A; }
+body.studio .r0-panel .r0-sum { font: 800 22px/1.25 var(--studio-display); color: #F3EEEA; }
+body.studio .r0-told { margin-bottom: 14px; }
+body.studio .r0-hints { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; margin: 0; }
+body.studio .r0-hints dt { font-size: 13px; font-weight: 700; color: var(--studio-text); }
+body.studio .r0-hints dd { margin: 0; font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
+body.studio .r0-where { padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .r0-where-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+body.studio .r0-where-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+body.studio .r0-places { display: flex; flex-direction: column; gap: 8px; }
+body.studio .r0-place-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 10px 12px; border: 1px solid var(--studio-line); border-radius: 14px; background: none; color: var(--studio-text); text-align: left; }
+body.studio .r0-place-row .r0-small { grid-column: 1 / -1; }
+body.studio .r0-place-row.on { border-color: var(--studio-text); }
+body.studio .r0-share { font: 800 18px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .r0-mapbox { max-width: 460px; }
+body.studio .r0-readonly { margin: 16px 0 0; font-size: 14px; color: var(--studio-muted); }
+@media (max-width: 900px) {
+  body.studio .r0-levels, body.studio .r0-where-split { grid-template-columns: minmax(0, 1fr); }
+  body.studio .r0-finish { flex-wrap: wrap; }
+  body.studio .studio-tray.r0-tray { height: auto; min-height: 76px; padding: 8px 12px; flex-wrap: wrap; }
+}
+/* On a phone "So far" was squeezed beside Next and scrolled sideways; it takes
+   its own line, with the button beneath (the owner, 2026-09-14), and its chips
+   wrap, since four of them need about 480px of a 351px line. */
+@media (max-width: 700px) {
+  body.studio .r0-tray .r0-sofar, body.studio .r0-tray .r0-next, body.studio .r0-tray .r0-finish { flex: 1 1 100%; }
+  body.studio .r0-tray .r0-sofar { flex-wrap: wrap; overflow-x: visible; }
+  /* At step 5 the checklist beside Go already says what is done, and with So
+     far above it the tray took 266px of an 812px phone (the owner, 2026-09-14). */
+  body.studio .r0-tray:has(.r0-finish) .r0-sofar { display: none; }
+}
+
+/* --- step 2, where you sit ------------------------------------------------ */
+body.studio .r0-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+body.studio .r0-rivals, body.studio .r0-squares, body.studio .r0-brands { margin-bottom: 16px; }
+body.studio .r0-brand-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+body.studio .r0-brand { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 14px; border: 1px solid var(--studio-line); border-radius: 14px; background: var(--studio-card); color: var(--studio-text); text-align: left; }
+body.studio .r0-brand strong { font-size: 14px; }
+body.studio .r0-brand span { font-size: 12px; color: var(--studio-muted); }
+body.studio .r0-brand.on { border-color: var(--studio-red); box-shadow: 0 0 0 1px var(--studio-red); }
+body.studio .r0-rival-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+body.studio .r0-rival { display: flex; flex-direction: column; gap: 8px; }
+body.studio .r0-rival .kserp { flex: 1; }
+/* Tappable and visible (tests/roundZeroLook.test.js): centres 24px apart or
+   more, and an outline of 3.33:1 against the page. */
+body.studio .r0-mini { display: grid; grid-template-columns: repeat(3, 26px); grid-template-rows: repeat(2, 20px); gap: 4px; align-self: flex-end; }
+body.studio .r0-mini-cell { width: 26px; height: 20px; padding: 0; border: 1px solid #68636B; border-radius: 4px; background: none; }
+body.studio .r0-mini-cell.on { border-color: var(--studio-text); background: var(--studio-text); }
+body.studio .r0-readout { margin: 0 0 10px; font-size: 14px; color: var(--studio-soft); }
+body.studio .r0-diagram { display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 6px; align-items: stretch; }
+body.studio .r0-row-label { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-right: 10px; border-right: 2px solid #4A454F; }
+body.studio .r0-row-label.on { border-right-color: var(--studio-red); }
+body.studio .r0-row-label.on strong { color: var(--studio-text); }
+body.studio .r0-square { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 118px; padding: 12px; border: 1px solid var(--studio-line); border-radius: 6px; background: var(--studio-card); color: var(--studio-soft); text-align: center; }
+body.studio .r0-square.on { border-color: var(--studio-red); background: #1C1417; box-shadow: 0 0 0 1px var(--studio-red); color: var(--studio-text); }
+body.studio .r0-square-name { font-size: 12px; color: var(--studio-muted); }
+body.studio .r0-who { font: 700 15px/1.2 var(--studio-display); }
+body.studio .r0-square-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+body.studio .r0-you { padding: 2px 8px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font-size: 11px; font-weight: 700; }
+body.studio .r0-guess { padding: 2px 8px; border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 11px; color: var(--studio-soft); }
+body.studio .r0-axis-name { align-self: center; font-size: 12px; color: var(--studio-faint); }
+body.studio .r0-axis-name::after { content: ' →'; }
+body.studio .r0-axis { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 2px solid #4A454F; }
+body.studio .r0-axis.on { border-top-color: var(--studio-red); }
+body.studio .r0-axis strong { font-size: 13px; color: var(--studio-muted); }
+body.studio .r0-axis.on strong { color: var(--studio-text); }
+body.studio .r0-bar { position: relative; height: 18px; }
+body.studio .r0-bar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: #3A363E; }
+body.studio .r0-bar-text { position: relative; padding-left: 6px; font-size: 11px; line-height: 18px; color: var(--studio-soft); white-space: nowrap; }
+@media (max-width: 1280px) { body.studio .r0-rival-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) {
+  body.studio .r0-rival-grid { grid-template-columns: minmax(0, 1fr); }
+  /* On a phone the purpose labels sit above their rows, not beside them.
+     Beside, at 375px, a square was 76px wide and "performance" (77px) did not
+     fit in it; above, a square is about 110px. The divider becomes a rule. */
+  body.studio .r0-diagram { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  body.studio .r0-row-label, body.studio .r0-axis-name { grid-column: 1 / -1; }
+  body.studio .r0-row-label { flex-direction: row; align-items: baseline; gap: 8px; padding: 8px 0 4px; border-right: 0; border-bottom: 2px solid #4A454F; }
+  body.studio .r0-row-label.on { border-bottom-color: var(--studio-red); }
+  body.studio .r0-who { font-size: 12px; }
+  /* A bar's figure is wider than its column on a phone, and wrapped over a
+     part-width fill it read as smudges: the bar becomes a thin line with its
+     figure beneath, so nothing makes the step scroll sideways (375px). */
+  body.studio .r0-bar { display: flex; flex-direction: column; gap: 3px; height: auto; }
+  body.studio .r0-bar-fill { position: static; height: 6px; }
+  body.studio .r0-bar-text { padding-left: 0; white-space: normal; line-height: 1.35; }
+}
+/* On a phone, twelve dots and the note beside them pushed the bar's right end
+   off the screen: round 0's step count (424px wide), and a played week's month
+   and spend (497px wide at 375, found drawing Your keywords). "Week 2 of 12"
+   and the list's "Before week 1" still say where the game is. */
+@media (max-width: 900px) {
+  body.studio .studio-dots, body.studio .studio-saved { display: none; }
+}
+
+/* --- step 4, your ad ------------------------------------------------------ */
+body.studio .r0-writers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
+body.studio .r0-writers .r0-head, body.studio .r0-writers > .r0-small { grid-column: 1 / -1; }
+body.studio .r0-writer { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 16px; background: var(--studio-card); color: var(--studio-text); text-align: left; }
+body.studio .r0-writer.on { border-color: var(--studio-red); box-shadow: 0 0 0 1px var(--studio-red); }
+body.studio .r0-writer-price { font: 800 20px/1.1 var(--studio-display); }
+body.studio .r0-writer-grade { margin-top: auto; font-size: 12px; font-weight: 700; color: var(--studio-soft); }
+body.studio .r0-ad-split { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+body.studio .r0-written { display: flex; flex-direction: column; gap: 12px; }
+body.studio .r0-boxes { display: flex; flex-direction: column; gap: 8px; }
+body.studio .r0-field { display: grid; grid-template-columns: 110px minmax(0, 1fr) 56px; gap: 8px; align-items: center; }
+body.studio .r0-count { font-size: 12px; text-align: right; color: var(--studio-muted); font-variant-numeric: tabular-nums; }
+body.studio .r0-count.over { color: var(--studio-amber); }
+body.studio .r0-problems { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.45; color: var(--studio-amber); }
+body.studio .r0-grades { padding: 18px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .r0-grade { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin: 12px 0; }
+body.studio .r0-grade-name { font-weight: 700; }
+body.studio .r0-grade .r0-small { grid-column: 1; }
+body.studio .r0-grade-track { grid-column: 1; position: relative; height: 8px; overflow: hidden; border-radius: 4px; background: #2E2A33; }
+body.studio .r0-grade-fill { position: absolute; inset: 0 auto 0 0; background: var(--studio-text); }
+body.studio .r0-grade-value { grid-column: 2; grid-row: 1 / span 3; align-self: center; font: 800 26px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+@media (max-width: 1000px) {
+  body.studio .r0-writers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .r0-ad-split { grid-template-columns: minmax(0, 1fr); }
+}
+/* At 375px a label beside its box left the box 161px, too narrow to show a
+   30-character headline whole: on a phone the label sits above it. */
+@media (max-width: 700px) {
+  body.studio .r0-field { grid-template-columns: minmax(0, 1fr) 56px; gap: 4px 8px; }
+  body.studio .r0-field > .r0-small { grid-column: 1 / -1; }
+}
+
+/* --- step 5, your money --------------------------------------------------- */
+body.studio .r0-month-bar { display: flex; gap: 2px; height: 12px; margin: 10px 0 8px; overflow: hidden; border-radius: 6px; }
+body.studio .r0-seg { flex-basis: 0; min-width: 2px; }
+body.studio .r0-seg.base, body.studio .r0-month-legend .base .r0-key { background: #D9D3CD; }
+body.studio .r0-seg.writer, body.studio .r0-month-legend .writer .r0-key { background: #9E9599; }
+body.studio .r0-seg.kept, body.studio .r0-month-legend .kept .r0-key { background: #5A545B; }
+body.studio .r0-month-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: #D9D1CB; }
+body.studio .r0-month-legend li { display: flex; align-items: center; gap: 6px; }
+body.studio .r0-key { width: 8px; height: 8px; border-radius: 2px; }
+body.studio .r0-capital { margin-bottom: 14px; padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .r0-kept { display: flex; align-items: baseline; gap: 8px; margin: 0 0 12px; font-size: 14px; color: var(--studio-muted); }
+body.studio .r0-kept strong { font: 800 24px/1 var(--studio-display); color: var(--studio-text); }
+body.studio .r0-lp { margin-bottom: 14px; padding: 12px 16px; border: 1px solid var(--studio-line-strong); border-radius: 14px; }
+body.studio .r0-lp-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-top: 8px; }
+body.studio .r0-lp-line strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+/* Which purchase earned the grade, under the bars it moved (the owner, 2026-09-18). */
+body.studio .r0-lp-parts { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 10px 0 0; padding-top: 8px;
+  border-top: 1px solid var(--studio-line); font-size: 12px; color: var(--studio-soft); font-variant-numeric: tabular-nums; }
+body.studio .r0-lp-parts .r0-small { margin: 0; }
+body.studio .r0-targets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+body.studio .r0-target { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 16px; }
+body.studio .r0-target.on { border-color: var(--studio-red); }
+body.studio .r0-moves { font-size: 12px; font-weight: 700; color: var(--studio-soft); }
+body.studio .r0-rungs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+body.studio .r0-rung { padding: 5px 10px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; }
+body.studio .r0-rung.on { border-color: var(--studio-red); background: var(--studio-red); color: var(--studio-on-red); }
+body.studio .r0-rung:disabled { border-color: var(--studio-line); color: #6D6770; }
+body.studio .r0-advanced { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 0; border-top: 1px solid var(--studio-line); }
+body.studio .r0-advanced-toggle { padding: 6px 14px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-text); font-size: 13px; }
+body.studio .r0-weeks { display: grid; grid-template-columns: repeat(4, minmax(0, 120px)); gap: 10px; width: 100%; }
+body.studio .r0-week { display: flex; flex-direction: column; gap: 4px; }
+@media (max-width: 900px) { body.studio .r0-targets, body.studio .r0-weeks { grid-template-columns: minmax(0, 1fr); } }
+
+/* --- round 0's motion (makeover spec, section 3): the step transition, the
+   press, the planner drawer and the card's menu. The map's pulse is in its own
+   block above, the one named exception. ------------------------------------- */
+body.studio .r0-step .studio-content > * { transition: opacity 250ms var(--studio-ease-in-out), transform 250ms var(--studio-ease-in-out); }
+body.studio .r0-step[data-direction="none"] .studio-content > * { transition: none; }
+body.studio .press { transition: transform 160ms ease-out; }
+body.studio .press:active { transform: scale(0.97); }
+body.studio .kmenu, body.studio .kplanner, body.studio .kplanner-overlay { transition: opacity 220ms var(--studio-ease), transform 220ms var(--studio-ease); }
+body.studio .kmenu { transition-duration: 150ms; }
+body.studio .kplanner.closing { opacity: 0; transform: translateX(100%); transition-duration: 150ms; }
+body.studio .kplanner-overlay.closing { opacity: 0; transition-duration: 150ms; }
+
+@starting-style {
+  body.studio .r0-step[data-direction="forward"] .studio-content > * { opacity: 0; transform: translateX(24px); }
+  body.studio .r0-step[data-direction="back"] .studio-content > * { opacity: 0; transform: translateX(-24px); }
+  body.studio .kmenu { opacity: 0; transform: scale(0.97); }
+  body.studio .kplanner { opacity: 0; transform: translateX(100%); }
+  body.studio .kplanner-overlay { opacity: 0; }
+}
+
+/* Reduced motion keeps the fades and drops the movement and the press. */
+@media (prefers-reduced-motion: reduce) {
+  body.studio .press:active { transform: none; }
+  body.studio .kplanner.closing { transform: none; }
+  @starting-style {
+    body.studio .r0-step[data-direction="forward"] .studio-content > *,
+    body.studio .r0-step[data-direction="back"] .studio-content > *,
+    body.studio .kmenu, body.studio .kplanner { transform: none; }
+  }
+}
+
+/* --- a played week's motion (makeover spec, section 3, rows 1 and 3): a new
+   line in the tray, a section's dot, its cards on the first visit, and the
+   switch's knob. The press, the drawer and the menu are in the block above.
+   Only the weekly tray's lines enter: round 0's tray redraws its So far chips
+   on every change, and they would replay under every drag. ---------------- */
+body.studio .studio-tray:not(.r0-tray) .studio-chip,
+body.studio .studio-dot.arrive,
+body.studio .studio-section.first-open .arriving { transition: opacity 200ms var(--studio-ease), transform 200ms var(--studio-ease); }
+body.studio .studio-tray:not(.r0-tray) .studio-chip.leaving { opacity: 0; transition-duration: 150ms; }
+body.studio .ktoggle-knob { transition: transform 150ms var(--studio-ease); }
+/* The shell scrolls the strip to a line as it arrives (shell.js, drawTray). */
+body.studio .studio-chips { scroll-behavior: smooth; }
+
+@starting-style {
+  body.studio .studio-tray:not(.r0-tray) .studio-chip { opacity: 0; transform: translateY(8px); }
+  body.studio .studio-dot.arrive { opacity: 0; transform: scale(0.8); }
+  body.studio .studio-section.first-open .arriving { opacity: 0; transform: scale(0.97); }
+}
+
+/* Reduced motion keeps these fades too, and drops the movement, the knob's
+   slide and the cards' stagger. */
+@media (prefers-reduced-motion: reduce) {
+  body.studio .ktoggle-knob { transition: none; }
+  body.studio .studio-chips { scroll-behavior: auto; }
+  body.studio .studio-section.first-open .arriving { transition-delay: 0ms !important; }
+  @starting-style {
+    body.studio .studio-tray:not(.r0-tray) .studio-chip,
+    body.studio .studio-dot.arrive,
+    body.studio .studio-section.first-open .arriving { transform: none; }
+  }
+}

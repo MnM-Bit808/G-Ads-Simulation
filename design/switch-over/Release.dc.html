@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <style>
+    body { margin: 0; }
+    .num { font-variant-numeric: tabular-nums; }
+    .display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+    .pick { cursor: pointer; user-select: none; }
+  </style>
+</helmet>
+<div style="width: 1440px; min-height: 1100px; background: #0D0C0E; color: #EDE8E3; font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; padding: 48px 56px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px;">
+  <div style="display: flex; flex-direction: column; gap: 8px;">
+    <div class="display" style="font-weight: 800; font-size: 44px; line-height: 1; letter-spacing: -0.02em;">What goes live</div>
+    <div style="font-size: 15px; line-height: 1.5; color: #CFC9C3; max-width: 980px;">Everything waiting on a branch, and what it would do to a game a tester has saved on the live site today. Measured: six weeks saved on the live code, then replayed on each.</div>
+  </div>
+  <div style="flex-shrink: 0; display: grid; grid-template-columns: 210px minmax(0, 1.5fr) 250px minmax(0, 1fr); border: 1px solid #2A272D; border-radius: 20px; overflow: hidden; background: #17161A;">
+    <div style="padding: 12px 18px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; border-bottom: 1px solid #2A272D;">Where it is</div>
+    <div style="padding: 12px 18px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; border-bottom: 1px solid #2A272D;">What it brings</div>
+    <div style="padding: 12px 18px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; border-bottom: 1px solid #2A272D;">A tester’s saved game</div>
+    <div style="padding: 12px 18px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #8A847E; border-bottom: 1px solid #2A272D;">Proposed</div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; display: flex; flex-direction: column; gap: 4px;"><div class="display" style="font-weight: 700; font-size: 18px; color: #8A847E;">The live site</div><div style="font-size: 12px; color: #8A847E;">main on GitHub · 19e770f</div></div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 14px; line-height: 1.5; color: #CFC9C3;">The classic game, with the prepaid card’s fixes (I34) since today.</div>
+    <div class="num" style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 13px; line-height: 1.45; font-weight: 600; color: #8A847E;">—</div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 14px; line-height: 1.5; color: #EDE8E3;">Tagged as the last classic version, the way back if the release goes wrong.</div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; display: flex; flex-direction: column; gap: 4px;"><div class="display" style="font-weight: 700; font-size: 18px; color: #EDE8E3;">makeover</div><div style="font-size: 12px; color: #8A847E;">on GitHub · 10cf433</div><div style="font-size: 12px; color: #A19A94;">129 commits</div></div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 14px; line-height: 1.5; color: #CFC9C3;">The Studio: every section, round 0 in five steps, Results, the Guide page, the two end-of-game replays fixed, and I11’s ad from week 1.</div>
+    <div class="num" style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 13px; line-height: 1.45; font-weight: 600; color: #EDE8E3;">Replays exactly: three saves measured (a hired writer, a self-written ad, a finished game). Not a game that took a place’s bid past 4× its keyword’s: one clamp now covers hour and place.</div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 14px; line-height: 1.5; color: #EDE8E3;">The release.</div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; display: flex; flex-direction: column; gap: 4px;"><div class="display" style="font-weight: 700; font-size: 18px; color: #CFC9C3;">main on this computer</div><div style="font-size: 12px; color: #8A847E;">not pushed · 7a7ae35</div><div style="font-size: 12px; color: #A19A94;">4 commits</div></div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 14px; line-height: 1.5; color: #CFC9C3;">The classic search terms’ mark and block warning, for fractional sales, and their record in I8. A copy is built for makeover (ca202b8) and merges cleanly.</div>
+    <div class="num" style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 13px; line-height: 1.45; font-weight: 600; color: #8A847E;">No engine change</div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 14px; line-height: 1.5; color: #EDE8E3;">Brought in, then its classic screens go with the classic look; I8’s record stays.</div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; display: flex; flex-direction: column; gap: 4px;"><div class="display" style="font-weight: 700; font-size: 18px; color: #CFC9C3;">F17</div><div style="font-size: 12px; color: #8A847E;">branch · c2cdba9</div><div style="font-size: 12px; color: #A19A94;">13 commits beyond makeover</div></div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 14px; line-height: 1.5; color: #CFC9C3;">A throttled rival is in only its share of the searches: the kinder market you accepted. Recorded, not merged.</div>
+    <div class="num" style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 13px; line-height: 1.45; font-weight: 600; color: #F2A53A;">Changes almost any game whose budget ran short in a week. Measured: week 1 ₹55,939 on 4,284 clicks becomes ₹78,247 on 6,536</div>
+    <div style="padding: 16px 18px; border-bottom: 1px solid #2A272D; font-size: 14px; line-height: 1.5; color: #EDE8E3;">Your call: in the release, or after it.</div>
+    <div style="padding: 16px 18px;  display: flex; flex-direction: column; gap: 4px;"><div class="display" style="font-weight: 700; font-size: 18px; color: #CFC9C3;">Rival prepaid</div><div style="font-size: 12px; color: #8A847E;">makeover’s copy · b24a98e</div><div style="font-size: 12px; color: #A19A94;">6 commits; a merge into makeover is ready (29bd0c5)</div></div>
+    <div style="padding: 16px 18px;  font-size: 14px; line-height: 1.5; color: #CFC9C3;">Rivals offer the prepaid discount, as I34 says they do.</div>
+    <div class="num" style="padding: 16px 18px;  font-size: 13px; line-height: 1.45; font-weight: 600; color: #EDE8E3;">Cannot change a replay: it changes only how rivals decide, and a replay reads their decisions from the save</div>
+    <div style="padding: 16px 18px;  font-size: 14px; line-height: 1.5; color: #EDE8E3;">Your call: in the release, or after it.</div>
+  </div>
+  <div style="flex-shrink: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px;">
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border: 1px solid #2A272D; border-radius: 18px; background: #17161A;"><div style="display: flex; align-items: center; gap: 10px;"><div class="num" style="width: 22px; height: 22px; border: 1.5px solid #4A454F; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #A19A94; box-sizing: border-box;">1</div><div class="display" style="font-weight: 700; font-size: 16px;">Bring main in</div></div><div style="font-size: 13px; line-height: 1.5; color: #A19A94;">Merge the live site’s main into makeover: 7 files meet (9 with the 4 local commits), each two copies of the prepaid fix; keeping makeover’s side loses nothing, checked file by file. The market measured the same before and after.</div></div>
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border: 1px solid #2A272D; border-radius: 18px; background: #17161A;"><div style="display: flex; align-items: center; gap: 10px;"><div class="num" style="width: 22px; height: 22px; border: 1.5px solid #4A454F; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #A19A94; box-sizing: border-box;">2</div><div class="display" style="font-weight: 700; font-size: 16px;">Merge what you choose</div></div><div style="font-size: 13px; line-height: 1.5; color: #A19A94;">F17 and the rival prepaid copy, each as it was measured, or neither yet.</div></div>
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border: 1px solid #2A272D; border-radius: 18px; background: #17161A;"><div style="display: flex; align-items: center; gap: 10px;"><div class="num" style="width: 22px; height: 22px; border: 1.5px solid #4A454F; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #A19A94; box-sizing: border-box;">3</div><div class="display" style="font-weight: 700; font-size: 16px;">The Studio stands alone</div></div><div style="font-size: 13px; line-height: 1.5; color: #A19A94;">Its own context, not the hidden classic dashboard; the front door with the playtest link on it, the playtest section and a failed-restore screen; the Studio’s colours from the first paint.</div></div>
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border: 1px solid #2A272D; border-radius: 18px; background: #17161A;"><div style="display: flex; align-items: center; gap: 10px;"><div class="num" style="width: 22px; height: 22px; border: 1.5px solid #4A454F; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #A19A94; box-sizing: border-box;">4</div><div class="display" style="font-weight: 700; font-size: 16px;">The classic look goes</div></div><div style="font-size: 13px; line-height: 1.5; color: #A19A94;">About 4,500 lines of classic screens, module by module; every rule they hold that the Studio uses moves first, with its tests.</div></div>
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border: 1px solid #2A272D; border-radius: 18px; background: #17161A;"><div style="display: flex; align-items: center; gap: 10px;"><div class="num" style="width: 22px; height: 22px; border: 1.5px solid #4A454F; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #A19A94; box-sizing: border-box;">5</div><div class="display" style="font-weight: 700; font-size: 16px;">Your word, then live</div></div><div style="font-size: 13px; line-height: 1.5; color: #A19A94;">Everything played again and live saves restored; the last classic version tagged and both playtest tags pushed; then main moves to the release and deploys.</div></div>
+  </div>
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

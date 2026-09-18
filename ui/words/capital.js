@@ -19,5 +19,6 @@ export const CAPITAL = Object.freeze({
   turnsOn: line('reading',
     'Whether this money does more as advertising or as capital turns on that figure. '
     + 'While the budget is what keeps you out of auctions, advertising money buys more of them; '
-    + 'while it is not, extra advertising money goes unspent and is lost when the month ends.'),
+    + 'while it is not, extra advertising money goes unspent and is lost when the month ends.',
+  { why: 'rankOrBudget' }),
 });

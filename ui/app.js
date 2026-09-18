@@ -17,25 +17,26 @@
  * and the round dashboard, which is what the rest of the game looks like.
  */
 
-import { startGame, redoRoundZero, canRedoRoundZero } from '../setup.js';
+import { startGame, redoRoundZero, canRedoRoundZero, assignPlayerBrand } from '../setup.js';
 import { playRound } from '../game.js';
 import { controllerFor } from '../agents/policies.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { getSelfView } from '../engine/insights.js';
 import { TOTAL_ROUNDS } from '../engine/constants.js';
-import { el } from './dom.js';
-import { renderRoundZero } from './round-zero.js';
-import { renderDashboard } from './dashboard.js';
 import { createDraft, toDecision, changes } from './decisions.js';
-import { renderEnding } from './ending.js';
 import {
   makeSave, writeSave, readSave, clearSave, fingerprintOf, restoreSave,
 } from './save.js';
 import {
-  playtestMode, createRecorder, attachRecorder, downloadPlaytestFile, renderPlaytestPanel,
+  playtestMode, createRecorder, attachRecorder, downloadPlaytestFile,
 } from './recorder.js';
 import { createGuide } from './guide/drawer.js';
 import { guideFigures } from './guide/figures.js';
+import { createStudio } from './shell/shell.js';
+import { createRoundZero } from './roundzero/studio.js';
+import { notesFor } from './roundzero/rules.js';
+import { renderDoor } from './door/render.js';
+import { doorFacts, changedWeeks } from './door/read.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -46,18 +47,35 @@ import { guideFigures } from './guide/figures.js';
 let rootSeed = 20260902;
 
 const app = document.getElementById('app');
-const nextButton = document.getElementById('next');
-const redoButton = document.getElementById('redo');
-const guideButton = document.getElementById('guide');
+
+/**
+ * The Studio layout (plans/2026-09-13-studio-makeover.md), built on the first
+ * week drawn and dropped whenever the game is. Since the switch-over's part 2
+ * it is the only layout there is.
+ */
+let studio = null;
 
 /**
  * The field guide (stage C2). Built once and kept outside `#app`, so redrawing
- * a week never removes it; the dashboard's "why?" buttons and the header's
- * Field guide button all open this one drawer.
+ * a week never removes it; every "why?" button opens this one drawer. "Show me
+ * in your account" first opens the section the part sits in, and before week 1,
+ * when there is no part, it is not offered; nor while the section is still
+ * locked. The Guide page reads the same chapters with the same figures, and the
+ * drawer's Contents opens that page.
  */
-const guide = createGuide({ figures: guideFigures() });
+const GUIDE_FIGURES = guideFigures();
+const guide = createGuide({
+  figures: GUIDE_FIGURES,
+  reveal: (slot) => studio?.reveal(slot) ?? false,
+  canShowCard: (slot) => Boolean(game) && (studio ? studio.canReveal(slot) : true),
+  inStudio: () => true,
+  contentsPage: () => {
+    if (!studio || !game) return false;
+    studio.openChapter('contents');
+    return true;
+  },
+});
 document.body.append(guide.node);
-guideButton.addEventListener('click', () => guide.openContents(guideButton));
 
 /** Everything the interface knows. The engine owns the rest. */
 let game = null;
@@ -83,7 +101,6 @@ const storage = (() => {
 const recorder = playtestMode(window.location.search, storage)
   ? createRecorder({ storage, now: () => Date.now() })
   : null;
-const playtestButton = document.getElementById('playtest');
 
 /**
  * Whether round 0 has been touched since it was drawn. Round 0 is never saved
@@ -102,12 +119,16 @@ let roundZeroTouched = false;
  */
 let rewinding = null;
 
-async function begin({ playerBrandId, player }) {
+async function begin({ playerBrandId, player, guesses = null }) {
   const state = rewinding
     ? redoRoundZero(rewinding, { playerBrandId, player })
     : startGame({ rootSeed, playerBrandId, player, querySet: QUERY_SET });
   rewinding = null;
   openGame(state, playerBrandId);
+  // Round 0's notes on the rivals, kept for the reveal after the last week
+  // (the owner, 2026-09-15). Only the Studio's round 0 takes them; a game
+  // opened on the classic page has none, and the reveal asks at the end.
+  game.notes = guesses ? notesFor(guesses, state.advertisers, playerBrandId) : null;
 
   // AND RUN THE FIRST WEEK, rather than rendering an account with no rounds in
   // it. There used to be a screen between here and the dashboard carrying one
@@ -154,6 +175,13 @@ function openGame(state, playerId) {
     state,
     reports: [],
     insights: [],
+    // Every week as it stood before the latest week ran, which the engine
+    // does not keep: running a week rewrites the earlier ones (11.4). Your
+    // week's dashed tick is drawn from it (ui/save.js keeps it on a reload).
+    historyBefore: [],
+    // Round 0's notes on where each rival sits, rival id to square, or null.
+    // Display only; the save carries them for the reveal.
+    notes: null,
     draft: null,
     // Display preferences, which the view is allowed to keep. Nothing the
     // engine owns lives here.
@@ -201,6 +229,7 @@ function persist() {
     playerId: game.playerId,
     weeksPlayed: game.reports.length,
     fingerprint: fingerprintOf(game.reports, game.playerId),
+    notes: game.notes,
   }));
 }
 
@@ -220,57 +249,6 @@ function refreshDraft() {
   });
 }
 
-function chrome() {
-  const label = document.getElementById('round-label');
-  const brand = document.getElementById('brand');
-  const position = document.getElementById('position');
-
-  // The guide's chapters point at dashboard cards, so it opens once there is a
-  // dashboard to point at.
-  guideButton.hidden = !game;
-  if (!game) {
-    guide.close();
-    brand.textContent = 'Round 0';
-    position.textContent = 'before you have seen a single auction';
-    label.textContent = '';
-    nextButton.hidden = true;
-    redoButton.hidden = true;
-    return;
-  }
-
-  const me = game.state.advertisers.find((a) => a.id === game.playerId);
-  brand.textContent = me.name;
-  position.textContent = `${me.position.price} · ${me.position.purpose}`;
-
-  const played = game.reports.length;
-  // Said quietly when it worked and plainly when it did not, because a reload
-  // is the one thing a player cannot undo.
-  const saveState = game.saved === true ? ' · saved' : game.saved === false ? ' · not saved' : '';
-  label.textContent = `week ${played} of ${TOTAL_ROUNDS}${saveState}`;
-  label.title = game.saved === false
-    ? 'This browser is refusing to store the game, so a reload will lose it.'
-    : game.saved ? 'Saved in this browser. A reload brings you back here.' : '';
-  nextButton.hidden = false;
-  nextButton.disabled = played >= TOTAL_ROUNDS;
-  nextButton.textContent = played >= TOTAL_ROUNDS ? 'Game over' : commitLabel();
-
-  // 17.3: one redo, up to the end of round 3. A learning affordance rather
-  // than a game mechanic, so it is offered plainly and then withdrawn.
-  redoButton.hidden = !canRedoRoundZero(game.state);
-}
-
-/**
- * The commit button says how much it is about to commit.
- *
- * A decision has to be previewable before it is taken, and the button is the
- * last thing between a staged change and a week that cannot be replayed.
- */
-function commitLabel() {
-  const staged = game?.draft ? changes(game.draft).length : 0;
-  return staged === 0
-    ? 'Run the week'
-    : `Run the week · ${staged} change${staged === 1 ? '' : 's'}`;
-}
 
 /**
  * Throw this game away and go back to round 0.
@@ -291,6 +269,7 @@ function restart(market) {
   clearSave(storage);
   game = null;
   rewinding = null;
+  studio = null;
   render();
   window.scrollTo(0, 0);
 }
@@ -303,53 +282,68 @@ function screenName() {
 }
 
 function render() {
-  chrome();
   recorder?.phase(screenName());
   if (!game) {
     roundZeroTouched = false;
-    app.replaceChildren(renderRoundZero({
+    // The drawer belongs to a game: its chapters point at parts of the account,
+    // and round 0 has none yet. Closing it here is what the header's own
+    // bookkeeping used to do before the switch-over took the header away.
+    guide.close();
+    // Round 0 in the sidebar layout (plans/2026-09-14-round-zero-redesign.md).
+    // Round 0 starts on the brand the seed draws, and step 2 lets the player
+    // pick another; a redo starts on the one the game was played as.
+    app.replaceChildren(createRoundZero({
       querySet: QUERY_SET,
       rootSeed,
-      onStart: begin,
-    }));
+      playerBrandId: rewinding?.roundZero?.playerBrandId ?? assignPlayerBrand(rootSeed),
+      openGuide: guide.open,
+      openContents: (trigger) => guide.openContents(trigger),
+      onGo: begin,
+      onPlaytest: recorder ? sendPlaytestFile : null,
+    }).node);
     window.scrollTo(0, 0);
     return;
   }
-  const dashboard = renderDashboard(game, () => {
-    // Only the button, so staging a change does not rebuild the screen under
-    // the cursor. The dashboard redraws its own cards.
-    nextButton.textContent = commitLabel();
-  }, { openGuide: guide.open });
+  studio ??= createStudio({
+    onRun: runWeek,
+    onRedo: redo,
+    openGuide: guide.open,
+    showCard: guide.showCard,
+    figures: GUIDE_FIGURES,
+    onPlaytest: recorder ? sendPlaytestFile : null,
+  });
+  // After the last week the shell draws Results itself (ui/results/render.js,
+  // the owner's choice 2026-09-15); it is handed only what it cannot reach:
+  // starting over, and on the playtest link the questions, asked once the
+  // whole game has been seen.
+  const ending = game.reports.length >= TOTAL_ROUNDS ? {
+    onRestart: restart,
+    playtest: recorder ? { recorder, onDownload: () => downloadPlaytestFile(recorder, storage) } : null,
+  } : null;
+  studio.draw(game, { saved: game.saved, canRedo: canRedoRoundZero(game.state), ending });
+  app.replaceChildren(studio.node);
+}
 
-  // The ending goes ABOVE the last week rather than replacing it: the final
-  // dashboard is still the most detailed thing in the game, and a summary that
-  // hid it would answer fewer questions than it raised.
-  if (game.reports.length >= TOTAL_ROUNDS) {
-    const ending = el('section', 'grid');
-    ending.append(renderEnding({
-      state: game.state,
-      history: game.state.history,
-      playerId: game.playerId,
-      opening: game.opening,
-      // The debrief replays the game from here, and the reveal reads the
-      // rivals' round-0 ads and positions from it.
-      initial: game.initial,
-      openGuide: guide.open,
-      onRestart: restart,
-    }));
-    // A playtester's questions come after the books are open and before the
-    // last week, so they are asked once the whole game has been seen.
-    const questions = el('section', 'grid');
-    if (recorder) {
-      questions.append(renderPlaytestPanel({
-        recorder,
-        onDownload: () => downloadPlaytestFile(recorder, storage),
-      }));
-    }
-    app.replaceChildren(ending, ...(recorder ? [questions] : []), dashboard);
-    return;
-  }
-  app.replaceChildren(dashboard);
+/**
+ * Back to round 0, keeping the game to rewind FROM. Same seed, same rivals,
+ * same cells, same ads — only the player's own choices change, because
+ * replaying against a different market would answer a different question.
+ */
+function redo() {
+  rewinding = game.state;
+  game = null;
+  studio = null;
+  render();
+}
+
+/**
+ * The file at once. Until the switch-over's part 2 this scrolled to the classic
+ * questions panel when the game was over; the questions are a Results section
+ * now ("Before you go"), and the shell's own Playtest button opens it after the
+ * last week, so everything that reaches here wants the file itself.
+ */
+function sendPlaytestFile() {
+  downloadPlaytestFile(recorder, storage);
 }
 
 /**
@@ -367,6 +361,7 @@ async function runWeek() {
     sources: game.sources,
   });
   const computeMs = performance.now() - started;
+  game.historyBefore = game.state.history;
   game.state = out.nextGameState;
   game.reports.push(out.report);
   game.insights.push(out.insights);
@@ -381,41 +376,23 @@ async function runWeek() {
   render();
 }
 
-nextButton.addEventListener('click', async () => {
-  nextButton.disabled = true;
-  nextButton.textContent = 'running 168 hours…';
-  // Yield once so the button repaints before the round blocks the thread.
-  await new Promise((resolve) => setTimeout(resolve, 0));
-  await runWeek();
-});
-
 // ---------------------------------------------------------------------------
 // Resuming a saved game (stage A4)
 // ---------------------------------------------------------------------------
 
-/** One full-width card, the shape every screen here is built from. */
-function panel(title, subtitle) {
-  const node = el('article', 'card span-4');
-  const heading = el('h2', null, title);
-  if (subtitle) heading.append(el('span', 'muted', subtitle));
-  node.append(heading);
-  return node;
-}
-
-function showPanel(node) {
-  const grid = el('section', 'grid');
-  grid.append(node);
-  app.replaceChildren(grid);
+/**
+ * The Studio's front door (design/switch-over/, A), in the page's own space:
+ * the shell appears only once there is a game to put in it.
+ *
+ * @param {object} view - `renderDoor`'s (ui/door/render.js)
+ * @returns {{progress: (week: number, of: number) => void}}
+ */
+function showDoor(view) {
+  const door = renderDoor(view);
+  app.replaceChildren(door.node);
   window.scrollTo(0, 0);
-}
-
-function choice(label, why, onPick) {
-  const row = el('div', 'restart-row');
-  const button = el('button', 'restart-pick', label);
-  button.type = 'button';
-  button.addEventListener('click', onPick);
-  row.append(button, el('div', 'restart-why muted', why));
-  return row;
+  door.node.querySelector('.door-title')?.focus({ preventScroll: true });
+  return door;
 }
 
 /** Throw the saved game away and open round 0. */
@@ -430,76 +407,64 @@ function startAfresh() {
  * to start again should not find themselves in week 9.
  */
 function offerResume(saved) {
-  const me = saved.initialState.advertisers.find((a) => a.id === saved.playerId);
-  document.getElementById('brand').textContent = me.name;
-  document.getElementById('position').textContent = `${me.position.price} · ${me.position.purpose}`;
-  document.getElementById('round-label').textContent = 'saved game';
-  nextButton.hidden = true;
-  redoButton.hidden = true;
-  guideButton.hidden = true;
   recorder?.phase('resume offer');
-
-  const finished = saved.weeksPlayed >= TOTAL_ROUNDS;
-  const node = panel('A game in progress', 'saved in this browser');
-  node.append(el('p', 'note',
-    `${me.name}, ${me.position.price} · ${me.position.purpose}: ${saved.weeksPlayed} of `
-    + `${TOTAL_ROUNDS} weeks played. Resuming replays those weeks from your own decisions, `
-    + 'which takes a few seconds.'));
-  node.append(
-    choice(finished ? 'Back to the end screen' : `Resume at week ${saved.weeksPlayed + 1}`,
-      'Everything as you left it, except changes you had staged and not yet run.',
-      () => resume(saved)),
-    choice('Start a new game',
-      'Discards the saved game. There is no getting it back.',
-      startAfresh),
-  );
-  showPanel(node);
+  const facts = doorFacts(saved);
+  showDoor({
+    ...facts,
+    state: facts.finished ? 'finished' : 'offer',
+    onResume: () => resume(saved),
+    onStartAfresh: startAfresh,
+    onPlaytest: recorder ? sendPlaytestFile : null,
+  });
 }
 
 async function resume(saved) {
   recorder?.phase('restoring');
-  const node = panel('Restoring your game');
-  const progress = el('p', 'note', `Replaying week 1 of ${saved.weeksPlayed}…`);
-  node.append(progress);
-  showPanel(node);
+  const base = {
+    ...doorFacts(saved), onStartAfresh: startAfresh, onPlaytest: recorder ? sendPlaytestFile : null,
+  };
+  const door = showDoor({ ...base, state: 'restoring' });
 
-  const restored = await restoreSave(saved, {
-    mode: 'expected',
-    onWeek: (week, of) => {
-      progress.textContent = week < of ? `Replaying week ${week + 1} of ${of}…` : 'Done.';
-    },
-  });
+  // A replay is exact by design — the same first state, the same log and a
+  // seeded engine — so one that throws would throw again on the next try. Until
+  // this, nothing caught it and "Restoring your game" stayed on screen for ever
+  // (found drawing the switch-over, 2026-09-16).
+  try {
+    const restored = await restoreSave(saved, {
+      mode: 'expected',
+      onWeek: (week, of) => door.progress(week, of),
+    });
 
-  rootSeed = saved.initialState.rootSeed;
-  openGame(saved.initialState, saved.playerId);
-  game.state = restored.state;
-  game.reports = restored.reports;
-  game.insights = restored.insights;
-  refreshDraft();
-  if (restored.exact) {
-    game.saved = true;
-    render();
-    return;
-  }
+    rootSeed = saved.initialState.rootSeed;
+    openGame(saved.initialState, saved.playerId);
+    game.notes = saved.notes;
+    game.state = restored.state;
+    game.reports = restored.reports;
+    game.insights = restored.insights;
+    game.historyBefore = restored.historyBefore;
+    refreshDraft();
+    if (restored.exact) {
+      game.saved = true;
+      render();
+      return;
+    }
 
-  // The same decisions, run by an engine that has changed since the save was
-  // written, gave different weeks. Say so rather than hand back a game quietly
-  // different from the one that was played.
-  recorder?.phase('replay changed');
-  const warn = panel('This game has changed since you saved it');
-  warn.append(el('p', 'note',
-    'The simulator has been updated since this game was saved. Replayed on this '
-    + 'version, your own decisions produce different weeks from the ones you '
-    + 'played, so the numbers you would see are this version’s, not the ones you '
-    + 'read at the time.'));
-  warn.append(
-    choice('Continue with these numbers', 'Carry on from here on the updated simulator.', () => {
+    // The same decisions, run by an engine that has changed since the save was
+    // written, gave different weeks. Say so rather than hand back a game quietly
+    // different from the one that was played.
+    recorder?.phase('replay changed');
+    const carryOn = () => {
       persist();
       render();
-    }),
-    choice('Start a new game', 'Discards the saved game.', startAfresh),
-  );
-  showPanel(warn);
+    };
+    const { rows, more } = changedWeeks(saved.fingerprint, restored.reports, saved.playerId);
+    showDoor({ ...base, state: 'changed', rows, more, onCarryOn: carryOn });
+  } catch (error) {
+    console.error(error);
+    recorder?.phase('restore failed');
+    game = null;
+    showDoor({ ...base, state: 'failed' });
+  }
 }
 
 /**
@@ -521,32 +486,19 @@ window.addEventListener('beforeunload', (event) => {
   event.returnValue = '';
 });
 
+// A click on the front door is not work round 0 would lose, so reloading while
+// a game restores, or on a door that could not open one, asks nothing.
 for (const type of ['input', 'change', 'click']) {
-  app.addEventListener(type, () => { if (!game) roundZeroTouched = true; });
+  app.addEventListener(type, (event) => {
+    if (!game && !event.target.closest?.('.door')) roundZeroTouched = true;
+  });
 }
-
-redoButton.addEventListener('click', () => {
-  // Back to round 0, keeping the game to rewind FROM. Same seed, same rivals,
-  // same cells, same ads — only the player's own choices change, because
-  // replaying against a different market would answer a different question.
-  rewinding = game.state;
-  game = null;
-  render();
-});
 
 if (recorder) {
   // Before the first screen is drawn, so the load is recorded ahead of the
   // phase it opens on.
   recorder.load();
   attachRecorder(recorder);
-  playtestButton.hidden = false;
-  playtestButton.addEventListener('click', () => {
-    // At the end the questions come first; anywhere else, the file at once, so
-    // a player who stops halfway can still send what they did.
-    const questions = document.getElementById('playtest-panel');
-    if (questions) questions.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    else downloadPlaytestFile(recorder, storage);
-  });
 }
 
 const saved = readSave(storage);

@@ -1,0 +1,102 @@
+{
+  "pages": [
+    {
+      "id": "door",
+      "name": "The front door"
+    },
+    {
+      "id": "live",
+      "name": "What goes live"
+    },
+    {
+      "id": "not-chosen",
+      "name": "Not chosen"
+    }
+  ],
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "A · The front door, on its own",
+      "page": "door",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "file": "Playtest.dc.html",
+      "title": "The playtest questions, a Results section",
+      "page": "door",
+      "x": 1560,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    },
+    {
+      "file": "Release.dc.html",
+      "title": "What goes live",
+      "page": "live",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 1100
+    },
+    {
+      "file": "Shell.dc.html",
+      "title": "B · The front door, in its frame",
+      "page": "not-chosen",
+      "is_interactive": true,
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 900
+    }
+  ],
+  "annotations": [
+    {
+      "id": "brief",
+      "page": "door",
+      "x": 0,
+      "y": -640,
+      "w": 1440,
+      "text": "The switch-over, the last item on the makeover design's section 7 list: \"the new look becomes the default; the old screens and their code are removed\". The design left one question for you: whether the classic look survives; its recommendation is no, because two looks double the checking.\nThree parts. The screens the Studio never drew: before a game opens, the page still shows the classic header and cards (the resume offer, \"Restoring your game\", \"This game has changed\"), the playtest questions are a classic card at the foot of Everyone's books, a failed restore leaves \"Restoring\" on screen for ever, and the first paint is in the classic colours. Then the classic code goes. Then the release: what else goes live with it.\nThe front door below is drawn two ways (A, B), with every state it has; the chips at the top of each switch between them. The words are the game's own (ui/app.js, ui/recorder.js, ui/words/shell.js) where it has them. New, and drafts: the whole \"Could not restore\" state; the finished game's title, note and \"Back to the results\" with its line (today's \"Everything as you left it\" is false there, since the reveal starts again); the small \"saved in this browser\" line on Restoring and Changed; the then-and-now table; and all of B's tray lines. The figures are a real save: six weeks of Vella & Co. at mid-price performance, saved on the live site's code and replayed on F17's branch. A second reader checked the words, the figures and the release against the code and git; its findings are folded in."
+    },
+    {
+      "id": "a",
+      "page": "door",
+      "x": 0,
+      "y": 1020,
+      "w": 1440,
+      "text": "Chosen by the owner, 2026-09-16, with: the classic look removed (the makeover design's recommendation), and F17 and the rival prepaid fix in the release.\nA · On its own. One card on the Studio's page, the brand above it, the twelve weeks as the top bar's dots, and the two choices with what each does. Restoring keeps the weeks played red and fills a bar as they replay, its line read out to screen readers; a changed game lists the weeks that differ, as saved against replayed now; a game this version cannot open says so and offers only a new game, since a replay fails the same way every time; a finished game goes back to the results. On the playtest link the file can be sent from here, which matters most when a game will not open.\nFor: one question and nothing else to press; the Studio's frame appears only once there is a game in it.\nAgainst: a step apart from the game you are coming back to.\nMy pick: A."
+    },
+    {
+      "id": "playtest",
+      "page": "door",
+      "x": 1560,
+      "y": 1020,
+      "w": 1440,
+      "text": "The playtest questions, on the playtest link only, as a fifth Results section, \"Before you go\", rather than a classic card under Everyone's books, where a tester who stops at the first section never meets it. The words are today's (ui/recorder.js). Two fixes come with it: after the last week the rail's Playtest button opens this section instead of downloading at once and skipping the questions; and on the playtest link Play again moves here, after the file, because starting again clears the saved game the file carries."
+    },
+    {
+      "id": "found",
+      "page": "live",
+      "x": 1560,
+      "y": 0,
+      "w": 900,
+      "text": "What looking found\n1. The Studio still builds the classic page, hidden, on every draw: the shell takes its form context from renderDashboard, and two things in it come from the classic form, the refresh every change runs through (ctx.refresh) and the keyword planner (ctx.planner). The Studio needs its own before a classic line can go.\n2. A trap in the imports: Results' lesson sentences come from ui/debrief/render.js, which imports round 0's classic page (round-zero.js) and the classic end screen (ending.js). Deleting either breaks Results, and with it the shell.\n3. What goes: about 4,500 lines (round-zero.js whole, most of decisions.js, dashboard.js, ending.js, chart.js and debrief/render.js, the page template). What stays, moved out first with its tests: every rule the Studio reads from them (the draft functions, changes(), marketOutlook, the standings, the settling constants).\n4. The Studio leans on style.css for its base (buttons, inputs, .card, the drawer, \"why?\"). Those rules come across before style.css goes; the tests that read studio.css expect body.studio on every rule, so the page keeps that class, set in the page itself, which also ends the classic first paint.\n5. Saved games. The save has no look in it, so a tester's game from the live site opens in the Studio. A replay starts from the save's own first state and reads every advertiser's decisions from its log, so only engine changes can move it. Measured on saves made on the live code, all replay exactly on makeover: six weeks with a hired writer, six with a self-written ad (the live code grades it later, through pendingGrade), and a finished twelve. By reading the code, one change on makeover can break a replay: one clamp now covers hour and place (9ecc073), so a game that took a place's bid past 4× its keyword's replays differently. The rival prepaid fix cannot move a replay; F17 changes almost any game whose budget ran short (week 1 ₹55,939 on 4,284 clicks becomes ₹78,247 on 6,536; net profit ₹84,894 becomes ₹1,43,654), so with F17 in the release, nearly every tester part-way through a game meets \"This game has changed\".\n6. The playtest recorder already reads the Studio (by its regions); only its time-on-screen counts cards, so the sidebar and tray count clicks, not time. Its phases are unchanged, so scripts/read-playtest.js still reads a Studio file.\n7. Not in the switch-over, open for you as before: the landing page's timing, a rule for counting capital, settling late returns, and the Studio's What people typed leaving a search with no sale unmarked (the classic fix's rule, isDear, is the one to reuse).\n8. The release's housekeeping, found by the second reader. The playtest-2 tag exists only on this computer: tag the live version and push both before main moves. A recording carries no version, so a tester whose game spans the deploy sends a file half classic, half Studio: the file should name the version it was made on. The header's buttons are used as the page loads, so it goes after the code that reaches for it. The market harness and scripts/read-playtest.js take the standings from ending.js, so they move with them. The guide and sections tests read the classic page, and are rewritten against the Studio's parts. look.js and its test go together; testers' remembered look is harmless. The build test, wrangler.jsonc's count, HANDOVER, CLAUDE.md and DECISIONS still describe two looks. A click on the front door marks round 0 as touched, so reloading during a restore would ask \"Leave site?\" for nothing."
+    },
+    {
+      "id": "b",
+      "page": "not-chosen",
+      "x": 0,
+      "y": 1020,
+      "w": 1440,
+      "text": "B · In its frame. The Studio's own frame with the game's name, week and dots, its sections greyed until the game is back, and the choice in the tray, where Run week always sits.\nFor: you come back to the place you left, and the red button is where it always is.\nAgainst: a whole frame of controls that do nothing until the replay is done, which invites clicks that go nowhere and has to be made truly inert for a keyboard; the tray leaves no room for what each choice does, so \"except changes you had staged\" goes; Tab reaches Start a new game before Resume; and under 900px the frame folds behind a menu of dead items, so on a phone B is A with a menu that does nothing."
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "door"
+  }
+}

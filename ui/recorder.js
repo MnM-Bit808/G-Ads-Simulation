@@ -30,6 +30,8 @@
 
 import { el } from './dom.js';
 import { SAVE_KEY } from './save.js';
+import { GAME_VERSION } from './version.js';
+import { PLAYTEST } from './words/playtest.js';
 
 /** Where the recording is kept, beside the save and never inside it. */
 export const RECORDING_KEY = 'g-ads-simulation:playtest';
@@ -93,6 +95,7 @@ function emptyRecording(at) {
     format: RECORDING_FORMAT,
     startedAt: at,
     loads: [],
+    versions: [],
     phases: [],
     clicks: [],
     weeks: [],
@@ -121,8 +124,9 @@ function readRecording(storage, at) {
  * @param {object} deps
  * @param {Storage|null} deps.storage
  * @param {() => number} deps.now - milliseconds
+ * @param {string} [deps.version] - the build this load is running (ui/version.js)
  */
-export function createRecorder({ storage, now }) {
+export function createRecorder({ storage, now, version = GAME_VERSION }) {
   const recording = readRecording(storage, now());
   // Per page load, never stored: they describe this load, not the recording.
   let lastTickAt = now();
@@ -160,6 +164,10 @@ export function createRecorder({ storage, now }) {
       const current = open();
       if (current) current.endAt = current.lastSeenAt;
       recording.loads.push(at);
+      // The version this load ran, when it is not the one the last load ran.
+      // A recording made before this field existed has none, so it starts here.
+      recording.versions ??= [];
+      if (recording.versions.at(-1)?.version !== version) recording.versions.push({ at, version });
       lastTickAt = at;
       lastInputAt = at;
       hiddenSince = null;
@@ -371,6 +379,8 @@ export function playtestFile({ log, save, environment }) {
     format: RECORDING_FORMAT,
     summary: summarise(log),
     answers: log.answers,
+    // At the top too, where a reader looks first: a game can span a deploy.
+    versions: log.versions ?? [],
     recording: log,
     save: save ?? null,
     environment,
@@ -393,6 +403,8 @@ export function playtestFilename(log) {
 /** A card's own title: its heading's first text, without the grey subtitle. */
 function cardTitle(card) {
   if (card.tagName === 'HEADER') return 'header';
+  // The Studio layout's regions (the sidebar, the tray, a section) name themselves.
+  if (card.dataset?.region) return card.dataset.region;
   const heading = card.querySelector('h2');
   return tidy(heading?.childNodes[0]?.textContent ?? heading?.textContent);
 }
@@ -409,8 +421,10 @@ function controlLabel(control) {
       || control.type;
   }
   // innerText, not textContent: a brand button holds "Kestrel" and
-  // "kestrel.in" in two blocks, which textContent runs together.
-  return control.innerText || control.textContent;
+  // "kestrel.in" in two blocks, which textContent runs together. A button with
+  // no text at all, like round 0's guess cells, is named by its aria-label, or
+  // the click reads as its region alone.
+  return control.innerText || control.textContent || control.getAttribute('aria-label') || '';
 }
 
 /**
@@ -421,7 +435,7 @@ function controlLabel(control) {
 export function attachRecorder(recorder) {
   // Capture phase, so a control that stops the click from bubbling is still counted.
   document.addEventListener('click', (event) => {
-    const card = event.target.closest?.('.card, header');
+    const card = event.target.closest?.('.card, header, [data-region]');
     recorder.click(describeClick({
       card: card ? cardTitle(card) : null,
       control: controlLabel(event.target.closest?.(CONTROL)),
@@ -501,18 +515,15 @@ function answerBox(recorder, id, question, rows) {
 export function renderPlaytestPanel({ recorder, onDownload }) {
   const node = el('article', 'card span-4 playtest');
   node.id = 'playtest-panel';
-  const heading = el('h2', null, 'Before you go');
-  heading.append(el('span', 'muted', 'for the playtest only'));
+  const heading = el('h2', null, PLAYTEST.title());
+  heading.append(el('span', 'muted', PLAYTEST.sub()));
   node.append(heading);
   node.append(
-    answerBox(recorder, 'lessons', 'What three things did this game teach you? In your own words.', 5),
-    answerBox(recorder, 'confusing', 'What confused or annoyed you?', 3),
+    answerBox(recorder, 'lessons', PLAYTEST.lessons(), 5),
+    answerBox(recorder, 'confusing', PLAYTEST.confusing(), 3),
   );
-  node.append(el('p', 'note',
-    'The file holds how long you spent on each screen, what you clicked, how many '
-    + 'keys you pressed (not what they were), your answers, your saved game and your '
-    + 'browser and screen size. Nothing has been sent anywhere: download it and send it back.'));
-  const button = el('button', null, 'Download the playtest file');
+  node.append(el('p', 'note', PLAYTEST.fileNote()));
+  const button = el('button', null, PLAYTEST.download());
   button.type = 'button';
   button.addEventListener('click', onDownload);
   node.append(button);

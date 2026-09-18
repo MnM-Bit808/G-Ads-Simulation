@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import {
   effectiveConvRate, brandFactor, retentionRate, sampleOrderValuePaise,
-  queueConversions, landDueConversions, queueReturns, resolveReturns,
+  expectedOrderValuePaise, orderValuePaise, queueConversions, landDueConversions, queueReturns, resolveReturns,
   summariseLanded, summariseReturns,
 } from '../engine/attribution.js';
 import { businessFor } from '../engine/positions.js';
@@ -173,6 +173,19 @@ describe('order value', () => {
       const v = sampleOrderValuePaise(business, neutralQuery(), rng, 'sampled');
       expect(Number.isSafeInteger(v)).toBe(true);
       expect(v).toBeGreaterThan(0);
+    }
+  });
+
+  test('is the expected basket and the noise around it, in two steps the round can split', () => {
+    const query = neutralQuery({ valueMultiplier: 1.3 });
+    const base = expectedOrderValuePaise(business, query);
+    expect(base).toBe(sampleOrderValuePaise(business, query, null, 'expected'));
+    expect(orderValuePaise(base, business, null, 'expected')).toBe(base);
+    const a = mulberry32(11);
+    const b = mulberry32(11);
+    for (let i = 0; i < 200; i++) {
+      expect(orderValuePaise(base, business, a, 'sampled'))
+        .toBe(sampleOrderValuePaise(business, query, b, 'sampled'));
     }
   });
 });

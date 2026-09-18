@@ -23,9 +23,11 @@ import {
   setWeekBudget, splitProblem, splitOutlook,
   setDaypart, daypartRows, qualitySummary, effectiveGrades,
   removeKeyword, addKeywords, negativesOutlook, bidOutlook, termsOutlook,
-  prepaidOutlook, setPrepaidDiscount, locationRows, locationOutlook, qualityWindowPhrase,
+  prepaidOutlook, setPrepaidDiscount, locationRows, locationOutlook,
+  setLocation, weekBudgetsAtRun,
   averagePerSalePaise, isDear,
 } from '../ui/decisions.js';
+import { rupees } from '../ui/dom.js';
 
 /**
  * The decision form's model, tested without a DOM.
@@ -86,6 +88,34 @@ describe('an untouched form decides nothing', () => {
     expect(toDecision(draft)).not.toBeNull();
     changes(draft)[0].undo();
     expect(toDecision(draft)).toBeNull();
+  });
+});
+
+describe('every change the form sends is listed, so the tray and the summary can say it', () => {
+  // Found playing the Studio (makeover Task 10): a prepaid discount was sent to
+  // the engine and listed nowhere, so the tray read "No changes yet" over a
+  // decision about to run, with no way to take it back there.
+  test.each([
+    ['negatives', (d) => addNegative(d, { text: 'free', matchType: 'broad' })],
+    ['weeklySplitPaise', (d) => setWeekBudget(d, 1, d.weeklySplitPaise[1] + 100000)],
+    ['locationAdjustments', (d) => setLocation(d, 0, 30)],
+    ['prepaidDiscountPaise', (d) => setPrepaidDiscount(d, 5000)],
+    ['daypartAdjustments', (d) => setDaypart(d, 0, 20)],
+    ['strategy', (d) => setStrategy(d, 'maxClicks')],
+  ])('%s', (field, change) => {
+    const draft = createDraft(selfView());
+    expect(change(draft).ok ?? true).toBe(true);
+    expect(Object.keys(toDecision(draft).campaign)).toContain(field);
+    const rows = changes(draft);
+    expect(rows.length, 'listed').toBeGreaterThan(0);
+    for (const row of rows) row.undo?.();
+    expect(toDecision(draft), 'and its undo takes it back').toBeNull();
+  });
+
+  test('the discount says what it was and what it will be', () => {
+    const draft = createDraft(selfView());
+    setPrepaidDiscount(draft, 5000);
+    expect(changes(draft).find((r) => r.kind === 'prepaid').label).toBe('Prepaid discount none → ₹50');
   });
 });
 
@@ -756,6 +786,17 @@ describe('capital and position, one round each (13.3, 4.5)', () => {
     expect(row.detail).toMatch(/Quality Score/i);
   });
 
+  // Found playing Your money: the tray said "mid|performance", the engine's
+  // key for the cell, where both looks' cells say "mid · performance".
+  test('the tray names a move the way the cells do', () => {
+    const draft = draftAt(atFive());
+    const from = draft.base.position;
+    const step = allCells().map(parseCell).find((c) => isOneStep(from, c));
+    setPosition(draft, cellKey(step.price, step.purpose));
+    const row = changes(draft).find((r) => r.kind === 'position');
+    expect(row.label).toBe(`Position: ${from.price} · ${from.purpose} → ${step.price} · ${step.purpose}`);
+  });
+
   test('moving back to where you started decides nothing', () => {
     const draft = draftAt(atFive());
     const from = draft.base.position;
@@ -810,6 +851,48 @@ describe('the month the two of them leave you', () => {
     const to = allCells().map(parseCell).find((c) => isOneStep(from, c));
     return cellKey(to.price, to.purpose);
   }
+});
+
+describe('a week\'s budget in the tray, as the round will give it', () => {
+  const draftAt = (state) => createDraft(getSelfView(state, PLAYER_ID),
+    { allocationRounds: state.budgetSchedule.capexAllocationRounds });
+  const budgetRows = (draft) => changes(draft).filter((row) => row.kind === 'budget');
+
+  test('it names the game week, as the top bar and the Run button do', () => {
+    // Round 6 is the second week of month 2, so the month's third week is week 7.
+    const draft = draftAt(makeGameState({ round: 6 }));
+    setWeekBudget(draft, 2, draft.weeklySplitPaise[2] + 1000000);
+    expect(budgetRows(draft).map((row) => row.label)).toEqual([
+      `Week 7 budget ${rupees(draft.base.weeklySplitPaise[2])} → ${rupees(draft.weeklySplitPaise[2])}`,
+    ]);
+  });
+
+  test('at week 5 it quotes what the week will get once the capital settles, as the engine writes it', () => {
+    // The round adds the uncommitted capital and re-spreads the month in the
+    // plan's own shape (engine/round.js, applyBudgetAdjustments), so the plan's
+    // own figures are not what the week will spend.
+    const state = makeGameState({ round: REPOSITION_ROUND });
+    const draft = draftAt(state);
+    const base = draft.base.weeklySplitPaise;
+    setWeekBudget(draft, 0, base[0] * 2);
+    const out = submitRound(state, { [PLAYER_ID]: toDecision(draft) }, { mode: 'expected' });
+    const given = out.report.byAdvertiser[PLAYER_ID].budget.weeklySplitPaise;
+    expect(weekBudgetsAtRun(draft)).toEqual(given);
+    const [row] = budgetRows(draft);
+    expect(row.label).toBe(`Week ${REPOSITION_ROUND} budget ${rupees(weekBudgetsAtRun(draft, base)[0])} → ${rupees(given[0])}`);
+  });
+
+  test('the capital alone moves every week and writes no budget line: the shape did not change', () => {
+    const draft = draftAt(makeGameState({ round: REPOSITION_ROUND }));
+    setCapex(draft, 'sizeGuide', CAPEX_ALLOCATION_PAISE / 2);
+    expect(budgetRows(draft)).toEqual([]);
+    expect(weekBudgetsAtRun(draft).reduce((a, b) => a + b, 0)).toBe(monthBudgetAfter(draft));
+  });
+
+  test('in an ordinary week the plan is what the weeks get', () => {
+    const draft = draftAt(makeGameState({ round: 6 }));
+    expect(weekBudgetsAtRun(draft)).toEqual(draft.weeklySplitPaise);
+  });
 });
 
 describe('the month just finished, read beside the capital choice (D12)', () => {
@@ -1475,21 +1558,6 @@ describe('the prepaid card reads the account it is drawn for (I34)', () => {
     };
     const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].effect;
     expect(at(4)).toBeCloseTo(at(3) / top, 12);
-  });
-});
-
-describe('the quality note names a window the game can actually have', () => {
-  // QUALITY_WINDOW_ROUNDS is 13, Google's ninety days in weeks, and a game is
-  // twelve. "Over the last 13 finished rounds" was true to the constant and read
-  // as a mistake to anyone counting (reviews/slc-review.md, 9C).
-  test('while every finished week is inside the window, it says so', () => {
-    for (const finished of [0, 1, 7, 13]) {
-      expect(qualityWindowPhrase(finished, 13), `${finished} played`).toBe('over every week played so far');
-    }
-  });
-
-  test('past the window, it names the window', () => {
-    expect(qualityWindowPhrase(14, 13)).toBe('over the last 13 finished weeks');
   });
 });
 

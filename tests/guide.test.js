@@ -23,12 +23,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { CHAPTERS, CONTENTS, chapter } from '../ui/guide/chapters.js';
 import { guideFigures } from '../ui/guide/figures.js';
+import { sectionOf } from '../ui/shell/sections.js';
+import { MAX_BID_MULTIPLE } from '../engine/constants.js';
 
 const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 const DECISIONS = read('DECISIONS.md');
 const SPEC = read('ENGINE_SPEC_v0.3.md');
-const INDEX = read('ui/index.html');
-const DECISIONS_FORM = read('ui/decisions.js');
 const FIGURES = guideFigures();
 const wordCount = (text) => text.trim().split(/\s+/).filter(Boolean).length;
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -111,6 +111,26 @@ describe('the chapters', () => {
     for (const id of c.cites) expect(cited(id), id).toBe(true);
   });
 
+  /**
+   * The attribution chapter's example names two days doing two different jobs:
+   * the day the sale is COUNTED ON, and the day the figure MOVES. It once said
+   * "adds a conversion to Monday, on Friday", which is true — Google Ads Help,
+   * *Understand your conversion tracking data*: "if your ad was clicked on last
+   * week and that traffic converted this week, both the click and the
+   * conversion are reported back to last week" — and read as a typo, in the one
+   * chapter whose job is explaining why a number a player has already read
+   * changes afterwards. The owner read it as an error (2026-09-16), which is
+   * the only test that matters for a sentence.
+   */
+  test('the attribution chapter keeps its two days apart', () => {
+    const real = CHAPTERS.attributionLag.real(FIGURES);
+    // The sale is counted on the day of the click.
+    expect(real).toMatch(/counted on Monday, the day of the click/);
+    // And the figure moves later, which is a separate clause.
+    expect(real).toMatch(/change on Friday/);
+    expect(real).not.toMatch(/adds a conversion to Monday, on Friday/);
+  });
+
   test.each(entries)('%s: every real source is a link, unless it is a device', (_, c) => {
     if (c.device) return;
     expect(c.realSources.length).toBeGreaterThan(0);
@@ -128,18 +148,56 @@ describe('the chapters', () => {
     expect(`${c.real(FIGURES)} ${c.game(FIGURES)}`).not.toMatch(/undefined|NaN/);
   });
 
-  test.each(entries)('%s: "in your account" points at a card that exists', (_, c) => {
-    // On the page itself, or on one of the decision form's cards, which the form
-    // draws in place of the page's own `decisions` slot. Pointing at that slot
-    // would leave a button that does nothing: it is gone once the form draws.
+  test.each(entries)('%s: "in your account" points at a part that exists', (_, c) => {
+    // Until the switch-over's part 2 this asked the classic page and the
+    // decision form. The page is gone, so the part a chapter points at is one a
+    // Studio section draws; tests/sections.test.js holds the other half, that
+    // the section's own module really sets the slot.
     expect(c.yourAccount).not.toBe('decisions');
-    const onPage = INDEX.includes(`data-slot="${c.yourAccount}"`);
-    const onForm = DECISIONS_FORM.includes(`dataset.slot = '${c.yourAccount}'`);
-    expect(onPage || onForm, c.yourAccount).toBe(true);
+    expect(sectionOf(c.studioAccount ?? c.yourAccount), c.yourAccount).not.toBeNull();
   });
 
   test.each(entries)('%s: related chapters exist', (_, c) => {
     for (const id of c.related) expect(Object.keys(CHAPTERS), id).toContain(id);
+  });
+
+  // The Guide page shows `related` as "Read beside it", so the owner asked for a
+  // read-through first (2026-09-15). Its one rule: chapters that rest on the same
+  // departure read beside each other, as the two under the bid cap now do.
+  test('the chapters that cite the bid cap read beside each other (D13)', () => {
+    const capped = entries.filter(([, c]) => c.cites.includes('D13')).map(([id]) => id);
+    expect(capped.length).toBeGreaterThan(1);
+    for (const id of capped) {
+      for (const other of capped) if (other !== id) expect(CHAPTERS[id].related, id).toContain(other);
+    }
+  });
+
+  // Found drawing the Guide as a page (2026-09-15): two chapters named a classic
+  // card ("the returns card", "The share card") that the Studio does not draw.
+  // What the game does is said of the figure, so it reads true in both looks.
+  test.each(entries)('%s: what the game does names no card', (_, c) => {
+    expect(c.game(FIGURES)).not.toMatch(/\bcards?\b/i);
+  });
+
+  // Places scale an account's returns (LOCATION_RETURN_MULTIPLIER, normalised
+  // to the country; F14 holds its effect on send-backs open). Drawing the Guide
+  // page put this chapter beside an account sending back 28.0% of delivered
+  // orders against its 30% (2026-09-15).
+  test('the returns chapter gives the send-back rate as the country\'s, which where you sell moves', () => {
+    const game = CHAPTERS.returnsSplit.game(FIGURES);
+    expect(game).toContain(`${FIGURES.postDelivery} of delivered orders across the country`);
+    expect(game).toContain('depending on where you sell');
+    expect(CHAPTERS.returnsSplit.cites).toContain('F14');
+  });
+
+  test('the chapters with a bid adjustment say no bid passes the cap, and cite it (D13)', () => {
+    // Where and when's bars stop at the cap and say so (2026-09-15); the guide
+    // behind their "why?" links has to agree, from the constant itself.
+    expect(FIGURES.bidCap).toBe(`${MAX_BID_MULTIPLE} times`);
+    for (const id of ['hours', 'cashOnDelivery']) {
+      expect(CHAPTERS[id].game(FIGURES), id).toContain(`${FIGURES.bidCap} your keyword bid`);
+      expect(CHAPTERS[id].cites, id).toContain('D13');
+    }
   });
 });
 
