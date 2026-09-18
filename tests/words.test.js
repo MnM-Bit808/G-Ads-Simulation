@@ -328,6 +328,7 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
     budget: '₹50,000', grade: 6, max: 30, writer: 'freelance copywriter', value: 7, scale: 10,
     month: 1, capital: '₹1,20,000', what: 'parcels refused', label: 'a chart',
     weekly: '₹77,000', planned: '₹3,00,000', query: 'nira joggers', volume: '2,838',
+    start: 5, top: 10, parts: [{ target: 'landingPage', points: 4 }, { target: 'sizeGuide', points: 1 }],
   };
 
   test('every entry is a line of a kind the screen may carry', () => {
@@ -348,6 +349,22 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
 
   test('"Next" names the step in the middle of a sentence', () => {
     expect(R0.next({ step: 'Where you sit' })).toBe('Next: where you sit');
+  });
+
+  /**
+   * The bar that moved says which purchase moved it (the owner, 2026-09-18), in
+   * the same words Your ad's total uses, and the size guide card no longer names
+   * returns alone when its chart earns a grade point too.
+   */
+  test('the landing page grade names the purchases that earned it, and the size guide says both things it moves', () => {
+    expect(R0.lpParts({ start: 5, parts: [{ target: 'sizeGuide', points: 1 }] }))
+      .toBe('5 to start, +1 a size chart');
+    expect(R0.lpParts({ start: 5, parts: [{ target: 'landingPage', points: 4 }, { target: 'sizeGuide', points: 1 }] }))
+      .toBe('5 to start, +4 the page itself, +1 a size chart');
+    expect(R0.lpStops({ top: 10 })).toBe('the grade stops at 10');
+    expect(R0.movesSize()).toBe('parcels sent back, and the landing page grade');
+    expect(R0.whySize()).toMatch(/earns a point of the landing page grade/);
+    expect(MONEY.targetWhy.sizeGuide()).toMatch(/earns a point of the landing page grade/);
   });
 
   test('the names you placed read as a list', () => {

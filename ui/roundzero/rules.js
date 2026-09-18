@@ -24,7 +24,9 @@ import {
 import {
   writerTier, isDiy, hiredCopyGrades, openingCopyGrades,
 } from '../../content/writers.js';
-import { composeDescription, PAGE_FEATURES, pageAsItStands } from '../../content/landingPage.js';
+import {
+  composeDescription, PAGE_FEATURES, pageAsItStands, pagePoints, COMPOSE_ORDER,
+} from '../../content/landingPage.js';
 import { lowestBidToShowPaise, wholeRupeeBid } from '../reserve.js';
 
 /**
@@ -534,15 +536,34 @@ export function setCapex(draft, key, paise) {
  * page the capital builds, read from `pageAsItStands`, the function game.js lands
  * before each week's auctions, so this screen and the auction cannot disagree.
  *
- * @returns {{fromWeek1: number, fromWeek4: number, liveAt: number}}
+ * AND IT SAYS WHICH PURCHASE EARNED IT (the owner, 2026-09-18). The size guide
+ * card said it moves parcels sent back while this bar rose beside it, and nothing
+ * said which purchase had moved it. `parts` is each purchase's own points from
+ * `pagePoints` — the function Your ad's breakdown reads, so the two screens cannot
+ * disagree — with the page's site work among the page's own. `total` is the plain
+ * sum, which may pass ten; `fromWeek4` is what the auction runs on, capped.
+ *
+ * @returns {{fromWeek1: number, fromWeek4: number, liveAt: number, start: number,
+ *   parts: Array<{target: string, points: number}>, total: number, capped: boolean}}
  */
 export function landingGrade(draft) {
   const block = capitalOf(draft);
   const at = (round) => Math.min(10, pageAsItStands(block, round).landingPage + landingPageBonus(block, round));
+  const points = pagePoints(block, CAPITAL_LIVE_AT);
+  // Every rule a new game grades by is earned by one ladder's sentences (I38), so
+  // a line names its earner; the page keeps any that no purchase earns alone.
+  const earnedBy = (target) => points.lines
+    .filter((line) => (line.by.length === 1 ? line.by[0] === target : target === 'landingPage'))
+    .reduce((sum, line) => sum + line.points, 0);
   return {
     fromWeek1: at(1),
     fromWeek4: at(CAPITAL_LIVE_AT),
     liveAt: CAPITAL_LIVE_AT,
+    start: points.start,
+    parts: COMPOSE_ORDER.map((target) => ({ target, points: earnedBy(target) }))
+      .filter((part) => part.points !== 0),
+    total: points.total,
+    capped: points.total > points.grade,
   };
 }
 

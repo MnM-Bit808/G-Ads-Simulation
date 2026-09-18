@@ -33,8 +33,11 @@ export const MONEY = Object.freeze({
   }),
   targetWhy: Object.freeze({
     landingPage: line('reading', 'Better quality, so a cheaper click. Worth most in the middle.'),
+    // Its chart earns a point of the landing page grade as well, which this card
+    // used to leave out (the owner, 2026-09-18; round 0's card said the same).
     sizeGuide: line('reading', 'Fewer parcels sent back after delivery. Worth most at the cheap end, and to '
-      + 'anything sold on how it looks.'),
+      + 'anything sold on how it looks. The chart it puts on the page earns a point of the landing '
+      + 'page grade too.'),
     photography: line('reading', 'More of your visitors buy. Worth most where the decision is considered.'),
     orderConfirmation: line('reading', 'Fewer parcels refused at the door. Worth most where cash on delivery is '
       + 'commonest, which is the cheap end and the small towns.'),

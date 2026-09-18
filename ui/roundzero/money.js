@@ -81,6 +81,13 @@ export function renderMoneyStep({ draft, openGuide, changed, redraw }) {
   lp.append(el('h3', null, R0.lpTitle()), el('p', 'r0-small', R0.lpNote({ step: R0.stepAd() })),
     gradeBar(grade.fromWeek1, 1));
   if (grade.fromWeek4 > grade.fromWeek1) lp.append(gradeBar(grade.fromWeek4, grade.liveAt));
+  // Which purchase earned the second bar (the owner, 2026-09-18). Nothing bought
+  // earns nothing, and then there is no line to draw.
+  if (grade.parts.length > 0) {
+    const parts = el('p', 'r0-lp-parts', R0.lpParts({ start: grade.start, parts: grade.parts }));
+    if (grade.capped) parts.append(el('span', 'r0-small', R0.lpStops({ top: GRADE_SCALE })));
+    lp.append(parts);
+  }
 
   const targets = el('div', 'r0-targets');
   for (const key of CAPEX_ORDER) {

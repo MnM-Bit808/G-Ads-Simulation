@@ -14,6 +14,13 @@ const lower = (text) => `${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 const listed = (names) => (names.length < 2 ? names.join('')
   : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`);
 
+/** A purchase, mid-sentence, where the landing page grade says who earned a point. */
+const PART_OF_PAGE = Object.freeze({
+  landingPage: 'the page itself',
+  sizeGuide: 'a size chart',
+  photography: 'product shots',
+});
+
 export const R0 = Object.freeze({
   // The frame
   stepMarket: line('label', 'The market'),
@@ -160,18 +167,30 @@ export const R0 = Object.freeze({
   lpTitle: line('label', 'Landing page grade'),
   lpNote: line('label', ({ step }) => `the third part of Quality Score · the ad’s two are in ${step}`),
   lpFrom: line('label', ({ value, scale, week }) => `${value}/${scale} from week ${week}`),
+  // Where the bar came from, in the words Your ad's total uses (design/grade-breakdown/,
+  // B): the start, then each purchase that earned points, by name. A purchase that
+  // earns none is not listed, so a plain page shows no line at all.
+  lpParts: line('label', ({ start, parts }) => `${start} to start, `
+    + parts.map(({ target, points }) => `+${points} ${PART_OF_PAGE[target]}`).join(', ')),
+  // As in Your ad, the cap is shown rather than hidden in a smaller number.
+  lpStops: line('label', ({ top }) => `the grade stops at ${top}`),
   targetPage: line('label', 'The page itself'),
   targetSize: line('label', 'Size guide'),
   targetPhoto: line('label', 'Photography'),
   targetConfirm: line('label', 'Order confirmation'),
   moves: line('label', ({ what }) => `moves: ${what}`),
   movesPage: line('label', 'the landing page grade'),
-  movesSize: line('label', 'parcels sent back'),
+  // BOTH THINGS IT MOVES (the owner, 2026-09-18). It said parcels alone, while the
+  // grade bar above it rose when a chart was picked: the chart's sentence earns the
+  // grader's sizing point. Photography and order confirmation move no grade at all
+  // since I38, so their cards are the whole truth as they stand.
+  movesSize: line('label', 'parcels sent back, and the landing page grade'),
   movesPhoto: line('label', 'how many visitors buy'),
   movesConfirm: line('label', 'parcels refused'),
   whyPage: line('reading', 'Better quality, so a cheaper click. Worth most in the middle.'),
   whySize: line('reading', 'Fewer parcels sent back after delivery. Worth most at the cheap end, and to '
-    + 'anything sold on how it looks.'),
+    + 'anything sold on how it looks. The chart it puts on the page earns a point of the landing page '
+    + 'grade too.'),
   whyPhoto: line('reading', 'More of your visitors buy. Worth most where the decision is considered.'),
   whyConfirm: line('reading', 'Fewer parcels refused at the door. Worth most where cash on delivery is '
     + 'commonest, which is the cheap end and the small towns.'),

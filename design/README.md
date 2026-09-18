@@ -500,8 +500,11 @@ ease of navigation, the number of links, and what the ad led people to expect.
 shows the product"). No source names pictures, and photography is already the
 best single capital purchase in four of the six cells (I30, as F14 left it).
 
-**Also found, and left for its own look:** round 0's size guide card says it moves
-parcels sent back, while the grade bar beside it rises by two.
+**Also found, and fixed next (2026-09-18):** round 0's size guide card said it
+moves parcels sent back, while the grade bar beside it rose. The card now names
+both, and under the bars a line says which purchase earned the grade — "5 to
+start, +5 the page itself, +1 a size chart", with "the grade stops at 10" where
+the cap takes one, in the words Your ad's total uses.
 
 **Built** 2026-09-17 as DECISIONS I38, measured against gates agreed first.
 

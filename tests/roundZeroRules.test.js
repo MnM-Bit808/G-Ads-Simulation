@@ -216,6 +216,39 @@ describe('the landing page grade, as the engine will run it (spec section 6)', (
       expect(liveAt).toBe(1 + CAPEX_DELAY_ROUNDS);
     }
   });
+
+  /**
+   * WHERE THE SECOND BAR COMES FROM (the owner, 2026-09-18). The size guide card
+   * said it moves parcels sent back while the bar beside it rose, and nothing on
+   * the screen said which purchase had moved it. The grade now carries its parts,
+   * by the purchase that earns them, from the same `pagePoints` Your ad reads.
+   */
+  describe('and it says which purchase earned it', () => {
+    const partsOf = (capex) => grade(capex).parts.map((p) => [p.target, p.points]);
+
+    test('each purchase that earns a point is named, and those that earn none are left out', () => {
+      expect(partsOf({})).toEqual([]);
+      expect(partsOf({ sizeGuide: 2500000 })).toEqual([['sizeGuide', 1]]);
+      expect(partsOf({ photography: 5000000 }), 'product shots earn nothing since I38').toEqual([]);
+      // The page's own points are one part: speed, reviews and the site work.
+      expect(partsOf({ landingPage: 5500000 })).toEqual([['landingPage', 4]]);
+      expect(partsOf({ landingPage: 5500000, sizeGuide: 2500000 })).toEqual([['landingPage', 4], ['sizeGuide', 1]]);
+    });
+
+    test('the parts add up to the bar, from the start, and say when the cap takes one', () => {
+      for (const capex of [{}, { sizeGuide: 2500000 }, { landingPage: 5500000, sizeGuide: 2500000 }]) {
+        const g = grade(capex);
+        expect(g.start + g.parts.reduce((sum, p) => sum + p.points, 0), JSON.stringify(capex)).toBe(g.total);
+        expect(g.total, JSON.stringify(capex)).toBe(g.fromWeek4);
+        expect(g.capped).toBe(false);
+      }
+      // The top page and a size chart earn 11; the auction runs on 10, and the
+      // cap is shown openly here as it is in Your ad (the owner, 2026-09-17).
+      const capped = grade({ landingPage: 8000000, sizeGuide: 2500000 });
+      expect(capped.parts).toEqual([{ target: 'landingPage', points: 5 }, { target: 'sizeGuide', points: 1 }]);
+      expect(capped).toMatchObject({ start: 5, total: 11, capped: true, fromWeek4: 10 });
+    });
+  });
 });
 
 describe('keywords in round 0', () => {
