@@ -18,6 +18,12 @@
  * a denylist somebody has to remember to extend. Anything a policy knows, it
  * was handed.
  *
+ * ONE IMPORT, and it is judgement rather than truth: `content/searchTerms.js`
+ * holds what a search costing too much means, so a rival blocks by the rule the
+ * player's own card marks by rather than by a second copy of it (the owner,
+ * 2026-09-18). `policies.test.js` holds that file to being a leaf — it imports
+ * nothing itself — so no truth can reach a policy through it.
+ *
  * THE WEEK JUST PLAYED NEVER CARRIES A RETURN. Returns are written back into
  * the week whose clicks earned them, two to five weeks later. So anything that
  * reads returns reads `history`, where they arrive, and never `report`, where
@@ -43,6 +49,8 @@
  * must be changeable without touching a file the engine reads, or a tuning
  * tweak to a rival would move the market itself. See `DECISIONS.md` C7.
  */
+
+import { averagePerSalePaise, isDear, queryTotals } from '../content/searchTerms.js';
 
 // ---------------------------------------------------------------------------
 // What `disciplined` believes, before it has evidence
@@ -411,7 +419,7 @@ function disciplinedAccount(self, report, view, history = []) {
   const move = bidMove(report, affordable);
   const negatives = [
     ...(self.campaign.negatives ?? []),
-    ...wastefulQueries(report, view, self.campaign.negatives ?? []),
+    ...wastefulQueries(history, view, self.campaign.negatives ?? []),
   ];
 
   // Where, as well as how much. A disciplined advertiser reads its own location
@@ -515,24 +523,41 @@ function bidMove(report, affordable) {
 }
 
 /**
- * Queries this account is paying for and getting nothing from.
+ * Queries this account is paying for and getting too little from.
  *
  * `breakdown.byQuery` IS the search terms report (15.2), and since negatives
  * are string-only (8.2) it is the only tool for writing them. So this is the
  * policy doing exactly what a player has to do: read the report, find the
- * searches that took money and returned nothing, and name their literal words.
+ * searches whose sales cost far more than selling costs this account, and name
+ * their literal words.
+ *
+ * IT ASKED FOR AN EXACT ZERO UNTIL 2026-09-18, and in expected mode a search's
+ * sales are its clicks times a rate — a fraction, never exactly zero unless
+ * nobody searching it ever buys. So a rival blocked the zero-intent searches and
+ * nothing else: measured in a played game, every rival ended twelve weeks having
+ * written no negative at all. It now judges by `isDear`, the rule the player's
+ * own card and table use (I8's addendum), which is why that rule lives in
+ * `content/` rather than in either reader.
+ *
+ * READ OVER EVERY WEEK PLAYED, as revised (C9's fourth argument), the way the
+ * player's own table reads every week: a week's sales arrive over the three
+ * weeks after it, so a search judged on the week just played is judged before
+ * its sales have landed. `NEGATIVE_CLICK_THRESHOLD` stays as the character's own
+ * patience, on top of the rule's own floor of one average sale's worth of spend.
  *
  * Phrase negatives, not broad: a broad negative needs every token present in
  * any order and over-blocks less predictably than naming the phrase.
  */
-function wastefulQueries(report, view, existing) {
+function wastefulQueries(history, view, existing) {
   const blocked = new Set(existing.map((n) => n.text));
   const texts = new Map((view.querySet ?? []).map((q) => [q.id, q.text]));
+  const totals = queryTotals(history);
+  const averagePaise = averagePerSalePaise(totals);
   const out = [];
 
-  for (const [queryId, row] of Object.entries(report.breakdown.byQuery)) {
+  for (const [queryId, row] of Object.entries(totals)) {
     if (row.clicks < NEGATIVE_CLICK_THRESHOLD) continue;
-    if ((row.conversions ?? 0) > 0) continue;
+    if (!isDear(row, averagePaise)) continue;
     const text = texts.get(queryId);
     if (!text || blocked.has(text)) continue;
     blocked.add(text);
@@ -759,7 +784,7 @@ function grossOptimiserAccount(self, report, view, history = []) {
   const negatives = report
     ? [
       ...(self.campaign.negatives ?? []),
-      ...wastefulQueries(report, view, self.campaign.negatives ?? []),
+      ...wastefulQueries(history, view, self.campaign.negatives ?? []),
     ]
     : (self.campaign.negatives ?? []);
 

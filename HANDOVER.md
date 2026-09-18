@@ -126,10 +126,23 @@ all three in play, and each failed before its fix.
   step into week 9 fell to 1.83 times an ordinary week, under the double D12 was
   taken on. On today's market it is 4.19 before C9 and 3.53 after, so the gate
   clears and the figure the screens quote is now 3.53.
-- **Still open, the same root cause:** the rivals' `wastefulQueries` asks for an
-  exact zero off the week just played (I8's addendum) and could now read settled
-  weeks. And `npm run test:perf`'s sampled-round test sits on its 2,200ms bound on
-  this machine, on unchanged code.
+- **DONE 2026-09-18, the same root cause: what a rival blocks** (I8's addendum).
+  `wastefulQueries` asked for conversions of exactly zero, so a rival blocked the
+  zero-intent searches and nothing else: in 24 played games the two characters
+  that read their search terms report held no negative at all in 23 of them. They
+  now judge by `isDear`, the player's own rule, over every week played — C9's
+  fourth argument doing what it was added for. The rule moved to
+  `content/searchTerms.js`, the one exception to "a policy imports nothing from
+  `engine/` or `content/`", which `policies.test.js` holds to a leaf module.
+  Gates agreed first: hard ones passed (suite green, calibration identical, no
+  rival blocks itself dark in 2,304 rival-weeks); two stop gates tripped and the
+  owner accepted them — the player's median rank slips 5 → 5.5, and
+  `grossOptimiser` earns 35.4% more, where its lesson was never that it cannot
+  read a report. The player's own profit is unmoved, +0.2% paired.
+- **Still open:** `npm run test:perf`'s sampled-round test sits on its 2,200ms
+  bound on this machine, on unchanged code. And the Studio's What people typed
+  leaves a search with no sale unmarked where the card marks it — one idea read
+  two ways, which wants the owner's word.
 
 **DONE 2026-09-17: the landing page is graded as it stands** (DECISIONS I37,
 the owner's decision; commits `88c2c98`, `6246367`, `a163633`). The timing

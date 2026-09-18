@@ -197,10 +197,22 @@ describe('grossOptimiser: the section 14 trap, walking around', () => {
   test('it is careful about the wrong number, not careless', () => {
     // It still writes negatives. A rival that were both sloppy AND
     // gross-optimising would confound the two lessons.
+    //
+    // Blocked by what a sale costs against the account's own average, over every
+    // week it has played, since 2026-09-18: a search with 900 clicks and 0.3
+    // sales at ₹9,000 is ₹30,000 a sale where this account pays about ₹1,000.
+    // Asking for conversions of exactly zero blocked almost nothing in play.
     const wasteful = reportWith({
-      breakdown: { byQuery: { [VIEW.querySet[0].id]: { clicks: 900, conversions: 0 } }, byKeyword: {} },
+      breakdown: { byQuery: { [VIEW.querySet[0].id]: { clicks: 900, conversions: 0.3 } }, byKeyword: {} },
     });
-    expect(grossOptimiser(SELF, wasteful, VIEW).campaign.negatives.length).toBeGreaterThan(0);
+    const history = [
+      { round: 1, breakdown: { byQuery: {
+        [VIEW.querySet[0].id]: { clicks: 900, conversions: 0.3, impressions: 9000, costPaise: 900000 },
+        [VIEW.querySet[1].id]: { clicks: 900, conversions: 9, impressions: 9000, costPaise: 900000 },
+      } } },
+    ];
+    expect(grossOptimiser(SELF, wasteful, VIEW, history).campaign.negatives.map((n) => n.text))
+      .toEqual([VIEW.querySet[0].text]);
   });
 });
 

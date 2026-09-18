@@ -52,6 +52,7 @@ import {
 import { triggersLearning } from '../game.js';
 import { tagKeywordOffline, tagContentHashOf } from '../agents/keywordTagger.js';
 import { pageAsItStands, rulesFor } from '../content/landingPage.js';
+import { DEAR_TIMES, averagePerSalePaise, isDear } from '../content/searchTerms.js';
 
 /** The three string negatives of 8.2, and no fourth. Tags never appear (H3). */
 export const NEGATIVE_TYPES = ['broad', 'phrase', 'exact'];
@@ -1257,57 +1258,16 @@ export function dropNegative(draft, index) {
   return { dropped: true };
 }
 
-/** A search whose sales cost over this many times the account's average is marked. */
-export const DEAR_TIMES = 2;
-
 /**
- * What a sale has cost this account on average, over the search terms given.
+ * The mark on the search terms report, and what the Negatives card counts.
  *
- * Taken over exactly the rows the report is showing, every week or this week
- * only, so a search is marked against the period the table shows. A week's
- * sales are still arriving, but they arrive for every search alike, so a search
- * is compared with an account in the same state of settling.
- *
- * @param {object} terms search terms report rows, keyed by query id
- * @returns {number|null} paise per sale, fractional; null while nothing in the
- *   range has sold, when there is nothing to compare a search against
+ * The rule itself lives in `content/searchTerms.js` since 2026-09-18, because a
+ * rival's policy judges a search by it too and `agents/` may not reach into
+ * `ui/`. Re-exported here, where every screen already reads it, so the card and
+ * the rival cannot drift apart. What it asks, and why it is not "clicks and no
+ * sale", is written there (DECISIONS I8's addendum).
  */
-export function averagePerSalePaise(terms) {
-  let costPaise = 0;
-  let sales = 0;
-  for (const r of Object.values(terms ?? {})) {
-    if (!(r.impressions > 0)) continue;
-    costPaise += r.costPaise;
-    sales += r.conversions ?? 0;
-  }
-  return sales > 0 ? costPaise / sales : null;
-}
-
-/**
- * Whether a search costs too much for what it sold: the mark on the search
- * terms report, and what the Negatives card counts.
- *
- * NOT "five clicks and no sale", which is what both used to ask. The game is
- * played in expected mode, where a search's sales are its clicks times a
- * conversion rate: a fraction, never exactly zero unless nobody searching it
- * ever buys. So that rule marked only the zero-intent searches, and "how to
- * wash gym leggings" at ₹4,458 a sale against an account's ₹488 went unmarked
- * (DECISIONS I8).
- *
- * Marked when each sale cost over DEAR_TIMES the account's average, once the
- * search has spent at least one average sale: short of that it has not had the
- * money to sell, whatever it shows. A search that sold nothing is marked on the
- * same terms, since no sale is dearer than any price.
- *
- * @param {{costPaise: number, conversions: number}} row
- * @param {number|null} averagePaise from `averagePerSalePaise`
- * @returns {boolean}
- */
-export function isDear(row, averagePaise) {
-  if (averagePaise == null) return false;
-  const sales = row.conversions ?? 0;
-  return row.costPaise >= averagePaise && row.costPaise > DEAR_TIMES * averagePaise * sales;
-}
+export { DEAR_TIMES, averagePerSalePaise, isDear };
 
 /**
  * Whether this account needs to think about negatives at all, from its own data.

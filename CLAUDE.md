@@ -212,7 +212,11 @@ number in the simulation without ever throwing an error.
   the search terms mark and the block warning did one each, with every test
   green because their fixtures used whole zeros (I8's addendum). Compare a
   search against the account instead, and test on a played game. The rivals'
-  `wastefulQueries` still asks for a zero.
+  `wastefulQueries` asked for one too, and blocked nothing in a whole game until
+  2026-09-18; it now judges by `isDear` in `content/searchTerms.js`, the one
+  home the player's screens and the rival policies both read it from. That is
+  the single exception to "a policy imports nothing from `engine/` or
+  `content/`", and `policies.test.js` holds the exception to a leaf module.
 - **A controller's `report` is the week just played, and it never carries a
   return.** Returns are written back into their click week two to five weeks
   later, so a rule that reads returns must read the fourth argument, the

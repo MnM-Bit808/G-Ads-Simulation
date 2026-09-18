@@ -2858,12 +2858,51 @@ which is why they live beside the cards that use them rather than in
 `constants.js`. The second does the job the five clicks did: short of one
 average sale's spend, a search has not had the money to sell, whatever it shows.
 
-**Still open.** The Studio's What people typed (on `makeover`) leaves a search
-with no sale unmarked, and once `main` is merged in it can take this rule. The
-rival policies' `wastefulQueries` (`agents/policies.js`) blocks only a search
-with no conversions at all, the same exact-zero test: in expected mode a rival
-blocks only zero-intent searches. Changing it moves the market, so it waits for
-the harness, before and after.
+**The rivals now block by this rule too (2026-09-18, the owner's decision).**
+`wastefulQueries` (`agents/policies.js`) asked for conversions of exactly zero,
+the same test this addendum removed from the player's screens, so in expected
+mode a rival blocked the zero-intent searches and nothing else. Measured in 24
+played games: `disciplined` and `grossOptimiser`, the two characters that read
+their search terms report, ended twelve weeks holding **no negative at all** in
+23 of them. They now judge a search by `isDear`, over every week they have
+played, as revised — C9's fourth argument, doing what it was added for: a week's
+sales arrive over the three weeks after it, so a search judged on the week just
+played is judged before its sales have landed. Their own click threshold (40)
+stays, on top of the rule's floor of one average sale's spend.
+
+**One rule, two readers, and a guard narrowed to allow it.** `isDear`,
+`averagePerSalePaise` and the totals a rival sums now live in
+`content/searchTerms.js`; `ui/decisions.js` re-exports them, so no screen
+changed. `policies.test.js` held that a policy imports nothing from `engine/` or
+`content/` — absolute, so no route to the truth exists that nobody thought to
+forbid. It now allows exactly `content/searchTerms.js` and holds that file to
+being a leaf that imports nothing itself, so nothing can reach a policy through
+it. The alternative was the same concept written twice, which is the defect I9
+was written about.
+
+**Measured against gates the owner agreed first**, `market` mode, 72 markets,
+before and after. Hard, all passed: the suite green; calibration's 22 printed
+figures identical; and no rival blocks itself out of the market — 0 rival-weeks
+with no impressions at all, out of 2,304, on both sides. Stop-and-show: the
+player's net profit is unmoved (paired median **+0.2%**, −2.8% to +7.9% at the
+10th and 90th), it still loses money in 0 of 72, and its cost per click is ₹12.0
+against ₹11.9. **Two gates tripped and the owner accepted both**: the player's
+median rank slips 5 → 5.5 (better in 5 markets, the same in 51, worse in 16),
+and `grossOptimiser`'s median profit rises 35.4% (₹16,90,521 → ₹22,89,087),
+where the other five characters move between −2.1% and +6.4%. Both are the fix
+working: two of eight rivals stop paying for searches that cost them several
+times what a sale costs them. `grossOptimiser` gaining most is in character —
+its lesson is that it ignores returns, not that it cannot read a report, and
+cost per sale is exactly the returns-blind reading it would use.
+
+Also moved, and in no gate: rivals' step into week 5 reads 2.55 times an
+ordinary week against 3.75, because ordinary weeks are busier now that two
+rivals re-read their report every week. The week-9 step the screens quote barely
+moved, 3.53 → 3.45, so D12's line still stands.
+
+**Still open.** The Studio's What people typed leaves a search with no sale
+unmarked, where this rule marks it: two readings of one idea on two screens,
+which wants the owner's word on which is right.
 
 ### I9. The landing page is built, not described — `FIXED`
 

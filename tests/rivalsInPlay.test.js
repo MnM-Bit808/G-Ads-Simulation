@@ -85,6 +85,36 @@ describe('what a rival learns in a played game (C9)', { timeout: 120_000 }, () =
     expect(differ.length, 'net and gross place bids are identical every week').toBeGreaterThan(0);
   });
 
+  /**
+   * WHAT A RIVAL BLOCKS, in play (2026-09-18). Its rule asked for conversions of
+   * exactly zero on the week just played, and in expected mode a search's sales
+   * are a fraction, so it wrote negatives on the zero-intent searches alone
+   * (I8's addendum). It now judges by `isDear` over every week it has played.
+   * Both tests below failed before that: the first read zero negatives, and the
+   * second is the risk the first one buys.
+   */
+  test('it blocks the searches that cost it most, rather than only the ones nobody ever buys from', () => {
+    const blockers = seen.filter((c) => ['disciplined', 'grossOptimiser'].includes(c.policyId));
+    expect(blockers.length, 'no rival in this market reads its search terms').toBeGreaterThan(0);
+    const written = new Map();
+    for (const c of blockers.sort((x, y) => x.round - y.round)) {
+      written.set(c.id, (c.decision?.campaign?.negatives ?? []).length);
+    }
+    const blocked = [...written.values()];
+    expect(Math.max(...blocked), 'every rival ends the game blocking nothing').toBeGreaterThan(0);
+  });
+
+  test('and blocks itself out of nothing: every rival still shows every week', () => {
+    const dark = [];
+    for (const report of state.history) {
+      for (const a of state.advertisers.filter((x) => x.policyId)) {
+        const impressions = report.byAdvertiser[a.id]?.traffic?.impressions ?? 0;
+        if (!(impressions > 0)) dark.push(`${a.id} (${a.policyId}) week ${report.round}`);
+      }
+    }
+    expect(dark).toEqual([]);
+  });
+
   test('a rival\'s place adjustments settle rather than see-saw', () => {
     // Traced here: the disciplined rival's towns adjustment went -10, -56, -17,
     // -58, -12, -54... because a place's value per click falls as its bid

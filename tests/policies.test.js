@@ -53,14 +53,29 @@ describe('a policy is a pure function of four views (R3a, R6)', () => {
 });
 
 describe('structural: what this file may not reach', () => {
-  test('it imports nothing from engine/ at all', () => {
+  test('it imports nothing from engine/, and from content/ only the search-terms rule', () => {
     // Absolute rather than a denylist somebody has to remember to extend. A
     // policy that cannot import the engine cannot accidentally read the truth
     // out of it - POSITION_ECONOMICS, the conversion chain, a query's
     // affinities - by any route, including ones nobody thought to forbid.
+    //
+    // ONE EXCEPTION, the owner's call of 2026-09-18: `content/searchTerms.js`,
+    // which is what a search costing too much means. A rival judges a search by
+    // the rule the player's own card judges it by, and the alternative was the
+    // same concept written twice (I9's defect). The next test holds that file to
+    // being a leaf, so nothing can reach a policy through it.
     const imports = CODE.match(/^import[\s\S]*?from\s*['"][^'"]+['"];/gm) ?? [];
     expect(imports.join('\n')).not.toMatch(/engine\//);
-    expect(imports.join('\n')).not.toMatch(/content\//);
+    const fromContent = imports.filter((line) => /content\//.test(line));
+    for (const line of fromContent) expect(line).toMatch(/content\/searchTerms\.js/);
+  });
+
+  test('and the one file it may import from content/ imports nothing itself', () => {
+    // What makes the exception above safe: the truth lives behind other modules
+    // (the query set's affinities, the engine's economics), and a leaf cannot
+    // carry it. If this file ever needs an import, the exception needs rethinking.
+    const leaf = readFileSync(fileURLToPath(new URL('../content/searchTerms.js', import.meta.url)), 'utf8');
+    expect(leaf.match(/^import[\s\S]*?from\s*['"][^'"]+['"];/gm) ?? []).toEqual([]);
   });
 
   test('it never names the truth', () => {
@@ -234,56 +249,90 @@ describe('where a rival bids, read off every week it has played (G4, C9)', () =>
   });
 });
 
+/**
+ * WHAT A RIVAL BLOCKS, and why the old rule blocked almost nothing.
+ *
+ * It asked for conversions of exactly zero on the week just played. The game is
+ * played in expected mode, where a search's sales are its clicks times a rate —
+ * a fraction, never exactly zero unless nobody searching it ever buys — so a
+ * rival wrote negatives on the zero-intent searches and on nothing else, while
+ * its report was full of searches costing several times what a sale costs it
+ * (I8's addendum, fixed 2026-09-18). It now judges by `isDear`, the rule the
+ * player's own card and search terms table use, over every week it has played,
+ * as revised (C9's fourth argument): a week's sales are still arriving, and
+ * judging a search on them is what made the old rule wrong.
+ */
 describe('disciplined reads its search terms report', () => {
-  test('it blocks a query that took clicks and returned nothing', () => {
-    const self = getSelfView(STATE, PLAYER_ID);
-    const view = getPublicView(STATE, PLAYER_ID);
-    const waster = view.querySet[0];
-    const report = {
-      traffic: { clicks: 500, costPaise: 400000, impressions: 9000, eligibleAuctions: 20000 },
-      share: { lostToRank: 0.1, lostToBudget: 0 },
-      conversions: { final: 10, returned: 2 },
-      breakdown: {
-        byQuery: { [waster.id]: { clicks: 200, conversions: 0, impressions: 4000, costPaise: 160000 } },
-        byKeyword: {},
-      },
-    };
-    const decision = disciplined(self, report, view);
-    expect(decision.campaign.negatives.map((n) => n.text)).toContain(waster.text);
+  const self = () => getSelfView(STATE, PLAYER_ID);
+  const view = () => getPublicView(STATE, PLAYER_ID);
+  const week = (round, byQuery) => ({ round, breakdown: { byQuery, byKeyword: {} } });
+  const report = {
+    traffic: { clicks: 500, costPaise: 400000, impressions: 9000, eligibleAuctions: 20000 },
+    share: { lostToRank: 0.1, lostToBudget: 0 },
+    conversions: { final: 10, returned: 2 },
+    breakdown: { byQuery: {}, byKeyword: {} },
+  };
+  const row = (clicks, conversions, costPaise) => ({ clicks, conversions, costPaise, impressions: clicks * 20 });
+  /** An account where a sale costs ₹500: ₹3,200 spent over 6.4 sales. */
+  const account = (waster, earner) => [
+    week(1, { [waster]: row(100, 0.2, 80000), [earner]: row(100, 3, 80000) }),
+    week(2, { [waster]: row(100, 0.2, 80000), [earner]: row(100, 3, 80000) }),
+  ];
+
+  test('it blocks a search whose sales cost far more than its own average, fractional though they are', () => {
+    const [waster, earner] = view().querySet;
+    const decision = disciplined(self(), report, view(), account(waster.id, earner.id));
+    // ₹1,600 spent on 0.4 sales is ₹4,000 a sale, against the account's ₹500.
+    expect(decision.campaign.negatives.map((n) => n.text)).toEqual([waster.text]);
     // Phrase, not broad: a broad negative needs every token present in any
     // order and over-blocks less predictably (8.2, L11).
-    expect(decision.campaign.negatives.find((n) => n.text === waster.text).matchType)
-      .toBe('phrase');
+    expect(decision.campaign.negatives[0].matchType).toBe('phrase');
   });
 
-  test('it leaves a query that converts alone', () => {
-    const self = getSelfView(STATE, PLAYER_ID);
-    const view = getPublicView(STATE, PLAYER_ID);
-    const earner = view.querySet[0];
-    const report = {
-      traffic: { clicks: 500, costPaise: 400000, impressions: 9000, eligibleAuctions: 20000 },
-      share: { lostToRank: 0.1, lostToBudget: 0 },
-      conversions: { final: 10, returned: 2 },
-      breakdown: {
-        byQuery: { [earner.id]: { clicks: 200, conversions: 6, impressions: 4000, costPaise: 160000 } },
-        byKeyword: {},
-      },
-    };
-    expect(disciplined(self, report, view).campaign.negatives).toHaveLength(0);
+  test('the old rule blocked nothing here, because 0.2 sales is not zero', () => {
+    const [waster, earner] = view().querySet;
+    const history = account(waster.id, earner.id);
+    const zeroOnly = Object.values(history[0].breakdown.byQuery).filter((r) => (r.conversions ?? 0) === 0);
+    expect(zeroOnly, 'nothing in this account converts at exactly zero').toHaveLength(0);
+    expect(disciplined(self(), report, view(), history).campaign.negatives).toHaveLength(1);
+  });
+
+  test('it leaves a search that sells at about what selling costs this account', () => {
+    const [waster, earner] = view().querySet;
+    const decision = disciplined(self(), report, view(), account(waster.id, earner.id));
+    expect(decision.campaign.negatives.map((n) => n.text)).not.toContain(earner.text);
+  });
+
+  test('it waits until a search has spent enough to have sold anything', () => {
+    const [thin, earner] = view().querySet;
+    // Dear by ratio, but it has spent ₹200 where a sale costs this account ₹288:
+    // too little to have sold, whatever it shows.
+    const history = [week(1, { [thin.id]: row(60, 0.02, 20000), [earner.id]: row(300, 9, 240000) })];
+    expect(disciplined(self(), report, view(), history).campaign.negatives).toHaveLength(0);
+  });
+
+  test('it reads every week it has played, so a search whose sales arrived late is left alone', () => {
+    const [late, earner] = view().querySet;
+    // On the last week alone it looks dear; over the three weeks it has sold.
+    const history = [
+      week(1, { [late.id]: row(100, 4, 80000), [earner.id]: row(100, 3, 80000) }),
+      week(2, { [late.id]: row(100, 3, 80000), [earner.id]: row(100, 3, 80000) }),
+      week(3, { [late.id]: row(100, 0.1, 80000), [earner.id]: row(100, 3, 80000) }),
+    ];
+    expect(disciplined(self(), report, view(), history).campaign.negatives).toHaveLength(0);
+    const lastWeekOnly = [history[2]];
+    expect(disciplined(self(), report, view(), lastWeekOnly).campaign.negatives.map((n) => n.text))
+      .toEqual([late.text]);
+  });
+
+  test('it blocks nothing before it has played a week', () => {
+    expect(disciplined(self(), report, view(), []).campaign.negatives).toHaveLength(0);
   });
 
   test('it does not block the same query twice', () => {
-    const self = getSelfView(STATE, PLAYER_ID);
-    const view = getPublicView(STATE, PLAYER_ID);
-    const waster = view.querySet[0];
-    const already = { ...self, campaign: { ...self.campaign, negatives: [{ text: waster.text, matchType: 'phrase' }] } };
-    const report = {
-      traffic: { clicks: 500, costPaise: 400000, impressions: 9000, eligibleAuctions: 20000 },
-      share: { lostToRank: 0.1, lostToBudget: 0 },
-      conversions: { final: 10, returned: 2 },
-      breakdown: { byQuery: { [waster.id]: { clicks: 200, conversions: 0 } }, byKeyword: {} },
-    };
-    expect(disciplined(already, report, view).campaign.negatives).toHaveLength(1);
+    const [waster, earner] = view().querySet;
+    const already = { ...self(), campaign: { ...self().campaign, negatives: [{ text: waster.text, matchType: 'phrase' }] } };
+    expect(disciplined(already, report, view(), account(waster.id, earner.id)).campaign.negatives).toHaveLength(1);
   });
 });
 
