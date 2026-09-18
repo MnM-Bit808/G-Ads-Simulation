@@ -2591,14 +2591,16 @@ before-and-after later if one is wanted.
 
 **When the invites go out:**
 1. **Tag the live version the same day,** so the files can be read on the engine
-   they were played on. `playtest-1` and `playtest-2` are both used —
-   `playtest-2` is the classic game, and `live-before-studio` is the last
-   version the site served before the Studio — so the next one is
-   `playtest-3`:
+   they were played on. `playtest-1`, `playtest-2` and `playtest-3` are used —
+   `playtest-2` is the classic game, `live-before-studio` is the last version
+   the site served before the Studio, and `playtest-3` (`e312519`, 2026-09-16)
+   is the Studio's first live version, tagged when the invite was rewritten.
+   **`playtest-4` (2026-09-18) is the build the stranger playtests are being
+   run on**, so the next one is `playtest-5`:
 
    ```
-   git tag playtest-3
-   git push origin playtest-3
+   git tag playtest-5
+   git push origin playtest-5
    ```
 
    Then keep engine changes off `main` until the files are back. Words and
