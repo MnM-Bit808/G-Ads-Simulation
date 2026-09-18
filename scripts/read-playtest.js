@@ -119,6 +119,11 @@ export async function outcome(file) {
     grossRank: me.grossRank,
     costPaise: me.costPaise,
     netProfitPaise: me.netProfitPaise,
+    // What the books rank on since I39: settled net profit, less what they
+    // built with. Printing the rank beside net profit alone said one number
+    // and ranked on another.
+    capitalPaise: me.capitalPaise,
+    businessProfitPaise: me.businessProfitPaise,
     weeksInTheRed: weeksInTheRed(state.history, saved.playerId),
     decisions: decisionWeeks(saved.decisionLog, saved.playerId),
   };
@@ -228,8 +233,9 @@ export async function report(file) {
     lines.push('  The saved game could not be read by this version of the code.');
   } else {
     lines.push(`  ${result.weeksPlayed} of 12 weeks played`);
-    lines.push(`  rank ${result.rank} of ${result.of} on contribution (gross rank ${result.grossRank})`);
-    lines.push(`  contribution ${money(result.netProfitPaise)} on ${money(result.costPaise)} of spend`);
+    lines.push(`  rank ${result.rank} of ${result.of} on what the business made (gross rank ${result.grossRank})`);
+    lines.push(`  made ${money(result.businessProfitPaise)}: contribution ${money(result.netProfitPaise)} `
+      + `less ${money(result.capitalPaise)} built with, on ${money(result.costPaise)} of spend`);
     lines.push(`  weeks in the red: ${result.weeksInTheRed.length ? result.weeksInTheRed.join(', ') : 'none'}`);
     const chose = result.decisions.filter((d) => !d.leftAlone);
     lines.push(`  weeks with a decision: ${result.decisions.length
