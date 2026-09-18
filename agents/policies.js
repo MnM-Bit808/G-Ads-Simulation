@@ -7,14 +7,22 @@
  *
  * WHAT A POLICY IS
  *
- * A pure function of three views:
+ * A pure function of four views:
  *
- *     policy(selfView, report, publicView) -> decision | null
+ *     policy(selfView, report, publicView, history) -> decision | null
  *
- * and nothing else. No `GameState`, no other advertiser's record, no engine
- * imports at all — this file imports nothing from `engine/`, which makes the
- * structural guard absolute rather than a denylist somebody has to remember to
- * extend. Anything a policy knows, it was handed.
+ * and nothing else. `report` is its own week just played; `history` is its own
+ * report for every week played, as revised since (R3a, C9). No `GameState`, no
+ * other advertiser's record, no engine imports at all — this file imports
+ * nothing from `engine/`, which makes the structural guard absolute rather than
+ * a denylist somebody has to remember to extend. Anything a policy knows, it
+ * was handed.
+ *
+ * THE WEEK JUST PLAYED NEVER CARRIES A RETURN. Returns are written back into
+ * the week whose clicks earned them, two to five weeks later. So anything that
+ * reads returns reads `history`, where they arrive, and never `report`, where
+ * they are always zero. Three rules here read `report` for returns and read
+ * zero in every game played until 2026-09-16 (C9).
  *
  * WHAT IT CANNOT KNOW, AND WHY THAT SHAPES EVERY RULE BELOW
  *
@@ -47,7 +55,7 @@
  * category-wide" (17.2) and withholds the rest, so two in five is what a
  * disciplined rival assumes too. It is wrong in both directions — Value-
  * Lifestyle really returns 46.5%, Premium-Performance 36% — and it is corrected
- * from the report as soon as returns start resolving.
+ * from the rival's own history once a week has finished coming back.
  *
  * Was 0.25, when the briefing said a quarter. F14 raised the engine's return
  * level to the sourced total and the briefing followed; this follows the
@@ -55,6 +63,17 @@
  * player's is not playing the same game.
  */
 const ASSUMED_RETURN_RATE = 0.40;
+
+/**
+ * How many weeks after its own a week's returns take to finish arriving: three
+ * for its sales to land, two more for what comes back. What a competent
+ * operator learns from watching its own reports revise, and the reason the
+ * first week anyone can read in full is week 7 (C9).
+ */
+const WEEKS_TO_SETTLE = 5;
+
+/** Fewer settled sales than this and a return rate is noise; the briefing holds. */
+const MIN_SETTLED_CONVERSIONS = 5;
 
 /**
  * The conversion rate to assume before any has been observed.
@@ -195,17 +214,18 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
  * built from.
  *
  * WEIGHTED BY THE SEARCHES IT IS IN, NOT THE CLICKS IT BOUGHT. The card weights
- * by the player's clicks over every week played, which moves slowly. A rival
- * has one week, and its week's clicks follow its place bids, which see-saw
- * (`locationTilt` resets them from each week's reading): weighted by clicks, a
- * rival's rate swung two points week to week and its rung flipped ₹50 / ₹30
- * with it — 8 of 144 rival-games, one seven times in eleven weeks. The
- * searches it is eligible for at each place do not follow its bids.
+ * by the player's clicks over every week played, which moves slowly. This reads
+ * the week just played, whose clicks follow its place bids, and those used to
+ * see-saw: weighted by clicks, a rival's rate swung two points week to week and
+ * its rung flipped ₹50 / ₹30 with it — 8 of 144 rival-games, one seven times in
+ * eleven weeks. The see-saw is gone (`PLACE_STEP`, C9), and the weighting stays,
+ * because the searches it is eligible for at each place do not follow its bids
+ * at all.
  *
  * It used to count the `refused` in those rows, and in play that was always
  * exactly zero. A week's refusals land two to five weeks after its clicks and
- * are written back into that week's report, and a controller is handed only
- * the week just played. Over 18 games not one rival ever offered a discount.
+ * are written back into that week's report, and a controller was handed only
+ * the week just played (C9). Over 18 games not one rival ever offered a discount.
  *
  * The rate is the one BEFORE any discount, so a rival already offering one
  * cannot talk itself back out of it as its own refusals fall.
@@ -263,11 +283,42 @@ const CAUTIOUS_LOCATION_LEAN = 100;
 const LOCATION_MIN_CLICKS = 40;
 
 /**
+ * Never write a negative zero into a decision.
+ *
+ * `Math.round` returns -0 for anything a hair under zero, so a place a shade
+ * below the account's own average came out as -0. JSON has no -0, so a saved
+ * game read back a decision it had not stored, and the save's round-trip stopped
+ * being exact (`tests/save.test.js`, which caught it on the makeover line). The
+ * rounding is older than C9; reading every week played is what put a place close
+ * enough to the average to meet it.
+ *
+ * `PLACE_STEP` below has since made that path unreachable — a half step from a
+ * whole number cannot land on -0 — so this now guards the adjustment carried
+ * over for a place with too little traffic to read, and any later change to the
+ * step.
+ */
+const noMinusZero = (n) => (n === 0 ? 0 : n);
+
+/**
+ * How far toward what its reports say a rival moves a place adjustment in one
+ * week: halfway.
+ *
+ * A place's value per click is not the place's alone. With a low bid there a
+ * rival wins only its best searches and a click reads rich; bid up, it wins
+ * weaker ones too and a click reads poorer. A rival that jumped all the way to
+ * each week's reading bid the towns up, read them worse, cut, read them better,
+ * and see-sawed for twelve weeks, each swing about 0.9 of the last (C9). A cap
+ * like `MAX_BID_MOVE` was measured and only trims the swings bigger than itself.
+ * Halfway ends them, and each rival still comes to rest where it would have.
+ */
+const PLACE_STEP = 0.5;
+
+/**
  * Where this advertiser should bid more, and where less.
  *
  * IT LEARNS THIS, IT IS NOT TOLD IT. `policies.js` imports nothing from
  * `engine/` - that is what makes its guard absolute - so a policy cannot read
- * the table that says where its buyers are. It has only its own report, which
+ * the table that says where its buyers are. It has only its own reports, which
  * is exactly what the player has. Anything a policy knows, it was handed.
  *
  * WHAT IT READS IS NET OF RETURNS, and that is the whole reason this is worth
@@ -278,26 +329,45 @@ const LOCATION_MIN_CLICKS = 40;
  * towns actually cost it. That lag IS the lesson, and a rival experiences it on
  * the same terms the player does.
  *
+ * EVERY WEEK PLAYED, SUMMED, as the player's own place card sums them. A
+ * week's returns are written back into it two to five weeks later, so the sum
+ * is net of whatever has come back so far and no more. It used to read the
+ * week just played, which never carries a return, so reading net and reading
+ * gross came to the same thing in every game, and `grossOptimiser` had no
+ * geography of its own (C9).
+ *
  * Tiers with too little traffic to mean anything are left alone rather than
- * guessed at, which keeps a rival from abandoning a location on one thin week.
+ * guessed at, which keeps a rival from abandoning a location on thin evidence.
  *
  * @param {object} self own view
- * @param {object|null} report own report, or null in round 1
+ * @param {object[]} history own reports, every week played, as revised; empty in round 1
  * @param {number} lean how hard this character leans, as a percentage
  * @returns {number[]|null} adjustments, or null to leave them alone
  */
-export function locationTilt(self, report, lean = LOCATION_LEAN, { net = true } = {}) {
+export function locationTilt(self, history, lean = LOCATION_LEAN, { net = true } = {}) {
   const current = self.campaign?.locationAdjustments;
   if (!Array.isArray(current)) return null;
 
-  const rows = report?.breakdown?.byLocation;
-  if (!rows) return null;
+  const rows = current.map(() => ({ clicks: 0, grossRevenuePaise: 0, returnedRevenuePaise: 0 }));
+  let weeks = 0;
+  for (const week of history ?? []) {
+    const byLocation = week.breakdown?.byLocation;
+    if (!byLocation) continue;
+    weeks += 1;
+    for (const [tier, row] of Object.entries(byLocation)) {
+      const at = rows[Number(tier)];
+      if (!at) continue;
+      at.clicks += row.clicks ?? 0;
+      at.grossRevenuePaise += row.grossRevenuePaise ?? 0;
+      at.returnedRevenuePaise += row.returnedRevenuePaise ?? 0;
+    }
+  }
+  if (weeks === 0) return null;
 
   // Net of returns, per click. The two things location changes are the basket
   // and the return rate, so this is the only figure that sees both.
-  const value = current.map((_, tier) => {
-    const row = rows[tier];
-    if (!row || row.clicks < LOCATION_MIN_CLICKS) return null;
+  const value = rows.map((row) => {
+    if (row.clicks < LOCATION_MIN_CLICKS) return null;
     // `net: false` is not a bug, it is a character. `grossOptimiser` manages to
     // gross profit and therefore reads gross revenue here too - so it sees the
     // metros' bigger baskets, leans into them, and never learns what the towns
@@ -313,20 +383,22 @@ export function locationTilt(self, report, lean = LOCATION_LEAN, { net = true } 
   if (!(mean > 0)) return null;
 
   return value.map((v, tier) => {
-    if (v === null || !Number.isFinite(v)) return current[tier] ?? 0;
+    const held = current[tier] ?? 0;
+    if (v === null || !Number.isFinite(v)) return noMinusZero(held);
     // Relative to this account's own average, so a premium advertiser and a
     // value one are each judging against their own economics rather than
     // against a number neither of them can see.
     const relative = v / mean - 1;
-    const move = Math.round(relative * lean);
     // Bounded by this character's own lean, so a timid rival cannot be swung
     // hard by one violent week.
-    return clamp(move, -lean, lean);
+    const target = clamp(Math.round(relative * lean), -lean, lean);
+    // And only part of the way there, because moving the bid moves the reading.
+    return noMinusZero(held + Math.round((target - held) * PLACE_STEP));
   });
 }
 
-function disciplinedAccount(self, report, view) {
-  const affordable = affordableCpcPaise(self, report);
+function disciplinedAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
 
   // Round 1: no evidence yet, so open at the margin of safety and wait.
   if (!report) {
@@ -343,10 +415,10 @@ function disciplinedAccount(self, report, view) {
   ];
 
   // Where, as well as how much. A disciplined advertiser reads its own location
-  // report the way it reads its search terms report - and it is reading net of
+  // report the way it reads its search terms report - over every week, net of
   // returns, so it leans toward the metros first and corrects once the towns
   // start sending things back.
-  const locationAdjustments = locationTilt(self, report);
+  const locationAdjustments = locationTilt(self, history);
 
   const prepaid = prepaidNudge(self, report);
 
@@ -371,17 +443,17 @@ function disciplinedAccount(self, report, view) {
  *
  * It knows its order value and margin. It does NOT know its conversion rate or
  * its return rate, so both are estimated — the conversion rate from observed
- * history, the return rate from whatever has actually come back. Early on both
- * estimates are poor and this figure is badly wrong, which is the point.
+ * history, the return rate from the weeks that have finished coming back. Early
+ * on both estimates are poor and this figure is badly wrong, which is the point.
  *
  * @param {object} self
- * @param {object|null} report
+ * @param {object[]} [history] its own reports, every week played, as revised
  * @returns {number} integer paise
  */
-export function affordableCpcPaise(self, report) {
+export function affordableCpcPaise(self, history = []) {
   const { aovMeanPaise, marginPct } = self.catalogue;
   return Math.round(
-    aovMeanPaise * marginPct * (1 - observedReturnRate(report)) * assumedConvRate(self),
+    aovMeanPaise * marginPct * (1 - observedReturnRate(self, history)) * assumedConvRate(self),
   );
 }
 
@@ -398,17 +470,26 @@ function assumedConvRate(self) {
 }
 
 /**
- * The return rate this advertiser has actually seen.
+ * The return rate this advertiser has actually seen, over the weeks that have
+ * finished coming back.
  *
- * Returns resolve two rounds after a conversion lands, so early reports show
- * conversions with nothing returned yet and this reads 0 — which would make the
- * advertiser believe it can afford more than it can. So the briefing's two in
- * five holds until enough has settled to argue otherwise.
+ * A younger week shows its sales with only some of their returns, which would
+ * make the advertiser believe it can afford more than it can. So it reads only
+ * weeks `WEEKS_TO_SETTLE` behind the last one played, and the briefing's two in
+ * five holds until the first of them — week 1, read at week 7.
+ *
+ * It used to read the week just played, which never carries a return, so it
+ * held the briefing's guess all game in every game (C9).
+ *
+ * @param {object} self
+ * @param {object[]|null} history its own reports, as revised
+ * @returns {number} 0..0.9
  */
-function observedReturnRate(report) {
-  if (!report) return ASSUMED_RETURN_RATE;
-  const { final, returned } = report.conversions;
-  if (!(final > 0) || !(returned > 0)) return ASSUMED_RETURN_RATE;
+function observedReturnRate(self, history) {
+  const settled = (history ?? []).filter((week) => week.round + WEEKS_TO_SETTLE < self.round);
+  const final = settled.reduce((a, week) => a + (week.conversions?.final ?? 0), 0);
+  const returned = settled.reduce((a, week) => a + (week.conversions?.returned ?? 0), 0);
+  if (!(final >= MIN_SETTLED_CONVERSIONS)) return ASSUMED_RETURN_RATE;
   return clamp(returned / final, 0, 0.9);
 }
 
@@ -502,11 +583,11 @@ function wastefulQueries(report, view, existing) {
  * nothing on broad (8.4), so broadening one would silently remove it from the
  * auction — which would make this rival quieter, not louder.
  */
-function spenderAccount(self, report) {
-  const affordable = affordableCpcPaise(self, report);
+function spenderAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
   // Leans harder than anyone on the same reading everybody else gets. It is not
   // better informed, it is less patient.
-  const locationAdjustments = locationTilt(self, report, SPENDER_LOCATION_LEAN);
+  const locationAdjustments = locationTilt(self, history, SPENDER_LOCATION_LEAN);
 
   return {
     // Negatives stay empty, every round. That is the whole character.
@@ -548,8 +629,8 @@ function spenderAccount(self, report) {
  * It is also the account where attribution lag hurts least, because it barely
  * spends — which is a genuinely misleading lesson, and is meant to be.
  */
-function cautiousAccount(self, report) {
-  const affordable = affordableCpcPaise(self, report);
+function cautiousAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
   const target = Math.round(affordable * CAUTIOUS_MARGIN_OF_SAFETY);
 
   if (!report) {
@@ -562,7 +643,7 @@ function cautiousAccount(self, report) {
   // Half the lean of anybody else. Being frightened of a wrong move is this
   // account's whole character, and it costs it here the same way it costs it on
   // price: it is never badly placed and never well placed either.
-  const locationAdjustments = locationTilt(self, report, CAUTIOUS_LOCATION_LEAN);
+  const locationAdjustments = locationTilt(self, history, CAUTIOUS_LOCATION_LEAN);
 
   // It will creep upward, but only on overwhelming evidence, and never past
   // half of what it can afford.
@@ -605,8 +686,8 @@ function cautiousAccount(self, report) {
  * Re-sending them every round would trigger a learning period every round
  * (12.3), which is a caricature rather than a lesson.
  */
-function automatorAccount(self, report) {
-  const affordable = affordableCpcPaise(self, report);
+function automatorAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
 
   if (!report) {
     return {
@@ -671,7 +752,7 @@ function paramsFor(strategy, self, affordable, report) {
  * wrong number. A rival that were both sloppy AND gross-optimising would
  * confound the two lessons.
  */
-function grossOptimiserAccount(self, report, view) {
+function grossOptimiserAccount(self, report, view, history = []) {
   const affordable = grossAffordableCpcPaise(self);
   const target = Math.round(affordable * TARGET_MARGIN_OF_SAFETY);
 
@@ -685,8 +766,10 @@ function grossOptimiserAccount(self, report, view) {
   // Reads GROSS revenue per click, like everything else it manages to. So it
   // sees the metros' bigger baskets, leans into them, and never discovers what
   // the towns cost it - because the returns it is ignoring are the whole
-  // difference. Section 14's missing multiplication, applied to geography.
-  const locationAdjustments = locationTilt(self, report, LOCATION_LEAN, { net: false });
+  // difference. Section 14's missing multiplication, applied to geography. It
+  // leans exactly like `disciplined` until the towns' returns come back, and
+  // then only `disciplined` moves.
+  const locationAdjustments = locationTilt(self, history, LOCATION_LEAN, { net: false });
 
   const prepaid = prepaidNudge(self, report);
 
@@ -757,8 +840,8 @@ export function grossAffordableCpcPaise(self) {
  * the nine and silently missed the one whose name has more than a word in it —
  * the kind of gap that hides until the roster changes.
  */
-function brandDefenderAccount(self, report, view) {
-  const affordable = affordableCpcPaise(self, report);
+function brandDefenderAccount(self, report, view, history = []) {
+  const affordable = affordableCpcPaise(self, history);
   const names = (view.advertisers ?? [])
     .map((a) => ({ id: a.id, token: brandToken(a.name) }))
     .filter((n) => n.token);
@@ -915,8 +998,8 @@ const habit = (self) => (
 
 /** A policy: its account rule, plus its capital rule in a capital round. */
 function withCapital(account, capital) {
-  return (self, report, view) => {
-    const decision = account(self, report, view);
+  return (self, report, view, history = []) => {
+    const decision = account(self, report, view, history);
     if (!capitalWindow(self)) return decision;
     return { ...(decision ?? {}), capex: capital(self, report) };
   };

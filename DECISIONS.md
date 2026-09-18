@@ -487,7 +487,11 @@ that is what the round 0 briefing tells the player (17.2), and it is *wrong* for
 every cell on the grid — Value-Lifestyle really returns 46.5%, Premium-Performance
 36%. A number that is deliberately wrong has no business in the file that defines
 what is true. (It was 0.25 against 36% / 17% until F14 raised the level and the
-briefing followed.)
+briefing followed.) It is the belief a rival STARTS with: from week 7 each rival
+corrects it off its own settled weeks. Until C9 (2026-09-16) none ever did, because
+the only report a rival was handed never carried a return; C9 added
+`WEEKS_TO_SETTLE`, `MIN_SETTLED_CONVERSIONS` and `PLACE_STEP` to this file on the
+same terms.
 
 **AND THE COUNTEREXAMPLE THAT SHOWS WHERE THE LINE COSTS SOMETHING.** The
 justification above rests on each policy number being *"named, commented with
@@ -618,6 +622,216 @@ has the figures.
 Played on the dev server into week 5, the two `spender` rivals, which keep their
 allocation as ads, rose in the player's Auction Insights: one from 97% overlap
 and 53% above the player to 100% and 88%, the other from 28% overlap to 49%.
+
+### C9. A rival is handed only the week just played, and no return is ever in it — `FIXED` (2026-09-16)
+
+**Found while fixing the rivals' prepaid discount (I34)**, whose rule counted the
+refusals in the report a rival is handed and in play never saw one. The same is
+true of every rule that reads returns.
+
+**What happens.** `playRound` hands each controller its own slice of the week just
+played (R3a), fresh from `runRound`. Returns are counted by CLICK week: a fresh
+report carries `returned`, `refused` and `returnedRevenuePaise` at zero, and
+`reviseReports` adds each return to its click week later. A conversion lands 0–3
+rounds after the click (`ATTRIBUTION_LAG_DISTRIBUTION`) and its return two rounds
+after that (`returnWindowRounds`), so no return can be in the week just played.
+Measured over 18 markets (`playMarket`, seeds 1–3, all six cells): 1,584 reports
+handed to rivals, **none carrying a return or a refusal, and none revised before
+it was read.**
+
+**Three rival rules read zero because of it:**
+
+1. **`observedReturnRate` never observed a return.** It read `returned` off the
+   week handed and fell back to `ASSUMED_RETURN_RATE` (0.40) while that was zero,
+   which was always. What every rival believed it could afford was the briefing's
+   guess in all 1,584 reports; the settled rates it never saw ran 35.9–46.4%
+   (median 42.4%). Its docstring said the guess holds "until enough has settled to
+   argue otherwise". Nothing ever settled.
+2. **`grossOptimiser`'s geography was `disciplined`'s.** `locationTilt` with
+   `net: true` subtracted `returnedRevenuePaise`, always zero, so it computed
+   exactly what `net: false` does: identical in all 1,188 readings. Read off the
+   settled version of the same weeks the two differ in every one, by a median 30
+   points of place adjustment. G4's rival — one that "leans toward the metros first
+   and then discovers, several rounds in, what the towns actually cost it" — did
+   not exist, and `HANDOVER.md` described it as existing.
+3. **The prepaid discount**, fixed first and separately (I34) by stating each
+   place's refusal rate on the report.
+
+**Why no test caught the first two.** `tests/policies.test.js` handed policies
+reports built by hand, carrying `returned: 2` and the like, a shape play never
+produces; "its belief moves as its own history arrives" passed a null report.
+Every test was green and every rule was reading zero.
+
+**AND A THIRD DEFECT IN THE SAME FUNCTION: THE SEE-SAW.** `locationTilt` set each
+week's place adjustments from scratch off that one week's value per click, with no
+limit on the move — keyword bids have `MAX_BID_MOVE`, place adjustments had
+nothing. And a place's value per click is not the place's alone: it depends on the
+rival's own bid there. With a low towns bid a rival wins only its best towns
+searches and a click reads ₹52–55; the rule raises the bid, the rival wins weaker
+searches too, a click reads ₹39–42, and the rule cuts again, each swing about 0.9
+of the last. Traced on seed 8 (player at premium · performance), `disciplined`'s
+towns adjustment ran −48, −44, −10, −56, −17, −58, −12, −54, −26, −52, −38, and its
+towns clicks 1,302 / 386 / 1,766 / 401 / 1,444 / 374 / 1,212 / 387 / 1,131. Over
+72 markets (seeds 1–12, six cells) the mean weekly move in the towns adjustment is
+a median of 1.9 points for `disciplined` (90th percentile 10.1), 1.6 (3.4) for
+`grossOptimiser`, 3.2 (31.6) for `spender` and 1.9 (6.2) for `cautious`: a tail,
+not the rule. It is what made a rival's prepaid rung flip ₹50 / ₹30 until I34
+weighted the rate by eligible searches.
+
+**WHAT WAS PUT TO THE OWNER**, after prototyping each fix outside the repo and
+playing it over those 72 markets:
+
+- **(B) hand every controller its own past reports, as revised.** Amends R3a and
+  hard rule 5, and shapes what the future `llmPolicy` is handed. No engine change.
+  It had been declined for the prepaid lever alone; with three rules and a
+  character's lesson failing from one cause, and the next rule to need settled
+  weeks (the rivals' `wastefulQueries`, an LLM rival) certain to hit the same
+  wall, the balance was different.
+- (C) the engine keeps a settled running tally in the self view, like
+  `bidding.observedConvRate`. The same information and so the same rival
+  behaviour as B, at the price of engine state that copies what history already
+  holds, a change to `round.js` on two lines that already differ there, and older
+  browser saves without it.
+- (D) leave the behaviour and correct the docs. Fair for the first rule alone —
+  0.40 sits inside the true range, and correcting it moves a rival's ceiling
+  between −18% and +9% — but not for the second, which leaves `grossOptimiser`
+  with no geography of its own.
+
+A stated rate, the way I34 was fixed, was not an option: a modelled return rate is
+exactly the truth D2 withholds.
+
+For the see-saw, a cap like `MAX_BID_MOVE` was measured and does not cure it. At
+25 points a week the 90th percentile went 10.1 → 9.5 and the reversals stayed,
+because a cap bites only on swings bigger than itself and the see-saw carries on
+inside it; at 10 points, 6.3 with two or three reversals left. **Moving halfway
+toward each week's reading** took every character's reversals to zero and left
+where each comes to rest unchanged.
+
+**The owner chose B, and moving halfway.**
+
+**Step 1, the rule (R3a, hard rule 5).** A controller is handed a fourth thing:
+its own report for every week played, as revised since, each week cut by
+`advertiserReport`, the function that cuts the first, so nothing of any other
+advertiser can come with it. `game.test.js` holds it to four things, to the
+controller's own weeks as they stood when it decided, and to no rival's id
+anywhere in them. The self view is untouched: `history` stays in
+`FORBIDDEN_IN_SELF_VIEW`, because the history there would be everyone's.
+
+**Step 2, the return rate.** `observedReturnRate` reads the rival's own history,
+and only the weeks that have finished coming back: a week's sales land over the
+three weeks after it and their returns two weeks after that (`WEEKS_TO_SETTLE`,
+5), so week 1 is first read at week 7 — the first fully settled week the player
+gets too. Until then, or on fewer than five settled sales
+(`MIN_SETTLED_CONVERSIONS`), the briefing's 0.40 holds. `affordableCpcPaise`
+takes the history where it took the report, which it only ever read for this.
+
+**Step 3, the places.** `locationTilt` sums every week in the rival's history, as
+the player's place card sums them, so its reading is net of whatever has come
+back and no more. A net reader leans exactly as a gross one does until the towns'
+returns arrive, and then only the net reader moves: the lag G4 describes, now
+happening.
+
+**Step 4, the see-saw.** A place adjustment moves halfway from where it is toward
+the reading (`PLACE_STEP`, 0.5). Summing every week had already steadied three
+characters; `spender`, which leans hardest, still reversed four to six times on
+seed 8 until this.
+
+**And a negative zero, which step 3 made reachable.** `Math.round` returns -0 for
+anything a hair under zero, so a place a shade below the account's own average
+was written as -0; JSON has no -0, so a save read back a decision it had never
+stored and the round-trip in `save.test.js` failed. The rounding is older than
+this entry — summing every week is what put a place close enough to the average
+to meet it. **The makeover line found it and this line did not**, on the same
+code: that test plays its own three weeks, and the -0 happened there and not
+here. Guarded where an adjustment is written, on both lines; step 4 has since
+made that path unreachable, so the guard now holds the one that remains, the
+adjustment carried over for a place with too little traffic to read.
+
+All three policy numbers are a character's opinion, kept with the policy (C7).
+`tests/rivalsInPlay.test.js` plays seed 8 through `playMarket` and holds each fix
+in play: late in the game a rival has been handed returns and has moved its
+belief off the briefing; `grossOptimiser` and `disciplined`, handed the same week,
+place their bids differently; and no rival reverses a place adjustment by ten
+points twice. Each of the three failed before its fix. The hand-built reports in
+`policiesAll.test.js` that carried `returned: 6` and called the risen ceiling
+learning now measure against the ceiling the rival actually holds.
+
+**MEASURED, BEFORE AND AFTER**, on `scripts/market-harness.js market` (72
+markets, seeds 1–12, six cells), paired market by market against the code before
+(`42eeebf`, the prepaid fix of I34). **`main` moved twice while this was being
+built** — F18 and I36 landed — so it was measured again against `760a6b1`, the
+tip with both: every figure below is identical, to the rupee and to the second
+decimal, so F18 and I36 do not move this market and the table stands.
+
+| | before | after |
+|---|---|---|
+| the player's final net profit, median | ₹6,57,676 | ₹7,05,003 |
+| the same, paired | | **+0.8%** median; −10.9% to +8.9% (10th to 90th percentile); worst −29.4%, best +89.9% |
+| the player's final rank, median · loses money in | 5th · 0 of 72 | 5th · 0 of 72 |
+| ranks better · same · worse | | 14 · 50 · 8 |
+| the player, weeks 1–7: cost per click · net ROAS · profit per ₹ | ₹19.6 · 4.36 · 1.06 | ₹20.0 · 4.31 · 1.05 |
+| rivals, weeks 1–7: cost per click · net ROAS · profit per ₹ | ₹11.7 · 5.07 · 1.41 | ₹11.8 · 5.08 · 1.42 |
+| rivals' month-2 budgets, median | ₹2,48,000 | ₹2,48,000 |
+
+By the player's cell the paired median runs from −3.8% (mid · performance) to
++6.7% (premium · performance), and single mid-cell markets move most, −29% to
++90%. Median rank moved in one cell, mid · lifestyle, from 5th to 4th.
+
+And the rivals, from the same games:
+
+| | before | after |
+|---|---|---|
+| what a rival believes it can afford in weeks 8–12, against the briefing's 0.40 | the briefing's, always | 0.83–1.09 of it, median 0.97 (2,880 decisions; 16 still on the briefing, on too few settled sales) |
+| towns adjustment at week 12, median: `disciplined` · `grossOptimiser` · `spender` · `cautious` | −19.5 · −19 · −12.5 · −9 | −37 · −19 · −43 · −14 |
+| mean weekly move in the towns adjustment, median (90th percentile): `disciplined` | 1.9 (10.1) | 2.6 (3.0) |
+| `grossOptimiser` | 1.6 (3.4) | 0.9 (2.4) |
+| `spender` | 3.2 (31.6) | 4.0 (8.1) |
+| `cautious` | 1.9 (6.2) | 1.2 (1.5) |
+| reversals of five points or more, 90th percentile of rival-games | 3–5 | **0**, every character |
+| rival-weeks with no impressions at all (F14's "dark") | 0 | 0 |
+| net profit, paired median: `spender` · `automator` · `grossOptimiser` · `brandDefender` · `cautious` · `disciplined` | | +18.8% · −3.7% · −3.1% · +2.2% · +0.8% · 0.0% |
+| rival-games offering a prepaid discount · changing rung after the first | 144 of 576 · 0 | 144 of 576 · 0 |
+
+`disciplined`'s and `spender`'s median weekly move rises because they keep moving
+as returns arrive — `disciplined`'s towns adjustment runs −10, −15, −19, −23 …
+−37 by week, `grossOptimiser`'s stops at −19 — not because they thrash: the
+reversals are gone. `spender` gains most: it now holds its towns bid near −43
+where it used to swing it by up to 75 points a week. In the prototype that
+preceded this, reading every week without the halfway step moved it +3.7%, so
+most of the gain is the step.
+
+**Calibration.** Only I1 runs a policy (`disciplined`, alone, one month).
+Measured with the test's own `soloState` and `playSolo`, copied verbatim and
+checked against F14's figures: at 430,000 searches it spends 100.00%, pays ₹4.91
+a click against a ₹28.22 break-even and loses 10.51% to budget, before and after;
+at 330,000, 85.74% and 0.01%, before and after. Its month ends before week 7, so
+the settled belief never starts. No other invariant runs a policy.
+
+**WHAT IT CHANGED THAT NOBODY ASKED IT TO: D12's week-9 gate.** The harness's
+"largest rival move against an ordinary week" went 2.46× → **1.83×** into week 9
+(at least double in 43 → 33 of 72 markets) and 2.30× → 1.78× into week 5. Taken
+apart, the week-9 move itself did not change — a median 20.2 points of impression
+share before, 19.7 after, and market spend still falls 26% into week 9. Ordinary
+weeks got busier, 8.0 → 10.2 points, because rivals now take several weeks to
+settle into their places rather than jumping there in week 2, and from week 7
+their ceilings move to what came back. The Auction Insights card fires as often as
+it did (a rival's overlap moves five points or more into week 9 in 39 of 72
+markets, before and after), but its step against ordinary weeks is now 1.80×
+(was 2.27×). D12 took the week-9 line on a gate of double; what the line says —
+the re-split and the spend — still stands, the gate no longer clears. Recorded in
+D12; the owner's to retake.
+
+**Found on the way.** Seed 7's `cautious` rival nearly vanishes in week 2 in five
+cells of six — 3,995 impressions against 39,291 in week 1 before this change,
+1,703 after. It recovers by week 4 either way and is never dark; it is the
+reserve's knife-edge F14 met, and the halfway step deepens it a little. And
+`npm run test:perf`'s sampled-round test sits at its 2,200ms bound on this
+machine: on the code before this change it failed at 2,240ms, and the code after
+passed moments later; the engine is not touched here.
+
+**Still open, the same cause:** the rivals' `wastefulQueries` still blocks off the
+week just played, on an exact zero (I8's addendum). It can now read settled
+weeks, and has not been changed.
 
 ## D. Budget, bidding and capital
 
@@ -1086,6 +1300,17 @@ it read: the whole market spent ₹3,18,830, against ₹4,43,294 last week. **An
 on the committed harness**, whose player has its round-0 money: before C8's fix
 and after it, the best investment against keeping the money keeps its sign in
 every cell, so the capital card's premise stands (C8 has the figures).
+
+**Moved again by C9 (2026-09-16), and not retaken.** With rivals reading their
+own history, the step into week 9 measures 1.83 times ordinary (at least double
+in 33 of 72 markets, from 43), under the gate. The week-9 move itself did not
+change — a median 19.7 points of impression share against 20.2, and market spend
+still falls 26% — but ordinary weeks got busier, 10.2 points against 8.0, because
+rivals now settle into their places over several weeks and move their ceilings
+once their returns settle. For the Auction Insights card, a rival's overlap moves
+five points or more into week 9 in 39 of 72 markets, as before, now 1.80 times
+ordinary against 2.27. What the week-9 line says — the re-split and the spend —
+still stands. Whether a gate of double still decides it is the owner's call.
 
 **Dated note, 2026-09-17: week-5 capital now reaches the page (I37).** The table
 above measured a week-5 investment whose page sentence never reached the grader,
@@ -2322,6 +2547,21 @@ accounts and twelve rounds. That is an independent confirmation that centring ea
 position on its own country works: an advertiser who ignores the control pays
 almost exactly nothing for the mechanic existing, which is what the normalisation
 was for and was previously only argued.
+
+**HOW RIVALS CHOOSE WHERE TO BID — and the description was true only from C9
+(2026-09-16).** `locationTilt` in `agents/policies.js` reads a rival's own place
+report, never the tables, and leans by each place's value per click against its
+own average: 200 points a step for most characters, 320 for `spender`, 100 for
+`cautious`. It reads net of returns, so a rival should lean toward the metros
+first and correct once the towns send things back; `grossOptimiser` reads gross,
+so it never should. **Until C9 neither half happened.** It read only the week just
+played, which never carries a return, so the net and gross readings were identical
+in every game; and it jumped all the way to each week's reading, so a rival could
+see-saw its towns bid for twelve weeks. It now sums every week played, as the
+player's place card does, and moves halfway toward the reading each week. By week
+12 `disciplined` bids the towns −37% and `grossOptimiser` −19%, where both sat at
+about −19 before. The engine side of this entry is untouched: the tables, their
+normalisation and the conservation test are as above.
 
 **Round 0 names 32 cities (8 / 12 / 12) since 2026-09-14**, placed from the
 geonames-derived dataset; display geography only, nothing in `engine/` reads them.
@@ -4516,7 +4756,11 @@ net-of-returns reading read returns off the same one-week report and are dead th
 same way — a rival's belief about returns never leaves the briefing's 40%, and
 `grossOptimiser`'s gross reading of place is identical to `disciplined`'s net
 one — and `locationTilt` see-saws as above. Opened together as a separate task,
-2026-09-15.
+2026-09-15. **Fixed as C9** (2026-09-16): a controller is now handed its own
+revised history as well (R3a amended), both rules read it, and a place adjustment
+moves halfway toward its reading. This rule still reads the week just played, as
+it should: its rate is stated, not counted, and the search weighting stays,
+because the searches a rival is in do not follow its bids at all.
 
 **THE MIX THE SCREENS SHOWED NEVER MOVED — `FIXED` 2026-09-15.** "Paid at the
 door", on Returns in both looks, on the places table and its note, and on Where

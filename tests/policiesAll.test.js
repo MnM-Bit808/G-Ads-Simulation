@@ -24,11 +24,11 @@ const reportWith = (over = {}) => ({
 const ALL = Object.entries(POLICIES);
 
 describe('all six policies obey the contract', () => {
-  test('each is a pure function of three views', () => {
+  test('each is a pure function of four views', () => {
     for (const [id, policy] of ALL) {
       const before = JSON.stringify([SELF, VIEW]);
-      const a = JSON.stringify(policy(SELF, null, VIEW));
-      const b = JSON.stringify(policy(SELF, null, VIEW));
+      const a = JSON.stringify(policy(SELF, null, VIEW, []));
+      const b = JSON.stringify(policy(SELF, null, VIEW, []));
       expect(a, id).toBe(b);
       expect(JSON.stringify([SELF, VIEW]), id).toBe(before);
     }
@@ -93,7 +93,7 @@ describe('spender: broad, unblocked, and above its ceiling', () => {
 
   test('and it bids above what it can afford', () => {
     expect(decision.adGroups[0].keywords[0].bidPaise)
-      .toBeGreaterThan(affordableCpcPaise(SELF, reportWith()));
+      .toBeGreaterThan(affordableCpcPaise(SELF));
   });
 });
 
@@ -105,13 +105,12 @@ describe('cautious: efficient, and poorer for it', () => {
   });
 
   test('it holds its nerve at ordinary levels of lost rank', () => {
-    // Compared against its own report-informed ceiling, not its round-1 one.
-    // The two differ, and correctly: with a report it can see that only 20% of
-    // its orders came back rather than the 25% it assumed, so what it believes
-    // it can afford RISES. Any assertion that pinned the two together would be
-    // asserting the policy never learns.
+    // Against the ceiling it believes in. This used to hand it a report showing
+    // 20% of orders back and call the risen ceiling learning; play never hands a
+    // rival that shape, because the week just played carries no returns (C9).
+    // What it has learned about returns comes from its history, empty here.
     const calm = reportWith({ share: { lostToRank: 0.2, lostToBudget: 0 } });
-    const target = Math.round(affordableCpcPaise(SELF, calm) * 0.35);
+    const target = Math.round(affordableCpcPaise(SELF) * 0.35);
     expect(cautious(SELF, calm, VIEW).adGroups[0].keywords[0].bidPaise).toBe(target);
   });
 
@@ -128,11 +127,11 @@ describe('cautious: efficient, and poorer for it', () => {
     for (let i = 0; i < 20; i++) {
       self = { ...self, adGroups: cautious(self, panicked, VIEW).adGroups };
     }
-    // Its ceiling is derived from what IT believes it can afford, which is the
-    // report-informed figure, so that is what the bound has to be measured
-    // against. Twenty rounds of panic cannot push it past half.
+    // Its ceiling is derived from what IT believes it can afford, so that is
+    // what the bound has to be measured against. Twenty rounds of panic cannot
+    // push it past half.
     expect(self.adGroups[0].keywords[0].bidPaise)
-      .toBeLessThanOrEqual(Math.round(affordableCpcPaise(SELF, panicked) * 0.5));
+      .toBeLessThanOrEqual(Math.round(affordableCpcPaise(SELF) * 0.5));
   });
 });
 

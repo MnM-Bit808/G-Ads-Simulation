@@ -4,10 +4,11 @@
  *
  * After C8's fix, rivals carry their second capital allocation through month 2
  * and fall back to rank-based budgets when month 3 begins: the whole market
- * spends a median 26% less that week, and rivals move 2.40 times an ordinary
- * week in the player's Auction Insights. The rule is public (announced at round
- * 1, D4); who ranked where and anyone's budget are not (R3), so these name the
- * rule and the public figures, and never a rival's money.
+ * spends a median 26% less that week, and rivals move 1.83 times an ordinary
+ * week in the player's Auction Insights (2.40 before C9). The rule is public
+ * (announced at round 1, D4); who ranked where and anyone's budget are not
+ * (R3), so these name the rule and the public figures, and never a rival's
+ * money.
  */
 
 import { line } from './line.js';

@@ -25,11 +25,21 @@ advertiser read *any* query's affinity or conversion multipliers, including its
 own. Enforced by `insights.getPublicView()` and structurally by R3a.
 
 **R3a — Controllers receive views, never state.** A policy or model controller is
-passed three things and no others: its own `AdvertiserRoundReport`, the output of
-`getSelfView()`, and the output of `getPublicView()`. **`GameState` is never
-passed to a controller, and neither is any other advertiser's record.** This is
-architectural, not a test — you cannot prove a controller ignored a field it was
+passed four things and no others: its own `AdvertiserRoundReport` for the week
+just played, the output of `getSelfView()`, the output of `getPublicView()`, and
+its own report for every week played so far, as revised since. **`GameState` is
+never passed to a controller, and neither is any other advertiser's record.** This
+is architectural, not a test — you cannot prove a controller ignored a field it was
 handed **(W12)**.
+
+**Amended from "three things" (2026-09-16, `DECISIONS.md` C9).** The week just
+played never carries a return: returns are written back into the week whose
+clicks earned them, two to five weeks later (11.4). So a controller handed only
+that week could not learn what comes back, and three rival rules that read returns
+read zero in every game ever played. The player's screens read the same revised
+history, so a rival reading less was a privileged player path **(R6)**. The fourth
+thing is each week's own slice, cut by the same function as the first, so it
+carries nothing of any other advertiser.
 
 **Amended from "exactly two things".** As originally written this rule made a
 policy unable to read its own bid: `breakdown.byKeyword` is keyed by keyword id
@@ -1285,7 +1295,7 @@ of it or reads it. It is defined here once **(A8)**.
 
 An advertiser's report contains **no rows for any rival**. `getPublicView` (16.1)
 is the only route to another advertiser's data. The caller hands each controller
-only its own slice **(R3a)**.
+only its own slice, of the week just played and of every week before it **(R3a)**.
 
 ### 15.2 AdvertiserRoundReport
 

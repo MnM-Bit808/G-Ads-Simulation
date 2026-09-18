@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
-  POLICIES, controllerFor, disciplined, affordableCpcPaise,
+  POLICIES, controllerFor, disciplined, affordableCpcPaise, locationTilt,
   capitalWindow, investment, DISCIPLINED_BUDGET_BOUND,
 } from '../agents/policies.js';
 import { playGame, playRound } from '../game.js';
@@ -20,7 +20,7 @@ const SRC = readFileSync(fileURLToPath(new URL('../agents/policies.js', import.m
 const CODE = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 const everyone = Object.fromEntries(STATE.advertisers.map((a) => [a.id, disciplined]));
 
-describe('a policy is a pure function of three views (R3a, R6)', () => {
+describe('a policy is a pure function of four views (R3a, R6)', () => {
   test('every registered policy is a function', () => {
     for (const [id, policy] of Object.entries(POLICIES)) {
       expect(typeof policy, id).toBe('function');
@@ -126,6 +126,32 @@ describe('disciplined estimates what it is not told', () => {
     expect(decision.campaign.strategy).toBe('manual');
   });
 
+  test('it believes the briefing about returns until a week has finished coming back', () => {
+    // A week's sales land over the three rounds after its clicks and their
+    // returns two rounds after that, so at week 6 no week is complete. Reading
+    // an unfinished one would count its sales before their returns (C9).
+    const self = { ...getSelfView(STATE, PLAYER_ID), round: 6 };
+    const young = [1, 2, 3, 4, 5].map((round) => ({ round, conversions: { final: 30, returned: 3 } }));
+    expect(affordableCpcPaise(self, young)).toBe(affordableCpcPaise(self));
+  });
+
+  test('then it reads its own return rate off the weeks that have', () => {
+    // At week 8, weeks 1 and 2 are complete: 18 of their 60 sales came back,
+    // 30% against the briefing's 40%, so it believes a click is worth 0.70/0.60
+    // of what it believed. The younger weeks' partial returns do not count.
+    const self = { ...getSelfView(STATE, PLAYER_ID), round: 8 };
+    const weeks = [1, 2, 3, 4, 5, 6, 7].map((round) => ({
+      round, conversions: { final: 30, returned: round <= 2 ? 9 : 1 },
+    }));
+    expect(affordableCpcPaise(self, weeks) / affordableCpcPaise(self)).toBeCloseTo(0.70 / 0.60, 2);
+  });
+
+  test('but not off a handful of sales, which is noise', () => {
+    const self = { ...getSelfView(STATE, PLAYER_ID), round: 8 };
+    const thin = [1, 2].map((round) => ({ round, conversions: { final: 2, returned: 2 } }));
+    expect(affordableCpcPaise(self, thin)).toBe(affordableCpcPaise(self));
+  });
+
   test('its belief moves as its own history arrives', async () => {
     // observedConvRate is written from LANDED conversions only and opens near
     // 55% of the truth, so this figure climbs for several rounds. A policy
@@ -134,6 +160,77 @@ describe('disciplined estimates what it is not told', () => {
     const early = affordableCpcPaise(getSelfView(STATE, PLAYER_ID), null);
     const later = affordableCpcPaise(getSelfView(finalState, PLAYER_ID), null);
     expect(later).not.toBe(early);
+  });
+});
+
+describe('where a rival bids, read off every week it has played (G4, C9)', () => {
+  // Three places, the same clicks and the same gross per click in each, and the
+  // towns sending back four times what the metros do. A week at a time.
+  const week = (round, returned) => ({
+    round,
+    breakdown: {
+      byLocation: Object.fromEntries([0, 1, 2].map((tier) => [tier, {
+        clicks: 100, grossRevenuePaise: 10000, returnedRevenuePaise: returned[tier],
+      }])),
+    },
+  });
+  const self = { ...getSelfView(STATE, PLAYER_ID), round: 4 };
+
+  test('reading net, it bids the towns down for what they send back', () => {
+    const history = [week(1, [1000, 2000, 4000]), week(2, [1000, 2000, 4000]), week(3, [0, 0, 0])];
+    const [metros, , towns] = locationTilt(self, history);
+    expect(towns).toBeLessThan(0);
+    expect(metros).toBeGreaterThan(0);
+  });
+
+  test('reading gross, it cannot tell the places apart', () => {
+    // grossOptimiser: section 14's missing subtraction, applied to geography.
+    const history = [week(1, [1000, 2000, 4000]), week(2, [1000, 2000, 4000])];
+    expect(locationTilt(self, history, undefined, { net: false })).toEqual([0, 0, 0]);
+  });
+
+  test('and with nothing yet come back, the two readings agree', () => {
+    // Which is why a net reader leans like a gross one for its first weeks,
+    // and only parts company as the towns' returns arrive.
+    const history = [week(1, [0, 0, 0]), week(2, [0, 0, 0])];
+    expect(locationTilt(self, history)).toEqual(locationTilt(self, history, undefined, { net: false }));
+  });
+
+  test('week 1 has no history to read, so it leaves the places alone', () => {
+    expect(locationTilt({ ...self, round: 1 }, [])).toBeNull();
+  });
+
+  test('it moves halfway toward what the weeks say, not all the way', () => {
+    // A place's value per click falls as the bid there rises, so a rival that
+    // jumped all the way to each week's reading bid the towns up, read them
+    // worse, cut, read them better, and see-sawed for twelve weeks (C9). All
+    // the way, this history says [35, 9, -43].
+    const history = [week(1, [1000, 2000, 4000]), week(2, [1000, 2000, 4000])];
+    const from = (held) => locationTilt({ ...self, campaign: { ...self.campaign, locationAdjustments: held } }, history);
+    expect(from([0, 0, 0])).toEqual([18, 5, -21]);
+    expect(from([-40, 20, 0])).toEqual([-2, 15, -21]);
+    // Once there, it stays.
+    expect(from([35, 9, -43])).toEqual([35, 9, -43]);
+  });
+
+  test('a place it leaves alone is written 0, never -0', () => {
+    // `Math.round` gives -0 for anything a hair under zero, JSON has no -0, and
+    // a saved game then reads back a decision it never stored: the round-trip
+    // in save.test.js fails, which is how the makeover line found it. Summing
+    // every week put a place close enough to the average to meet it. The
+    // halfway step above cannot produce one any more, so this holds the branch
+    // that still could - a place with too little traffic to read, whose
+    // adjustment is carried over as it stands (C9).
+    const rows = {
+      0: { clicks: 100, grossRevenuePaise: 10100, returnedRevenuePaise: 0 },
+      1: { clicks: 10, grossRevenuePaise: 1000, returnedRevenuePaise: 0 },
+      2: { clicks: 100, grossRevenuePaise: 10000, returnedRevenuePaise: 0 },
+    };
+    const history = [{ round: 1, breakdown: { byLocation: rows } }];
+    const holding = { ...self, campaign: { ...self.campaign, locationAdjustments: [0, -0, 0] } };
+    const middle = locationTilt(holding, history)[1];
+    expect(middle).toBe(0);
+    expect(Object.is(middle, -0)).toBe(false);
   });
 });
 

@@ -21,10 +21,18 @@
  *
  * WHAT A CONTROLLER RECEIVES
  *
- * Three things and nothing else (R3a): its own AdvertiserRoundReport, its own
- * `getSelfView`, and `getPublicView`. Never `GameState`, never another
- * advertiser's record. This module is the only place that could break that
- * rule, which is why it is also the place a structural test points at.
+ * Four things and nothing else (R3a): its own AdvertiserRoundReport for the
+ * week just played, its own `getSelfView`, `getPublicView`, and its own report
+ * for every week played so far, as revised since. Never `GameState`, never
+ * another advertiser's record. This module is the only place that could break
+ * that rule, which is why it is also the place a structural test points at.
+ *
+ * The fourth exists because the first never carries a return. Returns are
+ * written back into the week whose clicks earned them, two to five weeks
+ * later, so a controller that sees only the week just played cannot learn
+ * what comes back - and three rival rules read zero because of it (C9). The
+ * player's screens read the same revised history; a rival reading less would
+ * be a privileged player path (R6).
  */
 
 import { runRound } from './engine/round.js';
@@ -71,6 +79,7 @@ export async function playRound(gameState, controllers, options = {}) {
       getSelfView(gameState, advertiser.id),
       previous ? advertiserReport(previous, advertiser.id) : null,
       publicViews.get(advertiser.id),
+      ownHistory(gameState, advertiser.id),
     );
     if (decision) submitted[advertiser.id] = decision;
   }
@@ -555,4 +564,15 @@ function campaignDecisionsOnly(decisions) {
 function lastReport(gameState) {
   const history = gameState.history ?? [];
   return history.length > 0 ? history[history.length - 1] : null;
+}
+
+/**
+ * One advertiser's own slice of every week played, oldest first, as revised
+ * so far (R3a). The same `advertiserReport` the week just played goes through,
+ * so nothing of any other advertiser can come with it.
+ */
+function ownHistory(gameState, advertiserId) {
+  return (gameState.history ?? [])
+    .map((report) => advertiserReport(report, advertiserId))
+    .filter(Boolean);
 }

@@ -181,12 +181,15 @@ export const keepAtWindow = (round, state) => (
  * @param {object} [options.from] a state to continue from, instead of a new game
  * @param {number} [options.rounds] the last round to play
  * @param {Function} [options.playerDecision] (round, state) => decision | null
+ * @param {Function} [options.policyFor] policy id => controller; a test wraps
+ *   `controllerFor` here to record what each rival is handed and decides
  * @param {string} [options.writerTier] - who writes the player's ad
  * @param {Object<string, number>} [options.capex] - round 0's allocation
  * @returns {Promise<{state: object, insights: object[]}>}
  */
 export async function playMarket({
-  seed, cell, from = null, rounds = TOTAL_ROUNDS, playerDecision = keepAtWindow, writerTier = 'agency', capex = {},
+  seed, cell, from = null, rounds = TOTAL_ROUNDS, playerDecision = keepAtWindow,
+  policyFor = controllerFor, writerTier = 'agency', capex = {},
 }) {
   let state = from ?? startGame({
     rootSeed: seed, playerBrandId: PLAYER, querySet: QUERY_SET, player: harnessPlayer(cell, writerTier, capex),
@@ -199,7 +202,7 @@ export async function playMarket({
     const current = state;
     const controllers = {};
     for (const a of state.advertisers) {
-      controllers[a.id] = a.policyId ? controllerFor(a.policyId) : () => playerDecision(round, current);
+      controllers[a.id] = a.policyId ? policyFor(a.policyId) : () => playerDecision(round, current);
     }
     const out = await playRound(state, controllers, { mode: 'expected' });
     insights.push(out.insights);
