@@ -9,7 +9,7 @@
 
 import { describe, test, expect } from 'vitest';
 import {
-  settledThrough, seasonBars, seasonFigures, firstReportsTotal, lateWeeks, capitalReading, booksRows, finishing,
+  seasonBars, seasonFigures, firstReportsTotal, lateSales, capitalReading, booksRows, finishing,
   revealReading, meetMostOverGame,
 } from '../ui/results/read.js';
 import { SETTLES_AFTER_ROUNDS, RETURNS_RESOLVE_AFTER_ROUNDS } from '../ui/dashboard.js';
@@ -41,11 +41,12 @@ function week(round, {
 }
 
 describe('which weeks are settled', () => {
-  test('a week is settled once its conversions have arrived and their returns come back', () => {
-    // SETTLES_AFTER_ROUNDS after it ran: at the end of week 12, weeks 1 to 7.
+  test('a click is final five rounds after its week, which is what the books run on', () => {
+    // Three rounds to arrive, two for the return. At the whistle that left weeks
+    // 8 to 12 unfinished; the books now settle them (tests/settling.test.js), so
+    // this figure is the tail's length rather than a warning's threshold.
     expect(SETTLES_AFTER_ROUNDS).toBe(5);
-    expect(settledThrough(TOTAL_ROUNDS)).toBe(7);
-    expect(settledThrough(3)).toBe(0);
+    expect(TOTAL_ROUNDS - SETTLES_AFTER_ROUNDS).toBe(7);
   });
 });
 
@@ -57,7 +58,7 @@ describe('every week of the game, for the chart', () => {
   ];
   const history = [week(1, { net: 88_508_49, firstGross: 88_508_49 }), week(2, { net: 38_941_00, firstGross: 32_940_40 }),
     week(3, { net: 7_008_00, firstGross: 7_008_00 })];
-  const bars = seasonBars(history, P, { decisionLog: log, opening, lastRound: 3 });
+  const bars = seasonBars(history, P, { decisionLog: log, opening });
 
   test('each week stands against its first report, which counts no returns yet', () => {
     expect(bars.map((b) => b.netPaise)).toEqual([88_508_49, 38_941_00, 7_008_00]);
@@ -81,24 +82,30 @@ describe('every week of the game, for the chart', () => {
   });
 });
 
-describe('the weeks that read high when the game ends', () => {
+describe('what was still in flight at the whistle', () => {
   test('a return comes back as long after its sale as the engine says, at every price level', () => {
-    // Results quotes it; the view may not read the economics it comes from
-    // (tests/ui.test.js), so it is derived where the lag is (ui/dashboard.js).
+    // The books settle the tail with this window (ui/ending.js, settledHistory),
+    // and the view may not read the economics it comes from (tests/ui.test.js),
+    // so it is derived where the lag is (ui/dashboard.js). If a cell ever wants
+    // its own window, this test is what says the books can no longer assume one.
     for (const [price, economics] of Object.entries(POSITION_ECONOMICS)) {
       expect(RETURNS_RESOLVE_AFTER_ROUNDS, price).toBe(economics.returnWindowRounds);
     }
   });
 
-  test('conversions still arriving, and a return window that runs past the last week', () => {
-    const bars = Array.from({ length: 12 }, (_, i) => ({ round: i + 1, stillPending: [0, 0, 0, 0, 0, 0, 0, 0, 0, 3.8, 15.7, 34.1][i] }));
-    const late = lateWeeks(bars, 12, 2);
-    expect(late).toMatchObject({ weeks: 5, from: 8, arriving: [10, 11, 12], window: 2, cutoff: 10, none: [11, 12] });
-    expect(late.pending).toBeCloseTo(53.6, 6);
+  test('the sales still queued when the last week ran, which the books then count', () => {
+    const state = {
+      advertisers: [
+        { id: P, pendingConversions: [{ count: 3.8 }, { count: 15.7 }, { count: 34.1 }] },
+        { id: 'torvi', pendingConversions: [{ count: 1 }] },
+      ],
+    };
+    expect(lateSales(state, P)).toBeCloseTo(53.6, 6);
   });
 
-  test('nothing reads high once every week has settled', () => {
-    expect(lateWeeks([{ round: 1, stillPending: 0 }], 12, 2)).toBeNull();
+  test('a game that ended with nothing on its way has none', () => {
+    expect(lateSales({ advertisers: [{ id: P, pendingConversions: [] }] }, P)).toBe(0);
+    expect(lateSales({ advertisers: [] }, P)).toBe(0);
   });
 });
 
@@ -153,11 +160,43 @@ describe('everyone\'s books', () => {
     history: [report(1, { [P]: row(40_000, 20_000, 10_000), torvi: row(20_000, -1_000, 30_000), nira: row(80_000, 50_000, 10_000) })],
   };
 
-  test('ranked by net profit, each bar a share of the largest gross profit, a loss drawing nothing', () => {
+  test('ranked by what the business made, each bar a share of the largest gross profit, a loss drawing nothing', () => {
     const rows = booksRows(state);
     expect(rows.map((r) => r.id)).toEqual(['nira', P, 'torvi']);
     expect(rows.map((r) => r.grossShare)).toEqual([1, 0.5, 0.25]);
     expect(rows.map((r) => r.netShare)).toEqual([50_000 / 80_000, 20_000 / 80_000, 0]);
+  });
+
+  /**
+   * CAPITAL IS COUNTED IN THE BOOKS (the owner, 2026-09-18). Net profit charges
+   * clicks and freight and never the money spent on the business, so an
+   * advertiser that built nothing and one that spent the whole ₹2,40,000 were
+   * ranked alike — while the one that built nothing had its capital turned into
+   * ad budget and charged for the clicks it bought. The weekly report is an
+   * advertising report and keeps its own meaning; the books are the scoreboard.
+   */
+  test('what each brand spent on its business comes off its profit, and the ranking follows', () => {
+    const built = {
+      ...state,
+      advertisers: state.advertisers.map((a) => (a.id !== 'nira' ? a : {
+        ...a, capex: { committed: { landingPage: 8_000_000, sizeGuide: 2_500_000 }, pending: [] },
+      })),
+    };
+    const rows = booksRows(built);
+    const nira = rows.find((r) => r.id === 'nira');
+    expect(nira.capitalPaise).toBe(10_500_000);
+    expect(nira.businessProfitPaise).toBe(50_000 - 10_500_000);
+    // Its net profit is the biggest and its business is the worst: ₹1,05,000
+    // of building against ₹500 of profit.
+    expect(nira.netProfitPaise).toBe(50_000);
+    expect(rows.map((r) => r.id)).toEqual([P, 'torvi', 'nira']);
+    expect(rows.map((r) => r.rank)).toEqual([1, 2, 3]);
+  });
+
+  test('a brand that built nothing has nothing taken off', () => {
+    const rows = booksRows(state);
+    expect(rows.every((r) => r.capitalPaise === 0)).toBe(true);
+    expect(rows.every((r) => r.businessProfitPaise === r.netProfitPaise)).toBe(true);
   });
 });
 

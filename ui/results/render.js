@@ -37,9 +37,10 @@ import {
 import { budgetLines, lessonSentence } from '../debrief/render.js';
 import { chartRange, barPlace } from '../week/read.js';
 import {
-  seasonBars, seasonFigures, firstReportsTotal, lateWeeks, settledThrough, capitalReading, booksRows,
+  seasonBars, seasonFigures, firstReportsTotal, lateSales, capitalReading, booksRows,
   finishing, revealReading, meetMostOverGame,
 } from './read.js';
+import { settledHistory } from '../ending.js';
 import { RETURNS_RESOLVE_AFTER_ROUNDS } from '../dashboard.js';
 import { PRICE_TIERS, PURPOSES, ROUNDS_PER_MONTH } from '../../engine/constants.js';
 
@@ -79,13 +80,17 @@ async function replay(initial, logAt, throughRound, options, onWeek) {
  */
 export function renderResults({ game, openGuide, openSection, onRestart = null, playtest = null }) {
   const { state: finished, playerId } = game;
-  const history = finished.history;
+  // The books settle the tail (the owner, 2026-09-18): every sale still in
+  // flight at the whistle lands and its returns come back, in the week whose
+  // clicks earned them. The game's own history is untouched, so a save replays
+  // to the fingerprint it was saved with.
+  const history = settledHistory(finished);
   const decisionLog = finished.decisionLog;
   const lastRound = history.length;
   const allocationRounds = finished.budgetSchedule?.capexAllocationRounds ?? [];
   const snapshot = finished.budgetSchedule?.rankSnapshotRound ?? 2 * ROUNDS_PER_MONTH;
   const me = finished.advertisers.find((a) => a.id === playerId);
-  const bars = seasonBars(history, playerId, { decisionLog, opening: game.opening, lastRound });
+  const bars = seasonBars(history, playerId, { decisionLog, opening: game.opening });
   const picked = moments({
     history, decisionLog, playerId, opening: game.opening, allocationRounds,
     roundsPerMonth: ROUNDS_PER_MONTH, lastRound,
@@ -174,8 +179,8 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
   function weekStrip(b) {
     const strip = el('div', 'rs-strip');
     const first = el('div', 'rs-block');
-    let status = RESULTS.weekSettled();
-    if (!b.settled) status = b.stillPending >= 0.01 ? RESULTS.weekArriving({ n: one(b.stillPending) }) : RESULTS.weekReturnsToCome();
+    // Every week is settled here: the books ran the queue on past the whistle.
+    const status = RESULTS.weekSettled();
     const figs = el('div', 'rs-then');
     const pair = (name, value, className) => {
       const box = el('span', 'rs-pairfig');
@@ -210,8 +215,8 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
 
   function drawTwelve() {
     const f = seasonFigures(history, playerId);
-    const settled = settledThrough(lastRound);
-    const late = lateWeeks(bars, lastRound, RETURNS_RESOLVE_AFTER_ROUNDS);
+    const capital = capitalReading(me, allocationRounds);
+    const madePaise = f.netProfitPaise - capital.committedPaise;
     const figures = card('rs-figures', 'results-figures');
     figures.append(
       stat(RESULTS.netProfit(), money(f.netProfitPaise), RESULTS.gross({ amount: money(f.grossProfitPaise) }), f.netProfitPaise < 0),
@@ -219,8 +224,10 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
       stat(RESULTS.conversions(), one(f.conversions), RESULTS.cameBack({ n: one(f.returned) })),
       stat(RESULTS.netRevenue(), money(f.netRevenuePaise), RESULTS.gross({ amount: money(f.grossRevenuePaise) })),
       stat(RESULTS.netRoas(), ratio(f.netRoas), RESULTS.netRoasSub()),
-      stat(RESULTS.settled(), RESULTS.settledWeeks({ n: settled, of: lastRound }),
-        late ? RESULTS.stillMoving({ from: late.from, to: lastRound }) : ''),
+      // What the ranking is on, since the books count what the business spent.
+      stat(RESULTS.made(), money(madePaise), capital.committedPaise > 0
+        ? RESULTS.madeSub({ amount: money(capital.committedPaise) })
+        : RESULTS.madeNothingBuilt(), madePaise < 0),
     );
 
     const chart = card('rs-card', 'results-weeks');
@@ -232,32 +239,25 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
     head.append(titles, key);
     const scroll = el('div', 'rs-scroll');
     const plotArea = el('div', 'rs-chart');
-    const bracketRow = el('div', 'rs-brackets');
-    if (late) {
-      const bracket = el('span', 'rs-bracket', RESULTS.notSettled());
-      bracket.style.gridColumn = `${late.from} / span ${late.weeks}`;
-      bracketRow.append(bracket);
-    }
     const cols = el('div', 'rs-cols');
     const range = chartRange(bars);
     cols.style.setProperty('--rs-bars', `${BARS_PX}px`);
     for (const b of bars) cols.append(weekColumn(b, range));
-    plotArea.append(bracketRow, cols);
+    plotArea.append(cols);
     scroll.append(plotArea);
     const shown = bars.find((b) => b.round === view.week) ?? bars.at(-1);
     chart.append(head, scroll, weekStrip(shown),
       para('rs-read', RESULTS.reports({ first: money(firstReportsTotal(bars)), now: money(f.netProfitPaise), weeks: lastRound }), RESULTS.reports));
-    if (late) {
-      chart.append(para('rs-sub', RESULTS.readHigh({
-        weeks: late.weeks, arriving: late.arriving, pending: one(late.pending), window: late.window,
-        cutoff: late.cutoff, none: RESULTS.weeksNamed({ list: late.none }),
-      }), RESULTS.readHigh));
+    const late = lateSales(finished, playerId);
+    if (late > 0) {
+      chart.append(para('rs-sub', RESULTS.settledAtEnd({
+        sales: one(late), window: RETURNS_RESOLVE_AFTER_ROUNDS,
+      }), RESULTS.settledAtEnd));
     }
 
     const pairRow = el('div', 'rs-pairs');
     const built = card('rs-card', 'results-built');
     built.append(el('span', 'rs-label', RESULTS.built()));
-    const capital = capitalReading(me, allocationRounds);
     if (capital.tranches.length === 0) {
       built.append(el('p', 'rs-read', RESULTS.allBudget({ amount: money(capital.toBudgetPaise) })));
     } else {
@@ -267,7 +267,9 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
         })));
       }
       built.append(el('p', 'rs-read', RESULTS.rest({ amount: money(capital.toBudgetPaise) })),
-        para('rs-sub', RESULTS.notCounted({ amount: money(capital.committedPaise) }), RESULTS.notCounted));
+        para('rs-sub', RESULTS.capitalOff({
+          amount: money(capital.committedPaise), net: money(f.netProfitPaise), made: money(madePaise),
+        }), RESULTS.capitalOff));
     }
     const kinder = card('rs-card', null);
     kinder.append(el('span', 'rs-label', RESULTS.realMarket()), para('rs-read', DEBRIEF.kinderMarket(), DEBRIEF.kinderMarket));
@@ -640,12 +642,13 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
     track.append(gross, net);
     row.append(
       el('span', 'rs-rank', String(r.rank)), name, cell, track,
-      el('strong', r.netProfitPaise < 0 ? 'rs-money loss' : 'rs-money', money(r.netProfitPaise)),
+      el('strong', r.businessProfitPaise < 0 ? 'rs-money loss' : 'rs-money', money(r.businessProfitPaise)),
       el('span', 'rs-quiet', r.returnedShare == null ? '—' : pct(r.returnedShare)),
       el('span', 'rs-quiet', ordinal(r.grossRank)),
       el('span', 'rs-brandline', RESULTS.brandLine({
         spent: money(r.costPaise), conversions: one(r.conversions),
         each: r.cpaPaise == null ? '—' : money(r.cpaPaise), roas: `₹${ratio(r.netRoas)}`, gross: money(r.grossProfitPaise),
+        net: money(r.netProfitPaise), built: money(r.capitalPaise),
       })),
     );
     return row;
@@ -660,7 +663,7 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
       RESULTS.colReturns(), RESULTS.colGross()]) header.append(el('span', 'rs-label', text));
     table.append(header, ...booksRows(finished).map(brandRow),
       para('rs-sub', RESULTS.booksNote({ month: Math.ceil((snapshot + 1) / ROUNDS_PER_MONTH), snapshot }), RESULTS.booksNote),
-      el('p', 'rs-sub', RESULTS.booksHigh({ weeks: lastRound - settledThrough(lastRound) })));
+      el('p', 'rs-sub', RESULTS.booksSettled()));
     if (!done()) table.append(el('p', 'rs-sub', RESULTS.cellsHidden()));
 
     const where = finishing(finished, playerId);

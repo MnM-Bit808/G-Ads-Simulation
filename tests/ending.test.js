@@ -1,5 +1,7 @@
 import { describe, test, expect } from 'vitest';
-import { rankOf, gameTotals, summariseDecisions, finalStandings } from '../ui/ending.js';
+import {
+  rankOf, gameTotals, summariseDecisions, finalStandings, settledHistory,
+} from '../ui/ending.js';
 import { submitRound } from '../game.js';
 import { makeGameState, PLAYER_ID } from './fixtures/gameState.js';
 import { CAPEX_TARGETS } from '../engine/constants.js';
@@ -304,13 +306,18 @@ describe('the books are opened after the last round (DECISIONS G3)', () => {
     expect(me.id).toBe(PLAYER_ID);
   });
 
-  test('it totals from history, the copy that gets revised', () => {
-    // Same summation the player's own figures use. Reading the reports each
-    // round first returned would count lag-0 conversions at the wrong value and
-    // make the rivals look better than they were.
+  test('it totals from history settled, the copy that gets revised and then run on', () => {
+    // Same summation the player's own figures use, over the history the books
+    // settle (the owner, 2026-09-18): the sales still in flight at the whistle
+    // land, and their returns come back, in the weeks whose clicks earned them.
+    // Reading the reports each round first returned would count lag-0
+    // conversions at the wrong value and make the rivals look better than they
+    // were; reading them unsettled drops the tail entirely.
     const s = played();
     const me = finalStandings(s).find((r) => r.isYou);
-    expect(me.grossProfitPaise).toBe(gameTotals(s.history, PLAYER_ID).all.grossProfitPaise);
+    expect(me.grossProfitPaise).toBe(gameTotals(settledHistory(s), PLAYER_ID).all.grossProfitPaise);
+    // Late sales only ever add gross: the tail cannot make a week sell less.
+    expect(me.grossProfitPaise).toBeGreaterThanOrEqual(gameTotals(s.history, PLAYER_ID).all.grossProfitPaise);
   });
 
   test('an unplayed game yields nothing rather than a table of zeroes', () => {

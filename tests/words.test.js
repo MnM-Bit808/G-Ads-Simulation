@@ -817,6 +817,8 @@ describe('Results, after the last week (design/results/)', () => {
     said: 'Mid · Performance', exact: 3, half: 2, name: 'Kestrel', rate: '95%', month: 3, snapshot: 8,
     place: 4, middle: '₹1,68,000', last: '₹1,17,600', conversions: '1,543.1', each: '₹460',
     roas: '₹3.38', gross: '₹12,15,977', week: 8,
+    // The books settle the tail and take capital off (the owner, 2026-09-18).
+    sales: '53.6', net: '₹9,63,344', made: '₹8,33,344', built: '₹1,30,000',
   };
 
   test('every entry is a line of a kind the screen may carry, and every why names a chapter', () => {
@@ -832,14 +834,21 @@ describe('Results, after the last week (design/results/)', () => {
     }
   });
 
-  test('the two things the owner chose to say plainly are said (2026-09-15)', () => {
-    expect(RESULTS.notCounted({ amount: '₹55,000' })).toMatch(/^Net profit counts what clicks cost, never capital/);
-    expect(RESULTS.readHigh({ weeks: 5, arriving: [10, 11, 12], pending: '53.6', window: 2, cutoff: 10, none: 'weeks 11 and 12' }))
-      .toBe('The last 5 weeks are not settled, and they read high. Weeks 10 to 12 still have 53.6 conversions to arrive, '
-        + 'but a return comes back 2 weeks after its sale lands, so nothing sold after week 10 comes back inside the '
-        + 'game: weeks 11 and 12 count no returns at all.');
-    expect(RESULTS.readHigh({ weeks: 2, arriving: [], pending: '0', window: 2, cutoff: 10, none: 'weeks 11 and 12' }))
-      .toMatch(/read high\. A return comes back/);
+  /**
+   * The two things the owner chose to say plainly on 2026-09-15 were that the
+   * last weeks read high and that capital was never counted. On 2026-09-18 the
+   * owner had the books do both instead of disclosing them, so these say what is
+   * counted rather than what is missing.
+   */
+  test('the books say what they now count: the tail, and the money spent building', () => {
+    expect(RESULTS.settledAtEnd({ sales: '53.6', window: 2 }))
+      .toBe('The 53.6 sales still arriving when the game ended are counted here, in the weeks whose clicks bought '
+        + 'them, and so are the returns they earned 2 weeks later. Nothing is left provisional.');
+    expect(RESULTS.capitalOff({ amount: '₹1,30,000', net: '₹9,63,344', made: '₹8,33,344' }))
+      .toBe('Your weekly net profit counts what clicks cost, never capital. The books take the ₹1,30,000 you built '
+        + 'with off it: ₹9,63,344 less ₹1,30,000 is ₹8,33,344, and that is where you are ranked.');
+    expect(RESULTS.booksSettled()).toMatch(/settled the same way/);
+    expect(RESULTS.booksNote({ month: 3, snapshot: 8 })).toMatch(/and the capital it spent building/);
   });
 
   test('a capital week\'s answer says which game ends ahead with the capital counted', () => {

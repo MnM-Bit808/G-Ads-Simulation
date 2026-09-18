@@ -11,7 +11,6 @@
 
 import { gameTotals, finalStandings, rankOf, summariseDecisions } from '../ending.js';
 import { onlyUntouchedCapital, revealRows } from '../debrief/read.js';
-import { SETTLES_AFTER_ROUNDS } from '../dashboard.js';
 import {
   CAPEX_ALLOCATION_PAISE, CAPEX_DELAY_ROUNDS, MONTHLY_BUDGET_PAISE, RANK_BUDGET_MULTIPLIERS,
 } from '../../engine/constants.js';
@@ -20,19 +19,21 @@ import {
 const shownPaise = (paise) => Math.round(paise / 100) * 100;
 
 /**
- * The last week whose conversions have all arrived and whose returns have all
- * come back, at the end of `lastRound`.
+ * How many sales were still on their way when the last week ran.
  *
- * A click is final SETTLES_AFTER_ROUNDS after its week: three rounds to
- * arrive, two to resolve. So at the end of week 12, weeks 8 to 12 still read
- * high: their returns come back after the game ends (found drawing Results,
- * 2026-09-15; weeks 11 and 12 count none).
+ * A click is final SETTLES_AFTER_ROUNDS after its week: three rounds to arrive,
+ * two to resolve. Weeks 8 to 12 therefore used to read high and weeks 11 and 12
+ * counted no returns at all (found drawing Results, 2026-09-15). The books now
+ * settle them (`settledHistory`), so this is no longer a warning — it is what
+ * the sentence under the chart says was counted.
  *
- * @param {number} lastRound
- * @returns {number} 0 when no week is settled yet
+ * @param {object} state the finished game
+ * @param {string} playerId
+ * @returns {number} sales still queued at the whistle, fractional
  */
-export function settledThrough(lastRound) {
-  return Math.max(0, lastRound - SETTLES_AFTER_ROUNDS);
+export function lateSales(state, playerId) {
+  const me = (state?.advertisers ?? []).find((a) => a.id === playerId);
+  return (me?.pendingConversions ?? []).reduce((total, entry) => total + entry.count, 0);
 }
 
 /**
@@ -49,18 +50,16 @@ export function settledThrough(lastRound) {
  * @param {object} game
  * @param {object[]} game.decisionLog
  * @param {{negatives: object[], keywords: object[]}} game.opening
- * @param {number} game.lastRound
  * @returns {object[]} per week: `round`, `netPaise`, `beforePaise` (first report),
  *   `changePaise`, `changed` (a week the player changed something), `did`
  *   (its lines), `costPaise`, `clicks`, `impressionShare`, `lostToBudget`,
- *   `lostToRank`, `stillPending`, `settled`
+ *   `lostToRank`, `stillPending` (zero once the books have settled the tail)
  */
-export function seasonBars(history, playerId, { decisionLog = [], opening, lastRound }) {
+export function seasonBars(history, playerId, { decisionLog = [], opening }) {
   const lines = new Map(summariseDecisions(decisionLog, playerId, opening).map((row) => [row.round, row.lines]));
   const untouched = new Set(decisionLog
     .filter((e) => e.advertiserId === playerId && onlyUntouchedCapital(e.decision))
     .map((e) => e.round));
-  const settled = settledThrough(lastRound);
   return (history ?? []).map((report) => {
     const row = report.byAdvertiser[playerId];
     const did = untouched.has(report.round) ? [] : (lines.get(report.round) ?? []);
@@ -77,7 +76,6 @@ export function seasonBars(history, playerId, { decisionLog = [], opening, lastR
       lostToBudget: row.share?.lostToBudget ?? 0,
       lostToRank: row.share?.lostToRank ?? 0,
       stillPending: row.conversions.stillPending,
-      settled: report.round <= settled,
     };
   });
 }
@@ -101,36 +99,6 @@ export function seasonFigures(history, playerId) {
 /** What the weeks read when each first came out, added up. */
 export function firstReportsTotal(bars) {
   return bars.reduce((total, b) => total + b.beforePaise, 0);
-}
-
-/**
- * The weeks that read high when the game ends, for the sentence that says so.
- *
- * Conversions still arriving would raise them; returns still to come will
- * lower them, by more: a return comes back `returnWindowRounds` after its sale
- * lands, so a sale landing after `cutoff` never comes back inside the game.
- *
- * @param {ReturnType<typeof seasonBars>} bars
- * @param {number} lastRound
- * @param {number} returnWindowRounds - `RETURNS_RESOLVE_AFTER_ROUNDS` (ui/dashboard.js)
- * @returns {{weeks: number, from: number, arriving: number[], pending: number, window: number,
- *   cutoff: number, none: number[]}|null} null when every week is settled
- */
-export function lateWeeks(bars, lastRound, returnWindowRounds) {
-  const settled = settledThrough(lastRound);
-  const moving = bars.filter((b) => b.round > settled);
-  if (moving.length === 0) return null;
-  const arriving = bars.filter((b) => b.stillPending >= 0.01);
-  const cutoff = lastRound - returnWindowRounds;
-  return {
-    weeks: moving.length,
-    from: settled + 1,
-    arriving: arriving.map((b) => b.round),
-    pending: arriving.reduce((total, b) => total + b.stillPending, 0),
-    window: returnWindowRounds,
-    cutoff,
-    none: bars.filter((b) => b.round > cutoff).map((b) => b.round),
-  };
 }
 
 /**

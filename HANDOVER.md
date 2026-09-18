@@ -471,16 +471,23 @@ none flipping; no rival moved more than 5%; calibration's figures identical.
    last choices rather than afresh, in both looks. Older: A9, F15 (b)/(c) and
    E8's formula (item 5 below). Round 0's rival guesses now carry into the end
    reveal (the round 0 design, section 12; the owner, 2026-09-15).
-8. **Found drawing Results (2026-09-15), said plainly on the screens and left
-   for the owner's rules:** net profit never counts capital spent on the
-   business (`engine/report.js`, `moneyBlock`), so capital is free in every
-   end-of-game figure, the books' ranking and D12's measurement (the size
-   guide's Rs 28,625 against the clicks becomes Rs 83,625 counted), which wants
-   a DECISIONS entry; and a return comes back two weeks after its sale, so the
-   last five weeks read high and weeks 11 and 12 count no returns, which
-   settling at the game's end would fix, as an engine change measured first.
-   Both replay fixes are live since the switch-over deployed (2026-09-16);
-   until then they were on `makeover` only.
+8. **DONE 2026-09-18 (DECISIONS I39), both findings from drawing Results, on
+   the owner's rules:** net profit never counted capital spent on the business
+   (`engine/report.js`, `moneyBlock`), so an advertiser that built nothing and
+   one that spent ₹2,40,000 were ranked alike — and the one that kept its money
+   was charged for the clicks it bought with it; and a return comes back two
+   weeks after its sale, so the last weeks read high and weeks 11 and 12 counted
+   none. **The books now do both and the weekly report does neither**, because a
+   week's report is an advertising report and Google Ads never knows what a
+   business spent on itself. `settledHistory` (`ui/ending.js`) runs each
+   advertiser's queues on past the last week with the engine's own reviser, and
+   `finalStandings` ranks on settled net profit less what that advertiser
+   committed. No auction is re-run, no engine number moves, and the game's own
+   history is untouched, so a saved game replays to its own fingerprint.
+   Measured over 12 games: settling takes a median ₹1,12,594 off each advertiser
+   (a late sale pays margin, its return takes the order back), capital a median
+   ₹1,20,000, and 22 of 108 places move. Both replay fixes are live since the
+   switch-over deployed (2026-09-16); until then they were on `makeover` only.
 9. **FIXED 2026-09-15 (DECISIONS F17), built on the branch
    `claude/lucid-bhabha-395dd1`, merged into `makeover` on 2026-09-16 and live
    since the switch-over deployed that day:** the round's two paths through the auction disagreed with equal

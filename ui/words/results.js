@@ -45,18 +45,18 @@ export const RESULTS = Object.freeze({
   netRevenue: line('label', 'Net revenue'),
   netRoas: line('label', 'Net ROAS'),
   netRoasSub: line('label', 'sales after returns, per rupee of clicks'),
-  settled: line('label', 'Settled'),
-  settledWeeks: line('label', ({ n, of }) => `${n} of ${of} weeks`),
-  stillMoving: line('label', ({ from, to }) => `weeks ${from} to ${to} still moving`),
+  // The books settle the tail and count capital (the owner, 2026-09-18), so
+  // where this panel used to say how many weeks had settled it says what the
+  // business made: net profit less what was spent building it.
+  made: line('label', 'What the business made'),
+  madeSub: line('label', ({ amount }) => `net profit, less the ${amount} you built with`),
+  madeNothingBuilt: line('label', 'net profit; you built nothing'),
 
   everyWeek: line('label', 'Every week'),
   chartNote: line('label', 'net profit by week, as it stands · the dashed tick is each week’s first report · tap a week'),
   changedKey: line('label', 'a week you changed something'),
-  notSettled: line('label', 'not settled: returns still to come'),
   weekOf: line('label', ({ n }) => `Week ${n}`),
   weekSettled: line('label', 'settled: every conversion in, every return back'),
-  weekReturnsToCome: line('label', 'returns still to come'),
-  weekArriving: line('label', ({ n }) => `${n} conversions still to arrive, and returns to come`),
   firstReported: line('label', 'first reported'),
   now: line('label', 'now'),
   change: line('label', 'change'),
@@ -70,18 +70,13 @@ export const RESULTS = Object.freeze({
   reports: line('reading', ({ first, now, weeks }) =>
     `The weeks’ first reports added up to ${first}; the same ${weeks} weeks stand at ${now} now. `
     + 'Every week you decided on was still moving.', { why: 'attributionLag' }),
-  // The last weeks read HIGH, not merely unfinished (the review, 2026-09-15).
-  readHigh: line('reading', ({ weeks, arriving, pending, window, cutoff, none }) => {
-    let still = '';
-    if (arriving.length === 1) still = `Week ${arriving[0]} still has ${pending} conversions to arrive, but `;
-    else if (arriving.length > 1) still = `Weeks ${arriving[0]} to ${arriving.at(-1)} still have ${pending} conversions to arrive, but `;
-    const tail = `a return comes back ${window} weeks after its sale lands, so nothing sold after week ${cutoff} comes `
-      + `back inside the game: ${none} count no returns at all.`;
-    const opening = `The last ${weeks} weeks are not settled, and they read high.`;
-    const rest = still ? still + tail : tail.charAt(0).toUpperCase() + tail.slice(1);
-    return `${opening} ${rest}`;
-  }, { why: 'returnsSplit' }),
-  weeksNamed: line('label', ({ list }) => (list.length === 1 ? `week ${list[0]}` : `weeks ${listed(list)}`)),
+  // The last weeks used to read high and say so. The books settle them instead
+  // (the owner, 2026-09-18): what was in flight at the whistle is counted where
+  // its clicks earned it, so the weeks are finished rather than provisional.
+  settledAtEnd: line('reading', ({ sales, window }) =>
+    `The ${sales} sales still arriving when the game ended are counted here, in the weeks whose clicks bought them, `
+    + `and so are the returns they earned ${window} weeks later. Nothing is left provisional.`,
+  { why: 'returnsSplit' }),
 
   built: line('label', 'What you built'),
   tranche: line('reading', ({ amount, target, round, live }) => (round === 0
@@ -89,10 +84,13 @@ export const RESULTS = Object.freeze({
     : `${amount} on ${target} at week ${round}, live from week ${live}.`)),
   rest: line('reading', ({ amount }) => `The other ${amount} of the two allocations went into your ad budget.`),
   allBudget: line('reading', ({ amount }) => `You built nothing: both allocations, ${amount}, went into your ad budget.`),
-  // Net profit charges clicks and freight, never capital (engine/report.js).
-  notCounted: line('disclosure', ({ amount }) =>
-    `Net profit counts what clicks cost, never capital: the ${amount} you built with is free in every figure `
-    + 'here, and in Everyone’s books.', { why: 'counterfactuals' }),
+  // Net profit charges clicks and freight and never capital (engine/report.js),
+  // so the books take it off themselves (the owner, 2026-09-18): an advertiser
+  // who kept the money had it turned into ad budget and was charged for the
+  // clicks it bought, and one who built with it used to pay nothing at all.
+  capitalOff: line('disclosure', ({ amount, net, made }) =>
+    `Your weekly net profit counts what clicks cost, never capital. The books take the ${amount} you built with `
+    + `off it: ${net} less ${amount} is ${made}, and that is where you are ranked.`, { why: 'counterfactuals' }),
   realMarket: line('label', 'Against a real market'),
 
   // --- What you learned ----------------------------------------------------
@@ -153,21 +151,22 @@ export const RESULTS = Object.freeze({
   colBrand: line('label', 'Brand'),
   colCell: line('label', 'Where they sat'),
   colBars: line('label', 'Net profit, with gross profit as the outline'),
-  colNet: line('label', 'Net profit'),
+  colNet: line('label', 'What the business made'),
   colReturns: line('label', 'Returns took'),
   colGross: line('label', 'Rank on gross'),
   you: line('label', 'You'),
   hidden: line('label', 'hidden'),
-  brandLine: line('label', ({ spent, conversions, each, roas, gross }) =>
+  brandLine: line('label', ({ spent, conversions, each, roas, gross, net, built }) =>
     `spent ${spent} · ${conversions} conversions, ${each} each · ${roas} of sales after returns per rupee of clicks `
-    + `· gross profit ${gross}`),
+    + `· gross profit ${gross} · net profit ${net} before the ${built} it built with`),
   booksNote: line('reading', ({ month, snapshot }) =>
-    'Ranked by net profit, what each kept: sales after returns, less the goods, the clicks and the freight on '
-    + `parcels refused at the door. The outline is gross profit, which counts an order that came back as a sale; `
-    + `month ${month}’s budgets were split on gross, at week ${snapshot}.`, { why: 'returnsSplit' }),
-  booksHigh: line('reading', ({ weeks }) =>
-    `Every brand’s last ${weeks} weeks are missing returns that came back after the game ended, and capital spent `
-    + 'on the business is never counted, so every figure here reads high: most for whoever sold most late, or built most.'),
+    'Ranked by what each business made: sales after returns, less the goods, the clicks, the freight on parcels '
+    + 'refused at the door, and the capital it spent building. The outline is gross profit, which counts an order '
+    + `that came back as a sale; month ${month}’s budgets were split on gross, at week ${snapshot}.`,
+  { why: 'returnsSplit' }),
+  booksSettled: line('reading',
+    'Every brand’s books are settled the same way: the sales still arriving when the game ended are counted in the '
+    + 'weeks whose clicks bought them, and so are the returns they earned afterwards.'),
   cellsHidden: line('reading', 'Where each of them sat stays hidden here until you answer Where they sat.'),
   finished: line('label', 'Where you finished'),
   rankAtSnapshot: line('label', ({ week }) => `at week ${week}, on gross profit as reported then`),

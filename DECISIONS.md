@@ -5165,6 +5165,67 @@ beginner and is now worth about 60% of what it was. Making it worth more again
 would need a second sourced rule about the page's usefulness, which is a design
 question rather than a tuning knob, and is not open.
 
+### I39. The books count what the business spent, and settle the tail — `FIXED` (2026-09-18)
+
+**Two findings from drawing Results (2026-09-15), left for the owner's rules and
+decided together.**
+
+**One: capital was free in every final figure.** `moneyBlock` charges a week for
+its clicks and for the freight on parcels refused at the door, and never for the
+money spent building the business — `netProfitPaise` has no capital term in it.
+So the standings compared an advertiser that committed nothing with one that
+committed the whole ₹2,40,000 on a figure that charged neither. It was not even
+neutral: capital left uncommitted becomes ad budget (13.3), so the one that kept
+its money was charged for the clicks it bought with it, and the one that built
+was charged nothing at all. Measured over six games, rivals commit between ₹0 and
+₹2,40,000, a median of ₹1,20,000, against final net profits of ₹7 to ₹14 lakh.
+
+**Two: the last weeks read high, and the last two counted no returns at all.** A
+sale lands up to three weeks after its click and comes back two weeks after that,
+so nothing sold after week 10 could come back inside twelve weeks. A finished
+game simply dropped what was in flight: a median ₹3,46,560 of orders per
+advertiser.
+
+**The owner's decision (2026-09-18): the books do both, and the weekly report
+does neither.** A weekly report is an advertising report — Google Ads never knows
+what a business spent on itself — so `moneyBlock` and every weekly screen are
+untouched. The end-of-game books settle the tail and take capital off:
+
+- `settledHistory` (`ui/ending.js`) runs each advertiser's own queues on past the
+  last week and writes every arrival into the week whose click earned it, with
+  `reviseReports`, the engine's own reviser, at the margin each week was built
+  with (11.3). Every advertiser settles the same way, which is what makes the
+  standings like for like.
+- `finalStandings` ranks on what the business made: settled net profit less what
+  that advertiser committed.
+
+**No auction is re-run and no engine number moves.** This is arithmetic after the
+last auction, on a copy: `tests/settling.test.js` holds every week's impressions,
+clicks, cost, share and quality identical before and after, holds each queued
+sale to being counted exactly once, and holds the game's own history untouched —
+so a saved game still replays to the fingerprint it was saved with and no player
+meets "This game has changed".
+
+**Measured against gates the owner agreed first**, over 12 games and 108 rankings:
+
+| | places that move, of 108 | the player, of 12 games |
+|---|---|---|
+| settling alone | 8 | 9 same, 3 worse |
+| capital alone | 14 | 9 same, 3 worse |
+| both | 22 | 5 same, 5 worse, 2 better |
+
+**Settling takes money off, not on**: a median ₹1,12,594 per advertiser, because a
+late sale pays its margin while its return takes the whole order value back and
+the freight with it. That is what "the last weeks read high" meant, measured.
+Capital takes off a median ₹1,20,000. The player slips more often than it gains
+in these games because it committed ₹1,30,000 where several rivals committed
+nothing, and sold well late.
+
+**What it costs.** Two figures now mean different things in different places, and
+the screens say so: a week's net profit is an advertising figure, and the books'
+is what the business made. The alternative — charging capital weekly — would have
+made the weekly report something Google Ads never shows, mid-lesson.
+
 ### F14. The engine contradicts itself about returns — `FIXED`
 
 **RESOLVED 2026-09-11, and it took four constants rather than three numbers.**

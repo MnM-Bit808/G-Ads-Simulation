@@ -34,7 +34,75 @@
  */
 
 import { rupees, ratio } from './dom.js';
+import { reviseReports } from '../engine/report.js';
+import { landDueConversions, queueReturns, resolveReturns } from '../engine/attribution.js';
+import { RETURNS_RESOLVE_AFTER_ROUNDS } from './dashboard.js';
 import { CAPEX_ALLOCATION_PAISE, DAYPART_BLOCKS } from '../engine/constants.js';
+
+/**
+ * How many weeks past the last one the books will run the queue on before they
+ * give up. A sale lands at most three weeks after its click and comes back two
+ * after that, so five is the whole tail; the loop stops as soon as the queues
+ * are empty and this only bounds a queue that never empties.
+ */
+const SETTLE_LIMIT = 8;
+
+/**
+ * The game's weeks with everything that was still in flight written into them.
+ *
+ * WHY THE BOOKS SETTLE (the owner's decision, 2026-09-18). A sale lands up to
+ * three weeks after its click (`ATTRIBUTION_LAG_DISTRIBUTION`) and comes back
+ * two weeks after that, so at the whistle the last weeks read high and nothing
+ * sold after week 10 could come back at all: a finished game dropped a median
+ * ₹3,46,560 of orders per advertiser, and ranked everyone on what was left.
+ *
+ * So the queue runs on past the last week and each arrival is written into the
+ * week whose click earned it — by `reviseReports`, the engine's own reviser, at
+ * the margin each week was built with (11.3), so a settled week is the week the
+ * game would have reported had it kept turning. Every advertiser settles the
+ * same way, which is what makes the standings like for like.
+ *
+ * NO AUCTION IS RE-RUN, and the game's own history is not touched: this returns
+ * a copy for the books to read, so a saved game still replays to the fingerprint
+ * it was saved with.
+ *
+ * @param {object} state the finished GameState
+ * @returns {object[]} the history, settled; the same array when nothing is in flight
+ */
+export function settledHistory(state) {
+  const advertisers = state?.advertisers ?? [];
+  let history = state?.history ?? [];
+  if (history.length === 0 || advertisers.length === 0) return history;
+
+  // The window every cell's economics carry, which `results.test.js` holds to
+  // each of them: asking the advertiser instead would mean deriving its
+  // business here, and that reads the affinities 16.1 withholds (ui.test.js).
+  const window = RETURNS_RESOLVE_AFTER_ROUNDS;
+  const last = history[history.length - 1].round;
+  const queues = new Map(advertisers.map((a) => [a.id, {
+    pending: a.pendingConversions ?? [],
+    returns: a.pendingReturns ?? [],
+  }]));
+
+  for (let round = last + 1; round <= last + SETTLE_LIMIT; round++) {
+    const byAdvertiser = {};
+    let moved = false;
+    for (const a of advertisers) {
+      const queue = queues.get(a.id);
+      const { landed, remaining } = landDueConversions(queue.pending, round);
+      queue.pending = remaining;
+      const due = [...queue.returns, ...queueReturns(landed, round, window)];
+      const { resolved, remaining: unresolved } = resolveReturns(due, round);
+      queue.returns = unresolved;
+      byAdvertiser[a.id] = { landed, resolvedReturns: resolved };
+      if (landed.length > 0 || resolved.length > 0) moved = true;
+    }
+    if (moved) history = reviseReports(history, { currentRound: round, raw: { byAdvertiser }, advertisers });
+    const empty = [...queues.values()].every((q) => q.pending.length === 0 && q.returns.length === 0);
+    if (empty) break;
+  }
+  return history;
+}
 
 export const STRATEGY_NAMES = {
   manual: 'Manual CPC',
@@ -110,11 +178,17 @@ export function rankOf(state, playerId) {
  * @returns {object[]} one row per advertiser, best first; empty before any week
  */
 export function finalStandings(state) {
-  const history = state?.history ?? [];
+  // Settled, and with what each brand spent on its business taken off (the
+  // owner, 2026-09-18): the tail is counted where its clicks earned it, and an
+  // advertiser that built nothing had its capital turned into ad budget and
+  // charged for the clicks it bought, while one that built with it paid nothing
+  // here. Ranked on what the business made, so the two are comparable at last.
+  const history = settledHistory(state);
   if (history.length === 0) return [];
 
   const rows = (state.advertisers ?? []).map((a) => {
     const { all } = gameTotals(history, a.id);
+    const capitalPaise = Object.values(a.capex?.committed ?? {}).reduce((total, paise) => total + (paise ?? 0), 0);
     return {
       id: a.id,
       name: a.name,
@@ -126,6 +200,8 @@ export function finalStandings(state) {
       conversions: all.conversions,
       grossProfitPaise: all.grossProfitPaise,
       netProfitPaise: all.netProfitPaise,
+      capitalPaise,
+      businessProfitPaise: all.netProfitPaise - capitalPaise,
       netRoas: all.costPaise > 0 ? all.netRevenuePaise / all.costPaise : null,
       cpaPaise: all.conversions > 0 ? Math.round(all.costPaise / all.conversions) : null,
     };
@@ -136,7 +212,7 @@ export function finalStandings(state) {
   const byGross = [...rows].sort((x, y) => y.grossProfitPaise - x.grossProfitPaise);
   const grossRank = new Map(byGross.map((r, i) => [r.id, i + 1]));
 
-  rows.sort((x, y) => y.netProfitPaise - x.netProfitPaise);
+  rows.sort((x, y) => y.businessProfitPaise - x.businessProfitPaise);
   for (const [i, row] of rows.entries()) {
     row.rank = i + 1;
     row.grossRank = grossRank.get(row.id);
