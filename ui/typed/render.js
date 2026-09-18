@@ -115,7 +115,11 @@ export function renderTypedSection({ game, ctx, openGuide, refreshTray }) {
     const perSale = el('span', 'wt-num', r.perSalePaise === null ? '—' : rupees(r.perSalePaise));
     if (r.dear) {
       perSale.classList.add('mark');
-      perSale.title = TYPED.dearTitle({ amount: rupees(r.perSalePaise), average: rupees(averages.perSalePaise) });
+      // A search that sold nothing has no cost per sale to name, so its mark
+      // names what it spent (the owner, 2026-09-18).
+      perSale.title = r.perSalePaise === null
+        ? TYPED.dearNoSale({ spent: rupees(r.spendPaise), average: rupees(averages.perSalePaise) })
+        : TYPED.dearTitle({ amount: rupees(r.perSalePaise), average: rupees(averages.perSalePaise) });
     }
     const back = el('span', 'wt-num', r.backRate ? pct(r.backRate) : '—');
     if (r.worse) {

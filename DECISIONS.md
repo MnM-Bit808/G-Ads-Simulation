@@ -2900,9 +2900,18 @@ ordinary week against 3.75, because ordinary weeks are busier now that two
 rivals re-read their report every week. The week-9 step the screens quote barely
 moved, 3.53 → 3.45, so D12's line still stands.
 
-**Still open.** The Studio's What people typed leaves a search with no sale
-unmarked, where this rule marks it: two readings of one idea on two screens,
-which wants the owner's word on which is right.
+**And What people typed reads it too (2026-09-18, the owner).** That screen
+carried its own version of the mark, which required a cost per sale to exist —
+so a search that sold NOTHING, the clearest waste on the page, was the one row
+it would not mark, while the card marked it. One idea read two ways. It now
+reads `isDear`, so all three readers agree: the card, the list, and a rival's
+policy. Every mark the list already made is unchanged; what is new is the silent
+search. Played on a broad keyword, where a real account buys them: "gym near me"
+at ₹7,870, "free gym diet chart" at ₹6,154 and "gym membership price" at ₹5,201,
+each with no sales, were unmarked before and are amber now. A search that sold
+nothing has no cost per sale to name, so its mark says what it spent instead —
+"₹7,870 spent and nothing sold, where a sale costs you ₹532" — and the legend
+gained the same clause.
 
 ### I9. The landing page is built, not described — `FIXED`
 

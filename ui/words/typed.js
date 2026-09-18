@@ -34,11 +34,15 @@ export const TYPED = Object.freeze({
   yourName: line('label', 'your name'),
   rivalName: line('label', ({ name }) => `${name}’s name`),
   dearTitle: line('label', ({ amount, average }) => `${amount} a sale, over twice your ${average} average`),
+  // A search that sold nothing has no cost per sale to name, so its mark names
+  // what it spent instead (the owner, 2026-09-18).
+  dearNoSale: line('label', ({ spent, average }) => `${spent} spent and nothing sold, where a sale costs you ${average}`),
   worseTitle: line('label', ({ rate, average }) => `${rate} came back, against your ${average}`),
   legend: line('reading', ({ average, rate }) => `Amber: a sale there costs over twice your ${average} average, `
-    + `or more of its sales came back than your ${rate}.`),
+    + `or it spent that much and sold nothing, or more of its sales came back than your ${rate}.`),
   // A week just played has no returns yet (they take two weeks to come back).
-  legendNoReturns: line('reading', ({ average }) => `Amber: a sale there costs over twice your ${average} average.`),
+  legendNoReturns: line('reading', ({ average }) => `Amber: a sale there costs over twice your ${average} average, `
+    + 'or it spent that much and sold nothing.'),
 
   blockTitle: line('label', 'Block words'),
   blockNote: line('instruction', 'A block matches the words themselves: no plurals, no close variants.',

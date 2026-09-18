@@ -79,9 +79,31 @@ describe('what is marked', () => {
     expect(rows.every((r) => !r.worse && r.backRate === 0)).toBe(true);
   });
 
-  test('a search that sold nothing has no cost per sale, and no mark for one', () => {
+  test('a search that sold nothing has no cost per sale, and nothing to compare it with', () => {
+    // Nothing in this account has sold, so there is no average to judge against.
     const { rows } = read({ a: term(100000, 0) });
     expect(rows[0]).toMatchObject({ perSalePaise: null, dear: false, backRate: null });
+  });
+
+  /**
+   * A SEARCH THAT SOLD NOTHING IS THE CLEAREST WASTE, and this screen left it
+   * unmarked while the Negatives card marked it: one idea read two ways (the
+   * owner, 2026-09-18). It now reads the same `isDear` the card and the rival
+   * policies read — no sale is dearer than any price — once the search has spent
+   * what a sale costs this account.
+   */
+  test('a search that spent more than a sale costs and sold nothing is marked', () => {
+    // A sale costs this account ₹1,200 (₹12,000 over 10 sales, the silent search's
+    // own ₹2,000 counted in, as every average here counts every row on screen).
+    const { rows, averages: avg } = read({ a: term(1000000, 10), b: term(200000, 0) });
+    expect(avg.perSalePaise).toBe(120000);
+    expect(rows.find((r) => r.text === 'how to wash gym leggings'))
+      .toMatchObject({ sales: 0, perSalePaise: null, dear: true });
+  });
+
+  test('but not before it has spent that much: it has not had the money to sell', () => {
+    const { rows } = read({ a: term(1000000, 10), b: term(100000, 0) });
+    expect(rows.find((r) => r.text === 'how to wash gym leggings').dear).toBe(false);
   });
 
   test('a search carrying your name, or a rival\'s, says so', () => {

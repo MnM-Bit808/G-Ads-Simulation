@@ -15,14 +15,21 @@
  * never exactly zero, so "how to wash gym leggings" at Rs 3,566 for 0.8 of a
  * sale went unmarked. A sale that costs over DEAR_TIMES the account's own
  * average is marked instead, beside today's returns mark.
+ *
+ * AND BY THE SAME RULE AS EVERY OTHER READER SINCE 2026-09-18 (the owner).
+ * This screen carried its own version, which left a search that SOLD NOTHING
+ * unmarked - the clearest waste on the page - while the Negatives card marked
+ * it. One idea read two ways. `isDear` in `content/searchTerms.js` is now the
+ * only reading: the card marks by it, a rival policy blocks by it, and this
+ * list marks by it.
  */
 
 import { blockedBy, normalise } from '../../engine/matching.js';
 import { brandNamedIn } from '../../content/brands.js';
+import { DEAR_TIMES, isDear } from '../../content/searchTerms.js';
 import { previewNegative } from '../decisions.js';
 
-/** A sale here costing over this many times the account's average is marked. */
-export const DEAR_TIMES = 2;
+export { DEAR_TIMES };
 /** Returns over this many times the account's rate are marked, as today's card marks them. */
 export const WORSE_TIMES = 1.15;
 
@@ -59,7 +66,9 @@ function measured(r, avg) {
     sales,
     perSalePaise,
     backRate,
-    dear: perSalePaise !== null && avg.perSalePaise !== null && perSalePaise > DEAR_TIMES * avg.perSalePaise,
+    // A search that sold nothing is marked on the same terms, once it has spent
+    // what a sale costs this account: no sale is dearer than any price.
+    dear: isDear({ costPaise: r.costPaise, conversions: sales }, avg.perSalePaise),
     worse: backRate !== null && avg.returnRate > 0 && backRate > WORSE_TIMES * avg.returnRate,
   };
 }

@@ -612,9 +612,20 @@ describe('What people typed', () => {
   });
 
   test('a mark says where to look, never what to do (I13)', () => {
-    for (const entry of [TYPED.legend, TYPED.legendNoReturns, TYPED.dearTitle, TYPED.worseTitle]) {
+    for (const entry of [TYPED.legend, TYPED.legendNoReturns, TYPED.dearTitle, TYPED.dearNoSale, TYPED.worseTitle]) {
       expect(entry(FIGURES)).not.toMatch(/\byou should\b|\bblock (it|this|them)\b/i);
     }
+  });
+
+  /**
+   * A search that sold nothing is marked here too since 2026-09-18 (the owner),
+   * as the Negatives card has always marked it, so its mark needs words of its
+   * own: there is no cost per sale to name.
+   */
+  test('a search that sold nothing says what it spent, not what a sale cost', () => {
+    expect(TYPED.dearNoSale({ spent: '₹3,566', average: '₹488' }))
+      .toBe('₹3,566 spent and nothing sold, where a sale costs you ₹488');
+    expect(TYPED.legend(FIGURES)).toMatch(/sold nothing/);
   });
 
   test('one search reads as one', () => {

@@ -139,10 +139,14 @@ all three in play, and each failed before its fix.
   owner accepted them — the player's median rank slips 5 → 5.5, and
   `grossOptimiser` earns 35.4% more, where its lesson was never that it cannot
   read a report. The player's own profit is unmoved, +0.2% paired.
+- **DONE 2026-09-18: What people typed marks a search that sold nothing**, which
+  it alone refused to mark while the card marked it. All three readers — the
+  card, the list and a rival's policy — now read `isDear` from
+  `content/searchTerms.js`. Played on a broad keyword: "gym near me" at ₹7,870
+  with no sales was unmarked, and is amber now, saying what it spent rather than
+  a cost per sale it does not have.
 - **Still open:** `npm run test:perf`'s sampled-round test sits on its 2,200ms
-  bound on this machine, on unchanged code. And the Studio's What people typed
-  leaves a search with no sale unmarked where the card marks it — one idea read
-  two ways, which wants the owner's word.
+  bound on this machine, on unchanged code.
 
 **DONE 2026-09-17: the landing page is graded as it stands** (DECISIONS I37,
 the owner's decision; commits `88c2c98`, `6246367`, `a163633`). The timing
