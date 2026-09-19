@@ -124,7 +124,9 @@ export const R0 = Object.freeze({
   // Step 4, your ad
   adIntro: line('reading', 'The only thing your rivals can see about you. Hire a writer, or write it '
     + 'yourself.', { why: 'writers' }),
-  whoWrites: line('label', 'Who writes it', { why: 'adParts' }),
+  // No why? of its own: the intro right above it already opens "Who writes the
+  // ad", and two links to one chapter within a line of each other is noise.
+  whoWrites: line('label', 'Who writes it'),
   fromBudget: line('label', ({ budget }) => `from a ${budget} creative budget`),
   free: line('label', 'free'),
   writerDiy: line('reading', 'Free. Graded on your own words.'),
@@ -134,7 +136,10 @@ export const R0 = Object.freeze({
   yourWordsDecide: line('label', 'your words decide'),
   runsAt: line('label', ({ grade }) => `runs at ${grade} · ${grade}`),
   leftover: line('reading', ({ amount }) => `${amount} of the creative budget goes to your ads instead`),
-  asSearchersSee: line('label', 'As searchers see it'),
+  // "What an ad is made of" belongs beside the drawn ad, where the headlines
+  // and descriptions it names are on screen. It used to hang off "Who writes
+  // it", which asks a different question.
+  asSearchersSee: line('label', 'As searchers see it', { why: 'adParts' }),
   emptyHead: line('instruction', 'Your headlines appear here'),
   emptyDesc: line('instruction', 'Your descriptions appear here.'),
   headlineN: line('label', ({ n }) => `Headline ${n}`),

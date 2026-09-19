@@ -47,7 +47,6 @@ export function renderAdStep({ draft, rootSeed, openGuide, changed, redraw }) {
   const node = el('div', 'r0-ad');
   const intro = el('p', 'r0-intro', R0.adIntro());
   add(intro, whyButton(R0.adIntro, openGuide));
-  add(intro, whyButton(R0.whoWrites, openGuide));
 
   // Who writes it, and what is left of the creative budget.
   const writers = el('div', 'r0-writers');
@@ -76,7 +75,10 @@ export function renderAdStep({ draft, rootSeed, openGuide, changed, redraw }) {
   // The ad as searchers meet it, and, when you write it, the boxes.
   const preview = el('div', 'r0-preview');
   const serpHost = el('div');
-  preview.append(el('h3', null, R0.asSearchersSee()), serpHost);
+  const previewHead = el('div', 'r0-head');
+  previewHead.append(el('h3', null, R0.asSearchersSee()));
+  add(previewHead, whyButton(R0.asSearchersSee, openGuide));
+  preview.append(previewHead, serpHost);
   const boxes = el('div', 'r0-boxes');
   const problems = el('ul', 'r0-problems');
   const grades = el('div', 'r0-grades');
