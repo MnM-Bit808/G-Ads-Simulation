@@ -21,7 +21,7 @@
       "x": 3120,
       "y": 0,
       "w": 520,
-      "text": "EVERY FIGURE IS THE ENGINE'S. The search is q_056 \"gym leggings with pockets\", 43bp of WEEKLY_VOLUME 430,000 = 1,849 a week. The ladder is one real resolveAuction() on that search at 19:00, seed 20260902, with the rival ads from content/adCopy.js: Marlow 1st paying Rs 25.13 on a Rs 30 bid, Halcyon 2nd paying Rs 9.45 on Rs 16 with a better-fitting ad. Six of nine entered; three had no keyword that matched. Order value Rs 2,400 and margin 52% are setup.js's briefing() for mid. Freight Rs 200 is RTO_FREIGHT_PAISE, charged on a parcel refused at the door. Roughly four orders in ten come back (mid, 41.7%)."
+      "text": "EVERY FIGURE IS THE ENGINE'S. The search is q_056 \"gym leggings with pockets\", 43bp of WEEKLY_VOLUME 430,000 = 1,849 a week. The ladder is one real resolveAuction() on that search at 19:00, seed 20260902, with the rival ads from content/adCopy.js: Marlow 1st paying Rs 25 on a Rs 30 bid, Halcyon 2nd paying Rs 9 on Rs 16 with a better-fitting ad. (These boards first said Rs 25.13 and Rs 9.45. Corrected 2026-09-19 on playing it: every screen in this game rounds a cost per click to whole rupees through `rupees()` in ui/dom.js, and there is no paise formatter in the interface at all. A beginner shown Rs 25.13 here and Rs 25 on every weekly screen afterwards would have been taught a convention the game does not use.) Six of nine entered; three had no keyword that matched. Order value Rs 2,400 and margin 52% are setup.js's briefing() for mid. Freight Rs 200 is RTO_FREIGHT_PAISE, charged on a parcel refused at the door. Roughly four orders in ten come back (mid, 41.7%)."
     },
     {
       "id": "budget",

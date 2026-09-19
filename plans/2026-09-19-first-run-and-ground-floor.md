@@ -142,7 +142,7 @@ prototype at `design/first-run/prototype.html`.
 | 1 | someone in Pune types **"gym leggings with pockets"**; about 1,849 search it a week | a search · search volume |
 | 2 | four ads above the results, real rival copy; yours was shown | an ad · position · impression |
 | 3 | nobody bought those slots — the real ladder, nine brands ranked on bid × fit | a bid · the auction · ad rank |
-| 4 | she clicks; **₹25.13** leaves the budget; she has bought nothing | a click · cost per click · budget |
+| 4 | she clicks; **₹25** leaves the budget; she has bought nothing | a click · cost per click · budget |
 | 5 | three weeks later she buys ₹2,400 — counted in the week she *clicked* | a conversion · the delay |
 | 6 | two weeks after that it is refused at the door; ₹2,400 back, ₹200 freight gone | a return · refused at the door |
 | 7 | 430,000 searches a week, nine brands, and one of them is you | what the game is |
@@ -169,10 +169,10 @@ Resolved on `q_056` at hour 19, seed 20260902, with the rival ads from
 
 ```
 pos  brand      bid    quality   ad rank   pays
-1    Marlow     ₹30    0.0917     275.1    ₹25.13
-2    Halcyon    ₹16    0.1468     230.3     ₹9.45
-3    Auren      ₹19    0.0739     138.5    ₹17.08
-4    Lumen      ₹17    0.0727     126.1    ₹12.55
+1    Marlow     ₹30    0.0917     275.1    ₹25
+2    Halcyon    ₹16    0.1468     230.3     ₹9
+3    Auren      ₹19    0.0739     138.5    ₹17
+4    Lumen      ₹17    0.0727     126.1    ₹13
 —    Torvi      ₹9     0.1030      91.1        —
 —    Nira       ₹8     0.0787      62.3        —
 ```
@@ -180,8 +180,8 @@ pos  brand      bid    quality   ad rank   pays
 Six of nine entered; three had no keyword that matched. `AD_RANK_FLOOR` is 48, so
 Torvi and Nira clear the reserve and are out on slots, not on price.
 
-**Marlow bid ₹30 and pays ₹25.13 for slot one. Halcyon bid ₹16, sits one place
-below, and pays ₹9.45 — because its ad fits the search better.** Nobody wrote
+**Marlow bid ₹30 and pays ₹25 for slot one. Halcyon bid ₹16, sits one place
+below, and pays ₹9 — because its ad fits the search better.** Nobody wrote
 that; it fell out of the auction. It is the run's central lesson, and beat 3 says
 only: *"You can buy your way up. It costs you every click."*
 

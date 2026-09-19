@@ -101,8 +101,8 @@ import { FIRST_RUN } from '../ui/words/firstrun.js';
 describe('the first run says nothing undefined, and stays inside its budget', () => {
   const FIGURES = {
     query: 'gym leggings with pockets', volume: '1,849', where: 'Pune',
-    winner: 'Marlow', winnerBid: '₹30', winnerPays: '₹25.13',
-    runnerUp: 'Halcyon', runnerUpBid: '₹16', runnerUpPays: '₹9.45',
+    winner: 'Marlow', winnerBid: '₹30', winnerPays: '₹25',
+    runnerUp: 'Halcyon', runnerUpBid: '₹16', runnerUpPays: '₹9',
     entered: '6', of: '9', slots: '4',
     order: '₹2,400', freight: '₹200', returnShare: 'four orders in ten',
     weekly: '4,30,000', rivals: '8', weeks: '12', time: '7:40 pm',
@@ -556,8 +556,8 @@ node -e "import('./ui/firstrun/auction.js').then(({demonstration})=>{const d=dem
 ```
 
 Expected, matching `design/README.md`'s `first-run/` section:
-Marlow 1 at ₹25.13 on ₹30, Halcyon 2 at ₹9.45 on ₹16, Auren 3 at ₹17.08,
-Lumen 4 at ₹12.55, Torvi and Nira out, 6 of 9 entered.
+Marlow 1 at ₹25 on ₹30, Halcyon 2 at ₹9 on ₹16, Auren 3 at ₹17,
+Lumen 4 at ₹13, Torvi and Nira out, 6 of 9 entered.
 **If the figures differ, update `design/first-run/` and the spec's section 4.3
 in the same commit** — the drawing may not say one thing while the code says
 another.
@@ -747,7 +747,7 @@ Body: name section 13's rows used, and that no figure is typed.
 - Produces: `FIRST_RUN_KEY`, exported from `ui/firstrun/render.js`, the storage
   key that remembers the run has been seen: `'g-ads-simulation:first-run'`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/firstRun.test.js`:
 
@@ -809,7 +809,7 @@ test('the reader reports the first run as its own phase, beside round 0', () => 
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```bash
 npm test -- firstRun
@@ -818,7 +818,7 @@ npm test -- firstRun
 Expected: `seenFirstRun is not a function`, and the reader test fails because
 `'first run'` falls into `other`.
 
-- [ ] **Step 3: Add the storage helpers to `render.js`**
+- [x] **Step 3: Add the storage helpers to `render.js`**
 
 ```js
 /** Remembers that this browser has been through the run. Beside the save, never inside it. */
@@ -847,7 +847,7 @@ export function markFirstRunSeen(storage) {
 }
 ```
 
-- [ ] **Step 4: Route to it in `ui/app.js`**
+- [x] **Step 4: Route to it in `ui/app.js`**
 
 Add a module-level flag beside `roundZeroTouched`:
 
@@ -906,7 +906,7 @@ not mark round 0 as touched:
     if (!game && !inFirstRun && !event.target.closest?.('.door')) roundZeroTouched = true;
 ```
 
-- [ ] **Step 5: Add the reader's group**
+- [x] **Step 5: Add the reader's group**
 
 In `scripts/read-playtest.js`, insert **above** the `round 0` row so it prints
 first:
@@ -920,7 +920,7 @@ const GROUPS = [
   ...
 ```
 
-- [ ] **Step 6: Run the whole suite**
+- [x] **Step 6: Run the whole suite**
 
 ```bash
 npm test
@@ -928,7 +928,7 @@ npm test
 
 Expected: green, exit code 0. **Check the exit code, not the tick.**
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add ui/app.js ui/firstrun/render.js scripts/read-playtest.js tests/firstRun.test.js

@@ -33,6 +33,11 @@ import { finalStandings, gameTotals } from '../ui/ending.js';
 import { rupees } from '../ui/dom.js';
 
 const GROUPS = [
+  // The minute before round 0 (2026-09-19). ITS OWN ROW, ABOVE ROUND 0's:
+  // counted inside round 0, the run's minutes would be absorbed by the very
+  // ten-minute gate it was added to protect, and nobody could tell whether it
+  // had worked.
+  ['first run', (name) => name === 'first run'],
   ['round 0', (name) => name.startsWith('round 0')],
   ['weeks 1-4', (name) => /^week [1-4]$/.test(name)],
   ['weeks 5-11', (name) => /^week (5|6|7|8|9|10|11)$/.test(name)],

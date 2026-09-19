@@ -219,7 +219,7 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: var(
     <div class="note-card">
       <span class="eyebrow">Where the numbers come from</span>
       <h2>Nothing here was written by hand</h2>
-      <p>The search is <code>q_056</code>, “gym leggings with pockets” — 43bp of <code>WEEKLY_VOLUME</code> 430,000, so <b>1,849 a week</b>. The ladder is one real auction: Marlow first at <b>₹25.13</b> on a ₹30 bid, Halcyon second at <b>₹9.45</b> on ₹16 with an ad that fits better. Six of nine brands entered; three had no keyword that matched.</p>
+      <p>The search is <code>q_056</code>, “gym leggings with pockets” — 43bp of <code>WEEKLY_VOLUME</code> 430,000, so <b>1,849 a week</b>. The ladder is one real auction: Marlow first at <b>₹25</b> on a ₹30 bid, Halcyon second at <b>₹9</b> on ₹16 with an ad that fits better. Six of nine brands entered; three had no keyword that matched.</p>
       <dl>
         <dt>order, margin</dt><dd>₹2,400 · 52% — <code>briefing()</code>, mid tier</dd>
         <dt>freight</dt><dd>₹200 — <code>RTO_FREIGHT_PAISE</code>, on a refused parcel</dd>
@@ -260,10 +260,10 @@ body { margin: 0; background: var(--page); color: var(--text); font-family: var(
    so the drawing below carries no sentence of its own.
    --------------------------------------------------------------------------- */
 const LADDER = [
-  { pos: '1', brand: 'Marlow',  bid: '₹30', fit: 62,  rank: 100, pays: '₹25.13', shown: true },
-  { pos: '2', brand: 'Halcyon', bid: '₹16', fit: 100, rank: 84,  pays: '₹9.45',  shown: true },
-  { pos: '3', brand: 'Auren',   bid: '₹19', fit: 50,  rank: 50,  pays: '₹17.08', shown: true },
-  { pos: '4', brand: 'Lumen',   bid: '₹17', fit: 50,  rank: 46,  pays: '₹12.55', shown: true },
+  { pos: '1', brand: 'Marlow',  bid: '₹30', fit: 62,  rank: 100, pays: '₹25', shown: true },
+  { pos: '2', brand: 'Halcyon', bid: '₹16', fit: 100, rank: 84,  pays: '₹9',  shown: true },
+  { pos: '3', brand: 'Auren',   bid: '₹19', fit: 50,  rank: 50,  pays: '₹17', shown: true },
+  { pos: '4', brand: 'Lumen',   bid: '₹17', fit: 50,  rank: 46,  pays: '₹13', shown: true },
   { cut: 'only four slots' },
   { pos: '—', brand: 'Torvi',   bid: '₹9',  fit: 70,  rank: 33,  pays: '—', shown: false },
   { pos: '—', brand: 'Nira',    bid: '₹8',  fit: 54,  rank: 23,  pays: '—', shown: false },
@@ -353,29 +353,29 @@ const BEATS = [
     go: 'How those four were chosen →',
   },
   {
-    past: 'ranked by bid × fit · Marlow first at ₹25.13, Halcyon second at ₹9.45',
+    past: 'ranked by bid × fit · Marlow first at ₹25, Halcyon second at ₹9',
     html: `
       <div class="kicker">Nobody bought those slots</div>
       <p class="say">Nine brands sell gym clothes here. Six wanted this search. On <em>every single search</em>, Google ranks them by what they bid, multiplied by how well their ad fits what was typed.</p>
       ${ladder()}
       <div class="callout" style="animation-delay:400ms">
         <div class="kicker">Read the top two rows again</div>
-        <p class="say" style="font-size:17px">Marlow bid <em>₹30</em> and pays <em>₹25.13</em>. Halcyon bid <em>₹16</em>, sits one place below, and pays <em>₹9.45</em> — because its ad fits this search better.</p>
+        <p class="say" style="font-size:17px">Marlow bid <em>₹30</em> and pays <em>₹25</em>. Halcyon bid <em>₹16</em>, sits one place below, and pays <em>₹9</em> — because its ad fits this search better.</p>
         <p class="note">You can buy your way up. It costs you every click.</p>
       </div>
       ${words([['a bid', 'the most you’ll pay for a click'], ['the auction', 'run on every search'], ['ad rank', 'bid × fit, and it decides the order']])}`,
     go: 'She clicks one →',
   },
   {
-    past: 'she clicked · ₹25.13 gone · nothing sold',
+    past: 'she clicked · ₹25 gone · nothing sold',
     html: `
       <div class="kicker">She clicks the first one</div>
       <div class="strip">
-        <div class="cell"><span class="k">Marlow pays</span><span class="v num" style="color:var(--red-text)">₹25.13</span><span class="s">the moment she clicks</span></div>
+        <div class="cell"><span class="k">Marlow pays</span><span class="v num" style="color:var(--red-text)">₹25</span><span class="s">the moment she clicks</span></div>
         <span class="arrow">→</span>
         <div class="cell" style="animation-delay:80ms"><span class="k">Marlow has sold</span><span class="v num" style="color:var(--dim)">₹0</span><span class="s">she is only looking</span></div>
       </div>
-      <p class="say">This is the part that surprises people. <em>You pay for the visit, not the sale.</em> She might buy nothing and leave. Marlow still paid ₹25.13.</p>
+      <p class="say">This is the part that surprises people. <em>You pay for the visit, not the sale.</em> She might buy nothing and leave. Marlow still paid ₹25.</p>
       <p class="note">Which is why a cheap click on the wrong search is expensive, and a dear click on the right one can be a bargain. Most of this game is that one sentence.</p>
       ${words([['a click', 'someone came to your site'], ['cost per click', 'what that visit cost'], ['your budget', 'the pot it comes out of']])}`,
     go: 'Three weeks later →',
@@ -385,15 +385,15 @@ const BEATS = [
     html: `
       <div class="kicker">She clicked in week 3. She buys in week 5.</div>
       ${weeks([
-        { tone: 'hit', text: '<b>the click</b><br>₹25.13 spent' },
+        { tone: 'hit', text: '<b>the click</b><br>₹25 spent' },
         { text: 'she thinks<br>about it' },
         { tone: 'hit', text: '<b>she buys</b><br>₹2,400<br>cash on delivery' },
         { text: '&nbsp;' },
         { text: '&nbsp;' },
       ])}
       ${rewrite([
-        ['when it happened', '1 click · ₹25.13 spent · <b>0 sold</b>'],
-        ['two weeks later', '1 click · ₹25.13 spent · <b class="up">₹2,400 sold</b>'],
+        ['when it happened', '1 click · ₹25 spent · <b>0 sold</b>'],
+        ['two weeks later', '1 click · ₹25 spent · <b class="up">₹2,400 sold</b>'],
       ])}
       <p class="say">The sale is counted in the week she <em>clicked</em>, not the week she bought. So a week you have already read is rewritten underneath you, two weeks after you read it.</p>
       <p class="note">Nothing has gone wrong. This is how the real thing works, and it is why judging a week too early is the most expensive habit in this game.</p>
@@ -405,7 +405,7 @@ const BEATS = [
     html: `
       <div class="kicker">Two weeks after that</div>
       ${weeks([
-        { text: 'the click<br>₹25.13 spent' },
+        { text: 'the click<br>₹25 spent' },
         { text: '&nbsp;' },
         { text: 'she buys<br>₹2,400' },
         { text: 'it ships' },
@@ -413,9 +413,9 @@ const BEATS = [
       ])}
       <p class="say">She pays cash when it arrives — and she doesn’t take it. The parcel goes back undelivered. The <em>₹2,400 goes back too</em>, and the ₹200 it cost to send does not.</p>
       ${rewrite([
-        ['when it happened', '1 click · ₹25.13 spent · <b>0 sold</b>'],
-        ['two weeks later', '1 click · ₹25.13 spent · <b class="up">₹2,400 sold</b>'],
-        ['four weeks later', '1 click · ₹25.13 spent · <b class="down">0 sold, −₹200</b>'],
+        ['when it happened', '1 click · ₹25 spent · <b>0 sold</b>'],
+        ['two weeks later', '1 click · ₹25 spent · <b class="up">₹2,400 sold</b>'],
+        ['four weeks later', '1 click · ₹25 spent · <b class="down">0 sold, −₹200</b>'],
       ])}
       <p class="note">Roughly <b>four orders in ten</b> come back in this market. It is the biggest thing standing between revenue and profit, and half of it never reaches the customer’s hands.</p>
       ${words([['a return', 'the order, and the money, come back'], ['refused at the door', 'never delivered, freight lost']])}`,

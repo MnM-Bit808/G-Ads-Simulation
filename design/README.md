@@ -527,16 +527,23 @@ already follows — every step the engine's own function, so it cannot drift.
 20260902, against the rival ads in `content/adCopy.js`:
 
 ```
-1  Marlow   ₹30 bid  ad rank 275.1  pays ₹25.13
-2  Halcyon  ₹16 bid  ad rank 230.3  pays  ₹9.45
-3  Auren    ₹19 bid  ad rank 138.5  pays ₹17.08
-4  Lumen    ₹17 bid  ad rank 126.1  pays ₹12.55
+1  Marlow   ₹30 bid  ad rank 275.1  pays ₹25
+2  Halcyon  ₹16 bid  ad rank 230.3  pays  ₹9
+3  Auren    ₹19 bid  ad rank 138.5  pays ₹17
+4  Lumen    ₹17 bid  ad rank 126.1  pays ₹13
 —  Torvi, Nira: out on slots, not on the reserve
 ```
 
 Six of nine entered; three had no keyword that matched. **Marlow buys slot one
-and pays ₹25.13; Halcyon pays ₹9.45 one place below on a better-fitting ad.**
+and pays ₹25; Halcyon pays ₹9 one place below on a better-fitting ad.**
 Nobody wrote that, and it is the run's central lesson.
+
+**Corrected on playing it, 2026-09-19:** these boards first said ₹25.13 and
+₹9.45. Every screen in this game rounds a cost per click to whole rupees through
+`rupees()` in `ui/dom.js`, and the interface has no paise formatter at all — so
+a beginner shown ₹25.13 here and ₹25 on every weekly screen afterwards would
+have been taught a convention the game does not use. The contrast reads harder
+whole, too.
 
 Every other figure is the engine's too: 1,849 searches a week is 43bp of
 `WEEKLY_VOLUME`; ₹2,400 and 52% are `briefing()`'s mid tier; ₹200 is

@@ -18,6 +18,10 @@ import {
   BEATS, runView, forward, back, figuresFor, tableFor, tailFor, termsFor, TERMS,
 } from '../ui/firstrun/read.js';
 import { FIRST_RUN } from '../ui/words/firstrun.js';
+import { FIRST_RUN_KEY, seenFirstRun, markFirstRunSeen } from '../ui/firstrun/render.js';
+import { SAVE_KEY } from '../ui/save.js';
+import { RECORDING_KEY } from '../ui/recorder.js';
+import { phaseGroups } from '../scripts/read-playtest.js';
 import { briefing } from '../setup.js';
 import { RTO_FREIGHT_PAISE, TOTAL_ROUNDS, ADVERTISER_COUNT, MAX_SLOTS as SLOTS,
   ATTRIBUTION_LAG_DISTRIBUTION } from '../engine/constants.js';
@@ -388,5 +392,80 @@ describe('no beat drowns the reader, which is the whole argument', () => {
       const furniture = /^(b\d(Trail)|wk|next|skip|back|again|stepOf|term|gloss)/.test(key);
       expect(furniture || terms.size >= 0, `${key} is written but never shown`).toBe(true);
     }
+  });
+});
+
+describe('it is seen once per browser, and never costs a game', () => {
+  const store = () => {
+    const map = new Map();
+    return {
+      getItem: (k) => map.get(k) ?? null,
+      setItem: (k, v) => map.set(k, String(v)),
+      removeItem: (k) => map.delete(k),
+    };
+  };
+
+  test('a fresh browser has not seen it; marking it makes it seen', () => {
+    const storage = store();
+    expect(seenFirstRun(storage)).toBe(false);
+    markFirstRunSeen(storage);
+    expect(seenFirstRun(storage)).toBe(true);
+    expect(storage.getItem(FIRST_RUN_KEY)).toBeTruthy();
+  });
+
+  // The save's own rule: storage that refuses is not a crash. A browser that
+  // will not remember shows the run again, which is the safe way to be wrong.
+  test('storage that refuses reads as not seen, and never throws', () => {
+    const angry = {
+      getItem: () => { throw new Error('nope'); },
+      setItem: () => { throw new Error('nope'); },
+      removeItem: () => {},
+    };
+    expect(() => seenFirstRun(angry)).not.toThrow();
+    expect(seenFirstRun(angry)).toBe(false);
+    expect(() => markFirstRunSeen(angry)).not.toThrow();
+    expect(() => seenFirstRun(null)).not.toThrow();
+  });
+
+  test('it is kept apart from the save and from the recording', () => {
+    expect(FIRST_RUN_KEY).not.toBe(SAVE_KEY);
+    expect(FIRST_RUN_KEY).not.toBe(RECORDING_KEY);
+  });
+});
+
+describe('the app reaches it, and the playtest file reports it', () => {
+  const app = read('ui/app.js');
+
+  test('the run is drawn before round 0, and only when it has not been seen', () => {
+    expect(app).toContain('createFirstRun');
+    expect(app).toContain('seenFirstRun');
+    expect(app).toContain('markFirstRunSeen');
+    // A redo has already met all of it: rewinding round 0 must not replay the run.
+    expect(app).toMatch(/!rewinding[\s\S]{0,40}seenFirstRun|seenFirstRun[\s\S]{0,40}!rewinding/);
+  });
+
+  test('it is its own recorded phase, so its minutes are not round 0’s', () => {
+    expect(app).toContain("'first run'");
+  });
+
+  // ITS OWN ROW, ABOVE ROUND 0. Counted inside round 0, the run's minutes would
+  // be absorbed by the very gate it was added to protect (the design's 9.2).
+  test('the reader groups it beside round 0, and first', () => {
+    const phase = (name, from, to) => ({
+      name, startAt: from, endAt: to, lastSeenAt: to,
+      hiddenMs: 0, idleMs: 0, clicks: 0, keys: 0, cardMs: {},
+    });
+    const file = {
+      recording: {
+        format: 1, startedAt: 0, loads: [0], versions: [], clicks: [], weeks: [], answers: {},
+        phases: [phase('first run', 0, 90_000), phase('round 0', 90_000, 600_000)],
+      },
+    };
+    const names = phaseGroups(file).map((row) => row.name);
+    expect(names).toContain('first run');
+    expect(names).toContain('round 0');
+    expect(names.indexOf('first run')).toBeLessThan(names.indexOf('round 0'));
+    const run = phaseGroups(file).find((row) => row.name === 'first run');
+    expect(run.activeSeconds).toBe(90);
   });
 });

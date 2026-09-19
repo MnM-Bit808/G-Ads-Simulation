@@ -37,6 +37,9 @@ import { createRoundZero } from './roundzero/studio.js';
 import { notesFor } from './roundzero/rules.js';
 import { renderDoor } from './door/render.js';
 import { doorFacts, changedWeeks } from './door/read.js';
+import { createFirstRun, seenFirstRun, markFirstRunSeen } from './firstrun/render.js';
+import { demonstration } from './firstrun/auction.js';
+import { figuresFor, partsFor } from './firstrun/read.js';
 
 /**
  * The market this game is played in. NOT a constant any more, because the end
@@ -108,6 +111,13 @@ const recorder = playtestMode(window.location.search, storage)
  * reload can still cost work on.
  */
 let roundZeroTouched = false;
+
+/**
+ * Whether the first run is on screen. It sits before round 0 and before any
+ * game exists, so it is the one screen with no state of its own to lose — and
+ * a click in it must not mark round 0 as touched.
+ */
+let inFirstRun = false;
 
 /**
  * The game being rewound, while round 0 is on screen for a second time (17.3).
@@ -276,6 +286,10 @@ function restart(market) {
 
 /** What the recorder calls the screen about to be drawn. */
 function screenName() {
+  // Its own phase, never round 0's: counted inside round 0, the run's minutes
+  // would be absorbed by the very gate it exists to protect
+  // (plans/2026-09-19-first-run-and-ground-floor.md, 9.2).
+  if (inFirstRun) return 'first run';
   if (!game) return rewinding ? 'round 0 (redo)' : 'round 0';
   const played = game.reports.length;
   return played >= TOTAL_ROUNDS ? 'end screen' : `week ${played}`;
@@ -289,6 +303,28 @@ function render() {
     // and round 0 has none yet. Closing it here is what the header's own
     // bookkeeping used to do before the switch-over took the header away.
     guide.close();
+
+    // THE MINUTE BEFORE ROUND 0, for someone who has never bought an ad
+    // (plans/2026-09-19-first-run-and-ground-floor.md). Once per browser, and
+    // never on a redo: a player rewinding round 0 has already met all of it.
+    if (!rewinding && !seenFirstRun(storage)) {
+      inFirstRun = true;
+      recorder?.phase(screenName());
+      const demo = demonstration();
+      const figures = figuresFor(demo);
+      app.replaceChildren(createFirstRun({
+        figures,
+        parts: partsFor(demo, figures),
+        onDone: () => {
+          markFirstRunSeen(storage);
+          inFirstRun = false;
+          render();
+        },
+      }).node);
+      window.scrollTo(0, 0);
+      return;
+    }
+    inFirstRun = false;
     // Round 0 in the sidebar layout (plans/2026-09-14-round-zero-redesign.md).
     // Round 0 starts on the brand the seed draws, and step 2 lets the player
     // pick another; a redo starts on the one the game was played as.
@@ -487,10 +523,11 @@ window.addEventListener('beforeunload', (event) => {
 });
 
 // A click on the front door is not work round 0 would lose, so reloading while
-// a game restores, or on a door that could not open one, asks nothing.
+// a game restores, or on a door that could not open one, asks nothing. Nor is
+// a click in the first run: it holds nothing a reload could cost.
 for (const type of ['input', 'change', 'click']) {
   app.addEventListener(type, (event) => {
-    if (!game && !event.target.closest?.('.door')) roundZeroTouched = true;
+    if (!game && !inFirstRun && !event.target.closest?.('.door')) roundZeroTouched = true;
   });
 }
 
