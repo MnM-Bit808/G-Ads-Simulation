@@ -19,5 +19,7 @@ export const PLAYTEST = Object.freeze({
     + 'pressed (not what they were), your answers, your saved game and your browser and screen size. Nothing has '
     + 'been sent anywhere: download it and send it back.'),
   download: line('label', 'Download the playtest file'),
+  // Asked partway through, the questions must not read as the end of the game.
+  keepPlaying: line('instruction', 'Not yet — back to the game'),
   playAgainAfter: line('reading', 'Starting again clears the saved game the file carries, so send the file first.'),
 });

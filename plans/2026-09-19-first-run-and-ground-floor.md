@@ -354,6 +354,12 @@ the owner first and the next playtest after.
 
 ## 7. The mid-game questions
 
+> **BUILT 2026-09-19.** Pressing Playtest anywhere but Results now asks the two
+> questions first and hands over the file under them, with a way back for
+> anyone who pressed it by mistake. It replaced a panel the classic look left
+> behind — exported since the switch-over and drawn by nothing. Its own recorded
+> phase, "playtest questions", so a reader can see they were asked.
+
 **The game can only ask what it taught you if you finish.** "Before you go" — the
 two questions and the download — lives on Results (`ui/results/render.js:740`),
 after week 12. The **Playtest** button in the rail (`ui/shell/shell.js:144`) has

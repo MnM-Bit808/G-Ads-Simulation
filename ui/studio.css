@@ -1546,6 +1546,68 @@ body.studio .studio-chips { scroll-behavior: smooth; }
 }
 
 /* ---------------------------------------------------------------------------
+   THE TWO QUESTIONS, asked before the file is handed to someone stopping
+   partway (plans/2026-09-19-first-run-and-ground-floor.md, section 7). Over
+   whatever is on screen, because it interrupts a game rather than ending one —
+   and it offers a way back, so pressing Playtest by mistake costs nothing.
+   --------------------------------------------------------------------------- */
+
+body.studio .pt-sheet {
+  position: fixed; inset: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: rgb(6 5 7 / 82%);
+  overflow-y: auto;
+}
+body.studio .pt-card {
+  width: min(560px, 100%);
+  background: var(--studio-card);
+  border: 1px solid var(--studio-line);
+  border-radius: 18px;
+  padding: 26px 28px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+body.studio .pt-title {
+  margin: 0;
+  font-family: var(--studio-display);
+  font-size: 22px; font-weight: 800; letter-spacing: -0.01em;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+}
+body.studio .pt-sub {
+  font-family: var(--studio-body);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .pt-field { display: flex; flex-direction: column; gap: 6px; }
+body.studio .pt-label { font-size: 14px; color: var(--studio-soft); }
+body.studio .pt-field textarea {
+  width: 100%;
+  background: var(--studio-page);
+  border: 1px solid var(--studio-line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--studio-text);
+  font: inherit; font-size: 14px; line-height: 1.5;
+  resize: vertical;
+}
+body.studio .pt-field textarea:focus-visible {
+  outline: 2px solid var(--studio-red-text); outline-offset: 2px;
+}
+body.studio .pt-note { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--studio-muted); }
+body.studio .pt-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+body.studio .pt-go {
+  background: var(--studio-red); color: var(--studio-on-red);
+  border: 0; border-radius: 12px; padding: 12px 22px;
+  font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+}
+body.studio .pt-back {
+  background: none; border: 0; cursor: pointer;
+  font: inherit; font-size: 13px; color: var(--studio-faint);
+  text-decoration: underline dotted; text-underline-offset: 4px;
+}
+body.studio .pt-back:hover { color: var(--studio-soft); }
+
+/* ---------------------------------------------------------------------------
    THE GROUND FLOOR (plans/2026-09-19-ground-floor.md): a chapter that says what
    a control IS, in one column rather than two halves, and the contents in two
    groups — Start here above Going deeper. The split is itself teaching.

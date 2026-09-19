@@ -28,7 +28,7 @@ import {
   makeSave, writeSave, readSave, clearSave, fingerprintOf, restoreSave,
 } from './save.js';
 import {
-  playtestMode, createRecorder, attachRecorder, downloadPlaytestFile,
+  playtestMode, createRecorder, attachRecorder, downloadPlaytestFile, renderPlaytestPanel,
 } from './recorder.js';
 import { createGuide } from './guide/drawer.js';
 import { guideFigures } from './guide/figures.js';
@@ -379,7 +379,36 @@ function redo() {
  * last week, so everything that reaches here wants the file itself.
  */
 function sendPlaytestFile() {
-  downloadPlaytestFile(recorder, storage);
+  // ASK BEFORE HANDING OVER THE FILE. Until 2026-09-19 this downloaded at once,
+  // and the two questions lived on Results alone — so the game could only ask
+  // what it had taught you if you played all twelve weeks. The people this is
+  // for are the ones who stop early (the design's section 7).
+  //
+  // On Results the questions are already on screen, so pressing the rail's
+  // Playtest there means the file, not the questions again.
+  if (game && game.reports.length >= TOTAL_ROUNDS) {
+    downloadPlaytestFile(recorder, storage);
+    return;
+  }
+  askBeforeSending();
+}
+
+/** The two questions, over whatever is on screen, and the file under them. */
+function askBeforeSending() {
+  const close = () => {
+    document.getElementById('playtest-panel')?.remove();
+    recorder?.phase(screenName());
+  };
+  close();
+  recorder?.phase('playtest questions');
+  document.body.append(renderPlaytestPanel({
+    recorder,
+    onDownload: () => {
+      downloadPlaytestFile(recorder, storage);
+      close();
+    },
+    onClose: close,
+  }));
 }
 
 /**

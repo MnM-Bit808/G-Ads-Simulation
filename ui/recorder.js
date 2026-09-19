@@ -494,10 +494,11 @@ export function downloadPlaytestFile(recorder, storage) {
 }
 
 function answerBox(recorder, id, question, rows) {
-  const wrap = el('label', 'field');
-  wrap.append(el('span', 'field-label', question));
+  const wrap = el('label', 'pt-field');
+  wrap.append(el('span', 'pt-label', question));
   const box = el('textarea');
   box.rows = rows;
+  box.id = `playtest-${id}`;
   box.value = recorder.log().answers[id] ?? '';
   box.addEventListener('input', () => recorder.answer(id, box.value));
   wrap.append(box);
@@ -505,27 +506,51 @@ function answerBox(recorder, id, question, rows) {
 }
 
 /**
- * The panel a playtester meets after the end screen: two questions and the file.
+ * The two questions, asked BEFORE the file is handed over, to someone who is
+ * stopping partway.
+ *
+ * WHY IT EXISTS. "Before you go" lives on Results, after week 12, so the game
+ * could only ask what it had taught you if you finished. The whole population
+ * this is for — people who stop early — had never been asked anything: two
+ * strangers stopped in September 2026 and sent no words at all except through
+ * the owner (plans/2026-09-19-first-run-and-ground-floor.md, section 7).
+ *
+ * THE SAME TWO QUESTIONS RESULTS ASKS, from `ui/words/playtest.js`, so an
+ * answer in a partial file and one in a finished file answer the same thing.
+ *
+ * It replaces a panel the classic look left behind: exported, drawn by nothing
+ * since the switch-over, and styled with classes the Studio does not have.
  *
  * @param {object} ctx
  * @param {ReturnType<typeof createRecorder>} ctx.recorder
  * @param {() => void} ctx.onDownload
+ * @param {() => void} ctx.onClose - back to the game, answering nothing
  * @returns {HTMLElement}
  */
-export function renderPlaytestPanel({ recorder, onDownload }) {
-  const node = el('article', 'card span-4 playtest');
+export function renderPlaytestPanel({ recorder, onDownload, onClose }) {
+  const node = el('div', 'pt-sheet');
   node.id = 'playtest-panel';
-  const heading = el('h2', null, PLAYTEST.title());
-  heading.append(el('span', 'muted', PLAYTEST.sub()));
-  node.append(heading);
-  node.append(
+  const card = el('section', 'pt-card');
+  const heading = el('h2', 'pt-title', PLAYTEST.title());
+  heading.append(el('span', 'pt-sub', PLAYTEST.sub()));
+  card.append(
+    heading,
     answerBox(recorder, 'lessons', PLAYTEST.lessons(), 5),
     answerBox(recorder, 'confusing', PLAYTEST.confusing(), 3),
+    el('p', 'pt-note', PLAYTEST.fileNote()),
   );
-  node.append(el('p', 'note', PLAYTEST.fileNote()));
-  const button = el('button', null, PLAYTEST.download());
-  button.type = 'button';
-  button.addEventListener('click', onDownload);
-  node.append(button);
+  const row = el('div', 'pt-row');
+  const send = el('button', 'pt-go', PLAYTEST.download());
+  send.type = 'button';
+  send.addEventListener('click', onDownload);
+  row.append(send);
+  if (onClose) {
+    const back = el('button', 'pt-back', PLAYTEST.keepPlaying());
+    back.type = 'button';
+    back.addEventListener('click', onClose);
+    row.append(back);
+  }
+  card.append(row);
+  node.append(card);
   return node;
 }

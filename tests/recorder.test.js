@@ -16,6 +16,8 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import {
   RECORDING_KEY, IDLE_AFTER_MS, playtestMode, createRecorder, summarise,
   describeClick, onScreen, playtestFile, playtestFilename, savedGameFor,
@@ -395,5 +397,50 @@ describe('the file the player sends', () => {
   test('it is named for when the recording began, so three files never collide', () => {
     const log = { startedAt: Date.UTC(2026, 8, 14, 9, 5) };
     expect(playtestFilename(log)).toBe('playtest-2026-09-14-0905.json');
+  });
+});
+
+describe('someone who stops early is asked what the game taught them', () => {
+  // THE GAME COULD ONLY ASK IF YOU FINISHED. "Before you go" lives on Results,
+  // after week 12, so the whole population this work exists for — people who
+  // stop early — had never been asked anything. Two strangers stopped in
+  // September 2026 and sent no words at all except through the owner
+  // (plans/2026-09-19-first-run-and-ground-floor.md, section 7).
+  const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
+
+  test('the rail’s Playtest asks before it hands over the file', () => {
+    const app = read('ui/app.js');
+    expect(app, 'sendPlaytestFile should open the questions, not download at once')
+      .toMatch(/askBeforeSending|renderPlaytestPanel/);
+  });
+
+  test('it asks the same two questions Results asks, so the answers are comparable', () => {
+    const panel = read('ui/recorder.js');
+    const results = read('ui/results/render.js');
+    for (const source of [panel, results]) {
+      expect(source).toContain('PLAYTEST.lessons()');
+      expect(source).toContain('PLAYTEST.confusing()');
+    }
+  });
+
+  test('an answer typed mid-game reaches the file, alongside a part-played save', () => {
+    const storage = memoryStorage();
+    const recorder = createRecorder({ storage, now: () => 1000 });
+    recorder.load();
+    recorder.phase('week 6');
+    recorder.answer('lessons', 'Cheap clicks on the wrong search are expensive.');
+    recorder.answer('confusing', 'I did not know what a keyword was at first.');
+    const file = playtestFile({
+      log: recorder.log(), save: null, environment: { width: 375, height: 812 },
+    });
+    expect(file.answers.lessons).toMatch(/^Cheap clicks/);
+    expect(file.answers.confusing).toMatch(/keyword/);
+    // And the recording still says where they were when they stopped.
+    expect(file.recording.phases.some((p) => p.name === 'week 6')).toBe(true);
+  });
+
+  test('the panel the classic look left behind is gone, not kept beside a new one', () => {
+    const body = read('ui/recorder.js');
+    expect(body, 'a dead panel drawing classes nothing styles').not.toContain("'card span-4 playtest'");
   });
 });
