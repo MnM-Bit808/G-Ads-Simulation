@@ -1,0 +1,84 @@
+/* Shared by every first-run artboard. The Studio's own tokens (ui/studio.css). */
+.fr-board {
+  width: 1440px;
+  height: 900px;
+  background: #0D0C0E;
+  color: #EDE8E3;
+  font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 46px 0 0;
+}
+.fr-col { width: 780px; display: flex; flex-direction: column; gap: 20px; }
+.fr-display { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* The step counter and skip, one row above the column. */
+.fr-top { width: 780px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.fr-dots { display: flex; gap: 6px; }
+.fr-dot { width: 22px; height: 3px; border-radius: 2px; background: #2A272D; }
+.fr-dot.on { background: #D7262F; }
+.fr-dot.done { background: #4A1A1F; }
+.fr-skip { font-size: 13px; color: #8A847E; text-decoration: underline dotted; text-underline-offset: 4px; cursor: pointer; background: none; border: 0; font-family: inherit; }
+
+/* A beat already played: collapsed to one quiet line. */
+.fr-past { display: flex; gap: 12px; align-items: baseline; font-size: 13px; color: #8A847E; padding: 7px 0; border-bottom: 1px solid #1C1A1F; }
+.fr-past b { color: #A19A94; font-weight: 600; }
+
+/* The live beat. */
+.fr-live { background: #17161A; border: 1px solid #2A272D; border-radius: 18px; padding: 26px 28px; display: flex; flex-direction: column; gap: 16px; }
+.fr-kicker { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #8A847E; }
+.fr-say { font-size: 19px; line-height: 1.5; color: #EDE8E3; margin: 0; }
+.fr-say em { font-style: normal; color: #FF6166; }
+.fr-note { font-size: 13px; color: #A19A94; margin: 0; }
+
+/* The word this beat teaches. */
+.fr-word { display: inline-flex; align-items: baseline; gap: 7px; padding: 3px 9px; border-radius: 7px; background: #221F25; font-size: 12px; color: #CFC9C3; }
+.fr-word b { font-weight: 700; color: #EDE8E3; }
+.fr-words { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.fr-go { align-self: flex-start; background: #D7262F; color: #FFF5F4; border: 0; border-radius: 12px; padding: 12px 22px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; }
+
+/* A Google result page, as the searcher sees it. */
+.fr-serp { background: #FFFFFF; color: #202124; border-radius: 14px; padding: 18px 22px; font-family: arial, sans-serif; }
+.fr-q { border: 1px solid #DFE1E5; border-radius: 22px; padding: 9px 16px; font-size: 15px; color: #202124; display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.fr-ad { margin-bottom: 14px; }
+.fr-spon { font-size: 12px; font-weight: 700; color: #202124; }
+.fr-url { font-size: 12px; color: #4D5156; }
+.fr-head { font-size: 18px; color: #1A0DAB; line-height: 1.3; margin: 2px 0; }
+.fr-desc { font-size: 13px; color: #4D5156; line-height: 1.45; }
+
+/* The ladder. */
+.fr-ladder { display: flex; flex-direction: column; gap: 2px; }
+.fr-row { display: grid; grid-template-columns: 30px 98px 54px 86px 1fr 70px; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 10px; font-size: 13px; }
+.fr-row.shown { background: #1C1A20; }
+.fr-row.out { color: #68636B; }
+.fr-row.you { background: #1A0C0F; box-shadow: inset 0 0 0 1px #4A1A1F; }
+.fr-pos { font-weight: 800; font-size: 15px; }
+.fr-bar { height: 7px; border-radius: 4px; background: #D7262F; }
+.fr-bar.dim { background: #3A363E; }
+.fr-hd { display: grid; grid-template-columns: 30px 98px 54px 86px 1fr 70px; gap: 12px; padding: 0 12px 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #68636B; }
+.fr-fit { height: 7px; border-radius: 4px; background: #2A272D; overflow: hidden; }
+.fr-fit i { display: block; height: 100%; background: #9FD3B5; }
+.fr-row.out .fr-fit i { background: #4A4750; }
+.fr-cut { display: flex; align-items: center; gap: 10px; padding: 6px 12px; font-size: 11px; color: #8A847E; }
+.fr-cut i { flex-grow: 1; height: 1px; background: #2A272D; font-style: normal; }
+
+/* The money strip. */
+.fr-strip { display: flex; align-items: stretch; gap: 10px; }
+.fr-cell { flex: 1; background: #17161A; border: 1px solid #2A272D; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; }
+.fr-cell .k { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8A847E; }
+.fr-cell .v { font-size: 22px; font-weight: 800; }
+.fr-cell .s { font-size: 12px; color: #A19A94; }
+.fr-arrow { align-self: center; color: #68636B; font-size: 18px; }
+
+/* The five weeks of the tail. */
+.fr-weeks { display: flex; gap: 6px; }
+.fr-wk { flex: 1; border-radius: 10px; background: #17161A; border: 1px solid #2A272D; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
+.fr-wk .n { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #68636B; }
+.fr-wk .e { font-size: 12px; color: #CFC9C3; line-height: 1.35; }
+.fr-wk.hit { border-color: #4A1A1F; background: #1A0C0F; }
+.fr-wk.hit .e { color: #EDE8E3; }

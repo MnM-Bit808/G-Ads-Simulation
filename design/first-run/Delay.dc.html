@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="./_board.css">
+  <style> body { margin: 0; } </style>
+</helmet>
+<div class="fr-board">
+  <div class="fr-top">
+    <div class="fr-dots"><span class="fr-dot done"></span><span class="fr-dot done"></span><span class="fr-dot done"></span><span class="fr-dot done"></span><span class="fr-dot on"></span><span class="fr-dot"></span><span class="fr-dot"></span></div>
+    <button class="fr-skip">Skip this — take me to the game</button>
+  </div>
+  <div class="fr-col">
+
+    <div class="fr-past"><b>1–3</b> one search · four ads · Marlow first at ₹25.13</div>
+    <div class="fr-past"><b>4</b> she clicked · ₹25.13 gone · nothing sold</div>
+
+    <div class="fr-live">
+      <div class="fr-kicker">She clicked in week 3. She buys in week 5.</div>
+
+      <div class="fr-weeks">
+        <div class="fr-wk hit">
+          <span class="n">Week 3</span>
+          <span class="e"><b>the click</b><br>₹25.13 spent</span>
+        </div>
+        <div class="fr-wk">
+          <span class="n">Week 4</span>
+          <span class="e">she thinks<br>about it</span>
+        </div>
+        <div class="fr-wk hit">
+          <span class="n">Week 5</span>
+          <span class="e"><b>she buys</b><br>₹2,400<br>cash on delivery</span>
+        </div>
+        <div class="fr-wk">
+          <span class="n">Week 6</span>
+          <span class="e">&nbsp;</span>
+        </div>
+        <div class="fr-wk">
+          <span class="n">Week 7</span>
+          <span class="e">&nbsp;</span>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; background: #17161A; border: 1px solid #2A272D; border-radius: 14px; padding: 16px 18px;">
+        <div class="fr-kicker">What week 3’s report said</div>
+        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+          <div style="display: flex; gap: 14px;"><span style="width: 128px; color: #8A847E;">when it happened</span><span class="num">1 click · ₹25.13 spent · <b>0 sold</b></span></div>
+          <div style="display: flex; gap: 14px;"><span style="width: 128px; color: #8A847E;">two weeks later</span><span class="num">1 click · ₹25.13 spent · <b style="color: #9FD3B5;">₹2,400 sold</b></span></div>
+        </div>
+      </div>
+
+      <p class="fr-say">The sale is counted in the week she <em>clicked</em>, not the week she bought. So a week you have already read is rewritten underneath you, two weeks after you read it.</p>
+      <p class="fr-note">Nothing has gone wrong. This is how the real thing works, and it is why judging a week too early is the most expensive habit in this game.</p>
+
+      <div class="fr-words">
+        <span class="fr-word"><b>a conversion</b> · a click that became an order</span>
+        <span class="fr-word"><b>the delay</b> · sales land weeks after the click</span>
+      </div>
+      <button class="fr-go">Two weeks after that →</button>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

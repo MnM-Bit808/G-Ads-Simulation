@@ -508,6 +508,49 @@ the cap takes one, in the words Your ad's total uses.
 
 **Built** 2026-09-17 as DECISIONS I38, measured against gates agreed first.
 
+## `first-run/`: the minute before round 0 (2026-09-19)
+
+A seventeenth set, for the problem two strangers found on `playtest-4`: one gave
+up inside round 0, the other stopped around week 6 and agreed with the first
+one's complaint. Neither sent a playtest file, so everything here is measured on
+the code and on the engine rather than on a recording.
+
+Seven boards, one beat each — `Open`, `Serp`, `Ladder`, `Click`, `Delay`,
+`Return`, `End` — sharing `_board.css`, with the sourcing in `canvas.json`'s
+annotations. `prototype.html` is the same seven played rather than stilled: the
+beats advance on a click, with the motion `reviews/slc-review.md` section 13
+already specified, and the studio's own notes behind a toggle that never ships.
+
+**The ladder is one real auction**, not written prose, on the rule `ui/reserve.js`
+already follows — every step the engine's own function, so it cannot drift.
+`resolveAuction` on `q_056` "gym leggings with pockets" at hour 19, seed
+20260902, against the rival ads in `content/adCopy.js`:
+
+```
+1  Marlow   ₹30 bid  ad rank 275.1  pays ₹25.13
+2  Halcyon  ₹16 bid  ad rank 230.3  pays  ₹9.45
+3  Auren    ₹19 bid  ad rank 138.5  pays ₹17.08
+4  Lumen    ₹17 bid  ad rank 126.1  pays ₹12.55
+—  Torvi, Nira: out on slots, not on the reserve
+```
+
+Six of nine entered; three had no keyword that matched. **Marlow buys slot one
+and pays ₹25.13; Halcyon pays ₹9.45 one place below on a better-fitting ad.**
+Nobody wrote that, and it is the run's central lesson.
+
+Every other figure is the engine's too: 1,849 searches a week is 43bp of
+`WEEKLY_VOLUME`; ₹2,400 and 52% are `briefing()`'s mid tier; ₹200 is
+`RTO_FREIGHT_PAISE`, charged on a **refused** parcel only, which is why the
+return is a refusal rather than a send-back; five weeks to settle is
+`engine/attribution.js`.
+
+**Split on the owner's call, 2026-09-19:** `Delay` and `Return` were one board.
+The delay and the return are the two hardest ideas in the run and were sharing
+the board where attention is thinnest.
+
+The design is `plans/2026-09-19-first-run-and-ground-floor.md`. **Nothing is
+built from it yet.**
+
 ## The map data
 
 `build-map.mjs` and `build-cities.mjs` are one-shot Node scripts, run by hand.

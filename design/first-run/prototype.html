@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The First Run</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+<style>
+/* ---------------------------------------------------------------------------
+   The Studio's own tokens (ui/studio.css). This prototype commits to one
+   visual world — the game's — so there is no light theme: every colour is
+   painted explicitly and the page holds on either host ground.
+   --------------------------------------------------------------------------- */
+:root {
+  --page: #0D0C0E; --sidebar: #131215; --card: #17161A; --raised: #221F25;
+  --line: #2A272D; --line-strong: #3A363E;
+  --text: #EDE8E3; --soft: #CFC9C3; --muted: #A19A94; --faint: #8A847E; --dim: #68636B;
+  --red: #D7262F; --red-text: #FF6166; --on-red: #FFF5F4;
+  --amber: #F2A53A; --mint: #9FD3B5;
+  --panel: #1A0C0F; --panel-edge: #4A1A1F;
+  --display: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif;
+  --body: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);          /* entrances, section 13 row 2 */
+  --ease-step: cubic-bezier(0.77, 0, 0.175, 1);    /* between beats, row 3 */
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--text); font-family: var(--body); }
+.num { font-variant-numeric: tabular-nums; }
+:focus-visible { outline: 2px solid var(--red-text); outline-offset: 2px; border-radius: 6px; }
+
+/* ---------------------------------------------------------------------------
+   THE PLAYER'S VIEW. Everything from here to the notes is what a beginner
+   meets: no title, no lede, no citations. The design notes below are for this
+   studio and never ship.
+   --------------------------------------------------------------------------- */
+.board {
+  min-height: 100vh; background: var(--page); color: var(--text);
+  display: flex; flex-direction: column; align-items: center;
+  padding-block: 44px 72px; padding-left: 20px; padding-right: 20px;
+}
+.col { width: min(820px, 100%); display: flex; flex-direction: column; gap: 16px; }
+
+/* --- the strip above: progress, skip -------------------------------------- */
+.top { width: min(820px, 100%); display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+.dots { display: flex; gap: 6px; }
+.dot { width: 26px; height: 3px; border-radius: 2px; background: var(--line); transition: background 240ms var(--ease); }
+.dot.done { background: var(--panel-edge); }
+.dot.on { background: var(--red); }
+.ghost { font-size: 13px; color: var(--faint); background: none; border: 0; font-family: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 4px; }
+.ghost:hover { color: var(--soft); }
+
+/* --- a beat already played ------------------------------------------------- */
+.trail { display: flex; flex-direction: column; }
+.past { display: flex; gap: 12px; align-items: baseline; font-size: 13px; color: var(--faint); padding: 7px 0; border-bottom: 1px solid #1C1A1F; }
+.past b { color: var(--muted); font-weight: 600; flex: 0 0 34px; }
+.past.fresh { animation: slip 240ms var(--ease) both; }
+
+/* --- the live beat --------------------------------------------------------- */
+.live { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 26px 28px; display: flex; flex-direction: column; gap: 16px; }
+.live.enter { animation: rise 240ms var(--ease) both; }
+.live.back { animation: rise-back 260ms var(--ease-step) both; }
+.kicker { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+.say { font-size: 19px; line-height: 1.55; margin: 0; text-wrap: pretty; }
+.say em { font-style: normal; color: var(--red-text); }
+.note { font-size: 13.5px; line-height: 1.6; color: var(--muted); margin: 0; }
+.note b { color: var(--text); }
+.hero { font-family: var(--display); font-weight: 800; letter-spacing: -0.02em; line-height: 1.12; text-wrap: balance; }
+
+.words { display: flex; gap: 8px; flex-wrap: wrap; }
+.word { display: inline-flex; align-items: baseline; gap: 7px; padding: 4px 10px; border-radius: 8px; background: var(--raised); font-size: 12px; color: var(--soft); animation: rise 220ms var(--ease) both; }
+.word b { font-weight: 700; color: var(--text); }
+.word:nth-child(2) { animation-delay: 60ms; }
+.word:nth-child(3) { animation-delay: 120ms; }
+
+.go { align-self: flex-start; background: var(--red); color: var(--on-red); border: 0; border-radius: 12px; padding: 12px 22px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; transition: transform 160ms ease-out; }
+.go:active { transform: scale(0.97); }        /* section 13 row 4 */
+.row-go { display: flex; align-items: center; gap: 14px; }
+
+/* --- a Google result page -------------------------------------------------- */
+.serp { background: #FFFFFF; color: #202124; border-radius: 14px; padding: 16px 20px; font-family: arial, sans-serif; }
+.q { border: 1px solid #DFE1E5; border-radius: 22px; padding: 9px 16px; font-size: 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.ad { margin-bottom: 13px; animation: rise 220ms var(--ease) both; }
+.ad:nth-child(2) { animation-delay: 0ms; } .ad:nth-child(3) { animation-delay: 70ms; }
+.ad:nth-child(4) { animation-delay: 140ms; } .ad:nth-child(5) { animation-delay: 210ms; }
+.spon { font-size: 12px; font-weight: 700; }
+.url { font-size: 12px; color: #4D5156; }
+.head { font-size: 18px; color: #1A0DAB; line-height: 1.3; margin: 2px 0; }
+.desc { font-size: 13px; color: #4D5156; line-height: 1.45; }
+.organic { border-top: 1px solid #DFE1E5; padding-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+.organic i { display: block; height: 8px; border-radius: 4px; background: #E8EAED; font-style: normal; }
+.organic small { font-size: 11px; color: #9AA0A6; }
+
+/* --- the ladder ------------------------------------------------------------ */
+.ladder { display: flex; flex-direction: column; gap: 2px; }
+.lrow, .lhd { display: grid; grid-template-columns: 30px 100px 54px 88px 1fr 72px; align-items: center; gap: 12px; }
+.lhd { padding: 0 12px 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+.lrow { padding: 9px 12px; border-radius: 10px; font-size: 13px; animation: rise 240ms var(--ease) both; }
+.lrow.shown { background: #1C1A20; }
+.lrow.out { color: var(--dim); }
+.pos { font-weight: 800; font-size: 15px; }
+.brand { font-weight: 600; }
+.fit { height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.fit i { display: block; height: 100%; background: var(--mint); width: 0; animation: grow 420ms var(--ease) both; animation-delay: inherit; }
+.out .fit i { background: #4A4750; }
+.rank { height: 7px; border-radius: 4px; background: var(--red); width: 0; animation: grow 420ms var(--ease) both; animation-delay: inherit; }
+.out .rank { background: var(--line-strong); }
+.pays { font-weight: 700; }
+.cut { display: flex; align-items: center; gap: 10px; padding: 6px 12px; font-size: 11px; color: var(--faint); animation: rise 240ms var(--ease) both; }
+.cut i { flex-grow: 1; height: 1px; background: var(--line); font-style: normal; }
+
+.callout { background: var(--panel); border: 1px solid var(--panel-edge); border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; animation: rise 260ms var(--ease) both; }
+.callout .kicker { color: var(--red-text); }
+
+/* --- money cells ----------------------------------------------------------- */
+.strip { display: flex; align-items: stretch; gap: 10px; }
+.cell { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 5px; animation: rise 240ms var(--ease) both; }
+.cell .k { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); }
+.cell .v { font-size: 24px; font-weight: 800; }
+.cell .s { font-size: 12px; color: var(--muted); }
+.arrow { align-self: center; color: var(--dim); font-size: 18px; }
+
+/* --- the five weeks -------------------------------------------------------- */
+.weeks { display: flex; gap: 6px; }
+.wk { flex: 1; border-radius: 10px; background: var(--card); border: 1px solid var(--line); padding: 10px; display: flex; flex-direction: column; gap: 5px; min-height: 92px; animation: rise 240ms var(--ease) both; transition: background 260ms var(--ease), border-color 260ms var(--ease); }
+.wk .n { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+.wk .e { font-size: 12px; color: var(--soft); line-height: 1.4; }
+.wk.hit { border-color: var(--panel-edge); background: var(--panel); }
+.wk.hit .e { color: var(--text); }
+.wk.bad { border-color: #6B4416; background: #241606; }
+.wk.bad .n { color: var(--amber); }
+
+/* --- the rewrite table ----------------------------------------------------- */
+.rewrite { display: flex; flex-direction: column; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+.rw { display: flex; gap: 14px; font-size: 14px; animation: rise 240ms var(--ease) both; }
+.rw span:first-child { width: 132px; color: var(--faint); flex: none; }
+.rw b.up { color: var(--mint); } .rw b.down { color: var(--amber); }
+
+/* --- motion ---------------------------------------------------------------- */
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes rise-back { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes slip { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes grow { from { width: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The review's rule: keep the fade, drop the movement. */
+  @keyframes rise { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes rise-back { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slip { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes grow { from { width: 0; } }
+  .go:active { transform: none; }
+  * { animation-duration: 200ms !important; animation-timing-function: linear !important; }
+}
+
+/* --- narrow screens: the run is a real page, so it has to hold at 400px ---- */
+@media (max-width: 720px) {
+  .lrow, .lhd { grid-template-columns: 22px 1fr 44px 1fr 56px; }
+  .lrow .fit, .lhd span:nth-child(4) { display: none; }
+  .say { font-size: 17px; }
+  .hero { font-size: 28px !important; }
+  .weeks { overflow-x: auto; padding-bottom: 4px; }
+  .wk { min-width: 108px; }
+  .strip { flex-wrap: wrap; }
+  .arrow { display: none; }
+  .rw { flex-direction: column; gap: 2px; }
+  .rw span:first-child { width: auto; }
+  .top { flex-wrap: wrap; }
+}
+
+/* ---------------------------------------------------------------------------
+   THE DESIGN NOTES. Off by default, and never part of what a player sees.
+   --------------------------------------------------------------------------- */
+/* Bottom-right, where nothing in the run competes with it. */
+.shelf { position: fixed; bottom: 16px; right: 16px; z-index: 5; }
+.shelf button { background: var(--raised); color: var(--soft); border: 1px solid var(--line-strong); border-radius: 999px; padding: 7px 15px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.shelf button:hover { color: var(--text); border-color: var(--faint); }
+.shelf button[aria-pressed="true"] { background: var(--panel); border-color: var(--panel-edge); color: var(--red-text); }
+
+.sheet { background: var(--sidebar); border-top: 1px solid var(--line); padding-block: 34px 64px; padding-left: 20px; padding-right: 20px; }
+.sheet-in { max-width: 1240px; margin: 0 auto; }
+.sheet h1 { font-family: var(--display); font-size: clamp(20px, 3vw, 27px); font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; text-wrap: balance; }
+.lede { color: var(--muted); font-size: 14px; line-height: 1.6; max-width: 66ch; margin: 0 0 26px; }
+.lede code, .sheet code { font-size: 12.5px; background: var(--page); padding: 1px 5px; border-radius: 5px; color: var(--soft); }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.note-card { background: var(--page); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; }
+.note-card h2 { font-family: var(--display); font-size: 16px; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
+.note-card .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red-text); }
+.note-card p { margin: 0; font-size: 13px; line-height: 1.65; color: var(--muted); }
+.note-card p b { color: var(--soft); font-weight: 600; }
+.note-card code { font-size: 12px; background: var(--card); padding: 1px 5px; border-radius: 5px; color: var(--soft); }
+.note-card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 12.5px; }
+.note-card dt { color: var(--faint); }
+.note-card dd { margin: 0; color: var(--soft); }
+</style>
+</head>
+<body>
+<div class="shelf">
+  <button id="toggle" aria-pressed="false" aria-controls="sheet">Design notes</button>
+</div>
+
+<div class="board">
+  <div class="top">
+    <div class="dots" id="dots"></div>
+    <button class="ghost" id="skip">Skip this — take me to the game</button>
+  </div>
+  <div class="col">
+    <div class="trail" id="trail"></div>
+    <div id="slot"></div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+<div class="sheet-in">
+
+  <h1>The First Run</h1>
+  <p class="lede">Everything above this line is what a player sees, at the size they see it — no title, no citations, no source paths. This sheet is the studio's, and nothing on it ships. The minute runs before round 0, for someone who has never bought an ad, and the beats advance on the player's click rather than a timer. Every figure above is the engine's: the ladder is one real <code>resolveAuction()</code> on <code>q_056</code> at 19:00, seed 20260902, against the rival ads in <code>content/adCopy.js</code>. Artboards in <code>design/first-run/</code>.</p>
+
+  <div class="notes">
+    <div class="note-card">
+      <span class="eyebrow">Where the numbers come from</span>
+      <h2>Nothing here was written by hand</h2>
+      <p>The search is <code>q_056</code>, “gym leggings with pockets” — 43bp of <code>WEEKLY_VOLUME</code> 430,000, so <b>1,849 a week</b>. The ladder is one real auction: Marlow first at <b>₹25.13</b> on a ₹30 bid, Halcyon second at <b>₹9.45</b> on ₹16 with an ad that fits better. Six of nine brands entered; three had no keyword that matched.</p>
+      <dl>
+        <dt>order, margin</dt><dd>₹2,400 · 52% — <code>briefing()</code>, mid tier</dd>
+        <dt>freight</dt><dd>₹200 — <code>RTO_FREIGHT_PAISE</code>, on a refused parcel</dd>
+        <dt>returns</dt><dd>41.7% of mid-tier orders</dd>
+        <dt>the delay</dt><dd>five weeks — <code>engine/attribution.js</code></dd>
+      </dl>
+    </div>
+
+    <div class="note-card">
+      <span class="eyebrow">What it costs to read</span>
+      <h2>167 words, against round 0's 781</h2>
+      <p>The opening statement is 54 of them; the seven beats share the other 113. Round 0 was cut from 2,648 words to 781 and a stranger still gave up inside it, so this run earns its place only if it stays a story told in numbers and ads rather than prose.</p>
+      <p><b>One word, one home.</b> The run teaches the <i>world</i> — search, ad, position, impression, auction, bid, ad rank, click, cost per click, budget, conversion, the delay, return. The guide's new ground-floor chapters teach the <i>controls</i> — keyword, match type, positioning, landing page. Nothing is defined twice in two voices.</p>
+    </div>
+
+    <div class="note-card">
+      <span class="eyebrow">How it is paced</span>
+      <h2>One beat at a time, and the player holds the clock</h2>
+      <p>No autoplay and no timers — a timer freezes in the browser pane and records nothing. A played beat collapses to one quiet line and <b>stays on screen</b>, so a re-reader can scroll back and nothing is lost. <b>Skip</b> sits on every beat but the last; the last offers <b>Watch that again</b>, which is also how the Guide reopens it.</p>
+      <p>Beats 5 and 6 shared one board until <b>2026-09-19</b>, when the owner split them: the delay and the return are the two hardest ideas in the run, and they were sharing the board where attention is thinnest.</p>
+    </div>
+
+    <div class="note-card">
+      <span class="eyebrow">Motion</span>
+      <h2>The review's own rules, not new ones</h2>
+      <p>Transform and opacity only, no library — <code>slc-review</code> section 13. A beat enters on opacity and an 8px rise, <b>240ms</b> on <code>cubic-bezier(0.23, 1, 0.32, 1)</code> (row 2). Going back reverses the direction on <code>cubic-bezier(0.77, 0, 0.175, 1)</code> (row 3). The ladder reveals <b>row by row at a 50ms stagger</b> with its bars growing from zero — row 5's end-screen reveal, applied to the same idea.</p>
+      <p><b>No counting tickers anywhere.</b> Every rupee figure appears at its true value, because a ticker shows in-between numbers the engine never reported. Under reduced motion every movement is dropped and the fades stay. Four motions in all, inside section 13's cap of five to seven for the whole app.</p>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------------
+   The seven beats. Kept as data, the way ui/words/firstrun.js would hold them,
+   so the drawing below carries no sentence of its own.
+   --------------------------------------------------------------------------- */
+const LADDER = [
+  { pos: '1', brand: 'Marlow',  bid: '₹30', fit: 62,  rank: 100, pays: '₹25.13', shown: true },
+  { pos: '2', brand: 'Halcyon', bid: '₹16', fit: 100, rank: 84,  pays: '₹9.45',  shown: true },
+  { pos: '3', brand: 'Auren',   bid: '₹19', fit: 50,  rank: 50,  pays: '₹17.08', shown: true },
+  { pos: '4', brand: 'Lumen',   bid: '₹17', fit: 50,  rank: 46,  pays: '₹12.55', shown: true },
+  { cut: 'only four slots' },
+  { pos: '—', brand: 'Torvi',   bid: '₹9',  fit: 70,  rank: 33,  pays: '—', shown: false },
+  { pos: '—', brand: 'Nira',    bid: '₹8',  fit: 54,  rank: 23,  pays: '—', shown: false },
+];
+
+const ADS = [
+  ['marlowlabel.in', 'Gym Leggings And Bras | Workout Clothing | Made For Training',
+   'Leggings, sports bras and tees made for the gym. Marlow offers 30-day returns and free delivery. Sizes XS to XXL.'],
+  ['halcyon.in', 'Leggings Built To Train In | Holds Up, Wash After Wash | Squat-Proof',
+   'Gym wear that survives four sessions a week and a hot Indian summer. Sizes XS to XXL, with a fit guide that admits when to size up.'],
+  ['auren.in', 'Recycled Nylon, Built To Last | Tested Over A Training Block',
+   'Recycled technical nylon with bonded panels, tested through a full training block. Thirty days to change your mind, either way.'],
+  ['lumenlabel.in', 'Seamless Compression Kit | Japanese Technical Knit | Made For Heavy Lifts',
+   'Seamless, sculpting, second-skin. Japanese yarn, knitted to hold under load. 30-day returns, free delivery both ways.'],
+];
+
+const searchBox = (sub) => `
+  <div class="serp">
+    <div class="q">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA0A6" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.5-4.5"></path></svg>
+      gym leggings with pockets
+    </div>
+    ${sub}
+  </div>`;
+
+const serpAds = () => searchBox(
+  ADS.map(([url, head, desc]) => `
+    <div class="ad">
+      <div class="spon">Sponsored</div>
+      <div class="url">${url}</div>
+      <div class="head">${head}</div>
+      <div class="desc">${desc}</div>
+    </div>`).join('')
+  + `<div class="organic"><i style="width:42%"></i><i style="width:66%;background:#F1F3F4"></i><small>the ordinary results, which nobody pays for</small></div>`);
+
+const ladder = () => {
+  let delay = 0;
+  const rows = LADDER.map((r) => {
+    const d = `animation-delay:${delay}ms`;
+    delay += 50;                                   // section 13 row 5's stagger
+    if (r.cut) return `<div class="cut" style="${d}"><i></i> ${r.cut} <i></i></div>`;
+    return `<div class="lrow ${r.shown ? 'shown' : 'out'}" style="${d}">
+      <span class="pos">${r.pos}</span>
+      <span class="brand">${r.brand}</span>
+      <span class="num">${r.bid}</span>
+      <span class="fit"><i style="width:${r.fit}%;${d}"></i></span>
+      <span class="rank" style="width:${r.rank}%;${d}"></span>
+      <span class="num pays">${r.pays}</span>
+    </div>`;
+  }).join('');
+  return `<div class="ladder">
+    <div class="lhd"><span></span><span>brand</span><span>bid</span><span>ad fits</span><span>rank</span><span>pays</span></div>
+    ${rows}
+  </div>`;
+};
+
+const weeks = (state) => `<div class="weeks">${state.map((w, i) => `
+  <div class="wk ${w.tone || ''}" style="animation-delay:${i * 50}ms">
+    <span class="n">Week ${i + 3}</span><span class="e">${w.text}</span>
+  </div>`).join('')}</div>`;
+
+const rewrite = (rows) => `<div class="rewrite">
+  <div class="kicker">What week 3’s report said${rows.length > 2 ? ', three times' : ''}</div>
+  ${rows.map((r, i) => `<div class="rw" style="animation-delay:${i * 60}ms"><span>${r[0]}</span><span class="num">${r[1]}</span></div>`).join('')}
+</div>`;
+
+const words = (list) => `<div class="words">${list.map(([w, s]) => `<span class="word"><b>${w}</b> · ${s}</span>`).join('')}</div>`;
+
+const BEATS = [
+  {
+    past: '“gym leggings with pockets” · 1,849 searches a week',
+    html: `
+      <div class="kicker">One search</div>
+      ${searchBox('<div style="font-size:12px;color:#70757A">Pune, Maharashtra · 7:40 pm</div>')}
+      <p class="say">In Pune, someone types this. About <em class="num">1,849</em> people search it every week.</p>
+      ${words([['a search', 'one person, once'], ['search volume', 'how many a week']])}`,
+    go: 'What she sees →',
+    opener: true,
+  },
+  {
+    past: 'four ads above the results · Marlow, Halcyon, Auren, Lumen',
+    html: `
+      <div class="kicker">What she sees</div>
+      ${serpAds()}
+      <p class="say">Four ads, above everything else. Being shown at all is an <em>impression</em> — and nothing has been paid yet.</p>
+      ${words([['an ad', 'three headlines, two lines'], ['position', '1 to 4, top to bottom'], ['an impression', 'your ad was shown']])}`,
+    go: 'How those four were chosen →',
+  },
+  {
+    past: 'ranked by bid × fit · Marlow first at ₹25.13, Halcyon second at ₹9.45',
+    html: `
+      <div class="kicker">Nobody bought those slots</div>
+      <p class="say">Nine brands sell gym clothes here. Six wanted this search. On <em>every single search</em>, Google ranks them by what they bid, multiplied by how well their ad fits what was typed.</p>
+      ${ladder()}
+      <div class="callout" style="animation-delay:400ms">
+        <div class="kicker">Read the top two rows again</div>
+        <p class="say" style="font-size:17px">Marlow bid <em>₹30</em> and pays <em>₹25.13</em>. Halcyon bid <em>₹16</em>, sits one place below, and pays <em>₹9.45</em> — because its ad fits this search better.</p>
+        <p class="note">You can buy your way up. It costs you every click.</p>
+      </div>
+      ${words([['a bid', 'the most you’ll pay for a click'], ['the auction', 'run on every search'], ['ad rank', 'bid × fit, and it decides the order']])}`,
+    go: 'She clicks one →',
+  },
+  {
+    past: 'she clicked · ₹25.13 gone · nothing sold',
+    html: `
+      <div class="kicker">She clicks the first one</div>
+      <div class="strip">
+        <div class="cell"><span class="k">Marlow pays</span><span class="v num" style="color:var(--red-text)">₹25.13</span><span class="s">the moment she clicks</span></div>
+        <span class="arrow">→</span>
+        <div class="cell" style="animation-delay:80ms"><span class="k">Marlow has sold</span><span class="v num" style="color:var(--dim)">₹0</span><span class="s">she is only looking</span></div>
+      </div>
+      <p class="say">This is the part that surprises people. <em>You pay for the visit, not the sale.</em> She might buy nothing and leave. Marlow still paid ₹25.13.</p>
+      <p class="note">Which is why a cheap click on the wrong search is expensive, and a dear click on the right one can be a bargain. Most of this game is that one sentence.</p>
+      ${words([['a click', 'someone came to your site'], ['cost per click', 'what that visit cost'], ['your budget', 'the pot it comes out of']])}`,
+    go: 'Three weeks later →',
+  },
+  {
+    past: 'she buys ₹2,400 in week 5 · counted in week 3',
+    html: `
+      <div class="kicker">She clicked in week 3. She buys in week 5.</div>
+      ${weeks([
+        { tone: 'hit', text: '<b>the click</b><br>₹25.13 spent' },
+        { text: 'she thinks<br>about it' },
+        { tone: 'hit', text: '<b>she buys</b><br>₹2,400<br>cash on delivery' },
+        { text: '&nbsp;' },
+        { text: '&nbsp;' },
+      ])}
+      ${rewrite([
+        ['when it happened', '1 click · ₹25.13 spent · <b>0 sold</b>'],
+        ['two weeks later', '1 click · ₹25.13 spent · <b class="up">₹2,400 sold</b>'],
+      ])}
+      <p class="say">The sale is counted in the week she <em>clicked</em>, not the week she bought. So a week you have already read is rewritten underneath you, two weeks after you read it.</p>
+      <p class="note">Nothing has gone wrong. This is how the real thing works, and it is why judging a week too early is the most expensive habit in this game.</p>
+      ${words([['a conversion', 'a click that became an order'], ['the delay', 'sales land weeks after the click']])}`,
+    go: 'Two weeks after that →',
+  },
+  {
+    past: 'refused at the door · −₹200 freight · week 3 rewritten again',
+    html: `
+      <div class="kicker">Two weeks after that</div>
+      ${weeks([
+        { text: 'the click<br>₹25.13 spent' },
+        { text: '&nbsp;' },
+        { text: 'she buys<br>₹2,400' },
+        { text: 'it ships' },
+        { tone: 'bad', text: '<b>refused at the door</b><br>never delivered<br>−₹200 freight' },
+      ])}
+      <p class="say">She pays cash when it arrives — and she doesn’t take it. The parcel goes back undelivered. The <em>₹2,400 goes back too</em>, and the ₹200 it cost to send does not.</p>
+      ${rewrite([
+        ['when it happened', '1 click · ₹25.13 spent · <b>0 sold</b>'],
+        ['two weeks later', '1 click · ₹25.13 spent · <b class="up">₹2,400 sold</b>'],
+        ['four weeks later', '1 click · ₹25.13 spent · <b class="down">0 sold, −₹200</b>'],
+      ])}
+      <p class="note">Roughly <b>four orders in ten</b> come back in this market. It is the biggest thing standing between revenue and profit, and half of it never reaches the customer’s hands.</p>
+      ${words([['a return', 'the order, and the money, come back'], ['refused at the door', 'never delivered, freight lost']])}`,
+    go: 'And that is the whole job →',
+  },
+  {
+    last: true,
+    html: `
+      <div class="kicker">That was one search</div>
+      <div class="hero" style="font-size:34px">There are <span class="num">430,000</span> a week,<br>and nine brands want them.</div>
+      <p class="say"><em>One of those nine is you.</em> For twelve weeks you decide which searches are worth being in, what to pay for them, and what your ad says. Everyone else is deciding the same thing at the same time.</p>
+      <div class="strip" style="gap:8px">
+        <div class="cell"><span class="k">You get</span><span class="v">12 weeks</span><span class="s">one week at a time</span></div>
+        <div class="cell" style="animation-delay:60ms"><span class="k">Against</span><span class="v">8 brands</span><span class="s">you can’t see their plans</span></div>
+        <div class="cell" style="animation-delay:120ms"><span class="k">Judged on</span><span class="v">what you made</span><span class="s">after returns and costs</span></div>
+      </div>
+      <p class="note">Next you’ll pick where your brand sits, which searches to bid on, and what your ad says. Every term from the last minute comes back with a <span style="color:var(--red-text);text-decoration:underline dotted;text-underline-offset:3px">why?</span> beside it, and the guide is always in the left-hand strip.</p>`,
+    go: 'Start — pick your brand’s position',
+  },
+];
+
+/* --- the opening statement, which sits above beat 1 only ------------------- */
+const OPENER = `
+  <div style="display:flex;flex-direction:column;gap:13px;margin-bottom:4px">
+    <div class="hero" style="font-size:38px">You’re buying the ads<br>above Google’s search results.</div>
+    <p class="say" style="max-width:660px">Someone in India types <em>gym leggings</em>. Four ads sit above the results. You decide whether one of them is yours, and what you’ll pay to be there.</p>
+    <p class="say" style="max-width:660px">Twelve weeks. Eight rival brands. You’re ranked on what your business made.</p>
+    <p class="note" style="font-size:15px;color:var(--soft)">You don’t need to know anything about advertising yet. The next minute shows you one search, start to finish.</p>
+  </div>`;
+
+/* --- drawing ---------------------------------------------------------------- */
+const slot = document.getElementById('slot');
+const trail = document.getElementById('trail');
+const dotsEl = document.getElementById('dots');
+const skip = document.getElementById('skip');
+let at = 0;
+let going = 1;
+
+function draw() {
+  const beat = BEATS[at];
+
+  dotsEl.replaceChildren(...BEATS.map((_, i) => {
+    const d = document.createElement('span');
+    d.className = 'dot' + (i === at ? ' on' : i < at ? ' done' : '');
+    return d;
+  }));
+
+  trail.replaceChildren(...BEATS.slice(0, at).filter((b) => b.past).map((b, i) => {
+    const row = document.createElement('div');
+    row.className = 'past' + (i === at - 1 && going === 1 ? ' fresh' : '');
+    row.innerHTML = `<b>${i + 1}</b><span>${b.past}</span>`;
+    return row;
+  }));
+
+  const live = document.createElement('div');
+  live.className = 'live ' + (going === 1 ? 'enter' : 'back');
+  live.innerHTML = (beat.opener ? OPENER : '') + beat.html
+    + `<div class="row-go"><button class="go" id="next">${beat.go}</button>`
+    + (at > 0 ? '<button class="ghost" id="back">Back</button>' : '')
+    + (beat.last ? '<button class="ghost" id="again">Watch that again</button>' : '')
+    + '</div>';
+  slot.replaceChildren(live);
+
+  skip.style.visibility = beat.last ? 'hidden' : 'visible';
+  live.querySelector('#next').addEventListener('click', () => {
+    going = 1;
+    at = beat.last ? 0 : at + 1;
+    draw();
+  });
+  live.querySelector('#back')?.addEventListener('click', () => { going = -1; at -= 1; draw(); });
+  live.querySelector('#again')?.addEventListener('click', () => { going = 1; at = 0; draw(); });
+}
+
+skip.addEventListener('click', () => { going = 1; at = BEATS.length - 1; draw(); });
+
+/* The studio's sheet, which a player never has. */
+const toggle = document.getElementById('toggle');
+const sheet = document.getElementById('sheet');
+toggle.addEventListener('click', () => {
+  const open = toggle.getAttribute('aria-pressed') === 'true';
+  toggle.setAttribute('aria-pressed', String(!open));
+  toggle.textContent = open ? 'Design notes' : 'Hide notes';
+  sheet.hidden = open;
+  if (!open) sheet.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+draw();
+</script>
+</body>
+</html>

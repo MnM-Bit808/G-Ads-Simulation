@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="./_board.css">
+  <style> body { margin: 0; } </style>
+</helmet>
+<div class="fr-board">
+  <div class="fr-top">
+    <div class="fr-dots"><span class="fr-dot on"></span><span class="fr-dot"></span><span class="fr-dot"></span><span class="fr-dot"></span><span class="fr-dot"></span><span class="fr-dot"></span><span class="fr-dot"></span></div>
+    <button class="fr-skip">Skip this — take me to the game</button>
+  </div>
+  <div class="fr-col">
+
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div class="fr-display" style="font-size: 40px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;">You’re buying the ads<br>above Google’s search results.</div>
+      <p class="fr-say" style="max-width: 640px;">Someone in India types <em>gym leggings</em>. Four ads sit above the results. You decide whether one of them is yours, and what you’ll pay to be there.</p>
+      <p class="fr-say" style="max-width: 640px;">Twelve weeks. Eight rival brands. You’re ranked on what your business made.</p>
+      <p class="fr-note" style="font-size: 15px; color: #CFC9C3;">You don’t need to know anything about advertising yet. The next minute shows you one search, start to finish.</p>
+    </div>
+
+    <div class="fr-live" style="margin-top: 6px;">
+      <div class="fr-kicker">One search</div>
+      <div class="fr-serp" style="padding: 16px 20px;">
+        <div class="fr-q">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA0A6" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4.5-4.5"></path></svg>
+          gym leggings with pockets
+        </div>
+        <div style="font-size: 12px; color: #70757A;">Pune, Maharashtra · 7:40 pm</div>
+      </div>
+      <p class="fr-say">In Pune, someone types this. About <em class="num">1,849</em> people search it every week.</p>
+      <div class="fr-words">
+        <span class="fr-word"><b>a search</b> · one person, once</span>
+        <span class="fr-word"><b>search volume</b> · how many a week</span>
+      </div>
+      <button class="fr-go">What she sees →</button>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
