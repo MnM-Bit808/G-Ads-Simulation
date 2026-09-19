@@ -5,7 +5,7 @@ import {
   AREAS, SECTIONS, sectionOf, sectionsIn, sectionState, entranceSlots, slotOpen,
   areaEntry,
 } from '../ui/shell/sections.js';
-import { CHAPTERS } from '../ui/guide/chapters.js';
+import { CHAPTERS, GOING_DEEPER } from '../ui/guide/chapters.js';
 import { SETTLES_AFTER_ROUNDS } from '../ui/dashboard.js';
 import { TOTAL_ROUNDS } from '../engine/constants.js';
 
@@ -82,14 +82,17 @@ describe('every part a section claims is a part its module draws', () => {
   });
 
   // CLAUDE.md's trap: "show me on the card" must land on something that exists.
-  test.each(Object.entries(CHAPTERS))('the guide\'s %s can open the section holding its card', (_, c) => {
+  // A ground-floor chapter points at a round 0 STEP rather than a card — it is
+  // opened before the account exists — so only the nuance chapters are held here.
+  const deeper = GOING_DEEPER.map((id) => [id, CHAPTERS[id]]);
+  test.each(deeper)('the guide\'s %s can open the section holding its card', (_, c) => {
     expect(sectionOf(c.yourAccount), c.yourAccount).not.toBeNull();
   });
 
   // Found drawing the Guide as a page (2026-09-15): three chapters pointed where
   // their idea is not shown. A chapter may name a part only the Studio draws
   // (`studioAccount`); the classic page keeps `yourAccount`.
-  test.each(Object.entries(CHAPTERS))('in the Studio, the guide\'s %s lands on a part its section really draws', (_, c) => {
+  test.each(deeper)('in the Studio, the guide\'s %s lands on a part its section really draws', (_, c) => {
     const slot = c.studioAccount ?? c.yourAccount;
     const s = sectionOf(slot);
     expect(s, slot).not.toBeNull();

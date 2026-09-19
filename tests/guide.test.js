@@ -21,7 +21,9 @@
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { CHAPTERS, CONTENTS, chapter, DEPARTURE_MAX_WORDS } from '../ui/guide/chapters.js';
+import {
+  CHAPTERS, CONTENTS, START_HERE, GOING_DEEPER, chapter, basic, DEPARTURE_MAX_WORDS,
+} from '../ui/guide/chapters.js';
 import { guideFigures } from '../ui/guide/figures.js';
 import { sectionOf } from '../ui/shell/sections.js';
 import { MAX_BID_MULTIPLE, ATTRIBUTION_LAG_DISTRIBUTION } from '../engine/constants.js';
@@ -97,7 +99,9 @@ describe('a chapter is refused unless it is whole', () => {
 });
 
 describe('the chapters', () => {
-  const entries = Object.entries(CHAPTERS);
+  // The two-halves tests read GOING_DEEPER: a ground-floor chapter has one
+  // plain paragraph and no citation, and is held to its own rules below.
+  const entries = GOING_DEEPER.map((id) => [id, CHAPTERS[id]]);
 
   test('there are chapters to check', () => {
     expect(entries.length).toBeGreaterThan(0);
@@ -298,7 +302,7 @@ describe('a departure is a field, not a sentence buried in the prose', () => {
 describe('every chapter says where it departs, or why it does not', () => {
   const departures = (id) => CHAPTERS[id].departs.map((entry) => entry(FIGURES));
 
-  test.each(Object.keys(CHAPTERS))('%s declares one or the other, for real', (id) => {
+  test.each(GOING_DEEPER)('%s declares one or the other, for real', (id) => {
     const c = CHAPTERS[id];
     expect(c.departs.length > 0 || Boolean(c.departsNot), id).toBe(true);
     // Task 1 gave twelve chapters a truthful holding sentence. Task 2 replaces
@@ -307,7 +311,7 @@ describe('every chapter says where it departs, or why it does not', () => {
   });
 
   test('every departure is its own line, and short enough to read', () => {
-    for (const id of Object.keys(CHAPTERS)) {
+    for (const id of GOING_DEEPER) {
       for (const line of departures(id)) {
         expect(wordCount(line), `${id}: ${line}`).toBeLessThanOrEqual(DEPARTURE_MAX_WORDS);
       }
@@ -318,12 +322,12 @@ describe('every chapter says where it departs, or why it does not', () => {
   // stated one inside their prose where nobody could find it. Pulled out, there
   // are far more of them than were ever labelled.
   test('there are far more of them than the eight that used to be labelled', () => {
-    const all = Object.keys(CHAPTERS).flatMap((id) => departures(id));
+    const all = GOING_DEEPER.flatMap((id) => departures(id));
     expect(all.length).toBeGreaterThan(18);
   });
 
   test('no game half still carries a departure in its prose', () => {
-    for (const id of Object.keys(CHAPTERS)) {
+    for (const id of GOING_DEEPER) {
       const game = CHAPTERS[id].game(FIGURES);
       expect(game, id).not.toMatch(/departs?\b/i);
       expect(game, `${id} still enumerates its departures mid-paragraph`)
@@ -341,7 +345,7 @@ describe('every chapter says where it departs, or why it does not', () => {
   );
 
   test('a departure never drops the citation it rests on', () => {
-    for (const id of Object.keys(CHAPTERS)) {
+    for (const id of GOING_DEEPER) {
       expect(CHAPTERS[id].cites.length, id).toBeGreaterThan(0);
       for (const c of CHAPTERS[id].cites) expect(cited(c), `${id} cites ${c}`).toBe(true);
     }
@@ -385,7 +389,7 @@ describe('a beginner can parse a sentence of it', () => {
   // because a clause after one is a new thought to hold, which is what the
   // bound is about.
   const sentences = (text) => text.split(/(?<=[.:;])\s+/).map((s) => s.trim()).filter(Boolean);
-  const halves = Object.entries(CHAPTERS).flatMap(([id, c]) => [
+  const halves = GOING_DEEPER.map((id) => [id, CHAPTERS[id]]).flatMap(([id, c]) => [
     [`${id}.real`, c.real(FIGURES)], [`${id}.game`, c.game(FIGURES)],
   ]);
 
@@ -421,7 +425,7 @@ describe('a beginner can parse a sentence of it', () => {
   });
 
   test('the departures follow the same rules as the halves', () => {
-    for (const id of Object.keys(CHAPTERS)) {
+    for (const id of GOING_DEEPER) {
       for (const line of CHAPTERS[id].departs.map((entry) => entry(FIGURES))) {
         for (const s of sentences(line)) {
           expect(wordCount(s), `${id}: ${s}`).toBeLessThanOrEqual(25);
@@ -431,5 +435,72 @@ describe('a beginner can parse a sentence of it', () => {
         }
       }
     }
+  });
+});
+
+describe('the guide has a ground floor as well as its nuance chapters', () => {
+  const madeBasic = (over = {}) => basic({
+    title: 'What a keyword is',
+    plain: () => 'A keyword is a word or phrase you choose.',
+    sources: [{ label: 'Google Ads Help: Keywords', url: 'https://support.google.com/google-ads/answer/6323' }],
+    step: 3,
+    then: 'broadMatch',
+    ...over,
+  });
+
+  test('a ground-floor chapter is one plain paragraph, and says where it is used', () => {
+    const made = madeBasic();
+    expect(made.kind).toBe('basic');
+    expect(made.plain({})).toMatch(/^A keyword/);
+    expect(made.step).toBe(3);
+    expect(made.then).toBe('broadMatch');
+  });
+
+  test('a nuance chapter says which kind it is too, so nobody has to guess', () => {
+    expect(CHAPTERS.hours.kind).toBe('chapter');
+  });
+
+  // The rule chapter() already follows: an absence cannot be cited, but
+  // anything real must be.
+  test('it needs a source unless it is a game device', () => {
+    expect(() => madeBasic({ sources: [] })).toThrow(/source/);
+    expect(madeBasic({ sources: [], device: true }).device).toBe(true);
+  });
+
+  test('it must name the chapter that continues it', () => {
+    expect(() => madeBasic({ then: undefined })).toThrow(/continues/);
+  });
+
+  // IT NEVER DISCLOSES A DEPARTURE. `then` hands the reader to the chapter that
+  // owns one — "Your budget" departs, and `weeklySplit` is where it is said.
+  test('and that chapter has to exist', () => {
+    for (const id of START_HERE) {
+      expect(Object.keys(CHAPTERS), `${id} continues into ${CHAPTERS[id].then}`)
+        .toContain(CHAPTERS[id].then);
+    }
+  });
+
+  test('it must say which round 0 step asks for it', () => {
+    expect(() => madeBasic({ step: 0 })).toThrow(/step/);
+    expect(() => madeBasic({ step: 6 })).toThrow(/step/);
+    expect(() => madeBasic({ step: undefined })).toThrow(/step/);
+  });
+
+  // ONE ORDERED BOOK, the ground floor first, so turning the page at the end of
+  // it lands on the first nuance chapter. That is the ladder, for free.
+  test('the book is one list, the ground floor first', () => {
+    expect(CONTENTS).toEqual([...START_HERE, ...GOING_DEEPER]);
+    expect(START_HERE.length).toBeGreaterThan(0);
+    expect(GOING_DEEPER).toHaveLength(13);
+    expect(CONTENTS[START_HERE.length]).toBe(GOING_DEEPER[0]);
+  });
+
+  test('every chapter in the book exists, whichever kind it is', () => {
+    for (const id of CONTENTS) expect(Object.keys(CHAPTERS), id).toContain(id);
+  });
+
+  test('the ground floor runs in the order round 0 asks', () => {
+    const steps = START_HERE.map((id) => CHAPTERS[id].step);
+    expect(steps).toEqual([...steps].sort((a, b) => a - b));
   });
 });

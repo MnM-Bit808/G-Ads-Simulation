@@ -29,7 +29,28 @@ export function guideView(id, figures) {
   if (!chapter) throw new RangeError(`there is no chapter "${id}"`);
   const at = CONTENTS.indexOf(id);
   const nextId = at >= 0 && at < CONTENTS.length - 1 ? CONTENTS[at + 1] : null;
+  const next = nextId ? { id: nextId, title: CHAPTERS[nextId].title } : null;
+
+  // A GROUND-FLOOR CHAPTER IS ONE COLUMN, not two halves: it says what a
+  // control is, and where you use it. What it offers instead of a second half
+  // is `then`, the chapter that continues it and owns the departure.
+  if (chapter.kind === 'basic') {
+    return {
+      kind: 'basic',
+      id,
+      title: chapter.title,
+      plain: chapter.plain(figures),
+      sources: chapter.sources.map(({ label, url }) => ({ label, url })),
+      step: chapter.step,
+      then: { id: chapter.then, title: CHAPTERS[chapter.then].title },
+      yourAccount: chapter.yourAccount,
+      studioAccount: chapter.yourAccount,
+      next,
+    };
+  }
+
   return {
+    kind: 'chapter',
     id,
     title: chapter.title,
     real: chapter.real(figures),
@@ -41,7 +62,7 @@ export function guideView(id, figures) {
     departsNot: chapter.departsNot,
     yourAccount: chapter.yourAccount,
     studioAccount: chapter.studioAccount ?? chapter.yourAccount,
-    next: nextId ? { id: nextId, title: CHAPTERS[nextId].title } : null,
+    next,
   };
 }
 

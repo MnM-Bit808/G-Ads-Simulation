@@ -84,7 +84,7 @@ guideView(id, figures) // → { kind: 'basic', id, title, plain, sources, step, 
 `chapter()` gains `kind: 'chapter'` on its frozen return, so nothing has to ask
 which one it is by looking for a missing field.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { CHAPTERS, CONTENTS, START_HERE, GOING_DEEPER, chapter, basic } from '../ui/guide/chapters.js';
@@ -148,7 +148,7 @@ describe('the guide has a ground floor as well as its nuance chapters', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```bash
 npm test -- guide
@@ -156,7 +156,7 @@ npm test -- guide
 
 Expected: `basic is not a function`.
 
-- [ ] **Step 3: Write `basic()`**
+- [x] **Step 3: Write `basic()`**
 
 In `ui/guide/chapters.js`, after `chapter()`:
 
@@ -219,10 +219,12 @@ for (const id of START_HERE) {
 
 and have the test drive that through a `basic()` whose `then` is checked by the
 same loop — or, simpler and what the test above expects, give `basic()` a
-`known` argument defaulting to `CHAPTERS`. **Pick one and make the test match;
-do not leave both.**
+`known` argument defaulting to `CHAPTERS`. **Picked while building: the loop over the assembled
+object.** `basic()` keeps no default argument that exists only for a test, and
+the check sits beside `START_HERE` where a reader looking at the book will find
+it.
 
-- [ ] **Step 4: One chapter, the most important one**
+- [x] **Step 4: One chapter, the most important one**
 
 From the design's section 5, chapter 1. It is the one that matters most: round 0
 step 1 already prints "₹20.37 a click at break-even" and nothing says what it
@@ -256,7 +258,7 @@ and `CONTENTS = [...START_HERE, ...GOING_DEEPER]`. Task 3 adds the other eight.
 **Relax the `toHaveLength(9)` assertion to `toBeGreaterThan(0)` in this task and
 restore it in Task 3** — do not write nine stubs.
 
-- [ ] **Step 5: Teach `guideView` both kinds**
+- [x] **Step 5: Teach `guideView` both kinds**
 
 ```js
 export function guideView(id, figures) {
@@ -282,7 +284,7 @@ export function guideView(id, figures) {
 for a ground-floor chapter. Guard it there, and let `chapterPage` return
 `section: null` — Task 2 draws the step instead.
 
-- [ ] **Step 6: Run the whole suite**
+- [x] **Step 6: Run the whole suite**
 
 ```bash
 npm test
@@ -292,7 +294,7 @@ Expect failures in `tests/drawer.test.js` and `tests/guidePage.test.js`: both
 iterate `CONTENTS` and assert two halves. **Narrow them to `GOING_DEEPER`** and
 add the ground floor's own assertions in Task 2, where the rendering lands.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Message: *"Give the guide a ground floor, and one chapter to stand on"*. Body:
 why `basic()` is a sibling and not a flag, and why `CONTENTS` stays one list.

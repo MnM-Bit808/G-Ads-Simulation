@@ -47,7 +47,20 @@ export function chapterList() {
 export function contentsCards(figures) {
   return CONTENTS.map((id) => {
     const view = guideView(id, figures);
-    return { ...entry(id), section: sectionOf(view.studioAccount).label, opening: openingSentence(view.real) };
+    // A GROUND-FLOOR CHAPTER EXPLAINS A STEP, NOT A CARD. It is opened from
+    // round 0, where the account does not exist yet, so it has no section to
+    // name and its opening sentence comes from its one plain paragraph.
+    if (view.kind === 'basic') {
+      return {
+        ...entry(id), group: 'start', step: view.step, section: null,
+        opening: openingSentence(view.plain),
+      };
+    }
+    return {
+      ...entry(id), group: 'deeper', step: null,
+      section: sectionOf(view.studioAccount).label,
+      opening: openingSentence(view.real),
+    };
   });
 }
 
@@ -62,19 +75,36 @@ export function contentsCards(figures) {
 export function chapterPage(id, figures) {
   const view = guideView(id, figures);
   const at = CONTENTS.indexOf(id);
-  return {
+  const place = {
     id,
     n: at + 1,
     of: CONTENTS.length,
     title: view.title,
-    real: view.real,
+    kind: view.kind,
     sources: view.sources,
+    previous: at > 0 ? entry(CONTENTS[at - 1]) : null,
+    following: at < CONTENTS.length - 1 ? entry(CONTENTS[at + 1]) : null,
+  };
+  // One plain paragraph, the step that asks for it, and the chapter that
+  // continues it — where a nuance chapter has two halves and a card.
+  if (view.kind === 'basic') {
+    return {
+      ...place,
+      plain: view.plain,
+      step: view.step,
+      then: entry(view.then.id),
+      slot: view.studioAccount,
+      section: null,
+      related: [],
+    };
+  }
+  return {
+    ...place,
+    real: view.real,
     game: view.game,
     departs: view.departs,
     slot: view.studioAccount,
     section: sectionOf(view.studioAccount).label,
     related: CHAPTERS[id].related.map(entry),
-    previous: at > 0 ? entry(CONTENTS[at - 1]) : null,
-    following: at < CONTENTS.length - 1 ? entry(CONTENTS[at + 1]) : null,
   };
 }

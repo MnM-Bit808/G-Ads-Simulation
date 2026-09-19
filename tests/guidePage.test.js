@@ -11,7 +11,12 @@
 import { describe, test, expect } from 'vitest';
 import { chapterList, contentsCards, chapterPage, openingSentence } from '../ui/guide/book.js';
 import { guideView } from '../ui/guide/drawer.js';
-import { CHAPTERS, CONTENTS } from '../ui/guide/chapters.js';
+import { CHAPTERS, CONTENTS, GOING_DEEPER } from '../ui/guide/chapters.js';
+
+// The two-halves tests read GOING_DEEPER. A ground-floor chapter has one plain
+// paragraph, no citation and no card, and is held to its own rules in
+// tests/guide.test.js (plans/2026-09-19-ground-floor-plan.md).
+
 import { guideFigures } from '../ui/guide/figures.js';
 import { sectionOf } from '../ui/shell/sections.js';
 
@@ -30,13 +35,26 @@ describe('the contents', () => {
   });
 
   test('each names the Studio section its chapter explains', () => {
-    for (const c of contentsCards(FIGURES)) expect(c.section, c.id).toBe(sectionOf(target(c.id)).label);
+    for (const c of contentsCards(FIGURES).filter((x) => x.group === 'deeper')) {
+      expect(c.section, c.id).toBe(sectionOf(target(c.id)).label);
+    }
+  });
+
+  // A ground-floor card names the round 0 step that asks for it instead: it is
+  // opened before the account exists, so it has no card to point at.
+  test('a ground-floor card names its step, not a section', () => {
+    for (const c of contentsCards(FIGURES).filter((x) => x.group === 'start')) {
+      expect(c.section, c.id).toBeNull();
+      expect(c.step, c.id).toBeGreaterThanOrEqual(1);
+      expect(c.step, c.id).toBeLessThanOrEqual(5);
+    }
   });
 
   test('and opens with the first sentence of its real half, whole', () => {
     for (const c of contentsCards(FIGURES)) {
       expect(c.opening, c.id).toMatch(/\.$/);
-      expect(CHAPTERS[c.id].real(FIGURES).startsWith(c.opening.slice(0, -1)), c.id).toBe(true);
+      const whole = c.group === 'start' ? CHAPTERS[c.id].plain(FIGURES) : CHAPTERS[c.id].real(FIGURES);
+      expect(whole.startsWith(c.opening.slice(0, -1)), c.id).toBe(true);
       expect(c.opening.split(/\s+/).length, c.id).toBeGreaterThan(4);
     }
   });
@@ -57,23 +75,26 @@ describe('a chapter', () => {
     expect(page.following?.id ?? null).toBe(at < CONTENTS.length - 1 ? CONTENTS[at + 1] : null);
   });
 
-  test.each(CONTENTS)('%s reads exactly as the drawer shows it', (id) => {
+  test.each(GOING_DEEPER)('%s reads exactly as the drawer shows it', (id) => {
     const page = chapterPage(id, FIGURES);
     const view = guideView(id, FIGURES);
     expect([page.title, page.real, page.game]).toEqual([view.title, view.real, view.game]);
     expect(page.sources).toEqual(view.sources);
   });
 
-  test.each(CONTENTS)('%s: Show me opens the part the Studio draws for it', (id) => {
+  test.each(GOING_DEEPER)('%s: Show me opens the part the Studio draws for it', (id) => {
     const page = chapterPage(id, FIGURES);
     expect(page.slot).toBe(target(id));
     expect(page.section).toBe(sectionOf(target(id)).label);
   });
 
   test('its chapters to read beside it come numbered, as "Read beside it" shows them', () => {
+    // The numbers count from the front of the book, and the ground floor is
+    // now in front of the nuance chapters, so every one of them shifted.
+    const n = (id) => CONTENTS.indexOf(id) + 1;
     expect(chapterPage('cashOnDelivery', FIGURES).related).toEqual([
-      { id: 'returnsSplit', n: 2, title: CHAPTERS.returnsSplit.title },
-      { id: 'hours', n: 10, title: CHAPTERS.hours.title },
+      { id: 'returnsSplit', n: n('returnsSplit'), title: CHAPTERS.returnsSplit.title },
+      { id: 'hours', n: n('hours'), title: CHAPTERS.hours.title },
     ]);
     expect(chapterPage('ownName', FIGURES).related).toEqual([]);
   });

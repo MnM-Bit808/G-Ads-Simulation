@@ -90,6 +90,7 @@ export function chapter({
   }
 
   return Object.freeze({
+    kind: 'chapter',
     title, real, realSources: Object.freeze(realSources), device, needs: Object.freeze(needs),
     game, cites: Object.freeze(cites),
     // A plain string and a function of the figures are the same thing to a
@@ -100,7 +101,59 @@ export function chapter({
   });
 }
 
+/** Round 0's five steps: a ground-floor chapter belongs to exactly one. */
+const ROUND_ZERO_STEPS = 5;
+
+/**
+ * A GROUND-FLOOR CHAPTER: what a control IS, and then where you use it.
+ *
+ * NOT A RELAXED `chapter()`. A nuance chapter compares the game with the real
+ * thing in two halves. This describes one thing that is true, and has no second
+ * half to compare against and no DECISIONS entry to rest on; forcing either
+ * produces padding, or a false claim of difference. The two-halves shape is
+ * also what both stranger testers could not read, and a beginner asking what a
+ * keyword is wants one answer rather than a comparison
+ * (plans/2026-09-19-ground-floor.md, section 2.1).
+ *
+ * IT NEVER DISCLOSES A DEPARTURE, and it does not need to. `then` names the
+ * nuance chapter that continues it, and that chapter owns the departure. A
+ * budget here is a month split across weeks where Google's is an average daily
+ * budget — and `weeklySplit` is where a reader is told so.
+ *
+ * @param {object} spec
+ * @param {string} spec.title
+ * @param {(figures: object) => string} spec.plain - what it is, then where you use it
+ * @param {Array<{label: string, url: string}>} [spec.sources]
+ * @param {boolean} [spec.device] - a game device with no real equivalent
+ * @param {string[]} [spec.needs] - figures `plain` quotes
+ * @param {number} spec.step - the round 0 step that asks for it, 1 to 5
+ * @param {string} spec.then - the chapter that continues it
+ * @param {string|null} [spec.yourAccount] - a card, once a game exists
+ */
+export function basic({
+  title, plain, sources = [], device = false, needs = [], step, then, yourAccount = null,
+}) {
+  if (!title) throw new TypeError('a ground-floor chapter needs a title');
+  if (typeof plain !== 'function') throw new TypeError(`"${title}" needs its plain half`);
+  if (!device && sources.length === 0) {
+    throw new TypeError(`"${title}": it needs a source, unless it is a game device`);
+  }
+  if (!Number.isInteger(step) || step < 1 || step > ROUND_ZERO_STEPS) {
+    throw new TypeError(`"${title}": say which round 0 step asks for it, 1 to ${ROUND_ZERO_STEPS}`);
+  }
+  if (!then) throw new TypeError(`"${title}": name the chapter that continues it`);
+  return Object.freeze({
+    kind: 'basic',
+    title, plain, sources: Object.freeze(sources), device,
+    needs: Object.freeze(needs), step, then, yourAccount,
+  });
+}
+
 const GOOGLE = {
+  targetCpa: {
+    label: 'Google Ads Help: About Target CPA bidding',
+    url: 'https://support.google.com/google-ads/answer/6268632',
+  },
   byClickTime: {
     label: 'Google Ads Help: Understand your conversion tracking data',
     url: 'https://support.google.com/google-ads/answer/6270625',
@@ -194,6 +247,29 @@ const INDUSTRY = {
 };
 
 export const CHAPTERS = Object.freeze({
+  // ---------------------------------------------------------------------
+  // START HERE: one chapter per control round 0 asks you to operate, in the
+  // order you meet them. What a thing IS, then where you use it.
+  // ---------------------------------------------------------------------
+
+  breakEven: basic({
+    title: 'What a click is worth to you',
+    plain: () => 'Before you can say what to bid, you need to know what a visitor is worth. '
+      + 'Work out what one sale earns you after returns, then how often a click becomes a sale. '
+      + 'Multiply them and that is what a click is worth to you. '
+      + 'Bid above it and you lose money on every click you win. '
+      + 'Step 1 does the sum for where you sit.',
+    // In real Google Ads you set a target cost per conversion and it works back
+    // to a bid; here the sum is done for you and shown.
+    sources: [GOOGLE.targetCpa],
+    step: 1,
+    then: 'kindMarket',
+  }),
+
+  // ---------------------------------------------------------------------
+  // GOING DEEPER: why a control behaves oddly, for a reader who has met it.
+  // ---------------------------------------------------------------------
+
   attributionLag: chapter({
     title: 'Why this week’s numbers keep moving',
     // Two days, two jobs: the day the sale is counted on, and the day the figure
@@ -545,8 +621,34 @@ export const CHAPTERS = Object.freeze({
 });
 
 /** The guide's contents list, in reading order. */
-export const CONTENTS = Object.freeze([
+/**
+ * The ground floor, in the order round 0 asks for each control.
+ *
+ * `START_HERE` and `GOING_DEEPER` are separate only so the contents page can
+ * head them separately. THE BOOK IS ONE LIST: numbering, "of 22" and the
+ * chapter either side all read `CONTENTS`, and turning the page at the end of
+ * the ground floor lands on the first nuance chapter, which is the ladder the
+ * design asks for (plans/2026-09-19-ground-floor.md, section 2.3).
+ */
+export const START_HERE = Object.freeze([
+  'breakEven',
+]);
+
+/** The nuance chapters, in the order the book has always had them. */
+export const GOING_DEEPER = Object.freeze([
   'attributionLag', 'returnsSplit', 'cashOnDelivery', 'rankOrBudget', 'broadMatch',
   'qualityScore', 'writers', 'ownName', 'smartBidding', 'hours', 'weeklySplit',
   'counterfactuals', 'kindMarket',
 ]);
+
+export const CONTENTS = Object.freeze([...START_HERE, ...GOING_DEEPER]);
+
+// `then` cannot be checked inside `basic()`, because CHAPTERS does not exist
+// while it runs. Checked once here instead, rather than handing the factory a
+// default argument that would exist only to satisfy a test.
+for (const id of START_HERE) {
+  const to = CHAPTERS[id].then;
+  if (!CHAPTERS[to]) {
+    throw new RangeError(`"${id}" continues into "${to}", which is not a chapter`);
+  }
+}

@@ -13,14 +13,19 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
 import { guideView } from '../ui/guide/drawer.js';
-import { CHAPTERS, CONTENTS } from '../ui/guide/chapters.js';
+import { CHAPTERS, CONTENTS, GOING_DEEPER } from '../ui/guide/chapters.js';
+
+// The two-halves tests read GOING_DEEPER. A ground-floor chapter has one plain
+// paragraph, no citation and no card, and is held to its own rules in
+// tests/guide.test.js (plans/2026-09-19-ground-floor-plan.md).
+
 import { guideFigures } from '../ui/guide/figures.js';
 
 const FIGURES = guideFigures();
 const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 
 describe('the drawer shows a chapter whole', () => {
-  test.each(CONTENTS)('%s opens with a title, both halves and its sources', (id) => {
+  test.each(GOING_DEEPER)('%s opens with a title, both halves and its sources', (id) => {
     const view = guideView(id, FIGURES);
     expect(view.title).toBe(CHAPTERS[id].title);
     expect(view.real.length).toBeGreaterThan(0);
@@ -99,7 +104,7 @@ describe('in the Studio, the drawer\'s Contents opens the Guide page', () => {
 });
 
 describe('the player sees sources, never the ledger', () => {
-  test.each(CONTENTS)('%s carries no DECISIONS citation', (id) => {
+  test.each(GOING_DEEPER)('%s carries no DECISIONS citation', (id) => {
     const view = guideView(id, FIGURES);
     expect(view).not.toHaveProperty('cites');
     for (const cite of CHAPTERS[id].cites) {
