@@ -114,17 +114,29 @@ neither reachable by reading the code:
   ₹1,68,000, first ₹2,18,400 and last ₹1,17,600". A beginner who changes
   nothing finishes last, so this is the common case, not the edge.
 
-**OPEN, AND THE OWNER'S: week 5 is easy to run straight past.**
-`capexAllocationRounds` is `[1, 5]`, so the second ₹1,20,000 opens before week
-5, and the only signal is a dot on Your money in the rail — the dot is correct
-and `tests/sections.test.js` holds it. Pressing "Run week N" repeatedly misses
-it, and Results then says so plainly: *"You built nothing: both allocations,
-₹2,40,000, went into your ad budget."* The tester who stopped around week 6 may
-well have been playing the same way. Whether week 5 wants a harder stop is a
-design decision, not a defect.
+**WEEK 5 NOW SAYS SO, beside the button that would pass it** (`d0c3707`, the
+owner's call). `capexAllocationRounds` is `[1, 5]` and `canReposition` is true
+at round 5 alone, so that week carries the last ₹1,20,000 and the only chance
+to move. The signals existed — a rail dot AND a "Capital: nothing committed"
+chip in the tray — and pressing "Run week N" each time missed both, because a
+chip in a strip headed "1 change waiting" reads as something already done.
 
-**Next, none blocking:** the owner reading the twenty-three chapters; whether
-week 5 wants more than a dot; the message project's part 2 (images from week
+**IT ASKS; IT DOES NOT REFUSE.** Uncommitted capital becoming ad budget is
+deliberate (13.3, so not investing stays viable), so skipping is a real choice
+and only the *move* is truly gone. The tray carries an amber line while the
+window is open, and Run asks once — but ONLY when nothing is staged against
+either half AND Your money was never opened that week, which the
+`money:window:<week>` key already knows. Look and decide to skip and you are
+never interrupted.
+
+`capitalWindow` (`ui/shell/tray.js`) is pure, so the three inputs and three
+halves are tested without a browser, and the tray says which halves are
+actually open rather than assuming both. Measured: amber 9.08:1, the question
+13.83:1; one 76px row at 1400px, 133px at 375px where sharing the row made it
+280px.
+
+**Next, none blocking:** the owner reading the twenty-three chapters; the
+message project's part 2 (images from week
 9); what the drawn landing page shows for its remaining rungs; whether sixty
 keywords want a compact list.
 
