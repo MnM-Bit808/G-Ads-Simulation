@@ -608,9 +608,15 @@ export const CHAPTERS = Object.freeze({
       + 'Negatives do not match close variants, so plurals and synonyms have to be added '
       + 'separately.',
     realSources: [GOOGLE.matchTypes, GOOGLE.searchTerms, GOOGLE.negatives],
+    // THE SENTENCE THAT WAS UNREADABLE (rewritten 2026-09-19, reading the
+    // chapters): "Broad match reaches a search when enough of the concept tags
+    // the two were given from their words are shared" — three possessives
+    // nested inside one another, in the chapter that has to explain the one
+    // match type a beginner cannot predict. It is two sentences now: what a tag
+    // is, then what broad match does with them.
     game: () => 'Exact and phrase match are word matches here. '
-      + 'Broad match reaches a search when enough of the concept tags the two were given from '
-      + 'their words are shared. '
+      + 'Every keyword and every search also carries tags, worked out from its words. '
+      + 'Broad match fires when a keyword and a search share enough of them. '
       + 'A distant search costs you twice: it rarely buys, and a poorer fit lowers your ad rank '
       + 'on it. '
       + 'Broadening also lowers impression share while raising impressions, because it adds '
@@ -639,16 +645,22 @@ export const CHAPTERS = Object.freeze({
       + 'dash means too few searches exactly match the keyword to score it.',
     realSources: [GOOGLE.qualityScore],
     needs: ['qsImpressions'],
+    // CUT FROM 101 WORDS AND ELEVEN IDEAS TO SIX SENTENCES, each carrying one
+    // (2026-09-19, reading the chapters). It was the densest half in the book,
+    // in the chapter whose whole job is correcting a misconception — that the
+    // score is something the auction uses. What went: that the landing page
+    // part reads above average only rarely, which is an observation about this
+    // market rather than about what the score IS, and the least load-bearing of
+    // the eleven. Nothing dropped was false; there was simply too much of it.
     game: ({ qsImpressions }) => 'Here too the score is a report, never an input. '
-      + 'The auction weighs your ad’s quality afresh on every search, and the score is worked '
-      + 'out afterwards. '
-      + 'It counts only the keyword’s own literal search, in finished weeks. '
-      + 'So a better ad counts in the very next auction, in your position and its price, while '
-      + 'the score catches up late or never. '
-      + 'Each part has three levels, against everyone on the same search. '
-      + 'So a real improvement can leave it unmoved, and landing page reads above average '
-      + 'only rarely. '
-      + `A keyword has no score until its own search earns ${qsImpressions} impressions.`,
+      + 'The auction judges your ad afresh on every search; the score is worked out later, '
+      + 'from finished weeks. '
+      + 'So a better ad pays at once, in your next auction, while the score catches up late '
+      + 'or never. '
+      + 'It reads only the keyword’s own literal search, and rates each part against everyone '
+      + 'else on it. '
+      + 'A real improvement can therefore leave it unmoved. '
+      + `And a keyword has no score at all until that search earns ${qsImpressions} impressions.`,
     departs: [
       'The overall score comes from the three ratings through a table this game invented.',
     ],
