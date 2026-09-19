@@ -2878,7 +2878,15 @@ before-and-after later if one is wanted.
    it again.
 
 **The invite** (fill in the name and address; the address must be the one on
-the Access list):
+the Access list).
+
+**Step 5 was rewritten on 2026-09-19 and the reason matters.** It used to say
+the Playtest button "saves the same file straight away". Since the mid-game
+questions it does not — it asks the two questions first, which is the entire
+point of that change: the people worth hearing from are the ones who stop, and
+the old build asked them nothing. An invite describing the old behaviour would
+have walked a quitting tester straight past the questions. It also now says how
+to reach the button on a phone, where the rail is behind the ☰ menu.
 
 > Hi *name*, I've built a small game that simulates running Google search ads
 > for an Indian activewear brand, and I'd love you to play one game of it. It
@@ -2892,9 +2900,10 @@ the Access list):
 >    questions about what the game taught you and what confused you, and a
 >    **Download the playtest file** button under them. A few words is plenty.
 >    Send me the file it saves.
-> 5. If you give up partway, that is useful too — press **Playtest** at the
->    bottom of the black strip on the left, which saves the same file straight
->    away, and send me that.
+> 5. If you give up partway, that is useful too, and I would rather have that
+>    than nothing. Press **Playtest** at the bottom of the strip down the left
+>    — on a phone, tap the ☰ menu at the top first. It asks you the same two
+>    questions, then saves the file. Send me that. Even one line is plenty.
 >
 > The file holds how long you spent on each screen, what you clicked, your
 > browser and screen size, and your game, so I can replay it. It never records
