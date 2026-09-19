@@ -102,8 +102,13 @@ export const FIRST_RUN = Object.freeze({
   b7Hero: line('label', ({ weekly, of }) => `There are ${weekly} a week, and ${of} brands want them.`),
   b7Say: line('reading', ({ weeks }) => `One of those brands is you. For ${weeks} weeks you decide `
     + 'which searches are worth being in, what to pay, and what your ad says.'),
-  b7Note: line('reading', 'Every word you just met has a “why?” beside it from here on, '
-    + 'and the guide is in the strip on the left.'),
+  // IT PROMISES THE GUIDE, NOT A LINK BESIDE EVERY WORD. It used to say every
+  // word met here has a "why?" from here on; playing it showed the first screen
+  // after round 0 carries two, beside none of impressions, clicks, cost per
+  // click or conversions. A beginner who checks a promise and finds it false
+  // has been taught to stop trusting the screen.
+  b7Note: line('reading', 'The guide is in the strip on the left, '
+    + 'and a “why?” anywhere opens it at the right page.'),
 
   // One week's report, said once for each time it was rewritten. "One", never
   // "1": a digit in a sentence is a number typed by hand, which tests/ui.test.js
