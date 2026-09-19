@@ -506,7 +506,7 @@ Message: *"Put a why? on every term the ground floor defines"*.
 
 ## Task 5: Playing it
 
-- [ ] **Step 1: Play round 0 with the guide open**
+- [x] **Step 1: Play round 0 with the guide open**
 
 ```bash
 npm run dev
@@ -520,10 +520,10 @@ none) — this is the piece most likely to bite, and round 0 has no game.
 Then: no console errors; 375 × 812; **contrast measured by script**; and the
 Guide page's contents in two groups.
 
-- [ ] **Step 2: Read the nine as a beginner would** — *the owner's.* The rules
+- [ ] **Step 2: Read the nine as a beginner would** — *the owner's, and still open.* The rules
   buy structure; whether the nine actually teach is not a test's to say.
 
-- [ ] **Step 3: Commit what playing it found.**
+- [x] **Step 3: Commit what playing it found.**
 
 ---
 
