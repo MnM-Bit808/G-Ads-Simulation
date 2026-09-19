@@ -502,7 +502,7 @@ Body: the before and after medians, and the count of halves that moved.
 - Modify: `ui/studio.css` if the block needs it
 - Test: the browser
 
-- [ ] **Step 1: Play it**
+- [x] **Step 1: Play it**
 
 ```bash
 npm run dev
@@ -524,13 +524,13 @@ point at:
    exactly where a contrast failure hides;
 7. finish animations by script before measuring; the pane reports itself hidden.
 
-- [ ] **Step 2: Read the three chapters as a beginner would**
+- [ ] **Step 2: Read the three chapters as a beginner would** — *the owner's, and still open.*
 
 The rules buy structure, not understanding (the design's weakness 2). This step
 is the only check on whether it actually reads better, and it is the owner's
 call, not a test's. **Hand the three chapters to the owner and ask.**
 
-- [ ] **Step 3: Commit anything the play-through fixed**
+- [x] **Step 3: Commit anything the play-through fixed**
 
 Message: what playing it found, with the measured figures.
 
