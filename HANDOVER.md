@@ -256,7 +256,18 @@ whether sixty keywords want a compact list.
 **`playtest-5` IS TAGGED: `a7266a2`, pushed 2026-09-19.** Its annotation lists
 what changed since `playtest-4` — `git show playtest-5`. **The next tag is
 `playtest-6`**, and a pushed playtest tag is never moved. Read *Running a
-playtest* below before sending an invite. The invite already tells a tester who gives up to press
+playtest* below before sending an invite.
+
+**A RETURNED FILE WILL SAY `54b2769`, NOT `playtest-5`, AND THAT IS THE SAME
+BUILD.** Verified live 2026-09-19: the site serves `54b2769`, which is the tag
+plus one commit touching `HANDOVER.md` and nothing else —
+`git diff --stat playtest-5 54b2769` is one documentation file, zero files the
+game loads. So a file stamped `54b2769` is a `playtest-5` file.
+
+**AND THERE IS NO VERSION ON SCREEN TO CHECK.** `GAME_VERSION` is imported only
+by `ui/recorder.js`, for the playtest file. To see what is live, open
+`/ui/version.js` on the site directly — one line, and Cloudflare Access lets an
+invited browser through. The invite already tells a tester who gives up to press
 Playtest; they will now be asked the two questions before the file is handed
 over, wherever they stopped.
 
