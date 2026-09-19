@@ -253,9 +253,10 @@ the last thing standing between here and `playtest-5`.
 **Next, none blocking:** the message project's part 2 (images from week 9);
 whether sixty keywords want a compact list.
 
-**When the next playtest goes out,** tag the live build the same day —
-`playtest-4` is used, so the next is **`playtest-5`** — and read *Running a
-playtest* below. The invite already tells a tester who gives up to press
+**`playtest-5` IS TAGGED: `a7266a2`, pushed 2026-09-19.** Its annotation lists
+what changed since `playtest-4` — `git show playtest-5`. **The next tag is
+`playtest-6`**, and a pushed playtest tag is never moved. Read *Running a
+playtest* below before sending an invite. The invite already tells a tester who gives up to press
 Playtest; they will now be asked the two questions before the file is handed
 over, wherever they stopped.
 
