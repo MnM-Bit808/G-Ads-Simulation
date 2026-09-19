@@ -252,7 +252,7 @@ that twelve chapters carry a truthful placeholder until Task 2.
 - Modify: `ui/guide/chapters.js` (all thirteen)
 - Test: `tests/guide.test.js`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 describe('every chapter says where it departs, or why it does not', () => {
@@ -286,7 +286,7 @@ describe('every chapter says where it departs, or why it does not', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```bash
 npm test -- guide
@@ -294,7 +294,7 @@ npm test -- guide
 
 Expected: twelve chapters still carry the Task 1 placeholder.
 
-- [ ] **Step 3: Extract the eight that are already labelled**
+- [x] **Step 3: Extract the eight that are already labelled**
 
 `attributionLag`, `returnsSplit`'s books clause, `cashOnDelivery`,
 `broadMatch`, `qualityScore`, `smartBidding`, `writers`, `weeklySplit`. Each
@@ -302,7 +302,7 @@ already says its departure in words: move that text into `departs` as one entry
 per distinct claim, trim to 25 words, and delete it from the `game` half.
 `attributionLag`'s is written out in the design's section 4.1.
 
-- [ ] **Step 4: Pull out the five that are buried**
+- [x] **Step 4: Pull out the five that are buried**
 
 These are stated in prose today and unlabelled. The design's section 2.2 quotes
 each one; the claims do not change, only where they sit.
@@ -326,7 +326,7 @@ each one; the claims do not change, only where they sit.
 chapter's existing prose, stop: it means the chapter was saying something the
 design did not find, and the owner should see it before it is moved.
 
-- [ ] **Step 5: Run the suite**
+- [x] **Step 5: Run the suite**
 
 ```bash
 npm test
@@ -335,7 +335,7 @@ npm test
 Expected green, exit 0. `tests/guide.test.js` also proves every `cites` entry
 still exists — **a departure moving must not drop a citation.**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Message: *"Pull every departure out of the prose, including the five nobody had
 labelled"*. Body: the five, named, with the sentence each was hiding in.

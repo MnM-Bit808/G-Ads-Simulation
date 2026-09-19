@@ -208,14 +208,14 @@ export const CHAPTERS = Object.freeze({
       + 'window you set, a sale can still be added up to 90 days after the click.',
     realSources: [GOOGLE.byClickTime, GOOGLE.howLong],
     needs: ['lagShape', 'settlesAfter'],
-    game: ({ lagShape, settlesAfter }) => 'This game keeps the same rule, a week at a time. '
-      + 'Each week’s report belongs to the week of its clicks and is rewritten as orders '
-      + `arrive: ${lagShape}. Returns then need their own time to come back, so a week is `
-      + `final about ${settlesAfter} weeks after it happens. Where it departs: a real `
-      + 'account’s delay depends on what you sell and how you set it up, while here every '
-      + 'advertiser shares one fixed shape, counted in weeks because each turn is a week.',
-    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+    game: ({ lagShape, settlesAfter }) => 'A week’s report belongs to the week its clicks '
+      + `happened. As the orders arrive it is rewritten: ${lagShape}. `
+      + 'Returns come back later still. '
+      + `A week is not final until about ${settlesAfter} weeks after it ends.`,
+    departs: [
+      'A real account’s delay depends on what you sell and how you set it up. Here every advertiser has the same one.',
+      'It is counted in whole weeks, because here a week is one turn.',
+    ],
     cites: ['I27', '§11.3', '§11.4'],
     yourAccount: 'revised',
     // Smart bidding learns only from conversions that have landed.
@@ -233,18 +233,19 @@ export const CHAPTERS = Object.freeze({
       + 'on ad spend it shows you is before returns.',
     realSources: [INDIA.pragmaRto, GOOGLE.adjustments],
     needs: ['rtoCod', 'rtoPrepaid', 'postDelivery', 'freight'],
-    game: ({ rtoCod, rtoPrepaid, postDelivery, freight }) => 'Here the game shows your returns from '
-      + 'your shop’s own books, which Google Ads would show only if you uploaded them. Every order '
-      + `can be refused at the door, ${rtoCod} of the time when paid in cash and ${rtoPrepaid} `
-      + `when prepaid, and ${postDelivery} of delivered orders across the country are sent back, `
-      + 'more or less for you depending on where you sell. Each refused '
-      + `parcel also costs ${freight} in freight. The two halves have different fixes: a size `
-      + 'guide reaches only send-backs, while order confirmation and a prepaid discount reach '
-      + 'only refusals. The refusal rates come from one named study; newer reports put cash '
-      + 'refusals higher.',
-    cites: ['I28', 'F14', 'I29', 'I34'],    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
-
+    game: ({ rtoCod, rtoPrepaid, postDelivery, freight }) => 'Your returns come from your shop’s '
+      + `own books. Any order can be refused at the door: ${rtoCod} of the time when paid in cash, `
+      + `and ${rtoPrepaid} when prepaid. `
+      + `Another ${postDelivery} of delivered orders across the country are sent back, `
+      + 'more or less depending on where you sell. '
+      + `Each refused parcel costs ${freight} in freight as well. `
+      + 'The two halves take different fixes. A size guide reaches only send-backs; '
+      + 'order confirmation and a prepaid discount reach only refusals.',
+    departs: [
+      'Google Ads shows you none of this. It learns of a return only if you upload one yourself.',
+      'The refusal rates come from one named study, and newer reports put cash refusals higher.',
+    ],
+    cites: ['I28', 'F14', 'I29', 'I34'],
     yourAccount: 'returns',
     related: ['cashOnDelivery', 'attributionLag'],
   }),
@@ -260,17 +261,16 @@ export const CHAPTERS = Object.freeze({
       + 'Smart Bidding strategies.',
     realSources: [INDIA.firstResort, INDIA.unicommerce, GOOGLE.bidAdjustments],
     needs: ['bidCap'],
-    game: ({ bidCap }) => 'The game makes cash commoner outside the metros and at lower prices, so '
-      + 'orders from smaller cities and towns come back more often and cost more to carry. '
-      + 'Where you advertise is the lever: it shows what a click kept in each place '
-      + 'after returns, and lets you bid up or down there. It departs in three ways: an '
-      + 'adjustment can switch a place off entirely, where Google’s lowest adjustment still '
-      + 'leaves it on; it applies under every bidding strategy, including the automated '
-      + `ones Google does not allow it with; and no bid goes past ${bidCap} your keyword bid, `
-      + 'however the place’s and the hour’s adjustments stack. How cash varies by price is '
-      + 'the game’s own estimate.',
-    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+    game: () => 'Cash is commoner outside the metros, and at lower prices. '
+      + 'So orders from smaller cities and towns come back more often, and cost more to carry. '
+      + 'Where you advertise is the lever. It shows what a click kept in each place after '
+      + 'returns, and lets you bid up or down there.',
+    departs: [
+      'The lowest setting switches a place off completely. Google’s lowest adjustment still leaves it on.',
+      'It applies under every bidding strategy, including the automated ones Google does not allow it with.',
+      ({ bidCap }) => `No bid goes past ${bidCap} your keyword bid, however a place and an hour add up.`,
+      'How much cash varies by price is the game’s own estimate.',
+    ],
     cites: ['G4', 'I28', 'D11', 'D13'],
     yourAccount: 'places',
     // A place and an hour are both bid adjustments, under the one cap (D13).
@@ -286,16 +286,17 @@ export const CHAPTERS = Object.freeze({
       + 'might have performed with more money, and they warn that conversions are the hardest '
       + 'part to estimate. Everything it tells you about the road not taken is a projection.',
     realSources: [GOOGLE.impressionShareData, GOOGLE.impressionShare, GOOGLE.simulators],
-    game: () => 'This game can re-run a week exactly. The budget "what if" re-runs each week with '
-      + 'only your own budget lifted to what was left of the month, everyone else unchanged, and '
-      + 'reports the extra traffic and whether it would have paid; orders that never happened are '
-      + 'costed at your expected return rate. "What if I hadn’t?" replays the game without '
-      + 'one of your changes, with every rival making the moves it made in your game, though a '
-      + 'real market might have answered differently. Both are exact inside the game and '
-      + 'impossible outside it.',
-    cites: ['G1', 'G1a'],    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
-
+    game: () => 'This game can re-run a week exactly. '
+      + 'The budget "what if" re-runs each week with only your own budget lifted to what was '
+      + 'left of the month, and everyone else unchanged. '
+      + 'It reports the extra traffic and whether it would have paid; orders that never '
+      + 'happened are costed at your expected return rate. '
+      + '"What if I hadn’t?" replays the game without one of your changes.',
+    departs: [
+      'Both replays are exact here and impossible in a real account, where nobody sees the road not taken.',
+      'In a replay every rival repeats the moves it made. A real market might have answered differently.',
+    ],
+    cites: ['G1', 'G1a'],
     yourAccount: 'budget',
     // Both replays are drawn after the last week, in Results' What you learned.
     studioAccount: 'results-moments',
@@ -313,16 +314,16 @@ export const CHAPTERS = Object.freeze({
       + 'campaigns. Neither is Indian search data from a named dataset, so treat every one of '
       + 'these as a rough range rather than a fact.',
     realSources: [INDUSTRY.ppcChief, INDIA.balistro],
-    game: () => 'Measured across many markets, ads here are clicked, and clicks buy, at least as '
-      + 'often as those benchmarks, and a player bidding sensibly earns returns above the '
-      + 'Indian range and made money in every market measured. Three choices make it kinder '
-      + 'than a real market: the results page holds nothing but ads, so no organic results or '
-      + 'shopping units compete for the click; the base conversion rate is the game’s own '
-      + 'estimate; and there is no lifetime value, so the first order must carry everything, '
-      + 'and here it does so easily. A careless player can still lose money.',
-    cites: ['F15', 'F17', 'B6', 'F4'],    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
-
+    game: () => 'Measured across many markets, ads here are clicked, and clicks buy, at least '
+      + 'as often as those benchmarks. '
+      + 'A player bidding sensibly earns returns above the Indian range, and made money in '
+      + 'every market measured. A careless player can still lose money.',
+    departs: [
+      'The results page holds nothing but ads. No organic results or shopping units compete for the click.',
+      'The base conversion rate is the game’s own estimate.',
+      'There is no lifetime value, so a first order carries everything — and here it does so easily.',
+    ],
+    cites: ['F15', 'F17', 'B6', 'F4'],
     yourAccount: 'headline',
   }),
 
@@ -335,15 +336,16 @@ export const CHAPTERS = Object.freeze({
       + 'were eligible for. Google presents the figure as telling you whether your ads might '
       + 'reach more people with a higher bid or a bigger budget.',
     realSources: [GOOGLE.impressionShareData, GOOGLE.impressionShare],
-    game: () => 'This game splits every week’s missed searches the same way, but exactly, because it '
-      + 'counts every auction you could have entered. The two point at different fixes. Lost to '
-      + 'budget means the money ran out first: more money helps, and so do cheaper clicks, while '
-      + 'a higher bid makes each click dearer and the money runs out sooner. Lost to rank means '
-      + 'your ad rank, your bid weighed by your ad’s quality, was too low: a better ad or a '
-      + 'higher bid helps, and more money does not.',
-    cites: ['H3', 'G2'],    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
-
+    game: () => 'This game splits every week’s missed searches the same way. '
+      + 'The two point at different fixes. '
+      + 'Lost to budget means the money ran out first: more money helps, and so do cheaper '
+      + 'clicks, while a higher bid makes each click dearer and the money runs out sooner. '
+      + 'Lost to rank means your ad rank — your bid weighed by your ad’s quality — was too low. '
+      + 'A better ad or a higher bid helps there, and more money does not.',
+    departs: [
+      'The split here is exact, because every auction you could have entered is counted. Google’s rests on an estimate.',
+    ],
+    cites: ['H3', 'G2'],
     yourAccount: 'share',
     related: ['counterfactuals'],
   }),
@@ -358,15 +360,18 @@ export const CHAPTERS = Object.freeze({
       + 'Negatives do not match close variants, so plurals and synonyms have to be added '
       + 'separately.',
     realSources: [GOOGLE.matchTypes, GOOGLE.searchTerms, GOOGLE.negatives],
-    game: () => 'Here exact and phrase match are word matches, and broad match reaches a search '
-      + 'when enough of the concept tags the two were given from their words are shared. A '
-      + 'distant search costs twice: it rarely buys, and a poorer fit lowers your ad rank on it. '
+    game: () => 'Exact and phrase match are word matches here. '
+      + 'Broad match reaches a search when enough of the concept tags the two were given from '
+      + 'their words are shared. '
+      + 'A distant search costs you twice: it rarely buys, and a poorer fit lowers your ad rank '
+      + 'on it. '
       + 'Broadening also lowers impression share while raising impressions, because it adds '
-      + 'searches faster than it wins them. Negatives are plain word matches, never tags. Where '
-      + 'it departs: how far broad reaches depends on how a keyword was tagged, and broad works '
-      + 'under any strategy.',
-    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+      + 'searches faster than it wins them. '
+      + 'Negatives are plain word matches, never tags.',
+    departs: [
+      'How far broad reaches depends on how a keyword was tagged.',
+      'Broad match works under any bidding strategy. Google says to use Smart Bidding with it.',
+    ],
     cites: ['E8', 'E9', 'H5', 'H6', '§8.2'],
     yourAccount: 'terms',
     // A poorer fit lowers your ad rank.
@@ -385,17 +390,18 @@ export const CHAPTERS = Object.freeze({
       + 'dash means too few searches exactly match the keyword to score it.',
     realSources: [GOOGLE.qualityScore],
     needs: ['qsImpressions'],
-    game: ({ qsImpressions }) => 'Here too the score is a report, never an input: the '
-      + 'auction weighs your ad’s quality afresh on every search, and the score is worked out '
-      + 'afterwards. It counts only the keyword’s own literal search, in finished weeks, so a '
-      + 'better ad counts in the very next auction, in your position and its price, while the '
-      + 'score catches up late or never. Each part has three levels against everyone on the '
-      + 'same search, so a real improvement can leave it unmoved, and landing page reads '
-      + `above average only rarely. A keyword has no score until its own search earns `
-      + `${qsImpressions} impressions. Where it departs: the overall score comes from the `
-      + 'three ratings through a table this game invented.',
-    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+    game: ({ qsImpressions }) => 'Here too the score is a report, never an input. '
+      + 'The auction weighs your ad’s quality afresh on every search, and the score is worked '
+      + 'out afterwards. '
+      + 'It counts only the keyword’s own literal search, in finished weeks. '
+      + 'So a better ad counts in the very next auction, in your position and its price, while '
+      + 'the score catches up late or never. '
+      + 'Each part has three levels against everyone on the same search, so a real improvement '
+      + 'can leave it unmoved, and landing page reads above average only rarely. '
+      + `A keyword has no score until its own search earns ${qsImpressions} impressions.`,
+    departs: [
+      'The overall score comes from the three ratings through a table this game invented.',
+    ],
     cites: ['A1', 'A2', 'A5', 'A6'],
     yourAccount: 'keywords',
     // The writer sets two of the score's three parts.
@@ -412,17 +418,17 @@ export const CHAPTERS = Object.freeze({
     realSources: [GOOGLE.trademarks],
     needs: ['ownerConv', 'poacherConv'],
     game: ({ ownerConv, poacherConv }) => 'Every brand here has its own search, and any '
-      + 'advertiser may bid on it. Someone searching your name buys from you at '
-      + `${ownerConv} the usual rate, and from a rival that poaches it at ${poacherConv} that `
-      + 'rate. Nothing else knows whose name it is: the searcher is no likelier to click your '
-      + 'ad than a rival’s with the same grades. Defending it is cheap here because few rivals '
-      + 'contest it and the owner can afford to bid higher, not because searchers prefer the '
-      + 'name they typed.',
+      + 'advertiser may bid on it. '
+      + `Someone searching your name buys from you at ${ownerConv} the usual rate, and from a `
+      + `rival that poaches it at ${poacherConv} that rate. `
+      + 'Defending it is cheap here because few rivals contest it, and the owner can afford to '
+      + 'bid higher.',
+    departs: [
+      'Nothing else knows whose name it is. A searcher is no likelier to click your ad than a rival’s with the same grades.',
+    ],
     cites: ['A9', '§12.1'],
     // The search terms, where a search for the player's own name is marked as
-    // theirs; the auction insights say nothing about a name.    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
-
+    // theirs; the auction insights say nothing about a name.
     yourAccount: 'terms',
   }),
 
@@ -436,15 +442,16 @@ export const CHAPTERS = Object.freeze({
       + 'longer, with at least 30 conversions.',
     realSources: [GOOGLE.smartBidding, GOOGLE.learning],
     needs: ['learningWeeks', 'learningError'],
-    game: ({ learningWeeks, learningError }) => 'Here the strategies that predict conversions '
+    game: ({ learningWeeks, learningError }) => 'The strategies that predict conversions '
       + 'estimate each click’s chance of a sale from your own conversions that have already '
-      + 'landed, never from the truth, so they start out wrong and improve with volume. '
-      + `Switching strategy, changing its target or moving position starts a learning period of ${learningWeeks} `
-      + `weeks in which their predictions go wrong ${learningError} as much. Bid, keyword and `
-      + 'budget changes do not. Where it departs: learning lasts a fixed number of weeks rather '
-      + 'than until enough conversions arrive.',
-    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+      + 'landed, never from the truth. '
+      + 'So they start out wrong and improve with volume. '
+      + 'Switching strategy, changing its target or moving position starts a learning period of '
+      + `${learningWeeks} weeks, in which their predictions go wrong ${learningError} as much. `
+      + 'Bid, keyword and budget changes do not.',
+    departs: [
+      'Learning lasts a fixed number of weeks here, rather than until enough conversions arrive.',
+    ],
     cites: ['D2', '§12.3'],
     yourAccount: 'bidding',
     related: ['attributionLag', 'hours'],
@@ -483,17 +490,18 @@ export const CHAPTERS = Object.freeze({
       + 'and ad relevance, how closely it matches the intent behind a search. The third, '
       + 'landing page experience, is how relevant and useful your page is to people who click.',
     realSources: [GOOGLE.responsiveSearchAds, GOOGLE.qualityScore],
-    game: () => 'Before the first week you choose who writes the ad, which sets two of Quality '
-      + 'Score’s three parts: expected click-through and ad relevance. A hired writer’s ad runs '
-      + 'at the writer’s level whatever the words say, because this game cannot judge '
-      + 'professional writing. Writing it yourself costs nothing, and the game’s grader scores '
-      + 'your words by rules, not taste: echoing your own keywords counts for more than reading '
-      + 'well. Both run from the first week, and what the writer does not cost goes to your ads, '
-      + 'so the fee buys not having to write, and insurance against writing badly. The landing '
-      + 'page is built with capital. Where it departs: Google’s Quality Score has no part for '
-      + 'who wrote the ad.',
-    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+    game: () => 'Before the first week you choose who writes the ad. '
+      + 'That sets two of Quality Score’s three parts: expected click-through and ad relevance. '
+      + 'A hired writer’s ad runs at the writer’s level whatever the words say, because this '
+      + 'game cannot judge professional writing. '
+      + 'Writing it yourself costs nothing, and the grader scores your words by rules rather '
+      + 'than taste: echoing your own keywords counts for more than reading well. '
+      + 'Both run from the first week, and what the writer does not cost goes to your ads. '
+      + 'So the fee buys not having to write, and insurance against writing badly. '
+      + 'The landing page is built with capital.',
+    departs: [
+      'Google’s Quality Score has no part for who wrote the ad.',
+    ],
     cites: ['I11', 'I10', 'I25', 'I9'],
     // The classic page draws the ad on no card; the Studio's Your ad does.
     yourAccount: 'keywords',
@@ -509,14 +517,15 @@ export const CHAPTERS = Object.freeze({
       + 'when you are more likely to get clicks and conversions. Across a month it stays within '
       + '30.4 times the daily figure.',
     realSources: [GOOGLE.dailyBudgets],
-    game: () => 'Here each month’s money is a fixed amount you divide across its four weeks, '
-      + 'evenly unless you change the split, and within a week it is paced across the days and '
-      + 'hours. A week spends what it was given and no more, and money left when the month ends '
-      + 'is lost: nothing carries over, so hoarding cannot win. Where it departs: Google works '
-      + 'from a daily average and moves spend between days for you; here the shape of the month '
-      + 'is yours to set, which is why the split exists, and yours to read afterwards.',
-    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
-    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+    game: () => 'Each month’s money is a fixed amount you divide across its four weeks, '
+      + 'evenly unless you change the split. '
+      + 'Within a week it is paced across the days and hours. '
+      + 'A week spends what it was given and no more. '
+      + 'Money left when the month ends is lost: nothing carries over, so hoarding cannot win.',
+    departs: [
+      'Google works from a daily average and moves spend between days for you.',
+      'Here the shape of the month is yours to set, which is why the split exists, and yours to read afterwards.',
+    ],
     cites: ['D10', '§13.2', 'D1'],
     yourAccount: 'split',
     related: ['rankOrBudget'],

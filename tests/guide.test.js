@@ -21,7 +21,7 @@
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { CHAPTERS, CONTENTS, chapter } from '../ui/guide/chapters.js';
+import { CHAPTERS, CONTENTS, chapter, DEPARTURE_MAX_WORDS } from '../ui/guide/chapters.js';
 import { guideFigures } from '../ui/guide/figures.js';
 import { sectionOf } from '../ui/shell/sections.js';
 import { MAX_BID_MULTIPLE } from '../engine/constants.js';
@@ -291,5 +291,58 @@ describe('a departure is a field, not a sentence buried in the prose', () => {
     };
     expect(() => chapter({ ...base, departs: ['one'], departsNot: 'none' })).toThrow(/both/);
     expect(() => chapter({ ...base })).toThrow(/where it departs/);
+  });
+});
+
+describe('every chapter says where it departs, or why it does not', () => {
+  const departures = (id) => CHAPTERS[id].departs.map((entry) => entry(FIGURES));
+
+  test.each(Object.keys(CHAPTERS))('%s declares one or the other, for real', (id) => {
+    const c = CHAPTERS[id];
+    expect(c.departs.length > 0 || Boolean(c.departsNot), id).toBe(true);
+    // Task 1 gave twelve chapters a truthful holding sentence. Task 2 replaces
+    // every one, and this is what stops it surviving.
+    expect(c.departsNot ?? '', id).not.toMatch(/not pulled out yet/);
+  });
+
+  test('every departure is its own line, and short enough to read', () => {
+    for (const id of Object.keys(CHAPTERS)) {
+      for (const line of departures(id)) {
+        expect(wordCount(line), `${id}: ${line}`).toBeLessThanOrEqual(DEPARTURE_MAX_WORDS);
+      }
+    }
+  });
+
+  // MEASURED 2026-09-19: eight chapters labelled a departure, and five more
+  // stated one inside their prose where nobody could find it. Pulled out, there
+  // are far more of them than were ever labelled.
+  test('there are far more of them than the eight that used to be labelled', () => {
+    const all = Object.keys(CHAPTERS).flatMap((id) => departures(id));
+    expect(all.length).toBeGreaterThan(18);
+  });
+
+  test('no game half still carries a departure in its prose', () => {
+    for (const id of Object.keys(CHAPTERS)) {
+      const game = CHAPTERS[id].game(FIGURES);
+      expect(game, id).not.toMatch(/departs?\b/i);
+      expect(game, `${id} still enumerates its departures mid-paragraph`)
+        .not.toMatch(/kinder than a real market/i);
+    }
+  });
+
+  // The five that were buried. Naming them here means a later edit cannot
+  // quietly fold one back into the prose it came out of.
+  test.each(['kindMarket', 'returnsSplit', 'counterfactuals', 'rankOrBudget', 'ownName'])(
+    '%s, which used to hide its departure in prose, now declares it',
+    (id) => {
+      expect(departures(id).length, id).toBeGreaterThan(0);
+    },
+  );
+
+  test('a departure never drops the citation it rests on', () => {
+    for (const id of Object.keys(CHAPTERS)) {
+      expect(CHAPTERS[id].cites.length, id).toBeGreaterThan(0);
+      for (const c of CHAPTERS[id].cites) expect(cited(c), `${id} cites ${c}`).toBe(true);
+    }
   });
 });
