@@ -5,8 +5,9 @@
  * pulses by each kind of place's share.
  */
 
-import { el, rupees, whole, pct } from '../dom.js';
+import { el, add, rupees, whole, pct } from '../dom.js';
 import { ADVERTISER_COUNT, TOTAL_ROUNDS, PRICE_TIERS } from '../../engine/constants.js';
+import { whyButton } from '../guide/drawer.js';
 import { R0, PRICE_WORD } from '../words/roundZero.js';
 import { pills } from '../kit/controls.js';
 import { sharesFor, drawIndia } from '../map/india.js';
@@ -16,7 +17,7 @@ import { sharesFor, drawIndia } from '../map/india.js';
  *   reads only the briefing
  * @returns {{node: HTMLElement}}
  */
-export function renderMarketStep({ brief }) {
+export function renderMarketStep({ brief, openGuide }) {
   const node = el('div', 'r0-market');
   node.append(el('p', 'r0-intro', R0.marketIntro({ weeks: TOTAL_ROUNDS, rivals: ADVERTISER_COUNT - 1 })));
 
@@ -41,6 +42,9 @@ export function renderMarketStep({ brief }) {
     el('p', 'r0-sum', brief.workedAnchor.arithmetic),
     el('p', null, R0.breakEvenCaveat()),
   );
+  // The most important number a player is handed, and until now nothing in the
+  // game said what it meant (plans/2026-09-19-ground-floor.md, section 5).
+  add(panel, whyButton(R0.breakEvenTitle, openGuide));
 
   const told = el('div', 'r0-told');
   const hints = el('dl', 'r0-hints');

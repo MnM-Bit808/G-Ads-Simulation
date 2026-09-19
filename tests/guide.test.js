@@ -592,3 +592,31 @@ describe('the ground floor covers every control round 0 asks for', () => {
     }
   });
 });
+
+describe('the ground floor can be found from the step that needs it', () => {
+  // A GROUND FLOOR NOBODY FINDS IS WORTH NOTHING. Before this, round 0 carried
+  // 134 pieces of text and six "why?" links, onto four of the thirteen
+  // chapters — so the depth existed and was unreachable where a beginner most
+  // needed it (plans/2026-09-19-ground-floor.md, section 6).
+  test('every ground-floor chapter has a why? somewhere that opens it', async () => {
+    const whys = await screenWhys();
+    for (const id of START_HERE) {
+      expect([...whys], `${id} is unreachable: nothing links to it`).toContain(id);
+    }
+  });
+
+  // How many a player can SEE is counted in tests/words.test.js, against the
+  // drawing rather than the data: a `why` on a line nobody draws is not a link.
+  test('round 0 links to more chapters than the four it used to reach', async () => {
+    const { R0 } = await import('../ui/words/roundZero.js');
+    const reached = new Set(Object.values(R0).map((entry) => entry.why).filter(Boolean));
+    expect(reached.size, `reaches ${[...reached].join(', ')}`).toBeGreaterThanOrEqual(8);
+  });
+
+  test('every why? in round 0 names a chapter that exists', async () => {
+    const { R0 } = await import('../ui/words/roundZero.js');
+    for (const [name, entry] of Object.entries(R0)) {
+      if (entry.why) expect(Object.keys(CHAPTERS), `R0.${name}`).toContain(entry.why);
+    }
+  });
+});

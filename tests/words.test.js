@@ -991,3 +991,39 @@ describe('the new screens draw, and do not write', () => {
     }
   });
 });
+
+describe('a why? is only real once something draws it', () => {
+  // FOUND BY PLAYING IT, 2026-09-19. Adding `{ why }` to a line is data; the
+  // button appears only where a drawing module calls `whyButton` for that line.
+  // Twelve links were added to round 0's words and step 1 still drew none, and
+  // the test that counted the LINES passed the whole time.
+  const drawing = ['ui/roundzero/market.js', 'ui/roundzero/position.js', 'ui/roundzero/keywords.js',
+    'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/kit/card.js'];
+  const source = drawing.map((f) => readFileSync(fileURLToPath(new URL(`../${f}`, import.meta.url)), 'utf8')).join('\n');
+  const calls = source.match(/whyButton\([^;]*?\)/g) ?? [];
+
+  test('every line in round 0 that carries a why has a button drawn for it', () => {
+    const missing = [];
+    for (const [name, entry] of Object.entries(R0)) {
+      if (!entry.why) continue;
+      // A line may be drawn conditionally — `whyButton(x ? R0.a : R0.b, …)` —
+      // so the name is looked for anywhere inside a whyButton call.
+      const drawn = calls.some((call) => call.includes(`R0.${name}`));
+      if (!drawn) missing.push(`R0.${name} → ${entry.why}`);
+    }
+    expect(missing, `carry a why nobody draws: ${missing.join(', ')}`).toEqual([]);
+  });
+
+  // THE NUMBER THAT MATTERS is how many a player can see, not how many lines
+  // carry the data. Round 0 drew six before the ground floor.
+  test('round 0 draws far more of them than it used to', () => {
+    expect(calls.length, `only ${calls.length} why buttons are drawn`).toBeGreaterThanOrEqual(12);
+  });
+
+  test('each of round 0’s five steps draws at least one', () => {
+    for (const file of ['market.js', 'position.js', 'keywords.js', 'ad.js', 'money.js']) {
+      const body = readFileSync(fileURLToPath(new URL(`../ui/roundzero/${file}`, import.meta.url)), 'utf8');
+      expect(body.includes('whyButton('), `${file} draws no why at all`).toBe(true);
+    }
+  });
+});

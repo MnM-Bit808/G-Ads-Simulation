@@ -66,7 +66,7 @@ export const R0 = Object.freeze({
     + 'You finish ranked by profit after returns.'),
   searchesWeek: line('label', 'searches a week'),
   orderMargin: line('label', ({ order, margin }) => `${order} order · ${margin} margin`),
-  breakEvenTitle: line('label', 'What a click is worth to you, at break-even'),
+  breakEvenTitle: line('label', 'What a click is worth to you, at break-even', { why: 'breakEven' }),
   breakEvenCaveat: line('reading', 'That is a click on a search worth nothing in particular. The searches '
     + 'you choose to compete for are worth roughly double, which is why your position matters.'),
   notTold: line('label', 'What you’re not told'),
@@ -95,7 +95,7 @@ export const R0 = Object.freeze({
   sponsored: line('label', 'Sponsored'),
   guessFor: line('label', ({ name }) => `Where you think ${name} sits`),
   guessCell: line('label', ({ name, cell }) => `${name}: ${cell}`),
-  pickSquare: line('label', 'Pick your square'),
+  pickSquare: line('label', 'Pick your square', { why: 'position' }),
   fixedUntil: line('label', ({ week }) => `fixed until week ${week}`),
   readoutNone: line('reading', 'Price sets what a click can be worth to you. Purpose sets which searches '
     + 'are yours. You haven’t placed any rival here.'),
@@ -115,12 +115,12 @@ export const R0 = Object.freeze({
 
   // Step 3, your keywords
   keywordsIntro: line('reading', ({ n }) => `${n} ${n === 1 ? 'keyword' : 'keywords'} · the searches you `
-    + 'bid on, and how loosely each one matches', { why: 'broadMatch' }),
+    + 'bid on, and how loosely each one matches', { why: 'keywords' }),
 
   // Step 4, your ad
   adIntro: line('reading', 'The only thing your rivals can see about you. Hire a writer, or write it '
     + 'yourself.', { why: 'writers' }),
-  whoWrites: line('label', 'Who writes it'),
+  whoWrites: line('label', 'Who writes it', { why: 'adParts' }),
   fromBudget: line('label', ({ budget }) => `from a ${budget} creative budget`),
   free: line('label', 'free'),
   writerDiy: line('reading', 'Free. Graded on your own words.'),
@@ -156,15 +156,15 @@ export const R0 = Object.freeze({
   // Step 5, your money
   moneyIntro: line('reading', ({ month, capital }) => `Month ${month}’s budget, and ${capital} of capital: `
     + 'build the site your clicks land on, or keep it as ad money.'),
-  monthTitle: line('label', ({ month }) => `Month ${month}, to spend on clicks`),
+  monthTitle: line('label', ({ month }) => `Month ${month}, to spend on clicks`, { why: 'budget' }),
   monthNote: line('label', ({ weeks }) => `over ${weeks} weeks · unspent money is lost at the month’s end`),
   partBase: line('label', 'the month'),
   partWriter: line('label', 'left from the writer'),
-  capitalTitle: line('label', 'Capital'),
+  capitalTitle: line('label', 'Capital', { why: 'capital' }),
   capitalWhen: line('label', ({ week }) => `site work goes live at week ${week} · until then the money is `
     + 'spent and the site unchanged'),
   notCommitted: line('label', 'not committed'),
-  lpTitle: line('label', 'Landing page grade'),
+  lpTitle: line('label', 'Landing page grade', { why: 'landingPage' }),
   lpNote: line('label', ({ step }) => `the third part of Quality Score · the ad’s two are in ${step}`),
   lpFrom: line('label', ({ value, scale, week }) => `${value}/${scale} from week ${week}`),
   // Where the bar came from, in the words Your ad's total uses (design/grade-breakdown/,

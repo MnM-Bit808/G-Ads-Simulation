@@ -471,7 +471,7 @@ Message: *"Write the other eight ground-floor chapters, one per control"*.
 **A ground floor nobody finds is worth nothing.** Round 0 has **134 pieces of
 text and 6 `why?` links**, onto 4 of the 13 chapters.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/guide.test.js — every ground-floor chapter is reachable from round 0.
@@ -487,9 +487,9 @@ test('round 0 links to the ground floor far more than it used to', () => {
 });
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
-- [ ] **Step 3: Add the links**
+- [x] **Step 3: Add the links**
 
 One `why?` per term, on the line in `ui/words/roundZero.js` where round 0 first
 uses it. `line()` already takes `{ why }`. The step each chapter names is where
@@ -498,7 +498,7 @@ its link belongs.
 **Careful:** a `disclosure` must already name a chapter, so do not move an
 existing `why` — add to `reading` and `label` lines that have none.
 
-- [ ] **Step 4: Run the suite and commit**
+- [x] **Step 4: Run the suite and commit**
 
 Message: *"Put a why? on every term the ground floor defines"*.
 

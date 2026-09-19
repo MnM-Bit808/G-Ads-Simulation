@@ -149,6 +149,9 @@ export function keywordCard({
       keyPrefix: `${model.id}:match`,
       onPick: onMatch,
     });
+    // One why on the row, not one on each pill: three buttons where three
+    // words should be is noise, and they all open the same chapter.
+    add(match, whyButton(KEYWORDS.exact, openGuide));
     const reach = el('p', 'kreach', FORM.reach({ count: model.reach }));
     if (model.wasMatchType) reach.append(el('span', 'kwas', KEYWORDS.wasMatch({ match: MATCH_WORD[model.wasMatchType]() })));
     let tagsText = '';
@@ -166,6 +169,7 @@ export function keywordCard({
     figure.dataset.key = `${model.id}:bid`;
     const bidRow = el('div', 'kbid-row');
     bidRow.append(el('span', 'klabel', KEYWORDS.bid()), was, figure);
+    add(bidRow, whyButton(KEYWORDS.bid, openGuide));
 
     bar = slider({
       minRupees: 1,

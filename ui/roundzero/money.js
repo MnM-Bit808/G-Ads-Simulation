@@ -58,12 +58,14 @@ export function renderMoneyStep({ draft, openGuide, changed, redraw }) {
   }
   panel.append(el('p', 'r0-eyebrow', R0.monthTitle({ month: 1 })), el('p', 'r0-sum', rupees(month)),
     el('p', null, R0.monthNote({ weeks: ROUNDS_PER_MONTH })), bar, legend);
+  add(panel, whyButton(R0.monthTitle, openGuide));
 
   // The capital, and the grade the page part of it moves.
   const capital = el('div', 'r0-capital');
   capital.dataset.region = R0.capitalTitle();
   const head = el('div', 'r0-head');
   head.append(el('h3', null, R0.capitalTitle()), el('span', 'r0-small', R0.capitalWhen({ week: grade.liveAt })));
+  add(head, whyButton(R0.capitalTitle, openGuide));
   const kept = el('p', 'r0-kept');
   kept.append(el('strong', null, rupees(left)), el('span', null, R0.notCommitted()));
 
@@ -78,6 +80,7 @@ export function renderMoneyStep({ draft, openGuide, changed, redraw }) {
     line.append(track, el('strong', null, R0.lpFrom({ value, scale: GRADE_SCALE, week })));
     return line;
   };
+  add(lp, whyButton(R0.lpTitle, openGuide));
   lp.append(el('h3', null, R0.lpTitle()), el('p', 'r0-small', R0.lpNote({ step: R0.stepAd() })),
     gradeBar(grade.fromWeek1, 1));
   if (grade.fromWeek4 > grade.fromWeek1) lp.append(gradeBar(grade.fromWeek4, grade.liveAt));

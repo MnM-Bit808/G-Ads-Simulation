@@ -47,6 +47,7 @@ export function renderAdStep({ draft, rootSeed, openGuide, changed, redraw }) {
   const node = el('div', 'r0-ad');
   const intro = el('p', 'r0-intro', R0.adIntro());
   add(intro, whyButton(R0.adIntro, openGuide));
+  add(intro, whyButton(R0.whoWrites, openGuide));
 
   // Who writes it, and what is left of the creative budget.
   const writers = el('div', 'r0-writers');

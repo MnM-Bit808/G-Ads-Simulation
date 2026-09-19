@@ -126,6 +126,7 @@ export function renderPositionStep({ draft, brief, querySet, rootSeed, openGuide
   squares.dataset.region = R0.pickSquare();
   const shead = el('div', 'r0-head');
   shead.append(el('h3', null, R0.pickSquare()), el('span', 'r0-small', R0.fixedUntil({ week: REPOSITION_ROUND })));
+  add(shead, whyButton(R0.pickSquare, openGuide));
   const here = guessedIn(draft, draft.cell);
   const readout = el('p', 'r0-readout', here.length > 0 ? R0.readoutPlaced({ names: here }) : R0.readoutNone());
 
