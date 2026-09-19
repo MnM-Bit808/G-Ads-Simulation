@@ -223,9 +223,35 @@ spread-versus-commit, which past the curve's ₹80,000 top compared against a
 spend whose tail bought nothing. **A number is easier to change when its tests
 read the thing rather than the figure.**
 
-**Next, none blocking:** the owner reading the twenty-three chapters; the
-message project's part 2 (images from week 9); whether sixty keywords want a
-compact list.
+**THE TWENTY-THREE CHAPTERS HAVE BEEN READ END TO END** (2026-09-19, `729a2d8`),
+which is the step both plans left unticked. Twenty-one read cleanly. What came
+out of reading them:
+
+- **`69c8a7e` "Your landing page" was filed under step 4 while its own last
+  sentence said step 5**, and step 5 was right: the only why? that opens it is
+  on step 5's "Landing page grade", and step 5 is where the capital that builds
+  the page is spent. The contents page was sending a beginner to a step where
+  they could neither act on it nor find the chapter. A test now refuses any
+  ground-floor chapter whose prose names a step other than its own.
+- **`729a2d8` two chapters rewritten.** Broad match carried a sentence nobody
+  could parse — "enough of the concept tags the two were given from their words
+  are shared", three possessives nested inside one another, in the chapter
+  explaining the one match type a beginner cannot predict. Quality Score was the
+  densest half in the book, 101 words carrying eleven ideas, in the chapter
+  whose whole job is correcting the belief that the score is an auction input;
+  it is 86 words and six sentences now, one idea each.
+
+**WHAT WAS DELIBERATELY DROPPED from Quality Score:** that the landing page part
+reads above average only rarely. True, but an observation about this market
+rather than about what the score IS, and the least load-bearing of the eleven.
+Nothing dropped was false; there was simply too much of it.
+
+**STILL NOT ANSWERED, AND NO TEST CAN:** whether a beginner UNDERSTANDS them.
+Length, sentence count and nesting are measured; comprehension is not. That is
+the last thing standing between here and `playtest-5`.
+
+**Next, none blocking:** the message project's part 2 (images from week 9);
+whether sixty keywords want a compact list.
 
 **When the next playtest goes out,** tag the live build the same day —
 `playtest-4` is used, so the next is **`playtest-5`** — and read *Running a
