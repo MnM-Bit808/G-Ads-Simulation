@@ -248,6 +248,13 @@ is a ratchet against the run growing to fifteen beats.
 
 ## 5. The guide's ground floor
 
+> **Designed out in full on 2026-09-19, after the first run was built:**
+> `plans/2026-09-19-ground-floor.md`. It carries the `basic()` contract, the
+> nine chapters' actual text with every source fetched, and one thing this
+> section did not have — each ground-floor chapter names the nuance chapter that
+> continues it, which is where a departure gets disclosed. Where the two differ,
+> that doc is later and wins.
+
 ### 5.1 `chapter()` gains a sibling, not a flag
 
 `chapter()` (`ui/guide/chapters.js:45`) requires a `real` half with a source, a
