@@ -254,6 +254,24 @@ not fit it SHRANK them, `min-height` held them at 42px, and every wrapped title
 spilled onto the row below. **When a child's size rule looks right and the box
 is still wrong, suspect the flex parent.**
 
+**A FINISHED GAME HAS A WAY OUT NOW** (`c4d6a10`, the owner: "all I can see is
+'see your results'"). After the last week the tray offered that and nothing
+else, and **no screen in the game led back to the front door at any point** —
+the only exit at all was the Play again card on the FOURTH Results section,
+which throws the game away. The tray carries "Back to the menu" beside it now.
+
+**THE DESTINATION WAS ALREADY BUILT AND UNREACHABLE.** `ui/door/` has had a
+finished-game state since the switch-over — "A finished game / 12 of 12 weeks
+played", offering "Back to the results" or a warned fresh start — and nothing
+could get to it. This was the door handle, not the door. **Worth a look around
+for others: a state with words written for it and no route in.**
+
+It is drawn only when the game is over, and hidden during a bulk edit or a
+running week: during a game the tray's one button runs the week, and an exit
+beside it is something a beginner presses by mistake. **There is still no way
+back to the menu MID-game** (the owner's call, end-only); if that is ever
+wanted it belongs in the rail, not beside Run.
+
 **STILL NOT ANSWERED, AND NO TEST CAN:** whether a beginner UNDERSTANDS them.
 Length, sentence count and nesting are measured; comprehension is not. That is
 the last thing standing between here and `playtest-5`.
