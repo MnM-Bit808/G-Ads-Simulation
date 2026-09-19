@@ -43,7 +43,7 @@ export const R0 = Object.freeze({
   menu: line('label', 'Steps'),
 
   // The tray at step 5
-  checkSquare: line('label', 'Your square'),
+  checkSquare: line('label', 'Your positioning'),
   checkKeywords: line('label', 'Keywords'),
   checkAd: line('label', 'Your ad'),
   checkMoney: line('label', 'Your money'),
@@ -95,7 +95,11 @@ export const R0 = Object.freeze({
   sponsored: line('label', 'Sponsored'),
   guessFor: line('label', ({ name }) => `Where you think ${name} sits`),
   guessCell: line('label', ({ name, cell }) => `${name}: ${cell}`),
-  pickSquare: line('label', 'Pick your square', { why: 'position' }),
+  // NOT "Pick your square", which named the widget rather than the decision: a
+  // beginner reading it learned that there are squares, not that they are
+  // placing a brand in a market. The real term is taught here and defined once,
+  // in the chapter the why? opens.
+  pickSquare: line('label', 'Brand positioning', { why: 'position' }),
   fixedUntil: line('label', ({ week }) => `fixed until week ${week}`),
   readoutNone: line('reading', 'Price sets what a click can be worth to you. Purpose sets which searches '
     + 'are yours. You haven’t placed any rival here.'),

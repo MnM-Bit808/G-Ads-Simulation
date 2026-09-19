@@ -282,7 +282,8 @@ export const CHAPTERS = Object.freeze({
     title: 'Where your brand sits',
     plain: () => 'Your brand sits at a price, and has a purpose. '
       + 'Value, mid or premium; performance or lifestyle. '
-      + 'Together they decide what one sale earns you, and which searches are really yours. '
+      + 'The two together are your brand positioning. '
+      + 'They decide what one sale earns you, and which searches are really yours. '
       + 'Nobody tells you where the other eight sit, and their ads are the only evidence. '
       + 'You choose in step 2, and cannot move until week 5.',
     // The six squares are this game's own: real advertisers are not sorted into
