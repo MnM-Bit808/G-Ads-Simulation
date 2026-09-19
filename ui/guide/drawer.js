@@ -35,6 +35,10 @@ export function guideView(id, figures) {
     real: chapter.real(figures),
     sources: chapter.realSources.map(({ label, url }) => ({ label, url })),
     game: chapter.game(figures),
+    // Rendered here, because a departure may be a function of its figures just
+    // as the two halves are (plans/2026-09-19-guide-rewrite.md, rule 1).
+    departs: chapter.departs.map((entry) => entry(figures)),
+    departsNot: chapter.departsNot,
     yourAccount: chapter.yourAccount,
     studioAccount: chapter.studioAccount ?? chapter.yourAccount,
     next: nextId ? { id: nextId, title: CHAPTERS[nextId].title } : null,
@@ -182,7 +186,18 @@ export function createGuide({
     const game = el('section', 'guide-part');
     game.append(el('h3', null, GUIDE.game()), el('p', null, view.game));
 
-    body.replaceChildren(heading(view.title), real, game);
+    // Its own block, under its own heading, so a departure can be skipped by
+    // anyone who does not care and found by anyone who does. It used to sit in
+    // the middle of the half above, where in `hours` it was 73 words of 109.
+    const parts = [heading(view.title), real, game];
+    if (view.departs.length > 0) {
+      const apart = el('section', 'guide-part guide-departs');
+      const list = el('ul', null);
+      for (const line of view.departs) list.append(el('li', null, line));
+      apart.append(el('h3', null, GUIDE.departs()), list);
+      parts.push(apart);
+    }
+    body.replaceChildren(...parts);
 
     // Before week 1 there is no card to show, and a button that does nothing is
     // worse than none (plans/2026-09-14-round-zero-redesign-plan.md). In the

@@ -29,6 +29,13 @@
 const CITATION = /^([A-Z]\d+[a-z]?|§\d+(\.\d+)*)$/;
 
 /**
+ * The most a single departure may run to, checked by `tests/guide.test.js`
+ * rather than here, because a departure may be a function of its figures and
+ * has no length until it is rendered.
+ */
+export const DEPARTURE_MAX_WORDS = 25;
+
+/**
  * @param {object} spec
  * @param {string} spec.title
  * @param {(figures: object) => string} spec.real - in real Google Ads
@@ -40,11 +47,17 @@ const CITATION = /^([A-Z]\d+[a-z]?|§\d+(\.\d+)*)$/;
  * @param {string} spec.yourAccount - the card's `data-slot`
  * @param {string|null} [spec.studioAccount] - the Studio part's `data-slot`,
  *   where it differs: a part only the Studio draws
+ * @param {Array<string | ((figures: object) => string)>} [spec.departs] - where
+ *   the game departs from the real thing, ONE PER ENTRY. A plain string, or a
+ *   function of the figures it quotes; both come back as functions, the way
+ *   `line()` in ui/words/line.js normalises its text.
+ * @param {string} [spec.departsNot] - why it does not depart, when it does not.
+ *   A reason, never a boolean. A chapter declares one or the other.
  * @param {string[]} [spec.related]
  */
 export function chapter({
   title, real, realSources = [], device = false, needs = [], game, cites = [],
-  yourAccount, studioAccount = null, related = [],
+  departs = null, departsNot = null, yourAccount, studioAccount = null, related = [],
 }) {
   if (!title) throw new TypeError('a chapter needs a title');
   if (typeof real !== 'function') throw new TypeError(`"${title}" needs its real half`);
@@ -57,9 +70,33 @@ export function chapter({
     if (!CITATION.test(id)) throw new TypeError(`"${title}": "${id}" is not a citation`);
   }
   if (!yourAccount) throw new TypeError(`"${title}" needs a card in your account`);
+
+  // A DEPARTURE IS A FIELD, not a clause in the middle of the game half.
+  // Measured 2026-09-19: in `hours` the departure ran to 73 words of 109 and in
+  // `cashOnDelivery` 65 of 118 — the two chapters both stranger testers named as
+  // the hardest to read. Five more declared none while stating one inside their
+  // prose, where no reader could find it and no test could reach it.
+  //
+  // `departsNot` takes a REASON rather than a boolean, so a chapter claiming it
+  // has nothing to disclose makes a claim the next reader can check.
+  if (departs && departsNot) {
+    throw new TypeError(`"${title}": declare departs or departsNot, never both`);
+  }
+  if (!departs && !departsNot) {
+    throw new TypeError(`"${title}": say where it departs, or why it does not`);
+  }
+  if (departsNot !== null && typeof departsNot !== 'string') {
+    throw new TypeError(`"${title}": departsNot needs a reason, not a boolean`);
+  }
+
   return Object.freeze({
     title, real, realSources: Object.freeze(realSources), device, needs: Object.freeze(needs),
-    game, cites: Object.freeze(cites), yourAccount, studioAccount, related: Object.freeze(related),
+    game, cites: Object.freeze(cites),
+    // A plain string and a function of the figures are the same thing to a
+    // reader, so they are the same thing here too.
+    departs: Object.freeze((departs ?? []).map((entry) => (typeof entry === 'function' ? entry : () => entry))),
+    departsNot,
+    yourAccount, studioAccount, related: Object.freeze(related),
   });
 }
 
@@ -177,6 +214,8 @@ export const CHAPTERS = Object.freeze({
       + `final about ${settlesAfter} weeks after it happens. Where it departs: a real `
       + 'account’s delay depends on what you sell and how you set it up, while here every '
       + 'advertiser shares one fixed shape, counted in weeks because each turn is a week.',
+    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
     cites: ['I27', '§11.3', '§11.4'],
     yourAccount: 'revised',
     // Smart bidding learns only from conversions that have landed.
@@ -203,7 +242,9 @@ export const CHAPTERS = Object.freeze({
       + 'guide reaches only send-backs, while order confirmation and a prepaid discount reach '
       + 'only refusals. The refusal rates come from one named study; newer reports put cash '
       + 'refusals higher.',
-    cites: ['I28', 'F14', 'I29', 'I34'],
+    cites: ['I28', 'F14', 'I29', 'I34'],    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+
     yourAccount: 'returns',
     related: ['cashOnDelivery', 'attributionLag'],
   }),
@@ -228,6 +269,8 @@ export const CHAPTERS = Object.freeze({
       + `ones Google does not allow it with; and no bid goes past ${bidCap} your keyword bid, `
       + 'however the place’s and the hour’s adjustments stack. How cash varies by price is '
       + 'the game’s own estimate.',
+    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
     cites: ['G4', 'I28', 'D11', 'D13'],
     yourAccount: 'places',
     // A place and an hour are both bid adjustments, under the one cap (D13).
@@ -250,7 +293,9 @@ export const CHAPTERS = Object.freeze({
       + 'one of your changes, with every rival making the moves it made in your game, though a '
       + 'real market might have answered differently. Both are exact inside the game and '
       + 'impossible outside it.',
-    cites: ['G1', 'G1a'],
+    cites: ['G1', 'G1a'],    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+
     yourAccount: 'budget',
     // Both replays are drawn after the last week, in Results' What you learned.
     studioAccount: 'results-moments',
@@ -275,7 +320,9 @@ export const CHAPTERS = Object.freeze({
       + 'shopping units compete for the click; the base conversion rate is the game’s own '
       + 'estimate; and there is no lifetime value, so the first order must carry everything, '
       + 'and here it does so easily. A careless player can still lose money.',
-    cites: ['F15', 'F17', 'B6', 'F4'],
+    cites: ['F15', 'F17', 'B6', 'F4'],    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+
     yourAccount: 'headline',
   }),
 
@@ -294,7 +341,9 @@ export const CHAPTERS = Object.freeze({
       + 'a higher bid makes each click dearer and the money runs out sooner. Lost to rank means '
       + 'your ad rank, your bid weighed by your ad’s quality, was too low: a better ad or a '
       + 'higher bid helps, and more money does not.',
-    cites: ['H3', 'G2'],
+    cites: ['H3', 'G2'],    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+
     yourAccount: 'share',
     related: ['counterfactuals'],
   }),
@@ -316,6 +365,8 @@ export const CHAPTERS = Object.freeze({
       + 'searches faster than it wins them. Negatives are plain word matches, never tags. Where '
       + 'it departs: how far broad reaches depends on how a keyword was tagged, and broad works '
       + 'under any strategy.',
+    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
     cites: ['E8', 'E9', 'H5', 'H6', '§8.2'],
     yourAccount: 'terms',
     // A poorer fit lowers your ad rank.
@@ -343,6 +394,8 @@ export const CHAPTERS = Object.freeze({
       + `above average only rarely. A keyword has no score until its own search earns `
       + `${qsImpressions} impressions. Where it departs: the overall score comes from the `
       + 'three ratings through a table this game invented.',
+    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
     cites: ['A1', 'A2', 'A5', 'A6'],
     yourAccount: 'keywords',
     // The writer sets two of the score's three parts.
@@ -367,7 +420,9 @@ export const CHAPTERS = Object.freeze({
       + 'name they typed.',
     cites: ['A9', '§12.1'],
     // The search terms, where a search for the player's own name is marked as
-    // theirs; the auction insights say nothing about a name.
+    // theirs; the auction insights say nothing about a name.    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
+
     yourAccount: 'terms',
   }),
 
@@ -388,6 +443,8 @@ export const CHAPTERS = Object.freeze({
       + `weeks in which their predictions go wrong ${learningError} as much. Bid, keyword and `
       + 'budget changes do not. Where it departs: learning lasts a fixed number of weeks rather '
       + 'than until enough conversions arrive.',
+    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
     cites: ['D2', '§12.3'],
     yourAccount: 'bidding',
     related: ['attributionLag', 'hours'],
@@ -403,14 +460,14 @@ export const CHAPTERS = Object.freeze({
       + 'all: Smart Bidding already sets each bid from performance by time of day.',
     realSources: [GOOGLE.bidAdjustments, GOOGLE.smartBidding],
     needs: ['bidCap'],
-    game: ({ bidCap }) => 'Here searches peak at one time of day and buying at another, which is what '
-      + 'makes an hour adjustment pay: it can move money toward the hours that convert rather '
-      + 'than the hours that are busy. It departs three times. The lowest setting takes you out '
-      + 'of an hour altogether, where Google’s lowest still leaves you in it. The adjustment '
-      + 'works under every strategy: under the ones that predict conversions it lands on top '
-      + 'of the strategy’s own lean by hour, so the hour counts twice, which Google does not '
-      + `allow. And no bid goes past ${bidCap} your keyword bid, however the hour’s and the `
-      + 'place’s adjustments stack.',
+    game: () => 'Searches peak at one hour and buying at another. '
+      + 'That gap is what an hour adjustment is for: it moves money toward the hours that buy, '
+      + 'not the hours that are busy.',
+    departs: [
+      'The lowest setting takes you out of an hour completely. Google’s lowest still leaves you in it.',
+      'It works under every bidding strategy. Under the ones that predict conversions the hour counts twice, which Google does not allow.',
+      ({ bidCap }) => `No bid goes past ${bidCap} your keyword bid, however an hour and a place add up.`,
+    ],
     cites: ['D11', 'H4', 'D2', 'D13'],
     yourAccount: 'hours',
     related: ['smartBidding', 'cashOnDelivery'],
@@ -435,6 +492,8 @@ export const CHAPTERS = Object.freeze({
       + 'so the fee buys not having to write, and insurance against writing badly. The landing '
       + 'page is built with capital. Where it departs: Google’s Quality Score has no part for '
       + 'who wrote the ad.',
+    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
     cites: ['I11', 'I10', 'I25', 'I9'],
     // The classic page draws the ad on no card; the Studio's Your ad does.
     yourAccount: 'keywords',
@@ -456,6 +515,8 @@ export const CHAPTERS = Object.freeze({
       + 'is lost: nothing carries over, so hoarding cannot win. Where it departs: Google works '
       + 'from a daily average and moves spend between days for you; here the shape of the month '
       + 'is yours to set, which is why the split exists, and yours to read afterwards.',
+    // Task 2 of plans/2026-09-19-guide-rewrite-plan.md pulls this one out.
+    departsNot: 'its departures are still written into the prose above, not pulled out yet',
     cites: ['D10', '§13.2', 'D1'],
     yourAccount: 'split',
     related: ['rankOrBudget'],

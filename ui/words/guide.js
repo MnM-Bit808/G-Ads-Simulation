@@ -17,6 +17,9 @@ export const GUIDE = Object.freeze({
   close: line('label', 'Close the field guide'),
   real: line('label', 'In real Google Ads'),
   game: line('label', 'In this game'),
+  // Not "Where it departs": that word is retired from the guide's prose, and a
+  // beginner has never met it in this sense (plans/2026-09-19-guide-rewrite.md).
+  departs: line('label', 'Not like the real thing'),
   sources: line('label', 'Sources:'),
   showCard: line('label', 'Show me on the card'),
   // The Studio's: what it marks is often one part of a section, not a card.

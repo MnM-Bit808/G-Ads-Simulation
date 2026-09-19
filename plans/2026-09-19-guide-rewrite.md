@@ -84,10 +84,27 @@ Not a phrase buried mid-paragraph. One departure per entry, each **25 words or
 fewer**, drawn as a labelled block the reader can skip.
 
 ```js
-/** @param {string[]} [spec.departs] - one per entry, 25 words or fewer each.
- *  Required: a chapter declares its departures, or declares `departsNot` with
- *  a stated reason. */
+/**
+ * @param {Array<string | ((figures: object) => string)>} [spec.departs] - one
+ *   per entry, 25 words or fewer each once rendered. A plain string, or a
+ *   function of the figures it quotes — normalised to a function here, exactly
+ *   as `line()` in ui/words/line.js does it.
+ * @param {string} [spec.departsNot] - a reason, not a boolean. A chapter
+ *   declares one or the other, never both and never neither.
+ */
 ```
+
+**A departure may quote a figure (decided with the owner, 2026-09-19).** The
+first draft made every entry a plain string, which would have cost `hours` and
+`cashOnDelivery` their `bidCap` — four times the keyword bid, read from
+`MAX_BID_MULTIPLE` — turning a figure into the typed word "four". This project
+spends real effort on the rule that a chapter types no number, and a departure
+is no less a claim than the half it came out of. So an entry may be a function,
+and `needs` keeps declaring what it quotes.
+
+Because the text then depends on the figures, **the 25-word bound is checked by
+the test rendering with `guideFigures()`**, not by the factory. The factory
+checks the shape; `tests/guide.test.js` checks the words.
 
 It does four things at once: the `game` half gets shorter **by construction**;
 the departure gets a signpost instead of ambushing a reader mid-sentence;

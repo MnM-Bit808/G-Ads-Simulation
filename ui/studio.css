@@ -1546,6 +1546,38 @@ body.studio .studio-chips { scroll-behavior: smooth; }
 }
 
 /* ---------------------------------------------------------------------------
+   WHERE THE GAME IS NOT LIKE THE REAL THING
+   (plans/2026-09-19-guide-rewrite.md, rule 1). Its own block under both halves,
+   in the drawer and on the Guide page alike. Quieter than a half, because it is
+   meant to be skippable — it used to be 73 words of `hours`' 109, in the middle
+   of the sentence a reader was trying to follow.
+   --------------------------------------------------------------------------- */
+
+body.studio .guide-departs,
+body.studio .gb-departs {
+  border-top: 1px solid var(--studio-line);
+  padding-top: 14px;
+  margin-top: 4px;
+}
+body.studio .guide-departs h3,
+body.studio .gb-departs h3 {
+  margin: 0 0 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .guide-departs ul,
+body.studio .gb-departs ul {
+  margin: 0; padding-left: 18px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+body.studio .guide-departs li,
+body.studio .gb-departs li {
+  font-size: 14px; line-height: 1.55; color: var(--studio-soft);
+}
+body.studio .guide-departs li::marker,
+body.studio .gb-departs li::marker { color: var(--studio-faint); }
+
+/* ---------------------------------------------------------------------------
    THE FIRST RUN (plans/2026-09-19-first-run-and-ground-floor.md, section 4):
    the minute before round 0, for someone who has never bought an ad.
 

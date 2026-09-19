@@ -69,6 +69,8 @@ const base = {
   realSources: [{ label: 'Google Ads Help', url: 'https://support.google.com/google-ads/' }],
   game: () => 'What this game does.',
   cites: ['I27'],
+  // Since 2026-09-19 a chapter must say where it departs, or why it does not.
+  departs: ['and here is the one way it is not like the real thing'],
   yourAccount: 'returns',
 };
 
@@ -195,7 +197,11 @@ describe('the chapters', () => {
     // behind their "why?" links has to agree, from the constant itself.
     expect(FIGURES.bidCap).toBe(`${MAX_BID_MULTIPLE} times`);
     for (const id of ['hours', 'cashOnDelivery']) {
-      expect(CHAPTERS[id].game(FIGURES), id).toContain(`${FIGURES.bidCap} your keyword bid`);
+      // The cap is a DEPARTURE, so from 2026-09-19 it may be said in the block
+      // rather than the half. It must still be said, and still as a figure —
+      // which is why a departure may be a function of the figures it quotes.
+      const said = [CHAPTERS[id].game(FIGURES), ...CHAPTERS[id].departs.map((d) => d(FIGURES))];
+      expect(said.some((text) => text.includes(`${FIGURES.bidCap} your keyword bid`)), id).toBe(true);
       expect(CHAPTERS[id].cites, id).toContain('D13');
     }
   });
@@ -213,5 +219,77 @@ describe('every chapter can be reached, and every link lands', () => {
   test('no chapter is an orphan', async () => {
     const reachable = new Set([...(await screenWhys()), ...CONTENTS]);
     for (const id of Object.keys(CHAPTERS)) expect(reachable.has(id), id).toBe(true);
+  });
+});
+
+describe('a departure is a field, not a sentence buried in the prose', () => {
+  // MEASURED 2026-09-19: in `hours` the departure ran to 73 words of 109, and
+  // in `cashOnDelivery` 65 of 118 — the two chapters both testers named as the
+  // hardest to read. And five more chapters declared no departure while stating
+  // one inside their prose, where no reader could find it and no test could
+  // reach it. So it becomes a field of its own.
+  const departures = (id) => CHAPTERS[id].departs.map((entry) => entry(FIGURES));
+
+  test('a chapter declares its departures as a list', () => {
+    expect(CHAPTERS.hours.departs).toBeInstanceOf(Array);
+    expect(departures('hours')).toHaveLength(3);
+  });
+
+  test('each one is short enough to read on its own', () => {
+    for (const line of departures('hours')) {
+      expect(wordCount(line), line).toBeLessThanOrEqual(25);
+    }
+  });
+
+  // A departure is no less a claim than the half it came out of, so it types no
+  // number either: it may be a function of the figures it quotes, exactly as
+  // the two halves are (the owner's choice, 2026-09-19). `hours` quotes the bid
+  // cap, which is MAX_BID_MULTIPLE and must not become the typed word "four".
+  test('a departure may quote a figure, and it arrives from the engine', () => {
+    const capped = departures('hours').find((line) => line.includes(FIGURES.bidCap));
+    expect(capped, 'the cap should reach the reader as a figure').toBeTruthy();
+    expect(capped).toContain(`${MAX_BID_MULTIPLE} times`);
+    expect(CHAPTERS.hours.needs).toContain('bidCap');
+  });
+
+  test('a plain string is allowed too, and comes back as a line', () => {
+    const made = chapter({
+      title: 'x', real: () => 'y', realSources: [{ label: 'a', url: 'b' }],
+      game: () => 'z', cites: ['A1'], yourAccount: 'terms',
+      departs: ['the game does this its own way'],
+    });
+    expect(made.departs[0]({})).toBe('the game does this its own way');
+  });
+
+  // The word itself goes. It is the name of the field now, and a beginner has
+  // never met it in this sense; the block's own heading says what it is.
+  test('the chapter that had three departures no longer says so in prose', () => {
+    expect(CHAPTERS.hours.game(FIGURES)).not.toMatch(/departs?/i);
+  });
+
+  test('a chapter with none says so in words, so the claim can be checked', () => {
+    const made = chapter({
+      title: 'x', real: () => 'y', realSources: [{ label: 'a', url: 'b' }],
+      game: () => 'z', cites: ['A1'], yourAccount: 'terms',
+      departsNot: 'the game does this exactly as Google does',
+    });
+    expect(made.departs).toEqual([]);
+    expect(made.departsNot).toMatch(/exactly/);
+  });
+
+  test('a boolean is refused, because a reason can be checked and true cannot', () => {
+    expect(() => chapter({
+      title: 'x', real: () => 'y', realSources: [{ label: 'a', url: 'b' }],
+      game: () => 'z', cites: ['A1'], yourAccount: 'terms', departsNot: true,
+    })).toThrow(/reason/);
+  });
+
+  test('declaring both, or neither, is refused', () => {
+    const base = {
+      title: 'x', real: () => 'y', realSources: [{ label: 'a', url: 'b' }],
+      game: () => 'z', cites: ['A1'], yourAccount: 'terms',
+    };
+    expect(() => chapter({ ...base, departs: ['one'], departsNot: 'none' })).toThrow(/both/);
+    expect(() => chapter({ ...base })).toThrow(/where it departs/);
   });
 });

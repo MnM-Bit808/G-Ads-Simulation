@@ -81,6 +81,16 @@ export function renderGuidePage({ figures, onOpen, showSlot, canShow }) {
     halves.append(half(GUIDE.real(), page.real, page.sources), half(GUIDE.game(), page.game));
     const node = el('div', 'gb');
     node.append(meta, halves);
+    // Under both halves rather than inside one, so it can be skipped by anyone
+    // who does not care and found by anyone who does. The drawer draws the same
+    // block the same way.
+    if (page.departs.length > 0) {
+      const apart = el('section', 'gb-departs');
+      const list = el('ul', null);
+      for (const line of page.departs) list.append(el('li', null, line));
+      apart.append(el('h3', null, GUIDE.departs()), list);
+      node.append(apart);
+    }
     if (page.related.length > 0) {
       const related = el('div', 'gb-related');
       related.append(el('span', null, GUIDE.readBeside()));

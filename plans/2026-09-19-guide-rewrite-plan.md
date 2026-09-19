@@ -61,7 +61,7 @@ departures that are buried in prose today.
   `guideView(id, figures).departs` — `string[]`, empty when the chapter declares
   `departsNot`. `chapterPage(id, figures).departs`, the same.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import { CHAPTERS } from '../ui/guide/chapters.js';
@@ -122,7 +122,7 @@ describe('a departure is a field, not a sentence buried in the prose', () => {
 `FIGURES` is `guideFigures()`, as the file's existing tests use it. Export
 `chapter` from `ui/guide/chapters.js` if it is not exported already.
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```bash
 npm test -- guide
@@ -130,7 +130,7 @@ npm test -- guide
 
 Expected: `CHAPTERS.hours.departs` is undefined.
 
-- [ ] **Step 3: Take the field on `chapter()`**
+- [x] **Step 3: Take the field on `chapter()`**
 
 In `ui/guide/chapters.js`, add to the factory's signature and validation:
 
@@ -170,7 +170,7 @@ chapters have no field, so this throws at import. Give them all
 2 replaces every one. It is a temporary, truthful sentence rather than a
 placeholder — it says exactly what is so.
 
-- [ ] **Step 4: Rewrite `hours`, the worked example**
+- [x] **Step 4: Rewrite `hours`, the worked example**
 
 From the design's section 4.2, which is the contract for this text:
 
@@ -185,13 +185,20 @@ From the design's section 4.2, which is the contract for this text:
     ],
 ```
 
-**`bidCap` leaves `needs`** for this chapter, because the departure is a plain
-string and cannot take a figure. That is a real loss: the cap was "4 times" from
-`MAX_BID_MULTIPLE` and is now the word "four". **Stop and raise it with the
-owner** if that matters — the alternative is `departs` taking functions of
-figures like the halves do, which is a bigger contract for one number.
+**`bidCap` stays a figure. Decided with the owner, 2026-09-19:** a departure may
+be a function of the figures it quotes, exactly as the two halves are, so the
+third entry above is written
 
-- [ ] **Step 5: Carry it through the view and both surfaces**
+```js
+      ({ bidCap }) => `No bid goes past ${bidCap} your keyword bid, however an hour and a place add up.`,
+```
+
+and `needs: ['bidCap']` stays on the chapter. The alternative — every entry a
+plain string — would have turned a constant read from `MAX_BID_MULTIPLE` into
+the typed word "four", and this project spends real effort on a chapter typing
+no number. `cashOnDelivery` quotes the same cap, so it is two chapters, not one.
+
+- [x] **Step 5: Carry it through the view and both surfaces**
 
 `ui/guide/drawer.js`, in `guideView`'s return: `departs: chapter.departs,`.
 `ui/guide/book.js`, in `chapterPage`'s return: `departs: view.departs,`.
@@ -223,7 +230,7 @@ and the same block in `ui/guide/page.js` where it draws the game half.
 `ui/studio.css` gets `.guide-departs` styling: quieter than the two halves, a
 list, and skippable by eye.
 
-- [ ] **Step 6: Run the suite**
+- [x] **Step 6: Run the suite**
 
 ```bash
 npm test
@@ -231,7 +238,7 @@ npm test
 
 Expected green, exit 0. **Check the exit code, not the tick.**
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Message: *"Make a departure a field of its own, and prove it on Bidding by the
 hour"*. Body: the 73-of-109 measurement, why `departsNot` takes a reason, and
@@ -547,8 +554,9 @@ beginner into these chapters.
 `chapters.js` and the tests repeat the number rather than importing it, so a
 loosened constant cannot quietly loosen the test.
 
-**One thing flagged for the owner, in Task 1 step 4.** `hours`' departure quoted
-`bidCap`, a figure from `MAX_BID_MULTIPLE`. A departure is a plain string and
-cannot take one, so it becomes the word "four". That is a real loss of the
-figures discipline for one number, and the alternative — `departs` taking
-functions of figures — is a bigger contract. **Raise it before building Task 1.**
+**The one flagged question is answered.** `hours` and `cashOnDelivery` quote
+`bidCap` inside a departure. The owner chose, on 2026-09-19, that a departure
+may be a function of its figures rather than lose the number to the typed word
+"four". The factory normalises a plain string to a function, as `line()` does,
+so only the entries that need a figure are written as one — and the 25-word
+bound moves to the test, which renders with `guideFigures()`.

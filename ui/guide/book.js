@@ -70,6 +70,7 @@ export function chapterPage(id, figures) {
     real: view.real,
     sources: view.sources,
     game: view.game,
+    departs: view.departs,
     slot: view.studioAccount,
     section: sectionOf(view.studioAccount).label,
     related: CHAPTERS[id].related.map(entry),
