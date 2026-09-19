@@ -87,9 +87,16 @@ function svg(viewBox, paths, size) {
 }
 
 /** The garment the page sells, at whatever size the column gives it. */
-function garment(size) {
+/**
+ * THE PLATE IS THE DARK GROUND THE GARMENT SITS ON, and it is optional because
+ * `product shots` lights the page. Found playing it: the svg painted its own
+ * dark rectangle over the whole viewBox, so a lit box multiplied a dark ground
+ * against light and stayed dark — the rung that is meant to put the garment on
+ * white changed almost nothing.
+ */
+function garment(size, { plate = true } = {}) {
   return svg('0 0 124 148', [
-    ['M0 0h124v148H0z', '#232026'],
+    ...(plate ? [['M0 0h124v148H0z', '#232026']] : []),
     ['M42 22h40l7 19-9 9 5 76H39l5-76-9-9z', '#3A363E'],
     ['M49 47h26l4 65H45z', '#4A454F'],
   ], size);
@@ -126,7 +133,7 @@ function garmentAt(drawn) {
   const box = el('div', 'yad-shot');
   if (drawn.shots) box.classList.add('lit');
   if (drawn.bodies) box.classList.add('bodies');
-  box.append(garment({ w: 124, h: 148 }));
+  box.append(garment({ w: 124, h: 148 }, { plate: !drawn.shots }));
   if (drawn.video) {
     const play = el('span', 'yad-play');
     play.append(svg('0 0 24 24', [['M9 7l9 5-9 5z', '#141216']], { w: 13, h: 13 }));

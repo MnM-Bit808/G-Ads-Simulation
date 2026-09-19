@@ -4,6 +4,8 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { getSelfView } from '../engine/insights.js';
 import { DEFAULT_UNGRADED_QUALITY, TOTAL_ROUNDS, CAPEX_DELAY_ROUNDS } from '../engine/constants.js';
 import { landingPageBonus, capexEffect } from '../engine/positions.js';
@@ -574,6 +576,20 @@ describe('what the drawn page shows', () => {
     for (const rung of Object.values(DRAWN_RUNGS)) {
       expect(rung.target).not.toBe('orderConfirmation');
     }
+  });
+
+  /**
+   * FOUND BY PLAYING IT, 2026-09-19. The garment's svg painted its own dark
+   * rectangle across the whole viewBox, so `product shots` — the rung whose
+   * whole job is putting the garment on white — lit the box BEHIND that plate
+   * and changed almost nothing on screen. The picture has to drop the plate
+   * when it is lit, which is a fact about the drawing, so this reads it.
+   */
+  test('the lit garment drops the dark plate it otherwise sits on', () => {
+    const body = readFileSync(fileURLToPath(new URL('../ui/ad/render.js', import.meta.url)), 'utf8');
+    expect(body, 'the garment is drawn without asking whether it is lit')
+      .toMatch(/garment\([^)]*\{\s*plate:\s*!drawn\.shots\s*\}\)/);
+    expect(body, 'the plate is no longer optional').toMatch(/plate\s*=\s*true/);
   });
 
   test('reviews bought at round 0 and more at week 5: the stars from week 4, when the reviews go live', () => {
