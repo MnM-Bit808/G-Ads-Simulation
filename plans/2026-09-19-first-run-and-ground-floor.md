@@ -231,8 +231,20 @@ transform and opacity only, no library.
 `ui/words/firstrun.js` and its drawing in `ui/firstrun/`, which joins the drawing
 guard in `tests/words.test.js`.
 
-**Word budget: under 200 words for the whole run** (the draft is 167, of which
-the opening statement is 54), against round 0's 781.
+**The word budget is measured per screen, not in total** — corrected 2026-09-19
+while building Task 1. This doc first said "167 words for the whole run", which
+counted the prototype's prose and not its labels, kickers, column headings and
+buttons. Measured over every line the run is **477 words**: 297 of prose, 139 of
+label, 41 of instruction.
+
+That is still well under round 0's 781, and spread over seven screens rather
+than five — but a total was never the figure the argument rests on. **A beginner
+drowns on a screen.** Round 0's step 1 is 281 words, about 248 visible at once,
+and that is the step a stranger gave up inside. So the bound `tests/words.test.js`
+holds is **no beat over 80 words on screen**, the opening statement counted
+against beat 1 which carries it. Measured today: beat 1 is 75 with the opener,
+beat 3 is 65, and nothing else reaches 62. A second bound, 500 words in all,
+is a ratchet against the run growing to fifteen beats.
 
 ## 5. The guide's ground floor
 

@@ -251,6 +251,7 @@ describe('every interface module at least loads', () => {
     'rivals/render.js': () => import('../ui/rivals/render.js'),
     'words/results.js': () => import('../ui/words/results.js'),
     'words/playtest.js': () => import('../ui/words/playtest.js'),
+    'words/firstrun.js': () => import('../ui/words/firstrun.js'),
     'results/read.js': () => import('../ui/results/read.js'),
     'results/render.js': () => import('../ui/results/render.js'),
     'reserve.js': () => import('../ui/reserve.js'),

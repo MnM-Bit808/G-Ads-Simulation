@@ -37,6 +37,7 @@ import { RESULTS, TARGET_WORDS } from '../ui/words/results.js';
 import { GUIDE } from '../ui/words/guide.js';
 import { DOOR } from '../ui/words/door.js';
 import { PLAYTEST } from '../ui/words/playtest.js';
+import { FIRST_RUN } from '../ui/words/firstrun.js';
 import { CHAPTERS } from '../ui/guide/chapters.js';
 
 const WORDS = fileURLToPath(new URL('../ui/words/', import.meta.url));
@@ -915,6 +916,98 @@ describe('the playtest questions are today\'s, in both looks (ui/words/playtest.
     for (const [name, entry] of Object.entries(PLAYTEST)) expect(entry({}), name).not.toMatch(/undefined|NaN/);
     expect(PLAYTEST.lessons()).toBe('What three things did this game teach you? In your own words.');
     expect(PLAYTEST.confusing()).toBe('What confused or annoyed you?');
+  });
+});
+
+describe('the first run says nothing undefined, and stays inside its budget', () => {
+  // What ui/firstrun/read.js will hand every line: the auction's figures, the
+  // mid tier's economics, and the weeks a click takes to settle. Named here
+  // rather than imported, because Task 1 is the words alone.
+  const FIGURES = {
+    query: 'gym leggings with pockets',
+    volume: '1,849',
+    where: 'Pune',
+    time: '7:40 pm',
+    winner: 'Marlow',
+    winnerBid: '₹30',
+    winnerPays: '₹25.13',
+    runnerUp: 'Halcyon',
+    runnerUpBid: '₹16',
+    runnerUpPays: '₹9.45',
+    entered: '6',
+    of: '9',
+    slots: '4',
+    order: '₹2,400',
+    freight: '₹200',
+    returnShare: 'four orders in ten',
+    weekly: '4,30,000',
+    rivals: '8',
+    weeks: '12',
+    clickWeek: '3',
+    buyWeek: '5',
+    backWeek: '7',
+    n: 1,
+    total: 7,
+  };
+
+  test('every line renders without a hole in it', () => {
+    for (const [name, entry] of Object.entries(FIRST_RUN)) {
+      expect(entry(FIGURES), name).not.toMatch(/undefined|NaN|\[object/);
+      expect(entry(FIGURES).trim(), name).not.toBe('');
+    }
+  });
+
+  // WHAT ONE BEAT PUTS ON SCREEN, which is the figure the design's argument
+  // rests on: a beginner drowns on a SCREEN, not in a total. Round 0's step 1
+  // is 281 words, about 248 of them visible at once (the round 0 plan, Task
+  // 15), and that is the step a stranger gave up inside. No beat here may come
+  // near it. The opener rides on beat 1, so beat 1 is measured carrying it.
+  //
+  // Corrected 2026-09-19: the design doc said the run was 167 words, counting
+  // the prototype's prose and not its labels, kickers, columns and buttons.
+  // Measured over every line it is 477 — still well under round 0's 781, and
+  // spread over seven screens rather than five.
+  const ON_SCREEN = {
+    1: ['openTitle', 'openTypes', 'openLength', 'openNoNeed', 'b1Kicker', 'b1Where', 'b1Say'],
+    2: ['b2Kicker', 'b2Say', 'b2Organic'],
+    3: ['b3Kicker', 'b3Say', 'b3Cut', 'b3ReadAgain', 'b3Callout', 'b3Cost'],
+    4: ['b4Kicker', 'b4Pays', 'b4Sold', 'b4When', 'b4Looking', 'b4Say', 'b4Note'],
+    5: ['b5Kicker', 'b5Say', 'b5Note', 'b5Report', 'b5Then', 'b5Later'],
+    6: ['b6Kicker', 'b6Say', 'b6Note', 'b6Report3', 'b6Latest'],
+    7: ['b7Kicker', 'b7Hero', 'b7Say', 'b7Note'],
+  };
+  const words = (text) => text.split(/\s+/).filter((w) => /[a-z]{2,}/i.test(w)).length;
+
+  test('no beat puts more than 80 words on screen, against round 0 step 1’s 248', () => {
+    for (const [beat, keys] of Object.entries(ON_SCREEN)) {
+      const count = keys.reduce((total, key) => total + words(FIRST_RUN[key](FIGURES)), 0);
+      expect(count, `beat ${beat} says ${count} words`).toBeLessThanOrEqual(80);
+    }
+  });
+
+  test('every line belongs to a beat, so nothing is written and never shown', () => {
+    const shown = new Set(Object.values(ON_SCREEN).flat());
+    // The rest are the ladder's columns, the week strip, the trail and the
+    // buttons: drawn beside a beat rather than inside one.
+    const spare = Object.keys(FIRST_RUN).filter((key) => !shown.has(key));
+    for (const key of spare) {
+      expect(/^(b\d(Trail)|wk|col|next|skip|back|again|stepOf)/.test(key), key).toBe(true);
+    }
+  });
+
+  // A ratchet against sprawl: seven beats, not fifteen.
+  test('the run stays under 500 words in all', () => {
+    const said = Object.values(FIRST_RUN).map((entry) => entry(FIGURES)).join(' ');
+    expect(words(said), `the run says ${words(said)} words`).toBeLessThan(500);
+  });
+
+  // One word, one home (the design's section 3): the run teaches the world and
+  // the ground-floor chapters teach the controls, so nothing here sends a
+  // reader to a chapter that would define the same term a second time.
+  test('it names no guide chapter', () => {
+    for (const [name, entry] of Object.entries(FIRST_RUN)) {
+      expect(entry.why, name).toBe(null);
+    }
   });
 });
 
