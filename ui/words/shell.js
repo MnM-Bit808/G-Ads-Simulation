@@ -18,7 +18,11 @@ export const SHELL = Object.freeze({
   done: line('reading', ({ weeks }) => `The ${weeks} weeks are done.`),
   run: line('instruction', ({ week }) => `Run week ${week}`),
   running: line('label', ({ hours }) => `running ${hours} hours…`),
-  gameOver: line('label', 'Game over'),
+  // NOT "Game over", which it read while disabled: a button styled like the one
+  // that ran every week, dead under the pointer. The owner pressed it and
+  // nothing happened (2026-09-19). After the last week there IS somewhere to
+  // go, so it says where and goes there.
+  seeResults: line('instruction', 'See your results'),
   undo: line('instruction', 'Undo this change'),
   lockChip: line('label', ({ week }) => `week ${week}`),
   opensAt: line('reading', ({ week }) => `Opens at week ${week}.`),

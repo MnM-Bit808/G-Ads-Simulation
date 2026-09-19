@@ -408,9 +408,11 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
     countWord.textContent = SHELL.changes({ n: lines.length });
     const over = played() >= TOTAL_ROUNDS;
     empty.textContent = over ? SHELL.done({ weeks: TOTAL_ROUNDS }) : SHELL.empty();
-    run.disabled = running || over;
+    // Live after the last week, because there is still somewhere to go. It used
+    // to sit there disabled reading "Game over".
+    run.disabled = running;
     if (running) run.textContent = SHELL.running({ hours: HOURS_PER_WEEK });
-    else if (over) run.textContent = SHELL.gameOver();
+    else if (over) run.textContent = SHELL.seeResults();
     else run.textContent = SHELL.run({ week: played() + 1 });
   }
 
@@ -486,6 +488,8 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
   }
 
   function askThenRun() {
+    // After the last week the same button opens Results instead of running.
+    if (played() >= TOTAL_ROUNDS) { open(sectionsIn('results')[0].key); return; }
     if (asking) { askBeforeRunning(); return; }
     runWeek();
   }
