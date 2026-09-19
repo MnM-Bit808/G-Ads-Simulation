@@ -1908,14 +1908,38 @@ body.studio .fr-rw .down { color: var(--studio-amber); }
 @keyframes fr-fade { from { opacity: 0; } to { opacity: 1; } }
 
 @media (max-width: 720px) {
+  /* The fit bar stays, narrowed. It used to be the column that went here, and
+     beat 3 is where the run makes its whole point: Halcyon bids less than Auren
+     and outranks it, BECAUSE its ad fits better. Drop that bar and the callout
+     asserts a reason with nothing on screen to show it (found playing it at
+     673px, 2026-09-19). */
   body.studio .fr-lrow,
-  body.studio .fr-lhd { grid-template-columns: 22px minmax(0, 1fr) 46px minmax(0, 1fr) 62px; }
-  body.studio .fr-lrow .fr-fit,
-  body.studio .fr-lhd > span:nth-child(4) { display: none; }
+  body.studio .fr-lhd { grid-template-columns: 22px minmax(0, 1fr) 46px 56px minmax(0, 1fr) 62px; }
   body.studio .fr-say { font-size: 17px; }
   body.studio .fr-rw { flex-direction: column; gap: 2px; }
   body.studio .fr-rw > span:first-child { width: auto; }
   body.studio .fr-arrow { display: none; }
+}
+
+/* On a phone one bar has to go, and it is RANK, not fit. Rank is bid times
+   fit, and the place number and the row order already say where each brand
+   came; fit is the only thing on the row that says why.
+   THE PADDING GOES FIRST, THOUGH. Measured at 375px: the page, the board and
+   the beat each kept their desktop side padding, so 136px of a 375px screen
+   was margin and the ladder had 237px to put six columns in — which left the
+   brand column 17px wide and every name clipped. */
+@media (max-width: 520px) {
+  body.studio .fr-board { padding: 28px 12px 56px; }
+  body.studio .fr-live { padding: 20px 14px; }
+  body.studio .fr-lrow,
+  body.studio .fr-lhd {
+    grid-template-columns: 18px minmax(0, 1fr) 40px minmax(0, 1fr) 54px;
+    gap: 8px;
+  }
+  body.studio .fr-lrow { padding: 9px 8px; }
+  body.studio .fr-lhd { padding: 0 8px 6px; }
+  body.studio .fr-lrow .fr-rank,
+  body.studio .fr-lhd > span:nth-child(5) { display: none; }
 }
 
 /* The review's rule: keep the fade, drop the movement. */

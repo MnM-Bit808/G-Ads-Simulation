@@ -576,3 +576,34 @@ describe('the delay beat does not give away the return', () => {
     expect(said('refused')).toMatch(/refused/i);
   });
 });
+
+describe('the ladder keeps the column its lesson rests on, at every width', () => {
+  // FOUND BY PLAYING IT AT 673px, 2026-09-19. Beat 3 is the run's centre, and
+  // its callout claims Halcyon outranks a BIGGER bid because its ad fits
+  // better. The stylesheet dropped the "ad fits" column below 720px, so on a
+  // laptop the reader was told a reason and shown nothing that said it — the
+  // one thing this run exists to show rather than tell.
+  const css = read('ui/studio.css');
+
+  test('no rule anywhere hides the ad-fits bar', () => {
+    for (const rule of css.matchAll(/([^{}]*\.fr-fit\b[^{}]*)\{([^}]*)\}/g)) {
+      expect(rule[2], `this hides the fit bar: ${rule[1].trim()}`).not.toMatch(/display:\s*none/);
+    }
+    // The header cell travels with it: it used to be dropped by position.
+    expect(css).not.toMatch(/\.fr-lhd > span:nth-child\(4\)[^{]*\{[^}]*display:\s*none/);
+  });
+
+  test('the bar a phone drops is rank, which the place number already says', () => {
+    expect(css, 'nothing drops the rank bar, so nothing was narrowed for a phone')
+      .toMatch(/\.fr-lrow \.fr-rank/);
+    const dropped = css.match(/\.fr-lrow \.fr-rank,\s*body\.studio \.fr-lhd > span:nth-child\(5\) \{([^}]*)\}/);
+    expect(dropped?.[1], 'the rank bar is named but not actually dropped').toMatch(/display:\s*none/);
+  });
+
+  // The fit bar is worth nothing if the row it sits on has no room for a name.
+  test('the phone rule gives the brand column room by cutting padding, not the name', () => {
+    const phone = css.match(/@media \(max-width: 520px\) \{([\s\S]*?)\n\}/)[1];
+    expect(phone, 'the board keeps its desktop side padding on a phone').toMatch(/\.fr-board \{ padding:/);
+    expect(phone, 'the beat keeps its desktop side padding on a phone').toMatch(/\.fr-live \{ padding:/);
+  });
+});
