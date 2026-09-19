@@ -169,16 +169,16 @@ function beatClick(f) {
 }
 
 /** The five weeks a click takes to settle, with the ones that matter lit. */
-function weeks(list, tone) {
+function weeks(list, beat) {
   const row = el('div', 'fr-weeks');
   list.forEach((week, i) => {
-    const lit = week[tone];
-    const node = el('div', lit ? `fr-wk ${lit}` : 'fr-wk');
+    const { tone, lines } = week[beat];
+    const node = el('div', tone ? `fr-wk ${tone}` : 'fr-wk');
     node.style.animationDelay = `${i * STAGGER}ms`;
     const body = el('span', 'fr-e');
-    week.lines.forEach((text, j) => {
+    lines.forEach((text, j) => {
       if (j > 0) add(body, el('br', null));
-      add(body, el('span', j === 0 && lit ? 'lead' : null, text));
+      add(body, el('span', j === 0 && tone ? 'lead' : null, text));
     });
     add(node, el('span', 'fr-n', W.wkWeek({ n: week.n })), body);
     add(row, node);

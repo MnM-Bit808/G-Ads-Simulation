@@ -222,13 +222,28 @@ export function tailFor(f) {
   const click = Number(f.clickWeek);
   const buy = Number(f.buyWeek);
   const backAt = Number(f.backWeek);
+  // EACH BEAT GETS ITS OWN LINES, because a week that has not happened yet must
+  // not be readable. Found by playing it: one shared array meant the delay beat
+  // already showed the last week saying "refused at the door", which is the
+  // whole of the beat after it.
   const weeks = [];
   for (let n = click; n <= backAt; n += 1) {
-    if (n === click) weeks.push({ n, lines: [W.wkClick(f), f.winnerPays], delay: 'hit', refused: null });
-    else if (n === buy) weeks.push({ n, lines: [W.wkBuys(f), f.order], delay: 'hit', refused: null });
-    else if (n === backAt) weeks.push({ n, lines: [W.wkRefused(f), f.freight], delay: null, refused: 'bad' });
-    else if (n === buy + 1) weeks.push({ n, lines: [W.wkShips(f)], delay: null, refused: null });
-    else weeks.push({ n, lines: [W.wkThinks(f)], delay: null, refused: null });
+    let lines;
+    let lit = null;
+    if (n === click) [lines, lit] = [[W.wkClick(f), f.winnerPays], 'hit'];
+    else if (n === buy) [lines, lit] = [[W.wkBuys(f), f.order], 'hit'];
+    else if (n === backAt) [lines, lit] = [[W.wkRefused(f), f.freight], 'bad'];
+    else if (n === buy + 1) lines = [W.wkShips(f)];
+    else lines = [W.wkThinks(f)];
+
+    const known = n <= buy;
+    weeks.push({
+      n,
+      // On the delay beat the story has only reached the sale.
+      delay: { tone: known ? lit : null, lines: known ? lines : [] },
+      // On the return beat every week has happened, and only the last is lit.
+      refused: { tone: n === backAt ? 'bad' : null, lines },
+    });
   }
   return Object.freeze({
     weeks: Object.freeze(weeks.map(Object.freeze)),

@@ -328,9 +328,9 @@ describe('what the drawing is handed', () => {
   test('the tail is the five weeks a click takes to settle', () => {
     const { weeks, reports } = tailFor(f);
     expect(weeks.map((w) => w.n)).toEqual([3, 4, 5, 6, 7]);
-    expect(weeks.filter((w) => w.delay)).toHaveLength(2);
-    expect(weeks.filter((w) => w.refused)).toHaveLength(1);
-    expect(weeks.at(-1).refused, 'the last week is the one that turns').toBe('bad');
+    expect(weeks.filter((w) => w.delay.tone)).toHaveLength(2);
+    expect(weeks.filter((w) => w.refused.tone)).toHaveLength(1);
+    expect(weeks.at(-1).refused.tone, 'the last week is the one that turns').toBe('bad');
     for (const key of ['then', 'later', 'latest']) {
       expect(reports[key], key).toContain('₹');
     }
@@ -535,5 +535,44 @@ describe('a browser that has never played gets all the way into week 1', () => {
       at = back(at);
     }
     expect(seen).toEqual([...BEATS.map((b) => b.key)].reverse());
+  });
+});
+
+describe('the delay beat does not give away the return', () => {
+  const f = figuresFor(demonstration());
+
+  // FOUND BY PLAYING IT, 2026-09-19. The week strip carried one set of lines
+  // used by both beats, so beat 5 — the sale landing — already showed week 7
+  // reading "refused at the door, ₹200". Splitting that board in two existed
+  // precisely so the delay and the return land separately, and one shared
+  // array undid half of it.
+  test('on the delay beat, the weeks after the sale are still blank', () => {
+    const { weeks } = tailFor(f);
+    const buy = Number(f.buyWeek);
+    for (const week of weeks) {
+      if (week.n <= buy) expect(week.delay.lines.length, `week ${week.n}`).toBeGreaterThan(0);
+      else expect(week.delay.lines, `week ${week.n} is not known yet on the delay beat`).toEqual([]);
+    }
+  });
+
+  test('on the return beat, every week has something to say', () => {
+    for (const week of tailFor(f).weeks) {
+      expect(week.refused.lines.length, `week ${week.n}`).toBeGreaterThan(0);
+    }
+  });
+
+  test('the click and the sale are lit on the delay beat, and the refusal on the return', () => {
+    const { weeks } = tailFor(f);
+    expect(weeks.filter((w) => w.delay.tone)).toHaveLength(2);
+    expect(weeks.filter((w) => w.refused.tone)).toHaveLength(1);
+    expect(weeks.at(-1).refused.tone).toBe('bad');
+    expect(weeks.at(-1).delay.tone, 'the last week is not lit before it happens').toBe(null);
+  });
+
+  test('the word “refused” appears only on the return beat', () => {
+    const { weeks } = tailFor(f);
+    const said = (tone) => weeks.flatMap((w) => w[tone].lines).join(' ');
+    expect(said('delay')).not.toMatch(/refused/i);
+    expect(said('refused')).toMatch(/refused/i);
   });
 });
