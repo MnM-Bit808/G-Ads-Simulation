@@ -203,7 +203,14 @@ body.studio .studio-brand strong { font: 800 22px/1.1 var(--studio-display); }
 body.studio .studio-brand span { font-size: 12px; color: var(--studio-muted); }
 body.studio .studio-redo { align-self: flex-start; margin: 0 10px 12px; padding: 6px 12px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 12px; }
 body.studio .studio-area-title { margin: 0; padding: 0 12px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-faint); }
-body.studio .studio-item { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 12px; border-radius: 12px; background: none; color: var(--studio-soft); font: 500 14px/1 var(--studio-body); text-align: left; }
+/* A ROW NEVER SHRINKS TO FIT THE LIST (2026-09-19). `.studio-list` is a column
+   flex container, so when its rows do not fit — the Guide area lists all
+   twenty-three chapters — flex SHRANK them, `min-height` stopped the shrink at
+   42px, and every wrapped title printed over the row below it: "Capital:
+   spending on the business, not the ads" ran straight through "Your budget,
+   and what running out means". The list already scrolls; the rows must keep
+   the height they asked for and let it. */
+body.studio .studio-item { display: flex; flex-shrink: 0; align-items: center; gap: 12px; height: 42px; padding: 0 12px; border-radius: 12px; background: none; color: var(--studio-soft); font: 500 14px/1 var(--studio-body); text-align: left; }
 body.studio .studio-item .grow { flex: 1; }
 body.studio .studio-item[aria-current="true"] { background: #1F1C22; color: #F3EEEA; font-weight: 700; box-shadow: 0 0 0 1px #2E2A33; }
 body.studio .studio-item[aria-current="true"] .studio-icon { color: var(--studio-red); }

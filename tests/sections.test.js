@@ -253,3 +253,47 @@ describe('a first visit enters the parts the section shows', () => {
     expect(shell).not.toMatch(/s\.slots\.map\(\(slot\) => `\[data-slot/);
   });
 });
+
+/**
+ * THE GUIDE AREA LISTS TWENTY-THREE CHAPTERS IN THE SECTION RAIL, so its rows
+ * carry titles, not short section names — "Capital: spending on the business,
+ * not the ads" beside "Your week".
+ */
+describe('a row in the section list keeps the height its title needs', () => {
+  const css = read('ui/studio.css');
+  // A plain search rather than a built regex: the selectors are full of dots
+  // and braces, and escaping them twice is how the first draft of this helper
+  // silently matched any character where it meant a literal dot.
+  const rule = (selector) => {
+    const at = css.indexOf(`body.studio ${selector} {`);
+    expect(at, `no rule for ${selector}`).toBeGreaterThan(-1);
+    return css.slice(at, css.indexOf('}', at));
+  };
+
+  /**
+   * FOUND BY THE OWNER, 2026-09-19: "multiple overlapping texts". `.studio-list`
+   * is a COLUMN FLEX CONTAINER, so once its rows did not fit — which twenty-three
+   * chapters never will — flex shrank them, `min-height` stopped the shrink at
+   * 42px, and every wrapped title printed over the row below it. Twenty of the
+   * twenty-five rows overflowed.
+   *
+   * The list already scrolls. The rows have to refuse to shrink and let it.
+   */
+  test('it refuses to shrink, because the list scrolls instead', () => {
+    expect(rule('.studio-item'), 'a row that shrinks squashes its own title')
+      .toMatch(/flex-shrink:\s*0/);
+  });
+
+  /**
+   * And the row a chapter title sits in grows. `.studio-item` is 42px for the
+   * short names; a chapter overrides it, and both halves are needed — without
+   * `flex-shrink: 0` the growth is taken straight back by the parent.
+   */
+  test('and a chapter row grows to fit, rather than clipping the title', () => {
+    const chapter = rule('.studio-item.studio-chapter');
+    expect(chapter).toMatch(/height:\s*auto/);
+    expect(chapter).toMatch(/line-height:\s*1\.3/);
+    expect(rule('.studio-list'), 'the list has to scroll if the rows will not shrink')
+      .toMatch(/overflow-y:\s*auto/);
+  });
+});
