@@ -441,8 +441,13 @@ The recorder already measures all of this; it needs one new phase.
 - Whether the **10-minute round 0 gate** moves, now that the run sits beside it
   rather than inside it. Flagged in conversation, not decided; it is a review
   gate and the owner's to move.
-- The order of the build. The rewrite (section 6) is words and could land first;
-  the first run (section 4) is the bigger change to what a learner takes away.
+
+**Decided 2026-09-19, after this doc was written: the first run is built first**
+— section 4, as `plans/2026-09-19-first-run-plan.md`, in five tasks. The rewrite
+(section 6), the ground floor (section 5) and the mid-game questions (section 7)
+follow, each with its own plan. The first run went first because it is the
+change the evidence points at: both testers met the vocabulary before they met
+the guide.
 
 ## 13. Where it came from
 
