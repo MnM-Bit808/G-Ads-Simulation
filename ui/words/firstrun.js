@@ -160,7 +160,9 @@ export const FIRST_RUN = Object.freeze({
   next4: line('instruction', 'Three weeks later'),
   next5: line('instruction', 'Two weeks after that'),
   next6: line('instruction', 'And that is the whole job'),
-  next7: line('instruction', 'Start — pick where your brand sits'),
+  // Where it actually goes: round 0's step 1, the market, which is read-only.
+  // It used to promise "pick where your brand sits", which is step 2.
+  next7: line('instruction', 'Start — meet the market'),
   skip: line('instruction', 'Skip this, take me to the game'),
   back: line('instruction', 'Back'),
   again: line('instruction', 'Watch that again'),
