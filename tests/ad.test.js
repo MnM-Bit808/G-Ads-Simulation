@@ -585,6 +585,21 @@ describe('what the drawn page shows', () => {
    * and changed almost nothing on screen. The picture has to drop the plate
    * when it is lit, which is a fact about the drawing, so this reads it.
    */
+  /**
+   * FOUND BY PLAYING IT AT 673px, 2026-09-19. Below 900px the hero gives the
+   * garment a 96px column and shrinks the svg to match — a rule that predates
+   * the wrapper this picture now needs. The wrapper carried a hard 124px, so it
+   * overflowed its own track and covered the first word of the product title
+   * beside it. Its width has to yield to the column.
+   */
+  test('the garment gives up its column with the hero, rather than overflowing it', () => {
+    const css = readFileSync(fileURLToPath(new URL('../ui/studio.css', import.meta.url)), 'utf8');
+    const rule = css.match(/body\.studio \.yad-shot \{([^}]*)\}/)[1];
+    expect(rule, 'a fixed width overflows the narrow hero column').toMatch(/max-width:\s*100%/);
+    // And the rule it has to yield to is still there to yield to.
+    expect(css).toMatch(/\.yad-hero \{ grid-template-columns: 96px/);
+  });
+
   test('the lit garment drops the dark plate it otherwise sits on', () => {
     const body = readFileSync(fileURLToPath(new URL('../ui/ad/render.js', import.meta.url)), 'utf8');
     expect(body, 'the garment is drawn without asking whether it is lit')
