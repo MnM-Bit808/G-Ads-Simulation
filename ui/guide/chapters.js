@@ -154,6 +154,18 @@ const GOOGLE = {
     label: 'Google Ads Help: About Target CPA bidding',
     url: 'https://support.google.com/google-ads/answer/6268632',
   },
+  keywords: {
+    label: 'Google Ads Help: Keywords',
+    url: 'https://support.google.com/google-ads/answer/6323',
+  },
+  adAuction: {
+    label: 'Google Ads Help: The ad auction',
+    url: 'https://support.google.com/google-ads/answer/1704431',
+  },
+  landingPages: {
+    label: 'Google Ads Help: Optimize your ads and landing pages',
+    url: 'https://support.google.com/google-ads/answer/6238826',
+  },
   byClickTime: {
     label: 'Google Ads Help: Understand your conversion tracking data',
     url: 'https://support.google.com/google-ads/answer/6270625',
@@ -254,7 +266,7 @@ export const CHAPTERS = Object.freeze({
 
   breakEven: basic({
     title: 'What a click is worth to you',
-    plain: () => 'Before you can say what to bid, you need to know what a visitor is worth. '
+    plain: () => 'Before you can bid, you need to know what a visitor is worth. '
       + 'Work out what one sale earns you after returns, then how often a click becomes a sale. '
       + 'Multiply them and that is what a click is worth to you. '
       + 'Bid above it and you lose money on every click you win. '
@@ -264,6 +276,105 @@ export const CHAPTERS = Object.freeze({
     sources: [GOOGLE.targetCpa],
     step: 1,
     then: 'kindMarket',
+  }),
+
+  position: basic({
+    title: 'Where your brand sits',
+    plain: () => 'Your brand sits at a price, and has a purpose. '
+      + 'Value, mid or premium; performance or lifestyle. '
+      + 'Together they decide what one sale earns you, and which searches are really yours. '
+      + 'Nobody tells you where the other eight sit, and their ads are the only evidence. '
+      + 'You choose in step 2, and cannot move until week 5.',
+    // The six squares are this game's own: real advertisers are not sorted into
+    // a grid, so there is nothing to cite.
+    device: true,
+    step: 2,
+    then: 'kindMarket',
+  }),
+
+  keywords: basic({
+    title: 'Keywords: the searches you bid on',
+    plain: () => 'A keyword is a word or phrase you choose. '
+      + 'When someone types a search close enough to it, your ad can enter the auction for '
+      + 'that search. '
+      + 'You are not buying the words. You are buying the chance to appear when they are typed. '
+      + 'You pick yours in step 3, and each one carries a bid of its own.',
+    sources: [GOOGLE.keywords],
+    step: 3,
+    then: 'broadMatch',
+  }),
+
+  matchTypes: basic({
+    title: 'How loosely a keyword matches',
+    plain: () => 'Every keyword carries a match type. '
+      + 'Exact reaches the search you wrote. Phrase reaches searches that contain it. '
+      + 'Broad reaches searches merely related to it, which can be a long way from what you wrote. '
+      + 'Wider reaches more people, and more of the wrong people. '
+      + 'You set it beside each keyword in step 3.',
+    sources: [GOOGLE.matchTypes],
+    step: 3,
+    then: 'broadMatch',
+  }),
+
+  bidding: basic({
+    title: 'Your bid, and what you actually pay',
+    plain: () => 'Your bid is the most you will pay for a click. '
+      + 'It is not what you will pay. '
+      + 'On every search, ads are ranked by their bid multiplied by how well they fit. '
+      + 'The winner pays only enough to stay ahead of the ad below it. '
+      + 'So a better ad can buy a better place for less money. '
+      + 'You set a bid on each keyword in step 3.',
+    sources: [GOOGLE.adAuction],
+    step: 3,
+    then: 'qualityScore',
+  }),
+
+  adParts: basic({
+    title: 'What an ad is made of',
+    plain: () => 'An ad is a set of headlines and two lines of description. '
+      + 'Google chooses which to show on each search. '
+      + 'It is the only thing your rivals can see about you. '
+      + 'How well it fits a search decides your place as much as your bid does. '
+      + 'You write it yourself, or pay someone to, in step 4.',
+    sources: [GOOGLE.responsiveSearchAds],
+    step: 4,
+    then: 'writers',
+  }),
+
+  landingPage: basic({
+    title: 'Your landing page',
+    plain: () => 'The page a click lands on. '
+      + 'Google judges how well it matches the ad and the search that brought someone there. '
+      + 'A poor match costs you both position and price. '
+      + 'It is also where a visitor decides whether to buy at all. '
+      + 'You do not write it here; you build it with capital in step 5.',
+    sources: [GOOGLE.landingPages],
+    step: 4,
+    then: 'qualityScore',
+  }),
+
+  budget: basic({
+    title: 'Your budget, and what running out means',
+    plain: () => 'Your budget is what the month has to spend, divided across its four weeks. '
+      + 'When a week’s money runs out your ads stop, and the searches carry on without you. '
+      + 'Spending less than you could is not saving. It is searches you were never in. '
+      + 'You split the month in step 5.',
+    sources: [GOOGLE.dailyBudgets],
+    step: 5,
+    then: 'weeklySplit',
+  }),
+
+  capital: basic({
+    title: 'Capital: spending on the business, not the ads',
+    plain: () => 'Some of your money can go into the business instead of into ads. '
+      + 'A better page, a size chart, photographs, order confirmation. '
+      + 'Each takes three weeks to take effect, and then keeps paying for the rest of the game. '
+      + 'Anything you do not commit becomes ad budget instead. '
+      + 'You choose in step 5, and once more at week 5.',
+    // Google Ads knows nothing about what a business spends on itself.
+    device: true,
+    step: 5,
+    then: 'rankOrBudget',
   }),
 
   // ---------------------------------------------------------------------
@@ -631,7 +742,8 @@ export const CHAPTERS = Object.freeze({
  * design asks for (plans/2026-09-19-ground-floor.md, section 2.3).
  */
 export const START_HERE = Object.freeze([
-  'breakEven',
+  'breakEven', 'position', 'keywords', 'matchTypes', 'bidding',
+  'adParts', 'landingPage', 'budget', 'capital',
 ]);
 
 /** The nuance chapters, in the order the book has always had them. */

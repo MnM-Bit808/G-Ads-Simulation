@@ -404,7 +404,7 @@ groups"*.
 - Modify: `ui/guide/chapters.js`
 - Test: `tests/guide.test.js`
 
-- [ ] **Step 1: Restore the assertion Task 1 relaxed**
+- [x] **Step 1: Restore the assertion Task 1 relaxed**
 
 `expect(START_HERE).toHaveLength(9)`, and add:
 
@@ -434,9 +434,9 @@ test('two of them are game devices, and the rest carry a source', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
-- [ ] **Step 3: Write the eight**
+- [x] **Step 3: Write the eight**
 
 **Every word of all nine is in the design's section 5, with its source.** Copy
 the text; do not rewrite it here. The sources to add to the `GOOGLE` block, all
@@ -456,7 +456,7 @@ fetched 2026-09-19:
 **If any chapter's text will not come under 25 words a sentence without losing
 something true, stop and say so** rather than trimming the claim.
 
-- [ ] **Step 4: Run the suite and commit**
+- [x] **Step 4: Run the suite and commit**
 
 Message: *"Write the other eight ground-floor chapters, one per control"*.
 

@@ -532,3 +532,63 @@ describe('the guide’s own labels follow the rules its chapters do', () => {
     expect(intro, 'a new chapter must not make it wrong').not.toMatch(/\d|thirteen|fourteen/i);
   });
 });
+
+describe('the ground floor covers every control round 0 asks for', () => {
+  const sentences = (t) => t.split(/(?<=[.:;])\s+/).map((s) => s.trim()).filter(Boolean);
+
+  test('there are nine of them, one per control', () => {
+    expect(START_HERE).toHaveLength(9);
+  });
+
+  // ONE PER STEP, and every step covered. The first run teaches the world; these
+  // teach the controls; the thirteen keep the surprises (the design's section 3).
+  test('all five of round 0’s steps have at least one', () => {
+    const steps = new Set(START_HERE.map((id) => CHAPTERS[id].step));
+    expect([...steps].sort()).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  test('two are game devices, and every other one carries a source', () => {
+    const devices = START_HERE.filter((id) => CHAPTERS[id].device);
+    expect(devices, `devices: ${devices}`).toHaveLength(2);
+    for (const id of START_HERE) {
+      if (CHAPTERS[id].device) continue;
+      expect(CHAPTERS[id].sources.length, id).toBeGreaterThan(0);
+      for (const s of CHAPTERS[id].sources) {
+        expect(s.url, `${id}: ${s.label}`).toMatch(/^https:\/\//);
+        expect(s.label, s.url).toBeTruthy();
+      }
+    }
+  });
+
+  // The rewrite's rules apply here too: these are the chapters a beginner reads
+  // first, so they are held hardest.
+  test.each(START_HERE)('%s opens in 15 words, and keeps every sentence to 25', (id) => {
+    const text = CHAPTERS[id].plain(FIGURES);
+    const ss = sentences(text);
+    expect(wordCount(ss[0]), `${id} opens: ${ss[0]}`).toBeLessThanOrEqual(15);
+    for (const s of ss) expect(wordCount(s), `${id}: ${s}`).toBeLessThanOrEqual(25);
+  });
+
+  test.each(START_HERE)('%s uses none of the words a reader tripped on', (id) => {
+    const text = CHAPTERS[id].plain(FIGURES);
+    for (const [pattern, why] of [
+      [/\bshapes?\b/i, 'shape'], [/\bleans?\b/i, 'lean'],
+      [/\bstacks?\b/i, 'stack'], [/\bdeparts?\b/i, 'departs'],
+    ]) {
+      expect(pattern.test(text), `${id} uses ${why}`).toBe(false);
+    }
+  });
+
+  test.each(START_HERE)('%s types no number into its prose', (id) => {
+    expect(CHAPTERS[id].plain(FIGURES), id).not.toMatch(/\b\d+(\.\d+)?%/);
+  });
+
+  // ONE WORD, ONE HOME. The controls live here; the world lives in the first
+  // run; a term is never defined twice in two voices.
+  test('it teaches the controls and leaves the world to the first run', () => {
+    const titles = START_HERE.map((id) => CHAPTERS[id].title.toLowerCase()).join(' | ');
+    for (const control of ['keyword', 'bid', 'budget', 'landing page', 'ad']) {
+      expect(titles, `${control} should have a chapter`).toContain(control);
+    }
+  });
+});
