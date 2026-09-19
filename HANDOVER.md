@@ -187,9 +187,34 @@ The arrival tag also landed 1px on the product title, measured, and now sits on
 its row rather than above it (`b6c5396`). **A green DOM check is not a picture:
 for anything drawn, look at it.**
 
-**Next, none blocking:** whether the round-0 allocation should rise (above, I29);
-the owner reading the twenty-three chapters; the message project's part 2
-(images from week 9); whether sixty keywords want a compact list.
+**THE CAPITAL ROUND IS ₹1,50,000 NOW, and I29's trade is alive again**
+(`cfdd584`, DECISIONS I41). Measured, the property flips at exactly ₹1,30,000 —
+the cheapest route to the best page grade is ₹80,000 and photography's first
+rung is ₹50,000 — and does not widen again until ₹1,60,000. ₹1,50,000 clears
+that cliff with ₹20,000 of slack, so a later price change on either ladder
+cannot kill it silently the way I30's did.
+
+**IT MAKES ALMOST EVERYONE SLIGHTLY POORER, and the reason is worth knowing
+before anything else touches this number.** A rival's investment is capped by
+its ceilings, so a bigger allocation spills further into its AD BUDGET —
+rivals' median month-2 budget rose ₹60,000 against the player's ₹30,000. The
+market is richer and therefore dearer: player CPC ₹12.0 to ₹12.3, median final
+profit −0.5% to −2.8% depending on what was bought. Median rank is unchanged
+at 5 and nobody loses money in any of 72 markets either way. **The shape is
+right even though the level fell:** keeping the money got relatively worse
+(−2.8%) than spending it (−0.5% to +0.8%), and the two that gained put it on
+the ladder tall enough to absorb it.
+
+**Three tests were resting on arithmetic that only held at ₹1,20,000** and are
+now written against the ladders instead — two allocations pinned to three shared
+top rungs, the best grade pinned to 66% of a round, and the S-curve's
+spread-versus-commit, which past the curve's ₹80,000 top compared against a
+spend whose tail bought nothing. **A number is easier to change when its tests
+read the thing rather than the figure.**
+
+**Next, none blocking:** the owner reading the twenty-three chapters; the
+message project's part 2 (images from week 9); whether sixty keywords want a
+compact list.
 
 **When the next playtest goes out,** tag the live build the same day —
 `playtest-4` is used, so the next is **`playtest-5`** — and read *Running a
