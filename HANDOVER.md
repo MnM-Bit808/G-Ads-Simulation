@@ -177,7 +177,18 @@ a test holds every label to being a rung its ladder really has.
   week's pictures and last week's, pure, because capital lands by going live and
   nothing records "this landed today".
 
-**PLAYED STRAIGHT AFTER, AND THE PICTURE WAS STILL WRONG** (`3297bbc`). The
+**PLAYED AGAIN ON THE BIGGER ROUND, AND THE WRAPPER BROKE AN OLDER RULE**
+(`fa8ee66`). Below 900px the hero gives the garment a 96px column and shrinks
+the svg to match — written when the picture WAS the svg. The wrapper the
+nine-rung page added carried a hard 124px, ignored that rule, overflowed its
+track by 28px and covered the first word of the product title. **Every rect I
+compared first was the TAG against the title, and those did not overlap;**
+`elementFromPoint` at the title's left edge is what named the garment box.
+Measuring the thing you suspect is not the same as asking what is actually
+there.
+
+**PLAYED STRAIGHT AFTER IT WAS BUILT, AND THE PICTURE WAS WRONG THEN TOO**
+(`3297bbc`). The
 garment's svg paints its own dark rectangle across the whole viewBox, so
 `product shots` lit the box BEHIND that plate: the rung whose entire job is
 putting the garment on white changed almost nothing. **The DOM was right the
