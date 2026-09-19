@@ -872,7 +872,8 @@ describe('no number is typed into a sentence', () => {
 
 describe('the Guide page says its own labels whole (ui/words/guide.js)', () => {
   // The Guide as a page (the owner's choice, 2026-09-15, design/guide/).
-  const FIGURES = { n: 4, of: 13, title: 'Lost to rank, or lost to budget' };
+  // `step` is a ground-floor chapter's: which of round 0's five asks for it.
+  const FIGURES = { n: 4, of: 13, title: 'Lost to rank, or lost to budget', step: 3 };
 
   test('each renders with the figures it is given', () => {
     for (const [name, entry] of Object.entries(GUIDE)) {

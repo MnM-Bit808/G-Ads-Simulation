@@ -25,6 +25,7 @@ import {
   CHAPTERS, CONTENTS, START_HERE, GOING_DEEPER, chapter, basic, DEPARTURE_MAX_WORDS,
 } from '../ui/guide/chapters.js';
 import { guideFigures } from '../ui/guide/figures.js';
+import { GUIDE } from '../ui/words/guide.js';
 import { sectionOf } from '../ui/shell/sections.js';
 import { MAX_BID_MULTIPLE, ATTRIBUTION_LAG_DISTRIBUTION } from '../engine/constants.js';
 import { ARRIVAL_SHAPE } from '../ui/dashboard.js';
@@ -502,5 +503,32 @@ describe('the guide has a ground floor as well as its nuance chapters', () => {
   test('the ground floor runs in the order round 0 asks', () => {
     const steps = START_HERE.map((id) => CHAPTERS[id].step);
     expect(steps).toEqual([...steps].sort((a, b) => a - b));
+  });
+});
+
+describe('the guide’s own labels follow the rules its chapters do', () => {
+  // Found by playing it, 2026-09-19: the contents page promised "two halves"
+  // of every chapter — which the ground floor does not have — and used the one
+  // word the rewrite retired. The banned list covered CHAPTERS and not the
+  // labels around them, so it caught neither.
+  const BANNED = [
+    [/\bshapes?\b/i, 'a distribution called a shape'],
+    [/\bleans?\b/i, 'lean, as a noun'],
+    [/\bstacks?\b/i, 'stack, as a verb'],
+    [/\bdeparts?\b/i, 'departs — it is a field now, not a word'],
+  ];
+
+  test.each(Object.keys(GUIDE))('%s uses none of the words a reader tripped on', (name) => {
+    const text = GUIDE[name]({ n: 1, of: 14, title: 'A title', step: 3 });
+    for (const [pattern, why] of BANNED) {
+      expect(pattern.test(text), `GUIDE.${name} uses ${why}`).toBe(false);
+    }
+  });
+
+  test('the introduction describes both kinds of chapter, and counts neither', () => {
+    const intro = GUIDE.intro();
+    expect(intro).toContain('Start here');
+    expect(intro).toContain('Going deeper');
+    expect(intro, 'a new chapter must not make it wrong').not.toMatch(/\d|thirteen|fourteen/i);
   });
 });

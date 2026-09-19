@@ -188,21 +188,41 @@ export function createGuide({
     body.scrollTop = 0;
   }
 
-  function open(id, opener) {
-    const view = guideView(id, figures);
-
-    const real = el('section', 'guide-part');
-    real.append(el('h3', null, GUIDE.real()), el('p', null, view.real));
+  /** The sources under a part, as links that open away from the game. */
+  function sourceList(list) {
     const sources = el('div', 'guide-sources');
     sources.append(el('span', null, GUIDE.sources()));
-    for (const source of view.sources) {
+    for (const source of list) {
       const link = el('a', null, source.label);
       link.href = source.url;
       link.target = '_blank';
       link.rel = 'noopener';
       sources.append(link);
     }
-    real.append(sources);
+    return sources;
+  }
+
+  function open(id, opener) {
+    const view = guideView(id, figures);
+
+    // A GROUND-FLOOR CHAPTER IS ONE COLUMN. It says what a control is and where
+    // you use it, and has no second half to set beside it. What it offers
+    // instead is the chapter that continues it, in the footer below.
+    if (view.kind === 'basic') {
+      const only = el('section', 'guide-part guide-plain');
+      only.append(el('p', null, view.plain));
+      if (view.sources.length > 0) only.append(sourceList(view.sources));
+      body.replaceChildren(heading(view.title), only);
+      foot.replaceChildren(button('guide-next', GUIDE.readOn({ title: view.then.title }),
+        () => open(view.then.id), ICONS.next, true));
+      foot.hidden = false;
+      reveal(opener);
+      return;
+    }
+
+    const real = el('section', 'guide-part');
+    real.append(el('h3', null, GUIDE.real()), el('p', null, view.real));
+    real.append(sourceList(view.sources));
 
     const game = el('section', 'guide-part');
     game.append(el('h3', null, GUIDE.game()), el('p', null, view.game));

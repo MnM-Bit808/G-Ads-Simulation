@@ -26,23 +26,37 @@ const ARROWS = { back: ['M15 5l-7 7 7 7'], on: ['M9 5l7 7-7 7'] };
 export function renderGuidePage({ figures, onOpen, showSlot, canShow }) {
   const cards = contentsCards(figures);
 
-  function contents() {
+  /** One group of the contents, under its own heading. */
+  function group(cards_, label) {
     const grid = el('div', 'gb-grid');
-    for (const c of cards) {
+    for (const c of cards_) {
       const top = el('span', 'gb-top');
-      top.append(el('span', 'gb-num', String(c.n)), el('span', 'gb-where', c.section));
+      // A ground-floor card names the round 0 step that asks for it; a nuance
+      // card names the Studio section it explains.
+      const where = c.group === 'start' ? GUIDE.usedIn({ step: c.step }) : c.section;
+      top.append(el('span', 'gb-num', String(c.n)), el('span', 'gb-where', where));
       const card = button('gb-card', top, el('span', 'gb-name', c.title), el('span', 'gb-opening', c.opening));
       card.addEventListener('click', () => onOpen(c.id));
       grid.append(card);
     }
+    const head = el('h2', 'gb-group', label);
+    return [head, grid];
+  }
+
+  function contents() {
     const node = el('div', 'gb');
-    node.append(el('p', 'gb-intro', GUIDE.intro()), grid);
+    node.append(el('p', 'gb-intro', GUIDE.intro()));
+    // Start here, then Going deeper. The split is itself teaching: what a
+    // control IS, before why it behaves oddly.
+    node.append(...group(cards.filter((c) => c.group === 'start'), GUIDE.startHere()));
+    node.append(...group(cards.filter((c) => c.group === 'deeper'), GUIDE.goingDeeper()));
     return node;
   }
 
   function half(label, text, sources = []) {
-    const box = el('section', 'gb-half');
-    box.append(el('h3', null, label), el('p', null, text));
+    const box = el('section', label ? 'gb-half' : 'gb-half gb-plain');
+    if (label) box.append(el('h3', null, label));
+    box.append(el('p', null, text));
     if (sources.length > 0) {
       const list = el('div', 'gb-sources');
       list.append(el('span', null, GUIDE.sources()));
@@ -68,6 +82,25 @@ export function renderGuidePage({ figures, onOpen, showSlot, canShow }) {
   function chapter(id) {
     const page = chapterPage(id, figures);
     const meta = el('div', 'gb-meta');
+
+    // A GROUND-FLOOR CHAPTER IS ONE COLUMN, with the step that asks for it and
+    // a way on to the chapter that continues it, in place of a card to show.
+    if (page.kind === 'basic') {
+      meta.append(el('span', null, GUIDE.chapterOf({ n: page.n, of: page.of })),
+        el('span', 'gb-explains', GUIDE.usedIn({ step: page.step })));
+      const only = half(null, page.plain, page.sources);
+      const on = el('div', 'gb-related');
+      const chip = button('gb-chip', GUIDE.readOn({ title: page.then.title }));
+      chip.addEventListener('click', () => onOpen(page.then.id));
+      on.append(chip);
+      const node = el('div', 'gb');
+      const turns = el('div', 'gb-turns');
+      turns.append(page.previous ? turn(page.previous, ARROWS.back, false) : el('span'),
+        page.following ? turn(page.following, ARROWS.on, true) : el('span'));
+      node.append(meta, only, on, turns);
+      return node;
+    }
+
     const explains = el('span', 'gb-explains', `${GUIDE.explains()} `);
     explains.append(el('b', null, page.section));
     meta.append(el('span', null, GUIDE.chapterOf({ n: page.n, of: page.of })), explains);

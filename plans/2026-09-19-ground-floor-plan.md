@@ -308,7 +308,7 @@ why `basic()` is a sibling and not a flag, and why `CONTENTS` stays one list.
   `ui/words/guide.js`, `ui/studio.css`
 - Test: `tests/drawer.test.js`, `tests/guidePage.test.js`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // tests/drawer.test.js
@@ -345,14 +345,14 @@ test('a ground-floor card says which step asks for it, not which card explains i
 });
 ```
 
-- [ ] **Step 2: Run them and watch them fail**
+- [x] **Step 2: Run them and watch them fail**
 
 ```bash
 npm test -- drawer
 npm test -- guidePage
 ```
 
-- [ ] **Step 3: Add the two group headings and *Read on***
+- [x] **Step 3: Add the two group headings and *Read on***
 
 In `ui/words/guide.js`:
 
@@ -365,7 +365,7 @@ In `ui/words/guide.js`:
   usedIn: line('label', ({ step }) => `Used in step ${step}`),
 ```
 
-- [ ] **Step 4: Draw it**
+- [x] **Step 4: Draw it**
 
 In the drawer's `open()`, branch on `view.kind`: a `basic` draws one
 `.guide-part` with `view.plain` and its sources, then a *Read on* button in the
@@ -379,7 +379,7 @@ each group.
 `ui/studio.css` gets the group headings and the single column. **Nothing new is
 scoped outside `body.studio`.**
 
-- [ ] **Step 5: Run the suite, then look at it**
+- [x] **Step 5: Run the suite, then look at it**
 
 ```bash
 npm test
@@ -391,7 +391,7 @@ deeper* with thirteen. Open the ground-floor chapter: one column, its source,
 and *Read on: How kind this market is*. Follow it and land on the nuance
 chapter. **Measure contrast by script.**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Message: *"Draw a ground-floor chapter as one column, and the contents in two
 groups"*.

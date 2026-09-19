@@ -1546,6 +1546,30 @@ body.studio .studio-chips { scroll-behavior: smooth; }
 }
 
 /* ---------------------------------------------------------------------------
+   THE GROUND FLOOR (plans/2026-09-19-ground-floor.md): a chapter that says what
+   a control IS, in one column rather than two halves, and the contents in two
+   groups — Start here above Going deeper. The split is itself teaching.
+   --------------------------------------------------------------------------- */
+
+body.studio .gb-group {
+  margin: 28px 0 12px;
+  font-family: var(--studio-display);
+  font-size: 15px; font-weight: 800; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .gb-group:first-of-type { margin-top: 8px; }
+
+/* One column reads at a comfortable measure rather than half the page. */
+body.studio .gb-half.gb-plain,
+body.studio .guide-plain {
+  max-width: 62ch;
+}
+body.studio .gb-half.gb-plain p,
+body.studio .guide-plain p {
+  font-size: 17px; line-height: 1.6;
+}
+
+/* ---------------------------------------------------------------------------
    WHERE THE GAME IS NOT LIKE THE REAL THING
    (plans/2026-09-19-guide-rewrite.md, rule 1). Its own block under both halves,
    in the drawer and on the Guide page alike. Quieter than a half, because it is

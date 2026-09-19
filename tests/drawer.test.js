@@ -112,3 +112,29 @@ describe('the player sees sources, never the ledger', () => {
     }
   });
 });
+
+describe('a ground-floor chapter opens as one column', () => {
+  test('it has one plain paragraph, and none of a nuance chapter’s parts', () => {
+    const view = guideView('breakEven', FIGURES);
+    expect(view.kind).toBe('basic');
+    expect(view.plain).toBeTruthy();
+    expect(view.real).toBeUndefined();
+    expect(view.game).toBeUndefined();
+    expect(view.departs).toBeUndefined();
+  });
+
+  // What it offers instead of a second half: the chapter that continues it,
+  // and owns the departure it does not state.
+  test('it offers the chapter that continues it', () => {
+    const view = guideView('breakEven', FIGURES);
+    expect(view.then.id).toBe('kindMarket');
+    expect(view.then.title).toBe(CHAPTERS.kindMarket.title);
+  });
+
+  test('it still carries its source, and says which step asks for it', () => {
+    const view = guideView('breakEven', FIGURES);
+    expect(view.sources.length).toBeGreaterThan(0);
+    expect(view.sources[0].url).toMatch(/^https:\/\/support\.google\.com\//);
+    expect(view.step).toBe(1);
+  });
+});
