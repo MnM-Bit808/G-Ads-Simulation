@@ -62,12 +62,20 @@ const TOP = STEP[STEP.length - 1];
  */
 const gradeOf = (capex) => explainGrade(adWith(capex), {}).grade.landingPage;
 
-/** Every allocation the capital can actually buy. */
+/**
+ * Every allocation the capital can actually buy.
+ *
+ * PHOTOGRAPHY WALKS ITS OWN LADDER (2026-09-19). This iterated `STEP` for all
+ * three, and photography has not been on the shared rungs since I30 doubled its
+ * price — so it offered ₹25,000 of photography, which `featureAt` resolves to
+ * "none" and buys nothing at all. One combination spending that nothing was
+ * what kept the I29 property below green.
+ */
 const affordable = () => {
   const out = [];
   for (const landingPage of STEP) {
     for (const sizeGuide of STEP) {
-      for (const photography of STEP) {
+      for (const photography of stepsFor('photography')) {
         if (landingPage + sizeGuide + photography <= CAPEX_ALLOCATION_PAISE) {
           out.push({ landingPage, sizeGuide, photography });
         }
@@ -222,20 +230,34 @@ describe('the page competes with the rest of the business for the same money', (
       .toBeGreaterThan(CAPEX_ALLOCATION_PAISE);
   });
 
-  test('THE BEST PAGE NO LONGER COSTS YOU PHOTOGRAPHY, and that was a choice', () => {
-    // IT USED TO. The top landing grade cost ₹80,000 of a ₹1,00,000 round,
-    // leaving ₹20,000 — under photography's ₹25,000 first rung — so a player
-    // who wanted the best page bought no photography at all. That was measured
-    // rather than designed and it was the sharpest trade in the mechanic.
-    //
-    // I29 raised the round to ₹1,20,000 so that two rounds fund three of four
-    // targets, which leaves ₹40,000 beside the best page. The trade did not
-    // disappear; it moved from "page or photos, this round" to "which of the
-    // four do I give up, all game" — asserted below.
+  /**
+   * I29'S PROPERTY, AND IT NO LONGER HOLDS. Written as what IS true rather than
+   * what was intended, because restoring the intention is the owner's call.
+   *
+   * IT USED TO COST YOU. The top landing grade took ₹80,000 of a ₹1,00,000
+   * round, leaving ₹20,000 — under photography's first rung — so a player who
+   * wanted the best page bought no photography at all. I29 raised the round to
+   * ₹1,20,000 expressly to end that trade.
+   *
+   * THEN I30 DOUBLED PHOTOGRAPHY'S PRICE (2026-09-17) and the trade came back:
+   * its first rung went ₹25,000 to ₹50,000, the best description grade still
+   * costs ₹80,000, and ₹40,000 does not reach ₹50,000. Nobody saw, because
+   * `affordable()` iterated photography over the SHARED rungs until 2026-09-19
+   * and so kept offering a ₹25,000 purchase photography does not sell — which
+   * `featureAt` resolves to "none". The one combination holding the old
+   * assertion up was buying nothing at all.
+   */
+  test('the best page DOES cost you photography again, since I30 doubled its price', () => {
     const atBest = affordable().filter((c) => gradeOf(c) === bestGrade());
     expect(atBest.length).toBeGreaterThan(0);
-    expect(atBest.some((c) => c.photography > 0)).toBe(true);
+    expect(atBest.every((c) => c.photography === 0)).toBe(true);
+    // Why, from the ladders rather than from the claim: the cheapest route to
+    // the best grade plus photography's cheapest rung is more than a round has.
+    const cheapest = Math.min(...atBest.map(cost));
+    expect(cheapest + stepsFor('photography')[1]).toBeGreaterThan(CAPEX_ALLOCATION_PAISE);
   });
+
+  test.todo('the best page should not cost you photography (I29) — the owner to decide: raise the allocation, or accept the trade');
 
   test('BUT ONE TARGET MUST STILL BE ABANDONED ENTIRELY, across the whole game', () => {
     // The trade the one above gave up, in the form it now takes. Two rounds are
@@ -440,10 +462,12 @@ describe('where the grade comes from, point by point', () => {
       speed: { points: 1, by: ['landingPage'] },
       sizing: { points: 1, by: ['sizeGuide'] },
       reviews: { points: 1, by: ['landingPage'] },
-      siteWork: { points: 2, by: ['landingPage'] },
+      // 1 since I40, not 2: the page's own money tops out at two points, and
+      // ₹55,000 is partway up that ladder.
+      siteWork: { points: 1, by: ['landingPage'] },
     });
-    expect(points.total).toBe(10);
-    expect(points.grade).toBe(10);
+    expect(points.total).toBe(9);
+    expect(points.grade).toBe(9);
   });
 
   test('under the length rule, a game saved before C shares the described point between them', () => {
@@ -452,19 +476,19 @@ describe('where the grade comes from, point by point', () => {
       described: { points: 1, by: ['landingPage', 'sizeGuide'] },
       sizing: { points: 1, by: ['sizeGuide'] },
       reviews: { points: 1, by: ['landingPage'] },
-      siteWork: { points: 2, by: ['landingPage'] },
+      siteWork: { points: 1, by: ['landingPage'] },
     });
-    expect(points.total).toBe(10);
+    expect(points.total).toBe(9);
   });
 
   test('product shots beside them earn nothing, and under the length rule share the described point', () => {
     const committed = { landingPage: 5500000, sizeGuide: 2500000, photography: 5000000 };
     const points = pagePoints(live(committed), 8);
     expect(points.lines.some((l) => l.by.includes('photography'))).toBe(false);
-    expect(points.total).toBe(10);
+    expect(points.total).toBe(9);
     const before = pagePoints(live(committed), 8, LENGTH);
     expect(byRule(before).described.by).toEqual(['landingPage', 'sizeGuide', 'photography']);
-    expect(before.total).toBe(10);
+    expect(before.total).toBe(9);
   });
 
   test('product shots bought alone earn no point; under the length rule, their caption earned one', () => {
@@ -482,12 +506,41 @@ describe('where the grade comes from, point by point', () => {
     expect(points).toMatchObject({ start: 5, total: 5, grade: 5 });
   });
 
-  /** The owner's choice, 2026-09-17: the cap is shown openly, not hidden in a smaller number. */
-  test('the top page and a size chart earn eleven, and the grade stops at ten', () => {
+  /**
+   * THE FAULT I40 FIXED, KEPT AS ITS OPPOSITE. This read "the top page and a
+   * size chart earn eleven, and the grade stops at ten" — and that discarded
+   * eleventh point was the whole complaint: a size guide bought beside the top
+   * page moved the grade not at all, because the cap had already eaten it.
+   * The owner found it by playing, 2026-09-19.
+   */
+  test('the top page and a size chart earn exactly ten, with nothing thrown away', () => {
     const points = pagePoints(live({ landingPage: 8000000, sizeGuide: 2500000 }), 4);
-    expect(byRule(points).siteWork).toEqual({ points: 3, by: ['landingPage'] });
-    expect(points.total).toBe(11);
+    expect(byRule(points).siteWork).toEqual({ points: 2, by: ['landingPage'] });
+    expect(points.total).toBe(GRADE_CAP);
     expect(points.grade).toBe(GRADE_CAP);
+  });
+
+  /**
+   * THE HARD GATE, agreed with the owner before the change was measured
+   * (2026-09-19): no combination of the three ladders may compute above ten.
+   * The arithmetic closes exactly — base 5, three sentence points, two from the
+   * page's own money — so every point a player buys is a point they keep.
+   */
+  test('THE HARD GATE: no combination of the three ladders throws a point away', () => {
+    const over = [];
+    for (const landingPage of CAPEX_STEPS) {
+      for (const sizeGuide of CAPEX_STEPS) {
+        for (const photography of stepsFor('photography')) {
+          for (const rules of [undefined, LENGTH]) {
+            const points = pagePoints(live({ landingPage, sizeGuide, photography }), 4, rules);
+            if (points.total > GRADE_CAP) {
+              over.push(`${landingPage}/${sizeGuide}/${photography}${rules ? ' (length rule)' : ''} = ${points.total}`);
+            }
+          }
+        }
+      }
+    }
+    expect(over, `these compute above ${GRADE_CAP}: ${over.join(', ')}`).toEqual([]);
   });
 
   test('capital not yet live earns nothing yet', () => {
