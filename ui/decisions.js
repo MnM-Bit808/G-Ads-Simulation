@@ -598,9 +598,11 @@ export function monthBudgetAfter(draft) {
  * At an allocation round the engine adds the uncommitted capital, takes off a
  * move, and re-spreads the month over the weeks in the plan's own proportions
  * (engine/round.js, `applyBudgetAdjustments`, with the engine's own `allocate`).
- * So at week 5 a plan of ₹42,000 a week becomes ₹72,000 a week once ₹1,20,000
- * of capital is left for ads, and the plan's figures are not what a week will
- * spend. In any other round the plan is taken as it stands.
+ * So at week 5 a plan of ₹42,000 a week becomes a larger one once a round's
+ * uncommitted capital is left for ads, and the plan's figures are not what a
+ * week will spend. In any other round the plan is taken as it stands. The
+ * figure is not written out here: it moved once already (I41) and a comment
+ * quoting it goes stale silently.
  *
  * @param {object} draft
  * @param {number[]} [split] - weights to spread, the draft's own by default

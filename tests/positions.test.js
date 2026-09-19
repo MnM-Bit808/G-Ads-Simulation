@@ -285,11 +285,20 @@ describe('capex: the S-curve (spec 13.3, DECISIONS D7)', () => {
     // The whole reason the curve is an S. With diminishing returns the first
     // tranche on a fresh target would always be the cheapest gain and
     // spreading thin would be strictly optimal.
-    const third = Math.floor(CAPEX_ALLOCATION_PAISE / 3);
+    //
+    // MEASURED AGAINST THE CURVE'S TOP, NOT THE ALLOCATION (I41, 2026-09-19).
+    // It used to split the whole round and compare against the whole round
+    // committed to one target — but the curve tops out at ₹80,000, so once the
+    // round passed that, "committed" meant a spend whose tail bought nothing
+    // and the comparison measured waste rather than shape. It is not reachable
+    // in play either: the cards offer the rungs, so no player can put ₹1,50,000
+    // on one target.
+    const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].paise;
+    const third = Math.floor(top / 3);
     const spread = capexEffect(third) - 1;
-    const committed = capexEffect(CAPEX_ALLOCATION_PAISE) - 1;
+    const committed = capexEffect(top) - 1;
     expect(spread * 3).toBeLessThan(committed * 1.35);
-    expect(capexEffect(third)).toBeLessThan(capexEffect(CAPEX_ALLOCATION_PAISE));
+    expect(capexEffect(third)).toBeLessThan(capexEffect(top));
   });
 });
 

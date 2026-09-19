@@ -231,49 +231,69 @@ describe('the page competes with the rest of the business for the same money', (
   });
 
   /**
-   * I29'S PROPERTY, AND IT NO LONGER HOLDS. Written as what IS true rather than
-   * what was intended, because restoring the intention is the owner's call.
+   * I29'S PROPERTY, RESTORED AND PINNED (I41, 2026-09-19).
    *
-   * IT USED TO COST YOU. The top landing grade took ₹80,000 of a ₹1,00,000
-   * round, leaving ₹20,000 — under photography's first rung — so a player who
-   * wanted the best page bought no photography at all. I29 raised the round to
-   * ₹1,20,000 expressly to end that trade.
+   * IT BROKE TWICE AND THE SECOND TIME NOBODY SAW. I29 raised the round to
+   * ₹1,20,000 expressly so the best page would stop costing you photography.
+   * I30 then doubled photography's first rung, ₹25,000 to ₹50,000, and the
+   * trade came straight back — the cheapest route to the best grade is ₹80,000,
+   * which left ₹40,000 against a ₹50,000 rung. It went unnoticed because this
+   * file iterated photography over the SHARED rungs and so kept offering a
+   * ₹25,000 purchase photography does not sell, which `featureAt` resolves to
+   * "none": the one combination holding the assertion up was buying nothing.
    *
-   * THEN I30 DOUBLED PHOTOGRAPHY'S PRICE (2026-09-17) and the trade came back:
-   * its first rung went ₹25,000 to ₹50,000, the best description grade still
-   * costs ₹80,000, and ₹40,000 does not reach ₹50,000. Nobody saw, because
-   * `affordable()` iterated photography over the SHARED rungs until 2026-09-19
-   * and so kept offering a ₹25,000 purchase photography does not sell — which
-   * `featureAt` resolves to "none". The one combination holding the old
-   * assertion up was buying nothing at all.
+   * So the check is now made on photography's OWN ladder, and on what the money
+   * actually BUYS rather than on it being non-zero. The owner's hard gate for
+   * raising the allocation to ₹1,50,000, agreed before it was measured.
    */
-  test('the best page DOES cost you photography again, since I30 doubled its price', () => {
+  test('THE BEST PAGE DOES NOT COST YOU PHOTOGRAPHY, on the ladder photography has', () => {
     const atBest = affordable().filter((c) => gradeOf(c) === bestGrade());
     expect(atBest.length).toBeGreaterThan(0);
-    expect(atBest.every((c) => c.photography === 0)).toBe(true);
-    // Why, from the ladders rather than from the claim: the cheapest route to
-    // the best grade plus photography's cheapest rung is more than a round has.
+    const withPhoto = atBest.filter((c) => c.photography > 0);
+    expect(withPhoto.length, 'no way to the best grade also buys photography').toBeGreaterThan(0);
+    // THE GUARD AGAINST THE WAY IT BROKE: every one of those must buy a rung
+    // photography really has. A spend that resolves to "none" is not a purchase.
+    for (const c of withPhoto) {
+      expect(featureAt('photography', c.photography).label, JSON.stringify(c)).not.toBe('none');
+    }
+    // And why, from the ladders rather than from the count: the cheapest route
+    // to the best grade plus photography's cheapest rung fits inside a round.
     const cheapest = Math.min(...atBest.map(cost));
-    expect(cheapest + stepsFor('photography')[1]).toBeGreaterThan(CAPEX_ALLOCATION_PAISE);
+    expect(cheapest + stepsFor('photography')[1]).toBeLessThanOrEqual(CAPEX_ALLOCATION_PAISE);
   });
-
-  test.todo('the best page should not cost you photography (I29) — the owner to decide: raise the allocation, or accept the trade');
 
   test('BUT ONE TARGET MUST STILL BE ABANDONED ENTIRELY, across the whole game', () => {
-    // The trade the one above gave up, in the form it now takes. Two rounds are
-    // ₹2,40,000 and four maxed targets are ₹3,20,000, so a player can finish
-    // three and must leave the fourth at nothing.
-    const top = CAPEX_TIER_CURVE[CAPEX_TIER_CURVE.length - 1].paise;
+    // The trade the one above gave up, in the form it now takes: a player can
+    // finish three targets over two rounds and must leave the fourth at nothing.
+    //
+    // ON EACH TARGET'S OWN LADDER (2026-09-19). This counted four SHARED tops,
+    // ₹3,20,000, and photography has not been on the shared rungs since I30 —
+    // its top is twice the others', so four maxed is really ₹4,00,000. It also
+    // pinned two allocations to exactly three shared tops, which was a
+    // coincidence of ₹1,20,000 rather than anything designed, and which fixed
+    // the allocation in place: changing it failed HERE rather than where it
+    // was decided.
+    const maxed = CAPEX_TARGETS.reduce((sum, target) => sum + stepsFor(target).at(-1), 0);
     const wholeGame = 2 * CAPEX_ALLOCATION_PAISE;
-    expect(wholeGame).toBe(3 * top);
-    expect(CAPEX_TARGETS.length * top).toBeGreaterThan(wholeGame);
+    expect(maxed, 'two rounds now fund all four, so nothing must be given up')
+      .toBeGreaterThan(wholeGame);
   });
 
-  test('and reaching it still costs most of a round', () => {
+  test('and reaching it is still a real cost, if no longer most of a round', () => {
+    // It was pinned at 66% of ₹1,20,000. Raising the round to ₹1,50,000 (I41)
+    // made the best grade a smaller SHARE on purpose — that headroom is exactly
+    // what pays for photography's first rung — so what is asserted now is that
+    // it is still a real cost, rather than a fraction that moves with the
+    // allocation and would have to be re-pinned every time it changed.
     const cheapest = Math.min(
       ...affordable().filter((c) => gradeOf(c) === bestGrade()).map(cost),
     );
-    expect(cheapest).toBeGreaterThanOrEqual(0.66 * CAPEX_ALLOCATION_PAISE);
+    expect(cheapest).toBeGreaterThan(0.5 * CAPEX_ALLOCATION_PAISE);
+    const left = CAPEX_ALLOCATION_PAISE - cheapest;
+    for (const target of CAPEX_TARGETS) {
+      expect(left, `${target} could be maxed with what is left over`)
+        .toBeLessThan(stepsFor(target).at(-1));
+    }
   });
 });
 

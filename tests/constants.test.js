@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as C from '../engine/constants.js';
 import { landingFactor } from '../engine/quality.js';
+import { capexCurveFor } from '../engine/positions.js';
 import { refusalRateFor } from '../engine/locations.js';
 import { RIVAL_GRADE_VARIATION } from '../content/adCopy.js';
 
@@ -103,15 +104,23 @@ describe('budget constants', () => {
     expect(C.MONTHLY_BUDGET_PAISE).toBe(168000 * 100);
   });
 
-  test('a capex round is ₹1,20,000 and the two of them fund three of four targets', () => {
+  test('a capex round is ₹1,50,000, and two of them cannot fund all four targets', () => {
     // THE TIE TO `REPOSITION_COST_PAISE` WAS BROKEN DELIBERATELY (I29), and it
     // could not be kept. "One allocation buys one maxed target" means A = T;
     // "two allocations fund three of four" means 2A = 3T. Both together require
     // 2T = 3T. The second is the structure the fourth target needs, so the
     // first went.
-    const top = C.CAPEX_TIER_CURVE[C.CAPEX_TIER_CURVE.length - 1].paise;
-    expect(C.CAPEX_ALLOCATION_PAISE).toBe(120000 * 100);
-    expect(2 * C.CAPEX_ALLOCATION_PAISE).toBe(3 * top);
+    //
+    // AND THE 2A = 3T TIE HAS GONE TOO (I41, 2026-09-19). It held only while
+    // the round was ₹1,20,000 and only while every target shared one top rung,
+    // which stopped being true when I30 gave photography a ladder twice as
+    // tall. What the fourth target actually needs is that two rounds cannot
+    // fund all four, and that is asserted from each target's OWN top.
+    const maxed = C.CAPEX_TARGETS.reduce(
+      (sum, target) => sum + capexCurveFor(target).at(-1).paise, 0,
+    );
+    expect(C.CAPEX_ALLOCATION_PAISE).toBe(150000 * 100);
+    expect(maxed).toBeGreaterThan(2 * C.CAPEX_ALLOCATION_PAISE);
     expect(C.CAPEX_TARGETS).toHaveLength(4);
   });
 
@@ -167,12 +176,15 @@ describe('CAPEX_TIER_CURVE is an S, not a diminishing curve', () => {
     expect(peak).toBeLessThan(eff.length - 1);
   });
 
-  test('the top tier is ₹80,000, and one allocation buys it with ₹40,000 left', () => {
-    // It used to be exactly one allocation. See the budget test above for why
-    // that equivalence is arithmetically incompatible with three-of-four.
+  test('the top shared tier is ₹80,000, and a round clears photographys first rung after it', () => {
+    // It used to be exactly one allocation, then one allocation with ₹40,000
+    // left. What the leftover has to do is buy photography's cheapest rung —
+    // that is I29's trade, restored by I41 — so it is asserted against that
+    // rung rather than pinned to a figure that moves with the round.
     const top = C.CAPEX_TIER_CURVE[C.CAPEX_TIER_CURVE.length - 1];
     expect(top.paise).toBe(80000 * 100);
-    expect(C.CAPEX_ALLOCATION_PAISE - top.paise).toBe(40000 * 100);
+    const left = C.CAPEX_ALLOCATION_PAISE - top.paise;
+    expect(left).toBeGreaterThanOrEqual(capexCurveFor('photography')[1].paise);
   });
 
   test('the ladder has no dud rung any more', () => {

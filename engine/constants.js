@@ -892,7 +892,22 @@ export const DAILY_BUDGET_OVERSPEND_CAP = 2.0;
 // Capital expenditure (spec 13.3)
 // ---------------------------------------------------------------------------
 
-export const CAPEX_ALLOCATION_PAISE = 12000000; // ₹1,20,000, at rounds 1 and 5
+/*
+ * ₹1,50,000 SINCE I41, AND THE CLIFF IS AT ₹1,30,000.
+ *
+ * I29 raised this to ₹1,20,000 so that the best page would stop costing you
+ * photography. I30 then doubled photography's first rung, ₹25,000 to ₹50,000,
+ * and the trade came straight back: the cheapest route to the best description
+ * grade is ₹80,000, which leaves ₹40,000 against a ₹50,000 rung. Measured, the
+ * property flips the moment a round can carry both — ₹1,30,000 — and does not
+ * widen again until ₹1,60,000.
+ *
+ * ₹1,50,000 clears that cliff with ₹20,000 of slack, so a later price change on
+ * either ladder does not silently kill the property the way I30's did. Two
+ * rounds are ₹3,00,000 against ₹4,00,000 to max all four targets, so one must
+ * still be given up over the whole game — which is the trade I29 wanted.
+ */
+export const CAPEX_ALLOCATION_PAISE = 15000000; // ₹1,50,000, at rounds 1 and 5
 export const CAPEX_DELAY_ROUNDS = 3;
 
 // ---------------------------------------------------------------------------

@@ -412,10 +412,15 @@ describe('week 5: every rival decides its second capital allocation (DECISIONS C
 
   test('an investment tops up by the tilt, and never passes a ceiling or the allocation', () => {
     const nothing = committedNothing();
+    // The remainder after the maxed primary: ₹70,000 of a ₹1,50,000 round since
+    // I41, where it was ₹40,000 of ₹1,20,000. It is not wasted between rungs —
+    // `capexEffect` interpolates, and a rival's page description is authored
+    // rather than composed, so only the effect reaches it.
+    const rest = CAPEX_ALLOCATION_PAISE - 8000000;
     const mid = investment(at(5, { position: { ...self.position, price: 'mid' }, capex: nothing }));
-    expect(mid).toEqual({ landingPage: 8000000, orderConfirmation: 4000000 });
+    expect(mid).toEqual({ landingPage: 8000000, orderConfirmation: rest });
     const value = investment(at(5, { position: { ...self.position, price: 'value' }, capex: nothing }));
-    expect(value).toEqual({ sizeGuide: 8000000, orderConfirmation: 4000000 });
+    expect(value).toEqual({ sizeGuide: 8000000, orderConfirmation: rest });
     const premium = investment(at(5, { position: { ...self.position, price: 'premium' }, capex: nothing }));
     expect(premium).toEqual({ photography: CAPEX_ALLOCATION_PAISE });
 
@@ -426,6 +431,10 @@ describe('week 5: every rival decides its second capital allocation (DECISIONS C
       capex: { ...nothing, committed: { ...nothing.committed, landingPage: 8000000, orderConfirmation: 4000000 } },
     }));
     expect(built).toEqual({ orderConfirmation: 4000000 });
+    // The ceiling is what stops it, not the round: ₹40,000 is already on the
+    // secondary and its ceiling takes ₹40,000 more, so the rest of a bigger
+    // round has nowhere to go and becomes ad money.
+    expect(Object.values(built).reduce((a, b) => a + b, 0)).toBeLessThan(CAPEX_ALLOCATION_PAISE);
 
     for (const price of ['value', 'mid', 'premium']) {
       const out = investment(at(5, { position: { ...self.position, price }, capex: nothing }));

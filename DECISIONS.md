@@ -6129,6 +6129,75 @@ accept the trade. **That is the owner's to decide and is not decided here.**
 
 ---
 
+### I41. The round-0 allocation, raised to keep I29's trade alive — `FIXED` (2026-09-19)
+
+**I29's property had been dead for two days and its test was green.** I29 raised
+the capital round to ₹1,20,000 expressly so the best page would stop costing you
+photography. I30 then doubled photography's first rung, ₹25,000 → ₹50,000, and
+the trade came straight back: the cheapest route to the best description grade
+is ₹80,000, leaving ₹40,000 against a ₹50,000 rung. Nobody saw, because
+`tests/landingPage.test.js` iterated photography over the SHARED rungs and kept
+offering a ₹25,000 purchase photography does not sell — one `featureAt` resolves
+to "none". The single combination holding the assertion up was buying nothing.
+
+**Measured, the property flips at one point and one only:**
+
+| round-0 allocation | ways to the best grade | with photography |
+|---|---|---|
+| ₹1,20,000 | 3 | **0** |
+| **₹1,30,000** | 4 | **1** |
+| ₹1,40,000 / ₹1,50,000 | 6 | 1 |
+| ₹1,60,000 | 9 | 3 |
+
+**The owner chose ₹1,50,000** (2026-09-19): it clears the ₹1,30,000 cliff with
+₹20,000 of slack, so a later price change on either ladder cannot silently kill
+the property the way I30's did. Two rounds are ₹3,00,000 against ₹4,00,000 to
+max all four targets on their own ladders, so one target must still be given up
+over the whole game — the trade I29 wanted.
+
+**The owner's hard gate, agreed before measuring:** the property must hold on
+photography's OWN ladder. It does, and the test now checks that each qualifying
+combination buys a rung photography actually HAS — `featureAt(...).label` is not
+"none" — which is the check the shared-ladder version could not make.
+
+**IT MAKES ALMOST EVERYONE SLIGHTLY POORER, AND THAT IS THE INTERESTING PART.**
+72 markets each way, median final net profit:
+
+| round-0 page | before | after | |
+|---|---|---|---|
+| keep it all as ad money | ₹11,99,626 | ₹11,66,491 | **−2.8%** |
+| the faster page | ₹12,28,325 | ₹12,13,388 | −1.2% |
+| the top page | ₹12,29,748 | ₹12,18,465 | −0.9% |
+| a size guide | ₹12,43,583 | ₹12,33,762 | −0.8% |
+| reviews | ₹12,35,688 | ₹12,29,618 | −0.5% |
+| photography | ₹11,80,447 | ₹11,83,903 | +0.3% |
+| guide and shots | ₹12,10,263 | ₹12,20,166 | +0.8% |
+
+**Why: rivals absorb the extra worse than the player, so more of it becomes ad
+money.** A rival's investment is capped by its ceilings, so a bigger allocation
+spills further into its budget — rivals' median month-2 budget rose ₹60,000
+against the player's ₹30,000. The market is richer, and therefore dearer: player
+CPC ₹12.0 → ₹12.3, net ROAS 6.56 → 6.34. Median rank is unchanged at 5, and
+nobody loses money in any of the 72 markets before or after.
+
+**The shape of that is right even though the level fell.** KEEPING the money got
+relatively worse (−2.8%) than spending it (−0.5% to +0.8%), and the two rows
+that gained are the ones that put it on the ladder tall enough to absorb it. A
+bigger allocation sharpens the capital decision rather than blunting it, which
+is what 13.3 wants: not investing stays viable, and stays a real cost.
+
+**Three tests were resting on arithmetic that only held at ₹1,20,000**, and all
+three are now written against the ladders instead of the figure: two allocations
+pinned to exactly three shared top rungs (`constants.test.js`); the best grade
+pinned to 66% of a round (`landingPage.test.js`); and the S-curve's
+spread-versus-commit comparison, which split the whole round against the whole
+round committed to one target — but the curve tops out at ₹80,000, so past that
+"committed" meant a spend whose tail bought nothing and the test measured waste
+rather than shape. It is measured against the curve's own top now, and no player
+can reach the old case anyway: the cards offer rungs.
+
+---
+
 ## Maintenance rule
 
 Every time you or Claude Code picks a number with no source, add it here before

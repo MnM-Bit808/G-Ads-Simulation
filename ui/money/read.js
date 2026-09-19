@@ -129,7 +129,7 @@ export function moveLine(draft, month, index, amountPaise) {
 
 /**
  * The capital: each kind of site work's rungs, which can be afforded, which is
- * chosen, and where the ₹1,20,000 goes.
+ * chosen, and where the round's allocation goes.
  *
  * @param {object} draft
  * @returns {{targets: object[], committedPaise: number, joinsPaise: number, liveWeek: number,
