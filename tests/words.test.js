@@ -852,6 +852,34 @@ describe('Results, after the last week (design/results/)', () => {
     expect(RESULTS.booksNote({ month: 3, snapshot: 8 })).toMatch(/and the capital it spent building/);
   });
 
+  // FOUND PLAYING IT FROM LAST PLACE, 2026-09-19 — which is where a beginner
+  // who changes nothing lands, so it is the common case rather than the edge.
+  // The sentence used to name first, the middle and last every time, so a
+  // player in one of those places was handed their own figure back as a
+  // comparison: "9th gave you ₹1,17,600 … and last ₹1,17,600".
+  describe('month 3\'s budget sentence compares you with somebody else', () => {
+    const args = {
+      month: 3, snapshot: 8, middle: '₹1,68,000', first: '₹2,18,400', last: '₹1,17,600',
+    };
+    test('last place is not told what last got', () => {
+      const said = RESULTS.monthThree({ ...args, place: 9, amount: '₹1,17,600' });
+      expect(said).toBe('Month 3’s budgets were set by the week-8 ranking: 9th gave you ₹1,17,600, '
+        + 'where the middle place got ₹1,68,000 and first ₹2,18,400.');
+    });
+
+    test('first place is not told what first got', () => {
+      const said = RESULTS.monthThree({ ...args, place: 1, amount: '₹2,18,400' });
+      expect(said).toContain('1st gave you ₹2,18,400, where the middle place got ₹1,68,000 and last ₹1,17,600.');
+      expect(said.match(/₹2,18,400/g), 'its own figure is said twice').toHaveLength(1);
+    });
+
+    test('a place of its own still gets all three', () => {
+      const said = RESULTS.monthThree({ ...args, place: 4, amount: '₹1,79,760' });
+      expect(said).toBe('Month 3’s budgets were set by the week-8 ranking: 4th gave you ₹1,79,760, '
+        + 'where the middle place got ₹1,68,000, first ₹2,18,400 and last ₹1,17,600.');
+    });
+  });
+
   test('a capital week\'s answer says which game ends ahead with the capital counted', () => {
     const args = { amount: '₹55,000', targets: ['the size guide'], gap: '₹83,625' };
     expect(RESULTS.capitalCounted({ ...args, sign: 1 })).toMatch(/the game without it ends ₹83,625 ahead\.$/);

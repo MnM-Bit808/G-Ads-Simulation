@@ -172,9 +172,19 @@ export const RESULTS = Object.freeze({
   rankAtSnapshot: line('label', ({ week }) => `at week ${week}, on gross profit as reported then`),
   rankGross: line('label', 'at the end, on gross profit'),
   rankNet: line('label', 'at the end, on net profit'),
-  monthThree: line('reading', ({ month, snapshot, place, amount, middle, first, last }) =>
-    `Month ${month}’s budgets were set by the week-${snapshot} ranking: ${ordinal(place)} gave you ${amount}, `
-    + `where the middle place got ${middle}, first ${first} and last ${last}.`),
+  // A COMPARISON THAT IS YOUR OWN FIGURE IS NOT A COMPARISON. Finishing 9th of
+  // nine, this read "9th gave you ₹1,17,600, where the middle place got
+  // ₹1,68,000, first ₹2,18,400 and last ₹1,17,600" — the last clause handing
+  // the player their own number back as though it were somebody else's. Found
+  // playing it from last place, 2026-09-19, which is where a beginner lands.
+  monthThree: line('reading', ({ month, snapshot, place, amount, middle, first, last }) => {
+    const others = [['the middle place', middle], ['first', first], ['last', last]]
+      .filter(([, sum]) => sum !== amount)
+      .map(([name, sum], i) => `${name}${i === 0 ? ' got' : ''} ${sum}`);
+    return `Month ${month}’s budgets were set by the week-${snapshot} ranking: `
+      + `${ordinal(place)} gave you ${amount}`
+      + (others.length > 0 ? `, where ${listed(others)}.` : '.');
+  }),
   traps: line('reading', ({ snapshot }) =>
     'Both halves of that ranking were traps. Gross profit does not net off returns, so traffic that converts well '
     + 'and comes straight back flattered it. And attribution had not caught up, so a click in week '
