@@ -1544,3 +1544,265 @@ body.studio .studio-chips { scroll-behavior: smooth; }
     body.studio .studio-section.first-open .arriving { transform: none; }
   }
 }
+
+/* ---------------------------------------------------------------------------
+   THE FIRST RUN (plans/2026-09-19-first-run-and-ground-floor.md, section 4):
+   the minute before round 0, for someone who has never bought an ad.
+
+   MOTION IS reviews/slc-review.md SECTION 13'S, and nothing new. A beat enters
+   on opacity and an 8px rise, 240ms on --studio-ease (row 2); going back
+   reverses the direction on --studio-ease-in-out (row 3); the ladder reveals
+   row by row at a 50ms stagger with its bars growing from zero, which is row
+   5's end-screen reveal applied to the same idea. NO COUNTING TICKER anywhere:
+   a bar is a picture of a value and may grow, a number is read and may not.
+   --------------------------------------------------------------------------- */
+
+body.studio .fr-board {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: 44px 72px;
+  padding-left: 20px;
+  padding-right: 20px;
+  background: var(--studio-page);
+}
+body.studio .fr-col { width: min(820px, 100%); display: flex; flex-direction: column; gap: 16px; }
+body.studio .fr-top {
+  width: min(820px, 100%);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 10px; flex-wrap: wrap;
+}
+body.studio .fr-dots { display: flex; gap: 6px; }
+body.studio .fr-dot {
+  width: 26px; height: 3px; border-radius: 2px;
+  background: var(--studio-line);
+  transition: background 240ms var(--studio-ease);
+}
+body.studio .fr-dot.done { background: var(--studio-panel-edge); }
+body.studio .fr-dot.on { background: var(--studio-red); }
+
+body.studio .fr-skip,
+body.studio .fr-back,
+body.studio .fr-again {
+  font-size: 13px; color: var(--studio-faint);
+  background: none; border: 0; cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 4px;
+}
+body.studio .fr-skip:hover,
+body.studio .fr-back:hover,
+body.studio .fr-again:hover { color: var(--studio-soft); }
+
+/* A beat already played: one quiet line that stays, so nothing is lost. */
+body.studio .fr-trail { display: flex; flex-direction: column; }
+body.studio .fr-past {
+  display: flex; gap: 12px; align-items: baseline;
+  font-size: 13px; color: var(--studio-faint);
+  padding: 7px 0; border-bottom: 1px solid var(--studio-line);
+}
+body.studio .fr-past b { color: var(--studio-muted); font-weight: 600; flex: 0 0 34px; }
+body.studio .fr-past.fresh { animation: fr-slip 240ms var(--studio-ease) both; }
+
+body.studio .fr-live {
+  background: var(--studio-card);
+  border: 1px solid var(--studio-line);
+  border-radius: 18px; padding: 26px 28px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+body.studio .fr-live.enter { animation: fr-rise 240ms var(--studio-ease) both; }
+body.studio .fr-live.back { animation: fr-back 260ms var(--studio-ease-in-out) both; }
+
+body.studio .fr-opener { display: flex; flex-direction: column; gap: 13px; }
+body.studio .fr-hero {
+  font-family: var(--studio-display); font-weight: 800;
+  font-size: clamp(26px, 4vw, 36px); letter-spacing: -0.02em;
+  line-height: 1.12; text-wrap: balance;
+}
+body.studio .fr-kicker {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .fr-say { font-size: 19px; line-height: 1.55; margin: 0; text-wrap: pretty; }
+body.studio .fr-note,
+body.studio .fr-lede { font-size: 13.5px; line-height: 1.6; color: var(--studio-muted); margin: 0; }
+body.studio .fr-lede { font-size: 15px; color: var(--studio-soft); }
+
+/* The terms the beat teaches. */
+body.studio .fr-words { display: flex; gap: 8px; flex-wrap: wrap; }
+body.studio .fr-word {
+  display: inline-flex; align-items: baseline; gap: 7px;
+  padding: 4px 10px; border-radius: 8px;
+  background: var(--studio-raised); font-size: 12px; color: var(--studio-soft);
+  animation: fr-rise 220ms var(--studio-ease) both;
+}
+body.studio .fr-word b { font-weight: 700; color: var(--studio-text); }
+
+body.studio .fr-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+body.studio .fr-go {
+  background: var(--studio-red); color: var(--studio-on-red);
+  border: 0; border-radius: 12px; padding: 12px 22px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: transform 160ms ease-out;
+}
+body.studio .fr-go:active { transform: scale(0.97); }
+
+/* A results page, as the searcher meets it. White, because Google is. */
+body.studio .fr-serp {
+  background: #ffffff; color: #202124;
+  border-radius: 14px; padding: 16px 20px;
+}
+body.studio .fr-q {
+  border: 1px solid #dfe1e5; border-radius: 22px;
+  padding: 9px 16px; font-size: 15px;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+body.studio .fr-q .studio-icon { width: 16px; height: 16px; stroke: #9aa0a6; }
+body.studio .fr-where { font-size: 12px; color: #70757a; }
+body.studio .fr-ads .kserp { animation: fr-rise 220ms var(--studio-ease) both; }
+body.studio .fr-ads .kserp-tag { color: #202124; }
+body.studio .fr-ads .kserp-head { color: #1a0dab; }
+body.studio .fr-ads .kserp-desc { color: #4d5156; }
+body.studio .fr-organic {
+  border-top: 1px solid #dfe1e5; padding-top: 10px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+body.studio .fr-organic i { display: block; height: 8px; width: 42%; border-radius: 4px; background: #e8eaed; }
+body.studio .fr-organic i.thin { width: 66%; background: #f1f3f4; }
+body.studio .fr-organic small { font-size: 11px; color: #9aa0a6; }
+
+/* The ladder: every brand that entered, in rank order, one row at a time. */
+body.studio .fr-ladder { display: flex; flex-direction: column; gap: 2px; }
+body.studio .fr-lrow,
+body.studio .fr-lhd {
+  display: grid;
+  grid-template-columns: 30px 100px 54px 88px minmax(0, 1fr) 72px;
+  align-items: center; gap: 12px;
+}
+body.studio .fr-lhd {
+  padding: 0 12px 6px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .fr-lrow {
+  padding: 9px 12px; border-radius: 10px; font-size: 13px;
+  animation: fr-rise 240ms var(--studio-ease) both;
+}
+body.studio .fr-lrow.shown { background: var(--studio-raised); }
+body.studio .fr-lrow.out { color: var(--studio-faint); }
+body.studio .fr-pos { font-weight: 800; font-size: 15px; }
+body.studio .fr-brand { font-weight: 600; }
+body.studio .fr-num { font-variant-numeric: tabular-nums; }
+body.studio .fr-num.pays { font-weight: 700; }
+body.studio .fr-fit { height: 7px; border-radius: 4px; background: var(--studio-line); overflow: hidden; }
+body.studio .fr-fit i {
+  display: block; height: 100%; background: var(--studio-mint);
+  animation: fr-grow 420ms var(--studio-ease) both; animation-delay: inherit;
+}
+body.studio .fr-lrow.out .fr-fit i { background: var(--studio-line-strong); }
+body.studio .fr-rank {
+  height: 7px; border-radius: 4px; background: var(--studio-red);
+  animation: fr-grow 420ms var(--studio-ease) both; animation-delay: inherit;
+}
+body.studio .fr-lrow.out .fr-rank { background: var(--studio-line-strong); }
+body.studio .fr-cut {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 12px; font-size: 11px; color: var(--studio-faint);
+  animation: fr-rise 240ms var(--studio-ease) both;
+}
+body.studio .fr-cut i { flex-grow: 1; height: 1px; background: var(--studio-line); }
+
+body.studio .fr-callout {
+  background: var(--studio-panel); border: 1px solid var(--studio-panel-edge);
+  border-radius: 14px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 8px;
+  animation: fr-rise 260ms var(--studio-ease) both;
+}
+body.studio .fr-callout .fr-kicker { color: var(--studio-red-text); }
+body.studio .fr-callout .fr-say { font-size: 17px; }
+
+/* What the click cost, against what it sold. */
+body.studio .fr-strip { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+body.studio .fr-cell {
+  flex: 1; min-width: 180px;
+  background: var(--studio-card); border: 1px solid var(--studio-line);
+  border-radius: 14px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 5px;
+  animation: fr-rise 240ms var(--studio-ease) both;
+}
+body.studio .fr-k {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .fr-v { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+body.studio .fr-v.red { color: var(--studio-red-text); }
+body.studio .fr-v.dim { color: var(--studio-faint); }
+body.studio .fr-s { font-size: 12px; color: var(--studio-muted); }
+body.studio .fr-arrow { align-self: center; color: var(--studio-faint); font-size: 18px; }
+
+/* The weeks a click takes to settle. */
+body.studio .fr-weeks { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+body.studio .fr-wk {
+  flex: 1; min-width: 108px;
+  border-radius: 10px; background: var(--studio-card);
+  border: 1px solid var(--studio-line); padding: 10px;
+  display: flex; flex-direction: column; gap: 5px;
+  animation: fr-rise 240ms var(--studio-ease) both;
+  transition: background 260ms var(--studio-ease), border-color 260ms var(--studio-ease);
+}
+body.studio .fr-n {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .fr-e { font-size: 12px; color: var(--studio-soft); line-height: 1.4; }
+body.studio .fr-e .lead { font-weight: 700; color: var(--studio-text); }
+body.studio .fr-wk.hit { border-color: var(--studio-panel-edge); background: var(--studio-panel); }
+/* A week that went against you is amber, never red: red is the player's own. */
+body.studio .fr-wk.bad { border-color: #6b4416; background: #241606; }
+body.studio .fr-wk.bad .fr-n { color: var(--studio-amber); }
+
+/* One week's report, said again each time it was rewritten. */
+body.studio .fr-rewrite {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--studio-card); border: 1px solid var(--studio-line);
+  border-radius: 14px; padding: 16px 18px;
+}
+body.studio .fr-rw {
+  display: flex; gap: 14px; font-size: 14px;
+  animation: fr-rise 240ms var(--studio-ease) both;
+}
+body.studio .fr-rw > span:first-child { width: 132px; flex: none; color: var(--studio-faint); }
+body.studio .fr-rw .up { color: var(--studio-mint); }
+body.studio .fr-rw .down { color: var(--studio-amber); }
+
+@keyframes fr-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fr-back { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes fr-slip { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes fr-grow { from { width: 0; } }
+@keyframes fr-fade { from { opacity: 0; } to { opacity: 1; } }
+
+@media (max-width: 720px) {
+  body.studio .fr-lrow,
+  body.studio .fr-lhd { grid-template-columns: 22px minmax(0, 1fr) 46px minmax(0, 1fr) 62px; }
+  body.studio .fr-lrow .fr-fit,
+  body.studio .fr-lhd > span:nth-child(4) { display: none; }
+  body.studio .fr-say { font-size: 17px; }
+  body.studio .fr-rw { flex-direction: column; gap: 2px; }
+  body.studio .fr-rw > span:first-child { width: auto; }
+  body.studio .fr-arrow { display: none; }
+}
+
+/* The review's rule: keep the fade, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  body.studio .fr-live.enter,
+  body.studio .fr-live.back,
+  body.studio .fr-past.fresh,
+  body.studio .fr-word,
+  body.studio .fr-lrow,
+  body.studio .fr-cut,
+  body.studio .fr-callout,
+  body.studio .fr-cell,
+  body.studio .fr-wk,
+  body.studio .fr-rw { animation: fr-fade 200ms linear both; }
+  body.studio .fr-fit i,
+  body.studio .fr-rank { animation: none; }
+  body.studio .fr-go:active { transform: none; }
+}

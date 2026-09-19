@@ -602,7 +602,14 @@ export function figuresFor(demo)
 export function createFirstRun({ onDone })
 ```
 
-- [ ] **Step 1: Write the failing test**
+> **Corrected while building, 2026-09-19.** The tests below were written for
+> JSDOM, which is not a dependency of this project and should not become one:
+> the suite has no DOM, every Studio section already splits a pure `read.js`
+> from a drawing `render.js`, and `tests/sections.test.js` reads the drawing as
+> text. So the progression lives in `read.js` as a pure function of one number
+> and is tested without a browser, and `render.js` is checked as text.
+
+- [x] **Step 1: Write the failing test**
 
 Add to `tests/firstRun.test.js`:
 
@@ -677,7 +684,7 @@ describe('the run moves one beat at a time, and the player holds the clock', () 
 
 Add `'ui/firstrun/render.js'` to the `drawing` array in `tests/words.test.js`.
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```bash
 npm test -- firstRun
@@ -685,7 +692,7 @@ npm test -- firstRun
 
 Expected: `Failed to resolve import "../ui/firstrun/read.js"`.
 
-- [ ] **Step 3: Write `read.js`, then `render.js`, then the CSS**
+- [x] **Step 3: Write `read.js`, then `render.js`, then the CSS**
 
 `read.js` holds the beat list and the figures; it imports `FIRST_RUN`,
 `demonstration()`, `rupees`/`whole` from `ui/dom.js`, and
@@ -706,7 +713,7 @@ The CSS is appended to `ui/studio.css`, every rule scoped `.studio .fr-…`, and
 the keyframes are those in the prototype. Copy the `prefers-reduced-motion`
 block unchanged.
 
-- [ ] **Step 4: Run the tests and watch them pass**
+- [x] **Step 4: Run the tests and watch them pass**
 
 ```bash
 npm test -- firstRun
@@ -716,7 +723,7 @@ npm test -- words
 Expected: both PASS. The drawing guard failing means a sentence is still in
 `render.js`: move it to `ui/words/firstrun.js`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add ui/firstrun/read.js ui/firstrun/render.js ui/studio.css tests/firstRun.test.js tests/words.test.js

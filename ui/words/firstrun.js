@@ -5,8 +5,11 @@
  * WHY IT SAYS SO LITTLE. Round 0 was cut from 2,648 words to 781 and a stranger
  * still gave up inside it, so cutting further is not the remedy and this run
  * earns its place only by staying a story told in numbers and real ads rather
- * than in prose. The whole thing is under 200 words and `tests/words.test.js`
- * holds it there: a failure means cutting a sentence, never raising the bound.
+ * than in prose. NO BEAT PUTS MORE THAN 80 WORDS ON SCREEN, against round 0's
+ * step 1 at about 248 — the step a stranger gave up inside — and
+ * `tests/words.test.js` holds it there. A failure means cutting a sentence,
+ * never raising the bound; this file was cut twice on 2026-09-19 for exactly
+ * that reason.
  *
  * NO CHAPTER IS NAMED HERE. The run teaches the world — what a click IS — and
  * the ground-floor chapters teach the controls. One word, one home, so a term
@@ -25,12 +28,12 @@ import { line } from './line.js';
 export const FIRST_RUN = Object.freeze({
   // The opening statement, shown above beat 1 only.
   openTitle: line('label', 'You’re buying the ads above Google’s search results.'),
-  openTypes: line('reading', 'Someone in India types “gym leggings”. Four ads sit above the results. '
-    + 'You decide whether one is yours, and what you’ll pay to be there.'),
+  openTypes: line('reading', 'Four ads sit above Google’s results. You decide whether one is yours, '
+    + 'and what you pay.'),
   openLength: line('reading', ({ weeks, rivals }) => `${weeks} weeks. ${rivals} rival brands. `
     + 'You’re ranked on what your business made.'),
-  openNoNeed: line('reading', 'You don’t need to know anything about advertising yet. '
-    + 'This shows you one search, start to finish.'),
+  openNoNeed: line('reading', 'You don’t need to know anything yet. '
+    + 'Here is one search, start to finish.'),
 
   // Beat 1, the search.
   b1Kicker: line('label', 'One search'),
@@ -49,14 +52,14 @@ export const FIRST_RUN = Object.freeze({
 
   // Beat 3, the auction. The run's centre.
   b3Kicker: line('label', 'Nobody bought those slots'),
-  b3Say: line('reading', ({ entered, of }) => `${of} brands sell gym clothes here, and ${entered} wanted this search. `
-    + 'On every search, Google ranks them by what they bid times how well their ad fits.'),
+  b3Say: line('reading', ({ entered, of }) => `${of} brands sell here. ${entered} wanted this search, `
+    + 'ranked by bid times how well the ad fits.'),
   b3Cut: line('label', ({ slots }) => `only ${slots} slots`),
-  b3ReadAgain: line('label', 'Read the top two rows again'),
+  b3ReadAgain: line('label', 'Read those two rows again'),
   b3Callout: line('reading', ({ winner, winnerBid, winnerPays, runnerUp, runnerUpBid, runnerUpPays }) =>
-    `${winner} bid ${winnerBid} and pays ${winnerPays}. ${runnerUp} bid ${runnerUpBid}, sits below it, `
-    + `and pays ${runnerUpPays} — its ad fits this search better.`),
-  b3Cost: line('reading', 'You can buy your way up. It costs you every click.'),
+    `${winner} bid ${winnerBid}, pays ${winnerPays}. ${runnerUp} bid ${runnerUpBid}, sits below, `
+    + `pays ${runnerUpPays} — its ad fits better.`),
+  b3Cost: line('reading', 'Buying your way up costs you every click.'),
   b3Trail: line('label', ({ winner, winnerPays }) => `${winner} first at ${winnerPays}`),
 
   // Beat 4, the click. Where the money goes and the sale does not.
@@ -66,17 +69,16 @@ export const FIRST_RUN = Object.freeze({
   b4When: line('label', 'the moment she clicks'),
   b4Looking: line('label', 'she is only looking'),
   b4Say: line('reading', ({ winner, winnerPays }) => 'You pay for the visit, not the sale. '
-    + `She might buy nothing and leave. ${winner} still paid ${winnerPays}.`),
-  b4Note: line('reading', 'So a cheap click on the wrong search is expensive, '
-    + 'and a dear one on the right search can be a bargain.'),
+    + `She may buy nothing. ${winner} still paid ${winnerPays}.`),
+  b4Note: line('reading', 'A cheap click on the wrong search is expensive. '
+    + 'A dear one on the right search is a bargain.'),
   b4Trail: line('label', ({ winnerPays }) => `she clicked · ${winnerPays} gone · nothing sold`),
 
   // Beat 5, the delay.
-  b5Kicker: line('label', ({ clickWeek, buyWeek }) => `She clicked in week ${clickWeek}, and buys in week ${buyWeek}`),
-  b5Say: line('reading', 'The sale is counted in the week she clicked, not the week she bought. '
-    + 'So a week you have already read is rewritten underneath you.'),
-  b5Note: line('reading', 'Nothing has gone wrong. This is how the real thing works, '
-    + 'and it is why judging a week early is expensive.'),
+  b5Kicker: line('label', 'The same click, weeks on'),
+  b5Say: line('reading', 'The sale counts in the week she clicked, not the week she bought.'),
+  b5Note: line('reading', 'A week you already read is rewritten. '
+    + 'Judging a week early is expensive.'),
   b5Report: line('label', ({ clickWeek }) => `What week ${clickWeek} said`),
   b5Then: line('label', 'when it happened'),
   b5Later: line('label', 'two weeks later'),
@@ -84,11 +86,11 @@ export const FIRST_RUN = Object.freeze({
 
   // Beat 6, the return.
   b6Kicker: line('label', 'Two weeks after that'),
-  b6Say: line('reading', ({ order, freight }) => 'She pays cash when it arrives, and she doesn’t take it. '
-    + `The ${order} goes back, and the ${freight} it cost to send does not.`),
-  b6Note: line('reading', ({ returnShare }) => `Roughly ${returnShare} come back here. `
-    + 'It is the biggest thing between revenue and profit.'),
-  b6Report3: line('label', ({ clickWeek }) => `What week ${clickWeek} said, three times`),
+  b6Say: line('reading', ({ order, freight }) => 'She pays cash on delivery, and doesn’t take it. '
+    + `The ${order} goes back; the ${freight} freight does not.`),
+  b6Note: line('reading', ({ returnShare }) => `Roughly ${returnShare} come back — `
+    + 'the gap between revenue and profit.'),
+  b6Report3: line('label', ({ clickWeek }) => `What week ${clickWeek} said, again`),
   b6Latest: line('label', 'four weeks later'),
   b6Trail: line('label', ({ freight }) => `refused at the door · ${freight} of freight gone`),
 
@@ -100,6 +102,13 @@ export const FIRST_RUN = Object.freeze({
   b7Note: line('reading', 'Every word you just met has a “why?” beside it from here on, '
     + 'and the guide is in the strip on the left.'),
 
+  // One week's report, said once for each time it was rewritten. "One", never
+  // "1": a digit in a sentence is a number typed by hand, which tests/ui.test.js
+  // refuses on sight.
+  repThen: line('label', ({ winnerPays }) => `one click · ${winnerPays} spent · nothing sold`),
+  repLater: line('label', ({ winnerPays, order }) => `one click · ${winnerPays} spent · ${order} sold`),
+  repLatest: line('label', ({ winnerPays, freight }) => `one click · ${winnerPays} spent · nothing sold, −${freight}`),
+
   // The week strip, beats 5 and 6.
   wkWeek: line('label', ({ n }) => `Week ${n}`),
   wkClick: line('label', 'the click'),
@@ -107,6 +116,31 @@ export const FIRST_RUN = Object.freeze({
   wkBuys: line('label', 'she buys'),
   wkShips: line('label', 'it ships'),
   wkRefused: line('label', 'refused at the door'),
+
+  // THE TERMS EACH BEAT TEACHES, named as they appear. These are the run's
+  // whole purpose — a beginner meets the word attached to the thing, once —
+  // so they are sentences like any other and counted in the budget like any
+  // other. No digits: "one to four", never "1 to 4".
+  termSearch: line('label', 'a search'), glossSearch: line('label', 'one person, once'),
+  termVolume: line('label', 'search volume'), glossVolume: line('label', 'how many a week'),
+
+  termAd: line('label', 'an ad'), glossAd: line('label', 'headlines and two lines'),
+  termPosition: line('label', 'position'), glossPosition: line('label', 'one to four, top down'),
+  termImpression: line('label', 'an impression'), glossImpression: line('label', 'your ad was shown'),
+
+  termBid: line('label', 'a bid'), glossBid: line('label', 'the most you’ll pay'),
+  termAuction: line('label', 'the auction'), glossAuction: line('label', 'run on every search'),
+  termRank: line('label', 'ad rank'), glossRank: line('label', 'bid × fit, and it decides'),
+
+  termClick: line('label', 'a click'), glossClick: line('label', 'someone came to your site'),
+  termCpc: line('label', 'cost per click'), glossCpc: line('label', 'what that visit cost'),
+  termBudget: line('label', 'your budget'), glossBudget: line('label', 'the pot it comes from'),
+
+  termConversion: line('label', 'a conversion'), glossConversion: line('label', 'a click that bought'),
+  termDelay: line('label', 'the delay'), glossDelay: line('label', 'sales land weeks later'),
+
+  termReturn: line('label', 'a return'), glossReturn: line('label', 'the money goes back'),
+  termRefused: line('label', 'refused'), glossRefused: line('label', 'never delivered, freight lost'),
 
   // The ladder's columns.
   colBrand: line('label', 'brand'),

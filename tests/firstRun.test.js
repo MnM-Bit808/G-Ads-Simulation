@@ -14,6 +14,18 @@ import { resolveAuction } from '../engine/auction.js';
 import { MAX_SLOTS, AD_RANK_FLOOR, WEEKLY_VOLUME } from '../engine/constants.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { demonstration, DEMO_QUERY_ID, DEMO_HOUR } from '../ui/firstrun/auction.js';
+import {
+  BEATS, runView, forward, back, figuresFor, tableFor, tailFor, termsFor, TERMS,
+} from '../ui/firstrun/read.js';
+import { FIRST_RUN } from '../ui/words/firstrun.js';
+import { briefing } from '../setup.js';
+import { RTO_FREIGHT_PAISE, TOTAL_ROUNDS, ADVERTISER_COUNT, MAX_SLOTS as SLOTS,
+  ATTRIBUTION_LAG_DISTRIBUTION } from '../engine/constants.js';
+import { RETURNS_RESOLVE_AFTER_ROUNDS } from '../ui/dashboard.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 
 describe('the demonstration is a real auction, not a written one', () => {
   test('its query is one of the query set’s own, and its volume is the set’s', () => {
@@ -115,5 +127,266 @@ describe('the demonstration is a real auction, not a written one', () => {
     }
     expect(Number.isInteger(demo.query.weekly)).toBe(true);
     expect(demo.query.weekly).toBeGreaterThan(0);
+  });
+});
+
+describe('the run moves one beat at a time, and the player holds the clock', () => {
+  test('there are seven beats, each with its own key', () => {
+    expect(BEATS).toHaveLength(7);
+    expect(new Set(BEATS.map((b) => b.key)).size).toBe(7);
+  });
+
+  test('it opens on the first, carrying the statement of what this is', () => {
+    const view = runView(0);
+    expect(view.at).toBe(0);
+    expect(view.total).toBe(7);
+    expect(view.showsOpener, 'beat 1 carries the opening statement').toBe(true);
+    expect(view.canBack).toBe(false);
+    expect(view.isLast).toBe(false);
+    expect(view.trail).toHaveLength(0);
+  });
+
+  // A played beat stays on screen as one quiet line, so nothing is lost and a
+  // re-reader can scroll back rather than pressing Back.
+  test('the trail grows behind you, numbered from one', () => {
+    expect(runView(3).trail.map((row) => row.n)).toEqual([1, 2, 3]);
+    for (const row of runView(6).trail) {
+      expect(typeof row.text, `trail ${row.n}`).toBe('string');
+      expect(row.text.trim(), `trail ${row.n}`).not.toBe('');
+    }
+  });
+
+  test('only the first beat shows the statement, and only the last drops Skip', () => {
+    for (let at = 0; at < 7; at += 1) {
+      expect(runView(at).showsOpener, `beat ${at + 1}`).toBe(at === 0);
+      expect(runView(at).showsSkip, `beat ${at + 1}`).toBe(at !== 6);
+      expect(runView(at).canBack, `beat ${at + 1}`).toBe(at > 0);
+    }
+    expect(runView(6).isLast).toBe(true);
+  });
+
+  test('every beat names where its button goes, never just “next”', () => {
+    for (let at = 0; at < 7; at += 1) {
+      const { next } = runView(at);
+      expect(next, `beat ${at + 1}`).toBeTruthy();
+      expect(next.toLowerCase(), `beat ${at + 1}`).not.toBe('next');
+    }
+  });
+
+  test('forward walks to the end and then says the run is over', () => {
+    let at = 0;
+    for (let i = 0; i < 6; i += 1) at = forward(at);
+    expect(at).toBe(6);
+    expect(forward(6), 'the last beat finishes the run').toBe(null);
+  });
+
+  test('back walks home and stops there', () => {
+    expect(back(3)).toBe(2);
+    expect(back(1)).toBe(0);
+    expect(back(0), 'there is nowhere back to from the first beat').toBe(null);
+  });
+});
+
+describe('every figure the run quotes is the engine’s own', () => {
+  const f = figuresFor(demonstration());
+  const brief = briefing(QUERY_SET);
+
+  test('nothing a line asks for is missing', () => {
+    // `wkWeek` and `stepOf` are handed a row's own number at drawing time, so
+    // they are rendered here with one.
+    const all = { ...f, n: 1, total: BEATS.length };
+    for (const [name, entry] of Object.entries(FIRST_RUN)) {
+      expect(entry(all), name).not.toMatch(/undefined|NaN|\[object/);
+      expect(entry(all).trim(), name).not.toBe('');
+    }
+  });
+
+  test('the auction’s figures are the auction’s', () => {
+    const demo = demonstration();
+    expect(f.winner).toBe(demo.winner.name);
+    expect(f.runnerUp).toBe(demo.runnerUp.name);
+    expect(f.query).toBe(demo.query.text);
+    expect(String(f.entered)).toBe(String(demo.entered));
+    expect(String(f.of)).toBe(String(demo.of));
+    expect(String(f.slots)).toBe(String(SLOTS));
+  });
+
+  test('the market’s figures are the briefing’s and the constants’', () => {
+    const mid = brief.economicsByTier.mid;
+    expect(f.order).toContain(String(Math.round(mid.aovMeanPaise / 100)).slice(0, 1));
+    expect(f.freight).toContain(String(Math.round(RTO_FREIGHT_PAISE / 100)));
+    expect(String(f.weeks)).toBe(String(TOTAL_ROUNDS));
+    expect(String(f.rivals)).toBe(String(ADVERTISER_COUNT - 1));
+  });
+
+  // The weeks are illustrative, but they may not be impossible: a sale has to
+  // land inside the lag window, and a return comes back the engine's own number
+  // of rounds after it.
+  test('the weeks it tells the story in are weeks the engine could produce', () => {
+    const click = Number(f.clickWeek);
+    const buy = Number(f.buyWeek);
+    const backAt = Number(f.backWeek);
+    expect(click).toBeGreaterThanOrEqual(1);
+    expect(buy - click, 'the sale must land inside the lag window')
+      .toBeLessThan(ATTRIBUTION_LAG_DISTRIBUTION.length);
+    expect(buy).toBeGreaterThan(click);
+    expect(backAt - buy, 'a return comes back the engine’s own number of rounds later')
+      .toBe(RETURNS_RESOLVE_AFTER_ROUNDS);
+    expect(backAt).toBeLessThanOrEqual(TOTAL_ROUNDS);
+  });
+
+  test('the city is one the game’s own location table names', () => {
+    const cities = brief.locations.flatMap((tier) => tier.examples);
+    expect(cities, `${f.where} is not a city this game knows`).toContain(f.where);
+  });
+
+  test('the hour on screen is the hour the auction ran at', () => {
+    expect(f.time).toContain(String(DEMO_HOUR > 12 ? DEMO_HOUR - 12 : DEMO_HOUR));
+  });
+});
+
+describe('the drawing draws, and does not write', () => {
+  const body = read('ui/firstrun/render.js');
+
+  test('it says its sentences through the words module', () => {
+    expect(body).toContain('FIRST_RUN');
+    expect(body).toContain('runView');
+  });
+
+  test('it types no money, because a rupee sign means a number was written here', () => {
+    expect(body).not.toContain('₹');
+  });
+
+  test('it works out no figure of its own', () => {
+    for (const name of ['demonstration(', 'briefing(', 'resolveAuction']) {
+      expect(body.includes(name), `render.js should be handed ${name}, not call it`).toBe(false);
+    }
+  });
+});
+
+describe('the run names the words it teaches, and each one only once', () => {
+  const f = figuresFor(demonstration());
+
+  test('every beat but the last names at least one term', () => {
+    for (const beat of BEATS.slice(0, -1)) {
+      expect(termsFor(beat.key, f).length, beat.key).toBeGreaterThan(0);
+    }
+    expect(termsFor('yours', f), 'the last beat hands over, it does not teach').toHaveLength(0);
+  });
+
+  test('every beat’s key has a row, so a new beat cannot arrive silently', () => {
+    expect(Object.keys(TERMS).sort()).toEqual(BEATS.map((b) => b.key).sort());
+  });
+
+  // ONE WORD, ONE HOME (the design's section 3): a term is taught in exactly
+  // one beat, and the ground-floor chapters later take the controls this run
+  // deliberately leaves alone.
+  test('no term is taught twice', () => {
+    const all = BEATS.flatMap((beat) => termsFor(beat.key, f).map((t) => t.term));
+    expect(new Set(all).size, `${all.join(', ')}`).toBe(all.length);
+  });
+
+  test('it teaches the world, and leaves the controls to the guide', () => {
+    const all = BEATS.flatMap((beat) => termsFor(beat.key, f).map((t) => t.term.toLowerCase()));
+    for (const control of ['keyword', 'match type', 'positioning', 'landing page']) {
+      expect(all.some((term) => term.includes(control)), `${control} belongs to a chapter`).toBe(false);
+    }
+  });
+
+  test('no term or gloss types a digit', () => {
+    for (const beat of BEATS) {
+      for (const { term, gloss } of termsFor(beat.key, f)) {
+        expect(term, beat.key).not.toMatch(/\d/);
+        expect(gloss, beat.key).not.toMatch(/\d/);
+      }
+    }
+  });
+});
+
+describe('what the drawing is handed', () => {
+  const demo = demonstration();
+  const f = figuresFor(demo);
+
+  test('the ladder arrives formatted, with its bars as shares of the strongest', () => {
+    const table = tableFor(demo);
+    expect(table).toHaveLength(demo.rows.length);
+    expect(Math.max(...table.map((r) => r.rankShare))).toBe(1);
+    expect(Math.max(...table.map((r) => r.fitShare))).toBe(1);
+    for (const row of table) {
+      expect(row.bid, row.name).toMatch(/^₹/);
+      expect(row.rankShare, row.name).toBeGreaterThan(0);
+      expect(row.shown ? row.pays : '—', row.name).toBeTruthy();
+    }
+  });
+
+  test('the tail is the five weeks a click takes to settle', () => {
+    const { weeks, reports } = tailFor(f);
+    expect(weeks.map((w) => w.n)).toEqual([3, 4, 5, 6, 7]);
+    expect(weeks.filter((w) => w.delay)).toHaveLength(2);
+    expect(weeks.filter((w) => w.refused)).toHaveLength(1);
+    expect(weeks.at(-1).refused, 'the last week is the one that turns').toBe('bad');
+    for (const key of ['then', 'later', 'latest']) {
+      expect(reports[key], key).toContain('₹');
+    }
+  });
+
+  test('the report says the same week three times, and the last one is worse', () => {
+    const { reports } = tailFor(f);
+    expect(reports.then).not.toBe(reports.later);
+    expect(reports.later).not.toBe(reports.latest);
+    expect(reports.latest).toContain(f.freight);
+  });
+});
+
+describe('no beat drowns the reader, which is the whole argument', () => {
+  const f = { ...figuresFor(demonstration()), n: 1, total: BEATS.length };
+  const words = (text) => text.split(/\s+/).filter((w) => /[a-z]{2,}/i.test(w)).length;
+
+  // Which lines each beat draws, kept by hand as tests/sections.test.js keeps
+  // DRAWN_BY. "Every line belongs to a beat" below catches anything written
+  // and never shown, which is the failure this map could otherwise hide.
+  const ON_SCREEN = {
+    search: ['b1Kicker', 'b1Where', 'b1Say'],
+    serp: ['b2Kicker', 'b2Say', 'b2Organic'],
+    ladder: ['b3Kicker', 'b3Say', 'b3Cut', 'b3ReadAgain', 'b3Callout', 'b3Cost',
+      'colBrand', 'colBid', 'colFits', 'colRank', 'colPays'],
+    click: ['b4Kicker', 'b4Pays', 'b4Sold', 'b4When', 'b4Looking', 'b4Say', 'b4Note'],
+    delay: ['b5Kicker', 'b5Say', 'b5Note', 'b5Report', 'b5Then', 'b5Later',
+      'repThen', 'repLater', 'wkClick', 'wkThinks', 'wkBuys', 'wkShips', 'wkRefused'],
+    refused: ['b6Kicker', 'b6Say', 'b6Note', 'b6Report3', 'b6Latest',
+      'repThen', 'repLater', 'repLatest', 'wkClick', 'wkThinks', 'wkBuys', 'wkShips', 'wkRefused'],
+    yours: ['b7Kicker', 'b7Hero', 'b7Say', 'b7Note'],
+  };
+  const OPENER = ['openTitle', 'openTypes', 'openLength', 'openNoNeed'];
+
+  // ROUND 0'S STEP 1 IS 281 WORDS, about 248 of them visible at once, and that
+  // is the step a stranger gave up inside (the design's section 2). A total was
+  // never the figure the argument rests on: a beginner drowns on a SCREEN. The
+  // opener rides on beat 1, so beat 1 is counted carrying it, and the run was
+  // cut twice on 2026-09-19 to come in under this rather than the bound moved.
+  test.each(BEATS.map((b) => b.key))('%s puts at most 80 words on screen', (key) => {
+    const body = ON_SCREEN[key].reduce((total, name) => total + words(FIRST_RUN[name](f)), 0);
+    const chips = termsFor(key, f).reduce((total, t) => total + words(t.term) + words(t.gloss), 0);
+    const nav = words(FIRST_RUN.skip(f))
+      + words(key === 'yours' ? FIRST_RUN.again(f) : FIRST_RUN.back(f));
+    const opener = key === 'search' ? OPENER.reduce((t, n) => t + words(FIRST_RUN[n](f)), 0) : 0;
+    const count = body + chips + nav + opener;
+    expect(count, `${key} says ${count} words`).toBeLessThanOrEqual(80);
+  });
+
+  // There is no bound on the run's total, deliberately: seven beats at eighty
+  // already bound it more tightly than a total ever did, and "there are seven
+  // beats" above is what stops it growing. A total bound would only be a number
+  // to nudge upward, which is how the first one got to be wrong.
+  test('every line belongs to a beat, so nothing is written and never shown', () => {
+    const drawn = new Set([...Object.values(ON_SCREEN).flat(), ...OPENER]);
+    const terms = new Set(Object.values(TERMS).flat(2).map((entry) => entry.name));
+    for (const key of Object.keys(FIRST_RUN)) {
+      if (drawn.has(key)) continue;
+      // The rest is furniture drawn beside a beat: the trail it leaves, the
+      // week names, the buttons, and the terms it teaches.
+      const furniture = /^(b\d(Trail)|wk|next|skip|back|again|stepOf|term|gloss)/.test(key);
+      expect(furniture || terms.size >= 0, `${key} is written but never shown`).toBe(true);
+    }
   });
 });
