@@ -255,6 +255,15 @@ body.studio .studio-empty { flex: 1; margin: 0; font-size: 14px; color: var(--st
 body.studio .studio-override { display: contents; }
 body.studio .studio-run { flex-shrink: 0; height: 52px; padding: 0 28px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font: 700 18px/1 var(--studio-display); }
 
+/* The deadline week. Amber, not red: red is the player's own colour in the
+   Studio, and this is the game telling them something is closing. */
+body.studio .studio-notice { flex: 1; margin: 0; font-size: 14px; font-weight: 600; color: var(--studio-amber); }
+body.studio .studio-notice-go { flex-shrink: 0; height: 40px; padding: 0 16px; border: 1px solid var(--studio-amber); border-radius: 999px; background: none; color: var(--studio-amber); font-size: 14px; font-weight: 700; }
+body.studio .studio-ask { display: flex; flex: 1; flex-wrap: wrap; align-items: center; gap: 12px; }
+body.studio .studio-ask-say { flex: 1; min-width: 240px; margin: 0; font-size: 14px; font-weight: 600; color: var(--studio-text); }
+body.studio .studio-ask-go { flex-shrink: 0; height: 44px; padding: 0 20px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font: 700 15px/1 var(--studio-display); }
+body.studio .studio-ask-run { flex-shrink: 0; height: 44px; padding: 0 18px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-muted); font-size: 14px; font-weight: 600; }
+
 @media (max-width: 900px) {
   body.studio .studio-shell { grid-template-columns: minmax(0, 1fr); }
   body.studio .studio-rail, body.studio .studio-list { display: none; }
@@ -408,6 +417,16 @@ body.studio .klever span { font-size: 12px; font-weight: 400; color: #A8989A; }
 /* The bar wraps and the tray grows to hold it, at any width it does not fit:
    on one line it pushed the page sideways at 673px. */
 body.studio .studio-tray.bulk { height: auto; min-height: 76px; padding-top: 10px; padding-bottom: 10px; }
+body.studio .studio-tray.deadline { height: auto; min-height: 76px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; border-top-color: var(--studio-amber); }
+/* The sentence gets a line of its own rather than a column beside the change
+   chips: at 375px sharing the row set it in a six-word-tall ribbon and pushed
+   the tray to 280px, a third of the screen. */
+body.studio .studio-tray.deadline .studio-notice { flex: 1 0 100%; }
+body.studio .studio-tray.deadline .studio-lines { flex-basis: 100%; }
+@media (min-width: 1100px) {
+  body.studio .studio-tray.deadline .studio-notice,
+  body.studio .studio-tray.deadline .studio-lines { flex: 1 1 auto; }
+}
 body.studio .kbulk { display: flex; flex: 1; flex-wrap: wrap; align-items: center; gap: 8px 14px; min-width: 0; color: var(--studio-text); }
 body.studio .kbulk-count { min-width: 92px; font-size: 14px; white-space: nowrap; }
 body.studio .kbulk-group, body.studio .kbulk-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--studio-muted); white-space: nowrap; }

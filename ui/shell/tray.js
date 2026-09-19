@@ -24,3 +24,33 @@ export function trayLines(rows, previousOrder = []) {
     order,
   };
 }
+
+/**
+ * WHAT WEEK 5 STILL HAS OPEN, and whether running past it should ask first.
+ *
+ * Pure, because the decision has three inputs and no DOM: which halves of the
+ * window are open, whether anything has been committed to them already, and
+ * whether Your money has been opened in this week. The last one is the whole
+ * point — a player who looked and chose to skip is not asked again, and one
+ * who never looked is asked once (the owner's choice, 2026-09-19).
+ *
+ * @param {object} at
+ * @param {boolean} at.capexOpen - capital can still be committed this week
+ * @param {boolean} at.repositionOpen - the brand can still be moved this week
+ * @param {boolean} at.decided - something is already staged against the window
+ * @param {boolean} at.seenThisWeek - Your money has been opened since the week turned
+ * @returns {{open: boolean, half: 'both'|'capital'|'move'|null, asks: boolean}}
+ */
+export function capitalWindow({ capexOpen, repositionOpen, decided, seenThisWeek }) {
+  const half = (capexOpen && repositionOpen && 'both')
+    || (capexOpen && 'capital')
+    || (repositionOpen && 'move')
+    || null;
+  return {
+    open: half !== null,
+    half,
+    // Nothing staged and never looked: the one case where running is a choice
+    // the player has not knowingly made.
+    asks: half !== null && !decided && !seenThisWeek,
+  };
+}

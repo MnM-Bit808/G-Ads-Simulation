@@ -254,8 +254,13 @@ describe('the decision form', () => {
 });
 
 describe('the Studio layout', () => {
+  // `amount`, `what` and `cost` belong to the deadline week's tray: the
+  // capital at stake, which halves of the window are open, and what running
+  // past it costs. The last two are assembled from the halves, so a fixture
+  // that omitted them left the sentence reading "Week 5 only: undefined."
   const FIGURES = { played: 4, total: 12, month: 1, spent: '₹2,96,535', budget: '₹3,13,000',
-    n: 2, week: 5, hours: 168, round: 0, weeks: 12 };
+    n: 2, week: 5, hours: 168, round: 0, weeks: 12, amount: '₹1,20,000',
+    what: '₹1,20,000 to invest', cost: 'The ₹1,20,000 becomes ad budget.' };
 
   test('every entry is a line of a kind the screen may carry', () => {
     for (const [name, entry] of Object.entries(SHELL)) expect(KINDS, name).toContain(entry.kind);

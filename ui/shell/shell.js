@@ -11,11 +11,11 @@
 import { el, add, rupees } from '../dom.js';
 import { changes } from '../decisions.js';
 import { studioContext } from './context.js';
-import { TOTAL_ROUNDS, ROUNDS_PER_MONTH } from '../../engine/constants.js';
+import { TOTAL_ROUNDS, ROUNDS_PER_MONTH, CAPEX_ALLOCATION_PAISE } from '../../engine/constants.js';
 import {
   AREAS, SECTIONS, ICONS, sectionOf, sectionsIn, sectionState, entranceSlots, slotOpen, areaEntry,
 } from './sections.js';
-import { trayLines } from './tray.js';
+import { trayLines, capitalWindow } from './tray.js';
 import { SHELL } from '../words/shell.js';
 import { icon, button } from '../kit/controls.js';
 import { renderKeywordsSection } from '../keywords/render.js';
@@ -31,6 +31,13 @@ import { CHAPTERS } from '../guide/chapters.js';
 import { chapterList } from '../guide/book.js';
 import { renderGuidePage } from '../guide/page.js';
 import { GUIDE } from '../words/guide.js';
+
+/** What the deadline week still has open, said as Your money's own panel says it. */
+const WINDOW_HALF = {
+  both: SHELL.windowBoth, capital: SHELL.windowCapital, move: SHELL.windowMove,
+};
+/** And what running past it costs, half by half. */
+const ASK_HALF = { both: SHELL.askBoth, capital: SHELL.askCapital, move: SHELL.askMove };
 
 const HOURS_PER_WEEK = 7 * 24;
 /** An undone line fades before it goes; the tray's motion (spec section 3, row 1). */
@@ -83,6 +90,9 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
   let extras = { saved: null, canRedo: false };
   let running = false;
   let override = null;
+  // Whether the next press of Run should ask first; set by drawTray, which is
+  // the one place that knows what the window still has open.
+  let asking = false;
 
   const node = el('div', 'studio-shell');
   const rail = el('nav', 'studio-rail');
@@ -112,10 +122,17 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
   const chipsBox = el('div', 'studio-chips');
   linesBox.append(count, countWord, chipsBox);
   const empty = el('p', 'studio-empty', SHELL.empty());
+  // The deadline week says so beside the button that would pass it. The tray
+  // already carries a "Capital: nothing committed" chip, but a chip in a strip
+  // headed "1 change waiting" reads as something already done rather than as
+  // something closing (found playing twelve weeks and missing it, 2026-09-19).
+  const notice = el('p', 'studio-notice');
+  const noticeGo = button('studio-notice-go', SHELL.windowGo());
+  noticeGo.addEventListener('click', () => open('money'));
   const overrideHost = el('div', 'studio-override');
   const run = button('studio-run press');
-  run.addEventListener('click', runWeek);
-  tray.append(linesBox, empty, overrideHost, run);
+  run.addEventListener('click', askThenRun);
+  tray.append(linesBox, empty, notice, noticeGo, overrideHost, run);
 
   main.append(top, body, tray);
   node.append(rail, list, main);
@@ -356,8 +373,33 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
       chip.undo = line.undo;
       chip.lastChild.hidden = !line.undo;
     }
+    // Staged against the window, either half: the capital row is drawn whether
+    // or not anything was committed, and carries an undo only once something
+    // was (ui/decisions.js), so its undo is what says "decided".
+    const decided = lines.some((l) => (l.id === 'capital' && l.undo) || l.id === 'position');
+    const moneyState = sectionState(SECTIONS.find((s) => s.key === 'money'), args());
+    const win = capitalWindow({
+      capexOpen: Boolean(game.draft.capexOpen),
+      repositionOpen: Boolean(game.draft.repositionOpen),
+      decided,
+      seenThisWeek: Boolean(moneyState.seenKey && view.seen[moneyState.seenKey]),
+    });
+    asking = win.asks;
+    const showNotice = win.open && !bulk && played() < TOTAL_ROUNDS;
+    // The tray grows for it, as it already does for a bulk edit: the sentence
+    // and two buttons do not fit a 76px row beside the change chips.
+    tray.classList.toggle('deadline', showNotice);
+    notice.hidden = !showNotice;
+    noticeGo.hidden = !showNotice || view.section === 'money';
+    if (showNotice) {
+      notice.textContent = SHELL.windowOpen({
+        week: played() + 1,
+        what: WINDOW_HALF[win.half]({ amount: rupees(CAPEX_ALLOCATION_PAISE) }),
+      });
+    }
+
     linesBox.hidden = bulk || lines.length === 0;
-    empty.hidden = bulk || lines.length > 0;
+    empty.hidden = bulk || lines.length > 0 || showNotice;
     // The newest line is the last, and the strip scrolls sideways: without this
     // the change just made entered out of sight from the second or third line
     // (the animation review, Task 9). Smooth, or instant under reduced motion.
@@ -411,6 +453,41 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
       title.tabIndex = -1;
       title.focus({ preventScroll: true });
     }
+  }
+
+  /**
+   * The one interruption in the game, and it happens at most once a game: the
+   * week the capital window and the only chance to move are both closing, when
+   * nothing has been staged against either AND Your money was never opened.
+   *
+   * IT DOES NOT REFUSE. Uncommitted capital becoming ad budget is deliberate
+   * (13.3), so skipping is a real choice — this only makes it a knowing one.
+   */
+  function askBeforeRunning() {
+    const box = el('div', 'studio-ask');
+    const week = played() + 1;
+    const amount = rupees(CAPEX_ALLOCATION_PAISE);
+    const half = capitalWindow({
+      capexOpen: Boolean(game.draft.capexOpen),
+      repositionOpen: Boolean(game.draft.repositionOpen),
+      decided: false,
+      seenThisWeek: false,
+    }).half;
+    const go = button('studio-ask-go press', SHELL.windowGo());
+    go.addEventListener('click', () => { setTrayOverride(null); open('money'); });
+    const anyway = button('studio-ask-run press', SHELL.windowRunAnyway({ week }));
+    anyway.addEventListener('click', () => { setTrayOverride(null); runWeek(); });
+    box.append(
+      el('p', 'studio-ask-say', SHELL.windowAsk({ week, cost: ASK_HALF[half]({ amount }) })),
+      go, anyway,
+    );
+    setTrayOverride(box);
+    go.focus();
+  }
+
+  function askThenRun() {
+    if (asking) { askBeforeRunning(); return; }
+    runWeek();
   }
 
   async function runWeek() {

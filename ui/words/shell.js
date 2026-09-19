@@ -29,4 +29,32 @@ export const SHELL = Object.freeze({
   playtestShort: line('label', 'Playtest'),
   menu: line('label', 'Sections'),
   fresh: line('label', 'Something new here'),
+
+  // THE ONE WEEK WITH A DEADLINE IN IT (2026-09-19). Both capital windows and
+  // the only chance to move are open before this week, and until now the only
+  // sign was a dot on Your money in the rail. Playing twelve weeks by pressing
+  // Run each time missed it entirely, and Results then said so at the end:
+  // "You built nothing: both allocations went into your ad budget."
+  //
+  // IT DOES NOT MAKE YOU DECIDE. Uncommitted capital becoming ad budget is
+  // deliberate (13.3, so that not investing stays viable), so skipping is a
+  // real choice. The aim is only that it cannot be skipped unknowingly, which
+  // is why the question is asked once and never again once Your money has been
+  // opened that week.
+  // WHAT IS OPEN IS SAID IN THREE PIECES, as Your money's own panel already
+  // says it (MONEY.windowBoth / windowCapital / windowMove). The two halves
+  // open together in every game the engine starts, but a line that assumes so
+  // would be a sentence the screen could not back up.
+  windowOpen: line('reading', ({ week, what }) => `Week ${week} only: ${what}.`),
+  windowBoth: line('label', ({ amount }) => `${amount} to invest, and your one chance to move where your brand sits`),
+  windowCapital: line('label', ({ amount }) => `${amount} to invest`),
+  windowMove: line('label', 'your one chance to move where your brand sits'),
+  windowGo: line('instruction', 'Open Your money'),
+
+  windowAsk: line('reading', ({ week, cost }) => `Run week ${week} without deciding? ${cost}`),
+  askBoth: line('label', ({ amount }) => `The ${amount} becomes ad budget, and where your brand `
+    + 'sits is fixed for the rest of the game.'),
+  askCapital: line('label', ({ amount }) => `The ${amount} becomes ad budget.`),
+  askMove: line('label', 'Where your brand sits is fixed for the rest of the game.'),
+  windowRunAnyway: line('instruction', ({ week }) => `Run week ${week} anyway`),
 });
