@@ -2840,6 +2840,35 @@ with the developer tools; now they are readable only by people on the list.
 Signed-in players can still read `content/querySet.js`. Only a server holding the
 numbers back changes that, and that is still the backend step.
 
+### How it is shared, and why it is not a download
+
+**DECIDED 2026-09-19: it ships as a LINK.** The owner asked whether to build a
+Windows/Mac download instead; the answer after a feasibility check was no.
+
+**A zip of `dist/` cannot work, and that is a fact rather than a preference.**
+`ui/index.html` loads `<script type="module">`, and ES modules are blocked by
+CORS from `file://` in every modern browser — a tester double-clicking
+`index.html` gets a blank page. Anything that "just sends the folder" needs a
+local server with it.
+
+**Why the link wins.** A download freezes the build a tester is judging, which
+is the opposite of what playtesting needs — nine defects were fixed in a single
+session, each live in two minutes. A desktop app also excludes phones, and the
+recorder exists partly for phone timings nobody has measured. And the friction
+is not the web: it is Cloudflare Access's email code, which is one dashboard
+setting.
+
+**What a desktop app would really cost:** there is no bundler and no packaging
+setup here at all. Electron or Tauri means a new pipeline, per-OS builds (a Mac
+build needs a Mac) and code signing, or testers meet SmartScreen and
+"unidentified developer" warnings — around 100MB per platform to wrap 2.1MB.
+
+**The middle option, not taken:** a PWA — manifest, icons, a service worker —
+would make the link installable with an icon and offline play, keeping instant
+updates and needing no store or signing. `scripts/build-site.js` already knows
+the exact file list, so the cache manifest could generate itself. About half a
+day. Raise it only if the icon is wanted.
+
 ### Running a playtest
 
 **The recorder is in the game and switched on only by the link.** Send
