@@ -97,9 +97,36 @@ difference is narrower and is in the block: here you do not choose what a
 conversion is worth, and nobody uploads the return. A test holds the chapter to
 not making the false claim again.
 
-**Next, none blocking:** the owner reading the twenty-three chapters; the
-message project's part 2 (images from week 9); what the drawn landing page
-shows for its remaining rungs; whether sixty keywords want a compact list.
+**A SECOND PLAYTHROUGH WENT ALL THE WAY TO RESULTS** (`07204ca`), the first
+time anyone has. Two more defects, both from width and from finishing last —
+neither reachable by reading the code:
+
+- `9cf288f` **the ladder dropped the column its own lesson rests on.** Below
+  720px the stylesheet hid "ad fits", so beat 3 — the run's centre — said
+  Halcyon outranks a bigger bid *because its ad fits better* with nothing on
+  screen showing that it does. The bar a phone drops is now RANK: rank is bid
+  times fit, and the place number already says where each brand came. At 375px
+  the page, board and beat each kept their desktop side padding, so 136px of a
+  375px screen was margin and the brand column came out 17px wide with every
+  name clipped.
+- `07204ca` **the books handed the player their own figure as a comparison.**
+  From 9th of nine: "9th gave you ₹1,17,600, where the middle place got
+  ₹1,68,000, first ₹2,18,400 and last ₹1,17,600". A beginner who changes
+  nothing finishes last, so this is the common case, not the edge.
+
+**OPEN, AND THE OWNER'S: week 5 is easy to run straight past.**
+`capexAllocationRounds` is `[1, 5]`, so the second ₹1,20,000 opens before week
+5, and the only signal is a dot on Your money in the rail — the dot is correct
+and `tests/sections.test.js` holds it. Pressing "Run week N" repeatedly misses
+it, and Results then says so plainly: *"You built nothing: both allocations,
+₹2,40,000, went into your ad budget."* The tester who stopped around week 6 may
+well have been playing the same way. Whether week 5 wants a harder stop is a
+design decision, not a defect.
+
+**Next, none blocking:** the owner reading the twenty-three chapters; whether
+week 5 wants more than a dot; the message project's part 2 (images from week
+9); what the drawn landing page shows for its remaining rungs; whether sixty
+keywords want a compact list.
 
 **When the next playtest goes out,** tag the live build the same day —
 `playtest-4` is used, so the next is **`playtest-5`** — and read *Running a
