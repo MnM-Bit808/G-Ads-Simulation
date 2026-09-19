@@ -552,9 +552,14 @@ body.studio .yad-new-tag {
   position: absolute; top: -8px; right: 8px; padding: 1px 7px; border-radius: 999px;
   background: var(--studio-mint); color: #141216; font-size: 10px; font-weight: 700; white-space: nowrap;
 }
-/* The garment's tag hangs from the LEFT: the hero is two columns, and measured
-   at 375px a right-anchored tag ran 6px over the product title beside it. */
+/* WHERE A TAG HANGS DEPENDS ON WHAT IT IS RINGING, and both of these were
+   measured rather than guessed. The garment's hangs from the LEFT: the hero is
+   two columns and at 375px a right-anchored tag ran 6px over the product title.
+   A row inside the detail column keeps its tag ON the row, to its right, where
+   there is empty space — hanging it above put it 1px into the title. */
 body.studio .yad-shot .yad-new-tag { right: auto; left: 6px; }
+body.studio .yad-reviews .yad-new-tag,
+body.studio .yad-thumbs .yad-new-tag { top: 50%; transform: translateY(-50%); }
 @keyframes yad-arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   body.studio .yad-new { animation: yad-fade 200ms linear both; }
