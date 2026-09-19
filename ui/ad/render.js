@@ -17,6 +17,18 @@ import { DESCRIBED_AT, GRADE_CAP } from '../../content/landingPage.js';
 const PART_WORD = { expectedCtr: AD.expectedCtr, adRelevance: AD.adRelevance, landingPage: AD.landingPage };
 const width = (value) => `${(100 * value) / GRADE_SCALE}%`;
 
+/**
+ * The size table the `measured` rung draws: centimetres of a garment, which is
+ * the page's own furniture and not a figure the engine produces. Nothing reads
+ * it back, and the note under the page says the whole sheet is drawn.
+ */
+const SIZE_ROWS = Object.freeze([
+  Object.freeze(['S', 86, 66, 91]),
+  Object.freeze(['M', 91, 71, 97]),
+  Object.freeze(['L', 97, 76, 102]),
+  Object.freeze(['XL', 102, 81, 107]),
+]);
+
 function whoWrote(writer, openGuide) {
   const box = el('div', 'yad-card');
   // Where the guide's "Who writes the ad" shows the player (sections.js, draws).
@@ -99,6 +111,101 @@ function stars() {
     if (i === 4) path.setAttribute('opacity', '0.45');
     node.append(path);
   }
+  return node;
+}
+
+/**
+ * THE GARMENT, at whichever rung of photography is live.
+ *
+ * `none` is the flat grey silhouette the page has always had; `product shots`
+ * lights it on white; `on real bodies` puts a second figure behind it; `video`
+ * lays a play mark over it. Drawn rather than photographed, which the note
+ * under the page says out loud.
+ */
+function garmentAt(drawn) {
+  const box = el('div', 'yad-shot');
+  if (drawn.shots) box.classList.add('lit');
+  if (drawn.bodies) box.classList.add('bodies');
+  box.append(garment({ w: 124, h: 148 }));
+  if (drawn.video) {
+    const play = el('span', 'yad-play');
+    play.append(svg('0 0 24 24', [['M9 7l9 5-9 5z', '#141216']], { w: 13, h: 13 }));
+    box.append(play);
+  }
+  return box;
+}
+
+/** The thumbnails the two dearer photography rungs add under the garment. */
+function thumbs(drawn) {
+  if (!drawn.bodies && !drawn.video) return null;
+  const row = el('div', 'yad-thumbs');
+  const count = drawn.video ? 4 : 3;
+  for (let i = 0; i < count; i += 1) {
+    const cell = el('span', 'yad-thumb');
+    if (drawn.video && i === count - 1) cell.classList.add('film');
+    row.append(cell);
+  }
+  row.append(el('span', 'yad-small', drawn.video ? AD.shotVideo() : AD.shotBodies()));
+  return row;
+}
+
+/** Fabric, care and delivery, which the top page rung writes out in full. */
+function specs() {
+  const box = el('div', 'yad-specs');
+  box.append(el('div', 'yad-chart-head', AD.specsTitle()));
+  const rows = [
+    [AD.specFabric(), AD.specFabricValue()],
+    [AD.specCare(), AD.specCareValue()],
+    [AD.specDelivery(), AD.specDeliveryValue()],
+  ];
+  for (const [name, value] of rows) {
+    const row = el('div', 'yad-spec');
+    row.append(el('span', 'yad-spec-k', name), el('span', 'yad-spec-v', value));
+    box.append(row);
+  }
+  return box;
+}
+
+/** Real measurements, which the size guide's second rung buys. */
+function measurements() {
+  const box = el('div', 'yad-measure');
+  box.append(el('div', 'yad-chart-head', AD.measureTitle()));
+  const table = el('div', 'yad-measure-grid');
+  for (const head of [AD.measureSize(), AD.measureChest(), AD.measureWaist(), AD.measureHip()]) {
+    table.append(el('span', 'yad-measure-h', head));
+  }
+  for (const [name, chest, waist, hip] of SIZE_ROWS) {
+    table.append(el('span', name === 'M' ? 'yad-measure-c on' : 'yad-measure-c', name));
+    for (const n of [chest, waist, hip]) table.append(el('span', 'yad-measure-c', String(n)));
+  }
+  box.append(table);
+  return box;
+}
+
+/** What the dearest size-guide rung adds: two fields and an answer. */
+function fitFinder() {
+  const box = el('div', 'yad-fit');
+  box.append(el('div', 'yad-chart-head', AD.fitTitle()));
+  const row = el('div', 'yad-fit-row');
+  for (const name of [AD.fitHeight(), AD.fitBuild()]) {
+    const field = el('span', 'yad-fit-field');
+    field.append(el('i', null), el('span', null, name));
+    row.append(field);
+  }
+  row.append(el('span', 'yad-fit-answer', AD.fitAnswer({ size: SIZE_ROWS[1][0] })));
+  box.append(row);
+  return box;
+}
+
+/**
+ * A part of the page ringed as new, the week its rung went live (the owner's
+ * choice, 2026-09-19). The entrance is the review's own: opacity and an 8px
+ * rise, 240ms, which `ui/studio.css` drops to a fade under reduced motion.
+ */
+function arrived(node) {
+  if (!node) return node;
+  node.classList.add('yad-new');
+  node.append(el('span', 'yad-new-tag', AD.arrived()));
   return node;
 }
 
@@ -185,30 +292,44 @@ function landingPage(model, openGuide) {
   box.classList.add('yad-page');
 
   // Each picture is drawn when its RUNG is live (read.js, pageDrawn), not once
-  // every purchase on its target has landed.
-  const { drawn } = model.page;
+  // every purchase on its target has landed. `fresh` is what went live THIS
+  // week, so the page can ring what has just arrived.
+  const { drawn, fresh } = model.page;
+  // A part is handed to `arrived` only in the week its rung went live.
+  const mark = (key, node) => (fresh.has(key) ? arrived(node) : node);
 
   // --- the page itself, drawn from what is live -----------------------------
   const sheet = el('div', 'yad-sheet');
+  // UNPAINTED UNTIL THE PAGE IS FAST. A page below the `faster` rung is drawn
+  // as the placeholders a visitor waits in front of, so the first ₹25,000 of
+  // page money is the thing that finishes it (the owner, 2026-09-19).
+  if (!drawn.painted) sheet.classList.add('slow');
   sheet.append(el('div', 'yad-bar', model.domain));
 
   const hero = el('div', 'yad-hero');
-  hero.append(garment({ w: 124, h: 148 }));
+  hero.append(mark('shots', garmentAt(drawn)));
   const detail = el('div', 'yad-detail');
   detail.append(el('div', 'yad-product', AD.product()));
   if (drawn.stars) {
     const reviews = el('div', 'yad-reviews');
     reviews.append(stars(), el('span', 'yad-small', AD.reviewCount()));
-    detail.append(reviews);
+    detail.append(mark('stars', reviews));
   }
   const sizes = el('div', 'yad-sizes');
   for (const [i, name] of ['S', 'M', 'L'].entries()) {
     sizes.append(el('span', i === 1 ? 'yad-size on' : 'yad-size', name));
   }
   detail.append(sizes);
+  add(detail, mark('bodies', thumbs(drawn)));
   hero.append(detail);
   sheet.append(hero);
-  if (drawn.sizeChart) sheet.append(sizeChart());
+  if (!drawn.painted) sheet.append(el('div', 'yad-loading', AD.loading()));
+  if (drawn.specs) sheet.append(mark('specs', specs()));
+  // The dearer size-guide rungs replace the one below rather than stack on it:
+  // a page does not carry a bar chart AND a table of the same sizes.
+  if (drawn.fitFinder) sheet.append(mark('fitFinder', fitFinder()));
+  if (drawn.measurements) sheet.append(mark('measurements', measurements()));
+  else if (drawn.sizeChart) sheet.append(mark('sizeChart', sizeChart()));
 
   // --- what each one buys ---------------------------------------------------
   const side = el('div', 'yad-side');

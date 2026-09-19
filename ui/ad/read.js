@@ -252,14 +252,35 @@ export function pageBreakdown(block, round, { describedFrom = 'live', rules = LA
 }
 
 /**
- * The rungs the drawn page shows as pictures: the stars are the reviews, and
- * the chart is the size guide's first rung (content/landingPage.js, PAGE_FEATURES).
- * Named by label because that ladder names them; a test holds that both labels
- * are rungs the ladder has, so renaming one fails rather than drawing nothing.
+ * THE RUNGS THE DRAWN PAGE SHOWS AS PICTURES, one per rung that changes what a
+ * visitor would see.
+ *
+ * TWO OF TWELVE USED TO DRAW ANYTHING (the owner, 2026-09-19: "the current
+ * design layout for the webpage is too simple"). Photography was the worst of
+ * it — the most expensive ladder in the game, up to ₹1,60,000, and the picture
+ * never changed.
+ *
+ * ORDER CONFIRMATION IS ABSENT, AND THAT IS THE POINT rather than an omission:
+ * confirming an order before dispatch changes nothing a visitor reads (I29). If
+ * it ever appears here, it has found a second route onto the page.
+ *
+ * Named by LABEL because the ladder names them that way, and a test holds every
+ * label to being a rung its ladder actually has — so renaming a rung fails
+ * loudly rather than quietly drawing nothing.
  */
 export const DRAWN_RUNGS = Object.freeze({
+  // The page itself.
+  painted: Object.freeze({ target: 'landingPage', label: 'faster' }),
   stars: Object.freeze({ target: 'landingPage', label: 'reviews' }),
+  specs: Object.freeze({ target: 'landingPage', label: 'built around the search' }),
+  // What is on it.
   sizeChart: Object.freeze({ target: 'sizeGuide', label: 'a chart' }),
+  measurements: Object.freeze({ target: 'sizeGuide', label: 'measured' }),
+  fitFinder: Object.freeze({ target: 'sizeGuide', label: 'fit finder' }),
+  // And how it is photographed.
+  shots: Object.freeze({ target: 'photography', label: 'product shots' }),
+  bodies: Object.freeze({ target: 'photography', label: 'on real bodies' }),
+  video: Object.freeze({ target: 'photography', label: 'video' }),
 });
 
 /**
@@ -274,14 +295,41 @@ export const DRAWN_RUNGS = Object.freeze({
  * run through the same ladder that writes the page's description (`tiersFunded`),
  * so the picture and the words cannot claim different rungs.
  *
+ * `painted` IS THE ONE THAT READS BACKWARDS. Every other key adds something;
+ * this one says the page is finished rather than still loading, so a page
+ * without it is drawn as the placeholders a slow page shows. That makes the
+ * first ₹25,000 of page money visible, where it used to buy a sentence and no
+ * picture at all.
+ *
  * @param {object} block - the draft's `capexBlock`
  * @param {number} round
- * @returns {{stars: boolean, sizeChart: boolean}}
+ * @returns {Record<string, boolean>} keyed as `DRAWN_RUNGS`
  */
 export function pageDrawn(block, round) {
   const live = ({ target, label }) => tiersFunded(target, liveCapexPaise(block, target, round))
     .some((tier) => tier.label === label);
-  return { stars: live(DRAWN_RUNGS.stars), sizeChart: live(DRAWN_RUNGS.sizeChart) };
+  return Object.freeze(Object.fromEntries(
+    Object.entries(DRAWN_RUNGS).map(([key, rung]) => [key, live(rung)]),
+  ));
+}
+
+/**
+ * Which pictures the page gained THIS round, so the drawing can say which are
+ * new (the owner's choice, 2026-09-19: ring what arrives, the week it arrives).
+ *
+ * Pure, and a difference rather than a flag on the block: capital lands by
+ * going live, and nothing writes "this landed today" anywhere. Round 1 has no
+ * round before it, so nothing is ever new in it.
+ *
+ * @param {object} block - the draft's `capexBlock`
+ * @param {number} round
+ * @returns {ReadonlySet<string>} keys of `DRAWN_RUNGS`
+ */
+export function pageArrived(block, round) {
+  if (round <= 1) return Object.freeze(new Set());
+  const now = pageDrawn(block, round);
+  const before = pageDrawn(block, round - 1);
+  return Object.freeze(new Set(Object.keys(now).filter((key) => now[key] && !before[key])));
 }
 
 /**
@@ -413,6 +461,8 @@ export function adModel({ draft, creative, name, domain }) {
       ...pageBreakdown(block, week, { describedFrom, rules }),
       worth: pageWorth(block, pageGrade),
       drawn: pageDrawn(block, week),
+      // What went live THIS week, so the drawing can ring it (2026-09-19).
+      fresh: pageArrived(block, week),
     },
   };
 }

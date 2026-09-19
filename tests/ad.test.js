@@ -13,7 +13,9 @@ import { startGame } from '../setup.js';
 import { createDraft, effectiveGrades } from '../ui/decisions.js';
 import * as r0 from '../ui/roundzero/rules.js';
 import { adModel, worthShape, GRADE_TOP, DRAWN_RUNGS } from '../ui/ad/read.js';
-import { PAGE_FEATURES, composeDescription, gradePage, LENGTH_RULES } from '../content/landingPage.js';
+import {
+  PAGE_FEATURES, composeDescription, gradePage, LENGTH_RULES, stepsFor, CAPEX_STEPS,
+} from '../content/landingPage.js';
 import { asOldSave, OLD_SAVE_LIVE_ROUND } from './fixtures/oldSave.js';
 
 const SEED = 20260902;
@@ -538,11 +540,40 @@ describe('what the drawn page shows', () => {
   const liveFrom = (week) => Array.from({ length: TOTAL_ROUNDS }, (_, i) => i + 1 >= week);
   const round0Live = (game) => game.draft.capexBlock.pending[0].liveAtRound;
 
-  test('the rungs it draws are rungs the page can have', () => {
-    expect(PAGE_FEATURES.landingPage.map((t) => t.label)).toContain(DRAWN_RUNGS.stars.label);
-    expect(DRAWN_RUNGS.stars.target).toBe('landingPage');
-    expect(PAGE_FEATURES.sizeGuide.map((t) => t.label)).toContain(DRAWN_RUNGS.sizeChart.label);
-    expect(DRAWN_RUNGS.sizeChart.target).toBe('sizeGuide');
+  // EVERY rung, not the two that used to be named here: renaming any rung of
+  // any ladder now fails loudly rather than quietly drawing nothing.
+  test('every rung it draws is a rung that ladder actually has', () => {
+    for (const [key, rung] of Object.entries(DRAWN_RUNGS)) {
+      expect(Object.keys(PAGE_FEATURES), key).toContain(rung.target);
+      expect(PAGE_FEATURES[rung.target].map((t) => t.label), key).toContain(rung.label);
+    }
+  });
+
+  /**
+   * TEN OF THE TWELVE RUNGS DREW NOTHING until 2026-09-19, photography worst of
+   * all: the most expensive ladder in the game, up to ₹1,60,000, and the picture
+   * never changed. The owner found it playing and asked for the page to show
+   * what its money bought.
+   */
+  test('nine of the twelve rungs draw something, across all three page ladders', () => {
+    expect(Object.keys(DRAWN_RUNGS)).toHaveLength(9);
+    const byTarget = {};
+    for (const rung of Object.values(DRAWN_RUNGS)) {
+      byTarget[rung.target] = (byTarget[rung.target] ?? 0) + 1;
+    }
+    expect(byTarget).toEqual({ landingPage: 3, sizeGuide: 3, photography: 3 });
+  });
+
+  /**
+   * ORDER CONFIRMATION DRAWS NOTHING, and that is I29 rather than an omission:
+   * confirming an order before dispatch changes nothing a visitor reads. If it
+   * ever appears here it has found a second route onto the page, which is the
+   * shape of the L6 double-count.
+   */
+  test('order confirmation draws nothing, because it is not on the page', () => {
+    for (const rung of Object.values(DRAWN_RUNGS)) {
+      expect(rung.target).not.toBe('orderConfirmation');
+    }
   });
 
   test('reviews bought at round 0 and more at week 5: the stars from week 4, when the reviews go live', () => {
@@ -553,6 +584,68 @@ describe('what the drawn page shows', () => {
   test('a faster page first and reviews at week 5: no stars until the reviews rung lands', () => {
     const game = andAtWeekFive(opened({ landingPaise: 2500000 }), 5500000);
     expect(weeks(game, 'stars')).toEqual(liveFrom(WEEK_FIVE_LIVE));
+  });
+
+  /**
+   * THE ONE KEY THAT READS BACKWARDS. Every other rung ADDS a picture; `painted`
+   * says the page is finished rather than still loading, so a page without it is
+   * drawn as the placeholders a slow page shows. That is what makes the first
+   * ₹25,000 of page money visible — it used to buy a sentence and no picture.
+   */
+  test('a page is unpainted until the faster rung is live, and painted from then', () => {
+    const game = opened({ landingPaise: 2500000 });
+    expect(weeks(game, 'painted')).toEqual(liveFrom(round0Live(game)));
+    expect(weeks(opened(), 'painted').some(Boolean), 'no page money, never painted').toBe(false);
+  });
+
+  test('the ladder is cumulative, so the dearest page rung paints it too', () => {
+    const game = opened({ landingPaise: TOP_RUNG_PAISE });
+    const at = drawnAt(game, round0Live(game));
+    expect(at).toMatchObject({ painted: true, stars: true, specs: true });
+  });
+
+  test('each ladder draws only its own rungs', () => {
+    const guide = opened({ guidePaise: 8000000 });
+    const at = drawnAt(guide, round0Live(guide));
+    expect(at).toMatchObject({ sizeChart: true, measurements: true, fitFinder: true });
+    expect(at).toMatchObject({ painted: false, stars: false, specs: false, shots: false });
+  });
+
+  // Photography climbs its own ladder since I30 — ₹50,000 first, not the shared
+  // ₹25,000 — so the picture has to follow ITS rungs, not the other two ladders'.
+  test('photography draws at its own rungs, which are not the shared ones', () => {
+    const shots = opened({ photoPaise: 5000000 });
+    const at = drawnAt(shots, round0Live(shots));
+    expect(at).toMatchObject({ shots: true, bodies: false, video: false });
+    expect(stepsFor('photography')[1], 'the rung bought above is its own first').toBe(5000000);
+    expect(stepsFor('photography')).not.toEqual(CAPEX_STEPS);
+  });
+
+  /**
+   * WHAT ARRIVED THIS WEEK, so the drawing can ring it (the owner's choice,
+   * 2026-09-19). A difference between two weeks rather than a flag: capital
+   * lands by going live, and nothing writes "this landed today" anywhere.
+   */
+  describe('and what of it is new this week', () => {
+    const freshAt = (game, week) => [...read(game, week).page.fresh].sort();
+
+    test('the week a rung goes live, and only that week', () => {
+      const game = opened({ landingPaise: TOP_RUNG_PAISE });
+      const live = round0Live(game);
+      expect(freshAt(game, live)).toEqual(['painted', 'specs', 'stars']);
+      expect(freshAt(game, live - 1)).toEqual([]);
+      expect(freshAt(game, live + 1)).toEqual([]);
+    });
+
+    test('week-5 capital rings in its own week, not in round 0s', () => {
+      const game = andAtWeekFive(opened({ landingPaise: 2500000 }), 8000000, 'sizeGuide');
+      expect(freshAt(game, round0Live(game))).toEqual(['painted']);
+      expect(freshAt(game, WEEK_FIVE_LIVE)).toEqual(['fitFinder', 'measurements', 'sizeChart']);
+    });
+
+    test('nothing is ever new in week 1, which has no week before it', () => {
+      expect(freshAt(opened({ landingPaise: TOP_RUNG_PAISE }), 1)).toEqual([]);
+    });
   });
 
   test('a page that bought speed and no reviews is never drawn with review stars', () => {

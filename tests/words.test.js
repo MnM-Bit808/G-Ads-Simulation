@@ -394,6 +394,8 @@ describe('the weekly Your ad', () => {
     // The page drawn as a page: its grade points and the two lifts that are not
     // grade points (design/landing-page/, C).
     points: 2, percent: '4%', graded: 5, target: 'sizeGuide',
+    // The fit finder's answer, one of the rungs the page draws since 2026-09-19.
+    size: 'M',
     // Two steps, the harder case: capital has two windows (design/page-worth/).
     steps: [{ points: 1, week: 4 }, { points: 2, week: 8 }],
     // Where the grade comes from (design/grade-breakdown/, B): a rule, the point

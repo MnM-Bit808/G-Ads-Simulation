@@ -478,6 +478,88 @@ body.studio .yad-chart-head { font-size: 11px; font-weight: 700; }
 body.studio .yad-chart-bars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; margin-top: 8px; align-items: end; height: 38px; }
 body.studio .yad-chart-bar { border-radius: 2px; background: #57525C; }
 body.studio .yad-chart-bar.on { background: var(--studio-text); }
+
+/* THE PAGE AS IT IS BOUGHT (the owner, 2026-09-19: ten of twelve rungs drew
+   nothing). Each block below belongs to one rung of one ladder. */
+
+/* Below the `faster` rung the page is still loading: the text it has not
+   painted yet reads as placeholder bars, and the garment sits unlit. */
+body.studio .yad-sheet.slow .yad-product,
+body.studio .yad-sheet.slow .yad-size { color: transparent; background: #2A262F; border-radius: 4px; }
+body.studio .yad-sheet.slow .yad-size { border-color: transparent; }
+body.studio .yad-sheet.slow .yad-shot { opacity: 0.45; }
+body.studio .yad-loading { padding: 0 14px 12px; font-size: 11px; color: var(--studio-faint); }
+
+/* Photography: unlit, lit on white, a second body behind, a play mark over. */
+body.studio .yad-shot { position: relative; display: block; width: 124px; border-radius: 9px; background: #232026; }
+body.studio .yad-shot svg { display: block; border-radius: 9px; }
+body.studio .yad-shot.lit { background: #E8E4DE; box-shadow: inset 0 0 0 1px var(--studio-line); }
+body.studio .yad-shot.lit svg { mix-blend-mode: multiply; opacity: 0.9; }
+body.studio .yad-shot.bodies::before {
+  content: ''; position: absolute; top: 8px; right: 8px; bottom: 8px; width: 34px;
+  border-radius: 6px; background: #C9C3BB;
+}
+body.studio .yad-shot:not(.lit).bodies::before { background: #35313A; }
+body.studio .yad-play {
+  position: absolute; left: 50%; top: 50%; display: grid; place-items: center;
+  width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%;
+  background: rgba(240, 237, 232, 0.92);
+}
+body.studio .yad-thumbs { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
+body.studio .yad-thumb { width: 22px; height: 26px; border-radius: 4px; background: #35313A; }
+body.studio .yad-thumb.film { position: relative; background: #4A454F; }
+body.studio .yad-thumb.film::after {
+  content: ''; position: absolute; inset: 0; margin: auto;
+  width: 0; height: 0; border-left: 7px solid var(--studio-text);
+  border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+}
+body.studio .yad-thumbs .yad-small { margin-left: 3px; }
+
+/* The top page rung: fabric, care and delivery, written out. */
+body.studio .yad-specs { margin: 0 14px 12px; padding: 10px 12px; border: 1px solid var(--studio-line); border-radius: 9px; }
+body.studio .yad-spec { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 8px; margin-top: 6px; font-size: 11px; }
+body.studio .yad-spec-k { color: var(--studio-muted); }
+body.studio .yad-spec-v { color: var(--studio-soft); }
+
+/* The size guide's dearer rungs: real measurements, and a fit finder. */
+body.studio .yad-measure { margin: 0 14px 12px; padding: 10px 12px; border: 1px solid var(--studio-line); border-radius: 9px; }
+body.studio .yad-measure-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px 8px; margin-top: 8px;
+  font-size: 11px; font-variant-numeric: tabular-nums;
+}
+body.studio .yad-measure-h { font-weight: 700; color: var(--studio-muted); }
+body.studio .yad-measure-c { color: var(--studio-soft); }
+body.studio .yad-measure-c.on { font-weight: 700; color: var(--studio-text); }
+body.studio .yad-fit { margin: 0 14px 12px; padding: 10px 12px; border: 1px solid var(--studio-line); border-radius: 9px; }
+body.studio .yad-fit-row { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 8px; }
+body.studio .yad-fit-field {
+  display: flex; align-items: center; gap: 5px; padding: 4px 9px;
+  border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 11px; color: var(--studio-muted);
+}
+body.studio .yad-fit-field i { width: 7px; height: 7px; border-radius: 50%; background: var(--studio-line-strong); }
+body.studio .yad-fit-answer {
+  padding: 4px 10px; border-radius: 999px; background: var(--studio-raised);
+  font-size: 11px; font-weight: 700; color: var(--studio-text);
+}
+
+/* What arrived this week, ringed where it arrived (motion row 1: opacity and
+   an 8px rise, 240ms). */
+body.studio .yad-new {
+  position: relative; box-shadow: 0 0 0 1px var(--studio-mint); border-radius: 9px;
+  animation: yad-arrive 240ms var(--studio-ease) both;
+}
+body.studio .yad-new-tag {
+  position: absolute; top: -8px; right: 8px; padding: 1px 7px; border-radius: 999px;
+  background: var(--studio-mint); color: #141216; font-size: 10px; font-weight: 700; white-space: nowrap;
+}
+/* The garment's tag hangs from the LEFT: the hero is two columns, and measured
+   at 375px a right-anchored tag ran 6px over the product title beside it. */
+body.studio .yad-shot .yad-new-tag { right: auto; left: 6px; }
+@keyframes yad-arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  body.studio .yad-new { animation: yad-fade 200ms linear both; }
+}
+@keyframes yad-fade { from { opacity: 0; } to { opacity: 1; } }
 body.studio .yad-side { display: flex; flex-direction: column; gap: 10px; }
 body.studio .yad-buys { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--studio-line); }
 body.studio .yad-buys-head { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--studio-muted); }

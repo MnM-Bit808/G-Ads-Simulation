@@ -106,6 +106,46 @@ export const AD = Object.freeze({
   price: line('label', ({ amount }) => amount),
   reviewCount: line('label', 'reviews'),
   sizeChart: line('label', 'Size chart'),
+
+  // EACH RUNG THE PAGE DRAWS, named where it appears (the owner, 2026-09-19:
+  // ten of the twelve rungs changed nothing a player could see). No sentence
+  // here describes a purchase — the rows beside the page already do that. These
+  // are the page's own furniture, the words a real product page would carry.
+  // NOT "chosen for <the search>". The rung's sentence has two halves — fabric,
+  // care and delivery written out in full, AND the page built around the search
+  // that brought them — and the drawn page knows only the first. It is one page,
+  // and which search a visitor arrived on is not a thing the game models, so
+  // naming one would be a claim the screen cannot support. The rows are the
+  // picture; the sentence beside them still says the rest.
+  specsTitle: line('label', 'Product details'),
+  specFabric: line('label', 'Fabric'),
+  specFabricValue: line('label', 'Recycled nylon, four-way stretch'),
+  specCare: line('label', 'Care'),
+  specCareValue: line('label', 'Cold wash, line dry'),
+  specDelivery: line('label', 'Delivery'),
+  specDeliveryValue: line('label', 'Two to four days'),
+
+  measureTitle: line('label', 'Measurements'),
+  measureSize: line('label', 'Size'),
+  measureChest: line('label', 'Chest'),
+  measureWaist: line('label', 'Waist'),
+  measureHip: line('label', 'Hip'),
+
+  fitTitle: line('label', 'Find my size'),
+  fitHeight: line('label', 'Height'),
+  fitBuild: line('label', 'Build'),
+  fitAnswer: line('label', ({ size }) => `We suggest ${size}`),
+
+  shotAngles: line('label', 'More views'),
+  shotBodies: line('label', 'On three body types'),
+  shotVideo: line('label', 'Watch it move'),
+
+  // The slow page. A page below the faster rung is drawn as the placeholders a
+  // visitor waits in front of, so buying speed is the thing that paints it.
+  loading: line('label', 'still loading'),
+
+  // What landed this week, ringed where it landed.
+  arrived: line('label', 'new this week'),
   partName: line('label', ({ target }) => PART_NAME[target]),
   boughtTitle: line('label', 'What each one buys'),
   worthTitle: line('label', 'What the page is worth'),
