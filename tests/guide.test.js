@@ -24,7 +24,8 @@ import { fileURLToPath } from 'node:url';
 import { CHAPTERS, CONTENTS, chapter, DEPARTURE_MAX_WORDS } from '../ui/guide/chapters.js';
 import { guideFigures } from '../ui/guide/figures.js';
 import { sectionOf } from '../ui/shell/sections.js';
-import { MAX_BID_MULTIPLE } from '../engine/constants.js';
+import { MAX_BID_MULTIPLE, ATTRIBUTION_LAG_DISTRIBUTION } from '../engine/constants.js';
+import { ARRIVAL_SHAPE } from '../ui/dashboard.js';
 
 const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 const DECISIONS = read('DECISIONS.md');
@@ -343,6 +344,38 @@ describe('every chapter says where it departs, or why it does not', () => {
     for (const id of Object.keys(CHAPTERS)) {
       expect(CHAPTERS[id].cites.length, id).toBeGreaterThan(0);
       for (const c of CHAPTERS[id].cites) expect(cited(c), `${id} cites ${c}`).toBe(true);
+    }
+  });
+});
+
+describe('a figure says what it is counting', () => {
+  // THE SENTENCE A TESTER READ OUT. "55% this week, then 28%, then 12% and then
+  // 5%" never said 55% OF WHAT, and four percentages attached to no noun is not
+  // an explanation. Fixed at the source, so the noun travels with the number
+  // everywhere the figure is quoted (plans/2026-09-19-guide-rewrite.md, rule 4).
+  test('the arrival shape names the orders it is counting', () => {
+    expect(ARRIVAL_SHAPE).toMatch(/^55% of orders/);
+    expect(ARRIVAL_SHAPE).toContain('in the week of the click');
+  });
+
+  test('it is still read off the constant, share for share', () => {
+    for (const share of ATTRIBUTION_LAG_DISTRIBUTION) {
+      expect(ARRIVAL_SHAPE).toContain(`${Math.round(100 * share)}%`);
+    }
+  });
+
+  test('the chapter quoting it does not say the noun twice', () => {
+    const game = CHAPTERS.attributionLag.game(FIGURES);
+    expect(game).toContain(FIGURES.lagShape);
+    expect(game.match(/of orders/g) ?? [], 'the noun arrives with the figure').toHaveLength(1);
+  });
+
+  // The other eleven carry their noun in the sentence around them, checked by
+  // hand on 2026-09-19. This holds the one that could not.
+  test('every figure the guide quotes reaches a reader as words, not a bare share', () => {
+    for (const [name, value] of Object.entries(FIGURES)) {
+      expect(String(value).trim(), name).not.toBe('');
+      expect(String(value), name).not.toMatch(/^0\.\d+$/);
     }
   });
 });

@@ -349,7 +349,7 @@ labelled"*. Body: the five, named, with the sentence each was hiding in.
 - Test: `tests/words.test.js` or `tests/dashboard.test.js`, wherever
   `ARRIVAL_SHAPE` is already covered
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // The tester read four percentages attached to no noun: "55% this week, then
@@ -361,7 +361,7 @@ test('the arrival shape says what it is counting', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```bash
 npm test -- dashboard
@@ -369,7 +369,7 @@ npm test -- dashboard
 
 Expected: `"55% this week, then 28%, then 12% and then 5%"` has no noun.
 
-- [ ] **Step 3: Give it the noun**
+- [x] **Step 3: Give it the noun**
 
 ```js
 export const ARRIVAL_SHAPE = ATTRIBUTION_LAG_DISTRIBUTION
@@ -378,19 +378,19 @@ export const ARRIVAL_SHAPE = ATTRIBUTION_LAG_DISTRIBUTION
   .replace(/, then (?=[^,]*$)/, ' and then ');
 ```
 
-- [ ] **Step 4: Check the one guard that watches this constant**
+- [x] **Step 4: Check the one guard that watches this constant**
 
 `tests/ui.test.js` allows `ATTRIBUTION_LAG_DISTRIBUTION` to be named in
 `dashboard.js` alone, and only to be QUOTED — it fails if the next characters
 are arithmetic, and it requires the figure to reach the screen as a percentage.
 The change keeps both. **Run `npm test -- ui` and read it, do not assume.**
 
-- [ ] **Step 5: Re-read `attributionLag` with the new figure**
+- [x] **Step 5: Re-read `attributionLag` with the new figure**
 
 The chapter's sentence is built around the old wording. Rewrite it as the
 design's section 4.1 has it, so the noun is not said twice.
 
-- [ ] **Step 6: Run the suite and commit**
+- [x] **Step 6: Run the suite and commit**
 
 Message: *"Say what the 55% is counting, everywhere the figure is quoted"*.
 

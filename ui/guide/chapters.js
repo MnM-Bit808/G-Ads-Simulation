@@ -209,7 +209,7 @@ export const CHAPTERS = Object.freeze({
     realSources: [GOOGLE.byClickTime, GOOGLE.howLong],
     needs: ['lagShape', 'settlesAfter'],
     game: ({ lagShape, settlesAfter }) => 'A week’s report belongs to the week its clicks '
-      + `happened. As the orders arrive it is rewritten: ${lagShape}. `
+      + `happened. It is rewritten as they arrive: ${lagShape}. `
       + 'Returns come back later still. '
       + `A week is not final until about ${settlesAfter} weeks after it ends.`,
     departs: [

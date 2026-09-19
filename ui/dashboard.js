@@ -49,9 +49,18 @@ export const SETTLES_AFTER_ROUNDS = ATTRIBUTION_LAG_DISTRIBUTION.length + 1;
  */
 export const RETURNS_RESOLVE_AFTER_ROUNDS = SETTLES_AFTER_ROUNDS - (ATTRIBUTION_LAG_DISTRIBUTION.length - 1);
 
-/** "55% this week, then 28%, 12%, 5%", read off the constant it describes. */
+/**
+ * "55% of orders in the week of the click, then 28%, 12%, 5%", read off the
+ * constant it describes.
+ *
+ * THE NOUN TRAVELS WITH THE NUMBER. It used to open "55% this week", and a
+ * stranger reading the guide in September 2026 asked, reasonably, 55% of what.
+ * Four percentages attached to no noun are not an explanation, and the fix
+ * belongs here rather than in each sentence that quotes the figure
+ * (plans/2026-09-19-guide-rewrite.md, rule 4).
+ */
 export const ARRIVAL_SHAPE = ATTRIBUTION_LAG_DISTRIBUTION
-  .map((share, i) => `${Math.round(100 * share)}%${i === 0 ? ' this week' : ''}`)
+  .map((share, i) => `${Math.round(100 * share)}%${i === 0 ? ' of orders in the week of the click' : ''}`)
   .join(', then ')
   .replace(/, then (?=[^,]*$)/, ' and then ');
 

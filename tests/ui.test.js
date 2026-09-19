@@ -67,7 +67,7 @@ describe('the interface uses the real engine (spec 6, build step 14)', () => {
     //
     // This guard is a proxy: the name stands in for "the view is deciding
     // economics". `ui/dashboard.js` QUOTES the attribution lag to the player —
-    // "55% this week, then 28%, then 12% and then 5%" — and computes nothing
+    // "55% of orders in the week of the click, then 28%…" — and computes nothing
     // from it. The card above it was already describing the same rule in
     // hardcoded prose ("about five rounds ... three for the order to arrive"),
     // so the choice was never between naming the constant and staying pure. It
