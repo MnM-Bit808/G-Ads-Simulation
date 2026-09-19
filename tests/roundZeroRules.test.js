@@ -201,8 +201,10 @@ describe('the landing page grade, as the engine will run it (spec section 6)', (
     // 6: its 7 held a point for running the page past 40 characters. Product
     // shots alone, which earned that point and nothing else, draw no second bar.
     expect(grade({})).toMatchObject({ fromWeek1: 5, fromWeek4: 5 });
-    expect(grade({ landingPage: 5500000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 9 });
-    expect(grade({ landingPage: 8000000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 10 });
+    expect(grade({ landingPage: 5500000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 8 });
+    // 9, not 10, since I40: the page's own money is worth two points, so the top
+    // rung alone no longer reaches the top of the scale.
+    expect(grade({ landingPage: 8000000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 9 });
     expect(grade({ sizeGuide: 2500000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 6 });
     expect(grade({ photography: 5000000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 5 });
     expect(grade({ landingPage: 2500000 })).toMatchObject({ fromWeek1: 5, fromWeek4: 6 });
@@ -231,8 +233,8 @@ describe('the landing page grade, as the engine will run it (spec section 6)', (
       expect(partsOf({ sizeGuide: 2500000 })).toEqual([['sizeGuide', 1]]);
       expect(partsOf({ photography: 5000000 }), 'product shots earn nothing since I38').toEqual([]);
       // The page's own points are one part: speed, reviews and the site work.
-      expect(partsOf({ landingPage: 5500000 })).toEqual([['landingPage', 4]]);
-      expect(partsOf({ landingPage: 5500000, sizeGuide: 2500000 })).toEqual([['landingPage', 4], ['sizeGuide', 1]]);
+      expect(partsOf({ landingPage: 5500000 })).toEqual([['landingPage', 3]]);
+      expect(partsOf({ landingPage: 5500000, sizeGuide: 2500000 })).toEqual([['landingPage', 3], ['sizeGuide', 1]]);
     });
 
     test('the parts add up to the bar, from the start, and say when the cap takes one', () => {
@@ -242,11 +244,13 @@ describe('the landing page grade, as the engine will run it (spec section 6)', (
         expect(g.total, JSON.stringify(capex)).toBe(g.fromWeek4);
         expect(g.capped).toBe(false);
       }
-      // The top page and a size chart earn 11; the auction runs on 10, and the
-      // cap is shown openly here as it is in Your ad (the owner, 2026-09-17).
-      const capped = grade({ landingPage: 8000000, sizeGuide: 2500000 });
-      expect(capped.parts).toEqual([{ target: 'landingPage', points: 5 }, { target: 'sizeGuide', points: 1 }]);
-      expect(capped).toMatchObject({ start: 5, total: 11, capped: true, fromWeek4: 10 });
+      // SINCE I40 NOTHING IS CAPPED. The top page and a size chart used to earn
+      // 11 and have one taken back; they now earn exactly 10, so the openly
+      // shown cap (the owner, 2026-09-17) has nothing left to show. The
+      // machinery stays — it is what would surface the fault returning.
+      const best = grade({ landingPage: 8000000, sizeGuide: 2500000 });
+      expect(best.parts).toEqual([{ target: 'landingPage', points: 4 }, { target: 'sizeGuide', points: 1 }]);
+      expect(best).toMatchObject({ start: 5, total: 10, capped: false, fromWeek4: 10 });
     });
   });
 });

@@ -118,9 +118,14 @@ describe('G3: what the auctions ran on, from their own record', { timeout: 180_0
    * bought without the page it earns sizing alone, 6. Its 7 had a point for
    * running the page past 40 characters, by one. Reviews keep 9: the faster
    * page's sentence earns for speed the point it earned for length.
+   *
+   * AND REVIEWS IS 8 SINCE I40 (2026-09-19). The page's own money is worth two
+   * points rather than three, so ₹55,000 of it carries one, not two. The shape
+   * the gate was agreed on holds: capital grades from the week it lands, and
+   * this is the level it lands at.
    */
-  test('from the week it lands, it grades as it used to from week 1, less the length point a chart alone lost', () => {
-    expect(at('reviews', ROUND0_LIVE)).toBeCloseTo(landingFactor(9), 12);
+  test('from the week it lands, it grades as it used to from week 1, less what I38 and I40 took', () => {
+    expect(at('reviews', ROUND0_LIVE)).toBeCloseTo(landingFactor(8), 12);
     expect(at('sizeChart', ROUND0_LIVE)).toBeCloseTo(landingFactor(6), 12);
     expect(at('nothing', ROUND0_LIVE)).toBeCloseTo(landingFactor(5), 12);
   });
@@ -149,7 +154,9 @@ describe('G4: the screen reads the page the auction runs on', { timeout: 180_000
     r0.addSetupKeyword(draft, 'gym leggings');
     r0.setCapex(draft, 'landingPage', 5500000);
     r0.setCapex(draft, 'sizeGuide', 2500000);
-    expect(r0.landingGrade(draft)).toMatchObject({ fromWeek1: 5, fromWeek4: 10 });
+    // 9 since I40: reviews and a size chart carry three sentence points and the
+    // page's own ₹55,000 one more. The top page would take it to 10.
+    expect(r0.landingGrade(draft)).toMatchObject({ fromWeek1: 5, fromWeek4: 9 });
     // The first auction's reserve is priced at the page that first auction runs on.
     expect(r0.openingReserve(draft, QUERY_SET).grade.landingPage).toBe(5);
   });

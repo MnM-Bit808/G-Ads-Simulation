@@ -239,18 +239,24 @@ describe('what each thing bought for the page actually moves', () => {
    * earns speed +1, reviews +1 and site work +3 — and the total beneath the rows
    * says 11, and that the grade stops at 10. The chart draws the 10 the auction runs on.
    */
-  test('a strong page shows every point it earns, and the total says where the cap takes one', () => {
+  /**
+   * THE STRONGEST PAGE, AND SINCE I40 IT EARNS EXACTLY TEN. It used to earn
+   * eleven and have one taken back by the cap, which is what made the size
+   * chart beside it worthless. `capped` is false here now; the machinery that
+   * would show a cap stays, because it is what surfaces the fault returning.
+   */
+  test('the strongest page shows every point it earns, and the total keeps all of them', () => {
     const game = opened({ landingPaise: TOP_RUNG_PAISE, guidePaise: 2500000 });
     const live = game.draft.capexBlock.pending[0].liveAtRound;
-    expect(landingPageBonus(game.draft.capexBlock, live), 'the rung is worth more than the cap allows').toBe(3);
+    expect(landingPageBonus(game.draft.capexBlock, live), 'the top rung is worth two points').toBe(2);
     expect(auctionGrade(game.draft, live)).toBe(10);
     const before = read(game, live - 1).page;
     const after = read(game, live).page;
     expect(find(after.parts, 'landingPage').gradeLines)
-      .toEqual([{ rule: 'speed', points: 1 }, { rule: 'reviews', points: 1 }, { rule: 'siteWork', points: 3 }]);
-    expect(find(before.parts, 'landingPage')).toMatchObject({ points: 5, now: 0 });
-    expect(find(after.parts, 'landingPage')).toMatchObject({ points: 5, now: 5 });
-    expect(after.sum).toMatchObject({ total: 11, capped: true });
+      .toEqual([{ rule: 'speed', points: 1 }, { rule: 'reviews', points: 1 }, { rule: 'siteWork', points: 2 }]);
+    expect(find(before.parts, 'landingPage')).toMatchObject({ points: 4, now: 0 });
+    expect(find(after.parts, 'landingPage')).toMatchObject({ points: 4, now: 4 });
+    expect(after.sum).toMatchObject({ total: 10, capped: false });
     expect(after.worth.at(-1).value, 'the chart draws what the auction runs on').toBe(10);
   });
 
@@ -317,7 +323,7 @@ describe('what each thing bought for the page actually moves', () => {
 
     test('each row carries the points its own sentences earn', () => {
       expect(find(page.parts, 'landingPage').gradeLines)
-        .toEqual([{ rule: 'speed', points: 1 }, { rule: 'reviews', points: 1 }, { rule: 'siteWork', points: 2 }]);
+        .toEqual([{ rule: 'speed', points: 1 }, { rule: 'reviews', points: 1 }, { rule: 'siteWork', points: 1 }]);
       expect(find(page.parts, 'sizeGuide').gradeLines).toEqual([{ rule: 'sizing', points: 1 }]);
       expect(find(page.parts, 'photography').gradeLines).toEqual([]);
     });
@@ -327,15 +333,15 @@ describe('what each thing bought for the page actually moves', () => {
     });
 
     test('the total adds the rows to the start, and is the chart\'s grade', () => {
-      expect(page.sum).toEqual({ start: 5, parts: [4, 1], total: 10, capped: false, week: null });
-      expect(page.worth.find((w) => w.round === 6).value).toBe(10);
+      expect(page.sum).toEqual({ start: 5, parts: [3, 1], total: 9, capped: false, week: null });
+      expect(page.worth.find((w) => w.round === 6).value).toBe(9);
     });
 
     test('in a game saved before C, the length point is shared, names every one, and is in the total', () => {
       const { page: before } = read(beforeC(game), 6);
-      expect(find(before.parts, 'landingPage').gradeLines).toEqual([{ rule: 'reviews', points: 1 }, { rule: 'siteWork', points: 2 }]);
+      expect(find(before.parts, 'landingPage').gradeLines).toEqual([{ rule: 'reviews', points: 1 }, { rule: 'siteWork', points: 1 }]);
       expect(before.shared).toEqual([{ rule: 'described', points: 1, by: ['landingPage', 'sizeGuide', 'photography'] }]);
-      expect(before.sum).toEqual({ start: 5, parts: [3, 1, 1], total: 10, capped: false, week: null });
+      expect(before.sum).toEqual({ start: 5, parts: [2, 1, 1], total: 9, capped: false, week: null });
     });
 
     test('product shots bought alone earn nothing, so there is nothing to add up; before C they earned the length point', () => {
@@ -351,7 +357,7 @@ describe('what each thing bought for the page actually moves', () => {
 
     test('a total still to arrive says the week it will have arrived', () => {
       const pending = opened({ landingPaise: PAGE_RUNG_PAISE });
-      expect(read(pending, 1).page.sum).toMatchObject({ total: 9, week: 1 + CAPEX_DELAY_ROUNDS });
+      expect(read(pending, 1).page.sum).toMatchObject({ total: 8, week: 1 + CAPEX_DELAY_ROUNDS });
       expect(read(pending, 1 + CAPEX_DELAY_ROUNDS).page.sum.week).toBeNull();
     });
 
@@ -381,7 +387,7 @@ describe('what each thing bought for the page actually moves', () => {
       const row = find(read(old, 1).page.parts, 'landingPage');
       expect(effectiveGrades({ ...old.draft, round: 1 }).landingPage).toBe(7);
       expect(row.now, 'described and reviews, from week 1, as the old rule graded them').toBe(2);
-      expect(read(old, 1).page.sum).toMatchObject({ total: 9, week: 1 + CAPEX_DELAY_ROUNDS });
+      expect(read(old, 1).page.sum).toMatchObject({ total: 8, week: 1 + CAPEX_DELAY_ROUNDS });
     });
   });
 
@@ -440,15 +446,18 @@ describe('what each thing bought for the page actually moves', () => {
      * rows says 11 from week 8 and that the grade stops at 10. In every game the
      * cap does not reach, the two rules name the same weeks.
      */
-    test('a point the cap takes still says when it arrives, and the total says the cap takes it', () => {
+    // SINCE I40 THE TOTAL NO LONGER PASSES TEN, so this says when each step
+    // arrives rather than which of them the cap eats. It used to end at 11 with
+    // one taken back — the fault the owner found by playing, 2026-09-19.
+    test('every step still says the week it arrives, and the total keeps them all', () => {
       const game = andAtWeekFive(opened({ landingPaise: PAGE_RUNG_PAISE, guidePaise: 2500000 }), 2500000);
       const early = page(game, 1);
-      expect(early.steps).toEqual([{ week: game.draft.capexBlock.pending[0].liveAtRound, points: 4 }, { week: WEEK_FIVE_LIVE, points: 1 }]);
+      expect(early.steps).toEqual([{ week: game.draft.capexBlock.pending[0].liveAtRound, points: 3 }, { week: WEEK_FIVE_LIVE, points: 1 }]);
       const late = page(game, 6);
       expect(late.week, 'the site work is still landing').toBe(WEEK_FIVE_LIVE);
       expect(late.steps).toEqual([{ week: WEEK_FIVE_LIVE, points: 1 }]);
-      expect(late).toMatchObject({ now: 4, points: 5 });
-      expect(read(game, 6).page.sum).toMatchObject({ total: 11, capped: true, week: WEEK_FIVE_LIVE });
+      expect(late).toMatchObject({ now: 3, points: 4 });
+      expect(read(game, 6).page.sum).toMatchObject({ total: 10, capped: false, week: WEEK_FIVE_LIVE });
     });
 
     test('the week a step lands, it is live, not to come', () => {
@@ -502,8 +511,8 @@ describe('what each thing bought for the page actually moves', () => {
     });
 
     test('in a game saved before C, beside a size chart the cheapest rung adds nothing, so the row names the first that does', () => {
-      expect(pageRow(beforeC(opened({ guidePaise: 2500000 }))).wouldAdd).toEqual({ paise: PAGE_RUNG_PAISE, points: 3 });
-      expect(pageRow(beforeC(opened({ photoPaise: 5000000 }))).wouldAdd).toEqual({ paise: PAGE_RUNG_PAISE, points: 3 });
+      expect(pageRow(beforeC(opened({ guidePaise: 2500000 }))).wouldAdd).toEqual({ paise: PAGE_RUNG_PAISE, points: 2 });
+      expect(pageRow(beforeC(opened({ photoPaise: 5000000 }))).wouldAdd).toEqual({ paise: PAGE_RUNG_PAISE, points: 2 });
     });
 
     test('a bought page, and the other two rows, carry none', () => {

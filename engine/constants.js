@@ -950,7 +950,16 @@ export const WRITER_TIERS = Object.freeze([
  * also writes. Expressing it as points added after grading keeps the two
  * mechanisms separable - two things writing one number is how L6 happened.
  */
-export const CAPEX_LANDING_PAGE_MAX_POINTS = 3;
+/*
+ * 2 SINCE I40, AND THE SUM IS WHY. The grade is base 5 and caps at 10, so five
+ * points are buyable. At 3 the page's own ladder claimed all five alone — speed
+ * and reviews as sentences, plus the full bonus — so ₹80,000 on one target
+ * graded 10 from week 4, and every combination above it computed 11 and threw a
+ * point away. A size guide bought beside the top page was worth nothing.
+ * At 2 the arithmetic closes exactly: 5 + 3 sentence points + 2 = 10, so no
+ * combination overflows and no single target reaches the top.
+ */
+export const CAPEX_LANDING_PAGE_MAX_POINTS = 2;
 
 /**
  * An S-curve, not a diminishing one. Interpolated linearly between points.

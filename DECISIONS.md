@@ -6044,6 +6044,91 @@ omission is argued rather than forgotten.
 
 ---
 
+### I40. The page's own money was worth five points of five — `FIXED` (2026-09-19)
+
+**The owner found it by playing.** Round 0's capital bought a landing page grade
+of 10/10 from week 4, off one purchase, and a size guide bought beside it moved
+the grade not at all.
+
+**Measured, before anything changed.** The grade starts at `PAGE_GRADE_BASE` 5
+and stops at 10, so five points are buyable. Three come from the description the
+capital composes — speed, reviews, sizing — and up to
+`CAPEX_LANDING_PAGE_MAX_POINTS` came from `landingPageBonus`, which reads the
+money on the page target alone:
+
+| bought at round 0 | grade from week 4 | computed |
+|---|---|---|
+| page ₹25,000 | 6 | 6 |
+| page ₹55,000 | 9 | 9 |
+| **page ₹80,000** | **10** | 10 |
+| page ₹80,000 + size chart ₹25,000 | 10 | **11** |
+| page ₹80,000 + guide ₹55,000 | 10 | **11** |
+
+The top rung of ONE ladder hit speed, reviews AND the full three-point bonus:
+five of the five, from ₹80,000 of a ₹1,20,000 allocation. Every combination
+above it computed 11 against a cap of 10, so a point was always discarded — and
+the discarded point was always the size guide's, which is why buying one beside
+the top page was worth nothing to the grade.
+
+**Two mechanisms were paying for the same purchase.** `landingPageBonus`'s own
+comment says it is kept separate from the business block so that two things do
+not write one number (the L6 defect). They stayed separable in code and stopped
+being separable in play: one spend drove both.
+
+**The decision: `CAPEX_LANDING_PAGE_MAX_POINTS` 3 → 2.** The arithmetic then
+closes exactly — 5 + 3 sentence points + 2 = 10 — so no combination computes
+above the cap and no point a player buys is thrown away. The top page alone
+grades 9; reaching 10 needs the page AND a size guide, ₹1,05,000 across two
+targets.
+
+**The owner's hard gate, agreed before the measurement:** no combination of the
+three ladders may compute above 10. Held by `tests/landingPage.test.js`, over
+every rung of all three ladders under both rule sets.
+
+**Measured with `scripts/market-harness.js page`, 72 markets before and after.**
+Only the purchases that actually carried the bonus move:
+
+| bought at round 0 | before | after |
+|---|---|---|
+| size guide | ₹40,343 | ₹40,392 |
+| reviews (page ₹55,000) | ₹1,03,620 | **₹85,736** |
+| top page (₹80,000) | ₹1,29,405 | **₹1,01,299** |
+| photography | ₹21,951 | ₹21,958 |
+| faster page (₹25,000) | ₹25,239 | ₹25,287 |
+| guide + shots | ₹61,724 | ₹61,719 |
+
+The page is still worth buying — the top rung still beats keeping the money by a
+median ₹1,01,299 and wins 51 markets of 72 — it is no longer worth five points
+of five.
+
+**IT MOVES THE RIVALS TOO, and I38 is imprecise about this.** That entry says
+rivals' page grades are authored rather than scored, "so only the player's grade
+moves directly". True of the DESCRIPTION grade; the bonus is applied in
+`buildEntryPlans` to every advertiser (`engine/round.js`), so any rival holding
+capital on its page is regraded as well. Measured: 66 of 72 markets where the
+player buys no page still move, by 0.03-0.25% of the player's net, and the
+largest single rival median move is **-2.89%**, under the 5% I37's G8 used.
+
+**Rejected, and worth recording.** Moving the sizing point up the size-guide
+ladder (from "a basic size chart" to "real measurements") would have put 10 out
+of reach of one capital window, which is closer to what the owner asked for. It
+was measured and dropped: it moves the cheapest route to the best description
+grade from ₹80,000 to ₹1,10,000, which deepens a squeeze on photography that is
+already worse than the ledger claims — see the note under I29 below.
+
+**A stale test, found on the way.** `tests/landingPage.test.js` asserted I29's
+property that the best page no longer costs you photography. It iterated
+photography over the SHARED rungs, and I30 gave photography its own ladder on
+2026-09-17 — so it offered a ₹25,000 purchase photography does not sell, which
+`featureAt` resolves to "none". Measured on photography's real ladder, on the
+code as it stood before this entry, **I29's property is already false**: the
+cheapest route to the best description grade is ₹80,000, leaving ₹40,000 against
+a ₹50,000 first rung. The test now reads the real ladder and records what is
+true, with a `test.todo` naming the open question: raise the allocation, or
+accept the trade. **That is the owner's to decide and is not decided here.**
+
+---
+
 ## Maintenance rule
 
 Every time you or Claude Code picks a number with no source, add it here before
