@@ -246,6 +246,14 @@ reads above average only rarely. True, but an observation about this market
 rather than about what the score IS, and the least load-bearing of the eleven.
 Nothing dropped was false; there was simply too much of it.
 
+**AND THE LIST THEY SIT IN WAS SQUASHING THEM** (`efc6879`, the owner looking at
+it). Twenty of the twenty-five rows in the Guide area's left-hand list printed
+over one another. The rule that grows a chapter row was already correct; the
+PARENT beat it — `.studio-list` is a column flex container, so once its rows did
+not fit it SHRANK them, `min-height` held them at 42px, and every wrapped title
+spilled onto the row below. **When a child's size rule looks right and the box
+is still wrong, suspect the flex parent.**
+
 **STILL NOT ANSWERED, AND NO TEST CAN:** whether a beginner UNDERSTANDS them.
 Length, sentence count and nesting are measured; comprehension is not. That is
 the last thing standing between here and `playtest-5`.
