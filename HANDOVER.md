@@ -12,47 +12,65 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, 2026-09-19: the stranger playtests are out, and `main` is
-frozen.** The live site runs `368801d`, tagged **`playtest-4`** — the build the
-testers play. The owner is sending the invite to three people (two alone, one on
-a call) from *Running a playtest* below; the next session's work is **reading the
-files they send back** and acting on what they say.
+**Current state, 2026-09-19: the beginner's build is LIVE, and the freeze is
+over.** `main` is `de135e2`, pushed at the owner's word, 25 commits ahead of
+`playtest-4`. Two strangers played that build and neither finished — one gave up
+inside round 0, the other stopped around week 6 — and today's work is everything
+that came out of what they said. Neither sent a playtest file; every measurement
+below was taken on the code and the engine.
 
-- **THE FREEZE.** Keep engine changes off `main` until the files are in. Words
-  and docs are safe to commit, but **do not push**: every push rebuilds the site
-  and stamps a new commit into `ui/version.js`, so a tester's file would name a
-  build that is not `playtest-4`. One commit is already waiting for that reason:
-  `44fa4f4`, the message project's design doc.
-- **Reading a file:** `node scripts/read-playtest.js <files>`. It prints active
-  time by phase, every screen in order, cards by time on screen, week compute
-  times, what they answered, and their game replayed — rank, what the business
-  made, the weeks they decided something. If it says `THE REPLAY DOES NOT MATCH`,
-  read it again on the tag: `git checkout playtest-4`.
-- **The gates to judge them against** (`reviews/slc-review.md` section 12):
-  round 0 under 10 active minutes; weeks 5–12 over 72 seconds each; three lessons
-  stated in their own words; and decisions taken in weeks 7–12.
-- **The pipeline was proved end to end on 2026-09-18** before the invites went:
-  a recorded game, a 351 KB file built the way the Download button builds it, and
-  the reader on it — timings, cards, both answers, and a save that replayed
-  exactly, which also proved this week's changes did not break saves.
+**What they said, and what was measured.** The owner's quote of one of them:
+*"for someone who is new to this, these all seem too text heavy and working
+around concepts that they are not at all familiar with. And even if the
+explanation is there, the explanation is not good enough and not simple
+enough."* Measured against the code, three things were true:
 
-**What landed in the week before the freeze**, all live, each measured against
-gates agreed first:
+- round 0 had already been cut from **2,648 words to 781** and a stranger still
+  gave up inside it, so cutting further was never the remedy;
+- the guide had **no ground floor** — thirteen chapters, every one a nuance of
+  something you are assumed to know, and none defining keyword, bid, CPC,
+  auction, ad rank, click, conversion or the price × purpose grid;
+- and it was **unreachable** where it was needed: 134 pieces of text in round 0
+  carried six `why?` links.
 
-| | what | entry |
+**The four pieces built today**, in the order they were built, each designed with
+the owner before any code:
+
+| | what | design |
 |---|---|---|
-| I37 | the landing page is graded as it stands each week, not as round 0 wrote it | DECISIONS I37 |
-| B | Your ad shows where the grade comes from, rule by rule, with the cap shown openly | design/grade-breakdown/ |
-| I38 | the grade counts only what Google names: the 40-character rule is gone, the faster page earns its point for speed, photography earns none | DECISIONS I38 |
-| C9 | a rival is handed its own revised history, so its rules can read returns | DECISIONS C9 |
-| I8's addendum | a rival blocks what costs it, by the player's own `isDear`, over every week it has played | DECISIONS I8 |
-| — | What people typed marks a search that sold nothing, as the card always did | DECISIONS I8 |
-| I39 | the books count what the business spent, and settle the tail after the whistle | DECISIONS I39 |
+| the first run | seven beats before round 0, on **one real auction the engine ran**, teaching the world's vocabulary as a story | `plans/2026-09-19-first-run-and-ground-floor.md` §4, `plans/2026-09-19-first-run-plan.md` |
+| the guide rewrite | `departs` is a field, **25 of them pulled out of the prose** where 8 were labelled; every half opens in ≤15 words and no sentence runs past 25 | `plans/2026-09-19-guide-rewrite.md`, `-plan.md` |
+| the ground floor | **nine chapters**, one per control round 0 asks for, each naming the nuance chapter that continues it | `plans/2026-09-19-ground-floor.md`, `-plan.md` |
+| the mid-game questions | pressing Playtest anywhere now **asks what the game taught you** before handing over the file | §7 of the parent doc |
 
-**And one design doc, committed but unpushed:** `plans/2026-09-18-message-angles.md`,
-the message project's first half. Three ways of matching an angle to a search
-died to measurement before any code; the tables are in its section 4. Nothing is
-built from it.
+**THE ONE THING STILL OPEN, and it is the owner's:** whether the nine
+ground-floor chapters and the rewritten thirteen actually read better. The rules
+bought structure, and structure is not understanding; no test can say. Both
+plans leave that step unticked on purpose.
+
+**Five guards caught real mistakes today**, which is worth knowing before
+trusting a green suite:
+
+- `tests/ui.test.js` refused `businessFor` in the interface — it derives what
+  spec 16.1 withholds from every viewer;
+- the drawing guard refused a hand-written SVG string, and `no number is typed
+  into a sentence` refused "7:40 pm";
+- an existing test held the returns chapter to giving the send-back rate as **the
+  country's**, which a rewrite had dropped;
+- and twice, **only playing it found the fault**: the contents page still
+  promised "two halves" of every chapter, and twelve `why?` links were added to
+  round 0's words while step 1 drew none — the test counted the data, not the
+  buttons. Both tests now read the drawing.
+
+**Next, none blocking:** the owner reading the twenty-two chapters; the message
+project's part 2 (images from week 9); what the drawn landing page shows for its
+remaining rungs; whether sixty keywords want a compact list.
+
+**When the next playtest goes out,** tag the live build the same day —
+`playtest-4` is used, so the next is **`playtest-5`** — and read *Running a
+playtest* below. The invite already tells a tester who gives up to press
+Playtest; they will now be asked the two questions before the file is handed
+over, wherever they stopped.
 
 **Current state, 2026-09-16: the Studio is LIVE, and it is the only game.** The
 switch-over is deployed — `main` is `e29648f`, 194 commits ahead of where it
