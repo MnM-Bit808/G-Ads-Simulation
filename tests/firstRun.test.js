@@ -15,14 +15,16 @@ import { MAX_SLOTS, AD_RANK_FLOOR, WEEKLY_VOLUME } from '../engine/constants.js'
 import { QUERY_SET } from '../content/querySet.js';
 import { demonstration, DEMO_QUERY_ID, DEMO_HOUR } from '../ui/firstrun/auction.js';
 import {
-  BEATS, runView, forward, back, figuresFor, tableFor, tailFor, termsFor, TERMS,
+  BEATS, runView, forward, back, figuresFor, tableFor, tailFor, termsFor, TERMS, partsFor,
 } from '../ui/firstrun/read.js';
 import { FIRST_RUN } from '../ui/words/firstrun.js';
 import { FIRST_RUN_KEY, seenFirstRun, markFirstRunSeen } from '../ui/firstrun/render.js';
 import { SAVE_KEY } from '../ui/save.js';
 import { RECORDING_KEY } from '../ui/recorder.js';
 import { phaseGroups } from '../scripts/read-playtest.js';
-import { briefing } from '../setup.js';
+import { briefing, startGame } from '../setup.js';
+import { submitRound } from '../game.js';
+import * as r0 from '../ui/roundzero/rules.js';
 import { RTO_FREIGHT_PAISE, TOTAL_ROUNDS, ADVERTISER_COUNT, MAX_SLOTS as SLOTS,
   ATTRIBUTION_LAG_DISTRIBUTION } from '../engine/constants.js';
 import { RETURNS_RESOLVE_AFTER_ROUNDS } from '../ui/dashboard.js';
@@ -351,7 +353,7 @@ describe('no beat drowns the reader, which is the whole argument', () => {
   // and never shown, which is the failure this map could otherwise hide.
   const ON_SCREEN = {
     search: ['b1Kicker', 'b1Where', 'b1Say'],
-    serp: ['b2Kicker', 'b2Say', 'b2Organic'],
+    serp: ['b2Kicker', 'b2Say', 'b2Sponsored', 'b2Organic'],
     ladder: ['b3Kicker', 'b3Say', 'b3Cut', 'b3ReadAgain', 'b3Callout', 'b3Cost',
       'colBrand', 'colBid', 'colFits', 'colRank', 'colPays'],
     click: ['b4Kicker', 'b4Pays', 'b4Sold', 'b4When', 'b4Looking', 'b4Say', 'b4Note'],
@@ -467,5 +469,71 @@ describe('the app reaches it, and the playtest file reports it', () => {
     expect(names.indexOf('first run')).toBeLessThan(names.indexOf('round 0'));
     const run = phaseGroups(file).find((row) => row.name === 'first run');
     expect(run.activeSeconds).toBe(90);
+  });
+});
+
+describe('a browser that has never played gets all the way into week 1', () => {
+  // "THE BUILD WORKS" MEANS PLAYING IT. The dashboard crashed after week 1 for
+  // two days with 1,348 tests green, and only a smoke test that played round 0
+  // into week 1 found it (I34). This is that test for the run: the beats are
+  // walked, the run is marked seen, round 0 opens on the same seed, and the
+  // first week runs down the real path.
+  const store = () => {
+    const map = new Map();
+    return {
+      getItem: (k) => map.get(k) ?? null,
+      setItem: (k, v) => map.set(k, String(v)),
+      removeItem: (k) => map.delete(k),
+    };
+  };
+
+  test('the run plays through, and week 1 runs after it', () => {
+    const storage = store();
+    expect(seenFirstRun(storage), 'a fresh browser has not seen it').toBe(false);
+
+    // Walk every beat, as a player pressing the button does.
+    const demo = demonstration();
+    const figures = figuresFor(demo);
+    const parts = partsFor(demo, figures);
+    expect(parts.ads.length).toBe(4);
+    let at = 0;
+    const seen = [];
+    while (at !== null) {
+      const view = runView(at, figures);
+      seen.push(view.key);
+      expect(view.next, view.key).toBeTruthy();
+      at = forward(at);
+    }
+    expect(seen).toEqual(BEATS.map((b) => b.key));
+
+    // Finishing the last beat is what marks it, as app.js's onDone does.
+    markFirstRunSeen(storage);
+    expect(seenFirstRun(storage)).toBe(true);
+
+    // Round 0, then the first week, on the real path.
+    const setup = r0.createSetupDraft({ playerBrandId: 'marlow', rootSeed: 20260902 });
+    r0.addSetupKeyword(setup, 'gym leggings');
+    const state = startGame({ rootSeed: 20260902, querySet: QUERY_SET, ...r0.startChoices(setup) });
+    const out = submitRound(state, {}, { mode: 'expected' });
+    expect(out.round).toBe(1);
+    // The player is advertiser 0 by convention (R6); the week has to have
+    // actually bought something, or the run led into a dead account.
+    const mine = out.report.byAdvertiser[state.advertisers[0].id];
+    expect(mine.traffic.clicks, 'the first week bought clicks').toBeGreaterThan(0);
+    expect(mine.traffic.impressions, 'and the ad was shown').toBeGreaterThan(0);
+    expect(out.nextGameState.round).toBe(2);
+
+    // And a second load does not show the run again.
+    expect(seenFirstRun(storage)).toBe(true);
+  });
+
+  test('stepping back through every beat is the same walk in reverse', () => {
+    let at = BEATS.length - 1;
+    const seen = [];
+    while (at !== null) {
+      seen.push(runView(at).key);
+      at = back(at);
+    }
+    expect(seen).toEqual([...BEATS.map((b) => b.key)].reverse());
   });
 });

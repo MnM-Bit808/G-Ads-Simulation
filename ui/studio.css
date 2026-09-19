@@ -1658,8 +1658,17 @@ body.studio .fr-q {
 }
 body.studio .fr-q .studio-icon { width: 16px; height: 16px; stroke: #9aa0a6; }
 body.studio .fr-where { font-size: 12px; color: #70757a; }
-body.studio .fr-ads .kserp { animation: fr-rise 220ms var(--studio-ease) both; }
-body.studio .fr-ads .kserp-tag { color: #202124; }
+/* The kit's ad block is built for the Studio's dark ground: it carries a card
+   background, a border and bone text. On a results page it has to look like a
+   result — no card, on the white — so the surface is unset here and every
+   colour with it. Measured by script: on the kit's own card these read 1.12:1. */
+body.studio .fr-ads .kserp {
+  animation: fr-rise 220ms var(--studio-ease) both;
+  background: transparent; border: 0; padding: 0; margin-bottom: 13px;
+}
+body.studio .fr-ads .kserp-tag { color: #202124; font-weight: 700; }
+body.studio .fr-ads .kserp-tag .kserp-sep,
+body.studio .fr-ads .kserp-tag > span:not(:first-child) { color: #4d5156; font-weight: 400; }
 body.studio .fr-ads .kserp-head { color: #1a0dab; }
 body.studio .fr-ads .kserp-desc { color: #4d5156; }
 body.studio .fr-organic {
@@ -1668,7 +1677,8 @@ body.studio .fr-organic {
 }
 body.studio .fr-organic i { display: block; height: 8px; width: 42%; border-radius: 4px; background: #e8eaed; }
 body.studio .fr-organic i.thin { width: 66%; background: #f1f3f4; }
-body.studio .fr-organic small { font-size: 11px; color: #9aa0a6; }
+/* #9aa0a6 is Google's own muted grey and reads 2.64:1 on white, measured. */
+body.studio .fr-organic small { font-size: 11px; color: #5f6368; }
 
 /* The ladder: every brand that entered, in rank order, one row at a time. */
 body.studio .fr-ladder { display: flex; flex-direction: column; gap: 2px; }

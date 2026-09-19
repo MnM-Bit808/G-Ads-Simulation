@@ -47,6 +47,9 @@ export const FIRST_RUN = Object.freeze({
   b2Kicker: line('label', 'What she sees'),
   b2Say: line('reading', 'Four ads, above everything else. Being shown is an impression, '
     + 'and nothing has been paid yet.'),
+  // The word Google itself puts on a paid result. It is a term the run teaches,
+  // so it is said here rather than borrowed from the beat's own heading.
+  b2Sponsored: line('label', 'Sponsored'),
   b2Organic: line('label', 'the results nobody pays for'),
   b2Trail: line('label', ({ slots }) => `${slots} ads above the results`),
 

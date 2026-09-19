@@ -947,7 +947,7 @@ row in the reader rather than being counted inside round 0.
 - Modify: `tests/build.test.js` (the file count)
 - Test: `tests/firstRun.test.js` (the smoke test)
 
-- [ ] **Step 1: Write the failing smoke test**
+- [x] **Step 1: Write the failing smoke test**
 
 *"The build works" means playing it.* The dashboard once crashed after week 1 for
 two days with 1,348 tests green. Add to `tests/firstRun.test.js`:
@@ -968,7 +968,7 @@ test('a browser that has never played goes run → round 0 → week 1 without th
 });
 ```
 
-- [ ] **Step 2: Run the whole suite and read the build test's failure**
+- [x] **Step 2: Run the whole suite and read the build test's failure**
 
 ```bash
 npm test
@@ -977,13 +977,14 @@ npm test
 Expected: `tests/build.test.js` fails on the file count — `dist/` now holds the
 run's files. **Read the number it reports; do not guess it.**
 
-- [ ] **Step 3: Update the count in `tests/build.test.js`**
+- [x] **Step 3: Update the count in `tests/build.test.js`** — *nothing to do.*
 
-Set it to the number the run reported, and add a one-line comment saying the
-first run is why it moved, in the form the file already uses for
-`ui/words/form.js` (2026-09-13).
+**The plan was wrong about this.** `tests/build.test.js` pins no count: it holds
+a set of files that must be present, a set that must not be, and a floor of
+thirty modules. It passed untouched. All four of the run's files reach `dist/`,
+which now builds 118.
 
-- [ ] **Step 4: Run the suite, green**
+- [x] **Step 4: Run the suite, green**
 
 ```bash
 npm test
@@ -991,7 +992,7 @@ npm test
 
 Expected: exit code 0.
 
-- [ ] **Step 5: Play it in the browser**
+- [x] **Step 5: Play it in the browser**
 
 ```bash
 npm run dev
@@ -1011,7 +1012,7 @@ browser has never played. Then check, with the browser pane's own tools:
 9. finish `getAnimations().forEach((a) => a.finish())` before measuring anything
    — the pane reports itself hidden and animations do not run there.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/build.test.js tests/firstRun.test.js

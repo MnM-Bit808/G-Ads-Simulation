@@ -97,7 +97,7 @@ function beatSerp(f, parts) {
       domain: row.domain,
       headlines: [...row.headlines],
       descriptions: [...row.descriptions],
-      sponsored: W.b2Kicker(f),
+      sponsored: W.b2Sponsored(f),
     });
     ad.style.animationDelay = `${i * STAGGER}ms`;
     add(stack, ad);
