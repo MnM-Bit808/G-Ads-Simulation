@@ -1066,6 +1066,31 @@ describe('a why? is only real once something draws it', () => {
     }
   });
 
+  /**
+   * THE WAY OUT OF A FINISHED GAME (the owner, 2026-09-19: "all I can see is
+   * 'see your results'"). After the last week the tray offered that and nothing
+   * else, and no screen in the game led back to the front door — which has had
+   * a finished-game state all along that nothing could reach.
+   *
+   * IT IS DRAWN ONLY WHEN THE GAME IS OVER. During a game the tray's one button
+   * runs the week, and an exit beside it is something a beginner presses by
+   * mistake.
+   */
+  test('the tray offers a way out, and only after the last week', () => {
+    const shell = readFileSync(fileURLToPath(new URL('../ui/shell/shell.js', import.meta.url)), 'utf8');
+    expect(SHELL.backToMenu(), 'it says where it goes, not what it destroys')
+      .toBe('Back to the menu');
+    expect(shell, 'nothing draws it').toMatch(/button\('studio-exit', SHELL\.backToMenu\(\)\)/);
+    // `over` is the only thing that reveals it, and a bulk edit or a running
+    // week hides it again.
+    expect(shell).toMatch(/exit\.hidden = !over \|\| bulk \|\| running \|\| !onExit/);
+    // And it goes to the door rather than throwing the game away: app.js hands
+    // the shell `backToMenu`, which re-offers the save.
+    const app = readFileSync(fileURLToPath(new URL('../ui/app.js', import.meta.url)), 'utf8');
+    expect(app).toMatch(/onExit: backToMenu/);
+    expect(app).toMatch(/function backToMenu\(\)[\s\S]{0,240}offerResume\(saved\)/);
+  });
+
   // THE SAME RULE, ON THE FIRST SCREEN AFTER ROUND 0 (2026-09-19). Playing it
   // showed Your week carried two why? links on the whole page and none on the
   // six figures — while the first run before it spends seven beats teaching

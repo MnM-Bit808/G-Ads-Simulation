@@ -260,6 +260,14 @@ body.studio .studio-undo { display: grid; place-items: center; width: 20px; heig
 body.studio .studio-undo .studio-icon { width: 10px; height: 10px; stroke-width: 3; }
 body.studio .studio-empty { flex: 1; margin: 0; font-size: 14px; color: var(--studio-muted); }
 body.studio .studio-override { display: contents; }
+/* The way out of a finished game: quieter than Run, which is the red one the
+   player pressed twelve times, so the pair reads as "the results, or done". */
+body.studio .studio-exit {
+  flex-shrink: 0; height: 52px; padding: 0 22px; border: 1px solid var(--studio-line-strong);
+  border-radius: 999px; background: none; color: var(--studio-soft);
+  font: 600 16px/1 var(--studio-display);
+}
+body.studio .studio-exit:hover { border-color: var(--studio-soft); color: var(--studio-text); }
 body.studio .studio-run { flex-shrink: 0; height: 52px; padding: 0 28px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font: 700 18px/1 var(--studio-display); }
 
 /* The deadline week. Amber, not red: red is the player's own colour in the

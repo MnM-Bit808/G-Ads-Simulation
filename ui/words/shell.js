@@ -23,6 +23,13 @@ export const SHELL = Object.freeze({
   // nothing happened (2026-09-19). After the last week there IS somewhere to
   // go, so it says where and goes there.
   seeResults: line('instruction', 'See your results'),
+  // THE WAY OUT, and until 2026-09-19 there was not one. After the last week
+  // the tray offered "See your results" and nothing else, and no screen in the
+  // game led back to the front door — which has had a finished-game state
+  // ("A finished game", ui/words/door.js) that nothing could reach. It says
+  // where it goes rather than "End this game", because the save is kept: the
+  // door will open this game again, or start a new one.
+  backToMenu: line('instruction', 'Back to the menu'),
   undo: line('instruction', 'Undo this change'),
   lockChip: line('label', ({ week }) => `week ${week}`),
   opensAt: line('reading', ({ week }) => `Opens at week ${week}.`),

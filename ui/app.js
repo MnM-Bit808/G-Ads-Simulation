@@ -347,6 +347,7 @@ function render() {
     showCard: guide.showCard,
     figures: GUIDE_FIGURES,
     onPlaytest: recorder ? sendPlaytestFile : null,
+    onExit: backToMenu,
   });
   // After the last week the shell draws Results itself (ui/results/render.js,
   // the owner's choice 2026-09-15); it is handed only what it cannot reach:
@@ -465,6 +466,23 @@ function startAfresh() {
   clearSave(storage);
   game = null;
   render();
+}
+
+/**
+ * Out of a finished game and back to the front door, which is the nearest thing
+ * this has to a main menu (the owner, 2026-09-19: after the last week the tray
+ * offered "See your results" and nothing else, and no screen led anywhere out).
+ *
+ * IT THROWS NOTHING AWAY. The save is written after every week, so the door
+ * meets a finished one and says so — "A finished game" — and opening it again
+ * replays all twelve weeks. Starting fresh is still a separate, warned choice
+ * there, as it is on the books page.
+ */
+function backToMenu() {
+  const saved = readSave(storage);
+  if (!saved) { startAfresh(); return; }
+  game = null;
+  offerResume(saved);
 }
 
 /**

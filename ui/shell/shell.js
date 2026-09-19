@@ -58,7 +58,7 @@ const LIST_BEHIND_MENU = '(max-width: 900px)';
  * @param {Readonly<Record<string, string>>} deps.figures - from `guideFigures()`
  * @param {(() => void)|null} [deps.onPlaytest]
  */
-export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPlaytest = null }) {
+export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPlaytest = null, onExit = null }) {
   const view = {
     area: 'brand', section: 'week', seen: {}, order: [], menuOpen: false,
     resultsShown: false, firstOpen: null, dotsShown: new Set(),
@@ -130,9 +130,14 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
   const noticeGo = button('studio-notice-go', SHELL.windowGo());
   noticeGo.addEventListener('click', () => open('money'));
   const overrideHost = el('div', 'studio-override');
+  // THE WAY OUT OF A FINISHED GAME. Only after the last week: during a game the
+  // tray's one button runs the week, and an exit beside it is something a
+  // beginner can press by mistake.
+  const exit = button('studio-exit', SHELL.backToMenu());
+  exit.addEventListener('click', () => onExit?.());
   const run = button('studio-run press');
   run.addEventListener('click', askThenRun);
-  tray.append(linesBox, empty, notice, noticeGo, overrideHost, run);
+  tray.append(linesBox, empty, notice, noticeGo, overrideHost, exit, run);
 
   main.append(top, body, tray);
   node.append(rail, list, main);
@@ -411,6 +416,7 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
     // Live after the last week, because there is still somewhere to go. It used
     // to sit there disabled reading "Game over".
     run.disabled = running;
+    exit.hidden = !over || bulk || running || !onExit;
     if (running) run.textContent = SHELL.running({ hours: HOURS_PER_WEEK });
     else if (over) run.textContent = SHELL.seeResults();
     else run.textContent = SHELL.run({ week: played() + 1 });
