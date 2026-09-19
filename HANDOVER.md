@@ -12,9 +12,9 @@ still resting on a guess.
 
 ## Start here
 
-**Current state, 2026-09-19: the beginner's build is LIVE, and the freeze is
-over.** `main` is `de135e2`, pushed at the owner's word, 25 commits ahead of
-`playtest-4`. Two strangers played that build and neither finished — one gave up
+**Current state, 2026-09-19: the beginner's build is LIVE, PLAYED END TO END,
+and the freeze is over.** `main` is `14d0c05`, pushed at the owner's word.
+Two strangers played the old build and neither finished — one gave up
 inside round 0, the other stopped around week 6 — and today's work is everything
 that came out of what they said. Neither sent a playtest file; every measurement
 below was taken on the code and the engine.
@@ -62,9 +62,30 @@ trusting a green suite:
   round 0's words while step 1 drew none — the test counted the data, not the
   buttons. Both tests now read the drawing.
 
-**Next, none blocking:** the owner reading the twenty-two chapters; the message
-project's part 2 (images from week 9); what the drawn landing page shows for its
-remaining rungs; whether sixty keywords want a compact list.
+**Then it was played, from a cleared browser, and five more faults fell out.**
+The first run, all five round 0 steps, weeks 1 to 6, the guide, Returns and the
+playtest panel — no help, as a beginner would. `f7f7500` beat 5 gave away beat
+6's twist; `fcaf261` beat 7's button named a screen it did not open; `046f834`
+**"Pick your square" was still there** — the one item on the owner's own list of
+five specifics that never got built, now "Brand positioning" with the term
+defined once in the chapter its `why?` opens; `bb98ada` step 4 drew two
+identical `why?` buttons side by side onto different chapters; `14d0c05` beat 7
+promised a `why?` beside every word it had taught, and the first screen after
+round 0 carries two, beside none of impressions, clicks, cost per click or
+conversions.
+
+**What playing PROVED, which no test had:** at week 3 the dashboard said week 2
+rose as conversions landed and week 1 fell as returns came back — beats 5 and 6
+of the first run, arriving in the game. Pressing Playtest at week 1 asks the two
+questions, so the instrument's hole is shut in play. Search terms correctly
+flagged a ₹5,119-per-sale query against a ₹386 average, on fractional sales.
+
+**Next, none blocking:** the owner reading the twenty-two chapters; **whether
+Your week's six figures want `why?` links of their own** — that is new links
+across the dashboard, not a wording change, which is why beat 7's promise was
+softened instead; the message project's part 2 (images from week 9); what the
+drawn landing page shows for its remaining rungs; whether sixty keywords want a
+compact list.
 
 **When the next playtest goes out,** tag the live build the same day —
 `playtest-4` is used, so the next is **`playtest-5`** — and read *Running a
