@@ -80,12 +80,26 @@ of the first run, arriving in the game. Pressing Playtest at week 1 asks the two
 questions, so the instrument's hole is shut in play. Search terms correctly
 flagged a ₹5,119-per-sale query against a ₹386 average, on fractional sales.
 
-**Next, none blocking:** the owner reading the twenty-two chapters; **whether
-Your week's six figures want `why?` links of their own** — that is new links
-across the dashboard, not a wording change, which is why beat 7's promise was
-softened instead; the message project's part 2 (images from week 9); what the
-drawn landing page shows for its remaining rungs; whether sixty keywords want a
-compact list.
+**Then the guide gained its twenty-third chapter** (`b30a3f3`). Adding the
+`why?` links the playthrough asked for turned up a bigger hole: **net profit,
+return on ad spend and cost per conversion were defined in none of the other
+twenty-two** — they appeared only as the names of Google's bidding strategies.
+Three of the six figures a player reads twelve times had no chapter at all.
+*What your week's figures mean* is that chapter, and it opens GOING DEEPER,
+because what the figures ARE comes before why they move. All six figures now
+carry a `why?`.
+
+**Read this before touching that chapter.** Its first draft said Google cannot
+report profit. It can — "About conversion values" gives *"sales revenue or
+profit margins"* as Google's own examples of what to report — and the claim was
+caught only by fetching the source instead of trusting memory. The true
+difference is narrower and is in the block: here you do not choose what a
+conversion is worth, and nobody uploads the return. A test holds the chapter to
+not making the false claim again.
+
+**Next, none blocking:** the owner reading the twenty-three chapters; the
+message project's part 2 (images from week 9); what the drawn landing page
+shows for its remaining rungs; whether sixty keywords want a compact list.
 
 **When the next playtest goes out,** tag the live build the same day —
 `playtest-4` is used, so the next is **`playtest-5`** — and read *Running a
