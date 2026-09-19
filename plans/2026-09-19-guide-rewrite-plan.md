@@ -402,7 +402,7 @@ Message: *"Say what the 55% is counting, everywhere the figure is quoted"*.
 - Modify: `ui/guide/chapters.js`
 - Test: `tests/guide.test.js`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 const sentences = (text) => text.split(/(?<=[.:;])\s+/).map((s) => s.trim()).filter(Boolean);
@@ -452,7 +452,7 @@ describe('a beginner can parse a sentence of it', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```bash
 npm test -- guide
@@ -461,7 +461,7 @@ npm test -- guide
 Expected: many failures, most of them rule 3. **Read the list and keep it** —
 it is the work.
 
-- [ ] **Step 3: Rewrite, one chapter at a time**
+- [x] **Step 3: Rewrite, one chapter at a time**
 
 Work down the list. For each half: split the long sentence, move the
 qualification after the claim, and lift the topic sentence to the front.
@@ -472,7 +472,7 @@ what "after" looks like.
 without dropping something true, split it into two sentences. If it still
 cannot, stop and say so: that is a claim needing the owner, not a rewrite.
 
-- [ ] **Step 4: Run the suite, green**
+- [x] **Step 4: Run the suite, green**
 
 ```bash
 npm test
@@ -481,7 +481,7 @@ npm test
 **`tests/guide.test.js` already proves every cited DECISIONS entry exists.** A
 rewrite must not drop a citation, and this is what catches it.
 
-- [ ] **Step 5: Re-read every chapter that cites a changed entry**
+- [x] **Step 5: Re-read every chapter that cites a changed entry**
 
 `CLAUDE.md`: *"The field guide cites DECISIONS, and a green test does not mean
 it agrees."* Nothing in DECISIONS changes here, so nothing needs re-reading —
@@ -489,7 +489,7 @@ but the reverse check does apply: **read each rewritten chapter against the
 entry it cites**, because a shortened sentence is the easiest place to lose a
 qualification that the entry depends on.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Message: *"Hold every sentence in the guide to something a beginner can parse"*.
 Body: the before and after medians, and the count of halves that moved.

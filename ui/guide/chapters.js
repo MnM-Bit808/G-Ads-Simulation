@@ -200,8 +200,8 @@ export const CHAPTERS = Object.freeze({
     // moves. Said in one clause ("adds a conversion to Monday, on Friday") it is
     // true and reads as a typo — which the owner caught by playing it, in the one
     // chapter whose whole job is why a number changes after you have read it.
-    real: () => 'Google Ads dates a conversion by the click that led to it, not by the day '
-      + 'of the sale. Someone who clicks on Monday and buys on Friday has that sale counted '
+    real: () => 'Google Ads dates a conversion by the click that led to it. '
+      + 'Not by the day of the sale. Someone who clicks on Monday and buys on Friday has that sale counted '
       + 'on Monday, the day of the click. Monday’s figures change on Friday — days after you '
       + 'read them. So your newest days always look weakest: their spend is counted '
       + 'in full, but many of their buyers have not bought yet. Depending on the conversion '
@@ -252,12 +252,15 @@ export const CHAPTERS = Object.freeze({
 
   cashOnDelivery: chapter({
     title: 'Cash on delivery, and where you advertise',
-    real: () => 'Most Indian online orders are still paid in cash at the door, 58–65% by '
-      + 'ClickPost’s count, and cash parcels are refused far more often than prepaid ones: '
-      + 'GoKwik reports about 26% against under 2%, and in one festive quarter Unicommerce saw '
-      + '58% of cash orders come back against under 15% of prepaid ones. A refused parcel costs '
-      + '₹150–300 in freight. Google Ads cannot see how a customer pays. What it offers is '
-      + 'place: you can raise or lower bids by location, from −90% to +900%, though not under '
+    real: () => 'Most Indian online orders are still paid in cash at the door. '
+      + 'ClickPost puts it at 58–65%. '
+      + 'Cash parcels are refused far more often than prepaid ones: GoKwik reports about 26% '
+      + 'against under 2%. '
+      + 'In one festive quarter Unicommerce saw 58% of cash orders come back, against under '
+      + '15% of prepaid ones. '
+      + 'A refused parcel costs ₹150–300 in freight. '
+      + 'Google Ads cannot see how a customer pays. What it offers is place: '
+      + 'you can raise or lower bids by location, from −90% to +900%, though not under '
       + 'Smart Bidding strategies.',
     realSources: [INDIA.firstResort, INDIA.unicommerce, GOOGLE.bidAdjustments],
     needs: ['bidCap'],
@@ -279,12 +282,14 @@ export const CHAPTERS = Object.freeze({
 
   counterfactuals: chapter({
     title: 'What only a simulation can tell you',
-    real: () => 'Google Ads never sees what would have happened. When your budget runs out, it '
-      + 'reports the share of searches you missed because of it, as impression share lost to '
-      + 'budget, and even the searches you were eligible for are an estimate. Its bid and budget '
-      + 'simulators go further, estimating from the last 7 days of auction data how your ads '
-      + 'might have performed with more money, and they warn that conversions are the hardest '
-      + 'part to estimate. Everything it tells you about the road not taken is a projection.',
+    real: () => 'Google Ads never sees what would have happened. '
+      + 'When your budget runs out it reports the share of searches you missed because of it, '
+      + 'as impression share lost to budget. '
+      + 'Even the searches you were eligible for are an estimate. '
+      + 'Its bid and budget simulators go further, estimating from the last 7 days of auction '
+      + 'data how your ads might have performed with more money. '
+      + 'They warn that conversions are the hardest part to estimate. '
+      + 'Everything it tells you about the road not taken is a projection.',
     realSources: [GOOGLE.impressionShareData, GOOGLE.impressionShare, GOOGLE.simulators],
     game: () => 'This game can re-run a week exactly. '
       + 'The budget "what if" re-runs each week with only your own budget lifted to what was '
@@ -308,14 +313,15 @@ export const CHAPTERS = Object.freeze({
     title: 'How kind this market is',
     real: () => 'Published benchmarks for apparel search ads do not agree, even on one page. '
       + 'One industry page gives apparel search ads a click-through rate of 3.2% and a '
-      + 'conversion rate of 3.8% in its table by campaign type, but 6.8% and 4.0% as its '
-      + 'headline averages, with a return on ad spend of 4.2×. An Indian agency reports ₹8–40 '
+      + 'conversion rate of 3.8% in its table by campaign type. '
+      + 'But 6.8% and 4.0% as its headline averages, with a return on ad spend of 4.2×. '
+      + 'An Indian agency reports ₹8–40 '
       + 'a click on category searches for D2C brands, and returns of 4.5–8× on its own '
       + 'campaigns. Neither is Indian search data from a named dataset, so treat every one of '
       + 'these as a rough range rather than a fact.',
     realSources: [INDUSTRY.ppcChief, INDIA.balistro],
-    game: () => 'Measured across many markets, ads here are clicked, and clicks buy, at least '
-      + 'as often as those benchmarks. '
+    game: () => 'This market is kind, and it was measured across many. '
+      + 'Ads here are clicked, and clicks buy, at least as often as those benchmarks. '
       + 'A player bidding sensibly earns returns above the Indian range, and made money in '
       + 'every market measured. A careless player can still lose money.',
     departs: [
@@ -352,9 +358,10 @@ export const CHAPTERS = Object.freeze({
 
   broadMatch: chapter({
     title: 'How far broad match wanders',
-    real: () => 'Exact match reaches searches with the same meaning or intent as your keyword, '
-      + 'phrase match those that include its meaning, and broad match searches related to it, '
-      + 'which can include ones that do not carry its meaning at all. Google says it is critical '
+    real: () => 'Exact match reaches searches with the same meaning or intent as your keyword. '
+      + 'Phrase match reaches those that include its meaning. '
+      + 'Broad match reaches searches related to it, which can include ones that do not carry '
+      + 'its meaning at all. Google says it is critical '
       + 'to use Smart Bidding with broad match. The search terms report shows the searches your '
       + 'ad actually appeared on, and a term that is not yours becomes a negative keyword. '
       + 'Negatives do not match close variants, so plurals and synonyms have to be added '
@@ -380,8 +387,9 @@ export const CHAPTERS = Object.freeze({
 
   qualityScore: chapter({
     title: 'What the Quality Score is, and is not',
-    real: () => 'Google Ads gives each keyword a Quality Score from 1 to 10, a diagnostic of '
-      + 'how your ad quality compares to other advertisers. Three parts make it up: expected '
+    real: () => 'Google Ads gives each keyword a Quality Score from 1 to 10. '
+      + 'It is a diagnostic of how your ad quality compares to other advertisers. '
+      + 'Three parts make it up: expected '
       + 'clickthrough rate, the likelihood your ad is clicked when shown; ad relevance, how '
       + 'closely your ad matches the intent behind a search; and landing page experience, how '
       + 'relevant and useful your page is to people who click. Each is rated above average, '
@@ -396,8 +404,9 @@ export const CHAPTERS = Object.freeze({
       + 'It counts only the keyword’s own literal search, in finished weeks. '
       + 'So a better ad counts in the very next auction, in your position and its price, while '
       + 'the score catches up late or never. '
-      + 'Each part has three levels against everyone on the same search, so a real improvement '
-      + 'can leave it unmoved, and landing page reads above average only rarely. '
+      + 'Each part has three levels, against everyone on the same search. '
+      + 'So a real improvement can leave it unmoved, and landing page reads above average '
+      + 'only rarely. '
       + `A keyword has no score until its own search earns ${qsImpressions} impressions.`,
     departs: [
       'The overall score comes from the three ratings through a table this game invented.',
@@ -410,11 +419,12 @@ export const CHAPTERS = Object.freeze({
 
   ownName: chapter({
     title: 'Defending your own name',
-    real: () => 'Google’s trademark policy does not restrict using a trademark as a keyword, so '
-      + 'a rival may bid on your brand’s name and appear when people search for it. What the '
-      + 'policy restricts is the ad itself: a direct competitor using your trademark in its ad '
-      + 'text, or any ad using it in a confusing or misleading way, subject to local trademark '
-      + 'law. So your own name is an auction like any other, and one you can lose.',
+    real: () => 'Google’s trademark policy does not restrict using a trademark as a keyword. '
+      + 'So a rival may bid on your brand’s name and appear when people search for it. '
+      + 'What the policy restricts is the ad itself: '
+      + 'a direct competitor using your trademark in its ad text. '
+      + 'Or any ad using it in a confusing or misleading way, subject to local trademark law. '
+      + 'So your own name is an auction like any other, and one you can lose.',
     realSources: [GOOGLE.trademarks],
     needs: ['ownerConv', 'poacherConv'],
     game: ({ ownerConv, poacherConv }) => 'Every brand here has its own search, and any '
@@ -434,17 +444,17 @@ export const CHAPTERS = Object.freeze({
 
   smartBidding: chapter({
     title: 'Smart bidding has to learn',
-    real: () => 'Smart Bidding, which covers Target CPA, Target ROAS, Maximise conversions and '
-      + 'Maximise conversion value, sets a bid for every auction from signals such as the '
-      + 'device, the place, the time and the search itself. After a new strategy or a changed '
-      + 'setting it shows as learning, and Google says it can take up to around 50 conversions '
-      + 'or 3 conversion cycles to calibrate. It suggests judging results over a month or '
-      + 'longer, with at least 30 conversions.',
+    real: () => 'Smart Bidding sets a bid for every auction. '
+      + 'It covers Target CPA, Target ROAS, Maximise conversions and Maximise conversion value. '
+      + 'The bid comes from signals such as the device, the place, the time and the search itself. '
+      + 'After a new strategy or a changed setting it shows as learning. '
+      + 'Google says it can take up to around 50 conversions or 3 conversion cycles to calibrate. '
+      + 'It suggests judging results over a month or longer, with at least 30 conversions.',
     realSources: [GOOGLE.smartBidding, GOOGLE.learning],
     needs: ['learningWeeks', 'learningError'],
-    game: ({ learningWeeks, learningError }) => 'The strategies that predict conversions '
-      + 'estimate each click’s chance of a sale from your own conversions that have already '
-      + 'landed, never from the truth. '
+    game: ({ learningWeeks, learningError }) => 'A strategy here guesses, and never knows. '
+      + 'The ones that predict conversions estimate each click’s chance of a sale from your '
+      + 'own conversions that have already landed, never from the truth. '
       + 'So they start out wrong and improve with volume. '
       + 'Switching strategy, changing its target or moving position starts a learning period of '
       + `${learningWeeks} weeks, in which their predictions go wrong ${learningError} as much. `
@@ -459,8 +469,9 @@ export const CHAPTERS = Object.freeze({
 
   hours: chapter({
     title: 'Bidding by the hour',
-    real: () => 'Google Ads lets you raise or lower your bids by day and hour through the ad '
-      + 'schedule, from −90% to +900%. Adjustments usually multiply, and together they cannot raise a '
+    real: () => 'Google Ads lets you raise or lower your bids by day and hour. '
+      + 'The ad schedule does it, from −90% to +900%. '
+      + 'Adjustments usually multiply, and together they cannot raise a '
       + 'bid by more than 900%. Your ads follow the days and times the schedule sets, '
       + 'so to stop showing at an hour you leave it out. With Smart Bidding strategies such as '
       + 'Target CPA, Target ROAS and Maximise conversions, schedule adjustments are not used at '
@@ -482,9 +493,9 @@ export const CHAPTERS = Object.freeze({
 
   writers: chapter({
     title: 'Who writes the ad',
-    real: () => 'A search ad in Google Ads is built from headlines and descriptions: up to 15 '
-      + 'headlines of up to 30 characters and 4 descriptions of up to 90, which Google '
-      + 'assembles into combinations, testing them to learn which are most relevant. At least '
+    real: () => 'A search ad in Google Ads is built from headlines and descriptions: '
+      + 'up to 15 headlines of up to 30 characters, and 4 descriptions of up to 90. '
+      + 'Google assembles them into combinations, testing which are most relevant. At least '
       + 'one headline and one description show at a time. Two of Quality Score’s three parts '
       + 'are about the ad: expected clickthrough rate, the likelihood it is clicked when shown, '
       + 'and ad relevance, how closely it matches the intent behind a search. The third, '
@@ -511,20 +522,21 @@ export const CHAPTERS = Object.freeze({
 
   weeklySplit: chapter({
     title: 'Splitting the month into weeks',
-    real: () => 'Google Ads budgets by the day: you set an average daily budget for each '
-      + 'campaign, the average amount it spends per day. On a particular day it may spend up to '
-      + 'twice that, for most campaigns, because Google leans spend toward the days of the month '
-      + 'when you are more likely to get clicks and conversions. Across a month it stays within '
-      + '30.4 times the daily figure.',
+    real: () => 'Google Ads budgets by the day. '
+      + 'You set an average daily budget for each campaign: the average amount it spends per day. '
+      + 'On a particular day it may spend up to twice that, for most campaigns. '
+      + 'Google moves spend toward the days of the month when you are more likely to get '
+      + 'clicks and conversions. '
+      + 'Across a month it stays within 30.4 times the daily figure.',
     realSources: [GOOGLE.dailyBudgets],
-    game: () => 'Each month’s money is a fixed amount you divide across its four weeks, '
-      + 'evenly unless you change the split. '
+    game: () => 'A month’s money is yours to divide across its four weeks. '
+      + 'It is a fixed amount, split evenly unless you change it. '
       + 'Within a week it is paced across the days and hours. '
       + 'A week spends what it was given and no more. '
       + 'Money left when the month ends is lost: nothing carries over, so hoarding cannot win.',
     departs: [
       'Google works from a daily average and moves spend between days for you.',
-      'Here the shape of the month is yours to set, which is why the split exists, and yours to read afterwards.',
+      'Here how the month is divided is yours to set, which is why the split exists, and yours to read afterwards.',
     ],
     cites: ['D10', '§13.2', 'D1'],
     yourAccount: 'split',

@@ -379,3 +379,57 @@ describe('a figure says what it is counting', () => {
     }
   });
 });
+
+describe('a beginner can parse a sentence of it', () => {
+  // A sentence ends at a full stop, a colon or a semicolon: the colon counts
+  // because a clause after one is a new thought to hold, which is what the
+  // bound is about.
+  const sentences = (text) => text.split(/(?<=[.:;])\s+/).map((s) => s.trim()).filter(Boolean);
+  const halves = Object.entries(CHAPTERS).flatMap(([id, c]) => [
+    [`${id}.real`, c.real(FIGURES)], [`${id}.game`, c.game(FIGURES)],
+  ]);
+
+  // MEASURED 2026-09-19, before the rewrite: the median chapter's longest
+  // sentence ran to 32 words in its game half and 28 in its real one, with
+  // maxima of 41 and 40. Both testers who gave up called the guide too hard.
+  test.each(halves)('%s keeps every sentence to 25 words', (name, text) => {
+    for (const s of sentences(text)) {
+      expect(wordCount(s), `${name}: ${s}`).toBeLessThanOrEqual(25);
+    }
+  });
+
+  // A topic sentence you can act on, before any qualification. Before the
+  // rewrite: 4 of 13 game halves and 6 of 13 real ones.
+  test.each(halves)('%s opens in 15 words or fewer', (name, text) => {
+    expect(wordCount(sentences(text)[0]), `${name}: ${sentences(text)[0]}`).toBeLessThanOrEqual(15);
+  });
+
+  // SEEDED FROM WHAT IS IN THE FILE, not invented: `shape` twice, `lean` as a
+  // noun twice, `stack` as a verb twice, and `departs` nine times. It is a
+  // ratchet — a word joins the first time a reader trips on one, and never
+  // leaves.
+  const BANNED = [
+    [/\bshapes?\b/i, 'a distribution called a shape'],
+    [/\bleans?\b/i, 'lean, as a noun'],
+    [/\bstacks?\b/i, 'stack, as a verb'],
+    [/\bdeparts?\b/i, 'departs — it is a field now, not a word'],
+  ];
+  test.each(halves)('%s uses none of the words a reader tripped on', (name, text) => {
+    for (const [pattern, why] of BANNED) {
+      expect(pattern.test(text), `${name} uses ${why}`).toBe(false);
+    }
+  });
+
+  test('the departures follow the same rules as the halves', () => {
+    for (const id of Object.keys(CHAPTERS)) {
+      for (const line of CHAPTERS[id].departs.map((entry) => entry(FIGURES))) {
+        for (const s of sentences(line)) {
+          expect(wordCount(s), `${id}: ${s}`).toBeLessThanOrEqual(25);
+        }
+        for (const [pattern, why] of BANNED) {
+          expect(pattern.test(line), `${id} uses ${why}`).toBe(false);
+        }
+      }
+    }
+  });
+});
