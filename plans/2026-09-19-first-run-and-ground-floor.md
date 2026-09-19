@@ -312,6 +312,14 @@ sentences out of drawing modules. Six links become roughly thirty.
 
 ## 6. The rewrite
 
+> **Designed out in full on 2026-09-19:** `plans/2026-09-19-guide-rewrite.md`.
+> It carries the `departs` contract, the worked rewrite of both chapters the
+> testers named, and the finding this section did not have — the five chapters
+> that declare no departure all state one inside their prose, unlabelled, so
+> this is pulling departures OUT rather than adding them. It also moved ahead of
+> the ground floor, whose `then` hands a beginner onward into these chapters.
+> Where the two differ, that doc is later and wins.
+
 Five rules, applying to `ui/guide/` and the new ground-floor chapters only.
 `HANDOVER.md`, `DECISIONS.md`, commit messages and the rest of `ui/` keep their
 voice.
