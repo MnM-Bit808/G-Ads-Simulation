@@ -177,6 +177,16 @@ a test holds every label to being a rung its ladder really has.
   week's pictures and last week's, pure, because capital lands by going live and
   nothing records "this landed today".
 
+**PLAYED STRAIGHT AFTER, AND THE PICTURE WAS STILL WRONG** (`3297bbc`). The
+garment's svg paints its own dark rectangle across the whole viewBox, so
+`product shots` lit the box BEHIND that plate: the rung whose entire job is
+putting the garment on white changed almost nothing. **The DOM was right the
+whole time** — the class read `yad-shot lit`, and the tests passed. Only the
+screenshot showed it. The plate is optional now and the lit garment drops it.
+The arrival tag also landed 1px on the product title, measured, and now sits on
+its row rather than above it (`b6c5396`). **A green DOM check is not a picture:
+for anything drawn, look at it.**
+
 **Next, none blocking:** whether the round-0 allocation should rise (above, I29);
 the owner reading the twenty-three chapters; the message project's part 2
 (images from week 9); whether sixty keywords want a compact list.
