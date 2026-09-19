@@ -135,10 +135,37 @@ actually open rather than assuming both. Measured: amber 9.08:1, the question
 13.83:1; one 76px row at 1400px, 133px at 375px where sharing the row made it
 280px.
 
-**Next, none blocking:** the owner reading the twenty-three chapters; the
-message project's part 2 (images from week
-9); what the drawn landing page shows for its remaining rungs; whether sixty
-keywords want a compact list.
+**THE LANDING PAGE GRADE WAS BROKEN, and the owner found it by playing**
+(`3cb1739`, DECISIONS I40). Round 0's capital graded the page 10/10 from week 4
+off ONE purchase, and a size guide bought beside it moved nothing. Five points
+are buyable above the base of 5; the top rung of the page ladder alone took all
+five — speed and reviews as sentences, plus the whole `landingPageBonus` — so
+every combination above it computed 11 against a cap of 10 and always discarded
+the size guide's point. `CAPEX_LANDING_PAGE_MAX_POINTS` 3 to 2 closes it
+exactly: 5 + 3 + 2 = 10, nothing overflows, and 10 now needs two targets.
+Measured over 72 markets each way; only page purchases move.
+
+**TWO THINGS THE LEDGER HAD SLIGHTLY WRONG, both corrected in I40:**
+
+- **I38 says rivals' grades do not move.** True of the description grade only.
+  `buildEntryPlans` applies the bonus to EVERY advertiser (`engine/round.js`),
+  so a rival holding capital on its page is regraded too. Largest rival median
+  move from this change: -2.89%.
+- **I29's property is dead, and its test was green on a fiction** (`7afbec0`).
+  "The best page no longer costs you photography" was asserted by iterating
+  photography over the SHARED rungs; I30 gave it its own ladder in September,
+  so the test offered a Rs 25,000 purchase `featureAt` resolves to "none". On
+  the real ladder the property is false, and was false before today's change.
+  **OPEN for the owner** — raise the allocation, or accept the trade came back —
+  and carried as a `test.todo` rather than decided.
+
+**Next, none blocking:** **the drawn landing page shows only 2 of its 12 rungs**
+(`DRAWN_RUNGS` holds `reviews` to stars and `a chart` to the size chart, and
+nothing else — all three photography rungs are invisible); the owner asked for
+this on 2026-09-19 and it wants a design conversation before any code. Then:
+whether the round-0 allocation should rise (above); the owner reading the
+twenty-three chapters; the message project's part 2 (images from week 9);
+whether sixty keywords want a compact list.
 
 **When the next playtest goes out,** tag the live build the same day —
 `playtest-4` is used, so the next is **`playtest-5`** — and read *Running a
