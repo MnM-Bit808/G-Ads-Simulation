@@ -25,17 +25,23 @@ function ordinal(n) {
 }
 
 export const WEEK = Object.freeze({
-  spend: line('label', 'Spend'),
+  // EVERY ONE OF THE SIX CARRIES A why?, added 2026-09-19. Played from a
+  // cleared browser, this is the first screen after round 0 and it had two
+  // links on the whole page, beside none of the figures — while the first run
+  // that precedes it spends seven beats teaching click, cost per click and
+  // conversion. Net profit, ROAS and cost per conversion had no chapter at all
+  // until `readingTheWeek`, which is why three of the six open the same one.
+  spend: line('label', 'Spend', { why: 'budget' }),
   clicks: line('label', ({ clicks, n }) => (n === 1 ? `${clicks} click` : `${clicks} clicks`)),
-  cpc: line('label', 'Avg CPC'),
+  cpc: line('label', 'Avg CPC', { why: 'bidding' }),
   impressions: line('label', ({ impressions, n }) => (n === 1 ? `${impressions} impression` : `${impressions} impressions`)),
-  conversions: line('label', 'Conversions'),
+  conversions: line('label', 'Conversions', { why: 'attributionLag' }),
   toArrive: line('label', ({ pending }) => `${pending} still to arrive`),
-  netProfit: line('label', 'Net profit'),
+  netProfit: line('label', 'Net profit', { why: 'readingTheWeek' }),
   returnsNotIn: line('label', 'returns not in yet'),
-  netRoas: line('label', 'Net ROAS'),
+  netRoas: line('label', 'Net ROAS', { why: 'readingTheWeek' }),
   gross: line('label', ({ roas }) => `gross ${roas}`),
-  cpa: line('label', 'CPA'),
+  cpa: line('label', 'CPA', { why: 'readingTheWeek' }),
   perConversion: line('label', 'per conversion'),
 
   weeksTitle: line('label', 'Every week so far'),

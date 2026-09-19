@@ -198,6 +198,33 @@ describe('the chapters', () => {
     expect(CHAPTERS.returnsSplit.cites).toContain('F14');
   });
 
+  // THE GAP PLAYING IT FOUND (2026-09-19). Your week's six figures are the
+  // first thing after round 0 and a player reads them twelve times. Net profit,
+  // ROAS and cost per conversion appeared in no chapter at all — only as the
+  // names of Google's bidding strategies inside `smartBidding` and `hours`.
+  test('the three figures that had no chapter now have one', () => {
+    const c = CHAPTERS.readingTheWeek;
+    const said = `${c.real(FIGURES)} ${c.game(FIGURES)}`.toLowerCase();
+    for (const term of ['net profit', 'return on ad spend', 'cost per conversion']) {
+      expect(said, `readingTheWeek never says ${term}`).toContain(term);
+    }
+    // It hangs off the six figures themselves, not off some other card.
+    expect(c.yourAccount).toBe('headline');
+  });
+
+  // It would be easy, and wrong, to say Google cannot report profit. Its own
+  // "About conversion values" gives "sales revenue or profit margins" as the
+  // examples of what to report, so the first draft of this chapter was false.
+  // What is true is narrower: here you do not choose, and nobody uploads the
+  // return (Google Ads Help: About conversion adjustments).
+  test('it does not claim Google cannot report profit', () => {
+    const c = CHAPTERS.readingTheWeek;
+    const said = [c.real(FIGURES), c.game(FIGURES), ...c.departs.map((d) => d(FIGURES))].join(' ');
+    expect(said).not.toMatch(/Google (Ads )?(cannot|can't|never) (report|show|know)[^.]*profit/i);
+    expect(c.real(FIGURES)).toMatch(/sales revenue or profit margins/);
+    expect(c.realSources.map((s) => s.url)).toContain('https://support.google.com/google-ads/answer/7686447');
+  });
+
   test('the chapters with a bid adjustment say no bid passes the cap, and cite it (D13)', () => {
     // Where and when's bars stop at the cap and say so (2026-09-15); the guide
     // behind their "why?" links has to agree, from the constant itself.
@@ -492,7 +519,9 @@ describe('the guide has a ground floor as well as its nuance chapters', () => {
   test('the book is one list, the ground floor first', () => {
     expect(CONTENTS).toEqual([...START_HERE, ...GOING_DEEPER]);
     expect(START_HERE.length).toBeGreaterThan(0);
-    expect(GOING_DEEPER).toHaveLength(13);
+    // 14 since 2026-09-19: `readingTheWeek` was added because playing the game
+    // showed net profit, ROAS and CPA were defined in none of the other 22.
+    expect(GOING_DEEPER).toHaveLength(14);
     expect(CONTENTS[START_HERE.length]).toBe(GOING_DEEPER[0]);
   });
 

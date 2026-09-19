@@ -20,6 +20,8 @@ import { TOTAL_ROUNDS } from '../../engine/constants.js';
 import { whyButton } from '../guide/drawer.js';
 import { creativeOutlook } from '../dashboard.js';
 import { WEEK } from '../words/week.js';
+import { GUIDE } from '../words/guide.js';
+import { CHAPTERS } from '../guide/chapters.js';
 import {
   weekFigures, weekBars, revision, chartRange, barPlace, impressions,
 } from './read.js';
@@ -33,14 +35,29 @@ const money = (paise) => (paise < 0 ? `−${rupees(-paise)}` : rupees(paise));
 const signed = (paise) => (paise < 0 ? `−${rupees(-paise)}` : `+${rupees(paise)}`);
 const percent = (fraction) => `${100 * fraction}%`;
 
-function stat(label, value, sub, extra = null) {
+/**
+ * One figure, with the chapter that says what it is beside its name.
+ *
+ * Three of the six open the same chapter, so each button's label names its own
+ * figure: without that a screen reader hears "open the field guide: what your
+ * week's figures mean" three times and cannot tell which is which.
+ */
+function stat(said, value, sub, extra = null, openGuide = null) {
   const box = el('div', 'yw-stat');
-  add(box, el('span', 'yw-label', label), value, extra, sub ? el('span', 'yw-sub', sub) : null);
+  const label = el('span', 'yw-label', said());
+  const why = whyButton(said, openGuide);
+  if (why) {
+    why.setAttribute('aria-label', GUIDE.whyForFigure({
+      figure: said(), title: CHAPTERS[said.why].title,
+    }));
+    add(label, why);
+  }
+  add(box, label, value, extra, sub ? el('span', 'yw-sub', sub) : null);
   return box;
 }
 const big = (text) => el('strong', 'yw-big', text);
 
-function sixFigures(row) {
+function sixFigures(row, openGuide) {
   const f = weekFigures(row);
   const box = el('div', 'yw-figures');
   box.dataset.slot = 'headline';
@@ -52,13 +69,17 @@ function sixFigures(row) {
   fill.style.width = percent(f.landedShare);
   landed.append(fill, el('span'));
   box.append(
-    stat(WEEK.spend(), big(rupees(f.spendPaise)), WEEK.clicks({ clicks: whole(f.clicks), n: f.clicks })),
-    stat(WEEK.cpc(), big(rupees(f.cpcPaise)), WEEK.impressions({ impressions: whole(f.impressions), n: f.impressions })),
-    stat(WEEK.conversions(), big(f.conversions.toFixed(1)),
-      f.pending > 0 ? WEEK.toArrive({ pending: f.pending.toFixed(1) }) : null, landed),
-    stat(WEEK.netProfit(), net, f.conversions > 0 ? WEEK.returnsNotIn() : null),
-    stat(WEEK.netRoas(), big(ratio(f.netRoas)), WEEK.gross({ roas: ratio(f.grossRoas) })),
-    stat(WEEK.cpa(), big(f.cpaPaise == null ? '—' : rupees(f.cpaPaise)), WEEK.perConversion()),
+    stat(WEEK.spend, big(rupees(f.spendPaise)),
+      WEEK.clicks({ clicks: whole(f.clicks), n: f.clicks }), null, openGuide),
+    stat(WEEK.cpc, big(rupees(f.cpcPaise)),
+      WEEK.impressions({ impressions: whole(f.impressions), n: f.impressions }), null, openGuide),
+    stat(WEEK.conversions, big(f.conversions.toFixed(1)),
+      f.pending > 0 ? WEEK.toArrive({ pending: f.pending.toFixed(1) }) : null, landed, openGuide),
+    stat(WEEK.netProfit, net, f.conversions > 0 ? WEEK.returnsNotIn() : null, null, openGuide),
+    stat(WEEK.netRoas, big(ratio(f.netRoas)),
+      WEEK.gross({ roas: ratio(f.grossRoas) }), null, openGuide),
+    stat(WEEK.cpa, big(f.cpaPaise == null ? '—' : rupees(f.cpaPaise)),
+      WEEK.perConversion(), null, openGuide),
   );
   return box;
 }
@@ -276,7 +297,7 @@ export function renderWeekSection({ game, openGuide }) {
   const weeks = weeksCard(game, openGuide);
   const split = el('div', 'yw-row');
   split.append(weeks.card, shareCard(row, openGuide));
-  add(node, sixFigures(row), copyNote(game, openGuide), split);
+  add(node, sixFigures(row, openGuide), copyNote(game, openGuide), split);
 
   let timer = null;
   function play() {

@@ -230,6 +230,14 @@ const GOOGLE = {
     label: 'Google Ads Help: About average daily budgets',
     url: 'https://support.google.com/google-ads/answer/6385083',
   },
+  targetRoas: {
+    label: 'Google Ads Help: About Target ROAS bidding',
+    url: 'https://support.google.com/google-ads/answer/6268637',
+  },
+  conversionValues: {
+    label: 'Google Ads Help: About conversion values',
+    url: 'https://support.google.com/google-ads/answer/3419241',
+  },
 };
 
 const INDIA = {
@@ -382,6 +390,43 @@ export const CHAPTERS = Object.freeze({
   // GOING DEEPER: why a control behaves oddly, for a reader who has met it.
   // ---------------------------------------------------------------------
 
+  // THE FIGURES A PLAYER READS TWELVE TIMES, and until 2026-09-19 the guide
+  // defined none of them. Found by playing: the first screen after round 0
+  // shows net profit, ROAS and CPA, and searching all twenty-two chapters for
+  // any of the three turned up only the names of Google's bidding strategies.
+  // The ground floor could not take it — `basic()` requires a round 0 step, and
+  // reading your week belongs to none — and there is a real departure here, so
+  // it is a nuance chapter.
+  //
+  // WHAT THE SOURCES ACTUALLY SAY, fetched rather than remembered. The first
+  // draft of this chapter claimed Google cannot report profit. It can: "About
+  // conversion values" gives "sales revenue or profit margins" as its own
+  // examples of what to report. The true difference is narrower and is in the
+  // block below — you do not choose here, and nobody uploads the return.
+  readingTheWeek: chapter({
+    title: 'What your week’s figures mean',
+    real: () => 'Google Ads reports what you spent, how many conversions, and what they were worth. '
+      + 'Return on ad spend is that value divided by the spend. '
+      + 'You decide what a conversion is worth: Google’s own examples are sales revenue or profit margins. '
+      + 'Cost per conversion is the spend divided by the conversions. '
+      + 'A return only reaches these figures if you upload the adjustment yourself. '
+      + 'A restatement changes the value; a retraction takes the conversion away.',
+    realSources: [GOOGLE.targetRoas, GOOGLE.conversionValues, GOOGLE.adjustments],
+    game: () => 'Net profit is what the week actually made. '
+      + 'It is the margin on the orders that stuck, less the ad spend, less freight on parcels refused. '
+      + 'Net ROAS counts the orders that stuck; gross counts them all, before any came back. '
+      + 'Cost per conversion is the spend divided by the conversions, as Google’s is.',
+    departs: [
+      'You do not choose what a conversion is worth. Where your brand sits sets the order value and the margin.',
+      'Returns come back on their own. A real account sees them only when you upload the adjustment yourself.',
+      'Net profit has the ad spend already taken out. A conversion value in Google Ads does not.',
+      'These weekly figures never charge what you spent building the business. Only the final books do.',
+    ],
+    cites: ['I26', 'I28', 'F14', 'I39'],
+    yourAccount: 'headline',
+    related: ['attributionLag', 'returnsSplit'],
+  }),
+
   attributionLag: chapter({
     title: 'Why this week’s numbers keep moving',
     // Two days, two jobs: the day the sale is counted on, and the day the figure
@@ -407,7 +452,8 @@ export const CHAPTERS = Object.freeze({
     cites: ['I27', '§11.3', '§11.4'],
     yourAccount: 'revised',
     // Smart bidding learns only from conversions that have landed.
-    related: ['returnsSplit', 'smartBidding'],
+    // `readingTheWeek` says what the figures this one moves actually are.
+    related: ['readingTheWeek', 'returnsSplit', 'smartBidding'],
   }),
 
   returnsSplit: chapter({
@@ -747,8 +793,13 @@ export const START_HERE = Object.freeze([
   'adParts', 'landingPage', 'budget', 'capital',
 ]);
 
-/** The nuance chapters, in the order the book has always had them. */
+/**
+ * The nuance chapters. `readingTheWeek` opens them (added 2026-09-19): what the
+ * six figures ARE has to come before why they move, and both belong to the
+ * first screen a player meets after round 0.
+ */
 export const GOING_DEEPER = Object.freeze([
+  'readingTheWeek',
   'attributionLag', 'returnsSplit', 'cashOnDelivery', 'rankOrBudget', 'broadMatch',
   'qualityScore', 'writers', 'ownName', 'smartBidding', 'hours', 'weeklySplit',
   'counterfactuals', 'kindMarket',

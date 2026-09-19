@@ -12,6 +12,10 @@ import { line } from './line.js';
 export const GUIDE = Object.freeze({
   why: line('label', 'why?'),
   whyFor: line('label', ({ title }) => `Open the field guide: ${title}`),
+  // Where several figures share a chapter — Your week's net profit, ROAS and
+  // cost per conversion all open the same one — the figure has to be in the
+  // label, or a screen reader hears the same button three times in a row.
+  whyForFigure: line('label', ({ figure, title }) => `${figure}: open the field guide: ${title}`),
   name: line('label', 'Field guide'),
   contents: line('label', 'Contents'),
   close: line('label', 'Close the field guide'),

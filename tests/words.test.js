@@ -873,7 +873,11 @@ describe('no number is typed into a sentence', () => {
 describe('the Guide page says its own labels whole (ui/words/guide.js)', () => {
   // The Guide as a page (the owner's choice, 2026-09-15, design/guide/).
   // `step` is a ground-floor chapter's: which of round 0's five asks for it.
-  const FIGURES = { n: 4, of: 13, title: 'Lost to rank, or lost to budget', step: 3 };
+  // `figure` is the name of the figure a why? sits beside, for the labels that
+  // have to tell three buttons opening one chapter apart (Your week's six).
+  const FIGURES = {
+    n: 4, of: 13, title: 'Lost to rank, or lost to budget', step: 3, figure: 'Net ROAS',
+  };
 
   test('each renders with the figures it is given', () => {
     for (const [name, entry] of Object.entries(GUIDE)) {
@@ -1025,5 +1029,52 @@ describe('a why? is only real once something draws it', () => {
       const body = readFileSync(fileURLToPath(new URL(`../ui/roundzero/${file}`, import.meta.url)), 'utf8');
       expect(body.includes('whyButton('), `${file} draws no why at all`).toBe(true);
     }
+  });
+
+  // THE SAME RULE, ON THE FIRST SCREEN AFTER ROUND 0 (2026-09-19). Playing it
+  // showed Your week carried two why? links on the whole page and none on the
+  // six figures — while the first run before it spends seven beats teaching
+  // click, cost per click and conversion. The button is drawn by `stat`, which
+  // is handed the line itself, so this reads the drawing rather than the data.
+  const weekBody = readFileSync(fileURLToPath(new URL('../ui/week/render.js', import.meta.url)), 'utf8');
+
+  test('Your week draws its buttons from the line it is handed', () => {
+    expect(weekBody).toMatch(/function stat\([\s\S]*?whyButton\(/);
+  });
+
+  test('all six of Your week’s figures carry a why', () => {
+    for (const name of ['spend', 'cpc', 'conversions', 'netProfit', 'netRoas', 'cpa']) {
+      expect(WEEK[name].why, `WEEK.${name} carries no why`).toBeTruthy();
+    }
+  });
+
+  // Your week draws a why two ways: the six figures hand their line to `stat`,
+  // and the sentences under the chart call `whyButton` themselves. A line has
+  // to reach one of the two, or its why is data nobody can click.
+  test('every line on Your week that carries a why reaches a drawing', () => {
+    const drawn = [
+      ...(weekBody.match(/whyButton\([^;]*?\)/g) ?? []),
+      ...(weekBody.match(/stat\(\s*WEEK\.\w+/g) ?? []),
+    ];
+    const missing = [];
+    for (const [name, entry] of Object.entries(WEEK)) {
+      if (!entry.why) continue;
+      // A line chosen into a variable and then drawn — `let entry = WEEK.a;`
+      // then `whyButton(entry, …)` — counts too, as round 0's conditional
+      // `whyButton(x ? R0.a : R0.b)` does.
+      const ok = drawn.some((call) => call.includes(`WEEK.${name}`))
+        || new RegExp(`(said|entry) = [^;]*WEEK\\.${name}\\b`).test(weekBody);
+      if (!ok) missing.push(`WEEK.${name}`);
+    }
+    expect(missing, `carry a why nobody draws: ${missing.join(', ')}`).toEqual([]);
+  });
+
+  // Three of the six open one chapter, so the visible "why?" is identical on
+  // each. Without the figure in the label a screen reader cannot tell them
+  // apart (ui/words/guide.js, whyForFigure).
+  test('a figure sharing its chapter still says which figure it is', () => {
+    expect(weekBody).toContain('GUIDE.whyForFigure(');
+    const sharing = ['netProfit', 'netRoas', 'cpa'].map((n) => WEEK[n].why);
+    expect(new Set(sharing).size, `expected one shared chapter, got ${sharing.join(', ')}`).toBe(1);
   });
 });
