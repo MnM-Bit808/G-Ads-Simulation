@@ -329,7 +329,7 @@ export function demonstration()
 
 `rows` is sorted by ad rank, descending, shown first.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/firstRun.test.js`:
 
@@ -406,7 +406,7 @@ describe('the demonstration is a real auction, not a written one', () => {
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [x] **Step 2: Run it and watch it fail**
 
 ```bash
 npm test -- firstRun
@@ -414,7 +414,7 @@ npm test -- firstRun
 
 Expected: `Failed to resolve import "../ui/firstrun/auction.js"`.
 
-- [ ] **Step 3: Write `ui/firstrun/auction.js`**
+- [x] **Step 3: Write `ui/firstrun/auction.js`**
 
 ```js
 /**
@@ -539,7 +539,7 @@ export function demonstration() {
 needs it; if the code above compiles without it, remove the import — `no-unused-vars`
 will stop the build otherwise.
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [x] **Step 4: Run the test and watch it pass**
 
 ```bash
 npm test -- firstRun
@@ -549,7 +549,7 @@ Expected: PASS, all eight. **If "the runner-up pays less on a smaller bid" fails
 stop and tell the owner** — the run's central lesson has moved, and the beats and
 the artboards both rest on it.
 
-- [ ] **Step 5: Print the ladder and check it against the design**
+- [x] **Step 5: Print the ladder and check it against the design**
 
 ```bash
 node -e "import('./ui/firstrun/auction.js').then(({demonstration})=>{const d=demonstration();console.log(d.query, d.entered+'/'+d.of);for(const r of d.rows)console.log(r.position||'-', r.name, (r.bidPaise/100).toFixed(0), r.adRank.toFixed(1), (r.cpcPaise/100).toFixed(2));});"
@@ -562,7 +562,7 @@ Lumen 4 at ₹12.55, Torvi and Nira out, 6 of 9 entered.
 in the same commit** — the drawing may not say one thing while the code says
 another.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add ui/firstrun/auction.js tests/firstRun.test.js
