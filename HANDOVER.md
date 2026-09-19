@@ -159,13 +159,27 @@ Measured over 72 markets each way; only page purchases move.
   **OPEN for the owner** — raise the allocation, or accept the trade came back —
   and carried as a `test.todo` rather than decided.
 
-**Next, none blocking:** **the drawn landing page shows only 2 of its 12 rungs**
-(`DRAWN_RUNGS` holds `reviews` to stars and `a chart` to the size chart, and
-nothing else — all three photography rungs are invisible); the owner asked for
-this on 2026-09-19 and it wants a design conversation before any code. Then:
-whether the round-0 allocation should rise (above); the owner reading the
-twenty-three chapters; the message project's part 2 (images from week 9);
-whether sixty keywords want a compact list.
+**THE DRAWN PAGE NOW SHOWS NINE RUNGS, not two** (`7a69c8a`). Reviews drew
+stars and a size chart drew bars; the other ten rungs drew nothing, photography
+worst of all — the dearest ladder in the game, up to Rs 1,60,000, with a picture
+that never changed. `DRAWN_RUNGS` now carries three rungs per page ladder, and
+a test holds every label to being a rung its ladder really has.
+
+- **`faster` reads backwards, and that is the point.** Every other rung ADDS a
+  picture; this one says the page is finished, so a page below it draws as the
+  placeholders a visitor waits in front of. The first Rs 25,000 of page money is
+  what paints it, where it used to buy a sentence and no picture.
+- **The dearer size-guide rungs REPLACE the one below**, rather than stack: a
+  real page does not carry a bar chart and a table of the same sizes.
+- **Order confirmation still draws nothing, and a test holds it there** (I29).
+  If it ever appears on the page it has found a second route into quality score.
+- **`pageArrived` rings what landed this week** — the difference between this
+  week's pictures and last week's, pure, because capital lands by going live and
+  nothing records "this landed today".
+
+**Next, none blocking:** whether the round-0 allocation should rise (above, I29);
+the owner reading the twenty-three chapters; the message project's part 2
+(images from week 9); whether sixty keywords want a compact list.
 
 **When the next playtest goes out,** tag the live build the same day —
 `playtest-4` is used, so the next is **`playtest-5`** — and read *Running a
