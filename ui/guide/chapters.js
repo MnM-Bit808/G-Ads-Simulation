@@ -358,7 +358,14 @@ export const CHAPTERS = Object.freeze({
       + 'It is also where a visitor decides whether to buy at all. '
       + 'You do not write it here; you build it with capital in step 5.',
     sources: [GOOGLE.landingPages],
-    step: 4,
+    // STEP 5, NOT 4 (found reading the chapters, 2026-09-19). Step 4 names the
+    // landing page as Quality Score's third part and sends you on; the only
+    // why? that opens this chapter is on step 5's own "Landing page grade"
+    // (ui/roundzero/money.js), and step 5 is where the capital that builds it
+    // is spent. Labelled 4, the contents page sent a reader to a step where
+    // they could neither act on it nor find it — and the chapter's own last
+    // sentence already said step 5.
+    step: 5,
     then: 'qualityScore',
   }),
 

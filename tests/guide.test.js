@@ -529,6 +529,24 @@ describe('the guide has a ground floor as well as its nuance chapters', () => {
     for (const id of CONTENTS) expect(Object.keys(CHAPTERS), id).toContain(id);
   });
 
+  /**
+   * FOUND READING THE CHAPTERS, 2026-09-19. "Your landing page" was filed under
+   * step 4 and its own last sentence said step 5 — and step 5 was right: the
+   * only why? that opens it is on step 5's "Landing page grade", and step 5 is
+   * where the capital that builds the page is spent. The contents page was
+   * sending a reader to a step where they could neither act on it nor find it.
+   */
+  test('no chapter sends the reader to a step other than its own', () => {
+    const wrong = [];
+    for (const id of START_HERE) {
+      const c = CHAPTERS[id];
+      for (const said of c.plain(FIGURES).match(/step (\d)/g) ?? []) {
+        if (said !== `step ${c.step}`) wrong.push(`${id} is step ${c.step} and says "${said}"`);
+      }
+    }
+    expect(wrong, wrong.join('; ')).toEqual([]);
+  });
+
   test('the ground floor runs in the order round 0 asks', () => {
     const steps = START_HERE.map((id) => CHAPTERS[id].step);
     expect(steps).toEqual([...steps].sort((a, b) => a - b));
