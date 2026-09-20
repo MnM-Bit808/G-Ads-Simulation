@@ -50,9 +50,34 @@ that no advertiser may read *another's* private data; its own is its own.
 `returnRate` — the truth — for the reason in `DECISIONS.md` D2.
 
 **R4 — Every invented number lives in `constants.js`** tagged `DOCUMENTED`,
-`ESTIMATED`, `INVENTED` or `CALIBRATE`, and has an entry in `DECISIONS.md`.
-`CALIBRATE` means the value is provisional and governed by a calibration
-invariant in section 18.
+`ESTIMATED`, `INVENTED`, `DESIGNED` or `CALIBRATE`, and has an entry in
+`DECISIONS.md`. `CALIBRATE` means the value is provisional and governed by a
+calibration invariant in section 18.
+
+**`DESIGNED` was split out of `INVENTED` on 2026-09-20 (I44), and the
+distinction is the one this whole document rests on.** Both mean "we chose
+this". They differ in what a wrong value costs:
+
+- **`INVENTED`** asserts a magnitude in advertising that nobody sourced — how
+  much better position 1 is, how a rating becomes a Quality Score, how demand
+  moves through a day. **A wrong value here teaches something false**, which is
+  the failure this project exists to avoid.
+- **`DESIGNED`** is a rule of the game — how long a game runs, how many
+  advertisers are in it, what a purchase costs in game money, what a clamp
+  bounds. **A wrong value here makes a worse game.** It cannot make a false
+  claim, because it claims nothing about the world.
+
+Before the split, 57 of 79 constants read as `INVENTED`, which made the model
+sound far less sourced than it is: `TOTAL_ROUNDS = 12` was sitting in the same
+bucket as an invented conversion rate. **Any share quoted to a player is taken
+over world-claiming constants only** — `DOCUMENTED`, `ESTIMATED`, `INVENTED`,
+`CALIBRATE` — because a game rule is not one of the sizes a player is being
+warned about. `tests/guide.test.js` holds that denominator.
+
+**One exemption, and `tests/constants.test.js` names it so it cannot grow:**
+`SCHEMA_VERSION` carries no tag. It is a save format's version string, not a
+quantity anything modelled, so the question a tag answers cannot be put to it.
+A number you cannot source is `INVENTED` or `DESIGNED`, never exempt.
 
 **R5 — Simulation granularity and decision cadence are separate.** The engine
 simulates hourly. Advertisers decide weekly.
@@ -1551,40 +1576,69 @@ engine, so R6 is untouched.
 
 ### 18.1 Provenance table
 
-```js
-// DOCUMENTED
-HEADLINE_MAX_CHARS = 30
-DESCRIPTION_MAX_CHARS = 90
-DAILY_BUDGET_OVERSPEND_CAP = 2.0
+**This table listed three DOCUMENTED and three ESTIMATED until 2026-09-20,
+when there were nine and eight.** It predated the returns strand (G4, I34)
+entirely, so the spec understated its own sourcing by six constants while I44
+was arguing the count was misleading in the other direction. `PROVENANCE` in
+`constants.js` is the authority; this is a reading of it, and a reading goes
+stale. **Re-derive it rather than trust it** — `tests/guide.test.js` pins the
+DOCUMENTED set by name, which is the copy that cannot drift.
 
-// ESTIMATED — third-party analyses, no official source, they disagree
+```js
+// DOCUMENTED — Google, or a published Indian figure. 9 of them.
+HEADLINE_MAX_CHARS = 30, DESCRIPTION_MAX_CHARS = 90
+DAILY_BUDGET_OVERSPEND_CAP = 2.0
+SMART_BIDDING_MIN_CONVERSIONS = 30
+RTO_RATE_COD, RTO_RATE_PREPAID                          // what comes back
+POST_DELIVERY_RETURN_RATE, RTO_FREIGHT_PAISE
+PREPAID_DISCOUNT_CURVE
+
+// ESTIMATED — third-party analyses, no official source, they disagree; or
+// FITTED to a measurement this project made. 8 of them.
 POSITION_CTR_MULTIPLIERS = [1, 0.62, 0.42, 0.30]        // now MAX_SLOTS long
 ATTRIBUTION_LAG_DISTRIBUTION = [0.55, 0.28, 0.12, 0.05] // rounds 0..3, sums to 1
 QUALITY_WINDOW_ROUNDS = 13                              // ~90 days, converted
+LEARNING_ROUNDS = 2
+COD_SHARE_BY_PRICE_LOCATION, PREPAID_DISCOUNT_MAX_PAISE
+CAPEX_PHOTOGRAPHY_CURVE, WRITER_TIERS                   // fitted, not provisional
 
-// INVENTED — chosen for playability, no empirical basis
+// INVENTED — a claim about advertising that nobody sourced. 26 of them.
+// A wrong value here TEACHES SOMETHING FALSE.
 MAX_SLOTS = 4, TOP_SLOTS = 3
-MIN_INCREMENT_PAISE = 1
 DAY_OF_WEEK_CURVE, HOUR_PROFILES, HOURLY_INTENT_CURVE, PACING_REFERENCE_CURVE
-DAYPART_BLOCKS
-LEARNING_ROUNDS = 2, LEARNING_ERROR_MULTIPLIER = 2.5
-SMART_BIDDING_MIN_CONVERSIONS = 30, COLD_START_CONV_RATE
+LEARNING_ERROR_MULTIPLIER = 2.5, COLD_START_CONV_RATE
 RATING_UPPER_THRESHOLD = 1.10, RATING_LOWER_THRESHOLD = 0.90
 RATING_TO_SCORE_TABLE
 DEFAULT_UNGRADED_QUALITY = { expectedCtr: 3, adRelevance: 3, landingPage: 3 }
-QUALITY_MIN_IMPRESSIONS = 500
+QUALITY_MIN_IMPRESSIONS = 500, QUALITY_NOISE_SIGMA, QUALITY_FACTOR_RANGES
+RELEVANCE_INTENT_MULTIPLIERS, CONTEXT_FACTOR_CURVE
 POSITION_ECONOMICS, PURPOSE_MODIFIERS                   // 4.2, 4.3
-MONTHLY_BUDGET_PAISE = 16800000
-RANK_BUDGET_MULTIPLIERS                                 // 13.1
-CAPEX_ALLOCATION_PAISE = 10000000, CAPEX_TIER_CURVE, CAPEX_DELAY_ROUNDS = 3
-REPOSITION_COST_PAISE = 10000000
+CAPEX_TIER_CURVE
 BRAND_OWNER_MULTIPLIER = 2.5, BRAND_POACHER_MULTIPLIER = 0.25
-INFORMATIONAL_CONV_MULTIPLIER = 0.10
-CONV_RATE_CLAMP = [0.001, 0.35]
+INFORMATIONAL_CONV_MULTIPLIER = 0.10, IRRELEVANT_CONV_MULTIPLIER = 0
 BROAD_MATCH_MIN_OVERLAP
-AUCTIONS_PER_QUERY_HOUR = { expected: 1, sampled: 6 }
+PREDICTION_ERROR_BASE = 1.5
+
+// DESIGNED — a rule of this game, claiming nothing about the world. 30 of
+// them, split out of INVENTED on 2026-09-20 (I44). A wrong value here makes a
+// WORSE GAME, and cannot make a false claim.
+ADVERTISER_COUNT = 9, TOTAL_ROUNDS = 12, ROUNDS_PER_MONTH = 4
+PRICE_TIERS, PURPOSES, LOCATION_TIERS                   // the structures, not their effects
 RIVAL_PLACEMENT_CONSTRAINTS
-TAG_VOCABULARY
+REPOSITION_COST_PAISE = 10000000, REPOSITION_ROUND = 5
+MONTHLY_BUDGET_PAISE = 16800000, RANK_BUDGET_MULTIPLIERS   // 13.1
+CAPEX_ALLOCATION_PAISE = 15000000, CAPEX_DELAY_ROUNDS = 3, CAPEX_TARGETS
+CAPEX_LANDING_PAGE_MAX_POINTS = 2, CREATIVE_ALLOCATION_PAISE
+DAYPART_BLOCKS, MIN_PEAK_SEPARATION_HOURS = 3
+MIN_INCREMENT_PAISE = 1, AUCTIONS_PER_QUERY_HOUR = { expected: 1, sampled: 6 }
+TAG_VOCABULARY, QUERY_SET_RULES                         // the shape of the content
+CONV_RATE_CLAMP, RETURN_RATE_CLAMP_MAX, PREDICTION_ERROR_CLAMP   // clamps assert nothing
+MIN_BID_PAISE = 100, MAX_BID_MULTIPLE = 4.0
+MIN_HOUR_OBSERVATIONS = 25, MAX_CLICKS_AGGRESSION = 1.6, MAX_CONV_AGGRESSION = 1.6
+
+// NO TAG — not a modelled quantity at all. The one exemption, named in
+// tests/constants.test.js so it cannot grow.
+SCHEMA_VERSION = '0.3'
 
 // CALIBRATE — provisional, governed by 18.2
 AD_RANK_FLOOR = 48          // was 60 until F14

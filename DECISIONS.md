@@ -6461,7 +6461,23 @@ ledger, because it reads as evidence that the thing was modelled.
 
 ---
 
-### I42. The provenance audit: what was invented by default rather than by choice — `IN PROGRESS` (2026-09-20)
+### I42. The provenance audit: what was invented by default rather than by choice — `FIXED` (2026-09-20)
+
+> **CLOSED THE SAME DAY BY I44, AND THE ANSWER WAS NOT MORE SOURCING.** This
+> entry set out to split 57 INVENTED constants into "nothing could be sourced"
+> and "nobody looked". Working through them showed a third category nobody had
+> allowed for and it was the largest: **30 of the 57 were not claims about
+> advertising at all**, but rules of the game — its length, its economy, its
+> clamps. They could not be sourced because there was nothing to source. I44
+> gives them their own tag, `DESIGNED`, and the count of genuinely invented
+> claims falls from 57 to 26. The figures quoted below (59, 22) are as they
+> stood mid-audit; I44 has the settled ones.
+>
+> **The 3/10 rating this entry opens with rested on a number that was
+> measuring the wrong thing.** That does not make the model well-sourced — 26
+> real claims about advertising remain unsourced — but 26 of 48 world-claiming
+> constants is a different statement from 57 of 79, and the second one was
+> never true in the sense a reader would take it.
 
 Phase 3 of `plans/2026-09-20-critical-review-programme.md`. The review rated
 quantitative grounding 3/10 on one figure: **59 of 79 tagged constants were
@@ -6660,3 +6676,112 @@ reasoning.
 
 **What would reopen this.** Phase 0. What a beginner says they learned is the
 evidence for which game this actually is, and nobody has finished it yet.
+
+---
+
+### I44. `INVENTED` was doing two jobs, and the count said the model was worse than it is — `FIXED` (2026-09-20)
+
+**The finding that started it**, from Phase 3's audit (I42): of 57 constants
+tagged `INVENTED`, most were not claims about advertising at all.
+`TOTAL_ROUNDS = 12` sat in the same bucket as an invented conversion rate.
+`SCHEMA_VERSION = '0.3'`, a save format's version string, sat there too.
+
+**The tag was answering two different questions with one word.** Both senses
+mean "we chose this". They differ in what a wrong value costs:
+
+- **`INVENTED`** asserts a magnitude in advertising that nobody sourced — how
+  much better position 1 is, how a rating becomes a Quality Score, how demand
+  moves through a day. **A wrong value teaches something false**, which is the
+  failure this project exists to avoid.
+- **`DESIGNED`** is a rule of this game — its length, its economy, what a clamp
+  bounds, what the engine samples. **A wrong value makes a worse game**, and
+  cannot make a false claim, because it claims nothing about the world.
+
+**The test applied to all 57, one question each:** does this assert a magnitude
+in the real world, or define the game's own structure?
+
+| | before | after |
+|---|---|---|
+| `DOCUMENTED` | 9 | 9 |
+| `ESTIMATED` | 8 | 8 |
+| `CALIBRATE` | 5 | 5 |
+| `INVENTED` | **57** | **26** |
+| `DESIGNED` | — | **30** |
+| no tag | 0 | 1 |
+
+**Thirty moved.** The game's length and shape (`TOTAL_ROUNDS`,
+`ADVERTISER_COUNT`, `PRICE_TIERS`, `PURPOSES`, `LOCATION_TIERS`); its economy in
+game money (`MONTHLY_BUDGET_PAISE`, the `CAPEX_*` allocations,
+`REPOSITION_COST_PAISE`); the clamps and floors (`CONV_RATE_CLAMP`,
+`RETURN_RATE_CLAMP_MAX`, `PREDICTION_ERROR_CLAMP`, `MIN_BID_PAISE`); what the
+rival policies may do (`MAX_CLICKS_AGGRESSION`, `MIN_HOUR_OBSERVATIONS`); the
+shape of the content (`TAG_VOCABULARY`, `QUERY_SET_RULES`); and the interface's
+own granularity (`DAYPART_BLOCKS`, `AUCTIONS_PER_QUERY_HOUR`).
+
+**A clamp is the clearest case, and the rule it produced is worth keeping.** A
+clamp asserts nothing — it stops a value leaving the range the engine can
+reason about. Which means **a clamp that binds in normal play is a defect, not
+a number to tune**: if `RETURN_RATE_CLAMP_MAX` starts binding, the multipliers
+upstream are wrong, and raising the clamp would hide it.
+
+**`LOCATION_TIERS` shows where the line falls.** Three tiers is a structure and
+is now `DESIGNED` — how many bands to cut India into is this game's choice.
+What each band *does* is the three `CALIBRATE` tables, and those are
+measurements. Same for `PRICE_TIERS` (`DESIGNED`) against `POSITION_ECONOMICS`
+(`INVENTED`): the vocabulary claims nothing, the effects claim everything.
+
+#### The guide's honesty line, and why the denominator moved
+
+`GUIDE.whatIsReal` tells the player the sizes are "mostly invented", and
+`tests/guide.test.js` holds it with `share('INVENTED') > 0.5`. The retag would
+have dropped that share from **72% to 47%** and failed the test **without one
+number about advertising changing**.
+
+That failure would have been an artefact. The sentence is about **the sizes** —
+how big this game says a thing in advertising is — and a game rule is not one of
+them. No value of `TOTAL_ROUNDS` can be wrong about Google. So the share is now
+taken over world-claiming tags only (`DOCUMENTED`, `ESTIMATED`, `INVENTED`,
+`CALIBRATE`), where it stands at **26 of 48, 54.2%**, and the line holds.
+
+**This was not a bound being widened to keep a test green**, and the test's own
+comment forbids that. It is a denominator corrected to measure what the sentence
+actually says. The margin is now thin on purpose: three more constants sourced
+and it trips, which is what a tripwire is for.
+
+#### One exemption, named so it cannot grow
+
+`SCHEMA_VERSION` carries **no tag at all**. A provenance tag answers "where did
+this quantity come from", and the save format's version string cannot be asked
+that question. `tests/constants.test.js` names the exemption in a list of one
+and asserts the name is not in `PROVENANCE`. **A number you cannot source is
+`INVENTED` or `DESIGNED`, never exempt.**
+
+#### What else the pass found
+
+**Spec 18.1's table was stale in the opposite direction.** It listed three
+`DOCUMENTED` and three `ESTIMATED` when there were nine and eight — it predated
+the returns strand (G4, I34) entirely. So while this entry argues the count
+overstated how invented the model is, the spec was *understating* how sourced it
+is by six constants. Both are now right, and the table says to re-derive it
+rather than trust it.
+
+**Sixteen constants got the note they never had**, which was Phase 3's actual
+"done when": `TOTAL_ROUNDS`, `PRICE_TIERS`/`PURPOSES`, `REPOSITION_*`,
+`RIVAL_PLACEMENT_CONSTRAINTS`, `MIN_PEAK_SEPARATION_HOURS`,
+`HOURLY_INTENT_CURVE`, `DAYPART_BLOCKS`, `AUCTIONS_PER_QUERY_HOUR`,
+`RATING_TO_SCORE_TABLE`, `MONTHLY_BUDGET_PAISE`, `RETURN_RATE_CLAMP_MAX`,
+`CAPEX_DELAY_ROUNDS`, `SCHEMA_VERSION`.
+
+**Two of those are worth reading as a pair.** `RATING_TO_SCORE_TABLE` is
+recorded as **unsourceable in principle**: Google publishes the three Quality
+Score components and that the scale runs 1-10, and has never published how the
+three become the one, because the weighting is the mechanism. Third-party pages
+assert mappings reverse-engineered from small samples and disagree; matching one
+would dress a guess as a citation, which is `MAX_SLOTS`' lesson.
+`HOURLY_INTENT_CURVE` is the opposite — **the one that might yet be sourced**,
+and the note says what was searched for, what was not found, and that it is the
+first constant to replace if a real curve appears.
+
+**What would reopen this.** A sixth tag. If one is ever proposed, the question
+to ask is the one this entry turned on: what does a wrong value cost? Two tags
+that answer that the same way should be one tag.

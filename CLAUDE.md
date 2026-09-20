@@ -70,8 +70,16 @@ These come from the spec and are not negotiable without changing the spec first.
    field it was handed.
 6. **One advertiser type.** No privileged player path anywhere.
 7. **Every unsourced number goes in `constants.js`** with a provenance tag
-   (`DOCUMENTED` / `ESTIMATED` / `INVENTED` / `CALIBRATE`) and an entry in
-   `DECISIONS.md`. When you delete a number, delete its ledger entry too.
+   (`DOCUMENTED` / `ESTIMATED` / `INVENTED` / `DESIGNED` / `CALIBRATE`) and an
+   entry in `DECISIONS.md`. When you delete a number, delete its ledger entry
+   too. **`INVENTED` and `DESIGNED` are both "we chose this" and the difference
+   matters**: `INVENTED` claims a magnitude in advertising, so a wrong value
+   teaches something false; `DESIGNED` is a rule of the game — its length, its
+   economy, a clamp — so a wrong value only makes a worse game. Split on
+   2026-09-20 (I44), because 57 of 79 constants reading `INVENTED` made the
+   model sound far less sourced than it is. **Any share shown to a player is
+   taken over world-claiming tags only**, never including `DESIGNED`.
+   `SCHEMA_VERSION` is the single exemption and carries no tag at all.
 8. **Negatives never touch the tag layer.** Broad match uses tags; exact, phrase and
    all three negative types are string operations.
 

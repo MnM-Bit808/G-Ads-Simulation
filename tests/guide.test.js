@@ -48,10 +48,39 @@ const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // value of the line is that it is true, and a truer game deserves a truer line.
 describe('what the guide says its own numbers are worth', () => {
   const tags = Object.values(PROVENANCE);
-  const share = (tag) => tags.filter((t) => t === tag).length / tags.length;
+
+  /**
+   * THE DENOMINATOR IS NOT EVERY CONSTANT, AND THAT IS THE WHOLE POINT OF THE
+   * MEASUREMENT (2026-09-20, I44).
+   *
+   * The sentence is about THE SIZES — how big this game says a thing in
+   * advertising is. A `DESIGNED` constant makes no such claim: `TOTAL_ROUNDS`
+   * says a game runs twelve weeks, and no value of it can be wrong ABOUT
+   * GOOGLE. Counting those as "invented sizes" flatters the line in one
+   * direction and, once they were split out, would have broken it in the
+   * other — thirty constants moving to DESIGNED dropped the all-constants
+   * share from 72% to 47% without one number about advertising changing.
+   *
+   * So the share is taken over constants that CLAIM something: DOCUMENTED,
+   * ESTIMATED, INVENTED, CALIBRATE. That set is what the player is being
+   * warned about.
+   *
+   * IF THIS FAILS, REWRITE THE SENTENCE. Do not widen the bound and do not
+   * reach for the denominator — the value of the line is that it is true, and
+   * a truer game deserves a truer line.
+   */
+  const CLAIMS_SOMETHING = ['DOCUMENTED', 'ESTIMATED', 'INVENTED', 'CALIBRATE'];
+  const claiming = tags.filter((t) => CLAIMS_SOMETHING.includes(t));
 
   test('“the sizes are mostly invented” is still true', () => {
-    expect(share('INVENTED')).toBeGreaterThan(0.5);
+    const share = claiming.filter((t) => t === 'INVENTED').length / claiming.length;
+    expect(share).toBeGreaterThan(0.5);
+  });
+
+  test('a DESIGNED constant is never counted as a size', () => {
+    expect(CLAIMS_SOMETHING).not.toContain('DESIGNED');
+    expect(tags.filter((t) => t === 'DESIGNED').length).toBeGreaterThan(0);
+    expect(claiming.length).toBeLessThan(tags.length);
   });
 
   test('“only a handful come from a published source” is still true', () => {

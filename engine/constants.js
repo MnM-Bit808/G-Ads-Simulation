@@ -17,11 +17,38 @@
 // Game shape
 // ---------------------------------------------------------------------------
 
+/**
+ * THE ONE CONSTANT IN THIS FILE WITH NO PROVENANCE TAG, and the exemption is
+ * named in `tests/constants.test.js` so it cannot quietly grow.
+ *
+ * A provenance tag answers "where did this quantity come from". This is not a
+ * quantity: it is the save format's version, read by `serialise.js` to decide
+ * whether a stored game can still be loaded. It was tagged INVENTED until
+ * 2026-09-20, which read as though the save format were a guess about
+ * advertising (I44).
+ *
+ * A number you cannot source is INVENTED or DESIGNED. Exempt is for things
+ * that are not numbers about anything.
+ */
 export const SCHEMA_VERSION = '0.3';
 
 /** Player plus eight rivals. Fewer than this and rank competition never bites. */
 export const ADVERTISER_COUNT = 9;
 
+/**
+ * DESIGNED. Twelve weeks in three months of four.
+ *
+ * Not sourced and not sourceable: nothing published says how long a learning
+ * simulation should run. It is set by what has to fit inside it — three budget
+ * cycles, because a month-3 reallocation by rank (13.1) needs two months of
+ * standing to reallocate ON; a returns tail that lands two to five weeks after
+ * the click, so a week-12 sale can still be seen; and the capital delay of
+ * three rounds twice over. Any shorter and one of those runs off the end.
+ *
+ * `HANDOVER.md` *Is twelve rounds long enough to learn from?* has the argument
+ * in full, and it is the reasoning to re-read before changing this rather than
+ * this comment.
+ */
 export const TOTAL_ROUNDS = 12;
 export const ROUNDS_PER_MONTH = 4;
 
@@ -29,6 +56,19 @@ export const ROUNDS_PER_MONTH = 4;
 // Positioning (spec 4)
 // ---------------------------------------------------------------------------
 
+/**
+ * DESIGNED, both of them. The 3 x 2 grid every advertiser occupies one cell of.
+ *
+ * These are vocabularies, not measurements — there is nothing to source in the
+ * claim "this game has three price tiers", only in what each tier DOES, and
+ * that is `POSITION_ECONOMICS` (INVENTED) and `PURPOSE_MODIFIERS` (INVENTED).
+ * The split is deliberate: change a name here and nothing about advertising is
+ * asserted differently; change a number there and the game teaches something
+ * new about what a click is worth.
+ *
+ * Six cells is the smallest grid where a rival can be near you on one axis and
+ * far on the other, which is the thing the player has to learn to read. Spec 4.
+ */
 export const PRICE_TIERS = ['value', 'mid', 'premium'];
 export const PURPOSES = ['performance', 'lifestyle'];
 
@@ -454,9 +494,33 @@ export const PURPOSE_MODIFIERS = {
   lifestyle: { conv: 1.06, ret: 1.09 },
 };
 
+/**
+ * DESIGNED. One chance to move, at round 5, for ₹1,00,000.
+ *
+ * Nothing about real advertising is claimed here — a real brand repositions
+ * whenever it likes and pays whatever it costs. This is a game rule, and it
+ * exists so that the round-0 positioning choice is recoverable but not free.
+ * The price is two thirds of a month's ad budget: enough that it is a real
+ * decision, not so much that a player who read the market wrong at round 0 is
+ * locked out of the rest of the game.
+ *
+ * Round 5 because it is the first week of month 2 — the player has four weeks
+ * of reports to judge the cell on, and seven left for the move to pay back.
+ */
 export const REPOSITION_COST_PAISE = 10000000; // ₹1,00,000
 export const REPOSITION_ROUND = 5;
 
+/**
+ * DESIGNED. How the eight rivals are spread over the grid at round 0.
+ *
+ * A setup rule, not an observation about who competes in Indian activewear.
+ * It exists to stop a randomly generated market being uninteresting in two
+ * specific ways: every rival landing in one price tier (so the player never
+ * meets a cheaper or dearer competitor), or one cell holding five of them (so
+ * one part of the grid is unwinnable and the rest is empty). `maxPerCell: 2`
+ * also guarantees at least four cells are occupied, which is what makes the
+ * positioning lesson legible.
+ */
 export const RIVAL_PLACEMENT_CONSTRAINTS = {
   minPriceTiers: 2,
   requireBothPurposes: true,
@@ -569,12 +633,47 @@ const normaliseToMeanOne = (raw) => {
   return raw.map((v) => v / mean);
 };
 
+/**
+ * INVENTED, and it is one of the few on this list that MIGHT be sourceable.
+ *
+ * It claims something real: that readiness to buy moves through the day
+ * differently from the readiness to search, peaking mid-to-late afternoon
+ * while search volume peaks elsewhere. That is a claim about people, and a
+ * wrong shape teaches a false lesson about when to bid up.
+ *
+ * WHAT WAS LOOKED FOR AND NOT FOUND (2026-09-20): a published hour-by-hour
+ * conversion-rate curve for Indian e-commerce, or for apparel anywhere, at a
+ * granularity that would settle these 24 numbers. What exists is either
+ * platform-wide and undated, or behind a vendor's report. Google publishes
+ * dayparting as a bidding CONTROL and no curve behind it.
+ *
+ * So the shape is reasoned rather than measured: a trough overnight, a climb
+ * through the working day, a peak before the evening browse, and a decline
+ * while search volume is still high. `MIN_PEAK_SEPARATION_HOURS` holds the one
+ * property the lesson actually needs. **If a real curve is ever found, this is
+ * the first constant to replace** — it moves the market, so it goes through
+ * `scripts/market-harness.js` before and after, and all five CALIBRATE
+ * constants get re-checked after.
+ */
 export const HOURLY_INTENT_CURVE = normaliseToMeanOne([
   0.62, 0.55, 0.50, 0.48, 0.52, 0.62, 0.75, 0.88,
   0.98, 1.06, 1.14, 1.20, 1.24, 1.28, 1.34, 1.40,
   1.34, 1.24, 1.14, 1.06, 1.00, 0.92, 0.82, 0.72,
 ]);
 
+/**
+ * DESIGNED, and it is a GUARD rather than a quantity.
+ *
+ * It asserts nothing about when people search. It asserts that this game's two
+ * hourly curves — how many search (`HOUR_PROFILES`) and how ready they are to
+ * buy (`HOURLY_INTENT_CURVE`) — must peak at least three hours apart, and a
+ * test fails if they do not.
+ *
+ * WITHOUT IT THE DAYPARTING LESSON IS DEAD. If the busiest hour is also the
+ * best-converting hour, then bidding up at the peak is right for both reasons
+ * at once, there is no trade to find, and DECISIONS H4 is false. Three hours is
+ * simply wide enough that the cheaper hour is visibly not the busiest one.
+ */
 export const MIN_PEAK_SEPARATION_HOURS = 3;
 
 /**
@@ -594,6 +693,18 @@ export const PACING_REFERENCE_CURVE = normalise([
   4.20, 3.90, 3.60, 3.30, 2.90, 2.30, 1.50, 0.85,
 ]);
 
+/**
+ * DESIGNED. Six named blocks the player bids on, instead of 24 hours.
+ *
+ * An interface granularity, not a finding about when people shop. The engine
+ * simulates every hour; these only decide what the player is offered as a
+ * control, and the boundaries follow the day as a person would describe it so
+ * that a block can be reasoned about ("evening") rather than looked up.
+ *
+ * Six because 24 sliders is a spreadsheet and three is too coarse to separate
+ * the two curves' peaks, which is the whole trade (`MIN_PEAK_SEPARATION_HOURS`).
+ * Nothing downstream assumes blocks are equal length, and they are not.
+ */
 export const DAYPART_BLOCKS = [
   { label: 'Late night', start: 0, end: 6 },
   { label: 'Early morning', start: 6, end: 9 },
@@ -692,6 +803,23 @@ export const MIN_INCREMENT_PAISE = 1;
  */
 export const AD_RANK_FLOOR = 48;
 
+/**
+ * DESIGNED. How many auctions the engine resolves per query per hour.
+ *
+ * A simulation-granularity choice, claiming nothing: real Google runs one
+ * auction per search, which would be hundreds of thousands a week and is not
+ * the question. Each resolution here carries a slice of that hour's volume.
+ *
+ * `expected: 1` is the deterministic mode — one resolution carries the whole
+ * hour, which is what makes a game replay exactly. `sampled: 6` is the noisy
+ * mode, where six resolutions per hour give variance to look at without the
+ * cost of simulating every search. Six is a compromise between a visible
+ * spread and a week that computes in under a second.
+ *
+ * NOT a knob for realism: raising it does not make the market truer, only
+ * slower and slightly less noisy. See the pacing trap in `CLAUDE.md` — a slice
+ * is never skipped, only scaled.
+ */
 export const AUCTIONS_PER_QUERY_HOUR = { expected: 1, sampled: 6 };
 
 // ---------------------------------------------------------------------------
@@ -820,6 +948,26 @@ export const DEFAULT_UNGRADED_QUALITY = { expectedCtr: 3, adRelevance: 3, landin
 const RATING_VALUE = { below: -1, average: 0, above: 1 };
 const SCORE_BY_INDEX = [1, 2, 3, 4, 6, 7, 8, 9, 10]; // index -4..+4
 
+/**
+ * INVENTED, AND UNSOURCEABLE IN PRINCIPLE. This one is worth being exact about.
+ *
+ * Google publishes the three components of Quality Score — expected
+ * click-through rate, ad relevance, landing page experience — and that each is
+ * reported as below average, average or above average. It publishes that the
+ * score runs 1 to 10. **It has never published how the three become the one**,
+ * and there is no reason to expect it to: the weighting is the mechanism.
+ *
+ * So this table is arithmetic invented to be defensible rather than accurate.
+ * Click-through rate is weighted double the other two (`2 * ctr + rel + lp`),
+ * which reflects Google's own emphasis on it in the help documentation, and
+ * the nine resulting positions map onto `SCORE_BY_INDEX`. All three average
+ * gives 6, not 5, because average is where most accounts sit and the scale
+ * should not read as a failing grade for being ordinary.
+ *
+ * **Do not go looking for a source.** Third-party pages assert mappings; they
+ * are reverse-engineered from small samples and disagree. Matching one would
+ * dress a guess as a citation — the same trap `MAX_SLOTS` records.
+ */
 export const RATING_TO_SCORE_TABLE = (() => {
   const table = {};
   for (const ctr of Object.keys(RATING_VALUE)) {
@@ -956,7 +1104,21 @@ export const IRRELEVANT_CONV_MULTIPLIER = 0;
  */
 export const CONV_RATE_CLAMP = [0.001, 0.35];
 
-/** Nothing else bounds returnRate x multipliers below 1. */
+/**
+ * DESIGNED, and a GUARD rather than a quantity. Nothing else bounds
+ * `returnRate` x multipliers below 1.
+ *
+ * It claims nothing about how often Indian activewear comes back — that is
+ * `POSITION_ECONOMICS` and the sourced RTO rates. This only stops the product
+ * of a base rate and several multipliers reaching 1.0, where every order
+ * returns, margin is identically zero for everyone, and the week teaches
+ * nothing. 0.9 is simply short of that: high enough never to bind in normal
+ * play, low enough to leave a tenth of orders standing if it ever does.
+ *
+ * **A CLAMP THAT BINDS IN NORMAL PLAY IS A DEFECT, NOT A NUMBER TO TUNE.** If
+ * this one starts binding, the multipliers upstream are wrong and raising the
+ * clamp would hide it. Same for `CONV_RATE_CLAMP` and `PREDICTION_ERROR_CLAMP`.
+ */
 export const RETURN_RATE_CLAMP_MAX = 0.9;
 
 // ---------------------------------------------------------------------------
@@ -1068,7 +1230,22 @@ export const ATTRIBUTION_LAG_DISTRIBUTION = [0.55, 0.28, 0.12, 0.05];
 // Budget (spec 13)
 // ---------------------------------------------------------------------------
 
-/** ₹1,68,000 — six thousand rupees a day across twenty-eight days. */
+/**
+ * DESIGNED. ₹1,68,000 a month — six thousand rupees a day across twenty-eight.
+ *
+ * The arithmetic is not the justification, and this comment used to stop at it.
+ * A real advertiser's budget is whatever they have; nothing is claimed here
+ * about what a D2C brand in India spends. What is chosen is what THIS game
+ * hands the player, and it is set relative to the market rather than to the
+ * world: enough to be outbid on the dearest searches and still buy a useful
+ * number of the cheaper ones, so that allocation is the decision rather than
+ * affordability.
+ *
+ * A round number per day was picked so a player can do the daily sum in their
+ * head when reading a weekly report. It moves the market, so changing it means
+ * `scripts/market-harness.js` before and after, and the five CALIBRATE
+ * constants re-checked.
+ */
 export const MONTHLY_BUDGET_PAISE = 16800000;
 
 /**
@@ -1106,6 +1283,26 @@ export const DAILY_BUDGET_OVERSPEND_CAP = 2.0;
  * still be given up over the whole game — which is the trade I29 wanted.
  */
 export const CAPEX_ALLOCATION_PAISE = 15000000; // ₹1,50,000, at rounds 1 and 5
+
+/**
+ * DESIGNED. Site work lands three rounds after it is paid for.
+ *
+ * The delay models something real — a size guide is not written and live the
+ * afternoon you decide to have one — but the NUMBER is a game rhythm, in game
+ * rounds, and there is nothing to source about it. Three is chosen against the
+ * calendar it sits in: paid at round 1 it is live by round 4, so the effect is
+ * visible inside month 1 and the player connects spend to result; paid at
+ * round 5 it lands at round 8, leaving four weeks to earn back.
+ *
+ * TWO IS TOO FAST AND FOUR IS TOO SLOW, for the same reason in both
+ * directions. At two the money feels immediate and the lesson that capital is
+ * a bet on a later week is lost; at four, the second allocation lands at round
+ * 9 with three weeks to pay back and nobody spends it.
+ *
+ * The delay is why capital is the hardest decision in the game to read, and
+ * the first-run design (`plans/2026-09-19-first-run-and-ground-floor.md`)
+ * names it as one of the two ideas a beginner most often misses.
+ */
 export const CAPEX_DELAY_ROUNDS = 3;
 
 // ---------------------------------------------------------------------------
@@ -1302,28 +1499,53 @@ export const PROVENANCE = {
   AD_RANK_FLOOR: 'CALIBRATE',
   WEEKLY_VOLUME: 'CALIBRATE',
 
-  // Everything else: chosen for playability, no empirical basis.
-  SCHEMA_VERSION: 'INVENTED',
-  ADVERTISER_COUNT: 'INVENTED',
-  TOTAL_ROUNDS: 'INVENTED',
-  ROUNDS_PER_MONTH: 'INVENTED',
-  PRICE_TIERS: 'INVENTED',
-  PURPOSES: 'INVENTED',
+  // INVENTED and DESIGNED are both "we chose this", and they are not the same
+  // kind of choice. The test is ONE QUESTION: does this number assert a
+  // magnitude in the real world, or define this game's own structure?
+  //
+  //   INVENTED - it claims something about advertising and we guessed. How much
+  //              better position 1 is, how quality becomes a score, how demand
+  //              moves through a day. A wrong value here TEACHES SOMETHING
+  //              FALSE, which is the failure this project exists to avoid.
+  //   DESIGNED - it is a rule of the game. How long a game runs, how many
+  //              advertisers are in it, what a purchase costs in game money,
+  //              what the engine samples. A wrong value here makes a worse
+  //              GAME. It cannot make a false claim, because it claims nothing.
+  //
+  // They were one tag until 2026-09-20 and the conflation was doing real
+  // damage: 57 of 79 constants read as INVENTED, which made the model sound
+  // far less sourced than it is, and made the guide's honesty line hard to
+  // write truthfully. TOTAL_ROUNDS = 12 is not a false claim about Google.
+  // See DECISIONS.md I44, and note the guide's own share is computed over
+  // world-claiming constants only.
+  //
+  // SCHEMA_VERSION is in NEITHER, and is exempt from this map: it is a save
+  // format's version string, not a quantity anything modelled. See
+  // constants.test.js, which names the exemption.
+
+  // Rules of the game. No empirical claim; a wrong value is a worse game.
+  ADVERTISER_COUNT: 'DESIGNED',
+  TOTAL_ROUNDS: 'DESIGNED',
+  ROUNDS_PER_MONTH: 'DESIGNED',
+  PRICE_TIERS: 'DESIGNED',
+  PURPOSES: 'DESIGNED',
+  REPOSITION_COST_PAISE: 'DESIGNED',
+  REPOSITION_ROUND: 'DESIGNED',
+  RIVAL_PLACEMENT_CONSTRAINTS: 'DESIGNED',
+  MIN_PEAK_SEPARATION_HOURS: 'DESIGNED',
+  DAYPART_BLOCKS: 'DESIGNED',
+  MIN_INCREMENT_PAISE: 'DESIGNED',
+  AUCTIONS_PER_QUERY_HOUR: 'DESIGNED',
+
+  // Claims about advertising that nobody sourced.
   POSITION_ECONOMICS: 'INVENTED',
   PURPOSE_MODIFIERS: 'INVENTED',
-  REPOSITION_COST_PAISE: 'INVENTED',
-  REPOSITION_ROUND: 'INVENTED',
-  RIVAL_PLACEMENT_CONSTRAINTS: 'INVENTED',
   DAY_OF_WEEK_CURVE: 'INVENTED',
   HOUR_PROFILES: 'INVENTED',
   HOURLY_INTENT_CURVE: 'INVENTED',
-  MIN_PEAK_SEPARATION_HOURS: 'INVENTED',
   PACING_REFERENCE_CURVE: 'INVENTED',
-  DAYPART_BLOCKS: 'INVENTED',
   MAX_SLOTS: 'INVENTED',
   TOP_SLOTS: 'INVENTED',
-  MIN_INCREMENT_PAISE: 'INVENTED',
-  AUCTIONS_PER_QUERY_HOUR: 'INVENTED',
   QUALITY_FACTOR_RANGES: 'INVENTED',
   QUALITY_MIN_IMPRESSIONS: 'INVENTED',
 
@@ -1332,7 +1554,10 @@ export const PROVENANCE = {
   // these numbers can be settled before a played game: the metros are better per
   // click by construction, and whether tier 2 and 3 are worth having depends on
   // whether crowding makes the metros expensive, which is emergent (H10).
-  LOCATION_TIERS: 'INVENTED',
+  // DESIGNED: three tiers is a structure, not a measurement. How many bands to
+  // cut India into is this game's choice; what each band DOES is the three
+  // CALIBRATE tables below, and those are measurements.
+  LOCATION_TIERS: 'DESIGNED',
   LOCATION_VOLUME_BY_PRICE: 'CALIBRATE',
   LOCATION_RETURN_MULTIPLIER: 'CALIBRATE',
   LOCATION_AOV_MULTIPLIER: 'CALIBRATE',
@@ -1353,39 +1578,54 @@ export const PROVENANCE = {
   DEFAULT_UNGRADED_QUALITY: 'INVENTED',
   RATING_TO_SCORE_TABLE: 'INVENTED',
   BROAD_MATCH_MIN_OVERLAP: 'INVENTED',
-  TAG_VOCABULARY: 'INVENTED',
-  QUERY_SET_RULES: 'INVENTED',
   BRAND_OWNER_MULTIPLIER: 'INVENTED',
   BRAND_POACHER_MULTIPLIER: 'INVENTED',
   INFORMATIONAL_CONV_MULTIPLIER: 'INVENTED',
   IRRELEVANT_CONV_MULTIPLIER: 'INVENTED',
-  CONV_RATE_CLAMP: 'INVENTED',
-  RETURN_RATE_CLAMP_MAX: 'INVENTED',
   LEARNING_ROUNDS: 'ESTIMATED',
   LEARNING_ERROR_MULTIPLIER: 'INVENTED',
   SMART_BIDDING_MIN_CONVERSIONS: 'DOCUMENTED',
   COLD_START_CONV_RATE: 'INVENTED',
   PREDICTION_ERROR_BASE: 'INVENTED',
-  PREDICTION_ERROR_CLAMP: 'INVENTED',
-  MIN_HOUR_OBSERVATIONS: 'INVENTED',
-  MAX_CLICKS_AGGRESSION: 'INVENTED',
-  MAX_CONV_AGGRESSION: 'INVENTED',
-  MIN_BID_PAISE: 'INVENTED',
-  MAX_BID_MULTIPLE: 'INVENTED',
-  MONTHLY_BUDGET_PAISE: 'INVENTED',
-  RANK_BUDGET_MULTIPLIERS: 'INVENTED',
-  CAPEX_ALLOCATION_PAISE: 'INVENTED',
-  CAPEX_DELAY_ROUNDS: 'INVENTED',
   CAPEX_TIER_CURVE: 'INVENTED',
-  CAPEX_TARGETS: 'INVENTED',
+
+  // The shape of the content, not a claim about it: what a query set must
+  // contain and what words may tag it. The numbers INSIDE a generated set are
+  // judged by querySet.test.js; these say what shape it has to be.
+  TAG_VOCABULARY: 'DESIGNED',
+  QUERY_SET_RULES: 'DESIGNED',
+
+  // Clamps and floors. A clamp asserts nothing about the world - it stops a
+  // value leaving the range the engine can reason about, which is why a clamp
+  // that BINDS in normal play is a defect rather than a number to source.
+  CONV_RATE_CLAMP: 'DESIGNED',
+  RETURN_RATE_CLAMP_MAX: 'DESIGNED',
+  PREDICTION_ERROR_CLAMP: 'DESIGNED',
+  MIN_BID_PAISE: 'DESIGNED',
+  MAX_BID_MULTIPLE: 'DESIGNED',
+
+  // What the rival policies are allowed to do. These describe agents this
+  // project wrote, not advertisers in the world, so there is nothing to source:
+  // the question is whether they make a market worth playing against.
+  MIN_HOUR_OBSERVATIONS: 'DESIGNED',
+  MAX_CLICKS_AGGRESSION: 'DESIGNED',
+  MAX_CONV_AGGRESSION: 'DESIGNED',
+
+  // The game's economy, in game money. A real advertiser's budget is whatever
+  // they have; these set what THIS game hands you and what it charges.
+  MONTHLY_BUDGET_PAISE: 'DESIGNED',
+  RANK_BUDGET_MULTIPLIERS: 'DESIGNED',
+  CAPEX_ALLOCATION_PAISE: 'DESIGNED',
+  CAPEX_DELAY_ROUNDS: 'DESIGNED',
+  CAPEX_TARGETS: 'DESIGNED',
   // ESTIMATED and not CALIBRATE, by that set's own rule: this was FITTED to a
   // measurement rather than left provisional. The gap it closes was measured at
   // 5.4x and the top was chosen to land near +20% of profit, so it is settled by
   // evidence — re-measure it if the six-cell gains move, do not widen a set the
   // spec pinned at two.
   CAPEX_PHOTOGRAPHY_CURVE: 'ESTIMATED',
-  CAPEX_LANDING_PAGE_MAX_POINTS: 'INVENTED',
-  CREATIVE_ALLOCATION_PAISE: 'INVENTED',
+  CAPEX_LANDING_PAGE_MAX_POINTS: 'DESIGNED',
+  CREATIVE_ALLOCATION_PAISE: 'DESIGNED',
   // ESTIMATED, not CALIBRATE, and the distinction is not pedantry: CALIBRATE
   // means "provisional until calibration.test.js passes", and that file governs
   // exactly the constants it names. This was set from measurement over whole

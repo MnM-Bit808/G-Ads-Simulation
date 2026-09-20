@@ -589,16 +589,48 @@ describe('every constant is read by something (R4, hard rule 7)', () => {
 });
 
 describe('provenance (R4, hard rule 7)', () => {
+  /**
+   * ONE EXEMPTION, AND IT IS NAMED HERE SO IT CANNOT GROW.
+   *
+   * `SCHEMA_VERSION` is a save format's version string. Every other constant in
+   * this file is a quantity something modelled, and a provenance tag answers
+   * "where did this quantity come from" — a question the string cannot be
+   * asked. It was tagged INVENTED until 2026-09-20, which read as though the
+   * save format were a guess about advertising (I44).
+   *
+   * Anything added here must be the same kind of thing: not a number at all.
+   * A number you cannot source is INVENTED or DESIGNED, never exempt.
+   */
+  const NOT_A_MODELLED_QUANTITY = ['SCHEMA_VERSION'];
+
   test('every exported constant has a provenance tag', () => {
     const exported = Object.keys(C).filter(
-      (k) => k !== 'PROVENANCE' && k === k.toUpperCase(),
+      (k) => k !== 'PROVENANCE'
+        && k === k.toUpperCase()
+        && !NOT_A_MODELLED_QUANTITY.includes(k),
     );
     const missing = exported.filter((k) => !(k in C.PROVENANCE));
     expect(missing, `untagged constants: ${missing.join(', ')}`).toEqual([]);
   });
 
-  test('every tag is one of the four permitted values', () => {
-    const allowed = ['DOCUMENTED', 'ESTIMATED', 'INVENTED', 'CALIBRATE'];
+  test('the exemption is one name, and that name is not tagged', () => {
+    expect(NOT_A_MODELLED_QUANTITY).toEqual(['SCHEMA_VERSION']);
+    for (const name of NOT_A_MODELLED_QUANTITY) {
+      expect(C.PROVENANCE, `${name} is exempt and must not carry a tag`)
+        .not.toHaveProperty(name);
+    }
+  });
+
+  /**
+   * FIVE TAGS SINCE 2026-09-20, NOT FOUR. `DESIGNED` split `INVENTED` in two:
+   * a number that claims something about advertising and was guessed stays
+   * INVENTED, and a number that is a rule of this game — how long it runs, what
+   * a purchase costs in game money, what a clamp bounds — is DESIGNED. Both are
+   * "we chose this"; only the first can teach something false. R4 and hard rule
+   * 7 name all five; DECISIONS.md I44 has the argument.
+   */
+  test('every tag is one of the five permitted values', () => {
+    const allowed = ['DOCUMENTED', 'ESTIMATED', 'INVENTED', 'DESIGNED', 'CALIBRATE'];
     for (const [name, tag] of Object.entries(C.PROVENANCE)) {
       expect(allowed, `${name} tagged ${tag}`).toContain(tag);
     }
