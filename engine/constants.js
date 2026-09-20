@@ -727,11 +727,47 @@ export const CONTEXT_FACTOR_CURVE = [
 export const QUALITY_NOISE_SIGMA = 0.08;
 
 export const QUALITY_WINDOW_ROUNDS = 13;
+/**
+ * How much traffic a keyword needs before its rating means anything.
+ *
+ * INVENTED, and looked for (2026-09-20). Google publishes that the threshold
+ * EXISTS and not where it is: "If you notice a '—' in the Quality Score column,
+ * it means there aren't enough searches that exactly match your keywords to
+ * determine a keyword's Quality Score" (About Quality Score). No impression
+ * count is given anywhere, so 500 is this game's own line.
+ */
 export const QUALITY_MIN_IMPRESSIONS = 500;
+
+/**
+ * Where "Above average" and "Below average" begin, as a ratio to the market.
+ *
+ * THE THREE BANDS ARE GOOGLE'S, THE CUTOFFS ARE NOT. "Each component is
+ * evaluated with a status of 'Above average,' 'Average,' or 'Below average'"
+ * (About Quality Score), and those are the three this game reports, against the
+ * same three components Google names — expected clickthrough rate, ad relevance
+ * and landing page experience, on a 1-10 score.
+ *
+ * What Google does not publish is where one band ends and the next begins, so
+ * +/-10% around the market's own mean is INVENTED. A6 records what that width
+ * costs: the average band is as wide as the span it sits in, which is why
+ * ratings move less than the underlying signal does.
+ */
 export const RATING_UPPER_THRESHOLD = 1.10;
 export const RATING_LOWER_THRESHOLD = 0.90;
 
-/** Deliberately poor. An ad nobody has evaluated should not perform like a good one. */
+/**
+ * Deliberately poor. An ad nobody has evaluated should not perform like a good one.
+ *
+ * THIS IS WHAT THE AUCTION USES, NOT WHAT THE ACCOUNT SHOWS, and the difference
+ * matches the real thing (checked 2026-09-20). Google reports a dash rather than
+ * a score while a keyword is unevaluated — "If you notice a '—' in the Quality
+ * Score column, it means there aren't enough searches that exactly match your
+ * keywords" (About Quality Score) — and `gradedQuality` is null until graded for
+ * exactly that reason (9.5). But an auction still has to rank an ad with no
+ * history, and Google publishes nothing about what it assumes there. 3/3/3 is
+ * this game's answer; A8 records what it costs, which is that such an ad cannot
+ * clear the reserve.
+ */
 export const DEFAULT_UNGRADED_QUALITY = { expectedCtr: 3, adRelevance: 3, landingPage: 3 };
 
 /**

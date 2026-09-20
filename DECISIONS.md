@@ -6478,12 +6478,17 @@ measurements of this simulation, not claims about the world. F21 was the only
 misattribution, which is worth knowing: the discipline is better than one bad
 case suggested.
 
-**The gap that did turn up: 24 of 59 INVENTED constants carry no comment at
-all.** They have their provenance tag and nothing else, which is half of
-CLAUDE.md's rule 7. Among them are real modelling claims —
-`HOURLY_INTENT_CURVE`, `RATING_TO_SCORE_TABLE`, `LEARNING_ERROR_MULTIPLIER`,
-`BRAND_POACHER_MULTIPLIER`, `CAPEX_DELAY_ROUNDS` — not just self-evident
-structure like `TOTAL_ROUNDS`.
+**The gap that did turn up: 22 of 57 INVENTED constants have no comment directly
+above them.** Stated carefully, because the first version of this sentence said
+"no comment at all" and that was wrong: several are covered by a comment on a
+neighbouring constant or on the group, and `RATING_TO_SCORE_TABLE`'s own comment
+sits above an intermediate helper. Which of the 22 are genuinely undocumented
+and which are group-covered is what the audit is working through one at a time.
+
+What is not in doubt is that some are real modelling claims rather than
+self-evident structure — `HOURLY_INTENT_CURVE`, `QUALITY_MIN_IMPRESSIONS`, the
+two `RATING_*` thresholds, `BRAND_POACHER_MULTIPLIER`, `CAPEX_DELAY_ROUNDS` —
+and those are the ones worth writing up.
 
 #### Settled so far
 
@@ -6492,6 +6497,9 @@ structure like `TOTAL_ROUNDS`.
 | `SMART_BIDDING_MIN_CONVERSIONS` | INVENTED | **DOCUMENTED** | it is Google's own published figure, and nobody had looked |
 | `LEARNING_ROUNDS` | INVENTED | **ESTIMATED** | Google gives the wait in conversion cycles, not weeks |
 | `MAX_SLOTS` | INVENTED | INVENTED, *looked for* | Google publishes no count |
+| `QUALITY_MIN_IMPRESSIONS` | INVENTED | INVENTED, *looked for* | Google publishes that the threshold exists, not where |
+| `RATING_UPPER/LOWER_THRESHOLD` | INVENTED | INVENTED, *looked for* | the three bands are Google's, the cutoffs are not |
+| `DEFAULT_UNGRADED_QUALITY` | INVENTED | INVENTED, *clarified* | Google's "—" is what is SHOWN; this is what the auction assumes |
 
 **`SMART_BIDDING_MIN_CONVERSIONS` = 30.** "To evaluate results accurately,
 Google Ads recommends measuring performance over longer time periods that have
@@ -6514,8 +6522,23 @@ on Google Search" and gives no count either way. Plenty of third-party pages
 assert four; matching an unsourced claim is not a source. It stays INVENTED,
 and its existing game-design justification is the honest one.
 
+**The Quality Score batch, and what it says about the model's fidelity.** Google
+publishes the *structure* and none of the *numbers*: "This score is measured on
+a scale from 1-10", built from expected clickthrough rate, ad relevance and
+landing page experience, each "evaluated with a status of 'Above average,'
+'Average,' or 'Below average'" (*About Quality Score*). Every one of those the
+game already matches. What it does not publish is where a band begins, how many
+impressions a rating needs, or what an unevaluated ad is assumed to be worth in
+the auction — so those three stay INVENTED with the search recorded.
+
+One thing the fetch settled rather than changed: Google shows a dash for an
+unevaluated keyword, and this game does too (`gradedQuality` is null until
+graded, 9.5). `DEFAULT_UNGRADED_QUALITY` is the auction's assumption, not the
+account's display, and the two were already right.
+
 **What this does not yet do.** The remaining 57 INVENTED constants have not all
-been searched, and the 24 with no comment have not all been written up. The
+been searched, and the 22 without a comment of their own have not all been
+written up. The
 guide's honesty line still reads true — `tests/guide.test.js` checks it against
 `PROVENANCE` on every run, and at 57 of 79 "mostly invented" is still an
 understatement.
