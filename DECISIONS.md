@@ -5495,7 +5495,7 @@ across the tags, and it should be fixed there.
   The comparison above is therefore before-and-after on one harness, which is
   the only claim it makes.
 
-**RECORDED AND NOT FIXED: THE LOCATION GRADIENT SITS ON THE WRONG HALF.** The
+**RECORDED AND NOT FIXED HERE — FIXED LATER AS F20 (2026-09-20).** The
 sourced chain is nearly flat by location (towns 1.04-1.06x the metros) because
 `POST_DELIVERY_RETURN_RATE` and the RTO pair are single figures. There the
 flatness is known to be wrong — tier-3 RTO is quoted at 3-5x the metros, far more
@@ -6093,6 +6093,118 @@ the finished history, so the round's report is built once.
 **The counterfactual builds no report for this.** `runCounterfactual` reads
 `raw` alone and discards the state it is handed, so it is given no history and
 skips the rank entirely — a one-round hypothetical never reaches month 3.
+
+### F20. The location gradient sat on both halves of a return — `FIXED` (2026-09-20)
+
+Not a modelling choice. F14 found this, recorded it, and left it because F14 was
+already four constants: *"The evidence says the gradient belongs on refusals."*
+
+**The rule the sources give.** `POST_DELIVERY_RETURN_RATE` and the RTO pair are
+single national figures, so the sourced chain is nearly flat by location
+(1.04–1.06x). That flatness is known to be wrong in one direction only: **tier-3
+RTO is quoted at 3–5x the metros**, far more than the cash mix explains. That is
+the whole reason `LOCATION_RETURN_MULTIPLIER` exists.
+
+**Sim, before.** It multiplied the WHOLE return rate in `returnHalves`, and the
+refused/sent-back split was applied afterwards. So the gradient landed on both
+halves, and the model came out wrong in both directions at once:
+
+| | before | what the sources say |
+|---|---|---|
+| refusals, metro → town | 1.65–1.81x | 3–5x |
+| send-backs, metro → town | 1.36–1.40x | one national rate — flat |
+
+Refusals climbed less than a third as far as the evidence quotes, and send-backs
+climbed when nothing says they should.
+
+**The fix, and only half the job.** The gradient multiplies the refused half
+alone. The table did **not** widen with it, and that is the unfinished part —
+see *Why the gradient could not widen* below.
+
+| | before | after |
+|---|---|---|
+| refusals, metro → town | 1.65–1.81x | 1.65–1.81x (unchanged) |
+| send-backs, metro → town | 1.36–1.40x | **0.90–0.93x** |
+| total return rate, metro → town | 1.50x | **1.16x** |
+| category return rate (value/mid/premium) | exact | exact |
+
+**WHY THE GRADIENT COULD NOT WIDEN, which is the finding worth more than the
+fix.** Reaching the sourced 3–5x needs a wider table, and every table wide
+enough overturns the sourced cash mix. `LOCATION_RETURN_MULTIPLIER` is
+normalised PER PRICE TIER to hold each position's documented return rate, and a
+value brand's country is 53% towns where a premium brand's is 26% — so holding
+premium's rate lifts its town multiplier further than value's. Measured, at the
+towns:
+
+| table | refusals in the towns | |
+|---|---|---|
+| the sourced cash mix (`refusalRateFor`) | value 18.8% > mid 17.9% > premium 15.6% | — |
+| `[1, 1.25, 1.5]` on refusals *(shipped)* | 18.69 > 18.35 > 16.70 | holds |
+| `[1, 1.5, 1.9]` | value **=** mid, both 19.35 | breaks |
+| `[1, 1.8, 2.6]` | mid **21.02** > value 20.51 > premium 20.40 | breaks |
+| `[1, 2.2, 3.4]` | mid and premium both above value | breaks |
+
+An INVENTED constant must not overrule a DOCUMENTED one, so the table stayed
+where it was. **The gradient is capped by the normalisation, not by the
+evidence.** The fix is to normalise market-wide, so a place's gradient is a
+property of the PLACE and not of who is advertising; then the cash mix is the
+only price-dependent term and the ordering holds at any width. That moves F14's
+per-position return rates, so it is its own piece of work with its own gates.
+
+**THE COST, STATED PLAINLY.** The location trade falls from 1.50x to 1.16x. That
+is the thing this table's own comment warns about — *"without it the metros would
+simply be better and there would be no decision to make"* — so the place
+decision is worth less to a player until the table can widen. It was taken
+anyway because the alternative was leaving a wrong claim in the model to protect
+a number, and the weakening is recoverable where the wrong claim was not.
+
+**TWO WRONG RECOMMENDATIONS ON THE WAY HERE, recorded because the mistake is
+instructive.** `[1, 2.2, 3.4]` was proposed and agreed first, on a check that
+compared only value against premium — the widest gap, which survives longest.
+`[1, 1.8, 2.6]` was proposed second, on the same partial check. Only a full
+ordering check across all three tiers showed both break it. **When a bound is an
+ordering over several things, check every adjacent pair, not the extremes.**
+
+**Send-backs falling slightly is the right direction, not a leftover.** More
+parcels are refused at the door outside the metros, so fewer are ever delivered,
+and a parcel that never arrived cannot be sent back. What is left of the
+variation comes through `rtoShareOfReturns` alone.
+
+**Normalisation had to change with it.** Normalisation exists to hold the
+category return rate. While the gradient multiplied the whole rate, dividing by
+its volume-weighted mean did that exactly. A rate is now
+`share x m + (1 - share)`, so holding the average needs
+`sum(w . share . m) = sum(w . share)` rather than `sum(w . m) = 1`.
+`locationEffects` normalises against the refused share when it is given a price,
+and falls back to the volume mean when it is not — which every caller that feeds
+`returnHalves` does pass.
+
+**Measured over 72 markets, before and after** (the "before" is main at F19):
+
+| | before | after |
+|---|---|---|
+| player's final rank changed | — | 3 of 72 |
+| median net profit | ₹11,94,283 | ₹11,80,730 |
+| median delta | — | −₹2,246 (better in 31, worse in 41) |
+| range | — | −₹36,312 to +₹1,04,625 |
+| rivals' return rate, settled | 40.5% | 40.5% |
+| largest rival move into week 5 / week 9 | 2.78x / 3.62x | 2.66x / 3.78x |
+| the prepaid card against what the round books | 0.92–1.00x | 0.92–1.00x |
+
+The player is slightly worse off on median, which follows from the trade
+narrowing: the towns are relatively more attractive than they were, and the
+harness player does not re-choose its place. D12's week-9 gate still clears
+double at 3.78x, and I34's card is unaffected because the card and the round
+both read `returnHalves`.
+
+**A test had quietly stopped testing the game's path.** `locations.test.js`
+asserted that the multiplier's volume-weighted mean is 1, which is no longer
+what holds the category rate — and it still passed, because it calls
+`locationEffects` with no price and so measures the fallback. The average is now
+checked on the rate itself, with a price, and a second test holds the two halves
+to the sources rather than to today's table: send-backs at most flat, refusals
+between 3x and 5x. Both fail on the old engine, which was checked by stashing
+the fix rather than assumed.
 
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 

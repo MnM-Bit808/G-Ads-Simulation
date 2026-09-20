@@ -170,9 +170,37 @@ export function locationEffects(querySet, price = null) {
     const mean = table.reduce((a, v, i) => a + v * weights[i], 0);
     return mean > 0 ? table.map((v) => v / mean) : table.map(() => 1);
   };
+
+  // THE RETURN TABLE IS NORMALISED AGAINST THE REFUSED SHARE (2026-09-20, F20).
+  //
+  // Normalisation exists to hold the category return rate: the tables are
+  // ratios, and `POSITION_ECONOMICS.returnRate` is already the category-wide
+  // figure (F8, F14). While the gradient multiplied the WHOLE return rate,
+  // dividing by its volume-weighted mean did that exactly.
+  //
+  // It reaches the refused half only now, so a return rate is
+  // `share x m + (1 - share)` rather than `m`, and holding the average needs
+  // `sum(w . share . m) = sum(w . share)` instead of `sum(w . m) = 1`. Dividing
+  // by the volume mean would leave the category rate a point or so adrift, in a
+  // direction that depends on how refusal-heavy the price tier is.
+  //
+  // WITHOUT A PRICE there is no refused share to weigh against — `rtoShareOfReturns`
+  // is per price tier — so the volume mean is used, which still gives the right
+  // RATIOS and only the level differs. Every caller that feeds `returnHalves`
+  // passes a price; the fallback serves callers that want the shape.
+  const normaliseReturns = () => {
+    if (!price) return normalise(LOCATION_RETURN_MULTIPLIER);
+    const shares = LOCATION_RETURN_MULTIPLIER.map((_, t) => rtoShareOfReturns(price, t, 0));
+    const want = shares.reduce((a, s, t) => a + weights[t] * s, 0);
+    const have = LOCATION_RETURN_MULTIPLIER.reduce((a, v, t) => a + weights[t] * shares[t] * v, 0);
+    return have > 0
+      ? LOCATION_RETURN_MULTIPLIER.map((v) => (v * want) / have)
+      : LOCATION_RETURN_MULTIPLIER.map(() => 1);
+  };
+
   return {
     aovMultiplier: normalise(LOCATION_AOV_MULTIPLIER),
-    returnMultiplier: normalise(LOCATION_RETURN_MULTIPLIER),
+    returnMultiplier: normaliseReturns(),
   };
 }
 

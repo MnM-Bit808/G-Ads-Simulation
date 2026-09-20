@@ -22,6 +22,7 @@ import {
   LOCATION_TIERS, LOCATION_VOLUME_BY_PRICE, LOCATION_RETURN_MULTIPLIER,
   LOCATION_AOV_MULTIPLIER, PRICE_TIERS,
 } from '../engine/constants.js';
+import { businessFor, returnHalves } from '../engine/positions.js';
 import { LOCATIONS, location, locationsInOrder } from '../content/locations.js';
 import { CITY_POINTS, MAP_VIEWBOX, LABEL_SIDE, labelPlace, BACKDROP } from '../ui/india-map.js';
 import { QUERY_SET } from '../content/querySet.js';
@@ -349,6 +350,116 @@ describe('what a location does to the money', () => {
     const weightedMean = (table) => table.reduce((a, v, i) => a + v * weights[i], 0);
     expect(weightedMean(returnMultiplier), 'returns').toBeCloseTo(1, 9);
     expect(weightedMean(aovMultiplier), 'baskets').toBeCloseTo(1, 9);
+  });
+
+  /**
+   * THE TEST ABOVE STOPPED TESTING THE GAME'S PATH (2026-09-20, F20) and still
+   * passed, which is why this one exists. Since the gradient reaches the
+   * refused half only, a return rate is `share x m + (1 - share)` rather than
+   * `m`, so a multiplier whose weighted mean is 1 no longer holds the category
+   * rate. `locationEffects` normalises against the refused share instead —
+   * but ONLY when it is given a price, and the test above passes none, so it
+   * measures the fallback.
+   *
+   * What normalisation is actually for is the average return rate, so that is
+   * what this checks, on the path the round takes: with a price.
+   */
+  test('and it keeps it on the path the round takes, which carries a price', () => {
+    for (const price of ['value', 'mid', 'premium']) {
+      // The price tier's OWN country, which is what the normalisation weighed
+      // against: a value brand's searches sit mostly in the towns and a premium
+      // brand's mostly in the metros, so the market's average weights would be
+      // asking whether a different advertiser's rate was preserved.
+      const weights = locationWeights(QUERY_SET, price);
+      const business = businessFor({ price, purpose: 'performance' }, {}, 1);
+      const places = locationEffects(QUERY_SET, price).returnMultiplier;
+      const rateAt = (tier) => returnHalves({
+        business,
+        queryReturnMultiplier: 1,
+        placeReturnMultiplier: places[tier],
+        price,
+        tierIndex: tier,
+      }).returned;
+      const average = weights.reduce((a, w, tier) => a + w * rateAt(tier), 0);
+      // The figure the position's own economics carry, before any capex.
+      expect(average, price).toBeCloseTo(business.returnRateBeforeSizeGuide, 4);
+    }
+  });
+
+  /**
+   * The half the evidence puts it on (F20). `POST_DELIVERY_RETURN_RATE` is one
+   * national figure, so a send-back rate has no business climbing outside the
+   * metros; tier-3 RTO is quoted at 3-5x, so a refusal rate has every business
+   * doing so. Both bounds come from the sources, not from today's table, so
+   * re-setting the table cannot quietly satisfy them.
+   *
+   * THE FLOOR IS 1.5x AND NOT 3x, WHICH IS AN UNFINISHED JOB AND NOT A
+   * ROUNDING. The table is normalised per price tier, so any table wide enough
+   * to reach 3x overturns the cash mix — see the test below, and
+   * `LOCATION_RETURN_MULTIPLIER`'s own comment. Moving the gradient onto the
+   * right half came first; widening it waits on normalising market-wide.
+   *
+   * RAISE THIS FLOOR WHEN THAT LANDS. A floor of 1.5x asserts only that
+   * refusals still climb; it is not the bound the evidence asks for.
+   */
+  test('the gradient lands on refusals, and refusals still climb', () => {
+    const weights = locationWeights(QUERY_SET);
+    const last = weights.length - 1;
+    for (const price of ['value', 'mid', 'premium']) {
+      const business = businessFor({ price, purpose: 'performance' }, {}, 1);
+      const places = locationEffects(QUERY_SET, price).returnMultiplier;
+      const halves = (tier) => {
+        const h = returnHalves({
+          business,
+          queryReturnMultiplier: 1,
+          placeReturnMultiplier: places[tier],
+          price,
+          tierIndex: tier,
+        });
+        return { refused: h.refused, sentBack: h.returned - h.refused };
+      };
+      const metro = halves(0);
+      const town = halves(last);
+      expect(town.sentBack / metro.sentBack, `${price} send-backs`).toBeLessThanOrEqual(1);
+      expect(town.refused / metro.refused, `${price} refusals`).toBeGreaterThanOrEqual(1.5);
+      expect(town.refused / metro.refused, `${price} refusals`).toBeLessThanOrEqual(5);
+    }
+  });
+
+  /**
+   * THE BOUND THAT CHOSE THE TABLE (F20). `LOCATION_RETURN_MULTIPLIER` is
+   * INVENTED; the COD shares it competes with are DOCUMENTED, and they say a
+   * value brand's parcels are refused in the towns more often than a premium
+   * brand's — 18.8% against 15.6% before any place gradient.
+   *
+   * Because the table is normalised per price tier, and a premium brand's
+   * country is only 26% towns against value's 53%, widening it lifts a
+   * metro-heavy brand's town multiplier faster than a town-heavy one's. Past
+   * roughly [1, 1.5, 1.9] that lift reverses the ordering, and the invented
+   * number wins. Measured: at [1, 1.5, 1.9] value and mid are already level,
+   * and at [1, 1.8, 2.6] mid has overtaken value.
+   *
+   * So this is the ceiling on the table, and it is a ceiling on principle
+   * rather than on taste: whatever the gradient, the sourced cash mix has to
+   * survive it. If this fails, the table went too wide.
+   */
+  test('and it never overturns the cash mix it competes with', () => {
+    const last = LOCATION_TIERS.length - 1;
+    const refusedInTowns = (price) => {
+      const business = businessFor({ price, purpose: 'performance' }, {}, 1);
+      const places = locationEffects(QUERY_SET, price).returnMultiplier;
+      return returnHalves({
+        business,
+        queryReturnMultiplier: 1,
+        placeReturnMultiplier: places[last],
+        price,
+        tierIndex: last,
+      }).refused;
+    };
+    expect(refusedInTowns('value'), 'value against premium')
+      .toBeGreaterThan(refusedInTowns('premium'));
+    expect(refusedInTowns('value'), 'value against mid')
+      .toBeGreaterThan(refusedInTowns('mid'));
   });
 
   test('and the spread the design agreed survives normalising', () => {

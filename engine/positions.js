@@ -171,10 +171,16 @@ export function returnHalves({
   // the headline figure; this path needs the two halves separately.
   // Clamped twice, as the round always has: once for the search, once for the
   // place.
+  // THE PLACE IS NOT IN HERE ANY MORE (2026-09-20, F20). This used to be
+  // multiplied by `placeReturnMultiplier` as well, before the split below, so
+  // the location gradient landed on BOTH halves and send-backs came out
+  // 1.36-1.40x higher in the towns. Nothing supports that —
+  // `POST_DELIVERY_RETURN_RATE` is one national figure — and F14 recorded the
+  // fault and left it for later. The gradient now goes onto the refused half
+  // alone, where the sourced 3-5x tier-3 RTO puts it.
   const gross = Math.min(
     RETURN_RATE_CLAMP_MAX,
-    Math.min(RETURN_RATE_CLAMP_MAX, business.returnRateBeforeSizeGuide * queryReturnMultiplier)
-      * placeReturnMultiplier,
+    business.returnRateBeforeSizeGuide * queryReturnMultiplier,
   );
 
   // I28 BUILD 2: THE SIZE GUIDE ONLY REACHES HALF OF THIS.
@@ -223,9 +229,16 @@ export function returnHalves({
   // the refused half falls by exactly the ratio of the two refusal rates, and
   // with no discount that ratio is exactly 1, which keeps every account
   // without one to the paisa.
+  // F20: the place gradient multiplies the REFUSED half and nothing else. A
+  // send-back rate that is one national figure has no business varying by
+  // place, and the small FALL that is left — 0.92x metros to towns, through
+  // `refusedShare` alone — is the right direction rather than a leftover: more
+  // parcels are refused at the door out there, so fewer are ever delivered, and
+  // a parcel that never arrived cannot be sent back.
   const refusedShare = rtoShareOfReturns(price, tierIndex, 0);
   const cut = refusalRateFor(price, tierIndex, discountPaise) / refusalRateFor(price, tierIndex, 0);
-  const refused = (gross * refusedShare * cut) / business.orderConfirmationEffect;
+  const refused = (gross * refusedShare * placeReturnMultiplier * cut)
+    / business.orderConfirmationEffect;
   const sentBack = (gross * (1 - refusedShare)) / business.sizeGuideEffect;
   const returned = Math.min(RETURN_RATE_CLAMP_MAX, refused + sentBack);
   return { returned, refused: Math.min(returned, refused) };

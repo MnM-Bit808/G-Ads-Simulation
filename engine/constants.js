@@ -85,7 +85,7 @@ export const LOCATION_VOLUME_BY_PRICE = Object.freeze({
 });
 
 /**
- * How much more of what sells comes back, by location.
+ * How much more likely a parcel is REFUSED AT THE DOOR, by location.
  *
  * THIS IS THE TRADE. Without it the metros would simply be better and there would
  * be no decision to make: volume alone changes how MANY clicks are available, not
@@ -93,11 +93,40 @@ export const LOCATION_VOLUME_BY_PRICE = Object.freeze({
  * orders come back materially more often, so tier 3 traffic converts perfectly
  * well and then leaves again.
  *
- * It multiplies `business.returnRate`, which is already per position and per
- * query — so it compounds with the fact that a value brand's thinner margin loses
- * more to each return. That is why the measured spread between best and worst
- * location is widest for value|lifestyle at 1.65x and narrowest for
- * premium|performance at 1.35x.
+ * IT REACHES THE REFUSED HALF ONLY (2026-09-20, F20). It used to multiply the
+ * whole return rate, with the refused/sent-back split applied afterwards, so
+ * send-backs came out 1.36-1.40x higher in the towns as well. Nothing supports
+ * that: `POST_DELIVERY_RETURN_RATE` is one national figure, and F14 recorded the
+ * fault and left it. Send-backs now run 0.90-0.93x metros to towns, and that
+ * slight FALL is not a compromise — more parcels are refused at the door out
+ * there, so fewer are ever delivered, and a parcel that never arrived cannot be
+ * sent back.
+ *
+ * THE TABLE DID NOT WIDEN WITH IT, AND THAT IS THE UNFINISHED PART. The sources
+ * put tier-3 RTO at 3-5x the metros; refusals here run 1.65-1.81x. Widening the
+ * table is what should close that, and it cannot yet, because of an artefact
+ * this table sits inside rather than anything about the table itself:
+ *
+ *   It is normalised PER PRICE TIER, to hold each position's own documented
+ *   return rate. A value brand's country is 53% towns where a premium brand's is
+ *   26%, so holding premium's rate lifts its town multiplier further than
+ *   value's. Past about [1, 1.5, 1.9] that lift overturns the CASH MIX:
+ *   `refusalRateFor` has refusals in the towns running value 18.8% > mid 17.9% >
+ *   premium 15.6% from the sourced COD shares, and a wider table reverses it.
+ *   An INVENTED constant must not overrule a DOCUMENTED one.
+ *
+ * So the gradient is capped by the normalisation, not by the evidence. Fixing
+ * that means normalising market-wide, so a place's gradient is a property of the
+ * PLACE rather than of who is advertising — which moves F14's per-position
+ * return rates and needs its own measurement. Recorded as its own item; the
+ * table widens after it, not before.
+ *
+ * NORMALISED AGAINST THE REFUSED SHARE, not against volume — see
+ * `locationEffects`. Normalising a refusals-only gradient by volume would no
+ * longer hold the category return rate, which is the thing normalisation is for.
+ * The total return rate runs 1.16x metros to towns now, against 1.50x before:
+ * the trade is weaker until the table can widen, and the mechanism is no longer
+ * wrong, which was the thing worth buying first.
  *
  * NOT A CONVERSION MULTIPLIER, deliberately. Conversion already carries query
  * affinity, PURPOSE_MODIFIERS and the hourly intent curve, and F10 and F11 are
@@ -198,8 +227,9 @@ export const RTO_RATE_PREPAID = 0.058;
  * by location (1.04-1.06x towns to metros). On price the flatness is accepted:
  * nothing found says otherwise. On location it is known to be too flat — tier-3
  * RTO is quoted at 3-5x the metros, far more than the cash mix alone explains —
- * which is why `LOCATION_RETURN_MULTIPLIER` carries the gradient instead. F14
- * records what that multiplier does to send-backs as an open question.
+ * which is why `LOCATION_RETURN_MULTIPLIER` carries the gradient instead — and,
+ * since F20, carries it on the refused half alone, so THIS figure stays flat by
+ * location the way the sources quote it.
  */
 export const POST_DELIVERY_RETURN_RATE = 0.30;
 
