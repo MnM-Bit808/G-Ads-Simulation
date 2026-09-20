@@ -97,13 +97,13 @@ export const AD = Object.freeze({
   // which round 0 writes from ALL of it and the grader scores from week 1, and
   // the site work's points from the page's own capital (`landingPageBonus`). A
   // row's grade points are the second road only, and say so.
-  // The page's own furniture. The price is the account's OWN average order
-  // (`aovMeanPaise`), not a number typed to look like a shop: a figure on this
-  // screen that no part of the game produced would be read as one that is.
-  // The stars carry no count for the same reason — an invented "412 reviews"
-  // beside real grades is decoration pretending to be data.
+  // The page's own furniture, with no price on it. The one it was first drawn
+  // with came from `businessFor`, which the R3 guard in tests/ui.test.js refuses:
+  // it blends the affinities and conversion multipliers 16.1 withholds from every
+  // viewer. A price on a drawn page is decoration, and decoration is not worth
+  // reaching into a withheld block for. The stars carry no count either — an
+  // invented "412 reviews" beside real grades is read as a real one.
   product: line('label', 'High-waisted training leggings'),
-  price: line('label', ({ amount }) => amount),
   reviewCount: line('label', 'reviews'),
   sizeChart: line('label', 'Size chart'),
 
