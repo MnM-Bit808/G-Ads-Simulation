@@ -6,6 +6,7 @@ import { businessFor, realisedBreakEvenCpcPaise, refusalOutlook } from '../engin
 import { homeCell } from '../engine/querySet.js';
 import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
+import { playMarket } from '../scripts/market-harness.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
@@ -1138,5 +1139,38 @@ describe('a report says what share of its own week\'s orders were paid at the do
           .toBe(settled(untouched(), week, t).codShare);
       }
     }
+  });
+});
+
+/**
+ * The week-8 rank, and the reports it is taken from.
+ *
+ * Spec 13.1 ranks month 3's budgets on "cumulative gross profit across rounds
+ * 1-8, as reported at round 8". The reports as they stand when week 8 ends
+ * include week 8's own revisions of weeks 5-7: that is what the player reads,
+ * and what the deadline card sums. `advanceState` runs before `reviseReports`,
+ * so the rank was taken from the weeks as they stood after week 7 plus week 8's
+ * fresh report — a state nobody ever sees.
+ *
+ * IT NEEDS A REAL MARKET. The fixture's nine advertisers finish far enough
+ * apart that both readings give the same order; the difference shows only where
+ * two of them sit within a week's late sales of each other. On seed 2 in
+ * mid|performance, lumen and satva do, and swap 2nd and 3rd.
+ */
+describe('the week-8 rank is taken from the reports as they stand (13.1)', { timeout: 120_000 }, () => {
+  test('every advertiser sits where its own weeks 1 to 8 put it', async () => {
+    const { state } = await playMarket({ seed: 2, cell: 'mid|performance', rounds: 8 });
+    const totals = new Map(state.advertisers.map((a) => [a.id, 0]));
+    for (const report of state.history.filter((h) => h.round <= 8)) {
+      for (const [id, row] of Object.entries(report.byAdvertiser)) {
+        totals.set(id, totals.get(id) + row.money.grossProfitPaise);
+      }
+    }
+    // The same tie-break `rankByGrossProfit` uses, so only the figures differ.
+    const asReported = [...totals.entries()]
+      .sort((a, b) => (b[1] - a[1]) || (a[0] < b[0] ? -1 : 1))
+      .map(([id]) => id);
+
+    expect(state.budgetSchedule.rankedAtSnapshot).toEqual(asReported);
   });
 });
