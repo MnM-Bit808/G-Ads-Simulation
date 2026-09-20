@@ -122,6 +122,32 @@ outcome is 8 documented becoming 15–20, not 59 becoming 5.
 **Done when:** every remaining INVENTED constant has a one-line note saying why
 it could not be sourced, rather than being invented by default.
 
+### Phase 3a — the gate nobody runs
+
+**Found while measuring F19's G3, 2026-09-20, and it is not F19's fault.**
+`tests/performance.test.js` fails on `main`: the three-auction path measures
+**3,105–3,167ms against its own 2,800ms bound**, about 11% over. Measured with
+the fix stashed and unstashed, three samples either side — the fix adds nothing,
+the bound was already red.
+
+**Why nobody noticed.** `npm test` is lint plus vitest; `npm run ci` is lint,
+vitest and the build. **Neither runs `test:perf`** — it is a separate script
+because timing inside a parallel run measures the machine. So the one gate that
+protects the 400ms-per-round spec budget has no automation behind it at all, and
+`main` drifted past it at some point after 2026-09-15, when the bound was set
+from measurements of 2,200–2,550ms.
+
+**What it needs, in order:** find which change moved it (the candidates since
+that date are I34, I39, I40, I41, C9 and F18); decide whether the cost is real
+or the bound was set on a quieter machine; then either fix the cost or re-set
+the bound openly with its measurement, the way F14 re-set `AD_RANK_FLOOR`. And
+give it a way to be noticed — a nightly run, or a line in the handover's
+deployment section saying it is run by hand and when it was last run.
+
+**Do not simply raise the number.** The project's own rule is to cut the thing
+rather than move the bound, and a performance bound that is raised whenever it
+fails is not a bound.
+
 ### Phase 4 — durability
 
 The project is one person with no reviewer, and the docs meant to protect
