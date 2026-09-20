@@ -2869,6 +2869,82 @@ updates and needing no store or signing. `scripts/build-site.js` already knows
 the exact file list, so the cache manifest could generate itself. About half a
 day. Raise it only if the icon is wanted.
 
+### What tampering would cost, and what is worth doing about it
+
+**Written 2026-09-20, because "how do I protect it" is a question that wastes a
+week if it is not asked precisely.**
+
+**THE BOUND FIRST: a single-player browser game cannot be protected from its own
+player.** The engine runs on their machine, so a breakpoint in the developer
+tools edits any number mid-run. Obfuscation, minification and a checksum in the
+page are all defeated by the same breakpoint. Nothing in this section tries to
+beat that, and anything proposed later that does is theatre.
+
+The useful question is which kinds of tampering would actually cost something.
+Four would, and they want very different answers.
+
+| what | what it costs | what stops it | worth spending? |
+|---|---|---|---|
+| **the answer key read in devtools** | the whole lesson | only a server | later — it is the backend step |
+| **the deployment written to by someone else** | every player at once | 2FA, branch protection, token scope | **yes, and it is an hour** |
+| **a player editing their own save** | nothing but their own learning | already tamper-EVIDENT, by accident | no |
+| **a forged playtest file** | one bad finding | the replay check, partly | no |
+
+**1. The answer key is the one that damages the teaching.**
+`content/querySet.js` carries `priceAffinity`, `purposeAffinity`,
+`convMultiplier`, `valueMultiplier`, `returnRateMultiplier`, `tags` and
+`isHeadTerm`. Spec 16.1 withholds all seven from every controller *including the
+one the affinity favours*, because the learning loop IS "guess which searches are
+yours, see what came back, revise". With that table open there is nothing left to
+infer. `getPublicView` strips them at the API boundary, which is right and buys
+nothing against reading the file — the engine runs in the browser, so the browser
+must be handed them. `scripts/build-site.js` has said so since it was written
+(*WHAT IT DOES NOT HIDE*). **There is no clever partial fix. Do not look for
+one.** The mitigation that actually applies is the audience: a true beginner does
+not open devtools, and whoever does has chosen to skip the lesson.
+
+**2. The deployment is where the cheap, real wins are.** A push to `main`
+publishes to everyone holding the link, so anything that can write to `main` can
+publish. Worth an hour, in this order: **2FA on GitHub and Cloudflare** (this is
+the whole game — an account takeover makes everything below a rounding error),
+**branch protection on `main`**, and **checking the Cloudflare build's repo
+permission is scoped to this repo** rather than the account. There is no
+`.github/workflows`; Cloudflare builds from the repository directly, so that
+permission is the credential.
+
+Two guards already do real work here and should not be quietly removed: `npm run
+ci` gates every deploy on lint and the whole suite, and `tests/build.test.js`
+holds `dist/` to exactly the files the game loads, so a build that tried to
+publish the repository or slip a file in fails before it ships.
+
+**3. A player cheating their own save is already tamper-evident, by accident —
+and this is the one people reach for first.** The save is not a scoreboard with a
+money field to raise: `makeSave` (`ui/save.js`) stores the state before week 1
+plus the decision log, and the game replays it, so forging a richer game means
+writing a decision log that genuinely earns it. `restoreSave` then compares
+`fingerprintOf(reports, playerId)` — cost and clicks per week — against what was
+recorded, and `scripts/read-playtest.js` prints `THE REPLAY DOES NOT MATCH` when
+it disagrees. **That check was built for version drift and works as tamper
+evidence; keep it in mind before building a second one.** Its limit: it proves
+the decisions produced the figures, not that a human made them.
+
+**4. A forged playtest file is not the failure mode this project has.** The
+replay check above catches an edited decision log but not forged timings or
+forged answers, which are the data worth having. The actual failure so far is the
+opposite: two testers, neither sent a file (*Running a playtest* below).
+
+**WHAT TIES IT TO EVERYTHING ELSE: three things in the queue want the same one
+thing.** Withholding the answer key wants a server; `llmPolicy` rivals want a
+server; cross-device saves want a server. That makes the backend the single
+unlock rather than one feature among several — worth knowing when it is next
+weighed against something else.
+
+**AND THE COUNTERWEIGHT, which is why nothing here is being built yet.** No
+tester has finished a game. A server that protects a lesson nobody has reached is
+the wrong build this month. The split taken on 2026-09-20 was: do the deployment
+hygiene, write this section, and leave the backend where it is until a beginner
+has played twelve weeks and said what it taught them.
+
 ### Running a playtest
 
 **The recorder is in the game and switched on only by the link.** Send
