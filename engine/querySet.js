@@ -346,9 +346,9 @@ export function assertValidQuerySet(querySet, options = {}) {
   const result = validateQuerySet(querySet, options);
   if (!result.valid) {
     const lines = result.errors.map((e) => `  [${e.rule}] ${e.message}`).join('\n');
-    const error = new Error(
+    const error = /** @type {Error & {errors: object[]}} */ (new Error(
       `Query set failed ${result.errors.length} check(s):\n${lines}`,
-    );
+    ));
     error.errors = result.errors;
     throw error;
   }

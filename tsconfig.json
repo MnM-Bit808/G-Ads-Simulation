@@ -1,0 +1,42 @@
+{
+  "//": [
+    "Type-checking only. NOTHING IS COMPILED and nothing is emitted: the game is",
+    "served as the .js files you see, and `noEmit` below is what guarantees that",
+    "stays true. There are no .ts files here and there is no bundler.",
+    "",
+    "WHY THIS EXISTS. The project's convention is JSDoc on every exported",
+    "function - what it does, units, and any invariant it assumes. Nothing",
+    "checked that the JSDoc still matched the code, and it had drifted: a",
+    "`@param` naming a parameter that no longer exists, `runRound`'s `@returns`",
+    "omitting two of the four things it returns, and several object params typed",
+    "narrower than the fields the body reads. A JSDoc that lies is the same",
+    "defect as a comment that lies, which this project treats as worse than dead",
+    "code because it reads as true.",
+    "",
+    "WHY `ui/` IS NOT IN IT, which is a decision and not an oversight. Checking",
+    "it costs 303 errors against the engine side's 44, and almost all of them are",
+    "DOM typing - `Element` without `.focus`, `EventTarget` without `.closest` -",
+    "which is silenced with casts rather than fixed. And empirically it would buy",
+    "nothing: every interface defect found by playing this game has been visual",
+    "(contrast, overlapping rows) or behavioural (a tick that appeared too early,",
+    "a button that was missing). A type-checker sees none of those. The engine is",
+    "where a wrong type is a wrong number.",
+    "",
+    "`tests/` is out for the same reason a test fixture is allowed to be a",
+    "half-built object on purpose."
+  ],
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "skipLibCheck": true,
+    "strict": false,
+    "noImplicitAny": false
+  },
+  "include": ["engine/**/*.js", "content/**/*.js", "agents/**/*.js", "scripts/**/*.js", "game.js", "setup.js"]
+}

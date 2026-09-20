@@ -115,11 +115,21 @@ export function resolveAuction(entrants) {
       throw new Error(`duplicate entrant id "${entrant.id}" in one auction`);
     }
     seen.add(entrant.id);
+    // THE WHOLE `LadderRow` SHAPE, DECLARED HERE. The five fields below used to
+    // be attached by the two loops that follow, which left the row's real shape
+    // spread across three places and readable in none of them. They are
+    // initialised to what "did not show" means, so the loops only have to write
+    // the cases that differ.
     return {
       id: entrant.id,
       bidPaise: entrant.bidPaise,
       qualitySignal: entrant.qualitySignal,
       adRank: adRank(entrant.bidPaise, entrant.qualitySignal),
+      shown: false,
+      position: 0,
+      aboveOrganic: false,
+      beatRank: 0,
+      cpcPaise: 0,
     };
   });
 
@@ -131,15 +141,13 @@ export function resolveAuction(entrants) {
   // entrant never takes a slot, even when slots are free.
   let filled = 0;
   for (const r of rows) {
+    // No else: a row that takes no slot already carries the not-shown values
+    // from where it was built.
     if (r.adRank >= AD_RANK_FLOOR && filled < MAX_SLOTS) {
       filled += 1;
       r.shown = true;
       r.position = filled;
       r.aboveOrganic = filled <= TOP_SLOTS;
-    } else {
-      r.shown = false;
-      r.position = 0;
-      r.aboveOrganic = false;
     }
   }
 

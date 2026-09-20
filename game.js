@@ -126,14 +126,16 @@ export function submitRound(gameState, decisions, options = {}) {
   // it, and this is the caller. Until game.js existed nobody did, and a played
   // game showed the player no Quality Score at all.
   const report = withQualityScores(result.report, result.nextGameState, gameState.round);
-  return {
+  // `runRound` types `insights` optional because its counterfactual path
+  // returns without one. This is never that path.
+  return /** @type {{round: number, report: object, insights: object, raw: object, nextGameState: object}} */ ({
     ...result,
     report,
     nextGameState: {
       ...result.nextGameState,
       history: result.nextGameState.history.map((h) => (h.round === report.round ? report : h)),
     },
-  };
+  });
 }
 
 /**

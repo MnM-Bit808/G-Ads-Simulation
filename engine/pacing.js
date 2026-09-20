@@ -290,6 +290,7 @@ export function rankAllocations(rankedIds, poolPerAdvertiserPaise = MONTHLY_BUDG
   const sum = slice.reduce((a, b) => a + b, 0);
   const scale = sum > 0 ? n / sum : 1;
 
+  /** @type {Record<string, number>} */
   const out = {};
   rankedIds.forEach((id, rank) => {
     out[id] = Math.round(poolPerAdvertiserPaise * slice[rank] * scale);

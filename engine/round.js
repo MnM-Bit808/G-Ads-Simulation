@@ -73,7 +73,12 @@ const COMPONENTS = ['expectedCtr', 'adRelevance', 'landingPage'];
  * @param {string[]} [options.counterfactualFor] advertiser ids; see 11.2
  * @param {boolean} [options._isCounterfactual] internal guard (L13)
  * @param {string} [options._liftWeekFor] internal: the counterfactual's advertiser
- * @returns {{round: number, raw: object, nextGameState: object}}
+ * @returns {{round: number, report?: object, insights?: object, raw: object,
+ *   nextGameState: object}} `report` and `insights` are ABSENT on the
+ *   counterfactual path, which returns early before either is built. Every
+ *   other caller gets all five — this file's own header said so while this tag
+ *   listed three, and the disagreement reached `game.js` and `serialise.js`,
+ *   which read `.report` off a type that did not have it.
  */
 export function runRound(gameState, options = {}) {
   const {
@@ -1063,7 +1068,10 @@ function rankByGrossProfit(history, advertisers) {
  *
  * @param {object} bidding the advertiser's own bidding block
  * @param {Array<object>} landed conversions that arrived this round
- * @param {number} clicks this round's clicks, fractional
+ * @param {object} acc this round's accumulator, for the clicks the rate divides by
+ * @param {Array<{hour: number, count: number}>} landedHourly the same landings
+ *   as entries carrying the hour they are credited to, for the per-hour belief
+ *   `estimatedConvRate` reads before it falls back to the aggregate
  * @returns {object} a new bidding block
  */
 function updateBidding(bidding, landed, acc, landedHourly) {

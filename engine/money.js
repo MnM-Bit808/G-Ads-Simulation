@@ -38,7 +38,8 @@ export function assertPaise(v, label = 'value') {
   if (!isPaise(v)) {
     throw new TypeError(`${label} must be integer paise, got ${String(v)}`);
   }
-  return v;
+  // `isPaise` above is the narrowing; the tag cannot express it.
+  return /** @type {number} */ (v);
 }
 
 /**

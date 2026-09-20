@@ -12,10 +12,18 @@ export const pct = (x, places = 0) => `${(100 * (x || 0)).toFixed(places)}%`;
 export const ratio = (x) => (Number.isFinite(x) ? x.toFixed(2) : '—');
 
 /**
- * @param {string} tag
+ * TYPED BY ITS TAG, so `el('a')` is an anchor and `el('textarea')` has a
+ * `.value`. It used to say `HTMLElement` for everything, which meant every
+ * caller that set `.href`, `.value`, `.rows` or `.type` was setting a property
+ * the declared type does not have. Nine of those in `ui/recorder.js` alone.
+ * Fixing it here rather than casting at each call site is the difference
+ * between describing the helper and apologising for it.
+ *
+ * @template {keyof HTMLElementTagNameMap} K
+ * @param {K} tag
  * @param {string|null} [className]
  * @param {string|null} [text]
- * @returns {HTMLElement}
+ * @returns {HTMLElementTagNameMap[K]}
  */
 export function el(tag, className, text) {
   const node = document.createElement(tag);

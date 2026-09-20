@@ -85,7 +85,9 @@ export function locationIdAt(index) {
  * these once per query rather than per auction.
  *
  * @param {object} query
- * @returns {number[]} one share per LOCATION_TIERS, summing to 1
+ * @returns {readonly number[]} one share per LOCATION_TIERS, summing to 1.
+ *   Readonly because the rows come straight out of a frozen constant table;
+ *   a caller that needs to change one copies it first.
  */
 export function locationSharesFor(query) {
   const cell = homeCell(query);

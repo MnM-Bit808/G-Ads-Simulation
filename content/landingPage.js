@@ -364,18 +364,18 @@ export function pageAsItStands(capex, round, { rules = LANDING_RULES } = {}) {
  * and may pass ten; `grade` is what the auction runs on, computed as it computes
  * it, and never does. Where they differ, the cap took the difference.
  *
- * @param {{committed?: object, pending?: object[]}} capex a capex block
- * @param {number} round
  * SHARING NEEDS THE LENGTH RULE. Under `LANDING_RULES` every rule is earned by
  * one ladder's sentences, so nothing is shared; only a game saved before C, still
  * on `LENGTH_RULES`, can split a point.
  *
  * @param {{committed?: object, pending?: object[]}} capex a capex block
  * @param {number} round
- * @param {{describedFrom?: 'live'|'committed', rules?: readonly object[]}} [options]
- *   'committed' reads the description from everything committed, as a game saved
- *   before the page was graded as it stands still does; the site work is always
- *   what is live. `rules` are the ones the game was begun under (`rulesFor`).
+ * @param {object} [options]
+ * @param {'live'|'committed'} [options.describedFrom] 'committed' reads the
+ *   description from everything committed, as a game saved before the page was
+ *   graded as it stands still does; the site work is always what is live.
+ * @param {readonly object[]} [options.rules] the rules the game was begun under
+ *   (`rulesFor`); a new game's by default.
  * @returns {{start: number, lines: Array<{rule: string, points: number, by: string[]}>,
  *   total: number, grade: number}} `by` names capex targets; empty for a point the
  *   plain page earns (none does today)

@@ -32,6 +32,7 @@ import { readSave, restoreSave, SAVE_KEY } from '../ui/save.js';
 import { finalStandings, gameTotals } from '../ui/ending.js';
 import { rupees } from '../ui/dom.js';
 
+/** @type {Array<[string, (name: string) => boolean]>} */
 const GROUPS = [
   // The minute before round 0 (2026-09-19). ITS OWN ROW, ABOVE ROUND 0's:
   // counted inside round 0, the run's minutes would be absorbed by the very
@@ -58,7 +59,8 @@ const GROUPS = [
 export function phaseGroups(file) {
   const totals = new Map();
   for (const phase of summarise(file.recording)) {
-    const [group] = GROUPS.find(([, belongs]) => belongs(phase.name));
+    // Every phase name matches one group; the last entry is the catch-all.
+    const [group] = GROUPS.find(([, belongs]) => belongs(phase.name)) ?? [];
     const row = totals.get(group)
       ?? { name: group, activeSeconds: 0, hiddenSeconds: 0, idleSeconds: 0, clicks: 0, keys: 0 };
     row.activeSeconds += phase.activeSeconds;
@@ -109,7 +111,9 @@ export function computeTimes(file) {
  */
 export async function outcome(file) {
   if (!file.save) return null;
-  const storage = { getItem: (key) => (key === SAVE_KEY ? JSON.stringify(file.save) : null) };
+  // Only `getItem` is reached; `readSave` asks for nothing else.
+  const storage = /** @type {Storage} */ (/** @type {unknown} */ (
+    { getItem: (key) => (key === SAVE_KEY ? JSON.stringify(file.save) : null) }));
   const saved = readSave(storage);
   if (!saved) return { unreadable: true };
 

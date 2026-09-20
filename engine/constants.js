@@ -946,6 +946,14 @@ export const INFORMATIONAL_CONV_MULTIPLIER = 0.10;
 /** Exactly zero, not merely small. That traffic never converts, and the waste is the lesson. */
 export const IRRELEVANT_CONV_MULTIPLIER = 0;
 
+/**
+ * The floor and ceiling on any conversion rate, as a PAIR rather than a list.
+ *
+ * Typed as a two-tuple because every caller spreads it into `clamp(value, lo,
+ * hi)`, and a plain `number[]` cannot be spread into fixed parameters — five
+ * sites across `strategies.js`, `positions.js` and `attribution.js` say so.
+ * @type {[number, number]}
+ */
 export const CONV_RATE_CLAMP = [0.001, 0.35];
 
 /** Nothing else bounds returnRate x multipliers below 1. */

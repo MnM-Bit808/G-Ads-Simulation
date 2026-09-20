@@ -80,11 +80,12 @@ export function januaryLifts(rows, weekOne) {
  * @returns {Object<string, {terms: Object<string, {years: number[], lifts: number[]}>, mean: number[]}>}
  */
 export function groupLifts(dir, weekOne = WEEK_ONE) {
+  /** @type {Record<string, {terms: Record<string, {years: number[], lifts: number[]}>, mean: number[]}>} */
   const groups = {};
   for (const file of readdirSync(dir).filter((f) => f.endsWith('.csv')).sort()) {
     const [group, term] = file.replace(/\.csv$/, '').split('--');
     const out = januaryLifts(parseTrends(readFileSync(join(dir, file), 'utf8')), weekOne);
-    (groups[group] ??= { terms: {} }).terms[term] = out;
+    (groups[group] ??= { terms: {}, mean: [] }).terms[term] = out;
   }
   for (const g of Object.values(groups)) {
     const read = Object.values(g.terms).filter((t) => t.years.length > 0);

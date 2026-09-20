@@ -926,6 +926,33 @@ and nothing extra.
 | `npm run preview` | builds, then serves `dist/` the way the live site will be served — the `site` entry in `.claude/launch.json` |
 | `npm run ci` | lint, the whole suite with a 60-second test timeout, then build. **This is Cloudflare's build command.** |
 | `npm run test:perf` | spec 19's engine budgets. **Nothing runs this for you** — see below |
+| `npm run typecheck` | `tsc --noEmit` over the engine side. Checks the JSDoc against the code; compiles nothing |
+
+### What `typecheck` is for, and what it is not
+
+**It is not a migration.** There are no `.ts` files, no bundler, and `noEmit`
+guarantees nothing is compiled — the game is still served as the `.js` files you
+can read. What it checks is that the **JSDoc still matches the code**, which is
+the project's own convention (a tag on every exported function: what it does,
+its units, the invariants it assumes) and which nothing checked until
+2026-09-20.
+
+**It found 61 things and not one was a type error.** They were all documentation
+that had drifted: `effectiveGrades`' tags described a different function
+entirely; `pagePoints` had a duplicated `@param` pair with prose pasted between
+it and the real tags, so every tag bound one position out; `runRound`'s
+`@returns` listed three of the five fields its own file header names, and that
+disagreement reached `game.js` and `serialise.js`; `liveCapexPaise` declared
+`committed` required while its body has always read `capex?.committed?.[target]
+?? 0`. A JSDoc that lies is the same defect as a comment that lies.
+
+**`ui/` is out of scope on purpose**, and `tsconfig.json` carries the reasoning:
+303 errors there against 44 on the engine side, nearly all DOM typing that is
+silenced with casts rather than fixed — and every interface defect this game has
+ever had was visual or behavioural, which no type-checker sees.
+
+**Run it before committing anything in `engine/`, `content/`, `agents/` or
+`scripts/`.** It is in `npm test`, so the ordinary check covers it.
 
 ### Running the performance suite
 

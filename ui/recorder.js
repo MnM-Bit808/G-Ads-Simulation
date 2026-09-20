@@ -435,10 +435,14 @@ function controlLabel(control) {
 export function attachRecorder(recorder) {
   // Capture phase, so a control that stops the click from bubbling is still counted.
   document.addEventListener('click', (event) => {
-    const card = event.target.closest?.('.card, header, [data-region]');
+    // `event.target` is an EventTarget, which has no `closest`. It is an
+    // Element for every click that reaches here; the optional calls below are
+    // what covers the case where it is not.
+    const target = /** @type {Element} */ (event.target);
+    const card = target.closest?.('.card, header, [data-region]');
     recorder.click(describeClick({
       card: card ? cardTitle(card) : null,
-      control: controlLabel(event.target.closest?.(CONTROL)),
+      control: controlLabel(target.closest?.(CONTROL)),
     }));
   }, true);
   document.addEventListener('keydown', () => recorder.key(), true);

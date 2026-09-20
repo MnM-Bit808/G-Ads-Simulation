@@ -96,7 +96,8 @@ function assertPosition(position) {
  * POSITION_ECONOMICS for every other advertiser in the game.
  *
  * @param {{price: string, purpose: string}} position
- * @param {{committed: object, pending?: object[]}} capex
+ * @param {{committed?: object, pending?: object[]}} capex `committed` is
+ *   optional, as the body has always treated it
  * @param {number} round
  * @returns {object} business block
  */
@@ -513,7 +514,9 @@ export function capexEffect(paise, target = null) {
  * at all — investing costs three rounds of traffic AND three rounds of
  * conversion data, and the data cost falls unevenly across positions.
  *
- * @param {{committed: object, pending?: object[]}} capex
+ * @param {{committed?: object, pending?: object[]}} capex `committed` is
+ *   OPTIONAL, which the body has always assumed — `capex?.committed?.[target]
+ *   ?? 0` — while this tag said otherwise. Round 0 composes blocks without it.
  * @param {string} target
  * @param {number} round
  * @returns {number} integer paise
@@ -536,7 +539,8 @@ export function liveCapexPaise(capex, target, round) {
  * mechanisms from writing the same field. Two things writing one number is
  * how the L6 double-count happened.
  *
- * @param {{committed: object, pending?: object[]}} capex
+ * @param {{committed?: object, pending?: object[]}} capex `committed` is
+ *   optional, as the body has always treated it
  * @param {number} round
  * @returns {number} whole points, 0..CAPEX_LANDING_PAGE_MAX_POINTS
  */

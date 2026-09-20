@@ -102,7 +102,9 @@ export function contextFactor(hour) {
  * keyword matched, which is a separate thing.
  *
  * @param {object|null} gradedQuality null when the ad has never been graded
- * @param {{tags?: string[], intent: string}} query
+ * @param {{text?: string, tags?: string[], intent: string}} query `text` is
+ *   present when the caller asks about a hypothetical search rather than one
+ *   from the set — ui/decisions.js does, to price a keyword on its own words.
  * @param {{text: string, matchType: string, tags?: string[]}} keyword
  * @param {number} hour 0-23
  * @param {(() => number)|null} rng required in sampled mode
@@ -126,7 +128,9 @@ export function qualitySignal(gradedQuality, query, keyword, hour, rng, mode) {
  * budget for no gain.
  *
  * @param {object|null} gradedQuality
- * @param {{tags?: string[], intent: string}} query
+ * @param {{text?: string, tags?: string[], intent: string}} query `text` is
+ *   present when the caller asks about a hypothetical search rather than one
+ *   from the set — ui/decisions.js does, to price a keyword on its own words.
  * @param {{text: string, matchType: string, tags?: string[]}} keyword
  * @returns {{base: number, components: object, ungraded: boolean}}
  */
@@ -214,6 +218,7 @@ export function reportedScore(advertiser, keywordId, currentRound) {
   for (const r of window) impressions += r.impressions;
   if (impressions < QUALITY_MIN_IMPRESSIONS) return null;
 
+  /** @type {Record<string, string>} */
   const ratings = {};
   for (const component of COMPONENTS) {
     let own = 0;
@@ -226,7 +231,9 @@ export function reportedScore(advertiser, keywordId, currentRound) {
   }
 
   const key = `${ratings.expectedCtr}|${ratings.adRelevance}|${ratings.landingPage}`;
-  return { score: RATING_TO_SCORE_TABLE[key], ...ratings };
+  // The loop above fills exactly the three COMPONENTS, which a spread cannot say.
+  const scored = { score: RATING_TO_SCORE_TABLE[key], ...ratings };
+  return /** @type {{score: number, expectedCtr: string, adRelevance: string, landingPage: string}} */ (scored);
 }
 
 /**

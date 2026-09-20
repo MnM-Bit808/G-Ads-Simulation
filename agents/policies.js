@@ -992,6 +992,7 @@ export function investment(self) {
   const { allocationPaise = 0, ceilingPaise = {} } = self.capital ?? {};
   const committed = self.capex?.committed ?? {};
   const price = self.position?.price;
+  /** @type {Record<string, number>} */
   const out = {};
   let left = allocationPaise;
   for (const target of [PRIMARY_TARGET[price], SECONDARY_TARGET[price]]) {

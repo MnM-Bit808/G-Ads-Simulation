@@ -333,7 +333,7 @@ export function buildRoundOutput({ round, raw, advertisers }) {
  *
  * @param {object} r raw accumulator for one advertiser
  * @param {Array<object>} landed this round's own landed conversions
- * @returns {{byKeyword: object, byQuery: object}}
+ * @returns {{byKeyword: object, byQuery: object, byLocation: object}}
  */
 function attributeConversions(r, landed) {
   const byQuery = {};

@@ -168,6 +168,12 @@ export function harnessPlayer(cell, writerTier = 'agency', capex = {}) {
 }
 
 /** What the form sends when the player leaves the capital card alone. */
+/**
+ * @returns {{capex?: object, campaign?: object, position?: string}|null} a
+ *   DECISION, which callers spread and add to — `prepaidDecision` sets
+ *   `campaign`, `moveDecision` sets `position`. Typed as the whole shape
+ *   rather than the one field this returns, so those stay honest.
+ */
 export const keepAtWindow = (round, state) => (
   round > 1 && (state.budgetSchedule?.capexAllocationRounds ?? []).includes(round) ? { capex: {} } : null
 );
@@ -200,6 +206,7 @@ export async function playMarket({
   while (state.round <= rounds) {
     const round = state.round;
     const current = state;
+    /** @type {Record<string, Function>} */
     const controllers = {};
     for (const a of state.advertisers) {
       controllers[a.id] = a.policyId ? policyFor(a.policyId) : () => playerDecision(round, current);

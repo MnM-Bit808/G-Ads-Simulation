@@ -38,7 +38,7 @@ export const BRAND_IDENTITIES = Object.freeze([
   { id: 'nira', name: 'Nira', domain: 'nira.in' },
   { id: 'torvi', name: 'Torvi', domain: 'torvi.in' },
   { id: 'auren', name: 'Auren', domain: 'auren.in' },
-].map(Object.freeze));
+].map((b) => Object.freeze(b)));
 
 /** Every identity id, in roster order. */
 export const BRAND_IDS = Object.freeze(BRAND_IDENTITIES.map((b) => b.id));

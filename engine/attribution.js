@@ -179,9 +179,14 @@ export function sampleOrderValuePaise(business, query, rng, mode) {
  * @param {number} args.convRate from effectiveConvRate
  * @param {number} args.orderValuePaise
  * @param {number} args.returnRate 0..1, the rate in force now
+ * @param {number} [args.refusedShare] 0..1, how much of `returnRate` is refused
+ *   at the door rather than sent back after delivery. Carried on the order so a
+ *   revision reads the split the week was sold at (I34), not the account's now.
  * @param {number} args.round the click round
  * @param {string} [args.queryId] the query these clicks came from
  * @param {string} [args.keywordId] the keyword that caught them, this round
+ * @param {number|null} [args.locationTier] index into LOCATION_TIERS, snapshotted
+ *   for the same reason the value and the keyword are
  * @param {(() => number)|null} args.rng
  * @param {'expected'|'sampled'} args.mode
  * @returns {Array<object>} pendingConversions entries

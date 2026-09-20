@@ -774,8 +774,11 @@ const QUALITY_COMPONENTS = [
  * because both are past `RATING_UPPER_THRESHOLD` and three levels have nothing
  * between them to say. Google shows all four figures for the same reason.
  *
- * @param {object|null} score output of `reportedScore`
- * @returns {{value: number|null, ratings: object[], weakest: object|null, note: string}}
+ * @param {object} draft from `createDraft`
+ * @returns {{expectedCtr: number, adRelevance: number, landingPage: number}|null}
+ *   null when the account has no graded quality yet. The tags above this line
+ *   used to describe a `score` parameter and a `{value, ratings, weakest, note}`
+ *   return, neither of which this function has ever had.
  */
 export function effectiveGrades(draft) {
   const graded = draft.gradedQuality;
@@ -1233,7 +1236,9 @@ function biddingChanged(draft) {
  * Stage a negative. String types only — negatives never touch the tag layer.
  *
  * @param {object} draft
- * @param {{text: string, matchType: string}} negative
+ * @param {object} [args]
+ * @param {string} [args.text]
+ * @param {string} [args.matchType]
  * @returns {{added: boolean, reason?: string}}
  */
 export function addNegative(draft, { text, matchType } = {}) {
@@ -1391,7 +1396,9 @@ export function blocksTerm(draft, text) {
  *
  * @param {{text: string, matchType: string}} negative
  * @param {{queries: Array<{id: string, text: string, volumeShareBp: number}>,
- *          terms: Object<string, {clicks: number, costPaise: number, conversions: number}>}} context
+ *          terms: Object<string, {clicks: number, impressions: number,
+ *            costPaise: number, conversions: number}>}} context `impressions`
+ *   is read below and `searchTerms.js` supplies it; this tag omitted it.
  * @returns {object} `blocked`, `spent` (most spent first) and `unspent`, each
  *   row marked `dear` as the search terms report marks it; `totals` over the
  *   spent ones; `averagePaise`, the account's cost of a sale over all of
@@ -1471,8 +1478,12 @@ export function previewNegative(negative, { queries, terms }) {
  * (E9); without one, the words are read as they always were.
  *
  * @param {object} draft
- * @param {{text: string, matchType: string, bidPaise: number}} spec
- * @param {{tag?: Function}} [options] - `tag({text})` returns `{tags, taggedContentHash}`
+ * @param {object} [args]
+ * @param {string} [args.text]
+ * @param {string} [args.matchType]
+ * @param {number} [args.bidPaise]
+ * @param {object} [options]
+ * @param {Function} [options.tag] `tag({text})` returns `{tags, taggedContentHash}`
  * @returns {{ok: boolean, reason?: string, keyword?: object, inertOnBroad?: boolean}}
  */
 export function addKeyword(draft, { text, matchType = 'phrase', bidPaise } = {}, { tag } = {}) {
@@ -1560,7 +1571,8 @@ export function addKeywords(draft, specs, options = {}) {
  * @param {object} draft
  * @param {string} id
  * @param {{bidPaise?: number, matchType?: string, active?: boolean}} patch
- * @returns {{ok: boolean, reason?: string}}
+ * @returns {{ok: boolean, reason?: string, keyword?: object}} `keyword` is the
+ *   row as it now stands, returned on success and omitted on failure.
  */
 export function updateKeyword(draft, id, patch = {}) {
   const keyword = draft.keywords.find((k) => k.id === id);

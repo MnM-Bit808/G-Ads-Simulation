@@ -75,6 +75,7 @@ export function isDear(row, averagePaise) {
  * @returns {Object<string, {clicks: number, impressions: number, costPaise: number, conversions: number}>}
  */
 export function queryTotals(weeks) {
+  /** @type {Record<string, {clicks: number, impressions: number, costPaise: number, conversions: number}>} */
   const totals = {};
   for (const week of weeks ?? []) {
     for (const [queryId, row] of Object.entries(week?.breakdown?.byQuery ?? {})) {
