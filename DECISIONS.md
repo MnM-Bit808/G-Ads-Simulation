@@ -6458,3 +6458,64 @@ from `constants.js`, check this file for an entry defending it. `QUALITY_WEIGHTS
 and `EXTENSIONS_IMPACT` were argued for at length here while no formula in the spec
 ever read them. A ledger that defends numbers the engine cannot see is worse than no
 ledger, because it reads as evidence that the thing was modelled.
+
+---
+
+### I42. The provenance audit: what was invented by default rather than by choice — `IN PROGRESS` (2026-09-20)
+
+Phase 3 of `plans/2026-09-20-critical-review-programme.md`. The review rated
+quantitative grounding 3/10 on one figure: **59 of 79 tagged constants were
+INVENTED and 8 DOCUMENTED**, five of those eight being the Indian returns
+numbers. The question this entry answers, constant by constant, is which were
+invented because nothing could be sourced, and which because nobody looked.
+
+**The method, and it is the part to reuse.** F21 had just shown a quoted figure
+attached to the wrong axis, so the sweep ran that check first: every INVENTED
+constant whose comment makes a quantified real-world claim. Seven of 59 did, and
+**all seven came back clean** — `QUALITY_FACTOR_RANGES`' 88.6% and 20.2%,
+`PREDICTION_ERROR_BASE`' 27% and 8%, `PACING_REFERENCE_CURVE`'s 14.6% are all
+measurements of this simulation, not claims about the world. F21 was the only
+misattribution, which is worth knowing: the discipline is better than one bad
+case suggested.
+
+**The gap that did turn up: 24 of 59 INVENTED constants carry no comment at
+all.** They have their provenance tag and nothing else, which is half of
+CLAUDE.md's rule 7. Among them are real modelling claims —
+`HOURLY_INTENT_CURVE`, `RATING_TO_SCORE_TABLE`, `LEARNING_ERROR_MULTIPLIER`,
+`BRAND_POACHER_MULTIPLIER`, `CAPEX_DELAY_ROUNDS` — not just self-evident
+structure like `TOTAL_ROUNDS`.
+
+#### Settled so far
+
+| constant | was | now | why |
+|---|---|---|---|
+| `SMART_BIDDING_MIN_CONVERSIONS` | INVENTED | **DOCUMENTED** | it is Google's own published figure, and nobody had looked |
+| `LEARNING_ROUNDS` | INVENTED | **ESTIMATED** | Google gives the wait in conversion cycles, not weeks |
+| `MAX_SLOTS` | INVENTED | INVENTED, *looked for* | Google publishes no count |
+
+**`SMART_BIDDING_MIN_CONVERSIONS` = 30.** "To evaluate results accurately,
+Google Ads recommends measuring performance over longer time periods that have
+at least 30 conversions, such as a month or longer (50 conversions for Target
+ROAS)" (*About Smart Bidding*). Target CPA's page repeats it: "we recommend you
+measure performance for the last 30 days, including at least 30 conversions".
+**One figure where Google gives three**, and the simplification is now named in
+the constant: Target ROAS wants 50 to evaluate and has a separate eligibility
+floor of "at least 15 conversions in the past 30 days" for Search and Shopping.
+
+**`LEARNING_ROUNDS` = 2.** Not DOCUMENTED, because the unit had to be converted.
+Google says "give it 1-2 conversion cycles" (*About Target ROAS bidding*); a
+cycle is however long an account takes to convert, and reading that into weeks
+is an inference. **A converted unit is where a sourced figure becomes an
+inferred one** — F21's lesson applied to a case that looked liftable.
+
+**`MAX_SLOTS` = 4 — the negative result, recorded so nobody searches twice.**
+Google's own help says only that "ads can appear above or below search results
+on Google Search" and gives no count either way. Plenty of third-party pages
+assert four; matching an unsourced claim is not a source. It stays INVENTED,
+and its existing game-design justification is the honest one.
+
+**What this does not yet do.** The remaining 57 INVENTED constants have not all
+been searched, and the 24 with no comment have not all been written up. The
+guide's honesty line still reads true — `tests/guide.test.js` checks it against
+`PROVENANCE` on every run, and at 57 of 79 "mostly invented" is still an
+understatement.

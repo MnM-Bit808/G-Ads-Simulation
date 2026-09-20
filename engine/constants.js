@@ -623,6 +623,12 @@ export const WEEKLY_VOLUME = 430000;
  * share lesson died. Four makes rank competition emergent: disciplined play
  * keeps auctions thin, and the moment anyone broadens their match types the
  * auctions crowd and people start missing out.
+ *
+ * LOOKED FOR AND NOT FOUND (2026-09-20). Google's own help says only that "ads
+ * can appear above or below search results on Google Search" and publishes no
+ * count for either, so this stays INVENTED rather than inheriting a number from
+ * the many third-party pages that assert one. The figure happens to match what
+ * those pages say; matching an unsourced claim is not a source.
  */
 export const MAX_SLOTS = 4;
 export const TOP_SLOTS = 3;
@@ -853,8 +859,53 @@ export const RETURN_RATE_CLAMP_MAX = 0.9;
 // Bidding and learning (spec 12.2, 12.3)
 // ---------------------------------------------------------------------------
 
+/**
+ * How long a strategy is unsettled after its target changes, in rounds (weeks).
+ *
+ * ESTIMATED, and the estimate is an interpretation rather than a lift. Google
+ * states the wait in conversion cycles, not weeks: "give it 1-2 conversion
+ * cycles" before a changed target is hit (About Target ROAS bidding). A cycle
+ * is however long this account takes to convert, which here is the attribution
+ * lag — so two rounds is the top of that range read into this game's clock.
+ *
+ * It is not tagged DOCUMENTED because the unit had to be converted to get here,
+ * and a converted unit is where a sourced figure turns into an inferred one.
+ * See F21: a figure needs its denominator carried with it.
+ */
 export const LEARNING_ROUNDS = 2;
+
+/**
+ * How much noisier a strategy's estimate is while it is learning.
+ *
+ * INVENTED, and no source was found for it (checked 2026-09-20). Google says
+ * performance is unstable during learning and to avoid judging it, but puts no
+ * number on how much. 2.5x is the size that makes the instability visible in a
+ * twelve-round game without making a learning period fatal — a game-balance
+ * choice wearing an engine's clothes, which is what INVENTED is for.
+ */
 export const LEARNING_ERROR_MULTIPLIER = 2.5;
+
+/**
+ * The conversion count below which a bid strategy's estimates are still poor.
+ *
+ * DOCUMENTED, and it was tagged INVENTED until 2026-09-20 purely because nobody
+ * had gone looking: "To evaluate results accurately, Google Ads recommends
+ * measuring performance over longer time periods that have at least 30
+ * conversions, such as a month or longer (50 conversions for Target ROAS)"
+ * (About Smart Bidding). Target CPA's own page repeats it: "we recommend you
+ * measure performance for the last 30 days, including at least 30 conversions".
+ *
+ * ONE FIGURE WHERE GOOGLE GIVES TWO, and that is a simplification worth naming.
+ * Target ROAS wants 50, and Target ROAS additionally has an ELIGIBILITY floor
+ * that is different again — "at least 15 conversions in the past 30 days" for
+ * Search and Shopping. This game models one number, for "your estimates are
+ * still noisy here", which is the 30 both general and Target CPA guidance give.
+ *
+ * NAMES A MILESTONE, NOT A BRANCH. `predictionErrorSigma` falls with sqrt(n)
+ * and has no threshold in it; spec 12.2 quotes this to say what "high error"
+ * means and `strategies.test.js` checks the curve is still large there.
+ * `constants.test.js` records it as deliberately not consumed.
+ */
 export const SMART_BIDDING_MIN_CONVERSIONS = 30;
 
 /**
@@ -1206,9 +1257,9 @@ export const PROVENANCE = {
   IRRELEVANT_CONV_MULTIPLIER: 'INVENTED',
   CONV_RATE_CLAMP: 'INVENTED',
   RETURN_RATE_CLAMP_MAX: 'INVENTED',
-  LEARNING_ROUNDS: 'INVENTED',
+  LEARNING_ROUNDS: 'ESTIMATED',
   LEARNING_ERROR_MULTIPLIER: 'INVENTED',
-  SMART_BIDDING_MIN_CONVERSIONS: 'INVENTED',
+  SMART_BIDDING_MIN_CONVERSIONS: 'DOCUMENTED',
   COLD_START_CONV_RATE: 'INVENTED',
   PREDICTION_ERROR_BASE: 'INVENTED',
   PREDICTION_ERROR_CLAMP: 'INVENTED',
