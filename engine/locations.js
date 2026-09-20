@@ -189,7 +189,12 @@ export function locationEffects(querySet, price = null) {
   // RATIOS and only the level differs. Every caller that feeds `returnHalves`
   // passes a price; the fallback serves callers that want the shape.
   const normaliseReturns = () => {
-    if (!price) return normalise(LOCATION_RETURN_MULTIPLIER);
+    // THE SAME GUARD `locationWeights` USES, deliberately. It falls back to the
+    // query set for a price it does not recognise rather than throwing, and this
+    // has to agree with it: `rtoShareOfReturns` below reaches `codShareFor`,
+    // which throws RangeError on an unknown tier. Guarding only on `!price`
+    // would make one function tolerant of a typo and the other fatal.
+    if (!price || !LOCATION_VOLUME_BY_PRICE[price]) return normalise(LOCATION_RETURN_MULTIPLIER);
     const shares = LOCATION_RETURN_MULTIPLIER.map((_, t) => rtoShareOfReturns(price, t, 0));
     const want = shares.reduce((a, s, t) => a + weights[t] * s, 0);
     const have = LOCATION_RETURN_MULTIPLIER.reduce((a, v, t) => a + weights[t] * shares[t] * v, 0);

@@ -48,7 +48,7 @@ export const GUIDE = Object.freeze({
     + 'Read them in order, or open the one beside whatever you are looking at: '
     + 'a “why?” anywhere in the game opens its chapter in a drawer beside you.'),
   // WHAT THE GUIDE OWED THE PLAYER AND HAD NEVER SAID (2026-09-20). Of the
-  // numbers `engine/constants.js` tags, 59 of 79 are INVENTED and 8 are
+  // numbers `engine/constants.js` tags, 57 of 79 are INVENTED and 9 are
   // DOCUMENTED — and nothing on screen said so. A player finished believing
   // they had learned magnitudes when they had only learned directions, which is
   // the one failure CLAUDE.md names as worse than no simulator at all: they
@@ -62,10 +62,10 @@ export const GUIDE = Object.freeze({
   whatIsReal: line('reading', 'One thing to know before you trust a number here. '
     + 'The way this game works is real: how the auction ranks you, how a budget runs out, '
     + 'how sales land late, and how returns rewrite a week you have already read. '
-    + 'The sizes are mostly invented. Only a handful of its numbers come from a published '
-    + 'source; the rest were chosen so the market would hold together. Returns are the '
-    + 'exception, and are published Indian figures. So trust this game on which way a '
-    + 'lever moves, not on how much.'),
+    + 'The sizes are mostly invented. Only a handful come from a published source: what '
+    + 'comes back is measured from Indian figures, and a few limits Google states about '
+    + 'itself. The rest were chosen so the market would hold together. So trust this game '
+    + 'on which way a lever moves, not on how much.'),
   chapterOf: line('label', ({ n, of }) => `Chapter ${n} of ${of}`),
   explains: line('label', 'Explains:'),
   readBeside: line('label', 'Read beside it:'),

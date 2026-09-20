@@ -58,6 +58,40 @@ describe('what the guide says its own numbers are worth', () => {
     expect(tags.filter((t) => t === 'DOCUMENTED').length).toBeLessThanOrEqual(15);
   });
 
+  /**
+   * PIN THE SET, NOT ONLY THE COUNT — and this exists because counting alone
+   * failed (2026-09-20). The line does not just say HOW MANY numbers are
+   * sourced, it says WHICH: what comes back, and a few limits Google states
+   * about itself. A count cannot see that clause. When
+   * `SMART_BIDDING_MIN_CONVERSIONS` became DOCUMENTED, the sentence still read
+   * "Returns are the exception" and both tests above stayed green while the one
+   * sentence telling players what the numbers are worth had gone false.
+   *
+   * IF THIS FAILS, RE-READ `GUIDE.whatIsReal` BEFORE UPDATING THE LIST. A new
+   * documented constant either belongs to one of the two groups the sentence
+   * names, or the sentence needs a third.
+   */
+  test('and the guide names the right KINDS of sourced number', () => {
+    const documented = Object.entries(PROVENANCE)
+      .filter(([, tag]) => tag === 'DOCUMENTED')
+      .map(([name]) => name)
+      .sort();
+    expect(documented).toEqual([
+      // What Google states about itself.
+      'DAILY_BUDGET_OVERSPEND_CAP',
+      'DESCRIPTION_MAX_CHARS',
+      'HEADLINE_MAX_CHARS',
+      // What comes back, from Indian figures.
+      'POST_DELIVERY_RETURN_RATE',
+      'PREPAID_DISCOUNT_CURVE',
+      'RTO_FREIGHT_PAISE',
+      'RTO_RATE_COD',
+      'RTO_RATE_PREPAID',
+      // Google again.
+      'SMART_BIDDING_MIN_CONVERSIONS',
+    ].sort());
+  });
+
   // It is on the contents page, which is the one page every reader of the guide
   // lands on, and it says the thing it exists to say.
   test('it says which way, and not how much', () => {

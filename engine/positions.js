@@ -169,8 +169,10 @@ export function returnHalves({
   // it, which is what the per-location split below has to start from.
   // `retentionRate` is still the right function for anything that wants
   // the headline figure; this path needs the two halves separately.
-  // Clamped twice, as the round always has: once for the search, once for the
-  // place.
+  // Clamped once, for the search. It used to be clamped twice — once here and
+  // again after multiplying by the place — and that second clamp went with the
+  // place multiplier in F20.
+  //
   // THE PLACE IS NOT IN HERE ANY MORE (2026-09-20, F20). This used to be
   // multiplied by `placeReturnMultiplier` as well, before the split below, so
   // the location gradient landed on BOTH halves and send-backs came out
@@ -180,6 +182,14 @@ export function returnHalves({
   // alone, which is the half a place can plausibly move: what raises RTO
   // outside the metros is payment mix, address quality and courier reach, none
   // of which touch whether a delivered parcel fits.
+  //
+  // SO THE REFUSED HALF IS NOT CLAMPED ON ITS OWN, and the total clamp below
+  // is what stands in for it. On today's tables it cannot bind — refusals top
+  // out near 0.51 against a ceiling of 0.9 — but if a wider gradient ever
+  // pushed them past it, `returned` would clamp, `refused` would be pinned
+  // equal to it, and `sentBack` would silently read zero, which would make a
+  // size guide look inert rather than overreaching. Clamp the refused half
+  // here before widening anything.
   const gross = Math.min(
     RETURN_RATE_CLAMP_MAX,
     business.returnRateBeforeSizeGuide * queryReturnMultiplier,
