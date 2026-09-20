@@ -912,8 +912,35 @@ export const QUERY_SET_RULES = {
 // Conversion chain (spec 12.1)
 // ---------------------------------------------------------------------------
 
+/**
+ * What a brand search converts at for the brand that owns it, and for a rival
+ * bidding on it.
+ *
+ * THE DIRECTION IS SOURCED AND THE SIZES ARE NOT (searched 2026-09-20, I42).
+ * Google defines ad relevance as "how closely your ad matches the intent behind
+ * a user's search" (About Quality Score), so an ad for one brand shown against
+ * a search for another is less relevant by that definition — the poacher's
+ * penalty follows from Google's own words. What Google publishes nowhere is how
+ * much: its help has nothing on bidding against a competitor's brand terms
+ * beyond the general principle. 2.5x and 0.25x are this game's sizes.
+ *
+ * These are CONVERSION multipliers, not quality ones, and the separation is
+ * deliberate — F10 and F11 both record what happens when two mechanisms push
+ * the same number. The quality side of brand bidding lives in
+ * `RELEVANCE_INTENT_MULTIPLIERS`.
+ */
 export const BRAND_OWNER_MULTIPLIER = 2.5;
 export const BRAND_POACHER_MULTIPLIER = 0.25;
+
+/**
+ * What an informational search converts at: a tenth of a commercial one.
+ *
+ * INVENTED. "How to style co-ord sets" is a real search a real advertiser will
+ * match and pay for, and it does occasionally buy — the lesson is that it is
+ * dear for what it returns, not that it is worthless, which is
+ * `IRRELEVANT_CONV_MULTIPLIER`'s job. No benchmark was found splitting paid
+ * conversion by search intent; the ones that exist split by channel or device.
+ */
 export const INFORMATIONAL_CONV_MULTIPLIER = 0.10;
 
 /** Exactly zero, not merely small. That traffic never converts, and the waste is the lesson. */

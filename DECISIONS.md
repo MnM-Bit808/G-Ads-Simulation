@@ -6564,6 +6564,36 @@ against "the early evening from 7 p.m. onwards" for the UK and Germany (ECDB) �
 and the evening profile's 20:00 sits between them. That is the most it can
 honestly claim, so it stays INVENTED rather than borrowing either number.
 
+**THE AUDIT ALSO CONFIRMED SOMETHING THE MODEL GETS RIGHT, and it is the thing
+most practitioners get wrong.** Google's own words:
+
+> "Quality Score is not an input in the ad auction. It's a diagnostic tool to
+> identify how ads that show for certain keywords affect the user experience."
+> — *About Quality Score for Search campaigns*
+
+This engine enforces exactly that, architecturally rather than by convention:
+CLAUDE.md's rule 4 is "Nothing in `engine/` may read `reportedScore`. It is
+output only", the auction runs on `qualitySignal`, and `reportedScore` is
+computed for the account to read and nothing else. A simulator that let the
+displayed score feed the auction would teach a falsehood that a great deal of
+published advice repeats. Worth recording on the credit side of the ledger,
+since an audit that only finds faults is not measuring.
+
+**The two biggest constants were already reasoned, not defaulted.**
+`POSITION_ECONOMICS` states its own case for staying INVENTED — order value and
+margin "sit inside quoted bands without a citation tight enough to call
+documented", and `convRateBase` is conversion on a PAID CLICK, which the 1.8–3%
+site-wide benchmark does not measure (F14). `PURPOSE_MODIFIERS` averages to
+exactly 1.0 by construction so `returnRate` stays the sourced total. Both
+checked, both correct as tagged, neither needing work.
+
+**The brand multipliers, and the pattern holding for the fourth time.** Google
+defines ad relevance as "how closely your ad matches the intent behind a user's
+search", so a rival's ad on your brand term being less relevant follows from
+Google's own definition — the DIRECTION of `BRAND_POACHER_MULTIPLIER` is
+sourced. Nothing in Google's help puts a number on competitor brand bidding, so
+2.5x and 0.25x stay this game's own.
+
 **What this does not yet do.** The remaining 57 INVENTED constants have not all
 been searched, and the 22 without a comment of their own have not all been
 written up. The
