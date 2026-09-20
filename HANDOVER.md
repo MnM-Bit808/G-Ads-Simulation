@@ -430,8 +430,10 @@ all three in play, and each failed before its fix.
   `content/searchTerms.js`. Played on a broad keyword: "gym near me" at ₹7,870
   with no sales was unmarked, and is amber now, saying what it spent rather than
   a cost per sale it does not have.
-- **Still open:** `npm run test:perf`'s sampled-round test sits on its 2,200ms
-  bound on this machine, on unchanged code.
+- ~~**Still open:** `npm run test:perf`'s sampled-round test sits on its 2,200ms
+  bound on this machine, on unchanged code.~~ **Settled 2026-09-20** — and it
+  had gone red in the meantime without anyone knowing, because nothing runs the
+  file. See *Running the performance suite* below.
 
 **DONE 2026-09-17: the landing page is graded as it stands** (DECISIONS I37,
 the owner's decision; commits `88c2c98`, `6246367`, `a163633`). The timing
@@ -2774,6 +2776,30 @@ and nothing extra.
 | `npm run build` | builds `dist/` |
 | `npm run preview` | builds, then serves `dist/` the way the live site will be served — the `site` entry in `.claude/launch.json` |
 | `npm run ci` | lint, the whole suite with a 60-second test timeout, then build. **This is Cloudflare's build command.** |
+| `npm run test:perf` | spec 19's engine budgets. **Nothing runs this for you** — see below |
+
+### Running the performance suite
+
+**`test:perf` is hand-run, and that is a real gap rather than an oversight.**
+`npm test` is lint plus vitest and `npm run ci` is lint, vitest and the build;
+neither includes it, because timing anything inside a parallel run measures the
+machine rather than the code. So the one gate protecting the per-round budget
+has no automation behind it, and on 2026-09-20 it was found red — it had been
+red for an unknown stretch and nobody knew.
+
+**Last run: 2026-09-20, all five passing.** Three-auction path 3,101–3,180ms
+under vitest, 1,968–2,104ms in plain Node, against an asserted bound of 3,600
+and a spec budget of 1,500.
+
+**Run it before any release you care about, and after anything that touches the
+hot loop in `engine/round.js`.** Then update the line above, because a date is
+the only thing that tells the next person whether the green tick means anything.
+
+**IF IT GOES RED, MEASURE THE OLD CODE BEFORE TOUCHING THE BOUND.**
+`git checkout <old-sha> -- engine/ tests/`, run it, restore. That one step
+separates "the engine regressed" from "the environment changed", and both times
+this bound has moved the answer was the environment — the file's own header has
+the numbers for both occasions.
 
 **The Cloudflare settings** (project → Settings → Builds): build command
 `npm run ci`, deploy command `npx wrangler deploy`, root directory `/`. The build

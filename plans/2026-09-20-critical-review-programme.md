@@ -151,7 +151,22 @@ outcome is 8 documented becoming 15–20, not 59 becoming 5.
 **Done when:** every remaining INVENTED constant has a one-line note saying why
 it could not be sourced, rather than being invented by default.
 
-### Phase 3a — the gate nobody runs
+### ~~Phase 3a — the gate nobody runs~~ **DONE 2026-09-20**
+
+**The answer was not a regression.** Running the bound-setting commit's own code
+on today's setup gave 3,180ms against HEAD's 3,101ms — the old code is SLOWER.
+The engine has got faster since (the expected round nearly halved, 183ms to
+107–129ms); what grew is the test runner. The header used to record plain Node
+as "8-15% dearer" than vitest; today it is about 35% cheaper.
+
+So none of I34, I39, I40, I41, C9 or F18 was responsible, the asserted bound
+went 2,800 → 3,600 on that evidence with the 1,500ms spec budget untouched, and
+`HANDOVER.md` now carries a *Running the performance suite* section with the
+date it was last run and the instruction to measure the old code before ever
+touching the number again. A ratio bound was considered and rejected: the ratio
+moved further than the absolute did.
+
+<details><summary>the original item</summary>
 
 **Found while measuring F19's G3, 2026-09-20, and it is not F19's fault.**
 `tests/performance.test.js` fails on `main`: the three-auction path measures
@@ -176,6 +191,14 @@ deployment section saying it is run by hand and when it was last run.
 **Do not simply raise the number.** The project's own rule is to cut the thing
 rather than move the bound, and a performance bound that is raised whenever it
 fails is not a bound.
+
+</details>
+
+**What the closed item teaches, kept because the instinct above was half
+wrong.** "Do not simply raise the number" was right; "find which change moved
+it" assumed a regression that did not exist. A wall-clock bound has two inputs
+and only one of them is the code, so **the first question is which input moved,
+not which commit** — and that is a ten-minute check, not a bisect.
 
 ### Phase 4 — durability
 

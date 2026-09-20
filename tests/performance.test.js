@@ -42,6 +42,46 @@ import { makeGameState } from './fixtures/gameState.js';
  * here is 2200ms: loose enough to absorb the gap, tight enough that the kind of
  * regression this test exists for - the 600,000 redundant Map writes found in
  * this same session, which cost 1.3 seconds - still fails it.
+ *
+ * ---------------------------------------------------------------------------
+ * RE-MEASURED 2026-09-20, because the three-auction bound had gone red and
+ * NOTHING RUNS THIS FILE, so nobody knew. `npm test` is lint plus vitest and
+ * `npm run ci` is lint, vitest and the build; neither runs `test:perf`.
+ *
+ *   under vitest        plain node        2026-09-15
+ *   ------------        ----------        ----------
+ *   expected       -      107-129ms         183ms
+ *   sampled + CF   -      873-962ms        1830ms
+ *   three-auction  3101-3180ms  1968-2104ms  2200-2550ms
+ *
+ * THE ENGINE GOT FASTER, and that was measured rather than assumed: the
+ * expected round nearly halved, and 3bcfa35 - the commit that set the 2800
+ * bound below - was checked out and run on today's setup, where it measures
+ * 3180ms against HEAD's 3101ms. The old code is SLOWER than the current code.
+ * There is no regression to find, which is why none of I34, I39, I40, I41, C9
+ * or F18 turned out to be responsible.
+ *
+ * WHAT MOVED IS THE RUNNER, and the relationship has inverted. The paragraph
+ * above says plain Node used to be "8-15% dearer" than vitest. Today it is
+ * about 35% CHEAPER: vitest adds roughly half again to this path. The bound
+ * was measuring the test runner.
+ *
+ * A RATIO BOUND WAS CONSIDERED AND REJECTED. Asserting three-auction against
+ * the expected round in the same run would be machine-independent in principle,
+ * but the ratio moved further than the absolute did - 12.0-13.9x then, 16-19x
+ * now - because the cheap path sped up more than the expensive one. Less
+ * stable, not more.
+ *
+ * SO THE THREE-AUCTION BOUND GOES TO 3600 AND THE SPEC BUDGET DOES NOT MOVE.
+ * Same reasoning as the 2200 above: 3600 absorbs today's 3180 under the runner
+ * it actually runs in, and still fails on the regression this file exists for -
+ * 1.3 seconds of redundant work on today's numbers lands near 4400, which misses
+ * 3600 by 800ms.
+ *
+ * IF THIS GOES RED AGAIN, RUN THE OLD COMMIT BEFORE TOUCHING THE NUMBER. That
+ * is the check that separates "the engine regressed" from "the environment
+ * changed", it takes one `git checkout <sha> -- engine/ tests/`, and both times
+ * this bound has moved the answer was the environment.
  */
 const STATE = makeGameState();
 const CONSTRAINED = 'halcyon';
@@ -80,20 +120,25 @@ describe('performance (spec 19)', () => {
     // The flat fixture above never takes that path. A millionth of a percent
     // on one place sends the round down it without moving a bid (G4).
     //
-    // 2,800ms, not the 2,200 above, and set from this path's own cost (the
-    // owner, 2026-09-15). F17 resolves every combination of which throttled
-    // advertisers are present, and this fixture throttles five at once, 13.7
-    // ladders a search against 5-8 in played markets. Measured on this machine,
-    // a round here was about 1,750ms before F17 and 2,200-2,550ms after, under
-    // this runner; in plain Node, which is what a browser runs, 8-15% dearer.
-    // The regression this file exists for, 1.3 seconds of redundant work,
-    // would still take it to about 3.5 seconds.
+    // 3,600ms, not the 2,200 above, and set from this path's own cost. F17
+    // resolves every combination of which throttled advertisers are present,
+    // and this fixture throttles five at once, 13.7 ladders a search against
+    // 5-8 in played markets. A round here was about 1,750ms before F17 and
+    // 2,200-2,550ms after (the owner, 2026-09-15, when plain Node was 8-15%
+    // DEARER than this runner).
+    //
+    // 2,800 -> 3,600 on 2026-09-20, and the header has the evidence: the engine
+    // is FASTER than it was, the old commit measures worse than HEAD on today's
+    // setup, and what grew is the runner — plain Node is now about 35% cheaper
+    // than vitest, where it used to be dearer. 1.3 seconds of redundant work,
+    // the regression this file exists for, lands near 4,400ms today and still
+    // fails this.
     const tilted = makeGameState();
     tilted.advertisers[1].campaign.locationAdjustments = [0, 0, 0.0001];
     const ms = medianMs(() => runRound(
       tilted, { mode: 'sampled', seed: 3, counterfactualFor: [CONSTRAINED] },
     ), 3);
-    expect(ms, `${ms}ms against a 1500ms spec budget`).toBeLessThan(2800);
+    expect(ms, `${ms}ms against a 1500ms spec budget`).toBeLessThan(3600);
   });
 
   test('sampled mode costs about what its sub-auction count implies', () => {
