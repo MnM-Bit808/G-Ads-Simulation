@@ -6600,3 +6600,63 @@ written up. The
 guide's honesty line still reads true — `tests/guide.test.js` checks it against
 `PROVENANCE` on every run, and at 57 of 79 "mostly invented" is still an
 understatement.
+
+---
+
+### I43. This stays an auction game, and says so — `DECIDED` (2026-09-20)
+
+**The question**, from the critical review's Phase 5: is this game about **the
+auction**, or about **the modern job**? Real paid search is increasingly about
+feeding automation, and a simulator that teaches only manual keyword bidding
+would be teaching a version of the work that is being automated away.
+
+**The premise turned out to be mostly wrong, which is why the answer is
+narrow.** The game already teaches the automation transition: the player can
+choose manual, Maximise clicks, Maximise conversions, Target CPA and Target
+ROAS; `LEARNING_ROUNDS` and `LEARNING_ERROR_MULTIPLIER` model a learning
+period; `predictionErrorSigma` falls with the square root of conversions, so
+automation genuinely improves with data; chapter 20 is *Smart bidding has to
+learn* and chapter 17 is *How far broad match wanders*. The gap was never Smart
+Bidding.
+
+**The gap is Performance Max, and it is a gap in the MODEL'S SELF-DESCRIPTION
+rather than in the model.** Spec 20 lists thirteen deliberate omissions —
+devices, audiences, multiple campaigns, ad-group negatives, seasonality,
+shopping and local SERP elements, lifetime value, multi-touch attribution, RSA
+asset combination testing, ad disapproval, search-terms thresholding, a
+depleting bankroll, a third positioning axis — and does not list the largest
+one. Before today, "Performance Max" appeared nowhere in the guide, the ledger
+or the spec.
+
+**Decided: do not model it. Name it.** Three reasons, in order of weight.
+
+**It is not a search-auction mechanism.** Google's own words: "Performance Max
+is a goal-based campaign type that allows you to access all Google Ads
+inventory, including YouTube, Display, Search, Discover, Gmail, and Maps, from
+a single campaign" (*About Performance Max campaigns*). This engine resolves
+search auctions. Building it faithfully means building five more inventories,
+which is a different simulator rather than an extension of this one.
+
+**It would remove the teaching loop rather than extend it.** This game's loop is
+*guess which searches are yours, see what came back, revise*. Performance Max's
+advertiser decision is to supply "assets and settings... like images, data
+feeds, and bidding goals" and let Google "automatically funnel your budget
+toward the highest performing inventory and placements". A faithful simulator
+of that is a simulator of not deciding — and the two halves a player DOES
+decide, the assets and the goal, this game already teaches as *Who writes the
+ad* and Target CPA / Target ROAS.
+
+**The defect was the silence, not the absence.** A player could finish twelve
+weeks and meet a real account that is mostly Performance Max, with nothing
+having told them it exists. That is the same failure as the numbers before the
+guide's honesty line: the model is defensible and the claim of completeness was
+not.
+
+**So:** a new chapter, *What this game leaves out*, carries the boundary in the
+guide's own voice, sourced to Google's page, with the keyword list as the card
+it points at — a keyword list being exactly what a Performance Max campaign
+does not have. Performance Max is added to spec 20's omissions with its
+reasoning.
+
+**What would reopen this.** Phase 0. What a beginner says they learned is the
+evidence for which game this actually is, and nobody has finished it yet.

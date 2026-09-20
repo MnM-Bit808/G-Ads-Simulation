@@ -586,7 +586,9 @@ describe('the guide has a ground floor as well as its nuance chapters', () => {
     expect(START_HERE.length).toBeGreaterThan(0);
     // 14 since 2026-09-19: `readingTheWeek` was added because playing the game
     // showed net profit, ROAS and CPA were defined in none of the other 22.
-    expect(GOING_DEEPER).toHaveLength(14);
+    // 15 since 2026-09-20: `whatIsNotHere`, because the guide named no
+    // boundary at all and spec 20 omitted the largest one (I43).
+    expect(GOING_DEEPER).toHaveLength(15);
     expect(CONTENTS[START_HERE.length]).toBe(GOING_DEEPER[0]);
   });
 

@@ -1862,6 +1862,21 @@ testing, ad disapproval and policy review, search-terms-report volume thresholdi
 a depleting capital bankroll, asymmetric business economics within a position, and
 a third positioning axis.
 
+**And Performance Max, which this list omitted until 2026-09-20 while naming
+thirteen smaller things** (I43). It is the largest thing this game does not
+model and it was named nowhere — not here, not in `DECISIONS.md`, not in the
+field guide. Google describes it as reaching "all Google Ads inventory,
+including YouTube, Display, Search, Discover, Gmail, and Maps, from a single
+campaign"; this engine resolves search auctions, so modelling it faithfully
+means modelling five more inventories, and the advertiser's decision inside it
+is to supply assets and a goal and let Google allocate. That is a different
+simulator, not an extension of this one. The field guide's *What this game
+leaves out* now says so to the player, which is the part that was actually
+missing.
+
+*Geography is no longer an omission: G4 added it, and this line was stale for
+some time before I43 went looking.*
+
 ---
 
 ## 21. Changelog from v0.2

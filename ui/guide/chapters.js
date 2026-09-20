@@ -190,6 +190,10 @@ const GOOGLE = {
     label: 'Google Ads Help: About impression share',
     url: 'https://support.google.com/google-ads/answer/2497703',
   },
+  performanceMax: {
+    label: 'Google Ads Help: About Performance Max campaigns',
+    url: 'https://support.google.com/google-ads/answer/10724817',
+  },
   simulators: {
     label: 'Google Ads Help: Estimate your results with bid, budget and target simulators',
     url: 'https://support.google.com/google-ads/answer/2470105',
@@ -550,6 +554,43 @@ export const CHAPTERS = Object.freeze({
     related: ['rankOrBudget'],
   }),
 
+  // WHAT THIS GAME IS NOT (2026-09-20). Added because the project's own account
+  // of its limits was missing the largest one: spec 20 lists thirteen
+  // deliberate omissions — devices, audiences, multiple campaigns, RSA asset
+  // testing — and did not list Performance Max, which was named nowhere in the
+  // guide, the ledger or the spec. A player could finish this and meet an
+  // account that looks nothing like it, with nothing having said so.
+  //
+  // The decision it records was taken deliberately (the owner, 2026-09-20):
+  // this stays an auction game and names the boundary, rather than modelling
+  // five more inventories to simulate handing the decisions over.
+  whatIsNotHere: chapter({
+    title: 'What this game leaves out',
+    real: () => 'Google Ads is bigger than search, and one campaign type is most of why. '
+      + 'Performance Max reaches all of Google’s inventory from a single campaign: '
+      + 'YouTube, Display, Search, Discover, Gmail and Maps. '
+      + 'You give it images, a feed and a goal. '
+      + 'It decides where the money goes and which of your assets to show. '
+      + 'A real account today may be mostly that, with search campaigns beside it.',
+    realSources: [GOOGLE.performanceMax],
+    game: () => 'This game is one search campaign, and nothing else. '
+      + 'Every search here is a query somebody typed. '
+      + 'Every click comes from a keyword you chose, at a bid you set. '
+      + 'Nothing decides for you except the bid strategy you picked, and you can see what it did. '
+      + 'That is a choice rather than an oversight: the auction is what this game is for, '
+      + 'and it is the part you can still be taught.',
+    departs: [
+      'Performance Max is not here. Modelling it means five more inventories, and its one decision is handing the decisions over.',
+      'Shopping, display and video are absent for the same reason: this engine resolves search auctions and nothing else.',
+      'One campaign, one ad group. A real account has many, and budget moves between them.',
+    ],
+    cites: ['I43'],
+    yourAccount: 'keywords',
+    // The keyword list IS the boundary: it is exactly what a Performance Max
+    // campaign does not have, so the card makes the point better than prose.
+    related: ['broadMatch', 'smartBidding'],
+  }),
+
   kindMarket: chapter({
     title: 'How kind this market is',
     real: () => 'Published benchmarks for apparel search ads do not agree, even on one page. '
@@ -821,7 +862,7 @@ export const GOING_DEEPER = Object.freeze([
   'readingTheWeek',
   'attributionLag', 'returnsSplit', 'cashOnDelivery', 'rankOrBudget', 'broadMatch',
   'qualityScore', 'writers', 'ownName', 'smartBidding', 'hours', 'weeklySplit',
-  'counterfactuals', 'kindMarket',
+  'counterfactuals', 'kindMarket', 'whatIsNotHere',
 ]);
 
 export const CONTENTS = Object.freeze([...START_HERE, ...GOING_DEEPER]);
