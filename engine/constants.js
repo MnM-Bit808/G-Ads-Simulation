@@ -102,24 +102,26 @@ export const LOCATION_VOLUME_BY_PRICE = Object.freeze({
  * there, so fewer are ever delivered, and a parcel that never arrived cannot be
  * sent back.
  *
- * THE TABLE DID NOT WIDEN WITH IT, AND THAT IS THE UNFINISHED PART. The sources
- * put tier-3 RTO at 3-5x the metros; refusals here run 1.65-1.81x. Widening the
- * table is what should close that, and it cannot yet, because of an artefact
- * this table sits inside rather than anything about the table itself:
+ * THE TABLE DID NOT WIDEN WITH IT, AND THAT TURNED OUT TO BE RIGHT (F21). It was
+ * left alone because widening it overturns the sourced cash mix — the table is
+ * normalised PER PRICE TIER to hold each position's own documented return rate,
+ * a value brand's country is 53% towns where a premium brand's is 26%, so
+ * holding premium's rate lifts its town multiplier further than value's, and
+ * past about [1, 1.5, 1.9] refusals in the towns stop running value 18.8% >
+ * mid 17.9% > premium 15.6% the way the sourced COD shares say they should.
  *
- *   It is normalised PER PRICE TIER, to hold each position's own documented
- *   return rate. A value brand's country is 53% towns where a premium brand's is
- *   26%, so holding premium's rate lifts its town multiplier further than
- *   value's. Past about [1, 1.5, 1.9] that lift overturns the CASH MIX:
- *   `refusalRateFor` has refusals in the towns running value 18.8% > mid 17.9% >
- *   premium 15.6% from the sourced COD shares, and a wider table reverses it.
- *   An INVENTED constant must not overrule a DOCUMENTED one.
+ * At the time that looked like a cap the evidence would eventually push past,
+ * because the comment on `POST_DELIVERY_RETURN_RATE` claimed tier-3 RTO is
+ * quoted at 3-5x the metros. It is not: that 3-5x is COD against PREPAID, which
+ * this model already carries at a sourced 3.6x. There is no gap left for this
+ * table to close, so there is nothing to widen it toward, and the ordering bound
+ * above is simply the right bound rather than a temporary one.
  *
- * So the gradient is capped by the normalisation, not by the evidence. Fixing
- * that means normalising market-wide, so a place's gradient is a property of the
- * PLACE rather than of who is advertising — which moves F14's per-position
- * return rates and needs its own measurement. Recorded as its own item; the
- * table widens after it, not before.
+ * WHAT IS LEFT FOR IT TO DO. A real, unquantified remainder: address quality,
+ * courier limitations and digital literacy are all quoted as raising tier-2/3
+ * RTO beyond what payment method explains, with no multiple attached to any of
+ * them. An invented texture is the honest way to carry that, provided nothing
+ * pretends it is measured.
  *
  * NORMALISED AGAINST THE REFUSED SHARE, not against volume — see
  * `locationEffects`. Normalising a refusals-only gradient by volume would no
@@ -225,11 +227,22 @@ export const RTO_RATE_PREPAID = 0.058;
  * ONE FIGURE FOR EVERY TIER AND EVERY PLACE, because the sources quote it as
  * one. That makes the chain nearly flat by price (1.08x value to premium) and
  * by location (1.04-1.06x towns to metros). On price the flatness is accepted:
- * nothing found says otherwise. On location it is known to be too flat — tier-3
- * RTO is quoted at 3-5x the metros, far more than the cash mix alone explains —
- * which is why `LOCATION_RETURN_MULTIPLIER` carries the gradient instead — and,
- * since F20, carries it on the refused half alone, so THIS figure stays flat by
- * location the way the sources quote it.
+ * nothing found says otherwise.
+ *
+ * ON LOCATION, THE FLATNESS OF *THIS* FIGURE IS RIGHT, and the claim that used
+ * to sit here was not (F21, 2026-09-20). It read: "tier-3 RTO is quoted at 3-5x
+ * the metros, far more than the cash mix alone explains." The 3-5x is real and
+ * it is the COD-to-PREPAID ratio, not a tier ratio — "COD orders have 3-5x
+ * higher RTO than prepaid" (Shipmozo, 2026). That is the mechanism this model
+ * already carries, sourced: `RTO_RATE_COD` 20.9% against `RTO_RATE_PREPAID`
+ * 5.8% is 3.6x, inside the quoted range. So the cash mix does not under-explain
+ * the gap; it IS the explanation, and nothing needed inventing to close it.
+ *
+ * What is genuinely supported beyond the cash mix is a DIRECTION with no number
+ * attached: "tier-2/3 pin codes have higher RTO due to address quality, courier
+ * partner limitations, and lower digital literacy" (Shipmozo). No source found
+ * puts a multiple on it. `LOCATION_RETURN_MULTIPLIER` is that unquantified
+ * remainder, and is tagged INVENTED because that is what it is.
  */
 export const POST_DELIVERY_RETURN_RATE = 0.30;
 

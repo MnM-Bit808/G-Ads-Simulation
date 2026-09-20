@@ -389,18 +389,15 @@ describe('what a location does to the money', () => {
   /**
    * The half the evidence puts it on (F20). `POST_DELIVERY_RETURN_RATE` is one
    * national figure, so a send-back rate has no business climbing outside the
-   * metros; tier-3 RTO is quoted at 3-5x, so a refusal rate has every business
-   * doing so. Both bounds come from the sources, not from today's table, so
-   * re-setting the table cannot quietly satisfy them.
+   * metros. What raises RTO in the towns — payment mix, address quality,
+   * courier reach — reaches the door and not the wardrobe.
    *
-   * THE FLOOR IS 1.5x AND NOT 3x, WHICH IS AN UNFINISHED JOB AND NOT A
-   * ROUNDING. The table is normalised per price tier, so any table wide enough
-   * to reach 3x overturns the cash mix — see the test below, and
-   * `LOCATION_RETURN_MULTIPLIER`'s own comment. Moving the gradient onto the
-   * right half came first; widening it waits on normalising market-wide.
-   *
-   * RAISE THIS FLOOR WHEN THAT LANDS. A floor of 1.5x asserts only that
-   * refusals still climb; it is not the bound the evidence asks for.
+   * THE FLOOR IS ONLY 1.5x BECAUSE NOTHING QUANTIFIES THIS REMAINDER (F21). The
+   * 3-5x once quoted here is the COD-to-prepaid ratio, which the model already
+   * carries at a sourced 3.6x, not a tier ratio; no source found puts a number
+   * on what is left. So this asserts the direction, which is sourced, and the
+   * ceiling is set by the cash-mix ordering in the test below rather than by a
+   * figure nobody measured.
    */
   test('the gradient lands on refusals, and refusals still climb', () => {
     const weights = locationWeights(QUERY_SET);

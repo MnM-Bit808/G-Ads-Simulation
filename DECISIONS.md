@@ -5500,7 +5500,10 @@ sourced chain is nearly flat by location (towns 1.04-1.06x the metros) because
 `POST_DELIVERY_RETURN_RATE` and the RTO pair are single figures. There the
 flatness is known to be wrong — tier-3 RTO is quoted at 3-5x the metros, far more
 than the cash mix explains — which is why `LOCATION_RETURN_MULTIPLIER` carries a
-1.5x gradient. But it multiplies the WHOLE total, and the refused/sent-back split
+1.5x gradient. *(**That sentence is false and is corrected in F21.** The 3-5x is
+COD against prepaid, not tier-3 against metros, and the cash mix already carries
+it at a sourced 3.6x. Left in place here because it is what this entry reasoned
+from.)* But it multiplies the WHOLE total, and the refused/sent-back split
 is applied afterwards, so send-backs also come out 1.36-1.40x higher in the
 towns. That is arithmetic from `round.js` rather than an observation in play,
 and it contradicts I28's measured *"the send-back rate is flat"* — which was
@@ -6101,9 +6104,15 @@ already four constants: *"The evidence says the gradient belongs on refusals."*
 
 **The rule the sources give.** `POST_DELIVERY_RETURN_RATE` and the RTO pair are
 single national figures, so the sourced chain is nearly flat by location
-(1.04–1.06x). That flatness is known to be wrong in one direction only: **tier-3
-RTO is quoted at 3–5x the metros**, far more than the cash mix explains. That is
-the whole reason `LOCATION_RETURN_MULTIPLIER` exists.
+(1.04–1.06x). `LOCATION_RETURN_MULTIPLIER` exists to carry what that flatness
+misses.
+
+> **Amended by F21 (same day).** This entry was written believing the flatness
+> was known to be wrong by a quoted 3–5x. It is not: that 3–5x is COD against
+> prepaid, which the model already carries at a sourced 3.6x. What survives is a
+> direction with no number on it. **Everything below about which HALF the
+> gradient belongs on is unaffected** — that rests on
+> `POST_DELIVERY_RETURN_RATE` being one national figure, which it is.
 
 **Sim, before.** It multiplied the WHOLE return rate in `returnHalves`, and the
 refused/sent-back split was applied afterwards. So the gradient landed on both
@@ -6129,8 +6138,8 @@ see *Why the gradient could not widen* below.
 | category return rate (value/mid/premium) | exact | exact |
 
 **WHY THE GRADIENT COULD NOT WIDEN, which is the finding worth more than the
-fix.** Reaching the sourced 3–5x needs a wider table, and every table wide
-enough overturns the sourced cash mix. `LOCATION_RETURN_MULTIPLIER` is
+fix.** Reaching what was then believed to be a sourced 3–5x needs a wider table,
+and every table wide enough overturns the sourced cash mix. `LOCATION_RETURN_MULTIPLIER` is
 normalised PER PRICE TIER to hold each position's documented return rate, and a
 value brand's country is 53% towns where a premium brand's is 26% — so holding
 premium's rate lifts its town multiplier further than value's. Measured, at the
@@ -6205,6 +6214,66 @@ checked on the rate itself, with a price, and a second test holds the two halves
 to the sources rather than to today's table: send-backs at most flat, refusals
 between 3x and 5x. Both fail on the old engine, which was checked by stashing
 the fix rather than assumed.
+
+### F21. The 3–5x that justified a constant was about something else — `FIXED` (2026-09-20)
+
+Not a modelling choice, and not a number that was wrong. A **source that was
+read wrong**, and then relied on by three entries and six files.
+
+**What the model said.** `POST_DELIVERY_RETURN_RATE`'s comment, and F14, and
+F20 after them:
+
+> "tier-3 RTO is quoted at 3-5x the metros, far more than the cash mix alone
+> explains — which is why `LOCATION_RETURN_MULTIPLIER` carries the gradient
+> instead."
+
+**What the sources say.** The 3–5x is real, and it is **COD against PREPAID**:
+
+> "COD orders have 3–5× higher RTO than prepaid." — Shipmozo, *How to Reduce RTO
+> in eCommerce* (2026)
+
+Repeated across several trackers, with the underlying rates put at 28–35% for
+COD against 4–8% for prepaid. **That is the mechanism this model already
+carries, and carries from a named study:** `RTO_RATE_COD` 20.9% against
+`RTO_RATE_PREPAID` 5.8% (Unicommerce FY23) is **3.6x**, inside the quoted range.
+
+So the cash mix does not under-explain the geography. It *is* the explanation,
+and it was already in the engine, DOCUMENTED, when a constant was invented to
+close the gap it supposedly left.
+
+**What IS supported, and it is worth keeping.** A direction with no number
+attached:
+
+> "tier-2/3 pin codes have higher RTO due to address quality, courier partner
+> limitations, and lower digital literacy." — Shipmozo, same page
+
+No source found puts a multiple on that remainder. So
+`LOCATION_RETURN_MULTIPLIER` keeps its place as the unquantified part — which is
+what `INVENTED` means — and stops claiming a measured target it never had.
+
+**What changed.** Comments and ledger entries only; no engine behaviour, no
+constant, no test outcome. F14's sentence is marked false in place rather than
+edited away, because it is what that entry reasoned from. F20's "the gradient is
+capped by the normalisation, not by the evidence" stands as an observation but
+loses its sting: there is no evidence pulling the other way, so the cap is just
+the right bound.
+
+**AND IT DISSOLVES PHASE 2b.** The programme had an item to normalise the
+gradient market-wide so the table could widen to 3–5x. There is nothing to widen
+toward. Better still, the reason that item looked necessary — per-price
+normalisation — turns out to be correct by construction:
+`tests/constants.test.js` ties `POSITION_ECONOMICS.returnRate` to
+`refusalRateFor` **weighted by where that tier's searches are**, so each
+position's rate is already its realised rate given its own country. Normalising
+market-wide would have broken a sourced derivation to chase a misread one.
+
+**THE PATTERN, which this project has now hit twice.** CLAUDE.md already warns:
+*"never add a real-world claim from memory, and read a benchmark's context
+before quoting it"* — written after F15 quoted an apparel click-through figure
+without its context. This is the same failure one layer up: the number was
+quoted accurately and attached to the wrong axis. **A figure needs its
+denominator carried with it, not just its value.** The check that caught it was
+searching for the claim itself rather than for support of it.
 
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 

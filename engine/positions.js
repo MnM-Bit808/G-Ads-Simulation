@@ -177,7 +177,9 @@ export function returnHalves({
   // 1.36-1.40x higher in the towns. Nothing supports that —
   // `POST_DELIVERY_RETURN_RATE` is one national figure — and F14 recorded the
   // fault and left it for later. The gradient now goes onto the refused half
-  // alone, where the sourced 3-5x tier-3 RTO puts it.
+  // alone, which is the half a place can plausibly move: what raises RTO
+  // outside the metros is payment mix, address quality and courier reach, none
+  // of which touch whether a delivered parcel fits.
   const gross = Math.min(
     RETURN_RATE_CLAMP_MAX,
     business.returnRateBeforeSizeGuide * queryReturnMultiplier,

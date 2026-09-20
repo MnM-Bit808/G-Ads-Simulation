@@ -87,10 +87,11 @@ contradicts.
 
 ### Phase 2 — the correctness defect in the teaching model
 
-- **2.1** `LOCATION_RETURN_MULTIPLIER` applies to the whole return total, so
-  send-backs come out 1.36–1.40x higher in the towns along with refusals. The
-  evidence recorded in F14 says it is refusals that climb outside the metros
-  (tier-3 RTO 3–5x) and I28 measured send-backs flat. **C.**
+- **2.1** ~~`LOCATION_RETURN_MULTIPLIER` applies to the whole return total, so
+  send-backs come out 1.36–1.40x higher in the towns along with refusals.~~
+  **DONE 2026-09-20 as F20**, and it turned up F21 on the way: the 3–5x this
+  item quoted as the evidence is COD against prepaid, not tier-3 against metros.
+  **C.**
 
 This is first among the code items because it is the only one where the game is
 currently teaching something the project's own sources contradict. Everything
@@ -103,32 +104,33 @@ five CALIBRATE constants get re-checked.
 **Done when:** the location gradient reaches refusals only, the market is
 measured either side, and F14's leftover note is closed rather than reworded.
 
-### Phase 2b — the artefact F20 ran into, and could not fix from where it stood
+### ~~Phase 2b — normalise the gradient market-wide~~ **CLOSED, NOT DONE (F21)**
 
-**Opened 2026-09-20 by F20, which fixed the half a gradient sits on and could
-not widen it.** `LOCATION_RETURN_MULTIPLIER` is normalised per price tier, to
-hold each position's documented return rate. A value brand's country is 53%
-towns where a premium brand's is 26%, so holding premium's rate lifts its town
-multiplier further than value's — and **a place's refusal gradient therefore
-depends on who is advertising**, which is not a thing a place can do.
+**Opened by F20 and closed the same day, without code.** The plan was to
+normalise `LOCATION_RETURN_MULTIPLIER` market-wide so a place's gradient stopped
+depending on who was advertising, and the table could then widen to the 3–5x
+tier-3 RTO the sources were said to quote.
 
-**What it costs today.** Any table wide enough to reach the sourced 3–5x
-tier-3 RTO overturns the sourced cash mix: measured, value and mid are already
-level at `[1, 1.5, 1.9]`. So the gradient is capped at 1.65–1.81x by the
-normalisation rather than by the evidence, and the location trade sits at 1.16x
-where it used to read 1.50x. F20 has the table.
+**It rested on a misread source.** That 3–5x is COD against prepaid — *"COD
+orders have 3–5× higher RTO than prepaid"* (Shipmozo, 2026) — and the model
+already carries it, from a named study, at `RTO_RATE_COD` 20.9% against
+`RTO_RATE_PREPAID` 5.8% = 3.6x. There is no gap for a wider table to close.
 
-**The fix.** Normalise the return gradient market-wide, so the multiplier is a
-property of the place. The cash mix is then the only price-dependent term and
-the ordering holds at any table width, after which the table can widen to what
-the sources quote.
+**And the thing that looked like an artefact is correct.**
+`tests/constants.test.js` ties `POSITION_ECONOMICS.returnRate` to
+`refusalRateFor` *weighted by where that tier's searches are*, so per-price
+normalisation preserves a sourced derivation. Doing this work would have broken
+a sourced number to chase a misread one.
 
-**What it moves, and why it needs its own gates.** Each position's realised
-return rate would drift from the 42.7 / 41.7 / 39.6% F14 pinned, because a
-town-heavy brand really does meet more refusals than a metro-heavy one. Either
-that drift is correct and F14's figures are re-set with their measurement, or it
-is not and this stops here — that is the question to answer first, before any
-code. `POSITION_ECONOMICS.returnRate` and F8 are where to start.
+**What this leaves.** `LOCATION_RETURN_MULTIPLIER` stays as the unquantified
+remainder — address quality, courier reach, digital literacy are all quoted as
+raising tier-2/3 RTO with no multiple attached — which is what `INVENTED` means.
+F21 has the sources and the reasoning.
+
+**Worth carrying into Phase 3**, where the constants get audited: the check that
+found this was searching for the *claim*, not for support of it. Every INVENTED
+constant justified by a quoted figure should be re-read the same way — a figure
+needs its denominator carried with it, not just its value.
 
 ### Phase 3 — raise the weakest rating
 

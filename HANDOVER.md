@@ -2278,13 +2278,13 @@ F13's rejected volume option has to come back.
     `LOCATION_RETURN_MULTIPLIER` multiplied the whole total, so send-backs came
     out 1.36-1.40x higher in the towns as well as refusals. It multiplies the
     refused half alone now, and send-backs run 0.90-0.93x.
-    **The table did NOT widen**, so refusals are still 1.65-1.81x against the
-    3-5x the sources quote, and the location trade fell from 1.50x to 1.16x.
-    It could not widen: the table is normalised per price tier, and any table
-    wide enough to reach 3x overturns the sourced cash mix (value and mid are
-    level at `[1, 1.5, 1.9]` already). **The cap is the normalisation, not the
-    evidence** — see Phase 2b of
-    `plans/2026-09-20-critical-review-programme.md`. F20 has the measurements.
+    **The table did NOT widen**, so refusals stay at 1.65-1.81x and the location
+    trade fell from 1.50x to 1.16x. It could not widen without overturning the
+    sourced cash mix (value and mid are level at `[1, 1.5, 1.9]` already) — and
+    **F21, the same day, found there was nothing to widen toward.** The 3-5x
+    that was supposed to be tier-3 against metros is COD against prepaid, which
+    the model already carries at a sourced 3.6x. F20 has the measurements, F21
+    the sources.
   - **The design canvas quotes the old market.** `design/*.dc.html` still shows
     ₹26.56 at 76% retention, and returns of 24% for mid. They are artboards, not
     code, so nothing breaks — but they would teach the old numbers to anyone
