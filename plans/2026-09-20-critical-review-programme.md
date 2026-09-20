@@ -60,14 +60,29 @@ went, not a defect, and nothing should be done about it.
 
 Runs in parallel with everything below. **B.**
 
-- **0.1** Remove the Cloudflare Access application, so a tester does not need an
-  email code. *Owner's: it is their dashboard.* Still on as of 2026-09-20.
+- **0.1** ~~Remove the Cloudflare Access application, so a tester does not need
+  an email code.~~ **DONE 2026-09-20** by the owner, and measured from outside:
+  five production paths answer `200` with no redirect. The application was
+  deleted rather than its policy — deleting only the policy would have denied
+  everyone.
 - **0.2** Deployment hygiene, while in those dashboards: 2FA on GitHub and
   Cloudflare, branch protection on `main`, and the Cloudflare build's repository
   scope. *Owner's.* An hour, and the only security item worth spending on.
-- **0.3** Update `HANDOVER.md`'s invite text and *Invite-only* section once 0.1
-  is done — step 2 currently tells testers to expect an email code. *Mine, and
-  it depends on 0.1.*
+  **Branch protection may need a paid plan on a private repository, and it is
+  the weakest of the three** — a sole admin bypasses their own rules. 2FA is
+  the item that matters.
+- **0.3** ~~Update `HANDOVER.md`'s invite text and *Invite-only* section once
+  0.1 is done.~~ **DONE 2026-09-20.** It was ten passages rather than two, in
+  four files: `HANDOVER.md`, `CLAUDE.md`, `scripts/build-site.js`'s *WHAT IT
+  DOES NOT HIDE* comment, and this file. `JOURNAL.md` and `reviews/slc-review.md`
+  were left alone deliberately — they are records of a moment and true as
+  written.
+- **0.3a** **Found while doing 0.3, and not in the original plan:** branch
+  previews are public too, and **outlive the branch**. `origin/makeover` was
+  deleted (fully merged, zero unique commits, preserved by the annotated tag
+  `playtest-3`) and its preview went on serving `e312519`. *Owner's:* remove the
+  deployment from the Worker's **Deployments** tab, or turn off **Preview
+  URLs**. Until then, send testers the bare production address and no other.
 - **0.4** Send the link to three people who have never seen it. *Owner's.*
 
 **Done when:** three recordings are in hand, or three people have said why they
@@ -200,19 +215,24 @@ it" assumed a regression that did not exist. A wall-clock bound has two inputs
 and only one of them is the code, so **the first question is which input moved,
 not which commit** — and that is a ten-minute check, not a bisect.
 
-### Phase 4 — durability
+### ~~Phase 4 — durability~~ **ALL THREE DONE 2026-09-20**
 
 The project is one person with no reviewer, and the docs meant to protect
 against that are already drifting at eighteen days.
 
-- **4.1** Type checking without a migration: JSDoc types plus `tsc --checkJs`,
-  no bundler, no `.ts` files, no change to how the game is served. **F.** The
-  project has already shipped `no-undef` and `no-unused-vars` to a browser; this
-  is the next class up.
-- **4.2** A review pass on `engine/` by something that is not me. **G.**
-- **4.3** `HANDOVER.md` is 3,370 lines and `DECISIONS.md` 6,210. Decide what is
-  a record (keep, never edit) and what is a guide (keep current), and split
-  them, because the second kind is what rots.
+- **4.1** ~~Type checking without a migration: JSDoc types plus `tsc --checkJs`,
+  no bundler, no `.ts` files, no change to how the game is served.~~ **DONE.**
+  61 errors to 0, and **none of them was a type error** — every one was JSDoc
+  that had drifted from the code it described. `tsconfig.json` records why
+  `ui/` is excluded (303 errors against 44, all DOM typing). `npm test` runs
+  it; `npm run ci` deliberately does not.
+- **4.2** ~~A review pass on `engine/` by something that is not me.~~ **DONE.**
+  It found three things no test could: a guide honesty line I had falsified
+  myself six hours after writing it, and two false comments. Tests were added
+  for the first.
+- **4.3** ~~`HANDOVER.md` is 3,370 lines and `DECISIONS.md` 6,210. Decide what
+  is a record and what is a guide, and split them.~~ **DONE.** `HANDOVER.md` is
+  1,574 lines and the dated log moved to a new append-only `JOURNAL.md`.
 
 ### Phase 5 — the fork, which is a decision and not a task
 
@@ -224,6 +244,14 @@ against that are already drifting at eighteen days.
 This is the owner's call and it should be made deliberately rather than by
 default. It is also the item most affected by Phase 0: what a beginner says they
 learned will say which game this actually is.
+
+**PART OF IT WAS ANSWERED ON 2026-09-20, and the premise turned out to be
+half wrong.** The game already teaches Smart Bidding. What was missing was
+PMax — absent from the guide, the ledger and spec §20 alike, so the game was
+silent about a thing it does not model rather than honest about it. Chapter 24,
+*What this game leaves out*, now names the boundary (I43). **The fork itself is
+still open**, and still wants the recordings: naming what is missing is not the
+same as deciding whether to build it.
 
 ### Phase 6 — the backend
 

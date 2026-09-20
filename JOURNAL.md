@@ -42,6 +42,70 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-20, later: the sign-in came off, and four documents were wrong about it
+
+**The Cloudflare Access application was deleted by the owner**, closing item 0.1
+of the critical-review programme. The site is open to anyone with the link. It
+was invite-only from 2026-09-12.
+
+**It was reported done once before and was not.** On an earlier attempt the
+owner said the sign-in page was gone; `curl` showed all five paths still
+answering `302`. The cause was the check, not the change: a private window
+reports "open" for a signed-in browser, because Chrome shares one session across
+private tabs and an Access session lasts 24 hours. **The check that works is
+`curl` from outside**, and it is now written into HANDOVER beside the record.
+
+**What the deletion actually had to be.** Deleting the *Playtesters policy*
+alone would have left an application with no Allow rule, which denies everyone
+— stricter, not looser, and from outside indistinguishable from the gate still
+being on. The application itself was deleted.
+
+**Four documents claimed the site was invite-only**, in ten passages: `HANDOVER.md`
+(the *Still open* opener, the deployment note, the *Deployment* heading, the
+whole *Invite-only* section, the download-versus-link argument, the playtest
+steps, the invite's preamble and its step 2, the preview claim, and "tell
+playtesters two things"), `CLAUDE.md`, `scripts/build-site.js`'s *WHAT IT DOES
+NOT HIDE* comment, and `plans/next-session-prompt.md`. All corrected.
+`JOURNAL.md` and `reviews/slc-review.md` were left alone on purpose: they are
+records of a moment and true as written.
+
+**The comment in `build-site.js` was the one worth catching.** It explained why
+shipping the query affinities to the browser was acceptable — *"The site is
+behind Cloudflare Access, so strangers get a sign-in page and none of it"* — and
+its reason had just evaporated. A stale comment that still reads as a live
+justification is worse than a stale line in a document.
+
+**Two things were found that nobody had planned for.**
+
+**Branch previews are public, and they outlive the branch.** Every branch gets
+one at `<branch>-g-ads-simulation.manikhorocks.workers.dev`, covered by the same
+"All traffic" scope and so opened by the same deletion. `origin/makeover` was
+serving `e312519`, a build from 2026-09-16, at a guessable address — a second
+playable copy of the game, four days and roughly a hundred commits stale. The
+branch was deleted (zero commits not in `main`; the annotated tag `playtest-3`
+points at that commit, so the build is preserved). **The preview went on
+answering `200` afterwards.** Deleting the branch does not delete the
+deployment; that is a dashboard job, and it is now written down.
+
+**A `200` on a preview means something only against a control.** A subdomain
+with no deployment answers `404`, which is what makes the preview's `200` proof
+rather than an assumption. The two builds' `ui/version.js` stamps differed
+(`2b4f414` against `e312519`), which is the same check done a second way.
+
+**And one near-miss worth recording.** Before deleting the branch, `git rev-parse
+--short playtest-3` printed `c99a0fd`, not the `e312519` the branch stood at —
+which looked like the tag not covering the build about to be deleted. It was an
+annotated tag: `c99a0fd` is the tag object, `playtest-3^{commit}` is `e312519`.
+**`rev-parse` on an annotated tag does not give you the commit.** The deletion
+was held until that resolved, which was right — the alternative was a confident
+deletion on a misread.
+
+**Phases 4 and 5 were marked done in the programme file**, four days of work
+that had landed without being ticked. The programme document had itself drifted
+while being used to prevent drift.
+
+---
+
 **Current state, 2026-09-19: the beginner's build is LIVE, PLAYED END TO END,
 and the freeze is over.** `main` is `14d0c05`, pushed at the owner's word.
 Two strangers played the old build and neither finished — one gave up

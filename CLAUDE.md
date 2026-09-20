@@ -108,7 +108,8 @@ npm run test:perf
 Commit after every green test run. Small commits, present tense, one concern each.
 
 **Pushing to `main` deploys.** The game is live on Cloudflare at
-`https://g-ads-simulation.manikhorocks.workers.dev`, invite-only. Every push runs
+`https://g-ads-simulation.manikhorocks.workers.dev`, and since 2026-09-20 it is
+open to anyone with the link — it was invite-only before that. Every push runs
 `npm run ci` there — lint, the whole suite, then the build — and publishes only
 if it passes. To see the built site exactly as it will be served:
 

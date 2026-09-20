@@ -20,10 +20,12 @@
  *
  * WHAT IT DOES NOT HIDE. Everything the game runs on still reaches the
  * player's browser, including the content the interface withholds on purpose
- * (16.1): query affinities, conversion multipliers. The site is behind
- * Cloudflare Access, so strangers get a sign-in page and none of it — but
- * anyone who CAN sign in can read them in the developer tools. Only a server
- * holding them back can change that, and there is no server yet.
+ * (16.1): query affinities, conversion multipliers. This comment used to say
+ * the site was behind Cloudflare Access so strangers got a sign-in page and
+ * none of it; that gate was removed on 2026-09-20, and anyone with the link
+ * can now read them in the developer tools. It changed the size of the pool
+ * and not the exposure — a signed-in player could always read them. Only a
+ * server holding them back can change that, and there is no server yet.
  */
 
 import {

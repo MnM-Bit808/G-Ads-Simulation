@@ -90,9 +90,11 @@ order of how much it would change what a learner takes away. I will pick.
 
 ## Where things stand (2026-09-19)
 
-* **Live**: `368801d`, tagged `playtest-4`, invite-only at
+* **Live**: `368801d`, tagged `playtest-4`, at
   `https://g-ads-simulation.manikhorocks.workers.dev`. That is the build the
   testers played; every playtest file also names the build each of its loads ran.
+  It was invite-only when this was written; the sign-in was removed 2026-09-20
+  and the link is now all a tester needs.
 * **Unpushed**: `44fa4f4`, the message angles design doc.
 * **The week before the freeze**, all live and all measured against gates agreed
   first: the landing page is graded as it stands (I37); Your ad shows where the

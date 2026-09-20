@@ -410,10 +410,12 @@ records twice already.
 
 ## Still open
 
-**A playtest is where I would start.** The site is live and invite-only, F14 and
-F13 are both settled, and the thing only people can do is now the most valuable:
-add a playtester who has never seen it to the Access list and record the session
-(see *One playthrough is one playthrough*). It is also what would decide whether
+**A playtest is where I would start.** The site is live and **open to anyone with
+the link since 2026-09-20**, F14 and F13 are both settled, and the thing only
+people can do is now the most valuable: send the link to somebody who has never
+seen it and record the session (see *One playthrough is one playthrough*). There
+is nothing to set up first — the sign-in that used to stand in the way is gone
+(*Invite-only, and why it was removed*). It is also what would decide whether
 F13's rejected volume option has to come back.
 
 - ~~The engine contradicts itself about returns (F14).~~ **Fixed 2026-09-11.**
@@ -450,9 +452,10 @@ F13's rejected volume option has to come back.
   **Deployment** unlocks the largest open item in this file. You cannot hand a
   playtester a localhost address. **The repository side is done** (2026-09-11):
   a build that publishes exactly the files the game loads (54 now), gated on the full
-  suite, live on Cloudflare and invite-only since 2026-09-12 — see
-  *Deployment*. It did need a little code after all: a build script, a front
-  page and a caching header, none of them in `engine/`.
+  suite, live on Cloudflare since 2026-09-12 — invite-only until 2026-09-20,
+  open to anyone with the link since — see *Deployment*. It did need a little
+  code after all: a build script, a front page and a caching header, none of
+  them in `engine/`.
 
   **A reload no longer loses the game, and that did not need a database**
   (stage A4, 2026-09-12). `ui/save.js` keeps the state before week 1 plus the
@@ -894,7 +897,8 @@ tooling and one untested claim.
 
 ## Deployment
 
-**Cloudflare, running the tests before every deploy, invite-only.** Chosen
+**Cloudflare, running the tests before every deploy. Open to anyone with the
+link since 2026-09-20.** Chosen
 2026-09-11. The repository is private, which rules out free GitHub Pages, and
 Cloudflare can later hold the backend and the database (D1) the plan puts next,
 so nothing has to move.
@@ -1018,35 +1022,86 @@ at all.
   are keyed on paths like `ui/**`, which `dist/ui/...` does not match. `dist/**`
   is ignored now.
 
-### Invite-only, through Cloudflare Access
+### Invite-only, and why it was removed
 
-**Done 2026-09-12, and verified from both sides.** Signed out, every path — the
-front page, `ui/`, `engine/constants.js` — answers with a redirect to a sign-in
-page and not one line of game code. Signed in with an allowed address, the game
-loads and plays.
+**THE SITE IS OPEN. Anyone with the link can play it, as of 2026-09-20.** It was
+invite-only from 2026-09-12 to that day. This section is a record of what was
+there and how to put it back, because a stranger playtest may want it again.
 
-| piece | where it lives | value |
+**Why it went.** Phase 0 of the critical-review programme needed three people
+who had never seen the game to play it, and the sign-in stood between them and
+the first screen: the tester had to be added to a list by hand, then wait for a
+one-time code, sometimes in spam. That is a minute or three of friction and a
+reason to give up, in front of the one measurement the project most needed. The
+gate protected nothing the backend step will not have to protect properly
+anyway — see *What tampering would cost*, which never claimed Access helped.
+
+**Measured after removal**, not assumed: the front page, `ui/`, `ui/studio.css`
+and `content/querySet.js` all answer `200` with no redirect.
+
+```
+curl -s -o /dev/null -w "%{http_code} -> %{redirect_url}\n" \
+  https://g-ads-simulation.manikhorocks.workers.dev/ui/
+```
+
+`200` and an empty redirect means open. A `302` to
+`bitter-recipe-3091.cloudflareaccess.com` would mean it is back on. **Do not
+test this in a private window** — Chrome shares one session across private tabs
+and an Access session lasts 24 hours, so a signed-in browser reports "open"
+when it is not. The curl is the check.
+
+**Read the redirect target, not just the code.** `/ui/index.html` answers `307`
+to `/ui/` on the same origin — that is the asset server canonicalising a
+trailing slash and has nothing to do with Access. Only a redirect to
+`cloudflareaccess.com` means the gate.
+
+**What was there, if it has to come back:**
+
+| piece | where it lived | value |
 |---|---|---|
-| Zero Trust organisation | Cloudflare One | plan **Zero Trust Free** (up to 50 people), team name `bitter-recipe-3091` — it is what the sign-in page's address shows, chosen by Cloudflare, and can be renamed under Zero Trust → Settings |
-| the rule | Zero Trust → Access controls → **Policies** | **Playtesters**: Allow, Include → **Emails** → the owner's address only |
-| where it applies | the Worker → **Access** tab | scope **All traffic** (production AND every preview), session 24 hours |
+| Zero Trust organisation | Cloudflare One | plan **Zero Trust Free** (up to 50 people), team name `bitter-recipe-3091` — it is what the sign-in page's address showed, chosen by Cloudflare, renameable under Zero Trust → Settings |
+| the rule | Zero Trust → Access controls → **Policies** | **Playtesters**: Allow, Include → **Emails** → exact addresses |
+| where it applied | the Worker → **Access** tab | scope **All traffic** (production AND every preview), session 24 hours |
 
-**Adding a playtester** is one edit and no deploy: Zero Trust → Access controls →
-Policies → **Playtesters** → add their address under Include → Emails → save.
-They open the site, enter that address, and get a one-time code by email.
+Adding a playtester was one edit and no deploy: add their address under Include
+→ Emails → save. They opened the site, entered that address, and got a one-time
+code by email.
 
-**Two choices on those screens that are traps**, both recorded because the
-dashboard puts them first:
+**Three traps, kept because they cost time to find:**
 
-- **"Emails ending in" and the preset "Email domain"** admit a whole domain. With
-  `gmail.com` that is every Gmail user alive. The rule uses exact **Emails**.
+- **Delete the APPLICATION, not the policy.** An Access application with no
+  Allow policy denies everyone, including the owner, and from outside it is
+  indistinguishable from the gate still being on — stricter, not looser. The
+  reversible alternative is a policy with action **Bypass** and include
+  **Everyone**, which leaves the record in place and lets all traffic through.
+- **"Emails ending in" and the preset "Email domain"** admit a whole domain.
+  With `gmail.com` that is every Gmail user alive. The rule used exact
+  **Emails**.
 - **The Access dialog's scope defaults to "Previews only"**, which protects the
-  branch previews and leaves the main site public. It is set to **All traffic**.
+  branch previews and leaves the main site public.
 
-**What it changed about the "withheld" numbers.** They were readable by anyone
-with the developer tools; now they are readable only by people on the list.
-Signed-in players can still read `content/querySet.js`. Only a server holding the
-numbers back changes that, and that is still the backend step.
+**What it changed about the "withheld" numbers, and what it did not.** While the
+gate was on, `content/querySet.js` was readable by people on the list rather
+than by anyone; signed-in players could always read it. It is now readable by
+anyone with the link. The pool changed, not the exposure — **only a server
+holding the numbers back changes that, and that is still the backend step.**
+
+### Branch previews are public, and outlive their branch
+
+**Measured 2026-09-20.** Every branch gets a preview at
+`<branch>-g-ads-simulation.manikhorocks.workers.dev`, and with Access gone those
+are open too. A subdomain with no deployment answers `404`, so a `200` there is
+a real, playable copy of the game at a guessable address.
+
+**Deleting the branch does NOT remove the preview.** `origin/makeover` was
+deleted on 2026-09-20 and its preview went on serving `e312519` — a build from
+2026-09-16 — afterwards. The deployment is removed from the Worker's
+**Deployments** tab, or previews are turned off wholesale by the Worker's
+**Preview URLs** setting.
+
+**Why it matters for a playtest:** a tester sent a preview link plays a stale
+build and reports defects that were fixed weeks ago. Send the bare
+`g-ads-simulation.manikhorocks.workers.dev` address and nothing else.
 
 ### How it is shared, and why it is not a download
 
@@ -1063,8 +1118,9 @@ local server with it.
 is the opposite of what playtesting needs — nine defects were fixed in a single
 session, each live in two minutes. A desktop app also excludes phones, and the
 recorder exists partly for phone timings nobody has measured. And the friction
-is not the web: it is Cloudflare Access's email code, which is one dashboard
-setting.
+this argument was written against — Cloudflare Access's email code — **was
+removed on 2026-09-20**, so the link now costs a tester one click and the
+decision only got easier.
 
 **What a desktop app would really cost:** there is no bundler and no packaging
 setup here at all. Electron or Tauri means a new pipeline, per-OS builds (a Mac
@@ -1110,6 +1166,13 @@ must be handed them. `scripts/build-site.js` has said so since it was written
 (*WHAT IT DOES NOT HIDE*). **There is no clever partial fix. Do not look for
 one.** The mitigation that actually applies is the audience: a true beginner does
 not open devtools, and whoever does has chosen to skip the lesson.
+
+**That mitigation got weaker on 2026-09-20**, when Access was removed and the
+audience stopped being a named list and became anyone with the link
+(*Invite-only, and why it was removed*). The row above is unchanged by it — it
+already said only a server stops this, and Access never did — but the pool is
+larger now, which is one more argument for the backend step once the teaching
+is known to work.
 
 **2. The deployment is where the cheap, real wins are.** A push to `main`
 publishes to everyone holding the link, so anything that can write to `main` can
@@ -1189,17 +1252,23 @@ before-and-after later if one is wanted.
 
 **When the invites go out:**
 1. **Tag the live version the same day,** so the files can be read on the engine
-   they were played on. `playtest-1`, `playtest-2` and `playtest-3` are used —
-   `playtest-2` is the classic game, `live-before-studio` is the last version
-   the site served before the Studio, and `playtest-3` (`e312519`, 2026-09-16)
-   is the Studio's first live version, tagged when the invite was rewritten.
-   **`playtest-4` (2026-09-18) is the build the stranger playtests are being
-   run on**, so the next one is `playtest-5`:
+   they were played on. Five are used: `playtest-1` (`f725dda`, 2026-09-12),
+   `playtest-2` (`387baf1`, 2026-09-13, the classic game), `playtest-3`
+   (`e312519`, 2026-09-16, the Studio's first live version, tagged when the
+   invite was rewritten), `playtest-4` (`368801d`, 2026-09-18, the build the
+   first stranger playtests ran on) and `playtest-5` (`a7266a2`, 2026-09-19).
+   `live-before-studio` is the last version the site served before the Studio.
+   **So the next one is `playtest-6`:**
 
    ```
-   git tag playtest-5
-   git push origin playtest-5
+   git tag playtest-6
+   git push origin playtest-6
    ```
+
+   **Read the tag list rather than this sentence** — `git tag -l "playtest-*" |
+   sort -V` is one command and cannot go stale. This step named `playtest-5` as
+   the next tag for a day after `playtest-5` had been created, which would have
+   sent whoever followed it into a tag that already existed.
 
    Then keep engine changes off `main` until the files are back. Words and
    docs are safe; anything that moves a number in a played week is not.
@@ -1208,38 +1277,39 @@ before-and-after later if one is wanted.
    of its loads ran on (`ui/version.js`), so a game that spans a deploy says so
    in the file itself and `scripts/read-playtest.js` prints the versions. The
    tag still matters — it is how you get that build back to read the file on.
-2. Add each tester's address to the Access list (*Invite-only* below).
-3. Send `https://g-ads-simulation.manikhorocks.workers.dev/ui/?playtest=1` with
-   the message below.
-4. **Read the files on the tag if `main` has moved.** A save replays exactly only
+2. Send `https://g-ads-simulation.manikhorocks.workers.dev/ui/?playtest=1` with
+   the message below. **Nothing has to be set up first** — since 2026-09-20 the
+   link is all a tester needs. Send that address and no other: a branch preview
+   is public too and serves a stale build (*Branch previews are public*).
+3. **Read the files on the tag if `main` has moved.** A save replays exactly only
    on the engine it was played on. The reader says so when it does not (`THE
    REPLAY DOES NOT MATCH`), and the fix is `git checkout playtest-2` and reading
    it again.
 
-**The invite** (fill in the name and address; the address must be the one on
-the Access list).
+**The invite** (fill in the name).
 
-**Step 5 was rewritten on 2026-09-19 and the reason matters.** It used to say
-the Playtest button "saves the same file straight away". Since the mid-game
+**The last step was rewritten on 2026-09-19 and the reason matters.** It used to
+say the Playtest button "saves the same file straight away". Since the mid-game
 questions it does not — it asks the two questions first, which is the entire
 point of that change: the people worth hearing from are the ones who stop, and
 the old build asked them nothing. An invite describing the old behaviour would
 have walked a quitting tester straight past the questions. It also now says how
-to reach the button on a phone, where the rail is behind the ☰ menu.
+to reach the button on a phone, where the rail is behind the ☰ menu. It was
+step 5 until 2026-09-20, when the sign-in step went and everything moved up one.
 
 > Hi *name*, I've built a small game that simulates running Google search ads
 > for an Indian activewear brand, and I'd love you to play one game of it. It
 > takes about 45 minutes, and you can stop whenever you like.
 >
 > 1. Open https://g-ads-simulation.manikhorocks.workers.dev/ui/?playtest=1
-> 2. It asks for your email: use *address*, and type in the code it emails you.
-> 3. Play it the way you would on your own. There is no right answer, and you
+>    — there is no sign-up and nothing to install.
+> 2. Play it the way you would on your own. There is no right answer, and you
 >    don't need to read everything.
-> 4. When you finish, the last thing on the results is **Before you go**: two
+> 3. When you finish, the last thing on the results is **Before you go**: two
 >    questions about what the game taught you and what confused you, and a
 >    **Download the playtest file** button under them. A few words is plenty.
 >    Send me the file it saves.
-> 5. If you give up partway, that is useful too, and I would rather have that
+> 4. If you give up partway, that is useful too, and I would rather have that
 >    than nothing. Press **Playtest** at the bottom of the strip down the left
 >    — on a phone, tap the ☰ menu at the top first. It asks you the same two
 >    questions, then saves the file. Send me that. Even one line is plenty.
@@ -1281,14 +1351,16 @@ it by timing "Budget" and "The market" in week 1 before anything was scrolled.
 ### Deploys, from here on
 
 Every push to `main` that passes `npm run ci` goes live on its own, every branch
-gets a preview (also behind sign-in), and any earlier version can be restored from
+gets a preview (**public since 2026-09-20, and it outlives the branch** — see
+*Branch previews are public*), and any earlier version can be restored from
 the Worker's **Deployments** tab. The first build with the tests on took 5m49s,
 4m54s of it the suite — one replay test takes 12 seconds on Cloudflare's machine,
 which is why `ci` sets a 60-second timeout.
 
-**Tell playtesters two things**: the game is saved in their own browser after
+**Tell playtesters one thing**: the game is saved in their own browser after
 every week, so a reload offers it back, but a different browser or device starts
-fresh; and the sign-in code arrives by email from Cloudflare, sometimes in spam.
+fresh. There used to be a second — that the sign-in code arrives by email from
+Cloudflare, sometimes in spam — and it went with the sign-in on 2026-09-20.
 
 **The "late weeks freeze for 30-60 seconds" warning is withdrawn.** It was
 measured on 2026-09-06 and copied here on 09-11 without re-measuring. On
