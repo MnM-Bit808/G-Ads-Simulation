@@ -22,6 +22,11 @@ tell the difference. Accuracy outranks features here.
   resting on a guess, how the work is done, and the traps. Shortest route in.
 - `ENGINE_SPEC_v0.3.md` — the specification. It is the source of truth.
 - `DECISIONS.md` — every departure from real Google Ads and why.
+- `JOURNAL.md` — what happened, newest first. **Do not read it to get started**;
+  it is where HANDOVER's dated log went on 2026-09-20 so that HANDOVER could be
+  current. Append-only: a correction is a new entry naming the old one, never an
+  edit. If a sentence would still be true in a month, it belongs in HANDOVER; if
+  it says what happened on a date, it belongs here.
 
 Then `git log --oneline` and read the last few commit messages in full. They
 carry the reasoning behind each module and what building it exposed.

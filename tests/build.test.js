@@ -52,7 +52,7 @@ describe('the site holds what the game loads', () => {
     // Named, because each is a real file in this repository that a looser
     // build — "publish the repo root" — would have sent out.
     for (const f of [
-      'DECISIONS.md', 'HANDOVER.md', 'CLAUDE.md', 'files.zip', 'package.json',
+      'DECISIONS.md', 'HANDOVER.md', 'JOURNAL.md', 'CLAUDE.md', 'files.zip', 'package.json',
       'dev-server.js', 'agents/claude.js', 'tests/build.test.js', 'design/README.md',
     ]) {
       expect(files, f).not.toContain(f);
