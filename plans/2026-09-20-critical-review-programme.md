@@ -65,12 +65,21 @@ Runs in parallel with everything below. **B.**
   five production paths answer `200` with no redirect. The application was
   deleted rather than its policy — deleting only the policy would have denied
   everyone.
-- **0.2** Deployment hygiene, while in those dashboards: 2FA on GitHub and
-  Cloudflare, branch protection on `main`, and the Cloudflare build's repository
-  scope. *Owner's.* An hour, and the only security item worth spending on.
-  **Branch protection may need a paid plan on a private repository, and it is
-  the weakest of the three** — a sole admin bypasses their own rules. 2FA is
-  the item that matters.
+- **0.2** ~~Deployment hygiene: 2FA on GitHub and Cloudflare, branch protection
+  on `main`, and the Cloudflare build's repository scope.~~ **THE TWO THAT
+  MATTER ARE DONE, 2026-09-20.**
+  - **2FA on both accounts** — done, authenticator app on each.
+  - **The build's repository scope** — done. It was on **All repositories** and
+    is now **Only select repositories → G-Ads-Simulation**. That setting lives
+    on GITHUB, not Cloudflare (`github.com/settings/installations` → *Cloudflare
+    Workers and Pages* → Configure), because the integration is a GitHub App.
+    Cloudflare's own docs recommend narrowing it. There is no
+    `.github/workflows` here — Cloudflare builds from the repository directly,
+    so that installation IS the credential.
+  - **Branch protection: NOT DONE, and deliberately.** It may need a paid plan
+    on a private repository, and it is the weakest of the three — a sole admin
+    bypasses their own rules, which is not the failure mode here. Revisit only
+    if somebody else ever gets write access.
 - **0.3** ~~Update `HANDOVER.md`'s invite text and *Invite-only* section once
   0.1 is done.~~ **DONE 2026-09-20.** It was ten passages rather than two, in
   four files: `HANDOVER.md`, `CLAUDE.md`, `scripts/build-site.js`'s *WHAT IT
@@ -80,9 +89,18 @@ Runs in parallel with everything below. **B.**
 - **0.3a** **Found while doing 0.3, and not in the original plan:** branch
   previews are public too, and **outlive the branch**. `origin/makeover` was
   deleted (fully merged, zero unique commits, preserved by the annotated tag
-  `playtest-3`) and its preview went on serving `e312519`. *Owner's:* remove the
-  deployment from the Worker's **Deployments** tab, or turn off **Preview
-  URLs**. Until then, send testers the bare production address and no other.
+  `playtest-3`) and its preview went on serving `e312519`.
+  **PARKED 2026-09-20, on a judgement about proportion.** The alias is NOT in
+  the Deployments tab and cannot be deleted individually — Cloudflare's docs
+  offer only *Settings → Domains & Routes → Preview URLs → Disable*, which
+  turns off previews wholesale, and that setting could not be located in the
+  dashboard as it now stands. **It is tidiness, not safety:** the site is
+  public anyway, so a public preview leaks nothing new, and the only real risk
+  — a tester playing the stale build — happens only if somebody sends them that
+  link. **The defence that works is the documented one:** send the bare
+  production address and no other (HANDOVER, *Branch previews are public*).
+  Revisit if a branch is ever worked on again, when a preview would be wanted
+  anyway.
 - **0.4** Send the link to three people who have never seen it. *Owner's.*
 
 **Done when:** three recordings are in hand, or three people have said why they

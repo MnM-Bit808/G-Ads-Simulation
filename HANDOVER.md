@@ -1095,9 +1095,24 @@ a real, playable copy of the game at a guessable address.
 
 **Deleting the branch does NOT remove the preview.** `origin/makeover` was
 deleted on 2026-09-20 and its preview went on serving `e312519` — a build from
-2026-09-16 — afterwards. The deployment is removed from the Worker's
-**Deployments** tab, or previews are turned off wholesale by the Worker's
-**Preview URLs** setting.
+2026-09-16 — afterwards.
+
+**And it is NOT in the Deployments tab, which is where an hour went.** The
+vocabulary is the trap. A **version** is a build of the Worker; a **deployment**
+is a version made live on production, and the Deployments tab lists only those;
+an **alias** is a readable label stuck on a version, and that is what
+`makeover-…` is. It was never deployed, so it never appears there, and it
+survived the branch because it was never attached to the branch. Cloudflare
+files this under routing, not deployments: **Settings → Domains & Routes →
+Preview URLs → Disable**, which turns previews off wholesale. Per Cloudflare's
+documentation there is **no way to delete a single alias** — they persist until
+a thousand newer ones push them out.
+
+**It is PARKED, not fixed (2026-09-20)**, and that was a judgement about
+proportion rather than a failure to try: the site is public anyway so a public
+preview leaks nothing new, and the only real cost — a tester playing a stale
+build — needs somebody to send them that link. Nobody will. **The defence that
+works is the sentence below.**
 
 **Why it matters for a playtest:** a tester sent a preview link plays a stale
 build and reports defects that were fixed weeks ago. Send the bare
