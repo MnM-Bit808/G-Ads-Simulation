@@ -6025,6 +6025,75 @@ credited to (I36). Anything a revision works out from the advertiser, rather
 than adding up from orders, belongs on the report when it is built or on the
 order (CLAUDE.md, known traps).
 
+### F19. Month 3's rank was taken a moment before the player could see it — `FIXED` (2026-09-20)
+
+Not a modelling choice. Spec 13.1 already said the right thing, the engine's own
+comment said the right thing, and the code did it one step early.
+
+**The rule.** Month 3's budgets are split by rank on cumulative gross profit
+across rounds 1–8, **as reported at round 8** (13.1). The pool is fixed, so the
+only thing rank decides is who gets which multiplier, from 1.30 at the top to
+0.70 at the bottom.
+
+**Sim, before.** `advanceState` ran at `round.js:309` and `reviseReports` at
+`round.js:321`, so the rank was taken from **weeks 1–7 as they stood after week
+7, plus week 8 fresh**. Week 8's own revisions to weeks 4–7 — the late sales
+that landed while week 8 ran — were not in it. That is a state that exists for
+no one: it is not what week 7 showed, and it is not what the player reads when
+week 8 finishes.
+
+**The engine knew.** The comment above the capture already read *"captured THERE
+rather than read later, because history keeps being revised and 'as reported at
+round 8' has to mean at round 8."* The intent was right from the start. What was
+wrong was that "at round 8" had been implemented as *before round 8's revisions*
+rather than *when round 8 is done*.
+
+**How it was found.** Not by testing. A 34-line test, written in a worktree and
+never committed, was rescued during a branch audit (tagged
+`rank-snapshot-probe`). It passed on `main`, and the pass was vacuous: it had no
+guard that the two readings could still differ on a market that had moved six
+times since it was written.
+
+**Measured, 3 cells x 8 seeds, before and after:**
+
+| | before | after |
+|---|---|---|
+| markets where the rank matches the reports as read | 16 of 24 | **24 of 24** |
+| months 1 and 2 budgets changed | — | 0 of 24 |
+| month 3 budgets changed | — | 8 of 24 (exactly those that ranked wrong) |
+
+Always an adjacent swap, never more than one place. At the rank multipliers that
+is ₹11,760–₹13,440 of month 3 moving between two advertisers, against a month-3
+budget running from ₹2,18,400 at rank 1 to ₹1,17,600 at rank 9.
+
+**What it did to the player, over 72 markets:**
+
+| | before | after |
+|---|---|---|
+| player's final rank changed | — | **0 of 72** |
+| player's net profit changed | — | 21 of 72 |
+| median net profit | ₹11,66,491 | ₹11,94,283 |
+| where it moved, median delta | — | −₹1,330 (range −₹38,855 to +₹31,916) |
+| rivals' median month-2 budget | ₹3,08,000 | ₹3,08,000 |
+| largest rival move into week 5 / week 9 | 2.78x / 3.62x | 2.78x / 3.62x |
+
+So the market the player meets is genuinely different in about a third of games,
+and their own outcome is barely touched: the swap is almost always between two
+rivals. D12's week-9 gate does not move at all.
+
+**Why it was worth fixing anyway, given how small that is.** A player who adds up
+their own weekly gross profit gets one order; the game used another. For a
+simulator whose claim is that its figures can be traced, a number nobody can
+reproduce from the screens is worse than a number that is slightly off.
+
+**What it also removed.** `rankByGrossProfit` used to call `buildRoundOutput` a
+second time to append this round's report to an unrevised history. It now sums
+the finished history, so the round's report is built once.
+
+**The counterfactual builds no report for this.** `runCounterfactual` reads
+`raw` alone and discards the state it is handed, so it is given no history and
+skips the rank entirely — a one-round hypothetical never reaches month 3.
+
 ### I6. Display numbers stay in the view, not in `constants.js` — *by design*
 
 Hard rule 7 sends every unsourced number to `constants.js`. Three live in `ui/`

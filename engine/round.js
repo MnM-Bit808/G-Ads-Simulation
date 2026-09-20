@@ -306,21 +306,31 @@ export function runRound(gameState, options = {}) {
     }
   }
 
-  const nextGameState = advanceState(gameState, advertisers, acc, settled, raw);
-
-  // The counterfactual pass wants none of this: it is a hypothetical whose
-  // only job is to be diffed against the real round.
-  if (_isCounterfactual) return { round, raw, nextGameState };
+  // The counterfactual pass wants none of what follows: it is a hypothetical
+  // whose only job is to be diffed against the real round, and
+  // `runCounterfactual` reads `raw` alone — the state handed back to it is
+  // discarded. So it builds no report, and `advanceState` gets no history to
+  // rank from, which is right: a one-round hypothetical never reaches month 3.
+  if (_isCounterfactual) {
+    return { round, raw, nextGameState: advanceState(gameState, advertisers, acc, settled, raw, null) };
+  }
 
   const { report, insights } = buildRoundOutput({ round, raw, advertisers });
   // The reviser sees only EARLIER rounds. This round's own conversions are
   // already in the report that was just built, so handing it this report too
   // would land the lag-0 share of them - 55% of the distribution - a second
   // time, and stamp a revision on a report nobody had read yet.
-  nextGameState.history = [
+  const history = [
     ...reviseReports(gameState.history ?? [], { currentRound: round, raw, advertisers }),
     report,
   ];
+
+  // THE HISTORY IS ASSEMBLED BEFORE THE STATE ADVANCES (2026-09-20), so that
+  // month 3's rank can be taken from the reports as they stand once this round
+  // is DONE. `reviseReports` and `buildRoundOutput` both read only `raw`,
+  // `advertisers` and the earlier history, so neither needs the new state.
+  const nextGameState = advanceState(gameState, advertisers, acc, settled, raw, history);
+  nextGameState.history = history;
   nextGameState.marketContext = [...(gameState.marketContext ?? []), raw.marketContext];
 
   return { round, report, insights, raw, nextGameState };
@@ -925,7 +935,7 @@ function applyDecision(advertiser, decision) {
   };
 }
 
-function advanceState(gameState, advertisers, acc, settled, raw) {
+function advanceState(gameState, advertisers, acc, settled, raw, history) {
   const byId = new Map(advertisers.map((a, i) => [a.id, { a, acc: acc[i], settled: settled[i] }]));
   const nextRound = gameState.round + 1;
   const schedule = gameState.budgetSchedule ?? {};
@@ -933,9 +943,19 @@ function advanceState(gameState, advertisers, acc, settled, raw) {
   // Month 3's split is decided by rank on cumulative gross profit through the
   // snapshot round, and captured THERE rather than read later, because history
   // keeps being revised and "as reported at round 8" has to mean at round 8.
+  //
+  // AND AT ROUND 8 MEANS WHEN ROUND 8 IS DONE (2026-09-20). This ran before
+  // `reviseReports`, so the rank was taken from weeks 1-7 as they stood after
+  // week 7, plus week 8 fresh — a state nobody ever sees, and one a player
+  // adding up their own weekly gross profit cannot reproduce. Measured across
+  // 24 markets it put the order wrong in 8 of them, always an adjacent swap,
+  // moving Rs 11,760-13,440 of month 3 between two advertisers. The intent in
+  // the paragraph above was always right; the capture was one step early.
+  //
+  // `history` is null only for the counterfactual, which discards this state.
   let rankedIds = schedule.rankedAtSnapshot ?? null;
-  if (gameState.round === (schedule.rankSnapshotRound ?? 8)) {
-    rankedIds = rankByGrossProfit(gameState.history, raw, advertisers, gameState.round);
+  if (history && gameState.round === (schedule.rankSnapshotRound ?? 8)) {
+    rankedIds = rankByGrossProfit(history, advertisers);
   }
 
   const rankAllocation = rankedIds ? rankAllocations(rankedIds) : null;
@@ -1001,18 +1021,17 @@ function advanceCampaign(campaign, rawRow, nextRound, newMonth, rankAllocation, 
  * dark before the deadline costs the profit those rounds would have made
  * (DECISIONS D4).
  */
-function rankByGrossProfit(history, raw, advertisers, round) {
+function rankByGrossProfit(history, advertisers) {
   const totals = new Map(advertisers.map((a) => [a.id, 0]));
 
-  for (const report of history ?? []) {
+  // The finished history, this round's own report included and the earlier
+  // rounds already revised by it. It used to take the unrevised history and
+  // build this round's report a SECOND time to add on the end, which both
+  // read the wrong weeks and paid for `buildRoundOutput` twice.
+  for (const report of history) {
     for (const [id, row] of Object.entries(report.byAdvertiser)) {
       if (totals.has(id)) totals.set(id, totals.get(id) + row.money.grossProfitPaise);
     }
-  }
-  // This round's own report is not in history yet.
-  const { report } = buildRoundOutput({ round, raw, advertisers });
-  for (const [id, row] of Object.entries(report.byAdvertiser)) {
-    if (totals.has(id)) totals.set(id, totals.get(id) + row.money.grossProfitPaise);
   }
 
   return [...totals.entries()]

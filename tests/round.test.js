@@ -10,6 +10,7 @@ import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
 import { QUERY_SET } from '../content/querySet.js';
 import { BRAND_IDENTITIES } from '../content/brands.js';
+import { playMarket } from '../scripts/market-harness.js';
 import { makeGameState, deformed, PLAYER_ID } from './fixtures/gameState.js';
 import {
   ATTRIBUTION_LAG_DISTRIBUTION, MAX_SLOTS, ROUNDS_PER_MONTH,
@@ -1246,5 +1247,68 @@ describe('a report says what share of its own week\'s orders were paid at the do
           .toBe(settled(untouched(), week, t).codShare);
       }
     }
+  });
+});
+
+/**
+ * Month 3's rank, and the reports it is taken from (13.1, F19).
+ *
+ * Spec 13.1 ranks month 3's budgets on cumulative gross profit across rounds
+ * 1-8, "as reported at round 8". `advanceState` used to run before
+ * `reviseReports`, so the rank was taken from weeks 1-7 as they stood after
+ * week 7 plus week 8 fresh — a state nobody ever sees, and one a player adding
+ * up their own weekly gross profit cannot reproduce.
+ *
+ * THE FIRST TEST HERE EXISTS BECAUSE THE SECOND ONE CAN PASS FOR FREE. The
+ * probe this grew from (tag `rank-snapshot-probe`) asserted only the property,
+ * and by the time it was rescued it passed on a market where the two readings
+ * happened to agree — proving nothing, on a seed chosen when they differed.
+ * So the market is held to still DISAGREE under the old reading first. If that
+ * ever fails, this seed has stopped exercising the bug and the fix is no longer
+ * under test: find a seed that does, do not delete the guard.
+ */
+describe('month 3 is ranked on the reports as they stand at round 8 (13.1)', () => {
+  const SEED = 5;
+  const CELL = 'mid|performance';
+
+  /** The tie-break `rankByGrossProfit` uses, so only the figures differ. */
+  const rankFrom = (reports, ids) => {
+    const totals = new Map(ids.map((id) => [id, 0]));
+    for (const report of reports) {
+      for (const [id, row] of Object.entries(report.byAdvertiser)) {
+        if (totals.has(id)) totals.set(id, totals.get(id) + row.money.grossProfitPaise);
+      }
+    }
+    return [...totals.entries()]
+      .sort((a, b) => (b[1] - a[1]) || (a[0] < b[0] ? -1 : 1))
+      .map(([id]) => id);
+  };
+
+  /** Weeks 1-7 as week 7 left them, and week 8's own report, kept apart. */
+  const bothReadings = async () => {
+    const seven = await playMarket({ seed: SEED, cell: CELL, rounds: 7 });
+    const asAfterSeven = seven.state.history.filter((h) => h.round <= 7);
+    const eight = await playMarket({ seed: SEED, cell: CELL, from: seven.state, rounds: 8 });
+    const ids = eight.state.advertisers.map((a) => a.id);
+    const weekEight = eight.state.history.find((h) => h.round === 8);
+    return {
+      ids,
+      used: eight.state.budgetSchedule.rankedAtSnapshot,
+      // What the engine used to take: the earlier weeks unrevised by week 8.
+      old: rankFrom([...asAfterSeven, weekEight], ids),
+      // What the player reads once week 8 is done.
+      asRead: rankFrom(eight.state.history.filter((h) => h.round <= 8), ids),
+    };
+  };
+
+  test('this market still tells the two readings apart', { timeout: 120_000 }, async () => {
+    const { old: before, asRead } = await bothReadings();
+    expect(before, 'the seed no longer exercises F19 — find one that does')
+      .not.toEqual(asRead);
+  });
+
+  test('the rank the engine uses is the one the reports show', { timeout: 120_000 }, async () => {
+    const { used, asRead } = await bothReadings();
+    expect(used).toEqual(asRead);
   });
 });
