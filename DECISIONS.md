@@ -6782,6 +6782,62 @@ would dress a guess as a citation, which is `MAX_SLOTS`' lesson.
 and the note says what was searched for, what was not found, and that it is the
 first constant to replace if a real curve appears.
 
+#### `HOURLY_INTENT_CURVE`: the one that might have been sourced, and was not
+
+The note above named it the first constant to replace if a real curve appeared.
+It was then searched properly the same day, and **the finding is not "nothing
+was published" — it is that what is published is the wrong quantity.**
+
+Nearly every source gives **orders by hour**. Orders are volume × intent, and
+volume is already `HOUR_PROFILES`. Fitting an order curve to
+`HOURLY_INTENT_CURVE` would count volume twice, making the busiest hour also
+the best-converting hour, collapsing `MIN_PEAK_SEPARATION_HOURS` and destroying
+the dayparting trade the game exists to teach (H4). **That is worse than
+inventing the curve**, and it is F21's error in a new place: a real figure
+attached to the wrong axis.
+
+| searched | what it was |
+|---|---|
+| SureBright, 1M+ US orders | order distribution; explicitly "does not separately break out conversion rates per session"; US only; no 24-hour table |
+| dayparting guides ("12–18% peak against 5–8% off-peak", "40% swing") | vendor pages, no methodology, sample or source |
+| Google's ad scheduling documentation | the control, not the data; its worked example is a fictional dog-sled business |
+| arXiv 1905.05938, conversion-rate outlier detection | one unnamed store, no hourly curve |
+| conversion-rate benchmark round-ups | segment by device, AOV, industry — never by hour |
+
+**Not contradicted, and the distinction from `DAY_OF_WEEK_CURVE` matters.** The
+one source naming a converting hour puts it at 14:00 with a 13:00–15:00 peak,
+and this curve peaks at 15:00 — agreement. But it is a single agency's own
+website, with no sample size, industry, geography or period, written to show
+readers how to build the report. Agreement that thin cannot carry 24 numbers.
+`DAY_OF_WEEK_CURVE` was *contradicted* by every source found; this one is
+merely unsupported, which is a weaker charge and a different remedy.
+
+**What would qualify, written down so the next search is shorter:** conversion
+rate per session by hour — not orders — with a stated sample, period and
+geography.
+
+#### `HOUR_PROFILES` gained a third source and kept its tag, and the rule is the point
+
+The India search turned up Shadowfax's 2024 delivery data and ClickPost, both
+putting Indian online ordering strongest **8–11 p.m.**, tier-2 and tier-3
+cities later still. That is the right quantity for `HOUR_PROFILES` — volume —
+and it corroborates the 20:00 evening peak that I42 could only say "sits
+between" Fynd's 10 p.m. and ECDB's 7 p.m. Three sources now, all pointing at
+the evening.
+
+**It was proposed for INVENTED → ESTIMATED on the strength of that, and the
+proposal was wrong.** This file's own precedent settles it:
+`COD_SHARE_BY_PRICE_LOCATION` is ESTIMATED because its price axis is inferred
+even though its location axis is sourced — "tagged for the weaker of the two".
+Here the **peak hour** is corroborated and the other twenty-three numbers in
+each profile — trough depth, morning gradient, peak width — are sourced by
+nothing. Retagging would let one sourced hour vouch for twenty-three invented
+ones.
+
+**A tag describes the weakest number it covers.** Worth stating as a rule
+because the temptation runs the other way: a constant that has been researched
+*feels* better sourced, and the tag is not a record of effort spent.
+
 **What would reopen this.** A sixth tag. If one is ever proposed, the question
 to ask is the one this entry turned on: what does a wrong value cost? Two tags
 that answer that the same way should be one tag.

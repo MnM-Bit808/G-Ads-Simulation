@@ -582,6 +582,23 @@ export const DAY_OF_WEEK_CURVE = normalise([
  * evening profile's 20:00 sits between the two, which is the most this can
  * honestly claim — so it stays INVENTED rather than borrowing either number.
  *
+ * A THIRD SOURCE, INDIAN, AND IT CORROBORATES (2026-09-20, I44). Shadowfax's
+ * 2024 delivery data and ClickPost both put Indian online ordering strongest
+ * in the evening, roughly 8 to 11 p.m., with tier-2 and tier-3 cities pushing
+ * later still — which is the same direction `LOCATION_VOLUME_BY_PRICE` already
+ * takes. 20:00 is inside that window and inside ECDB's, and earlier than
+ * Fynd's. Three sources now, all pointing at the evening, none agreeing on the
+ * hour.
+ *
+ * AND IT STILL DOES NOT BECOME ESTIMATED, BY THIS FILE'S OWN RULE. The tag
+ * follows the weakest part of what it covers — `COD_SHARE_BY_PRICE_LOCATION`
+ * is ESTIMATED because its price axis is inferred even though its location
+ * axis is sourced. Here the PEAK HOUR is now third-party corroborated, and the
+ * other 23 numbers in each profile — the depth of the overnight trough, how
+ * steeply the morning climbs, how wide the peak is — are sourced by nothing at
+ * all. Tagging the whole table ESTIMATED would let one sourced hour vouch for
+ * twenty-three invented ones. **A tag describes the weakest number it covers.**
+ *
  * Worth knowing if it is ever moved: pushing the evening peak later INCREASES
  * its distance from the 15:00 intent peak, so I5 gets easier, not harder. The
  * constraint that would bite is the business profile, not this one.
@@ -634,26 +651,58 @@ const normaliseToMeanOne = (raw) => {
 };
 
 /**
- * INVENTED, and it is one of the few on this list that MIGHT be sourceable.
+ * INVENTED, AND THE SEARCH FOR A SOURCE IS DONE (2026-09-20, I44). Recorded in
+ * full so that nobody spends the afternoon on it twice.
  *
  * It claims something real: that readiness to buy moves through the day
- * differently from the readiness to search, peaking mid-to-late afternoon
- * while search volume peaks elsewhere. That is a claim about people, and a
- * wrong shape teaches a false lesson about when to bid up.
+ * differently from readiness to search, peaking mid-afternoon while search
+ * volume peaks elsewhere. A wrong shape teaches a false lesson about when to
+ * bid up.
  *
- * WHAT WAS LOOKED FOR AND NOT FOUND (2026-09-20): a published hour-by-hour
- * conversion-rate curve for Indian e-commerce, or for apparel anywhere, at a
- * granularity that would settle these 24 numbers. What exists is either
- * platform-wide and undated, or behind a vendor's report. Google publishes
- * dayparting as a bidding CONTROL and no curve behind it.
+ * WHAT IS PUBLISHED IS THE WRONG QUANTITY, AND THAT IS THE FINDING. Nearly
+ * every source gives ORDERS BY HOUR. Orders are volume x intent, and volume is
+ * already `HOUR_PROFILES` — so using an order curve here would count volume
+ * TWICE, making the busiest hour also the best-converting hour, collapsing
+ * `MIN_PEAK_SEPARATION_HOURS` and killing the dayparting trade the game exists
+ * to teach (DECISIONS H4). **That is worse than inventing the curve**, and it
+ * is F21's error in a new place: a real figure attached to the wrong axis.
  *
- * So the shape is reasoned rather than measured: a trough overnight, a climb
- * through the working day, a peak before the evening browse, and a decline
+ * What was searched, and what each turned out to be:
+ *
+ * - **SureBright, "more than one million individual US orders"** — the best
+ *   dataset found, and explicit that it measures order distribution and "does
+ *   not separately break out conversion rates per session". US only, no full
+ *   24-hour table.
+ * - **Dayparting guides** asserting peak conversion of 12-18% against 5-8%
+ *   off-peak, and a 40% peak-to-trough swing — vendor pages with no
+ *   methodology, sample or source. Matching one is not a source (`MAX_SLOTS`).
+ * - **Google's own ad scheduling documentation** — describes the CONTROL. Its
+ *   only worked example is a fictional dog-sled business. No curve, and no
+ *   reason to expect one.
+ * - **arXiv 1905.05938**, e-commerce conversion outlier detection — one
+ *   unnamed store, and it publishes no hourly curve.
+ * - **General conversion-rate benchmark round-ups** — segment by device, AOV
+ *   and industry. None by hour.
+ *
+ * NOT CONTRADICTED, unlike `DAY_OF_WEEK_CURVE`, and the distinction matters.
+ * The one source naming a converting hour puts it at 14:00 with a 13:00-15:00
+ * peak; this curve peaks at 15:00, so they agree. But it is a single agency's
+ * own website — no sample size, industry, geography or period, written to show
+ * readers how to build the report. **Agreement that thin cannot carry 24
+ * numbers**, and quoting it would dress a guess as a citation.
+ *
+ * So the shape stays reasoned rather than measured: a trough overnight, a
+ * climb through the working day, a peak before the evening browse, a decline
  * while search volume is still high. `MIN_PEAK_SEPARATION_HOURS` holds the one
- * property the lesson actually needs. **If a real curve is ever found, this is
- * the first constant to replace** — it moves the market, so it goes through
- * `scripts/market-harness.js` before and after, and all five CALIBRATE
- * constants get re-checked after.
+ * property the lesson needs.
+ *
+ * WHAT WOULD ACTUALLY QUALIFY: conversion rate per session by hour — not
+ * orders — with a stated sample, period and geography. If that ever appears
+ * this is the first constant to replace, and it moves the market, so it goes
+ * through `scripts/market-harness.js` before and after with all five CALIBRATE
+ * constants re-checked. **Check the honesty line in the same commit**: at 26
+ * of 48 world-claiming constants the guide's "mostly invented" clears its
+ * bound by four points, and sourcing this one narrows that.
  */
 export const HOURLY_INTENT_CURVE = normaliseToMeanOne([
   0.62, 0.55, 0.50, 0.48, 0.52, 0.62, 0.75, 0.88,

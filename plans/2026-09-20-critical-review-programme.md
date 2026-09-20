@@ -183,15 +183,34 @@ found this was searching for the *claim*, not for support of it. Every INVENTED
 constant justified by a quoted figure should be re-read the same way — a figure
 needs its denominator carried with it, not just its value.
 
-### Phase 3 — raise the weakest rating
+### Phase 3 — raise the weakest rating **— 3.1 DONE, 3.2 AND 3.3 SETTLED (2026-09-20)**
 
-- **3.1** Audit all 59 INVENTED constants and split them in two: those that
-  genuinely cannot be sourced because Google does not publish them, and those
-  that have a public benchmark nobody looked for. **E.**
-- **3.2** Source the second group. Every one that moves the market gets measured
-  before and after, like any other market change.
-- **3.3** Re-read the guide's honesty line against the new picture. If enough
-  moves, rewrite it — the test added in `e608918` will say so.
+- **3.1** ~~Audit all 59 INVENTED constants and split them in two.~~ **DONE,
+  and the split was a three-way one.** A third category nobody had allowed for
+  turned out to be the largest: **30 of 57 make no claim about advertising at
+  all**, and now carry the `DESIGNED` tag (I44). Of the 26 that remain, the
+  ones that could be sourced were, and the rest have a note saying why not.
+- **3.2** ~~Source the second group.~~ **DONE, and the yield was one
+  correction and two negative results rather than a batch.** Earlier in the
+  audit: `SMART_BIDDING_MIN_CONVERSIONS` → DOCUMENTED (Google publishes it and
+  nobody had looked), `LEARNING_ROUNDS` → ESTIMATED (Google gives the wait in
+  conversion cycles, so reading it into weeks is an inference).
+  `HOURLY_INTENT_CURVE` was searched properly and **stays INVENTED: what is
+  published is orders by hour, which is volume × intent, and volume is already
+  `HOUR_PROFILES`** — fitting it here would count volume twice and collapse the
+  dayparting lesson. `HOUR_PROFILES` gained a third, Indian source
+  corroborating its 20:00 peak and **kept its tag**, because a tag describes
+  the weakest number it covers and twenty-three of each profile's numbers are
+  sourced by nothing.
+- **3.3** ~~Re-read the guide's honesty line.~~ **DONE, and it needed its
+  DENOMINATOR fixed rather than its wording.** The retag would have dropped
+  `share('INVENTED')` from 72% to 47% and failed the test without one number
+  about advertising changing. The share is now taken over world-claiming tags
+  only — 26 of 48, **54.2%** — and the sentence stands unedited. The margin is
+  thin on purpose.
+
+**No market measurement was needed for any of it:** not one constant VALUE
+changed, only tags and comments, verified by diffing the `export const` lines.
 
 **The honest expectation:** the auction's internals stay invented, because
 Google publishes neither Ad Rank's coefficients nor what a Quality Score point
