@@ -473,9 +473,33 @@ describe('what Go needs, and what it sends', () => {
 
   test('a step is done when it has been seen, or when its choice is complete', () => {
     const d = fresh();
-    expect(rules.stepsDone(d, new Set())).toEqual({ market: false, position: false, keywords: false, ad: true, money: false });
+    expect(rules.stepsDone(d, new Set())).toEqual({ market: false, position: false, keywords: false, ad: false, money: false });
     rules.addSetupKeyword(d, 'gym leggings');
-    expect(rules.stepsDone(d, new Set(['market', 'position', 'money'])))
+    expect(rules.stepsDone(d, new Set(['market', 'position', 'ad', 'money'])))
       .toEqual({ market: true, position: true, keywords: true, ad: true, money: true });
+  });
+
+  // FOUND BY PLAYING IT, 2026-09-20. `ad` was ticked from the very first
+  // screen, because a writer is hired by default and the default's copy is
+  // valid — so the rule's second limb was satisfied before the player had been
+  // anywhere. Step 4 is where ₹10,000 of a ₹50,000 creative budget is spent
+  // without asking, and "Write it yourself · free" sits beside it: a tick there
+  // reads as "nothing for you here" on the one step that is quietly charging.
+  //
+  // The general rule this pins is the one that was missing: BEFORE THE PLAYER
+  // HAS DONE ANYTHING, NOTHING IS TICKED. It is written over every step rather
+  // than over `ad` alone so that a later step with its own sensible default
+  // cannot reintroduce the same fault quietly.
+  test('nothing is ticked before the player has done anything', () => {
+    const done = rules.stepsDone(fresh(), new Set());
+    for (const [step, ticked] of Object.entries(done)) expect(ticked, step).toBe(false);
+  });
+
+  // And the other half of it: a default is not a decision. Opening the step is
+  // what ticks it, so the tick always means "you have been here".
+  test('a step with a working default still needs the visit', () => {
+    const d = fresh();
+    expect(rules.stepsDone(d, new Set()).ad).toBe(false);
+    expect(rules.stepsDone(d, new Set(['ad'])).ad).toBe(true);
   });
 });

@@ -706,7 +706,17 @@ export const canGo = (draft) => checklist(draft).every((item) => item.done);
 
 /**
  * The ticks in the steps list. The two reading steps are done once seen; the
- * money step once seen and adding up; the others when their choice is complete.
+ * ad and money steps once seen and settled; keywords when one has been added,
+ * which cannot happen without opening the step anyway.
+ *
+ * EVERY TICK MEANS "YOU HAVE BEEN HERE" (2026-09-20). `ad` used to ask only
+ * whether the copy was valid, and a writer is hired by default, so step 4 was
+ * ticked on the very first screen of round 0 — before the player had been
+ * anywhere. It is the step that spends ₹10,000 of the ₹50,000 creative budget
+ * without being asked, with "Write it yourself · free" beside it, so a tick
+ * there sent people past the one choice that was quietly charging them. Found
+ * by playing it; `tests/roundZeroRules.test.js` now holds the rule over every
+ * step, so a later step with a sensible default cannot repeat it.
  *
  * @param {object} draft
  * @param {Set<string>} visited - step keys the player has opened
@@ -717,7 +727,7 @@ export function stepsDone(draft, visited) {
     market: visited.has('market'),
     position: visited.has('position'),
     keywords: draft.keywords.length > 0,
-    ad: validateAdCopy(submittedAd(draft)).valid,
+    ad: visited.has('ad') && validateAdCopy(submittedAd(draft)).valid,
     money: visited.has('money') && money,
   };
 }
