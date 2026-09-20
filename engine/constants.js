@@ -477,7 +477,29 @@ const normalise = (raw) => {
   return raw.map((v) => v / total);
 };
 
-/** Index 0 is Monday. Weekend browsing runs higher. */
+/**
+ * Index 0 is Monday. Weekend browsing runs higher.
+ *
+ * AND THAT SENTENCE IS NOT SUPPORTED (searched 2026-09-20, I42). Every source
+ * found points the other way. For India: "Mondays have also overtaken weekends
+ * as the busiest day for completed transactions" (DFU Publications, on Indian
+ * online fashion). For the West: "Friday Is the Peak eCommerce Day in the U.S."
+ * with activity "peaks on Friday before declining over the weekend", and in the
+ * UK and Germany "only on Saturday... is there a notable decline" (ECDB, 2023,
+ * US/UK/Germany). This table peaks on Saturday, which is the one day two of
+ * those three markets single out as falling.
+ *
+ * LEFT ALONE ON PURPOSE, and the reason is worth more than the fix. Nothing a
+ * player does touches it: there is no day-of-week bid adjustment anywhere in
+ * the game, this curve feeds only `searches()`, and a round IS a week, so the
+ * weekly total is identical whatever shape it takes. Changing it would move
+ * which day volume lands on, interact with daily pacing, and need gates and a
+ * market measurement — all to buy no lesson at all.
+ *
+ * SO IT IS A TRAP FOR LATER, written down where it will be found: if anyone
+ * ever adds day-of-week targeting, this curve becomes player-facing and has to
+ * be re-sourced FIRST, because it currently points the wrong way.
+ */
 export const DAY_OF_WEEK_CURVE = normalise([
   1.35, 1.35, 1.40, 1.40, 1.45, 1.60, 1.45,
 ]);
@@ -488,6 +510,17 @@ export const DAY_OF_WEEK_CURVE = normalise([
  * Peaks matter: invariant I5 requires the intent peak (15:00) to sit at least
  * MIN_PEAK_SEPARATION_HOURS from every peak here. business peaks at 11, evening
  * at 20, flat at 19 — 4, 5 and 4 hours clear respectively.
+ *
+ * SEARCHED, AND THE SOURCES DISAGREE WITH EACH OTHER (2026-09-20, I42). For
+ * Indian fashion: "browsing activity peaks around 10 p.m." (Fynd, via DFU
+ * Publications). For the UK and Germany: shoppers peak "in the early evening
+ * from 7 p.m. onwards", with US consumers earlier still (ECDB, 2023). The
+ * evening profile's 20:00 sits between the two, which is the most this can
+ * honestly claim — so it stays INVENTED rather than borrowing either number.
+ *
+ * Worth knowing if it is ever moved: pushing the evening peak later INCREASES
+ * its distance from the 15:00 intent peak, so I5 gets easier, not harder. The
+ * constraint that would bite is the business profile, not this one.
  */
 export const HOUR_PROFILES = {
   // Searching from a desk. Peaks late morning.

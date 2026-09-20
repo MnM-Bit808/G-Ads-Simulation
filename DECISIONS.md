@@ -6500,6 +6500,8 @@ and those are the ones worth writing up.
 | `QUALITY_MIN_IMPRESSIONS` | INVENTED | INVENTED, *looked for* | Google publishes that the threshold exists, not where |
 | `RATING_UPPER/LOWER_THRESHOLD` | INVENTED | INVENTED, *looked for* | the three bands are Google's, the cutoffs are not |
 | `DEFAULT_UNGRADED_QUALITY` | INVENTED | INVENTED, *clarified* | Google's "—" is what is SHOWN; this is what the auction assumes |
+| `HOUR_PROFILES` | INVENTED | INVENTED, *looked for* | the sources disagree; 20:00 sits between them |
+| `DAY_OF_WEEK_CURVE` | INVENTED | INVENTED, **contradicted** | every source found points away from a Saturday peak |
 
 **`SMART_BIDDING_MIN_CONVERSIONS` = 30.** "To evaluate results accurately,
 Google Ads recommends measuring performance over longer time periods that have
@@ -6535,6 +6537,32 @@ One thing the fetch settled rather than changed: Google shows a dash for an
 unevaluated keyword, and this game does too (`gradedQuality` is null until
 graded, 9.5). `DEFAULT_UNGRADED_QUALITY` is the auction's assumption, not the
 account's display, and the two were already right.
+
+**The demand curves, and the first thing the audit found that is actually
+WRONG.** `DAY_OF_WEEK_CURVE`'s comment says "weekend browsing runs higher" and
+the table peaks on Saturday. Every source found points the other way — "Mondays
+have also overtaken weekends as the busiest day for completed transactions"
+for Indian online fashion (DFU Publications), and "Friday Is the Peak eCommerce
+Day in the U.S." with activity that "peaks on Friday before declining over the
+weekend", while in the UK and Germany "only on Saturday... is there a notable
+decline" (ECDB, 2023). Saturday is the one day two of three markets single out
+as falling.
+
+**It was left alone, and the reasoning is the point.** Nothing a player does
+touches this curve: there is no day-of-week bid adjustment in the game, it feeds
+only `searches()`, and a round IS a week, so the weekly total is identical
+whatever shape it takes. Correcting it would move which day volume lands on,
+interact with daily pacing, and need gates and a market measurement — to buy no
+lesson. **So it is recorded as a trap instead:** if day-of-week targeting is
+ever added, this curve becomes player-facing and must be re-sourced first,
+because it currently points the wrong way. That note is in the constant, where
+whoever adds the feature will be standing.
+
+`HOUR_PROFILES` came out better. The sources disagree with each other —
+"browsing activity peaks around 10 p.m." for Indian fashion (Fynd, via DFU),
+against "the early evening from 7 p.m. onwards" for the UK and Germany (ECDB) —
+and the evening profile's 20:00 sits between them. That is the most it can
+honestly claim, so it stays INVENTED rather than borrowing either number.
 
 **What this does not yet do.** The remaining 57 INVENTED constants have not all
 been searched, and the 22 without a comment of their own have not all been
