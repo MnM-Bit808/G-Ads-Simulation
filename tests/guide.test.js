@@ -27,7 +27,7 @@ import {
 import { guideFigures } from '../ui/guide/figures.js';
 import { GUIDE } from '../ui/words/guide.js';
 import { sectionOf } from '../ui/shell/sections.js';
-import { MAX_BID_MULTIPLE, ATTRIBUTION_LAG_DISTRIBUTION } from '../engine/constants.js';
+import { MAX_BID_MULTIPLE, ATTRIBUTION_LAG_DISTRIBUTION, PROVENANCE } from '../engine/constants.js';
 import { ARRIVAL_SHAPE } from '../ui/dashboard.js';
 
 const read = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
@@ -36,6 +36,37 @@ const SPEC = read('ENGINE_SPEC_v0.3.md');
 const FIGURES = guideFigures();
 const wordCount = (text) => text.trim().split(/\s+/).filter(Boolean).length;
 const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// THE GUIDE'S ONE CLAIM ABOUT ITSELF, and the only sentence in the game that
+// tells a player what its numbers are worth (GUIDE.whatIsReal, 2026-09-20).
+// It says the sizes are "mostly invented" and that "only a handful" of numbers
+// come from a published source. Both are readings of `PROVENANCE`, so both can
+// go stale silently — sourcing forty more constants would make the sentence a
+// lie by understatement, and nobody would notice.
+//
+// IF THIS FAILS, REWRITE THE SENTENCE. Do not widen the bounds: the whole
+// value of the line is that it is true, and a truer game deserves a truer line.
+describe('what the guide says its own numbers are worth', () => {
+  const tags = Object.values(PROVENANCE);
+  const share = (tag) => tags.filter((t) => t === tag).length / tags.length;
+
+  test('“the sizes are mostly invented” is still true', () => {
+    expect(share('INVENTED')).toBeGreaterThan(0.5);
+  });
+
+  test('“only a handful come from a published source” is still true', () => {
+    expect(tags.filter((t) => t === 'DOCUMENTED').length).toBeLessThanOrEqual(15);
+  });
+
+  // It is on the contents page, which is the one page every reader of the guide
+  // lands on, and it says the thing it exists to say.
+  test('it says which way, and not how much', () => {
+    const said = GUIDE.whatIsReal();
+    expect(said).toContain('which way');
+    expect(said).toContain('how much');
+    expect(said).not.toMatch(/undefined|NaN/);
+  });
+});
 
 /** Does the ledger or the spec hold this citation? */
 function cited(id) {

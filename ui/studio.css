@@ -1363,6 +1363,10 @@ body.studio .studio-title[tabindex="-1"]:focus-visible { outline: 2px solid var(
 body.studio .gb { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
 body.studio .gb-intro { max-width: 760px; margin: 0; font-size: 14px; line-height: 1.5; color: var(--studio-soft); }
 
+/* What a number here is worth. Set apart with a rule rather than a panel: it is
+   the frame for every chapter below, not a warning box to be dismissed. */
+body.studio .gb-real { max-width: 760px; margin: 0; padding-left: 14px; border-left: 2px solid var(--studio-line-strong); font-size: 14px; line-height: 1.5; color: var(--studio-soft); }
+
 /* the contents: a card a chapter, its first sentence cut at three lines */
 body.studio .gb-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 body.studio .gb-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 18px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); color: var(--studio-text); text-align: left; }

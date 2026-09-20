@@ -46,6 +46,10 @@ export function renderGuidePage({ figures, onOpen, showSlot, canShow }) {
   function contents() {
     const node = el('div', 'gb');
     node.append(el('p', 'gb-intro', GUIDE.intro()));
+    // Before the chapter list, not after it: what a number here is worth is
+    // the frame for every chapter below, and a note under 23 cards is a note
+    // nobody reads.
+    node.append(el('p', 'gb-real', GUIDE.whatIsReal()));
     // Start here, then Going deeper. The split is itself teaching: what a
     // control IS, before why it behaves oddly.
     node.append(...group(cards.filter((c) => c.group === 'start'), GUIDE.startHere()));
