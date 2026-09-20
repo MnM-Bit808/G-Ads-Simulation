@@ -59,9 +59,31 @@ export const FIRST_RUN = Object.freeze({
     + 'ranked by bid times how well the ad fits.'),
   b3Cut: line('label', ({ slots }) => `only ${slots} slots`),
   b3ReadAgain: line('label', 'Read those two rows again'),
+  // IT USED TO LEAVE A CONTRADICTION STANDING (2026-09-20, found by playing
+  // it). The old telling was "X bid ₹30, pays ₹25. Y bid ₹16, sits below, pays
+  // ₹9 — its ad fits better", which hands a true beginner *better ad, lower
+  // place* and never says why. The reader is left to resolve it, and the whole
+  // point of the run is that they cannot yet.
+  //
+  // THE PAIR IS RIGHT AND STAYS. `tests/firstRun.test.js` calls it THE LESSON
+  // and says the artboards in design/first-run/ are drawn to it: the runner-up
+  // bids less, pays less, and has the better-fitting ad. What was wrong was the
+  // telling, not the rows.
+  //
+  // So the top place is now explained by the bid that bought it, and the fit is
+  // spent where it is actually spent — on the PRICE, not the place. That is
+  // also what makes b3Cost land: buying your way up costs you every click.
+  // AND IT HAD TO FIT THE BEAT'S WORD BUDGET. The ladder beat was at 78 of its
+  // 80, and the first rewrite took the screen to 87. The bound is not the thing
+  // to move — the run was cut twice on 2026-09-19 to come in under it — so this
+  // says the same thing in three short sentences instead of two long ones,
+  // which a beginner wants anyway. It now leaves the beat at 79.
+  //
+  // The bound counts words of two letters or more, so the figures and "a" are
+  // free and the SENTENCES are what cost: that is the budget to think in.
   b3Callout: line('reading', ({ winner, winnerBid, winnerPays, runnerUp, runnerUpBid, runnerUpPays }) =>
-    `${winner} bid ${winnerBid}, pays ${winnerPays}. ${runnerUp} bid ${runnerUpBid}, sits below, `
-    + `pays ${runnerUpPays} — its ad fits better.`),
+    `${winner}’s ${winnerBid} bid buys top place at ${winnerPays}. `
+    + `${runnerUp} bid ${runnerUpBid}. Its better ad means ${runnerUpPays} a click.`),
   b3Cost: line('reading', 'Buying your way up costs you every click.'),
   b3Trail: line('label', ({ winner, winnerPays }) => `${winner} first at ${winnerPays}`),
 

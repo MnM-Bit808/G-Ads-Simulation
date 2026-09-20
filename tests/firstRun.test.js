@@ -207,6 +207,33 @@ describe('every figure the run quotes is the engine’s own', () => {
     }
   });
 
+  // WHAT THE CALLOUT HAS TO CARRY, after it was caught leaving a beginner with
+  // "better ad, lower place" and no way to resolve it (2026-09-20). Prose
+  // quality is not testable; these two things are, and they are the two the
+  // faulty version got wrong.
+  //
+  // BOTH BIDS, BOTH PRICES. Drop the winner's BID and nothing on screen
+  // explains why it is on top, which is exactly how the contradiction got in.
+  // Drop either price and "buying your way up costs you every click" has
+  // nothing to stand on.
+  test('beat 3’s callout quotes both bids and both prices', () => {
+    const said = FIRST_RUN.b3Callout(f);
+    for (const figure of [f.winnerBid, f.winnerPays, f.runnerUpBid, f.runnerUpPays]) {
+      expect(said, figure).toContain(figure);
+    }
+  });
+
+  // SHORT SENTENCES, on the densest sentence in the run. 19 words is the bound
+  // the chapter read-through settled on (HANDOVER, the guide read end to end);
+  // this is the one screen where a beginner has met none of the words yet, so
+  // it has no business being longer than a chapter.
+  test('beat 3’s callout says it in short sentences', () => {
+    for (const sentence of FIRST_RUN.b3Callout(f).split(/(?<=\.)\s+/)) {
+      const words = sentence.trim().split(/\s+/).filter(Boolean).length;
+      expect(words, sentence).toBeLessThanOrEqual(19);
+    }
+  });
+
   test('the auction’s figures are the auction’s', () => {
     const demo = demonstration();
     expect(f.winner).toBe(demo.winner.name);
