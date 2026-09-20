@@ -395,7 +395,11 @@ body.studio .kcard.changed { border-color: var(--studio-red); box-shadow: 0 0 0 
 body.studio .kcard.selected { border-color: var(--studio-text); box-shadow: 0 0 0 1px var(--studio-text); }
 body.studio .kcard.paused { background: #121114; }
 body.studio .kcard.paused .kcard-name { color: #6E6872; }
-body.studio .kcard.paused .kslider input[type="range"] { accent-color: #5A5560; }
+/* #5A5560 measured 2.60:1 on the paused card, under the 3:1 of WCAG 1.4.11.
+   A paused keyword's slider is NOT disabled — `slider` in ui/kit/controls.js
+   has no disabled path at all — so the exception for inactive controls does
+   not cover it. #68636B measures 3.21:1 and still reads as the quieter state. */
+body.studio .kcard.paused .kslider input[type="range"] { accent-color: #68636B; }
 body.studio .kwas { font-size: 12px; font-weight: 600; color: var(--studio-red-text); }
 body.studio .kbid-row .kwas { margin-left: auto; }
 body.studio .kbid-row .kwas + .kbid, body.studio .kbid-row .kwas + .kbid-input { margin-left: 0; }
@@ -907,7 +911,12 @@ body.studio .wt-legend { margin: 0; padding: 2px 8px 0; font-size: 12px; line-he
 
 /* Block words */
 body.studio .wt-small { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
-body.studio .wt-input { height: 40px; padding: 0 14px; border: 1px solid var(--studio-line-strong); border-radius: 12px; background: var(--studio-page); color: var(--studio-text); font: inherit; font-size: 14px; }
+/* The box carries no words of its own, so its outline is the only thing saying
+   a control is there. On --studio-line-strong it measured 1.52:1 against the
+   card behind it, under the 3:1 WCAG 1.4.11 asks of a control's edge. It now
+   takes .kfield's pair — the same one .rs-answer was aligned to, for the same
+   reason — which measures 3.07:1. Typed text stays at 15.30:1. */
+body.studio .wt-input { height: 40px; padding: 0 14px; border: 1px solid #68636B; border-radius: 12px; background: #141216; color: var(--studio-text); font: inherit; font-size: 14px; }
 body.studio .wt-input::placeholder { color: var(--studio-muted); }
 body.studio .wt-preview { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 14px; background: #1F1C22; }
 body.studio .wt-preview[hidden] { display: none; }
