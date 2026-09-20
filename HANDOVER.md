@@ -438,10 +438,19 @@ F13's rejected volume option has to come back.
     that was supposed to be tier-3 against metros is COD against prepaid, which
     the model already carries at a sourced 3.6x. F20 has the measurements, F21
     the sources.
-  - **The design canvas quotes the old market.** `design/*.dc.html` still shows
-    ₹26.56 at 76% retention, and returns of 24% for mid. They are artboards, not
-    code, so nothing breaks — but they would teach the old numbers to anyone
-    building from them.
+  - ~~**The design canvas quotes the old market.**~~ **CLOSED 2026-09-20 by
+    marking, not by editing.** `design/*.dc.html` does still show ₹26.56 at 76%
+    retention and 24% returns for mid, and it always will: an artboard is a
+    record of what was believed the day it was drawn (2026-09-10, one day
+    before F14), and editing its figures would make an old drawing look
+    current. **What was actually wrong was `design/README.md`**, which vouched
+    for the content as "real throughout" without saying *when* — so the folder
+    asserted the numbers were good rather than merely showing them. It now
+    names the date, names the three dead figures, and says to take the shape
+    from an artboard and the numbers from `engine/constants.js`. It also
+    records that `support.js` is not in the repository (the design canvas
+    supplies it), so an artboard opened straight in a browser looks broken
+    without being so.
   - **F13 is now 1.73x**, from 1.58x on the same harness. See F13's F14 note.
 
 

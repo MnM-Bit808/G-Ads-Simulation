@@ -106,17 +106,35 @@ Runs in parallel with everything below. **B.**
 **Done when:** three recordings are in hand, or three people have said why they
 stopped. Not before.
 
-### Phase 1 — clear the deck (cheap, and everything after it is easier)
+### ~~Phase 1 — clear the deck~~ **DONE 2026-09-20**
 
-- **1.1** Audit the 18 branches and 8 worktrees. List what is unmerged BEFORE
-  deleting anything; delete only what is provably in `main`. **H.**
-- **1.2** Fix the documentation drift. **D.** Spec §20 lists geography as
-  deliberately out of scope and geography is modelled; `design/*.dc.html` quotes
-  a market that no longer exists (₹26.56 at 76% retention, mid returns at 24%).
-  Both would teach the old numbers to whoever reads them next.
+- **1.1** ~~Audit the 18 branches and 8 worktrees.~~ **DONE.** `git branch -a`
+  is now `main` and nothing else. The last to go was `makeover` (2026-09-20,
+  fully merged, its head preserved by the annotated tag `playtest-3`).
+- **1.2** ~~Fix the documentation drift.~~ **DONE, and the second half was not
+  the job it looked like.**
+  - **Spec §20** said geography was deliberately out of scope while G4 models
+    it. Corrected: §20 now records that geography stopped being an omission,
+    and the same pass added Performance Max, which the list had never named
+    (I43).
+  - **The design artboards were NOT edited, and should not be.**
+    `design/*.dc.html` still quotes ₹26.56 at 76% retention and 24% returns for
+    mid, because an artboard is a record of what was believed on the day it was
+    drawn — 2026-09-10, the day before F14 overturned the economics. Editing
+    the figures would make an old drawing look current. **The actual fault was
+    `design/README.md`**, which vouched for the content as "real throughout"
+    without saying *when*, so the folder asserted the numbers were good rather
+    than merely displaying them. Fixed there: the date is named, the three dead
+    figures are named, and the rule is stated — take the shape from an
+    artboard, the numbers from `engine/constants.js`. The same pass recorded
+    that `support.js` is not in the repository (the design canvas supplies it
+    at render time), so an artboard opened straight in a browser looks broken
+    without being broken.
 
 **Done when:** `git branch` is short, and no document states something the code
-contradicts.
+contradicts. **Both hold.** The second needed a distinction the item did not
+have: a document that *shows* an old number is a record, and one that *vouches*
+for it is a fault.
 
 ### Phase 2 — the correctness defect in the teaching model
 

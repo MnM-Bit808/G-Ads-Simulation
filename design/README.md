@@ -7,6 +7,24 @@ These are **drafts of screens**, not the screens. What is actually built lives i
 `HANDOVER.md` under *Round 0 has a design, and part of it is built* records which
 parts made it across and which did not.
 
+## Two things to know before you open one
+
+**EVERY FIGURE IN AN ARTBOARD IS FROZEN AT THE DAY IT WAS DRAWN.** They are
+records of a design decision, not a description of today's game, and they are
+not updated when the market moves — updating them would make an old drawing
+look current, which is the one thing worse than it looking old. The eight
+round-0 artboards below were drawn on **2026-09-10** and their economics were
+overturned by **F14 the next day**: they show ₹26.56 break-even at 76%
+retention and 24% returns for mid, and none of those three numbers survives.
+**Read a figure here as "what we believed on that date", and go to
+`engine/constants.js` for what the game actually uses.**
+
+**`support.js` is not in this repository, and that is not a fault.** All 77
+artboards load `./support.js`; the design canvas supplies it when it renders
+them. Opened straight in a browser an artboard will look broken — missing
+layout, dead interactions — and it is not corrupt. Nothing was lost and there
+is nothing to restore.
+
 ## The artboards
 
 `canvas.json` lays them out and carries the annotations. Page 1 is round 0, in
@@ -27,6 +45,19 @@ They use real content throughout — the nine brands, the tier economics, the
 break-even sums, the eight rival ads from `content/adCopy.js`. That is deliberate:
 a mock with invented figures designs a screen that has never held a real number,
 and this project has twice found a layout problem only once real text went in.
+
+**The principle held; the figures did not, and this paragraph used to claim
+otherwise.** It said the content was real without saying *when*. It was real on
+2026-09-10 — pulled from the engine as it then stood — and **F14 overturned the
+economics on 2026-09-11**, one day later. So `Grid.dc.html` and
+`Instrument.dc.html` still compute ₹2,400 × 52% × 76% × 2.8% = ₹26.56, and
+`Market.dc.html` still shows 24% returns for both value and mid. The current
+market is in `engine/constants.js`; these are a photograph of the old one.
+
+**They are kept, not corrected.** The layouts were designed against figures
+that were real at the time, which is what the paragraph above is defending, and
+that argument does not need the numbers to stay current. Anyone building from
+an artboard takes the *shape* from it and the *numbers* from the engine.
 
 ## `field-guide/`: how the field guide opens (stage C2)
 
