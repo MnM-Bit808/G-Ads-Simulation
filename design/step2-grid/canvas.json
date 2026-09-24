@@ -1,0 +1,55 @@
+{
+  "pages": [
+    {
+      "id": "step2",
+      "name": "Round 0 step 2 — the grid leads"
+    }
+  ],
+  "artboards": [
+    { "file": "Grid.dc.html", "title": "1 · Opening — the grid is the screen", "page": "step2", "is_interactive": true, "x": 0, "y": 0, "w": 1440, "h": 900 },
+    { "file": "Open.dc.html", "title": "2 · One ad, opened as evidence", "page": "step2", "is_interactive": true, "x": 1560, "y": 0, "w": 1440, "h": 900 },
+    { "file": "Placed.dc.html", "title": "3 · Six read — the shape is visible", "page": "step2", "is_interactive": true, "x": 0, "y": 1020, "w": 1440, "h": 900 }
+  ],
+  "annotations": [
+    {
+      "id": "why",
+      "page": "step2",
+      "x": 3120,
+      "y": 0,
+      "w": 520,
+      "text": "WHY THIS EXISTS. Round 0's step 2 renders 612 words on the live site at aa97790, measured 2026-09-24. On 2026-09-14 the same step measured 119. Roughly 500 of the 612 are eight rival ads drawn in full at once, each with a Sponsored label, a display domain, a headline of two or three lines, a description of four or five, and a 3x2 placement grid beneath it. The step asks a beginner, on the second of five screens, to read eight competitors' copy, infer each one's price tier and purpose from it, place all eight on a grid they met one screen ago, and then choose their own cell. The task is right - spec 4 and the whole positioning idea rest on reading rivals' ads - and the staging is what a beginner cannot do. Option B of plans/2026-09-24-density-and-polish.md, chosen by the owner: the grid leads and the ads become evidence fetched on demand."
+    },
+    {
+      "id": "budget",
+      "page": "step2",
+      "x": 3120,
+      "y": 560,
+      "w": 520,
+      "text": "WORD BUDGET, MEASURED PER SCREEN, which is the figure that matters - a beginner drowns on a SCREEN, not on a total (tests/firstRun.test.js). Board 1 is about 110 words including every label, chip, domain and button. Board 2 is about 185, the extra being ONE rival's ad plus the line that reads it. Board 3 is about 150. Against 612 on the live step. The first run holds each of its seven beats to 80 words and is enforced by a test; round 0 has never had a bound at all, which is how it doubled from 781 to 1,675 across five steps in ten days. The design proposes TWO bounds for round 0 rather than one - authored words AND on-screen items - because a words-only bound is gamed by moving prose into data, which is exactly how this step reached 612 while ui/words/roundZero.js stayed at about 625 authored words for the whole of round 0."
+    },
+    {
+      "id": "real",
+      "page": "step2",
+      "x": 3120,
+      "y": 1120,
+      "w": 520,
+      "text": "THE CONTENT IS REAL, per design/README.md - a mock with invented figures designs a screen that has never held a real number. The nine brands and domains are content/brands.js BRAND_IDENTITIES: Vella & Co. vellaandco.in, Kestrel kestrel.in, Marlow marlowlabel.in, Satva satva.in, Halcyon halcyon.in, Lumen lumenlabel.in, Nira nira.in, Torvi torvi.in, Auren auren.in. Nira's ad on board 2 is the live site's own copy for that brand, read off aa97790. THE CELL PLACEMENTS ON BOARD 3 ARE ONE PLAUSIBLE ARRANGEMENT, NOT THE ENGINE'S: rivals are assigned per game by assignIdentities under RIVAL_PLACEMENT_CONSTRAINTS (minPriceTiers 2, requireBothPurposes, maxPerCell 2), so no fixed arrangement exists to draw. The one shown obeys those constraints and matches each brand's own ad copy. Marlow is the player and sits Mid-Lifestyle, which is the live site's default."
+    },
+    {
+      "id": "design",
+      "page": "step2",
+      "x": 3120,
+      "y": 1760,
+      "w": 520,
+      "text": "WHAT THE TREATMENT CHANGES, from section 7 of the design. NOT EVERYTHING IS A CARD: the grid is one object with hairline cell borders and no radius, the brand rows are cards, and the opened ad is neither - it is a left-bordered panel on a gradient, so three different things read as three different kinds of thing. On the live step 1 the three tier panels, the break-even box and the map box share one radius, one border and one fill, which flattens the hierarchy. RED IS THE PLAYER AND THE LIVE CHOICE ONLY: Marlow's chip, the occupied cell's edge, the chosen placement, the progress pips. A rival already read gets a red-tinted avatar and nothing more. The live step 2 puts red on rival headlines, which the switch-over's rule forbids. NOTHING IS REQUIRED: the foot says so on every board, because placing eight is a thing to do and not a gate."
+    },
+    {
+      "id": "open",
+      "page": "step2",
+      "x": 3120,
+      "y": 2400,
+      "w": 520,
+      "text": "WHAT IS NOT DECIDED HERE, and should be before any code. (1) Does placing a rival do anything mechanically, or is it purely a reading aid? On the live site it is a note to self and the engine never sees it; these boards keep that, but board 3's 'What the grid says' summary is new and would need a rule for what it may claim. (2) Is a wrong placement corrected? Saying so would teach; saying so immediately would remove the thinking. Nothing on these boards corrects anything. (3) The move-yourself control on board 3 duplicates step 2's existing cell choice and the two need reconciling. (4) Phone layout is undrawn - the grid is 700px here and the live game is held to 375px, so the axis labels and the tray both have to fold. (5) EVERY MEASUREMENT BEHIND THIS IS OF THE ARTEFACT, NOT OF A PERSON: five testers have had the link since 2026-09-20 and none has returned a file. A recording showing a beginner moving through step 2 quickly and stalling elsewhere would make this the wrong target."
+    }
+  ]
+}
