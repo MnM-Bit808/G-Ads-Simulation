@@ -89,9 +89,20 @@ export const R0 = Object.freeze({
     + `about ${volume} a week. Any rival may bid on it.`, { why: 'ownName' }),
   positionIntro: line('reading', ({ rivals }) => `Nobody tells you where the other ${rivals} sit. `
     + 'Their ads are the only evidence before the first auction.'),
+  // ONE AD AT A TIME, since 2026-09-24. The step drew all eight at once and
+  // measured 612 words; the ask below is what replaced the old `guessNote`,
+  // which told a beginner to tap a grid under each of eight ads they had not
+  // read yet. `adStage` in ./rules.js holds the bound.
+  positionAsk: line('instruction', 'Open an ad when you want the evidence. Place the ones you are sure of.'),
   otherRivals: line('label', ({ n }) => `The other ${n}`),
-  guessNote: line('instruction', ({ placed, total }) => 'tap the small grid to note where each sits · '
-    + `${placed} of ${total} placed, if you like`),
+  stillUnread: line('label', 'Still unread'),
+  unreadLeft: line('instruction', ({ n }) => (n === 1 ? 'one left · stop whenever you like' : `${n} left · stop whenever you like`)),
+  readAd: line('label', 'read ad'),
+  adOf: line('label', ({ name }) => `${name}’s ad`),
+  adOnly: line('instruction', 'This is all anyone gets to see of them.'),
+  closeAd: line('label', 'Close'),
+  reopenAd: line('label', ({ name }) => `Read ${name}’s ad again`),
+  guessNote: line('instruction', ({ placed, total }) => `${placed} of ${total} placed · none of it is required`),
   sponsored: line('label', 'Sponsored'),
   guessFor: line('label', ({ name }) => `Where you think ${name} sits`),
   guessCell: line('label', ({ name, cell }) => `${name}: ${cell}`),

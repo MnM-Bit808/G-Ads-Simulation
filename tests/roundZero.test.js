@@ -32,7 +32,7 @@ import { readFileSync } from 'node:fs';
 // part 2 deleted that page, and the rules never lived in it.
 import {
   openingReserve, submittedAd, gradeAsSubmitted, monthlyBudget,
-  positionMatrix, splitShares,
+  positionMatrix, splitShares, adStage,
 } from '../ui/roundzero/rules.js';
 import { openingCopyGrades } from '../content/writers.js';
 import { startGame } from '../setup.js';
@@ -454,6 +454,78 @@ describe('the positioning grid means what its position says', () => {
         expect(cell.key).toBe(`${cell.price}|${cell.purpose}`);
       }
     }
+  });
+});
+
+/**
+ * WHAT STEP 2 SHOWS AT ONCE, which is the whole of the density fix
+ * (plans/2026-09-24-density-and-polish.md, option B).
+ *
+ * The step used to draw all eight rival ads in full, simultaneously: measured
+ * on the live site at `aa97790`, 612 words, against 119 on 2026-09-14. Roughly
+ * 500 of those were the eight ads. It asked a beginner on the second of five
+ * screens to read eight competitors' copy, infer each one's tier and purpose,
+ * place all eight, and then choose their own cell.
+ *
+ * `adStage` is the rule, and it lives here rather than in the drawing module
+ * for the reason `CLAUDE.md` gives: round 0's rules are testable and a drawing
+ * module is not. **The bound it exists to hold is ONE AD ON SCREEN AT A TIME.**
+ */
+describe('step 2 stages the rival ads instead of dealing them all at once', () => {
+  const ads = ['Nira', 'Torvi', 'Kestrel', 'Halcyon', 'Satva', 'Auren', 'Lumen', 'Vella & Co.']
+    .map((name) => ({ name, domain: `${name.toLowerCase()}.in`, ad: { headlines: [], descriptions: [] } }));
+  const draftWith = (guesses) => ({ guesses: { ...guesses }, cell: 'mid|lifestyle' });
+
+  test('nothing is open to begin with, and all eight are waiting', () => {
+    const stage = adStage(ads, draftWith({}), null);
+    expect(stage.open).toBe(null);
+    expect(stage.unread).toHaveLength(8);
+    expect(stage.placed).toHaveLength(0);
+  });
+
+  test('AT MOST ONE AD IS OPEN, whatever the player has done', () => {
+    // The bound. Every reachable combination of opened and placed still shows
+    // one ad, because `open` is a single rival and never a list.
+    for (const name of ads.map((a) => a.name)) {
+      for (const placedCount of [0, 3, 8]) {
+        const guesses = Object.fromEntries(
+          ads.slice(0, placedCount).map((a) => [a.name, 'value|performance']),
+        );
+        const stage = adStage(ads, draftWith(guesses), name);
+        expect(Array.isArray(stage.open), `${name}, ${placedCount} placed`).toBe(false);
+        expect(stage.open?.name).toBe(name);
+      }
+    }
+  });
+
+  test('placing a rival takes it out of the waiting list', () => {
+    const stage = adStage(ads, draftWith({ Nira: 'value|performance', Torvi: 'value|performance' }), null);
+    expect(stage.unread.map((r) => r.name)).not.toContain('Nira');
+    expect(stage.unread).toHaveLength(6);
+    expect(stage.placed.map((r) => r.name).sort()).toEqual(['Nira', 'Torvi']);
+  });
+
+  test('the open one is never also in the waiting list, so it cannot be drawn twice', () => {
+    const stage = adStage(ads, draftWith({}), 'Kestrel');
+    expect(stage.unread.map((r) => r.name)).not.toContain('Kestrel');
+    expect(stage.unread).toHaveLength(7);
+  });
+
+  test('a rival already placed can be opened again, and is still counted as placed', () => {
+    // The chip on the grid is the way back in: a player who placed Nira early
+    // and wants to check it against a later ad must be able to re-read it.
+    const stage = adStage(ads, draftWith({ Nira: 'value|performance' }), 'Nira');
+    expect(stage.open?.name).toBe('Nira');
+    expect(stage.placed.map((r) => r.name)).toEqual(['Nira']);
+    expect(stage.unread.map((r) => r.name)).not.toContain('Nira');
+  });
+
+  test('a name that is not a rival opens nothing rather than throwing', () => {
+    // The open name is UI state and survives a redraw; a brand change swaps the
+    // whole cast, so a stale name must fail soft.
+    const stage = adStage(ads, draftWith({}), 'Marlow');
+    expect(stage.open).toBe(null);
+    expect(stage.unread).toHaveLength(8);
   });
 });
 

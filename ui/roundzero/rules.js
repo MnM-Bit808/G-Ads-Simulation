@@ -661,6 +661,41 @@ export function guessedIn(draft, cell) {
 }
 
 /**
+ * WHAT STEP 2 SHOWS AT ONCE. One ad, opened by the player; the rest wait.
+ *
+ * Until 2026-09-24 the step drew all eight rival ads in full, simultaneously —
+ * 612 words measured on the live site, against 119 on 2026-09-14, roughly 500
+ * of them the ads. It asked a beginner on the second of five screens to read
+ * eight competitors' copy, infer each one's price tier and purpose, place all
+ * eight on a grid they met one screen ago, and then choose their own cell. The
+ * task is the lesson (spec 4); eight at once is what a beginner cannot do.
+ *
+ * The bound this function exists to hold is **one ad on screen at a time**, and
+ * it is here rather than in `./position.js` because a rule in a drawing module
+ * cannot be tested — the same reason the reserve warning lives here.
+ *
+ * A PLACED RIVAL STAYS OPENABLE. Its chip on the grid is the way back in: a
+ * player who placed Nira early and then reads a dearer ad has to be able to
+ * check the first against the second. So `placed` and `open` can name the same
+ * rival, and only `unread` is exclusive.
+ *
+ * @param {{name: string}[]} ads - `rivalAds()` output, the eight
+ * @param {{guesses: Record<string, string>}} draft - round 0's draft
+ * @param {string|null} openName - the rival the player has open, if any
+ * @returns {{open: object|null, unread: object[], placed: object[]}}
+ */
+export function adStage(ads, draft, openName) {
+  // A stale name fails soft: the open one is UI state and survives a redraw,
+  // and changing brand swaps the whole cast.
+  const open = ads.find((rival) => rival.name === openName) ?? null;
+  const placed = ads.filter((rival) => rival.name in draft.guesses);
+  const unread = ads.filter(
+    (rival) => rival.name !== open?.name && !(rival.name in draft.guesses),
+  );
+  return { open, unread, placed };
+}
+
+/**
  * The player's notes, by rival, for the reveal after the last week.
  *
  * KEPT, NOT SENT (the owner, 2026-09-15). They never reach the account Go

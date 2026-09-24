@@ -1500,12 +1500,43 @@ body.studio .r0-brand { display: flex; flex-direction: column; align-items: flex
 body.studio .r0-brand strong { font-size: 14px; }
 body.studio .r0-brand span { font-size: 12px; color: var(--studio-muted); }
 body.studio .r0-brand.on { border-color: var(--studio-red); box-shadow: 0 0 0 1px var(--studio-red); }
-body.studio .r0-rival-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-body.studio .r0-rival { display: flex; flex-direction: column; gap: 8px; }
-body.studio .r0-rival .kserp { flex: 1; }
+/* ONE AD AT A TIME (2026-09-24, plans/2026-09-24-density-and-polish.md). The
+   four-column grid of eight full ads is gone; what is left is a waiting list
+   and one opened panel. Three surfaces, three treatments, on purpose: the
+   squares are a diagram, a waiting row is a control, and the opened ad is
+   evidence — so the ad is a left-edged panel rather than a fourth card. */
+body.studio .r0-waiting { display: flex; flex-direction: column; gap: 6px; }
+body.studio .r0-wait {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 12px; border: 1px solid var(--studio-line); border-radius: 12px;
+  background: var(--studio-card); color: var(--studio-text); text-align: left; font: inherit;
+}
+body.studio .r0-wait:hover { border-color: var(--studio-line-strong); }
+body.studio .r0-wait-mark {
+  flex: none; display: grid; place-items: center; width: 26px; height: 26px;
+  border-radius: 8px; background: var(--studio-raised);
+  font: 800 11px/1 var(--studio-body); color: var(--studio-soft);
+}
+body.studio .r0-wait-who { font-size: 14px; font-weight: 600; }
+body.studio .r0-wait-dom { font-size: 12px; color: var(--studio-faint); }
+body.studio .r0-wait-go { margin-left: auto; font-size: 12px; color: var(--studio-faint); }
+
+body.studio .r0-ad-open {
+  margin-bottom: 12px; padding: 12px 14px;
+  border-left: 2px solid var(--studio-red); border-radius: 0 12px 12px 0;
+  background: linear-gradient(90deg, var(--studio-panel) 0%, var(--studio-card) 60%);
+  display: flex; flex-direction: column; gap: 10px;
+}
+body.studio .r0-ad-head { display: flex; align-items: baseline; gap: 10px; }
+body.studio .r0-ad-head h4 { margin: 0; font: 700 15px/1.2 var(--studio-display); }
+body.studio .r0-ad-shut {
+  margin-left: auto; padding: 4px 10px; border: 1px solid var(--studio-line-strong);
+  border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px;
+}
+body.studio .r0-ask { max-width: 720px; margin: -10px 0 18px; font-size: 13px; color: var(--studio-faint); }
 /* Tappable and visible (tests/roundZeroLook.test.js): centres 24px apart or
    more, and an outline of 3.33:1 against the page. */
-body.studio .r0-mini { display: grid; grid-template-columns: repeat(3, 26px); grid-template-rows: repeat(2, 20px); gap: 4px; align-self: flex-end; }
+body.studio .r0-mini { display: grid; grid-template-columns: repeat(3, 26px); grid-template-rows: repeat(2, 20px); gap: 4px; align-self: flex-start; }
 body.studio .r0-mini-cell { width: 26px; height: 20px; padding: 0; border: 1px solid #68636B; border-radius: 4px; background: none; }
 body.studio .r0-mini-cell.on { border-color: var(--studio-text); background: var(--studio-text); }
 body.studio .r0-readout { margin: 0 0 10px; font-size: 14px; color: var(--studio-soft); }
@@ -1519,7 +1550,9 @@ body.studio .r0-square-name { font-size: 12px; color: var(--studio-muted); }
 body.studio .r0-who { font: 700 15px/1.2 var(--studio-display); }
 body.studio .r0-square-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
 body.studio .r0-you { padding: 2px 8px; border-radius: 999px; background: var(--studio-red); color: var(--studio-on-red); font-size: 11px; font-weight: 700; }
-body.studio .r0-guess { padding: 2px 8px; border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 11px; color: var(--studio-soft); }
+/* A button since 2026-09-24: a placed chip is the way back into that ad. */
+body.studio .r0-guess { padding: 2px 8px; border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 11px; color: var(--studio-soft); background: none; font-family: inherit; cursor: pointer; }
+body.studio .r0-guess:hover { border-color: var(--studio-text); color: var(--studio-text); }
 body.studio .r0-axis-name { align-self: center; font-size: 12px; color: var(--studio-faint); }
 body.studio .r0-axis-name::after { content: ' →'; }
 body.studio .r0-axis { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 2px solid #4A454F; }
