@@ -626,13 +626,24 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
 
   // --- Everyone's books -------------------------------------------------------------
 
+  /**
+   * One brand: the row you scan, and the eight figures under it.
+   *
+   * The row is a button because clicking it opens the detail; your own row
+   * starts open, since the one brand you never want to go looking for is
+   * yours. The bar is the third column rather than the last thing before the
+   * numbers, which is why it now survives a narrow section instead of being
+   * the first thing dropped (it was hidden under a 900px section, so a 1280px
+   * laptop drew none of them).
+   */
   function brandRow(r) {
-    const row = el('div', r.isYou ? 'rs-brand you' : 'rs-brand');
+    const item = el('div', r.isYou ? 'rs-item you' : 'rs-item');
+    const row = el('button', 'rs-brand');
+    row.type = 'button';
+    const detailId = `books-${r.id}`;
     const name = el('span', 'rs-brandname');
     name.append(el('strong', null, r.name));
     if (r.isYou) name.append(el('span', 'r0-you', RESULTS.you()));
-    const cell = el('span', done() ? 'rs-quiet' : 'rs-faint', done() ? cellWords(r.cell) : '—');
-    if (!done()) cell.setAttribute('aria-label', RESULTS.hidden());
     const track = el('span', 'rs-track');
     track.setAttribute('aria-hidden', 'true');
     const gross = el('span', 'rs-gross');
@@ -641,26 +652,55 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
     net.style.width = `${100 * r.netShare}%`;
     track.append(gross, net);
     row.append(
-      el('span', 'rs-rank', String(r.rank)), name, cell, track,
+      el('span', 'rs-rank', String(r.rank)), name, track,
       el('strong', r.businessProfitPaise < 0 ? 'rs-money loss' : 'rs-money', money(r.businessProfitPaise)),
       el('span', 'rs-quiet', r.returnedShare == null ? '—' : pct(r.returnedShare)),
-      el('span', 'rs-quiet', ordinal(r.grossRank)),
-      el('span', 'rs-brandline', RESULTS.brandLine({
-        spent: money(r.costPaise), conversions: one(r.conversions),
-        each: r.cpaPaise == null ? '—' : money(r.cpaPaise), roas: `₹${ratio(r.netRoas)}`, gross: money(r.grossProfitPaise),
-        net: money(r.netProfitPaise), built: money(r.capitalPaise),
-      })),
     );
-    return row;
+
+    const detail = el('div', 'rs-detail');
+    detail.id = detailId;
+    const figure = (key, value, quiet) => {
+      const box = el('div', 'rs-fig');
+      box.append(el('span', 'rs-figkey', key), el('span', quiet ? 'rs-figval faint' : 'rs-figval', value));
+      return box;
+    };
+    const seated = done() ? cellWords(r.cell) : RESULTS.detNone();
+    const where = figure(RESULTS.colCell(), seated, !done());
+    if (!done()) where.setAttribute('aria-label', RESULTS.hidden());
+    detail.append(
+      figure(RESULTS.detSpent(), money(r.costPaise)),
+      figure(RESULTS.detOrders(), one(r.conversions)),
+      figure(RESULTS.detEach(), r.cpaPaise == null ? RESULTS.detNone() : money(r.cpaPaise)),
+      figure(RESULTS.detPerRupee(), `₹${ratio(r.netRoas)}`),
+      figure(RESULTS.detGross(), money(r.grossProfitPaise)),
+      figure(RESULTS.detNet(), money(r.netProfitPaise)),
+      figure(RESULTS.detBuilt(), r.capitalPaise === 0 ? RESULTS.detNone() : money(r.capitalPaise)),
+      where,
+      figure(RESULTS.colGross(), ordinal(r.grossRank)),
+    );
+
+    const show = (open) => {
+      detail.hidden = !open;
+      row.setAttribute('aria-expanded', String(open));
+    };
+    row.setAttribute('aria-controls', detailId);
+    show(Boolean(r.isYou));
+    row.addEventListener('click', () => show(detail.hidden));
+    item.append(row, detail);
+    return item;
   }
 
   function drawBooks() {
     const warning = card('rs-warning', 'results-books');
     warning.append(el('strong', null, RESULTS.booksTitle()), para('rs-read', RESULTS.booksWarning(), RESULTS.booksWarning));
     const table = card('rs-card', null);
+    // Five, matching the row's five cells. It carried seven while the row
+    // carried seven plus a sentence, and two of the seven were dead: the cell
+    // is a dash until the reveal is answered, and rank on gross sat beside the
+    // rank. Both moved into the detail.
     const header = el('div', 'rs-brand head');
-    for (const text of ['#', RESULTS.colBrand(), RESULTS.colCell(), RESULTS.colBars(), RESULTS.colNet(),
-      RESULTS.colReturns(), RESULTS.colGross()]) header.append(el('span', 'rs-label', text));
+    for (const text of ['#', RESULTS.colBrand(), RESULTS.colBars(), RESULTS.colNet(),
+      RESULTS.colReturns()]) header.append(el('span', 'rs-label', text));
     table.append(header, ...booksRows(finished).map(brandRow),
       para('rs-sub', RESULTS.booksNote({ month: Math.ceil((snapshot + 1) / ROUNDS_PER_MONTH), snapshot }), RESULTS.booksNote),
       el('p', 'rs-sub', RESULTS.booksSettled()));

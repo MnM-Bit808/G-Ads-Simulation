@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Everyone's books — three ways</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --page: #0D0C0E; --card: #17161A; --raised: #221F25; --line: #2A272D;
+    --line-strong: #3A363E; --text: #EDE8E3; --soft: #CFC9C3; --muted: #A19A94;
+    --faint: #8A847E; --red: #D7262F; --red-text: #FF6166; --on-red: #FFF5F4;
+    --amber: #F2A53A; --mint: #9FD3B5; --panel: #1A0C0F; --panel-edge: #4A1A1F;
+    --disp: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif;
+    --body: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--text); font-family: var(--body); padding: 28px 24px 80px; }
+  .wrap { max-width: 1160px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+  h1 { font-family: var(--disp); font-size: 30px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 4px; }
+  h2 { font-family: var(--disp); font-size: 22px; font-weight: 800; margin: 0; }
+  .lede { color: var(--muted); font-size: 14px; margin: 0; max-width: 78ch; line-height: 1.5; }
+  .opt { display: flex; flex-direction: column; gap: 14px; }
+  .tag { display: inline-flex; align-items: center; gap: 8px; }
+  .pill { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px; background: var(--raised); color: var(--soft); }
+  .note { color: var(--faint); font-size: 12.5px; margin: 0; line-height: 1.55; max-width: 84ch; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 18px 20px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .you-chip { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 999px; background: var(--red); color: var(--on-red); }
+
+  /* ---------- shared bar ---------- */
+  .bar { position: relative; height: 22px; border-radius: 4px; }
+  .bar .g { position: absolute; inset: 0 auto 0 0; border: 1px solid var(--line-strong); border-radius: 4px; }
+  .bar .n { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--soft); }
+  .you .bar .n { background: var(--red); }
+
+  /* ---------- A: one card per brand ---------- */
+  .a-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .a-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px 15px;
+    display: flex; flex-direction: column; gap: 10px; }
+  .a-card.you { border-color: var(--panel-edge); background: var(--panel); }
+  .a-top { display: flex; align-items: baseline; gap: 8px; }
+  .a-rank { font-family: var(--disp); font-size: 15px; font-weight: 800; color: var(--muted); }
+  .a-name { font-size: 15px; font-weight: 700; }
+  .a-cell { margin-left: auto; font-size: 11.5px; color: var(--faint); }
+  .a-made { font-family: var(--disp); font-size: 23px; font-weight: 800; letter-spacing: -0.01em; }
+  .a-madelab { font-size: 11px; color: var(--faint); }
+  .a-figs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; padding-top: 10px;
+    border-top: 1px solid var(--line); }
+  .a-fig { display: flex; flex-direction: column; }
+  .a-fig .k { font-size: 10.5px; color: var(--faint); }
+  .a-fig .v { font-size: 13px; font-weight: 600; }
+
+  /* ---------- B: ranked table, detail on demand ---------- */
+  .b-head, .b-row { display: grid; grid-template-columns: 26px minmax(0,1.25fr) minmax(0,1.9fr) 116px 70px;
+    gap: 14px; align-items: center; }
+  .b-head { padding: 0 6px 8px; }
+  .b-head span { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); }
+  .b-head span:nth-child(4), .b-head span:nth-child(5) { text-align: right; }
+  .b-item { border-top: 1px solid var(--line); }
+  .b-row { width: 100%; background: none; border: 0; color: var(--text); font: inherit; text-align: left;
+    padding: 11px 6px; cursor: pointer; }
+  .b-row:hover { background: #1B1A1F; }
+  .b-item.you .b-row { background: var(--panel); }
+  .b-rank { font-family: var(--disp); font-size: 17px; font-weight: 800; color: var(--muted); }
+  .b-name { display: flex; align-items: center; gap: 7px; font-size: 14.5px; font-weight: 600; }
+  .b-made { text-align: right; font-size: 15px; font-weight: 800; }
+  .b-took { text-align: right; font-size: 13px; color: var(--muted); }
+  .b-detail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 14px;
+    padding: 4px 6px 16px 66px; }
+  .b-detail .k { font-size: 10.5px; color: var(--faint); display: block; }
+  .b-detail .v { font-size: 13.5px; font-weight: 600; }
+
+  /* ---------- C: chart, then the books ---------- */
+  .c-chart { display: flex; flex-direction: column; gap: 9px; }
+  .c-line { display: grid; grid-template-columns: 26px 116px minmax(0, 1fr) 116px; gap: 12px; align-items: center; }
+  .c-nm { font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .c-val { text-align: right; font-size: 13.5px; font-weight: 700; }
+  .c-key { display: flex; gap: 18px; padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .c-key i { display: inline-block; width: 22px; height: 11px; border-radius: 3px; vertical-align: -1px; margin-right: 7px; }
+  .c-tbl { width: 100%; border-collapse: collapse; }
+  .c-tbl th { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint);
+    font-weight: 600; text-align: right; padding: 0 0 9px; }
+  .c-tbl th:first-child, .c-tbl td:first-child { text-align: left; }
+  .c-tbl td { font-size: 13px; padding: 9px 0; border-top: 1px solid var(--line); text-align: right; }
+  .c-tbl tr.you td { background: var(--panel); }
+  .c-tbl td:first-child { font-weight: 600; }
+  @media (max-width: 900px) {
+    .a-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .b-detail { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-left: 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div>
+    <h1>Everyone&rsquo;s books &mdash; three ways</h1>
+    <p class="lede">Real figures from a game played through to week 12 on today&rsquo;s build (Marlow, mid&middot;performance, finished 8th).
+      Every option carries the same eleven numbers per brand. What differs is how many of them you are asked to read at once.</p>
+  </div>
+
+  <div class="card" style="border-color: var(--panel-edge); background: var(--panel);">
+    <strong style="font-family: var(--disp); font-size: 17px;">What is wrong with it today</strong>
+    <ul class="note" style="margin: 8px 0 0; padding-left: 18px; line-height: 1.8;">
+      <li><strong style="color: var(--soft);">Six figures arrive as one sentence.</strong>
+        &ldquo;spent &#8377;4,81,159 &middot; 1,482.6 conversions, &#8377;325 each &middot; &#8377;4.62 of sales after returns per rupee of clicks &middot; gross profit &#8377;13,97,433 &middot; net profit &#8377;6,26,417 before the &#8377;0 it built with&rdquo; &mdash; 12px grey, full width, nine times over.</li>
+      <li><strong style="color: var(--soft);">The bars vanish on most laptops.</strong> They need a container over 900px, which needs a viewport over about 1295px. At 1280 the one visual in the section is <code>display: none</code> and the table is seven columns of numbers.</li>
+      <li><strong style="color: var(--soft);">&ldquo;Where they sat&rdquo; is a dead column</strong> of dashes until the quiz is answered &mdash; 249px of nothing.</li>
+      <li><strong style="color: var(--soft);">Fractional orders.</strong> &ldquo;1,482.6 conversions&rdquo;, &ldquo;1,245.0 conversions&rdquo;. Expected mode makes a sale a fraction; a shopkeeper counts whole ones.</li>
+      <li><strong style="color: var(--soft);">&ldquo;before the &#8377;0 it built with&rdquo;</strong> on every brand that built nothing, which is most of them.</li>
+    </ul>
+  </div>
+
+  <!-- ================= A ================= -->
+  <div class="opt">
+    <div class="tag"><span class="pill">Option A</span><h2>A card for each brand</h2></div>
+    <p class="note">The table becomes nine cards. Every figure gets its own label, so nothing is a run-on sentence and nothing needs width to survive &mdash; three across, two on a tablet, one on a phone. Ranking is still the order, but it reads as a gallery rather than a league table, and nine cards is a lot of scrolling.</p>
+    <div class="a-grid" id="a-grid"></div>
+  </div>
+
+  <!-- ================= B ================= -->
+  <div class="opt">
+    <div class="tag"><span class="pill">Option B</span><h2>The league table, with the detail one click down</h2></div>
+    <p class="note">Five columns you can scan: place, brand, the bar, what the business made, what returns took. The other six figures live under the row, opened by clicking it &mdash; and your own row is open from the start. The ranking stays a ranking; the depth is there when wanted. The bar survives at every width because it is the third column rather than a luxury.</p>
+    <div class="card"><div id="b-table"></div></div>
+  </div>
+
+  <!-- ================= C ================= -->
+  <div class="opt">
+    <div class="tag"><span class="pill">Option C</span><h2>The chart first, the books under it</h2></div>
+    <p class="note">Two things doing one job each. A ranked chart where the gap between outline and fill is what returns took &mdash; the lesson of the whole section, drawn once at full width. Then a plain table of the figures with real column headings. Nothing is hidden and nothing is a sentence, but it is two passes over the same nine brands.</p>
+    <div class="card" style="display: flex; flex-direction: column; gap: 18px;">
+      <div class="c-chart" id="c-chart"></div>
+      <div style="overflow-x: auto;"><table class="c-tbl" id="c-tbl"></table></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ROWS = [
+  { rank:1, name:'Satva',       you:false, cell:'value · performance',    made:'₹15,42,714', took:'57%', grossRank:'1st', g:100,    n:42.63, spent:'₹8,79,397', conv:'3,311', cpa:'₹266', roas:'₹5.54',  gross:'₹36,18,579', built:'—' },
+  { rank:2, name:'Lumen',       you:false, cell:'premium · performance',  made:'₹15,08,378', took:'48%', grossRank:'2nd', g:80.04,  n:41.68, spent:'₹7,40,612', conv:'1,245', cpa:'₹595', roas:'₹4.97',  gross:'₹28,96,381', built:'—' },
+  { rank:3, name:'Halcyon',     you:false, cell:'mid · performance',      made:'₹13,23,086', took:'53%', grossRank:'3rd', g:77.95,  n:36.56, spent:'₹8,40,957', conv:'2,994', cpa:'₹281', roas:'₹5.15',  gross:'₹28,20,679', built:'—' },
+  { rank:4, name:'Auren',       you:false, cell:'premium · lifestyle',    made:'₹11,56,243', took:'44%', grossRank:'4th', g:69.43,  n:38.59, spent:'₹3,23,231', conv:'942',   cpa:'₹343', roas:'₹8.70',  gross:'₹25,12,253', built:'₹2,40,000' },
+  { rank:5, name:'Nira',        you:false, cell:'value · lifestyle',      made:'₹11,48,822', took:'44%', grossRank:'5th', g:68.31,  n:38.10, spent:'₹3,95,770', conv:'5,799', cpa:'₹68',  roas:'₹12.20', gross:'₹24,71,884', built:'₹2,30,000' },
+  { rank:6, name:'Kestrel',     you:false, cell:'value · performance',    made:'₹9,81,003',  took:'48%', grossRank:'6th', g:61.12,  n:31.53, spent:'₹2,99,203', conv:'4,526', cpa:'₹66',  roas:'₹13.17', gross:'₹22,11,770', built:'₹1,60,000' },
+  { rank:7, name:'Vella & Co.', you:false, cell:'premium · lifestyle',    made:'₹6,91,078',  took:'62%', grossRank:'7th', g:50.88,  n:19.10, spent:'₹8,04,000', conv:'860',   cpa:'₹935', roas:'₹3.05',  gross:'₹18,41,172', built:'—' },
+  { rank:8, name:'Marlow',      you:true,  cell:'mid · performance',      made:'₹6,26,417',  took:'55%', grossRank:'8th', g:38.62,  n:17.31, spent:'₹4,81,159', conv:'1,483', cpa:'₹325', roas:'₹4.62',  gross:'₹13,97,433', built:'—' },
+  { rank:9, name:'Torvi',       you:false, cell:'mid · lifestyle',        made:'₹74,501',    took:'72%', grossRank:'9th', g:21.86,  n:6.20,  spent:'₹6,03,600', conv:'2,914', cpa:'₹207', roas:'₹3.80',  gross:'₹7,90,937',  built:'₹1,50,000' },
+];
+const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
+const bar = (r) => {
+  const b = el('div', 'bar');
+  const g = el('span', 'g'); g.style.width = r.g + '%';
+  const n = el('span', 'n'); n.style.width = r.n + '%';
+  b.append(g, n); return b;
+};
+const fig = (k, v) => { const f = el('div', 'a-fig'); f.append(el('span', 'k', k), el('span', 'v num', v)); return f; };
+
+// ---- A
+const ag = document.getElementById('a-grid');
+for (const r of ROWS) {
+  const c = el('div', r.you ? 'a-card you' : 'a-card');
+  const top = el('div', 'a-top');
+  top.append(el('span', 'a-rank', r.rank + ''), el('span', 'a-name', r.name));
+  if (r.you) top.append(el('span', 'you-chip', 'You'));
+  top.append(el('span', 'a-cell', r.cell));
+  const made = el('div');
+  made.append(el('div', 'a-made num', r.made), el('div', 'a-madelab', 'what the business made'));
+  const wrap = el('div', r.you ? 'you' : '');
+  wrap.append(bar(r));
+  const figs = el('div', 'a-figs');
+  figs.append(fig('spent', r.spent), fig('orders', r.conv), fig('cost each', r.cpa),
+    fig('per ₹ of clicks', r.roas), fig('gross profit', r.gross), fig('built with', r.built));
+  c.append(top, made, wrap, figs);
+  ag.append(c);
+}
+
+// ---- B
+const bt = document.getElementById('b-table');
+const bh = el('div', 'b-head');
+for (const t of ['#', 'Brand', 'Net profit, gross as the outline', 'What the business made', 'Returns took']) bh.append(el('span', null, t));
+bt.append(bh);
+for (const r of ROWS) {
+  const item = el('div', r.you ? 'b-item you' : 'b-item');
+  const row = el('button', 'b-row'); row.type = 'button';
+  const nm = el('span', 'b-name'); nm.append(document.createTextNode(r.name));
+  if (r.you) nm.append(el('span', 'you-chip', 'You'));
+  const wrap = el('span', r.you ? 'you' : ''); wrap.append(bar(r));
+  row.append(el('span', 'b-rank', r.rank + ''), nm, wrap,
+    el('span', 'b-made num', r.made), el('span', 'b-took num', r.took));
+  const det = el('div', 'b-detail');
+  for (const [k, v] of [['spent', r.spent], ['orders', r.conv], ['cost each', r.cpa],
+    ['per ₹ of clicks', r.roas], ['gross profit', r.gross], ['built with', r.built],
+    ['where they sat', r.cell], ['rank on gross', r.grossRank]]) {
+    const d = el('div'); d.append(el('span', 'k', k), el('span', 'v num', v)); det.append(d);
+  }
+  det.style.display = r.you ? 'grid' : 'none';
+  row.addEventListener('click', () => { det.style.display = det.style.display === 'none' ? 'grid' : 'none'; });
+  item.append(row, det);
+  bt.append(item);
+}
+
+// ---- C
+const cc = document.getElementById('c-chart');
+for (const r of ROWS) {
+  const line = el('div', r.you ? 'c-line you' : 'c-line');
+  const nm = el('span', 'c-nm'); nm.append(document.createTextNode(r.name));
+  if (r.you) nm.append(el('span', 'you-chip', 'You'));
+  line.append(el('span', 'b-rank', r.rank + ''), nm, bar(r), el('span', 'c-val num', r.made));
+  cc.append(line);
+}
+const key = el('div', 'c-key');
+key.innerHTML = '<span><i style="background: var(--soft);"></i>net profit, what the business kept</span>'
+  + '<span><i style="border: 1px solid var(--line-strong);"></i>gross profit, counting returned orders as sales</span>'
+  + '<span style="color: var(--faint);">the gap between them is what returns took</span>';
+cc.append(key);
+
+const ct = document.getElementById('c-tbl');
+const thead = el('thead'); const hr = el('tr');
+for (const t of ['Brand', 'Where they sat', 'Spent', 'Orders', 'Cost each', 'Per ₹ of clicks', 'Gross profit', 'Returns took', 'Built with', 'Made']) hr.append(el('th', null, t));
+thead.append(hr); ct.append(thead);
+const tb = el('tbody');
+for (const r of ROWS) {
+  const tr = el('tr', r.you ? 'you' : '');
+  for (const v of [r.name, r.cell, r.spent, r.conv, r.cpa, r.roas, r.gross, r.took, r.built, r.made]) tr.append(el('td', 'num', v));
+  tb.append(tr);
+}
+ct.append(tb);
+</script>
+</body>
+</html>

@@ -410,6 +410,21 @@ records twice already.
 
 ## Still open
 
+- **A responsive rule can delete the only picture on a screen, and no test
+  here can see it (I47, 2026-09-25).** Everyone's books hid its bars under a
+  900px SECTION — and the Studio's rail and padding make the section 886px on
+  a 1280px viewport, so the gap between gross and net was drawn for nobody
+  below about 1295px. **Measure the container, not the viewport**, and measure
+  it in the browser: every UI test in this project reads source as text, so
+  nothing but playing it will catch this class. A text guard now fails on any
+  rule that hides `.rs-track`, which is the most the suite can do.
+
+- **The page scrolls sideways at 375px, in at least two Results sections.**
+  On Everyone's books it is the shell's end-of-game footer, whose two buttons
+  do not wrap; on Twelve weeks it is `.rs-chart`, deliberately 640px inside a
+  sideways-scrolling container but overflowing the page too. Found while
+  building I47 and deliberately left, being neither's doing.
+
 **A playtest is where I would start.** The site is live and **open to anyone with
 the link since 2026-09-20**, F14 and F13 are both settled, and the thing only
 people can do is now the most valuable: send the link to somebody who has never

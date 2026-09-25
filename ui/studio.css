@@ -1384,17 +1384,28 @@ body.studio .rs-arrive { transition: opacity 200ms var(--studio-ease), transform
 /* Everyone's books: the one place R3 is lifted. */
 body.studio .rs-warning { display: flex; flex-direction: column; gap: 6px; max-width: 880px; padding: 14px 18px; border: 1px solid var(--studio-panel-edge); border-radius: 16px; background: var(--studio-panel); }
 body.studio .rs-warning strong { font: 800 18px/1.2 var(--studio-display); }
-body.studio .rs-brand { display: grid; grid-template-columns: 28px 170px 150px minmax(0, 1fr) 110px 92px 90px; gap: 2px 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--studio-raised); font-size: 13px; }
-body.studio .rs-brand.head { padding: 4px 0 8px; border-top: 0; }
-body.studio .rs-brand > :nth-child(n + 5):nth-child(-n + 7) { text-align: right; }
+/* Five columns the width of the section can always hold, so the bar is never
+   the thing that gets dropped (the owner chose B, 2026-09-25). */
+body.studio .rs-item { border-top: 1px solid var(--studio-raised); }
+body.studio .rs-item:first-of-type { border-top: 0; }
+body.studio .rs-brand { display: grid; grid-template-columns: 28px minmax(0, 1.25fr) minmax(0, 1.9fr) 116px 78px; gap: 2px 14px; align-items: center; padding: 11px 6px; border-top: 0; font: inherit; font-size: 13px; width: 100%; background: none; border: 0; color: var(--studio-text); text-align: left; cursor: pointer; border-radius: 10px; }
+body.studio .rs-brand.head { padding: 4px 6px 8px; cursor: default; }
+body.studio .rs-item .rs-brand:hover { background: var(--studio-raised); }
+body.studio .rs-item.you .rs-brand { background: var(--studio-panel); }
+body.studio .rs-item.you .rs-brand:hover { background: #221014; }
+body.studio .rs-brand > :nth-child(n + 4) { text-align: right; }
+body.studio .rs-detail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 14px; padding: 4px 6px 16px 48px; }
+body.studio .rs-fig { display: flex; flex-direction: column; min-width: 0; }
+body.studio .rs-figkey { font-size: 10.5px; color: var(--studio-faint); }
+body.studio .rs-figval { font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+body.studio .rs-figval.faint { color: var(--studio-faint); font-weight: 400; }
 body.studio .rs-rank { font: 800 18px/1 var(--studio-display); color: var(--studio-muted); font-variant-numeric: tabular-nums; }
 body.studio .rs-brandname { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 15px; white-space: nowrap; }
-body.studio .rs-track { position: relative; height: 14px; }
+body.studio .rs-track { position: relative; height: 18px; }
 body.studio .rs-gross { position: absolute; top: 0; bottom: 0; left: 0; box-sizing: border-box; border: 1px solid #68636B; border-radius: 3px; }
 body.studio .rs-net { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 3px; background: var(--studio-text); }
 body.studio .rs-brand.you .rs-net { background: var(--studio-red); }
 body.studio .rs-money { font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
-body.studio .rs-brandline { grid-column: 2 / -1; font-size: 12px; color: var(--studio-faint); font-variant-numeric: tabular-nums; }
 body.studio .rs-ranks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 body.studio .rs-rankbox { display: flex; flex-direction: column; gap: 4px; }
 body.studio .rs-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: none; color: var(--studio-text); text-align: left; }
@@ -1408,16 +1419,18 @@ body.studio .rs-ask { display: flex; flex-direction: column; gap: 8px; font-size
 body.studio .rs-answer { padding: 10px 12px; border: 1px solid #68636B; border-radius: 12px; background: #141216; color: var(--studio-text); font: inherit; font-size: 14px; font-weight: 400; resize: vertical; }
 body.studio .rs-answer::placeholder { color: var(--studio-muted); }
 
-/* A section under 900px wide (a tablet): two of most things to a row, and
-   the books without their bars, which need the width. */
+/* A section under 900px wide (a tablet): two of most things to a row. The
+   books KEEP their bars here: hiding them took the one picture out of the
+   section on any laptop under about 1295px, which is where the gap between
+   gross and net — what returns took — is the whole point. */
 @container (max-width: 900px) {
   body.studio .rs-lessons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.studio .rs-rivals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.studio .rs-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   body.studio :is(.rs-moments, .rs-pairs, .rs-pairs.wide) { grid-template-columns: minmax(0, 1fr); }
   body.studio .rs-strip { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  body.studio .rs-brand { grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1fr) 100px 76px 76px; }
-  body.studio .rs-brand > .rs-track, body.studio .rs-brand.head > :nth-child(4) { display: none; }
+  body.studio .rs-brand { grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1.4fr) 104px 64px; }
+  body.studio .rs-detail { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-left: 6px; }
 }
 /* On a phone: one of everything to a row, and the chart scrolls sideways at a
    width where every week's figures fit, as Your week's does. */
@@ -1430,10 +1443,14 @@ body.studio .rs-answer::placeholder { color: var(--studio-muted); }
   body.studio .rs-chart { min-width: 640px; }
   body.studio .rs-scroll { padding-bottom: 8px; }
   body.studio .rs-ranks { grid-template-columns: minmax(0, 1fr); }
-  /* The rank, the brand, net profit and where it placed on gross: the trap. */
+  /* The rank, the brand, what the business made and what returns took — with
+     the bar dropped to its own line under them rather than dropped. A phone is
+     where the widest thing has to give way, and a bar is the one part that
+     reads at any width once it has the width to itself. */
   body.studio .rs-brand { grid-template-columns: 22px minmax(0, 1fr) 92px 58px; }
-  body.studio .rs-brand > :nth-child(3), body.studio .rs-brand > :nth-child(6) { display: none; }
-  body.studio .rs-brandline { grid-column: 2 / -1; }
+  body.studio .rs-brand > .rs-track { grid-column: 2 / -1; grid-row: 2; }
+  body.studio .rs-brand.head > :nth-child(3) { display: none; }
+  body.studio .rs-detail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* --- the Guide as a page (design/guide/, the owner's choice 2026-09-15) --- */

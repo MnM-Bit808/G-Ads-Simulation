@@ -8,6 +8,8 @@
  */
 
 import { describe, test, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import {
   seasonBars, seasonFigures, firstReportsTotal, lateSales, capitalReading, booksRows, finishing,
   revealReading, meetMostOverGame,
@@ -276,5 +278,44 @@ describe('the rival met most over the game', () => {
     const weekOf = (k, m) => ({ [P]: { rivals: { k: { overlapRate: k }, m: { overlapRate: m } } } });
     expect(meetMostOverGame([weekOf(0.9, 0.1), weekOf(0.8, 0.95)], P)).toEqual({ id: 'k', rate: (0.9 + 0.8) / 2 });
     expect(meetMostOverGame([], P)).toBeNull();
+  });
+});
+
+/**
+ * THE ONE PICTURE IN THE BOOKS STAYS DRAWN (the owner chose B, 2026-09-25).
+ *
+ * `.rs-track` — the gross outline with the net fill inside it, whose gap is
+ * what returns took — used to be hidden under a 900px section. The Studio's
+ * own rail and padding put the section at 886px on a 1280px laptop, so the
+ * table degraded to seven columns of numbers and the lesson of the whole page
+ * was drawn for nobody but a very wide screen. Measured in the browser before
+ * this changed, at 1280: `display: none`.
+ *
+ * Read as text, which is all this suite can do to CSS — and exactly the kind
+ * of fault no other test here could see.
+ */
+describe('Everyone\'s books keeps its bars at every width', () => {
+  const css = readFileSync(fileURLToPath(new URL('../ui/studio.css', import.meta.url)), 'utf8');
+
+  test('no rule hides the bar', () => {
+    const hides = css.split('\n')
+      .filter((l) => l.includes('.rs-track') && /display:\s*none/.test(l));
+    expect(hides, `a rule hides the books' bar: ${hides.join(' | ')}`).toEqual([]);
+  });
+
+  test('and the row is still laid out for the bar on a phone, not without it', () => {
+    // The phone rule drops the bar to its own line rather than dropping it.
+    expect(css).toMatch(/\.rs-brand > \.rs-track \{ grid-column: 2 \/ -1;/);
+  });
+
+  test('the run-on sentence is gone, and its figures are labelled lines', () => {
+    const words = readFileSync(fileURLToPath(new URL('../ui/words/results.js', import.meta.url)), 'utf8');
+    const render = readFileSync(fileURLToPath(new URL('../ui/results/render.js', import.meta.url)), 'utf8');
+    // `brandLine` survives in words/ only as the comment explaining its death.
+    expect(render).not.toContain('brandLine');
+    for (const key of ['detSpent', 'detOrders', 'detEach', 'detPerRupee', 'detGross', 'detNet', 'detBuilt']) {
+      expect(words, `${key} is not a line`).toContain(`${key}: line(`);
+      expect(render, `${key} is not drawn`).toContain(`RESULTS.${key}()`);
+    }
   });
 });

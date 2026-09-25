@@ -7014,3 +7014,58 @@ both are corrected.
 **What would reopen this.** A character that should visibly NOT use the lever.
 That is a legitimate design, and the way to build it is a documented rule in
 that policy's header saying so, not silence in the code.
+
+### I47. Everyone's books: one figure, one label — `FIXED` (2026-09-25)
+
+**The owner asked for the section to be cleaner with more structure.** Three
+options were drawn with real figures from a game played through to week 12 —
+`design/everyones-books/Options.html` — and B was chosen: **the ranking stays a
+table, and the six figures that were a sentence open under the row**.
+
+**What was wrong, found by playing to week 12 rather than reading the code.**
+
+- **Six figures arrived as one run-on sentence**, drawn full width in 12px grey
+  under each of the nine brands, nothing in it labelled:
+  *"spent ₹4,81,159 · 1,482.6 conversions, ₹325 each · ₹4.62 of sales after
+  returns per rupee of clicks · gross profit ₹13,97,433 · net profit ₹6,26,417
+  before the ₹0 it built with"*.
+- **The bars were hidden on most laptops.** `.rs-track` was `display: none`
+  under a 900px section, and the Studio's rail and padding put the section at
+  **886px on a 1280px viewport** — measured in the browser, not inferred. So
+  the gap between gross and net, which is what returns took and the lesson of
+  the whole page, was drawn only above about 1295px. The table degraded to
+  seven columns of numbers with a dead gap where the picture should be.
+- **Two columns were dead.** *Where they sat* is a dash until the reveal is
+  answered, and *rank on gross* sat beside the rank already in column one.
+- **"before the ₹0 it built with"** read as though zero were a purchase, on
+  every brand that built nothing, which is most of them.
+
+**What it is now.** Five columns that any width holds — place, brand, the bar,
+what the business made, what returns took — and a row that is a button. Under
+it, nine labelled figures, including the two dead columns. **Your own row is
+open from the start**, because the one brand nobody should have to hunt for is
+their own.
+
+**The bar is the third column now, not the last thing before the numbers**, so
+it is no longer the first thing dropped. On a phone it keeps its place by
+taking a line of its own under the row rather than being hidden.
+
+**What was NOT changed, and why.** The fractional order counts — *1,482.6
+conversions* — look wrong and are not. Expected mode makes a sale a fraction,
+`one()` is deliberate, and the Twelve weeks section formats the same figure the
+same way. Rounding it here alone would have made two screens disagree about the
+same number to no one's benefit. Left, and recorded so the next reader does not
+re-find it as a bug.
+
+**The guard.** `tests/results.test.js` now reads `ui/studio.css` as text and
+fails on any rule that hides `.rs-track`, and checks the phone rule still lays
+the row out **for** the bar. Checked against the deleted rule, which it
+catches. This suite cannot render, so a text guard is what is available — and
+the fault it guards was invisible to every other test in the project for as
+long as it existed.
+
+**Still open, and NOT this change's doing.** At 375px the page scrolls
+sideways: on the books it is the shell's own end-of-game footer, whose two
+buttons do not wrap; on Twelve weeks it is `.rs-chart`, which is deliberately
+640px inside a sideways-scrolling container but overflows the page as well.
+Both predate this and are left alone.

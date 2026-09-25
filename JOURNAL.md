@@ -42,6 +42,34 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-25, after the push: Everyone's books stopped being a paragraph
+
+**I47, and the option was chosen off a drawing rather than a description.**
+Three ways were built with real figures from a game played to week 12 on the
+build of the day — `design/everyones-books/Options.html` — and the owner took
+B: the ranking stays a table, the six figures that were a run-on sentence open
+under the row, and your own row opens by itself.
+
+**The finding that mattered came from playing it, again.** `.rs-track`, the
+bar whose gap is what returns took, was hidden under a 900px section. Measured
+in the browser: the Studio's rail and padding put the section at **886px on a
+1280px laptop**, so the one picture in the section was `display: none` for
+anyone under about 1295px, and the page fell back to seven columns of numbers
+with a gap where the picture belonged. Nothing in the suite could see it,
+because nothing in this project renders — every UI test reads source as text.
+It is now the third column rather than the last thing before the numbers, and
+on a phone it takes a line of its own instead of being dropped.
+
+**A thing left deliberately alone.** The fractional order counts (*1,482.6
+conversions*) look like a bug and are not: expected mode makes a sale a
+fraction, and Twelve weeks formats the same figure the same way. Changing it
+here alone would have made two screens disagree. Recorded in I47 so it is not
+re-found as a defect.
+
+**And one found in passing, left alone as out of scope:** at 375px the page
+scrolls sideways — the shell's end-of-game footer on the books, `.rs-chart` on
+Twelve weeks. Both predate this.
+
 ## 2026-09-25, last: four characters got the lever they had never been handed
 
 **I46, and the gates were agreed before anything was measured**, which is the

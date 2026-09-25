@@ -156,9 +156,26 @@ export const RESULTS = Object.freeze({
   colGross: line('label', 'Rank on gross'),
   you: line('label', 'You'),
   hidden: line('label', 'hidden'),
-  brandLine: line('label', ({ spent, conversions, each, roas, gross, net, built }) =>
-    `spent ${spent} · ${conversions} conversions, ${each} each · ${roas} of sales after returns per rupee of clicks `
-    + `· gross profit ${gross} · net profit ${net} before the ${built} it built with`),
+  // ONE FIGURE, ONE LABEL (the owner chose B, 2026-09-25). These eight used to
+  // be `brandLine`, a single run-on sentence of six figures joined by middots
+  // in 12px grey, drawn full width under every one of the nine brands: "spent
+  // Rs4,81,159 · 1,482.6 conversions, Rs325 each · Rs4.62 of sales after
+  // returns per rupee of clicks · gross profit ...". Nothing in it was
+  // labelled, so every figure had to be parsed out of the prose around it.
+  // They now open under the row that was clicked, and under your own row from
+  // the start, which is also where the two columns that were dead on the table
+  // went: where a brand sat is a dash until the reveal is answered, and rank
+  // on gross only means anything beside the rank already in the first column.
+  detSpent: line('label', 'Spent'),
+  detOrders: line('label', 'Orders'),
+  detEach: line('label', 'Cost each'),
+  detPerRupee: line('label', 'Per ₹ of clicks'),
+  detGross: line('label', 'Gross profit'),
+  detBuilt: line('label', 'Built with'),
+  detNet: line('label', 'Net profit, before building'),
+  // A brand that built nothing: "before the ₹0 it built with" read as though
+  // zero were a purchase, and most brands build nothing.
+  detNone: line('label', '—'),
   booksNote: line('reading', ({ month, snapshot }) =>
     'Ranked by what each business made: sales after returns, less the goods, the clicks, the freight on parcels '
     + 'refused at the door, and the capital it spent building. The outline is gross profit, which counts an order '
