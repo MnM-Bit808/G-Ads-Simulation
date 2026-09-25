@@ -94,11 +94,44 @@ function svg(viewBox, paths, size) {
  * against light and stayed dark — the rung that is meant to put the garment on
  * white changed almost nothing.
  */
-function garment(size, { plate = true } = {}) {
+/**
+ * THE GARMENT IS THE ONE THE PAGE SELLS, since 2026-09-25. It was a top —
+ * shoulders, sleeves, a body — on a page headed "High-waisted training
+ * leggings", and the same top whatever cell the player was in. On the one
+ * screen whose whole job is to BE the thing a click lands on, the hero showed
+ * a different product, and the same different product to everybody.
+ *
+ * Three shapes for six cells (`content/product.js` says which cell wears
+ * which). A silhouette that cannot be told from its neighbour buys nothing, so
+ * six drawings would be four of them pretending to differ. Each is built from
+ * the marks that survive at the 40px a thumbnail gets: a waistband, a taper,
+ * an inseam.
+ */
+const SHAPES = Object.freeze({
+  // A high waistband, a taper to the ankle, the inseam between the legs.
+  leggings: [
+    ['M42 18h40l2 16-4 100H67L62 62 57 134H44L40 34z', '#3A363E'],
+    ['M42 18h40l1 9H41z', '#4A454F'],
+  ],
+  // The same legs, cut loose and cuffed: the cheap lifestyle cell's lounge pair.
+  joggers: [
+    ['M40 18h44l4 18-6 92h-16l-4-58-4 58H42l-6-92z', '#3A363E'],
+    ['M40 18h44l1 9H39z', '#4A454F'],
+    ['M50 120h14l1 8H49zM66 120h14l1 8H65z', '#4A454F'],
+  ],
+  // Two pieces, because a co-ord and a lounge set are sold as two.
+  set: [
+    ['M46 16h32l6 14-7 7 3 30H44l3-30-7-7z', '#3A363E'],
+    ['M46 74h32l2 12-3 48H65l-3-32-3 32H49l-3-48z', '#3A363E'],
+    ['M46 74h32l1 8H45z', '#4A454F'],
+  ],
+});
+
+/** @param {{w: number, h: number}} size */
+function garment(size, { plate = true, shape = 'leggings' } = {}) {
   return svg('0 0 124 148', [
     ...(plate ? [['M0 0h124v148H0z', '#232026']] : []),
-    ['M42 22h40l7 19-9 9 5 76H39l5-76-9-9z', '#3A363E'],
-    ['M49 47h26l4 65H45z', '#4A454F'],
+    ...(SHAPES[shape] ?? SHAPES.leggings),
   ], size);
 }
 
@@ -129,11 +162,11 @@ function stars() {
  * lays a play mark over it. Drawn rather than photographed, which the note
  * under the page says out loud.
  */
-function garmentAt(drawn) {
+function garmentAt(drawn, shape) {
   const box = el('div', 'yad-shot');
   if (drawn.shots) box.classList.add('lit');
   if (drawn.bodies) box.classList.add('bodies');
-  box.append(garment({ w: 124, h: 148 }, { plate: !drawn.shots }));
+  box.append(garment({ w: 124, h: 148 }, { plate: !drawn.shots, shape }));
   if (drawn.video) {
     const play = el('span', 'yad-play');
     play.append(svg('0 0 24 24', [['M9 7l9 5-9 5z', '#141216']], { w: 13, h: 13 }));
@@ -313,21 +346,41 @@ function landingPage(model, openGuide) {
   if (!drawn.painted) sheet.classList.add('slow');
   sheet.append(el('div', 'yad-bar', model.domain));
 
+  // THE BUY BOX (2026-09-25, design option B). The hero used to be a 124px
+  // thumbnail beside a short column, which read as a card ABOUT a product
+  // rather than a page somebody would buy from. It is now the layout every
+  // real product page uses: the picture and its gallery on one side, and
+  // everything a buyer decides with on the other — name, reviews, price, size,
+  // and the thing you press.
   const hero = el('div', 'yad-hero');
-  hero.append(mark('shots', garmentAt(drawn)));
+  const shotCol = el('div', 'yad-shotcol');
+  shotCol.append(mark('shots', garmentAt(drawn, model.product.shape)));
+  // The gallery belongs under the picture it is a gallery OF. It used to sit in
+  // the text column, under the sizes.
+  add(shotCol, mark('bodies', thumbs(drawn)));
+  hero.append(shotCol);
+
   const detail = el('div', 'yad-detail');
-  detail.append(el('div', 'yad-product', AD.product()));
+  detail.append(el('div', 'yad-product', model.product.name));
   if (drawn.stars) {
     const reviews = el('div', 'yad-reviews');
     reviews.append(stars(), el('span', 'yad-small', AD.reviewCount()));
     detail.append(mark('stars', reviews));
   }
+  detail.append(el('div', 'yad-price', rupees(model.product.pricePaise)));
   const sizes = el('div', 'yad-sizes');
   for (const [i, name] of ['S', 'M', 'L'].entries()) {
     sizes.append(el('span', i === 1 ? 'yad-size on' : 'yad-size', name));
   }
   detail.append(sizes);
-  add(detail, mark('bodies', thumbs(drawn)));
+  // NOT A BUTTON, DELIBERATELY. A page with no button does not look like a
+  // page anyone buys from, and a real button here would be the only control in
+  // the game that does nothing when pressed. It is drawn and inert, and
+  // `aria-hidden` keeps it out of the tab order and off a screen reader, which
+  // is the honest treatment for a picture of a control.
+  const cta = el('div', 'yad-cta', AD.addToBag());
+  cta.setAttribute('aria-hidden', 'true');
+  detail.append(cta);
   hero.append(detail);
   sheet.append(hero);
   if (!drawn.painted) sheet.append(el('div', 'yad-loading', AD.loading()));
@@ -528,7 +581,9 @@ export function renderAdSection({ game, openGuide }) {
   // The creative block is not in the self view, so it is read from state, as
   // the dashboard reads it (I16).
   const creative = game.state.advertisers.find((a) => a.id === game.playerId)?.creative;
-  const model = adModel({ draft: game.draft, creative, name: self.name, domain: self.domain });
+  const model = adModel({
+    draft: game.draft, creative, name: self.name, domain: self.domain, position: self.position,
+  });
 
   const node = el('div', 'yad');
   const preview = el('div', 'yad-preview');

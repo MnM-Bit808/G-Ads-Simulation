@@ -592,18 +592,47 @@ describe('what the drawn page shows', () => {
    * overflowed its own track and covered the first word of the product title
    * beside it. Its width has to yield to the column.
    */
+  /**
+   * THE DEFECT THIS HOLDS, found by playing it at 673px on 2026-09-19: a hard
+   * 124px garment overflowed its own track and covered the first word of the
+   * product title beside it.
+   *
+   * THE MECHANISM CHANGED ON 2026-09-25 AND THE PROPERTY DID NOT. The hero was
+   * a fixed 124px column that narrowed to 96px under 900px, and the garment had
+   * to yield to it. It is now two equal `minmax(0, 1fr)` columns that collapse
+   * to one on a phone, and the garment is width:100% of whichever column it
+   * gets — so it cannot out-measure its track at any width. What is asserted is
+   * that nothing is given a fixed pixel width it could overflow with, which is
+   * the property, rather than the two magic numbers that used to deliver it.
+   */
   test('the garment gives up its column with the hero, rather than overflowing it', () => {
     const css = readFileSync(fileURLToPath(new URL('../ui/studio.css', import.meta.url)), 'utf8');
-    const rule = css.match(/body\.studio \.yad-shot \{([^}]*)\}/)[1];
-    expect(rule, 'a fixed width overflows the narrow hero column').toMatch(/max-width:\s*100%/);
-    // And the rule it has to yield to is still there to yield to.
-    expect(css).toMatch(/\.yad-hero \{ grid-template-columns: 96px/);
+    const shot = css.match(/body\.studio \.yad-shot \{([^}]*)\}/)[1];
+    expect(shot, 'a fixed width overflows the narrow hero column').toMatch(/max-width:\s*100%/);
+
+    // The hero's tracks may not be fixed pixels: a px track is a track the
+    // garment can be wider than.
+    const hero = css.match(/body\.studio \.yad-hero \{([^}]*)\}/)[1];
+    expect(hero, 'the hero still lays its columns out').toMatch(/grid-template-columns/);
+    expect(hero, 'a px track is one the garment can overflow').not.toMatch(/grid-template-columns:[^;]*\d+px/);
+    expect(hero).toMatch(/minmax\(0,\s*1fr\)/);
+
+    // And the garment is bound to the column rather than measuring itself.
+    expect(css).toMatch(/\.yad-shotcol \.yad-shot \{[^}]*width:\s*100%/);
+    expect(css).toMatch(/\.yad-shotcol \.yad-shot svg \{[^}]*width:\s*100%/);
+
+    // On a phone the two columns become one, so neither is half a screen wide.
+    expect(css, 'the hero no longer collapses to a single column')
+      .toMatch(/body\.studio \.yad-hero \{ grid-template-columns: minmax\(0, 1fr\); \}/);
   });
 
   test('the lit garment drops the dark plate it otherwise sits on', () => {
     const body = readFileSync(fileURLToPath(new URL('../ui/ad/render.js', import.meta.url)), 'utf8');
+    // `shape` joined `plate` in the options on 2026-09-25, when the garment
+    // started following the cell's product — so the match allows anything
+    // after the plate, and still insists the plate asks whether it is lit.
     expect(body, 'the garment is drawn without asking whether it is lit')
-      .toMatch(/garment\([^)]*\{\s*plate:\s*!drawn\.shots\s*\}\)/);
+      .toMatch(/garment\([^)]*\{\s*plate:\s*!drawn\.shots\b/);
     expect(body, 'the plate is no longer optional').toMatch(/plate\s*=\s*true/);
   });
 
@@ -823,8 +852,26 @@ describe('the shape the worth chart is drawn from', () => {
 });
 
 describe('it reads only the player\'s own account', () => {
-  test('the model holds nothing but the ad, the writer, the grades and the page', () => {
+  /**
+   * The point of pinning the whole key set: this model is handed to a drawing
+   * module, and a key that arrives quietly is a key a screen can show. What
+   * must never appear here is anything about a RIVAL, or anything round 0
+   * withholds.
+   *
+   * `product` joined on 2026-09-25 and is the player's own: their cell's name,
+   * price and garment (`content/product.js`). The price is the tier's own mean
+   * order value, which round 0 already shows the player on its first screen —
+   * so it reveals nothing that was hidden.
+   */
+  test('the model holds nothing but the ad, the writer, the grades, the page and the product', () => {
     expect(Object.keys(read(opened())).sort())
-      .toEqual(['descriptions', 'domain', 'grades', 'headlines', 'name', 'page', 'week', 'writer']);
+      .toEqual(['descriptions', 'domain', 'grades', 'headlines', 'name', 'page', 'product', 'week', 'writer']);
+  });
+
+  test('and the product is the player\'s own cell, not a fixed one for everybody', () => {
+    const model = read(opened());
+    expect(model.product.name).toBeTruthy();
+    expect(model.product.cell, 'the cell it resolved to is on the model, so a wrong shop can be traced')
+      .toMatch(/^(value|mid|premium)\|(performance|lifestyle)$/);
   });
 });

@@ -533,9 +533,20 @@ body.studio .yad-page { display: flex; flex-direction: column; gap: 18px; }
 body.studio .yad-page-top { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 22px; align-items: start; }
 body.studio .yad-sheet { overflow: hidden; border: 1px solid var(--studio-line-strong); border-radius: 14px; background: #141216; }
 body.studio .yad-bar { padding: 7px 12px; background: var(--studio-raised); font-size: 12px; color: var(--studio-muted); }
-body.studio .yad-hero { display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 14px; padding: 14px; }
+/* THE BUY BOX (2026-09-25, design option B). The hero was a 124px thumbnail
+   beside a short column, which read as a card ABOUT a product rather than a
+   page somebody buys from. Two columns now, split by a hairline: the picture
+   and its gallery on one side, everything a buyer decides with on the other.
+   No gap, because the rule between them is what does the dividing. */
+body.studio .yad-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; }
+body.studio .yad-shotcol { display: flex; flex-direction: column; gap: 7px; padding: 14px; }
+body.studio .yad-detail { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-left: 1px solid var(--studio-line); background: #16141A; }
+/* The picture fills its half now rather than sitting at a fixed 124px. */
+body.studio .yad-shotcol .yad-shot { width: 100%; }
+body.studio .yad-shotcol .yad-shot svg { width: 100%; height: auto; }
+/* Pressed by nobody: a picture of a button, so it takes no pointer and no tab. */
+body.studio .yad-cta { margin-top: 2px; padding: 9px 0; border-radius: 9px; background: var(--studio-red); color: var(--studio-on-red); font-size: 13px; font-weight: 700; text-align: center; pointer-events: none; user-select: none; }
 body.studio .yad-hero svg { border-radius: 9px; }
-body.studio .yad-detail { display: flex; flex-direction: column; gap: 7px; }
 body.studio .yad-product { font-size: 14px; font-weight: 700; line-height: 1.25; }
 body.studio .yad-price { font: 800 19px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 body.studio .yad-reviews { display: flex; align-items: center; gap: 7px; }
@@ -553,7 +564,13 @@ body.studio .yad-chart-bar.on { background: var(--studio-text); }
 
 /* Below the `faster` rung the page is still loading: the text it has not
    painted yet reads as placeholder bars, and the garment sits unlit. */
+/* The price joined the placeholders on 2026-09-25, when the page started
+   carrying one. A page too slow to paint shows its name as a grey bar and had
+   been showing its price in full beside it — the one readable thing on an
+   unfinished page, which is the opposite of what this state is for. */
 body.studio .yad-sheet.slow .yad-product,
+body.studio .yad-sheet.slow .yad-price,
+body.studio .yad-sheet.slow .yad-cta,
 body.studio .yad-sheet.slow .yad-size { color: transparent; background: #2A262F; border-radius: 4px; }
 body.studio .yad-sheet.slow .yad-size { border-color: transparent; }
 body.studio .yad-sheet.slow .yad-shot { opacity: 0.45; }
@@ -701,7 +718,10 @@ body.studio .yad-quote { margin: 0; font-size: 14px; line-height: 1.5; color: va
 @media (max-width: 900px) {
   body.studio .yad-row, body.studio .yad-page-top { grid-template-columns: minmax(0, 1fr); }
   /* The garment gives up its column before the words do. */
-  body.studio .yad-hero { grid-template-columns: 96px minmax(0, 1fr); }
+  /* One column on a phone: the buy box stacks under the picture, as every
+     real product page does at this width. The divider becomes a top rule. */
+  body.studio .yad-hero { grid-template-columns: minmax(0, 1fr); }
+  body.studio .yad-detail { border-left: 0; border-top: 1px solid var(--studio-line); }
   body.studio .yad-hero svg { width: 96px; height: auto; }
 }
 

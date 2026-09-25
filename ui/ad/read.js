@@ -16,6 +16,7 @@
  */
 
 import { TOTAL_ROUNDS } from '../../engine/constants.js';
+import { productFor } from '../../content/product.js';
 import { writerTier, isDiy } from '../../content/writers.js';
 import { effectiveGrades } from '../decisions.js';
 import { pageShape } from '../landing-page.js';
@@ -424,7 +425,7 @@ export function worthShape(worth, top) {
  *   grades: Array<{key: string, value: number, later: {value: number, week: number, why: string}|null}>,
  *   page: {description: string, strips: object[]}}}
  */
-export function adModel({ draft, creative, name, domain }) {
+export function adModel({ draft, creative, name, domain, position = null }) {
   const ad = draft.adGroups[0]?.ad ?? { headlines: [], descriptions: [], landingPageDescription: '' };
   // After the last week the draft looks at a week that never runs.
   const week = Math.min(draft.round, TOTAL_ROUNDS);
@@ -446,6 +447,11 @@ export function adModel({ draft, creative, name, domain }) {
     domain,
     headlines: [...ad.headlines],
     descriptions: [...ad.descriptions],
+    // WHAT THE SHOP SELLS, from the player's own cell (content/product.js).
+    // The page used to sell one fixed product to all nine brands in all six
+    // cells, on the screen that is supposed to be YOUR shop — after round 0
+    // spends five steps teaching that the cell decides everything.
+    product: productFor(position ? `${position.price}|${position.purpose}` : ''),
     writer: { id: tierId, label: tier.label, pricePaise: tier.pricePaise, hired: !isDiy(tierId) },
     week,
     grades: now ? PARTS.map((key) => ({ key, value: now[key], later: firstChange(draft, creative, key, now[key], week) })) : [],

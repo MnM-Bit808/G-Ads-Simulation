@@ -97,14 +97,35 @@ export const AD = Object.freeze({
   // which round 0 writes from ALL of it and the grader scores from week 1, and
   // the site work's points from the page's own capital (`landingPageBonus`). A
   // row's grade points are the second road only, and say so.
-  // The page's own furniture, with no price on it. The one it was first drawn
-  // with came from `businessFor`, which the R3 guard in tests/ui.test.js refuses:
-  // it blends the affinities and conversion multipliers 16.1 withholds from every
-  // viewer. A price on a drawn page is decoration, and decoration is not worth
-  // reaching into a withheld block for. The stars carry no count either — an
-  // invented "412 reviews" beside real grades is read as a real one.
-  product: line('label', 'High-waisted training leggings'),
+  // THE PRODUCT AND ITS PRICE MOVED TO `content/product.js` ON 2026-09-25, and
+  // the fixed line that stood here is gone. It read "High-waisted training
+  // leggings" for all nine brands in all six cells — one shop for everybody, on
+  // the screen that is meant to be YOUR shop, after round 0 spends five steps
+  // teaching that the cell decides what a click is worth.
+  //
+  // THE PAGE NOW CARRIES A PRICE, WHICH THIS COMMENT USED TO REFUSE, so the
+  // reason it refused is worth keeping. The price first drawn here came from
+  // `businessFor`, which the R3 guard in tests/ui.test.js forbids `ui/` to
+  // touch: it blends `priceAffinity` and `convMultiplier`, which 16.1 withholds
+  // from every viewer including the advertiser they favour. That objection
+  // still stands and nothing reaches there — the figure is the tier's own
+  // `POSITION_ECONOMICS.aovMeanPaise`, the same ₹1,200 / ₹2,400 / ₹4,800 round
+  // 0 puts on its first screen.
+  //
+  // What changed is the OTHER half of the old reasoning, "a price on a drawn
+  // page is decoration". True while every cell sold the same thing, and a
+  // number with nothing to say. Now the product follows the cell, the price is
+  // what tells "Everyday gym leggings, ₹1,200" from "Merino lounge set,
+  // ₹4,800" — the positioning model, on the page teaching it.
+  //
+  // The stars still carry no count: an invented "412 reviews" beside real
+  // grades is read as a real one.
   reviewCount: line('label', 'reviews'),
+  // DRAWN AND INERT, and the only control in the game that does nothing. A
+  // product page without one does not read as a page anyone buys from; a
+  // working one would be a promise this game cannot keep. It is aria-hidden,
+  // so it is a picture of a button rather than a button that lies.
+  addToBag: line('label', 'Add to bag'),
   sizeChart: line('label', 'Size chart'),
 
   // EACH RUNG THE PAGE DRAWS, named where it appears (the owner, 2026-09-19:
