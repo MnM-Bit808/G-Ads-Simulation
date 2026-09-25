@@ -403,7 +403,11 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
       progress.dataset.replay = String(m.round);
       box.append(progress);
     } else {
-      const said = el('div', 'rs-answer');
+      // NOT `rs-answer`: that name belongs to the playtest question's
+      // textarea, and CSS does not know a div from a textarea. This block was
+      // taking the input's border, radius and fill, so a read-only answer was
+      // drawn as something you could type into (2026-09-25).
+      const said = el('div', 'rs-said');
       said.append(el('strong', null, answer.window), el('p', 'rs-read', answer.withoutIt));
       if (answer.capital) said.append(el('p', 'rs-read', answer.capital));
       said.append(para('rs-sub', DEBRIEF.rivalsHeld(), DEBRIEF.rivalsHeld));

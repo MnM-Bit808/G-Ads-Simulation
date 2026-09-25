@@ -83,9 +83,17 @@ body.studio {
      `--studio-card-pad-tight` rather than by inventing a fourth padding. */
   --studio-card-pad: 16px 20px;
   --studio-card-pad-tight: 14px 12px 12px;
-  --studio-card-gap: 10px;
+  /* 12, not 10: the rhythm inside a card is a 4px scale, so the gap between
+     its heading, its figures and its reading is one step rather than a number
+     nobody picked. */
+  --studio-card-gap: 12px;
   --studio-card-edge: 1px solid var(--studio-line);
-  --studio-radius: 20px;
+  /* 16, from 20. The card radius was ALREADY consistent — 20 for a card, 14
+     for a surface inside one, 12 for a control — so this is the one change in
+     the pass that is taste rather than a fix, made because the owner chose it
+     off the drawing (design/sophistication/Scale.html, option B). Said plainly
+     so nobody later reads it as a correction. */
+  --studio-radius: 16px;
   /* The uppercase micro-label over a figure: identical in Results, Rivals and
      Your money, and the same plus one property in Returns and What people
      typed. It is one object.
@@ -98,6 +106,30 @@ body.studio {
   --studio-micro-size: 11px;
   --studio-micro-weight: 700;
   --studio-micro-track: 0.06em;
+
+  /* --- THE SCALE (the owner chose B, 2026-09-25) ---------------------------
+     The stylesheet carried 25 distinct font sizes, seven of them used once or
+     twice: 10.5, 12.5, 13.5, 17, 19, 22, 34. A size used once is drift, not a
+     decision, and two of those seven were added the same afternoon while
+     fixing drift in Everyone's books.
+
+     These are the steps. A rule reaching past them is either a mistake or
+     wants a sentence saying why. */
+  --t-micro: 10px;
+  --t-label: 11px;
+  --t-small: 12px;
+  --t-body: 13px;
+  --t-body-lg: 14px;
+  --t-lead: 15px;
+  /* The guide reads as prose at length, which wants a longer measure and a
+     bigger size than a card's figures. Its own step, deliberately. */
+  --t-read: 17px;
+
+  /* THE BIG FIGURE OVER A LABEL, which every section's strip draws and which
+     was FOUR SIZES for one object: 24 in Where and when, 26 in Rivals, 28 in
+     Your week and Results, 30 in Returns. Nobody chose that. 28 is the
+     majority and the median of the five. */
+  --studio-figure: 28px;
 
   /* Today's cards read these names. Restating them re-themes every card that
      has not been rebuilt yet, with no change to style.css. Losses are amber:
@@ -263,7 +295,7 @@ body.studio .studio-menu { display: none; width: 40px; height: 40px; padding: 0;
 body.studio .studio-body { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 40px 28px; }
 body.studio .studio-section.card { padding: 0; border: 0; border-radius: 0; background: none; }
 body.studio .studio-section > h2.studio-title { margin: 0 0 16px; font: 800 48px/0.95 var(--studio-display); letter-spacing: -0.025em; text-transform: none; color: var(--studio-text); }
-body.studio .studio-panel { max-width: 620px; margin: 0; padding: 22px 24px; border: 1px dashed var(--studio-line-strong); border-radius: 20px; background: var(--studio-card); font-size: 15px; line-height: 1.55; color: var(--studio-soft); }
+body.studio .studio-panel { max-width: 620px; margin: 0; padding: 22px 24px; border: 1px dashed var(--studio-line-strong); border-radius: var(--studio-radius); background: var(--studio-card); font-size: 15px; line-height: 1.55; color: var(--studio-soft); }
 
 /* A section's cards, one to a row at the section's full width. The classic page
    pairs them in a four-column grid, which in a section of one to five cards left
@@ -335,7 +367,7 @@ body.studio .kpill { padding: 4px 9px; border: 1px solid var(--studio-line-stron
 body.studio .kpill[aria-checked="true"] { border-color: var(--studio-red); background: var(--studio-red); color: var(--studio-on-red); }
 
 body.studio .kgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-body.studio .kcard { position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px 16px 16px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .kcard { position: relative; display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 14px 16px 16px; border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .kcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; height: 26px; }
 body.studio .kcard-left, body.studio .kcard-right { display: flex; align-items: center; gap: 6px; }
 body.studio .knew { padding: 2px 8px; border: 1px solid var(--studio-line-strong); border-radius: 999px; font-size: 11px; font-weight: 700; color: var(--studio-muted); }
@@ -426,7 +458,7 @@ body.studio .rating-average { color: var(--studio-muted); }
 body.studio .rating-below { color: var(--studio-amber); }
 body.studio .kqs-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
 body.studio .kback { align-self: flex-start; margin-top: auto; padding: 0; background: none; color: var(--studio-text); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
-body.studio .kadd { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 280px; border: 2px dashed var(--studio-line-strong); border-radius: 20px; background: none; color: var(--studio-muted); }
+body.studio .kadd { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 280px; border: 2px dashed var(--studio-line-strong); border-radius: var(--studio-radius); background: none; color: var(--studio-muted); }
 body.studio .kadd strong { color: var(--studio-text); font: 700 16px/1.2 var(--studio-display); }
 body.studio .kadd span { font-size: 12px; font-weight: 400; }
 
@@ -493,7 +525,7 @@ body.studio .kswitch { gap: 2px; padding: 3px; border-radius: 999px; background:
 body.studio .kswitch .kpill { padding: 6px 14px; border: 0; font-size: 13px; }
 body.studio .kadjust { height: 38px; padding: 0 16px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-text); font-size: 14px; }
 
-body.studio .kpanel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.95fr); gap: 28px; align-items: center; margin-bottom: 16px; padding: 16px 22px; border: 1px solid var(--studio-panel-edge); border-radius: 20px; background: var(--studio-panel); color: #F3EEEA; }
+body.studio .kpanel { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.95fr); gap: 28px; align-items: center; margin-bottom: 16px; padding: 16px 22px; border: 1px solid var(--studio-panel-edge); border-radius: var(--studio-radius); background: var(--studio-panel); color: #F3EEEA; }
 body.studio .kpanel h3 { margin: 2px 0 4px; font: 800 24px/1.1 var(--studio-display); }
 body.studio .kpanel p { margin: 0; font-size: 13px; line-height: 1.45; color: #D9D1CB; }
 body.studio .kpanel .kpanel-eyebrow, body.studio .kpanel .kpanel-small { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A8989A; }
@@ -542,8 +574,8 @@ body.studio .yad h3 { margin: 0 0 8px; font: 700 16px/1.2 var(--studio-display);
 body.studio .yad-intro { max-width: 720px; margin: 0 0 18px; font-size: 16px; line-height: 1.5; color: var(--studio-soft); }
 body.studio .yad-preview { max-width: 640px; margin-bottom: 16px; }
 body.studio .yad-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 14px; margin-bottom: 14px; }
-body.studio .yad-card { padding: 16px 18px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
-body.studio .yad-writer { margin: 0; font: 800 20px/1.2 var(--studio-display); }
+body.studio .yad-card { padding: var(--studio-card-pad); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); }
+body.studio .yad-writer { margin: 0; font: 800 20px/1.1 var(--studio-display); }
 body.studio .yad-small { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
 body.studio .yad-note { margin: 10px 0 0; font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
 body.studio .yad-grades { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; gap: 10px 12px; align-items: center; margin-bottom: 8px; font-size: 13px; }
@@ -792,7 +824,7 @@ body.studio .ww-times { font-size: 12px; color: var(--studio-soft); font-variant
 body.studio .ww-row[data-tone="even"] .ww-setting { color: var(--studio-muted); }
 body.studio .ww-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 22px; }
 body.studio .ww-figure { display: flex; align-items: baseline; gap: 6px; }
-body.studio .ww-figure strong { font: 800 24px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .ww-figure strong { font: 800 var(--studio-figure)/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 body.studio .ww-figure .ww-paid { color: var(--studio-soft); }
 body.studio .ww-figure span { font-size: 12px; color: var(--studio-muted); }
 body.studio .ww-figures .ww-small { flex: 1 1 260px; text-align: right; }
@@ -814,7 +846,7 @@ body.studio .ww-map { display: flex; flex-direction: column; gap: 10px; }
 body.studio .ww-map .r0-map { max-width: 460px; }
 
 /* hours of the day: each block as wide as its hours, as tall as the bid */
-body.studio .ww-day { display: grid; grid-template-columns: 64px minmax(0, 1fr); padding: 20px 24px 16px 12px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .ww-day { display: grid; grid-template-columns: 64px minmax(0, 1fr); padding: 20px 24px 16px 12px; border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .ww-yscale { position: relative; height: 280px; }
 body.studio .ww-yscale span { position: absolute; right: 12px; font-size: 11px; color: var(--studio-muted); white-space: nowrap; transform: translateY(50%); }
 body.studio .ww-yscale .ww-y-even { font-size: 12px; font-weight: 700; color: var(--studio-text); }
@@ -883,15 +915,15 @@ body.studio .ww.dragging :is(.ww-bar, .ww-read, .ww-fill, .ww-knob) { transition
 /* Sized by the section's own width, as Where and when is. */
 body.studio .yw { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
 body.studio .yw h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
-body.studio .yw-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px 14px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .yw-card { display: flex; flex-direction: column; gap: var(--studio-card-gap); min-width: 0; padding: var(--studio-card-pad); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .yw-sub { margin: 0; font-size: 12px; color: var(--studio-muted); }
 body.studio .yw-note { max-width: 760px; margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
 
 /* the week's six figures */
-body.studio .yw-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: 16px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .yw-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: var(--studio-card-pad); border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .yw-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 body.studio .yw-label { font-size: 12px; color: var(--studio-muted); }
-body.studio .yw-big { font: 800 28px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .yw-big { font: 800 var(--studio-figure)/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 /* Money lost is amber, with its minus sign, everywhere in the Studio. */
 body.studio .yw-big.loss { color: var(--studio-amber); }
 body.studio .yw-stat .yw-sub { font-variant-numeric: tabular-nums; }
@@ -1071,7 +1103,7 @@ body.studio .wm-chip[aria-pressed="true"] { border-color: var(--studio-text); ba
 body.studio .wm-chip:disabled { border-color: #26232A; color: #68636B; cursor: not-allowed; }
 
 /* this week only: the one-off window, on the panel colour round 0 uses */
-body.studio .wm-window { display: flex; flex-direction: column; gap: 12px; padding: 18px 22px; border: 1px solid var(--studio-panel-edge); border-radius: 20px; background: var(--studio-panel); }
+body.studio .wm-window { display: flex; flex-direction: column; gap: 12px; padding: 18px 22px; border: 1px solid var(--studio-panel-edge); border-radius: var(--studio-radius); background: var(--studio-panel); }
 body.studio .wm-window .wm-head { justify-content: flex-start; }
 body.studio .wm-window h3 { font: 800 22px/1.1 var(--studio-display); }
 body.studio .wm-window .wm-read { max-width: 900px; }
@@ -1176,7 +1208,7 @@ body.studio .wr-label { display: flex; align-items: center; gap: 6px; font-size:
    the five figures below stay on one line (measured 18.3px against 16.5). */
 body.studio .wr-label { min-height: 17px; }
 body.studio .wr-label .why { line-height: 1; letter-spacing: 0; text-transform: none; }
-body.studio .wr-value { font: 800 30px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .wr-value { font: 800 var(--studio-figure)/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 
 /* week by week */
 body.studio .wr-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12px; color: var(--studio-muted); }
@@ -1250,7 +1282,7 @@ body.studio .rv-small { font-size: 12px; line-height: 1.45; color: var(--studio-
 body.studio .rv-read { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
 body.studio .rv-label { font-size: var(--studio-micro-size); font-weight: var(--studio-micro-weight); letter-spacing: var(--studio-micro-track); text-transform: uppercase; color: var(--studio-faint); }
 body.studio .rv-num { font-variant-numeric: tabular-nums; }
-body.studio .rv-value { font: 800 26px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .rv-value { font: 800 var(--studio-figure)/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 
 /* the market, and you */
 body.studio .rv-figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; }
@@ -1263,7 +1295,11 @@ body.studio .rv-grid { display: grid; grid-template-columns: repeat(2, minmax(0,
 body.studio .rv-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 body.studio .rv-meet { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: end; }
 body.studio .rv-big { display: flex; flex-direction: column; gap: 2px; }
-body.studio .rv-big .rv-value { font-size: 30px; }
+/* The rival card's headline overlap. It was 30px against the market strip's
+   26 — two pixels of difference says nothing to anyone, so it joins the one
+   figure size. If this card's subject should outrank a strip figure, that is a
+   hierarchy decision and wants a real step, not a near-miss. */
+body.studio .rv-big .rv-value { font-size: var(--studio-figure); }
 /* How often you met, a bar a week: past weeks grey, this week bone, weeks to
    come a bare line. */
 body.studio .rv-bars { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; align-items: end; height: 34px; border-bottom: 1px solid var(--studio-line-strong); }
@@ -1291,14 +1327,14 @@ body.studio .rv-track span { display: block; height: 100%; border-radius: 3px; b
 /* --- Results, after the last week (design/results/, the owner's choice 2026-09-15) --- */
 body.studio .rs { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
 body.studio .rs h3 { margin: 0; font: 700 20px/1.2 var(--studio-display); }
-body.studio .rs h4 { margin: 0; font: 800 20px/1.15 var(--studio-display); }
+body.studio .rs h4 { margin: 0; font: 800 20px/1.1 var(--studio-display); }
 body.studio .rs-card { display: flex; flex-direction: column; gap: var(--studio-card-gap); min-width: 0; padding: var(--studio-card-pad); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .rs-label { font-size: var(--studio-micro-size); font-weight: var(--studio-micro-weight); letter-spacing: var(--studio-micro-track); text-transform: uppercase; color: var(--studio-faint); }
 body.studio .rs-sub { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
 body.studio .rs-faint { font-size: 11px; color: var(--studio-faint); }
 body.studio .rs-read { margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
 body.studio .rs-quiet { color: var(--studio-muted); font-variant-numeric: tabular-nums; }
-body.studio .rs-big { font: 800 28px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+body.studio .rs-big { font: 800 var(--studio-figure)/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 /* Money lost is amber, with its minus sign, everywhere in the Studio. */
 body.studio :is(.rs-big, .rs-value, .rs-money, .rs-then strong).loss { color: var(--studio-amber); }
 body.studio .rs-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
@@ -1315,7 +1351,7 @@ body.studio .rs-pairs { display: grid; grid-template-columns: repeat(2, minmax(0
 body.studio .rs-pairs.wide { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
 
 /* Twelve weeks: the figures, then every week against its first report. */
-body.studio .rs-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rs-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: var(--studio-card-pad); border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .rs-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 body.studio .rs-stat .rs-label { font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--studio-muted); }
 body.studio .rs-stat .rs-sub { font-variant-numeric: tabular-nums; }
@@ -1352,7 +1388,7 @@ body.studio .rs-did .rs-dot { transform: translateY(-2px); }
 
 /* What you learned: the lessons, the weeks you changed something, the budget. */
 body.studio .rs-lessons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-body.studio .rs-lesson { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rs-lesson { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .rs-lesson.untried { border-style: dashed; border-color: #4A454F; }
 body.studio .rs-lesson h4 { font-size: 16px; font-weight: 700; }
 body.studio .rs-shares { display: flex; flex-direction: column; gap: 6px; }
@@ -1365,7 +1401,7 @@ body.studio .rs-moments { display: grid; grid-template-columns: repeat(2, minmax
 body.studio .rs-compare { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 4px 12px; font-size: 13px; font-variant-numeric: tabular-nums; }
 body.studio .rs-compare > :nth-child(3n + 2), body.studio .rs-compare > :nth-child(3n) { text-align: right; }
 body.studio .rs-compare .rs-label { font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; }
-body.studio .rs-answer { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 13px; }
+body.studio .rs-said { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: var(--t-body); }
 body.studio .rs-weeks { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; max-width: 720px; }
 body.studio .rs-weekcell { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--studio-muted); }
 body.studio :is(.rs-weekcell, .rs-legend) i { display: block; box-sizing: border-box; border-radius: 4px; }
@@ -1412,7 +1448,7 @@ body.studio .rs-arrive { transition: opacity 200ms var(--studio-ease), transform
 
 /* Everyone's books: the one place R3 is lifted. */
 body.studio .rs-warning { display: flex; flex-direction: column; gap: 6px; max-width: 880px; padding: 14px 18px; border: 1px solid var(--studio-panel-edge); border-radius: 16px; background: var(--studio-panel); }
-body.studio .rs-warning strong { font: 800 18px/1.2 var(--studio-display); }
+body.studio .rs-warning strong { font: 800 18px/1.1 var(--studio-display); }
 /* Five columns the width of the section can always hold, so the bar is never
    the thing that gets dropped (the owner chose B, 2026-09-25). */
 body.studio .rs-item { border-top: 1px solid var(--studio-raised); }
@@ -1425,8 +1461,8 @@ body.studio .rs-item.you .rs-brand:hover { background: #221014; }
 body.studio .rs-brand > :nth-child(n + 4) { text-align: right; }
 body.studio .rs-detail { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px 14px; padding: 4px 6px 16px 48px; }
 body.studio .rs-fig { display: flex; flex-direction: column; min-width: 0; }
-body.studio .rs-figkey { font-size: 10.5px; color: var(--studio-faint); }
-body.studio .rs-figval { font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+body.studio .rs-figkey { font-size: var(--t-label); color: var(--studio-faint); }
+body.studio .rs-figval { font-size: var(--t-body-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
 body.studio .rs-figval.faint { color: var(--studio-faint); font-weight: 400; }
 body.studio .rs-rank { font: 800 18px/1 var(--studio-display); color: var(--studio-muted); font-variant-numeric: tabular-nums; }
 body.studio .rs-brandname { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 15px; white-space: nowrap; }
@@ -1502,7 +1538,7 @@ body.studio .gb-real { max-width: 760px; margin: 0; padding-left: 14px; border-l
 
 /* the contents: a card a chapter, its first sentence cut at three lines */
 body.studio .gb-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-body.studio .gb-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 16px 18px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); color: var(--studio-text); text-align: left; }
+body.studio .gb-card { display: flex; flex-direction: column; gap: var(--studio-card-gap); min-width: 0; padding: var(--studio-card-pad); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); color: var(--studio-text); text-align: left; }
 body.studio .gb-card:hover { border-color: var(--studio-line-strong); }
 body.studio .gb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 body.studio .gb-num { font: 800 22px/1 var(--studio-display); font-variant-numeric: tabular-nums; color: var(--studio-faint); }
@@ -1516,7 +1552,7 @@ body.studio .gb-explains b { font-weight: 700; color: var(--studio-text); }
 body.studio .gb-show { padding: 7px 14px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; font-size: 13px; font-weight: 600; color: var(--studio-soft); }
 body.studio .gb-show:hover { border-color: var(--studio-faint); color: var(--studio-text); }
 body.studio .gb-halves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
-body.studio .gb-half { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .gb-half { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .gb-half h3 { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
 body.studio .gb-half p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--studio-soft); }
 body.studio .gb-sources { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px solid var(--studio-line); font-size: 12px; line-height: 1.4; }
@@ -1598,18 +1634,18 @@ body.studio .r0-figure { margin: 0; font: 800 30px/1.1 var(--studio-display); fo
    player's own colour and this panel is what a click is worth TO YOU — and the
    border goes, so the hierarchy comes from the sum's size instead of a third
    simultaneous shout. */
-body.studio .r0-panel { margin-bottom: 14px; padding: 20px 24px; border: 0; border-radius: 20px; background: var(--studio-panel); color: #F3EEEA; }
+body.studio .r0-panel { margin-bottom: 14px; padding: 20px 24px; border: 0; border-radius: var(--studio-radius); background: var(--studio-panel); color: #F3EEEA; }
 body.studio .r0-panel p { margin: 0 0 6px; font-size: 14px; line-height: 1.5; color: #D9D1CB; }
 body.studio .r0-panel .r0-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #A8989A; }
 body.studio .r0-panel .r0-formula { font-size: 13px; color: #A8989A; }
 /* The most important number on step 1, and now the largest thing on it after
    the title. It was 22px inside a panel that shouted in colour instead. */
-body.studio .r0-panel .r0-sum { font: 800 28px/1.2 var(--studio-display); color: #F3EEEA; letter-spacing: -0.015em; }
+body.studio .r0-panel .r0-sum { font: 800 28px/1.1 var(--studio-display); color: #F3EEEA; letter-spacing: -0.015em; }
 body.studio .r0-told { margin-bottom: 14px; }
 body.studio .r0-hints { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 16px; margin: 0; }
 body.studio .r0-hints dt { font-size: 13px; font-weight: 700; color: var(--studio-text); }
 body.studio .r0-hints dd { margin: 0; font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
-body.studio .r0-where { padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .r0-where { padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .r0-where-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
 /* The map carries the one idea on this card — where the searches are — and had
    near-parity with the list beside it, at 1.1 against 1. Given the larger half
@@ -1753,7 +1789,7 @@ body.studio .r0-field { display: grid; grid-template-columns: 110px minmax(0, 1f
 body.studio .r0-count { font-size: 12px; text-align: right; color: var(--studio-muted); font-variant-numeric: tabular-nums; }
 body.studio .r0-count.over { color: var(--studio-amber); }
 body.studio .r0-problems { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.45; color: var(--studio-amber); }
-body.studio .r0-grades { padding: 18px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .r0-grades { padding: 18px 20px; border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .r0-grade { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin: 12px 0; }
 body.studio .r0-grade-name { font-weight: 700; }
 body.studio .r0-grade .r0-small { grid-column: 1; }
@@ -1780,7 +1816,7 @@ body.studio .r0-seg.kept, body.studio .r0-month-legend .kept .r0-key { backgroun
 body.studio .r0-month-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: #D9D1CB; }
 body.studio .r0-month-legend li { display: flex; align-items: center; gap: 6px; }
 body.studio .r0-key { width: 8px; height: 8px; border-radius: 2px; }
-body.studio .r0-capital { margin-bottom: 14px; padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .r0-capital { margin-bottom: 14px; padding: 18px 22px; border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .r0-kept { display: flex; align-items: baseline; gap: 8px; margin: 0 0 12px; font-size: 14px; color: var(--studio-muted); }
 body.studio .r0-kept strong { font: 800 24px/1 var(--studio-display); color: var(--studio-text); }
 body.studio .r0-lp { margin-bottom: 14px; padding: 12px 16px; border: 1px solid var(--studio-line-strong); border-radius: 14px; }
@@ -1914,7 +1950,7 @@ body.studio .pt-field textarea {
 body.studio .pt-field textarea:focus-visible {
   outline: 2px solid var(--studio-red-text); outline-offset: 2px;
 }
-body.studio .pt-note { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--studio-muted); }
+body.studio .pt-note { margin: 0; font-size: var(--t-body); line-height: 1.6; color: var(--studio-muted); }
 body.studio .pt-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 body.studio .pt-go {
   background: var(--studio-red); color: var(--studio-on-red);
@@ -2061,10 +2097,12 @@ body.studio .fr-kicker {
   font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--studio-faint);
 }
-body.studio .fr-say { font-size: 19px; line-height: 1.55; margin: 0; text-wrap: pretty; }
+body.studio .fr-say { font-size: 20px; line-height: 1.55; margin: 0; text-wrap: pretty; }
 body.studio .fr-note,
-body.studio .fr-lede { font-size: 13.5px; line-height: 1.6; color: var(--studio-muted); margin: 0; }
-body.studio .fr-lede { font-size: 15px; color: var(--studio-soft); }
+/* One rule. It was two adjacent ones, the second overriding the first's size
+   and colour, so the first's font-size had been dead for as long as both
+   existed — and was still dead after the scale pass rewrote it. */
+body.studio .fr-lede { font-size: var(--t-lead); line-height: 1.6; color: var(--studio-soft); margin: 0; }
 
 /* The terms the beat teaches. */
 body.studio .fr-words { display: flex; gap: 8px; flex-wrap: wrap; }

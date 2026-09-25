@@ -297,3 +297,71 @@ describe('a row in the section list keeps the height its title needs', () => {
       .toMatch(/overflow-y:\s*auto/);
   });
 });
+
+/**
+ * THE STUDIO HAS A SCALE, AND DRIFT IS HOW IT LOST THE LAST ONE (I48).
+ *
+ * The stylesheet carried 25 distinct font sizes. Seven were used once or
+ * twice — 10.5, 12.5, 13.5, 17, 19, 22, 34 — and two of those seven were
+ * added the same afternoon they were found, while fixing a different kind of
+ * drift in Everyone's books. A size used once is not a decision.
+ *
+ * The same object told the same story: the big figure over a label was 24px
+ * in Where and when, 26 in Rivals, 28 in Your week and Results, 30 in
+ * Returns. One object, five sections, four sizes.
+ *
+ * Text, because this suite cannot render. It catches the return of the exact
+ * values that were collapsed, not every future sin.
+ */
+describe('the Studio keeps one scale', () => {
+  const css = read('ui/studio.css');
+
+  test('the one-off sizes do not come back', () => {
+    const gone = ['10.5px', '12.5px', '13.5px'];
+    for (const size of gone) {
+      expect(css.includes(`font-size: ${size}`), `${size} is back`).toBe(false);
+    }
+  });
+
+  test('the big figure is one size, named once', () => {
+    expect(css).toMatch(/--studio-figure:\s*\d+px/);
+    // Every strip's figure reads the name rather than a number of its own.
+    for (const sel of ['.ww-figure strong', '.yw-big', '.wr-value', '.rv-value', '.rs-big']) {
+      const rule = css.split('\n').find((l) => l.startsWith(`body.studio ${sel} {`));
+      expect(rule, `${sel} has no rule`).toBeTruthy();
+      expect(rule, `${sel} sets its own figure size`).toContain('var(--studio-figure)');
+    }
+  });
+
+  test('a display heading has one line-height, and the page hero is the exception', () => {
+    const heights = [...css.matchAll(/font: 800 ([^;]*?)\/(\d(?:\.\d+)?) var\(--studio-display\)/g)]
+      .map((m) => ({ size: m[1], lh: m[2] }));
+    // `/1` is a figure sitting on its own baseline. Of the rest, headings are
+    // 1.1 — except the 48px page title, where a heading that size wants to be
+    // tighter than a heading half of it. A named exception, not a stray.
+    const rest = heights.filter((h) => h.lh !== '1');
+    const hero = rest.filter((h) => h.size === '48px');
+    expect(hero.map((h) => h.lh)).toEqual(['0.95']);
+    expect([...new Set(rest.filter((h) => h.size !== '48px').map((h) => h.lh))]).toEqual(['1.1']);
+  });
+
+  test('a card is one padding, one gap, one edge, one corner', () => {
+    for (const name of ['--studio-card-pad', '--studio-card-gap', '--studio-card-edge', '--studio-radius']) {
+      expect(css, `${name} is not declared`).toContain(`${name}:`);
+    }
+    /**
+     * Two cards are not section cards, and say so here rather than by
+     * drifting: `.door-card` is the whole screen before a game exists, and
+     * `.pt-card` is a 560px centred form. Both are standalone panels and are
+     * deliberately more generous than a card carrying figures.
+     */
+    const PANELS = ['door-card', 'pt-card'];
+    const rules = [...css.matchAll(/^body\.studio \.([a-z]+-card) \{([^}]*)\}/gm)]
+      .filter(([, name]) => !PANELS.includes(name));
+    expect(rules.length).toBeGreaterThan(5);
+    for (const [, name, body] of rules) {
+      expect(body, `.${name} sets its own padding`).toMatch(/padding: var\(--studio-card-pad(-tight)?\)/);
+      expect(body, `.${name} sets its own corner`).toMatch(/border-radius: var\(--studio-radius\)/);
+    }
+  });
+});

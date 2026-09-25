@@ -7069,3 +7069,79 @@ sideways: on the books it is the shell's own end-of-game footer, whose two
 buttons do not wrap; on Twelve weeks it is `.rs-chart`, which is deliberately
 640px inside a sideways-scrolling container but overflows the page as well.
 Both predate this and are left alone.
+
+### I48. The Studio had one design system and nine implementations — `FIXED` (2026-09-25)
+
+**The owner asked for the simulation to look more sophisticated.** What the
+measurement found was not a missing visual language but the one already there,
+written out between five and nine times and drifting a few pixels each way.
+
+| object | implementations | how they differed |
+|---|---|---|
+| card | 10 | four byte-identical; the rest `16px 20px` / `16px 18px` / `14px 12px 12px` / `16px 20px 14px` |
+| the big figure over a label | 5 | **24px** (Where and when), **26** (Rivals), **28** (Your week, Results), **30** (Returns) |
+| uppercase micro-label | 5 | three byte-identical, two the same plus one property |
+| bar or track | 20 | one per section |
+| font sizes | **25 distinct** | seven used once or twice: 10.5, 12.5, 13.5, 17, 19, 22, 34 |
+| display heading line-height | 3 | the same size at `/1.1`, `/1.15` and `/1.2` |
+
+**The cause is recorded in `HANDOVER.md` already:** each section was rebuilt
+beside the classic page one at a time, so each grew its own copy of the same
+parts. Nothing was wrong; nothing was shared.
+
+**Why near-consistency is the problem.** Full consistency reads as designed.
+Deliberate variation reads as designed. Two pixels of padding that nobody
+chose reads as careless, and the reading is correct — nobody did choose it.
+
+**What was done, in two steps, the first proved to change nothing.**
+
+- **Names for what was already identical.** Ten rules now read
+  `--studio-card-pad`, `--studio-card-gap`, `--studio-card-edge`,
+  `--studio-radius` and the micro-label's three. Verified by resolving every
+  touched class in the browser against a probe carrying the old declarations:
+  identical padding, radius, border, gap, size, weight, letter-spacing,
+  transform, colour and **line box**.
+- **One scale.** The seven one-off sizes moved to their nearest step. The big
+  figure became one size at **28px**, the majority and the median of the five.
+  Display headings settled on **one line-height, 1.1**, the majority of eleven.
+  Every card surface — twenty-two of them — took one padding, gap, edge and
+  corner.
+
+**THE ONE CHANGE THAT IS TASTE AND NOT A FIX**, said plainly so nobody later
+reads it as a correction: the card corner went **20px to 16px** and the card
+gap **10px to 12px**. The radius was already consistent (20 card, 14 inner
+surface, 12 control), so this is not a drift being removed — it is the look the
+owner chose off `design/sophistication/Scale.html`, option B.
+
+**Named exceptions, which is the difference between a system and a rule.**
+`--studio-card-pad-tight` exists so What people typed's dense table says it
+needs a denser card rather than inventing a fourth padding. The 48px page title
+keeps `/0.95`, because a heading that size wants to be tighter than one half of
+it. `.door-card` and `.pt-card` are standalone panels — a full screen before a
+game exists, and a 560px centred form — and are deliberately more generous than
+a card carrying figures. The guide keeps `--t-read: 17px` because it is read as
+prose at length.
+
+**Two defects fell out of the audit.**
+
+- **`.rs-answer` was two different components under one name** — a `div`
+  showing a counterfactual answer and the playtest question's `textarea`. CSS
+  does not know one from the other, so the read-only answer was drawn with the
+  input's border, radius and dark fill: something you could not type into,
+  dressed as something you could. The div is `.rs-said` now.
+- **`.fr-lede` was two adjacent rules**, the second overriding the first's size
+  and colour, so the first's `font-size` had been dead for as long as both
+  existed — and was still dead after the scale pass rewrote it. One rule now.
+
+**What the guard holds** (`tests/sections.test.js`): the collapsed one-off
+sizes do not return; every strip's figure reads `--studio-figure` rather than a
+number of its own; display headings have one line-height, with the 48px hero
+named as the exception; and every section card takes the card padding and
+corner, with the two panels named. The suite cannot render, so this is text —
+and text is what would have caught the drift in the first place.
+
+**What is deliberately NOT done.** The twenty bar tracks and twenty-nine figure
+classes are still twenty and twenty-nine. Consolidating them means moving card,
+figure strip and bar into `ui/kit/` as components every section calls, which
+touches all nine sections and needs each replayed. That is the next step and
+was scoped as such, not forgotten.

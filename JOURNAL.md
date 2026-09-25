@@ -42,6 +42,43 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-25, last of the day: the Studio got one scale
+
+**I48.** "Make it look more sophisticated" turned out to be measurable, and the
+measurement said something more useful than a visual brief would have: there is
+one design system here, implemented between five and nine times. Ten card
+classes, four of them byte-identical and the rest differing only in padding.
+**Twenty-five distinct font sizes**, seven used once or twice. The big figure
+over a label at **24, 26, 28 and 30** — one object, five sections, four sizes.
+Display headings at three line-heights for the same size.
+
+**So the pass was consolidation, not decoration**, and that is worth saying
+because the request could easily have been answered with gradients.
+
+**Two steps, and the first was proved to change nothing** by resolving every
+touched class in the browser against a probe carrying the old declarations.
+That check earned its keep twice in ten minutes: writing the micro-label token
+as a `font` shorthand also set line-height, which those rules had always
+inherited, taking every label from a 16.5px line box to 13.2px — a redesign
+wearing a refactor's clothes. And the fix's own comment was then pasted outside
+its comment block, silently killing every declaration after it. Neither was
+visible by looking; both were obvious by measuring.
+
+**One change in the pass is taste and is labelled as such:** the card corner
+20px → 16px and the gap 10px → 12px, chosen by the owner off the drawing. The
+radius was already consistent, so that one is not a drift being removed.
+
+**Two defects fell out of the audit.** `.rs-answer` was two different
+components under one name — a read-only answer `div` and the playtest
+`textarea` — so the answer was drawn with the input's border, radius and dark
+fill. And `.fr-lede` was two adjacent rules, the second overriding the first,
+whose `font-size` had been dead the whole time and was still dead after the
+scale pass rewrote it.
+
+**Left undone on purpose:** twenty bar tracks and twenty-nine figure classes
+are still twenty and twenty-nine. That is the components step, which touches
+all nine sections and needs each replayed.
+
 ## 2026-09-25, after the push: Everyone's books stopped being a paragraph
 
 **I47, and the option was chosen off a drawing rather than a description.**
