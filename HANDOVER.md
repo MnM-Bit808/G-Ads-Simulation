@@ -566,7 +566,31 @@ F13's rejected volume option has to come back.
   problem, the lever to pull is letting it lift conversion rate — excluded on
   purpose so it has one effect, and I34 says why. **Do not reach that by retuning
   `PREPAID_DISCOUNT_CURVE`**, which is built from published deltas rather than
-  chosen. And no rival has ever pulled it (I34, open).
+  chosen. ~~And no rival has ever pulled it (I34, open).~~ **Corrected
+  2026-09-25:** rivals have pulled it since the C9 fix — measured on the
+  committed harness, two of eight offer ₹50, live from week 3, in every seed
+  tried (20260901, 20260902, 7, 12). Since 2026-09-25 a discounting rival says
+  so in its ad copy, so the player can read the offer the way they read
+  anything else about a rival.
+
+- **Only two of six characters ever consider the prepaid lever, and every
+  rival is over the line that says they should (open, found 2026-09-25).**
+  `prepaidNudge` is shared, but only `disciplinedAccount` and
+  `grossOptimiserAccount` call it; `spender`, `cautious`, `automator` and
+  `brandDefender` never do, and `withCapital` adds only capex. Measured on the
+  last played week of seed 20260901, **all eight rivals sit between 12.2% and
+  18.6% refusal**, above the 12% line that buys ₹50 — so the four silent
+  characters are not declining the lever on the numbers, they were never
+  offered it. This is the C8 shape: a decision added to some policies and not
+  the rest. It is not obviously a character choice either, because every
+  deliberate omission in this file is documented in its policy's header
+  (`spenderAccount`: "Negatives stay empty, every round. That is the whole
+  character.") and none of the four mentions prepaid; and the cast's own
+  standard is that each character is "wrong about one thing **in a legible
+  way**", while a rival's refusal rate is on no screen, so this one cannot be
+  read. **Fixing it moves the market** — six rivals taking a +1.7% to +4.7%
+  profit lever makes the board harder — so it needs gates agreed and a
+  before/after harness run, and is deliberately not done.
 
 - ~~The two positioning axes have swapped.~~ **Settled as F13, below.** Kept for
   the measurements, which are the reason the decision could be made.

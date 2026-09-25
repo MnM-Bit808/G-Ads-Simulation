@@ -80,3 +80,52 @@ describe('the market\'s public figures', () => {
     expect(marketFigures([], 430000)).toBeNull();
   });
 });
+
+/**
+ * A DISCOUNTING RIVAL SAYS SO, AND THE PLAYER CAN READ IT (2026-09-25).
+ *
+ * Rivals have offered prepaid discounts since the C9 fix — measured at 2 of 8
+ * from week 2, the same in every seed tried — and nothing ever told the player.
+ * So the one lever open after round 5 was contested INVISIBLY: you could not
+ * tell whether ₹50 matched the field or was being paid alone, which teaches
+ * worse than no contest at all, because your own restraint looks like skill.
+ *
+ * It rides in the AD rather than in a panel of its own. A prepaid discount is
+ * not a bid — it is a thing a shop advertises — so a player finds it the way
+ * they find everything else about a rival, by reading. R3 is untouched: no
+ * controller sees this, and nothing here reaches a bid, a budget, or anything
+ * 16.1 withholds.
+ */
+describe('a rival\'s public offer', () => {
+  const withOffer = (paise) => ADVERTISERS.map((a) => (
+    a.id === 'kestrel' ? { ...a, campaign: { prepaidDiscountPaise: paise } } : a));
+  const cardFor = (advertisers) => rivalCards(
+    [week({ kestrel: r(0.5), marlow: r(0.3) })], ME, advertisers,
+  ).met.find((c) => c.id === 'kestrel');
+
+  test('a rival offering nothing carries no offer', () => {
+    expect(cardFor(ADVERTISERS).offerPaise).toBe(0);
+  });
+
+  test('a rival offering one carries it, in paise', () => {
+    expect(cardFor(withOffer(5000)).offerPaise).toBe(5000);
+  });
+
+  test('and it never reaches for a bid, a budget or a cost while it is there', () => {
+    // The whole card, not just the new field: R3's rule is that no advertiser
+    // reads another's bid, budget or costs, and this reads a rival's campaign.
+    const card = cardFor(withOffer(5000));
+    const seen = JSON.stringify(card);
+    for (const forbidden of ['bidPaise', 'budgetPaise', 'costPaise', 'dailyBudget']) {
+      expect(seen.includes(forbidden), `the card carries ${forbidden}`).toBe(false);
+    }
+    for (const name of FORBIDDEN_IN_PUBLIC_VIEW) {
+      expect(seen.includes(name), `the card carries ${name}`).toBe(false);
+    }
+  });
+
+  test('an advertiser with no campaign at all does not throw', () => {
+    // Round 1 draws cards before anyone has decided anything.
+    expect(cardFor(ADVERTISERS.map(({ campaign, ...rest }) => rest)).offerPaise).toBe(0);
+  });
+});

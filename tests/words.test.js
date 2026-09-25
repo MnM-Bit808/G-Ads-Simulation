@@ -808,6 +808,8 @@ describe('Rivals in the Studio', () => {
   const FIGURES = {
     value: '₹4,18,404', share: '26%', budget: '74%', rank: '0%', name: 'Kestrel', overlap: '96%', above: '67%',
     other: 'Torvi', from: '45%', names: ['Auren'],
+    // What a discounting rival puts in its own ad (2026-09-25).
+    amount: '₹50',
   };
   const entries = (object, prefix = '') => Object.entries(object).flatMap(([name, entry]) => (
     typeof entry === 'function' ? [[`${prefix}${name}`, entry]] : entries(entry, `${name}.`)));
