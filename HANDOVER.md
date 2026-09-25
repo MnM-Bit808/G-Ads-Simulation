@@ -569,25 +569,21 @@ F13's rejected volume option has to come back.
   chosen. ~~And no rival has ever pulled it (I34, open).~~ **Corrected
   2026-09-25:** rivals have pulled it since the C9 fix — measured on the
   committed harness, two of eight offer ₹50, live from week 3, in every seed
-  tried (20260901, 20260902, 7, 12). **Nothing on any screen says so** — see
-  the next two entries, which are why.
+  tried (20260901, 20260902, 7, 12). **Since I45 a discounting rival says so at
+  the end of its ad** — "₹50 off when you pay online." — so a player finds it
+  by reading, and can tell whether their own ₹50 matches the field.
 
-- **A rival's prepaid offer cannot reach the player today, and the reason is
-  a design decision nobody has taken (open, 2026-09-25).** The Rivals card is
-  handed `view.advertisers` (`ui/dashboard.js`), and `getPublicView` builds a
-  rival as `{id, name, domain, ads}` — no `campaign`, so no
-  `prepaidDiscountPaise`. The field is not in `FORBIDDEN_IN_PUBLIC_VIEW`, but
-  the view is a WHITELIST, so being absent from the blacklist grants nothing.
-  Two ways in, both needing a decision first because both change a contract:
-  **(a) add the field to the public view** — defensible, because everything the
-  blacklist withholds is genuinely private operating data (bids, budgets,
-  affinities, negatives) while a retail discount is advertised to customers,
-  but it also hands the field to every rival controller, so it is a 16.1
-  change with a DECISIONS entry; or **(b) put the offer in the rival's own ad
-  copy** at the point the policy sets it, which needs no R3 change at all
-  because ads are already public, but means a decision can carry creative,
-  which today it cannot. Until one is chosen the lever stays contested
-  invisibly, and a player cannot tell whether their ₹50 matches the field.
+- **`prepaidDiscountPaise` is in the public view, and it is the only thing
+  there that is not identity or creative (I45, 2026-09-25).** The rule it was
+  admitted under, and the one to apply to anything that asks next: **is it
+  something the advertiser tells CUSTOMERS, or something it tells GOOGLE?**
+  Everything the view withholds is private operating data — bids, budgets,
+  spend, what a query is worth, negatives. An offer exists to be seen, so a
+  competitor reads it by looking, and withholding it modelled a shop that
+  discounts in secret. **It reaches rival controllers too**, which is the real
+  cost: a policy could now undercut its rivals' offers. None does, which is why
+  72 whole games are byte-identical before and after — so the first policy to
+  read it is making a market-moving change and needs its own gates.
 
 - **A UI test that spreads an engine field onto a view fixture proves
   nothing (2026-09-25).** A card read `who.campaign.prepaidDiscountPaise`, a

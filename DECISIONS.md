@@ -6873,3 +6873,66 @@ because the temptation runs the other way: a constant that has been researched
 **What would reopen this.** A sixth tag. If one is ever proposed, the question
 to ask is the one this entry turned on: what does a wrong value cost? Two tags
 that answer that the same way should be one tag.
+
+### I45. An offer made to customers is public — `FIXED` (2026-09-25)
+
+**The player could not find out that rivals discount, by any route.** Asked to
+show a rival's prepaid discount, the Rivals card read
+`who.campaign.prepaidDiscountPaise` and drew nothing, in every game, for every
+rival: `ui/dashboard.js` hands the section `view.advertisers`, and
+`getPublicView` built a rival as `{id, name, domain, ads}` with no `campaign`
+on it. `?? 0` turned the missing shape into a confident "no offer".
+
+**And rivals do discount.** Measured on the committed harness, two of eight
+offer ₹50, live from week 3, in every seed tried (20260901, 20260902, 7, 12).
+So since the C9 fix the one lever still open after round 5 has been contested
+INVISIBLY. That is worse than an uncontested lever: a player could not tell
+whether their ₹50 matched the field or was being paid alone, so their own
+restraint looked like skill.
+
+**Why the field was missing was never decided — it was simply never asked.**
+`prepaidDiscountPaise` is not in `FORBIDDEN_IN_PUBLIC_VIEW`, but the view is a
+WHITELIST, so being absent from the blacklist granted it nothing.
+
+**The distinction the blacklist actually encodes.** Everything the view
+withholds is private OPERATING data: what an advertiser bids, budgets and
+spends, what it believes a query is worth, what it has told Google to avoid.
+A competitor genuinely cannot see any of it. **A prepaid discount is the
+opposite kind of fact.** Its entire purpose is to be seen by shoppers — it
+sits on the shop's site and in its ads, and a competitor reads it by looking.
+Withholding it modelled a shop that discounts in secret, which is not a shop.
+
+So the field joins the public view, beside the name, the domain and the ad.
+
+**What was considered and not chosen:** putting the offer into the rival's own
+ad copy at the point the policy sets it. That is the most faithful version —
+the line would literally be in the creative, needing no change to R3 at all,
+because ads are already public. It was rejected for now on cost: rival ads are
+fixed at `setup.js` while the discount starts at week 3, so a policy decision
+would have to be able to carry creative, which today it cannot. If decisions
+ever carry creative, this is the better home and this entry should be revisited.
+
+**It reaches rival controllers too, and that is the real cost of the choice.**
+Every advertiser gets the same public view, so a policy could now read what
+its rivals offer and undercut them. None does today — which is why the market
+is unchanged, measured as 72 whole games byte-identical before and after. A
+policy that starts reading it is making a market-moving change and needs its
+own gates.
+
+**Where it shows.** A discounting rival's card carries the line at the end of
+its ad: "₹50 off when you pay online." In the ad rather than in a panel of its
+own, because that is what a shop does with an offer, and finding it is the
+same reading step 2 already teaches.
+
+**The guard this left behind.** The version that drew nothing had a green
+test, because the test spread a `campaign` onto `tests/rivals.test.js`'s
+fixture — a shape play never produces. Same failure as the three rival rules
+that read `report` for returns and read zero for months. That file's fixture
+is now the public view's keys exactly, `the shape a card is really handed`
+locks it to `getPublicView`, and the offer's own tests build their advertisers
+by calling `getPublicView` rather than by hand.
+
+**What would reopen this.** A second field wanting in on the same argument.
+The question to ask is this entry's: is it something the advertiser tells
+customers, or something it tells Google? The first is public. The second is
+not.

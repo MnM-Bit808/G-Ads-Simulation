@@ -140,8 +140,14 @@ export function renderRivalsSection({ game, ctx, openGuide }) {
     meet.append(big, weekBars(c.weeks));
     card.append(head, meet);
     if (c.ad) {
+      // The offer rides in the ad rather than beside it: a shop putting its
+      // discount in its own copy is the whole of how a player finds out that
+      // the field is discounting (I45).
+      const descriptions = c.offerPaise > 0
+        ? [...c.ad.descriptions, RIVALS.offersPrepaid({ amount: rupees(c.offerPaise) })]
+        : c.ad.descriptions;
       card.append(serp({
-        domain: c.domain, headlines: c.ad.headlines, descriptions: c.ad.descriptions, sponsored: AD.sponsored(),
+        domain: c.domain, headlines: c.ad.headlines, descriptions, sponsored: AD.sponsored(),
       }));
     }
     card.append(line(RIVALS.aboveWhenMeet(), c.above), line(RIVALS.youOutrank(), c.beat));

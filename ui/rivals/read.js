@@ -39,6 +39,10 @@ export function rivalCards(insights, playerId, advertisers) {
         name: who?.name ?? id,
         domain: who?.domain ?? '',
         ad: ad ? { headlines: [...ad.headlines], descriptions: [...ad.descriptions] } : null,
+        // What this rival publicly offers, in paise, 0 for none (I45). It
+        // comes off the public view like the name and the ad, because an
+        // offer made to customers is public in the way a bid is not.
+        offerPaise: who?.prepaidDiscountPaise ?? 0,
         overlap: row.overlapRate,
         above: row.positionAboveRate,
         beat: row.outrankingShare,

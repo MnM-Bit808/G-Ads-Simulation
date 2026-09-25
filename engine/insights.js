@@ -123,6 +123,18 @@ export function getPublicView(gameState, viewerId, context = null) {
           headlines: [...g.ad.headlines],
           descriptions: [...g.ad.descriptions],
         })),
+        // AN OFFER MADE TO CUSTOMERS IS PUBLIC (I45, 2026-09-25). Everything
+        // this view withholds is private OPERATING data — what an advertiser
+        // bids, budgets, spends, believes a query is worth. A prepaid discount
+        // is the opposite kind of fact: its whole purpose is to be seen by
+        // shoppers, so it sits on the site and in the ad, and a competitor
+        // reads it by looking. Withholding it modelled a shop that discounts
+        // in secret, which is not a shop.
+        //
+        // In paise, 0 when none is offered. Rivals have discounted since C9 —
+        // two of eight at ₹50 from week 3 — with nothing able to say so, so
+        // the one lever left after round 5 was contested invisibly.
+        prepaidDiscountPaise: a.campaign?.prepaidDiscountPaise ?? 0,
       })),
 
     // Keyword Planner: what people search and how often. Nothing about what

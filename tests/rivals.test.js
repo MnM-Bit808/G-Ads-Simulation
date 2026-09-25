@@ -12,11 +12,12 @@ const ME = 'me';
 // One entry per played week, as game.insights holds them: every advertiser's row.
 const week = (rivals) => ({ [ME]: { self: { impressionShare: 0.5, lostToRank: 0, lostToBudget: 0.5 }, rivals } });
 const r = (overlapRate, positionAboveRate = 0, outrankingShare = 0) => ({ overlapRate, positionAboveRate, outrankingShare });
+// The public view's shape exactly, and a test below holds it to that.
 const ADVERTISERS = [
-  { id: ME, name: 'Vella & Co.', domain: 'vellaandco.in', ads: [{ headlines: ['Mine'], descriptions: ['Mine.'] }] },
-  { id: 'kestrel', name: 'Kestrel', domain: 'kestrel.in', ads: [{ headlines: ['Athleisure For All Day'], descriptions: ['Everyday athleisure.'] }] },
-  { id: 'marlow', name: 'Marlow', domain: 'marlowlabel.in', ads: [{ headlines: ['Leggings Built To Train In'], descriptions: ['Gym wear.'] }] },
-  { id: 'auren', name: 'Auren', domain: 'auren.in', ads: [{ headlines: ['Bamboo Silk'], descriptions: ['Loungewear.'] }] },
+  { id: ME, name: 'Vella & Co.', domain: 'vellaandco.in', prepaidDiscountPaise: 0, ads: [{ headlines: ['Mine'], descriptions: ['Mine.'] }] },
+  { id: 'kestrel', name: 'Kestrel', domain: 'kestrel.in', prepaidDiscountPaise: 0, ads: [{ headlines: ['Athleisure For All Day'], descriptions: ['Everyday athleisure.'] }] },
+  { id: 'marlow', name: 'Marlow', domain: 'marlowlabel.in', prepaidDiscountPaise: 0, ads: [{ headlines: ['Leggings Built To Train In'], descriptions: ['Gym wear.'] }] },
+  { id: 'auren', name: 'Auren', domain: 'auren.in', prepaidDiscountPaise: 0, ads: [{ headlines: ['Bamboo Silk'], descriptions: ['Loungewear.'] }] },
 ];
 
 describe('each rival you meet, as a card', () => {
@@ -96,28 +97,77 @@ describe('the market\'s public figures', () => {
  * field a card wants fails here rather than silently reading `undefined`.
  */
 describe('the shape a card is really handed', () => {
-  const publicAdvertiser = () => getPublicView({
+  const PUBLIC_KEYS = ['ads', 'domain', 'id', 'name', 'prepaidDiscountPaise'];
+  const publicAdvertiser = (campaign) => getPublicView({
     advertisers: [{
-      id: 'kestrel', name: 'Kestrel', domain: 'kestrel.in',
-      campaign: { prepaidDiscountPaise: 5000, bidPaise: 1200 },
+      id: 'kestrel', name: 'Kestrel', domain: 'kestrel.in', campaign,
       adGroups: [{ ad: { headlines: ['Athleisure For All Day'], descriptions: ['Everyday athleisure.'] } }],
     }],
     querySet: { queries: [], weeklyVolume: 430000 },
   }, ME).advertisers[0];
 
-  test('a rival in the public view carries four keys, and a campaign is not one', () => {
-    expect(Object.keys(publicAdvertiser()).sort()).toEqual(['ads', 'domain', 'id', 'name']);
+  test('a rival in the public view carries these keys and no others', () => {
+    expect(Object.keys(publicAdvertiser({ prepaidDiscountPaise: 5000 })).sort()).toEqual(PUBLIC_KEYS);
   });
 
-  test('so a card reading a rival\'s campaign reads nothing at all', () => {
-    // The exact mistake this guards: the engine holds the offer, the view does
-    // not carry it, and `?? 0` turns the gap into a confident "no offer".
-    expect(publicAdvertiser().campaign?.prepaidDiscountPaise ?? 0).toBe(0);
+  test('a campaign never comes through whole, whatever else is on it', () => {
+    // The mistake this guards: a card read `who.campaign.prepaidDiscountPaise`
+    // and `?? 0` turned the missing shape into a confident "no offer", in
+    // every game, with a green suite — because its fixture was hand-built.
+    const a = publicAdvertiser({ prepaidDiscountPaise: 5000, bidPaise: 1200, monthlyBudgetPaise: 90000 });
+    expect(a.campaign).toBeUndefined();
+    expect(JSON.stringify(a)).not.toContain('bidPaise');
   });
 
   test('and this file\'s own fixture is that same shape, so its tests mean something', () => {
     for (const a of ADVERTISERS) {
-      expect(Object.keys(a).sort()).toEqual(['ads', 'domain', 'id', 'name']);
+      expect(Object.keys(a).sort()).toEqual(PUBLIC_KEYS);
+    }
+  });
+});
+
+/**
+ * A DISCOUNTING RIVAL SAYS SO, AND THE PLAYER CAN READ IT (I45, 2026-09-25).
+ *
+ * Rivals have offered prepaid discounts since the C9 fix — two of eight at ₹50
+ * from week 3, the same in every seed tried — and until I45 nothing could tell
+ * the player, because the public view withheld the offer. So the one lever
+ * left open after round 5 was contested INVISIBLY: you could not tell whether
+ * your ₹50 matched the field or was being paid alone, which teaches worse than
+ * no contest at all, because your own restraint looks like skill.
+ *
+ * The fixtures here come OUT OF `getPublicView`, never hand-built, which is
+ * the whole lesson of the version of this that drew nothing.
+ */
+describe('a rival\'s public offer', () => {
+  const cardFor = (offerPaise) => {
+    const advertisers = getPublicView({
+      advertisers: ADVERTISERS.map((a) => ({
+        id: a.id, name: a.name, domain: a.domain,
+        campaign: a.id === 'kestrel' ? { prepaidDiscountPaise: offerPaise, bidPaise: 1200 } : {},
+        adGroups: a.ads.map((ad) => ({ ad })),
+      })),
+      querySet: { queries: [], weeklyVolume: 430000 },
+    }, ME).advertisers;
+    return rivalCards([week({ kestrel: r(0.5), marlow: r(0.3) })], ME, advertisers)
+      .met.find((c) => c.id === 'kestrel');
+  };
+
+  test('a rival offering nothing carries no offer', () => {
+    expect(cardFor(0).offerPaise).toBe(0);
+  });
+
+  test('a rival offering one carries it, in paise, through the real view', () => {
+    expect(cardFor(5000).offerPaise).toBe(5000);
+  });
+
+  test('and the card still reaches for no bid, budget or cost while it does', () => {
+    const seen = JSON.stringify(cardFor(5000));
+    for (const forbidden of ['bidPaise', 'budgetPaise', 'costPaise', 'dailyBudget']) {
+      expect(seen.includes(forbidden), `the card carries ${forbidden}`).toBe(false);
+    }
+    for (const name of FORBIDDEN_IN_PUBLIC_VIEW) {
+      expect(seen.includes(name), `the card carries ${name}`).toBe(false);
     }
   });
 });

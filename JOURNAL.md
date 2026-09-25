@@ -42,6 +42,32 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-25, later still: the offer went into the public view
+
+**The decision the entry below left for the owner was taken the same day.**
+Route A: `prepaidDiscountPaise` joins `getPublicView`, recorded as `I45`. The
+rule it was admitted under is the one to apply next time — *is it something the
+advertiser tells customers, or something it tells Google?* An offer exists to
+be seen, so a competitor reads it by looking.
+
+**The claim that it moves nothing was measured, not argued.** Adding a field
+to a view is the kind of change that looks obviously inert and is not:
+`agents/hash.js` exists, and anything hashing or serialising the view would
+have shifted every seeded draw in the game. It does not — the hashes are of ad
+copy and keyword text — but the proof is two `market` runs of 72 whole games
+each, before and after, identical by MD5 (`d7c076f4…`). The cost of the route
+is real and is recorded instead of hidden: every rival controller can now read
+what its rivals offer, and the first policy that does is making a
+market-moving change that needs its own gates.
+
+**And it draws.** Played into week 5 in the browser: Nira and Halcyon carry
+"₹50 off when you pay online." at the end of their ad copy, the other four
+carry nothing, and those are exactly the two the harness named. The version
+that drew nothing had a green suite; this one was looked at.
+
+**Still open, and asked for:** four of six characters never consider the lever
+at all, while every rival sits above the line that buys it. Gates first.
+
 ## 2026-09-25, later: the rivals' discount, and a test that proved nothing
 
 **Asked to show the player that rivals discount, and found three things, only
