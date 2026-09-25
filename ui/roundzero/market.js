@@ -82,8 +82,15 @@ export function renderMarketStep({ brief, openGuide }) {
       row.type = 'button';
       row.dataset.key = `place:${place.id}`;
       row.setAttribute('aria-pressed', String(lit === place.id));
-      row.append(el('strong', null, place.label), el('span', 'r0-share', pct(shares[place.id])),
-        el('span', 'r0-small', place.examples.join(', ')));
+      row.append(el('strong', null, place.label), el('span', 'r0-share', pct(shares[place.id])));
+      // THE CITIES ARE THE REWARD FOR TAPPING, AND UNTIL 2026-09-25 THEY WERE
+      // NOT. Every row named its cities from the moment the step drew, while
+      // the line below it said "Tap a place to name its cities" — so the
+      // instruction was false, the tap did nothing a reader could see, and 33
+      // words of the step's 375 were spent on the thing it promised to reveal.
+      // The design measured this as "shown only when a place is lit" on
+      // 2026-09-14, which was the intent and never the code.
+      if (lit === place.id) row.append(el('span', 'r0-small', place.examples.join(', ')));
       row.addEventListener('click', () => light(place.id));
       places.append(row);
     }

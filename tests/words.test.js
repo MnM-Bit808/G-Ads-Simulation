@@ -399,6 +399,28 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
     const market = readFileSync(fileURLToPath(new URL('../ui/roundzero/market.js', import.meta.url)), 'utf8');
     expect(market).not.toMatch(/returnsVaryByLocation/);
   });
+
+  /**
+   * "TAP A PLACE TO NAME ITS CITIES" HAS TO BE TRUE (2026-09-25).
+   *
+   * It was not. Every place row named its cities from the moment step 1 drew,
+   * with that sentence directly beneath them — so the instruction described
+   * something the player could not make happen, the tap produced no visible
+   * result, and 33 of the step's 375 rendered words were spent giving away the
+   * thing it offered to reveal. The 2026-09-14 design measured the labels as
+   * "shown only when a place is lit", which was the intent and never the code.
+   *
+   * This is the same fault class as a mark that reads already-done on something
+   * still open: the words and the drawing telling different stories, with only
+   * the words under test.
+   */
+  test('the cities are named on tap, because that is what the step promises', () => {
+    const market = readFileSync(fileURLToPath(new URL('../ui/roundzero/market.js', import.meta.url)), 'utf8');
+    expect(R0.pulseNote(), 'the promise').toMatch(/tap a place/i);
+    // The examples are appended behind the lit test, not unconditionally.
+    expect(market, 'the cities are drawn only for the lit row')
+      .toMatch(/if \(lit === place\.id\) row\.append\([^)]*examples/);
+  });
 });
 
 describe('the weekly Your ad', () => {
