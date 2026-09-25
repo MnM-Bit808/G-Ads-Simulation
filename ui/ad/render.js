@@ -127,12 +127,67 @@ const SHAPES = Object.freeze({
   ],
 });
 
-/** @param {{w: number, h: number}} size */
-function garment(size, { plate = true, shape = 'leggings' } = {}) {
+/**
+ * THE SAME GARMENT, WORN (2026-09-25). The rung above `product shots` is called
+ * "on real bodies" and drew three empty grey squares — nothing in it depicted
+ * a body, so the dearest-but-one purchase on the strongest ladder in the game
+ * changed almost nothing a player could see.
+ *
+ * A head and a torso above the garment, and the garment moved down to hang off
+ * them. Written out rather than transformed, because the shapes are read at
+ * 40px as often as at 300 and a scaled-down copy of the flat cut blurs.
+ */
+const WORN = Object.freeze({
+  leggings: [
+    ['M62 6a8 8 0 1 1 0 16 8 8 0 0 1 0-16z', '#4A454F'],
+    ['M52 24h20l5 11-3 15H50l-3-15z', '#4A454F'],
+    ['M46 50h32l2 12-4 78H65l-3-46-3 46H48l-4-78z', '#3A363E'],
+    ['M46 50h32l1 8H45z', '#4A454F'],
+  ],
+  joggers: [
+    ['M62 6a8 8 0 1 1 0 16 8 8 0 0 1 0-16z', '#4A454F'],
+    ['M52 24h20l5 11-3 15H50l-3-15z', '#4A454F'],
+    ['M44 50h36l3 14-5 72H63l-2-44-2 44H49l-5-72z', '#3A363E'],
+    ['M44 50h36l1 8H43z', '#4A454F'],
+    ['M51 128h12l1 7H50zM65 128h12l1 7H64z', '#4A454F'],
+  ],
+  set: [
+    ['M62 6a8 8 0 1 1 0 16 8 8 0 0 1 0-16z', '#4A454F'],
+    ['M50 24h24l5 11-5 6 2 27H48l2-27-5-6z', '#3A363E'],
+    ['M48 72h28l2 11-4 57H64l-2-38-2 38H50l-4-57z', '#3A363E'],
+    ['M48 72h28l1 7H47z', '#4A454F'],
+  ],
+});
+
+/**
+ * @param {{w: number, h: number}} size
+ * @param {{plate?: boolean, shape?: string, worn?: boolean}} [options]
+ */
+function garment(size, { plate = true, shape = 'leggings', worn = false } = {}) {
+  const cut = worn ? (WORN[shape] ?? WORN.leggings) : (SHAPES[shape] ?? SHAPES.leggings);
   return svg('0 0 124 148', [
     ...(plate ? [['M0 0h124v148H0z', '#232026']] : []),
-    ...(SHAPES[shape] ?? SHAPES.leggings),
+    ...cut,
   ], size);
+}
+
+/**
+ * THREE BUILDS, because the rung says three body types and the page should be
+ * able to show what was paid for. The same worn cut at three widths: the torso
+ * and hips carry the difference, which is where a garment's fit is decided.
+ */
+const BUILDS = Object.freeze([0.86, 1, 1.16]);
+
+/** One body in a thumbnail, at a build. */
+function body(shape, build) {
+  const node = svg('0 0 124 148', WORN[shape] ?? WORN.leggings, { w: 22, h: 26 });
+  const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  // Widened about the centre line, so a build changes the shape and not the
+  // place it stands.
+  group.setAttribute('transform', `translate(${62 * (1 - build)} 0) scale(${build} 1)`);
+  while (node.firstChild) group.append(node.firstChild);
+  node.append(group);
+  return node;
 }
 
 /** Five stars, the last one half: what reviews look like, not a strip saying so. */
@@ -166,7 +221,8 @@ function garmentAt(drawn, shape) {
   const box = el('div', 'yad-shot');
   if (drawn.shots) box.classList.add('lit');
   if (drawn.bodies) box.classList.add('bodies');
-  box.append(garment({ w: 124, h: 148 }, { plate: !drawn.shots, shape }));
+  // Worn from the `on real bodies` rung up, which is what that rung buys.
+  box.append(garment({ w: 124, h: 148 }, { plate: !drawn.shots, shape, worn: drawn.bodies }));
   if (drawn.video) {
     const play = el('span', 'yad-play');
     play.append(svg('0 0 24 24', [['M9 7l9 5-9 5z', '#141216']], { w: 13, h: 13 }));
@@ -176,15 +232,19 @@ function garmentAt(drawn, shape) {
 }
 
 /** The thumbnails the two dearer photography rungs add under the garment. */
-function thumbs(drawn) {
+function thumbs(drawn, shape) {
   if (!drawn.bodies && !drawn.video) return null;
   const row = el('div', 'yad-thumbs');
-  const count = drawn.video ? 4 : 3;
-  for (let i = 0; i < count; i += 1) {
+  // THE THUMBNAILS ARE THE BODIES, since 2026-09-25. They were three empty
+  // grey squares under a rung called "on real bodies" -- the page naming a
+  // purchase it did not draw. One per build, and the video rung adds a fourth
+  // cell for the film rather than a fourth body.
+  for (const build of BUILDS) {
     const cell = el('span', 'yad-thumb');
-    if (drawn.video && i === count - 1) cell.classList.add('film');
+    cell.append(body(shape, build));
     row.append(cell);
   }
+  if (drawn.video) row.append(el('span', 'yad-thumb film'));
   row.append(el('span', 'yad-small', drawn.video ? AD.shotVideo() : AD.shotBodies()));
   return row;
 }
@@ -357,7 +417,7 @@ function landingPage(model, openGuide) {
   shotCol.append(mark('shots', garmentAt(drawn, model.product.shape)));
   // The gallery belongs under the picture it is a gallery OF. It used to sit in
   // the text column, under the sizes.
-  add(shotCol, mark('bodies', thumbs(drawn)));
+  add(shotCol, mark('bodies', thumbs(drawn, model.product.shape)));
   hero.append(shotCol);
 
   const detail = el('div', 'yad-detail');

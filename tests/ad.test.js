@@ -6,6 +6,7 @@
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { GARMENT_SHAPES } from '../content/product.js';
 import { getSelfView } from '../engine/insights.js';
 import { DEFAULT_UNGRADED_QUALITY, TOTAL_ROUNDS, CAPEX_DELAY_ROUNDS } from '../engine/constants.js';
 import { landingPageBonus, capexEffect } from '../engine/positions.js';
@@ -536,6 +537,68 @@ describe('what each thing bought for the page actually moves', () => {
  * and live since week 4 until week 8, and ₹25,000 alone — a page that loads
  * faster and has no reviews — was drawn with review stars.
  */
+/**
+ * EVERY PHOTOGRAPHY RUNG HAS TO DRAW SOMETHING, and the one that did not was
+ * the dearest but one.
+ *
+ * "On real bodies" cost ₹1,10,000 on what I30 calls the strongest lever in the
+ * game, and drew three empty grey squares — the page naming a purchase it did
+ * not depict. It is the same fault as the garment being a top on a page
+ * selling leggings, and as one product for all six cells: the drawing and the
+ * words telling different stories, with only the words under test.
+ *
+ * A test cannot judge whether a drawing is good. It CAN refuse the two ways
+ * this went wrong: a rung with no cut of its own to draw, and a body count
+ * that does not match the number the page promises.
+ */
+describe('a photography rung draws what it sold', () => {
+  const body = readFileSync(fileURLToPath(new URL('../ui/ad/render.js', import.meta.url)), 'utf8');
+
+  /** The keys of a `const NAME = Object.freeze({ ... });` map, read as text. */
+  const keysOf = (name) => {
+    const open = body.indexOf(`const ${name} = Object.freeze({`);
+    if (open < 0) return [];
+    const close = body.indexOf('\n});', open);
+    return [...body.slice(open, close).matchAll(/^ {2}([a-z]+):/gm)].map((m) => m[1]);
+  };
+
+  test('every garment that can be sold has a worn cut, so the bodies rung can wear it', () => {
+    // The flat cuts and the worn cuts are two maps; a shape in one and not the
+    // other is a cell whose bodies rung silently falls back to another
+    // product's silhouette.
+    const flat = keysOf('SHAPES');
+    const worn = keysOf('WORN');
+    expect(flat.length, 'the flat cuts were not found').toBeGreaterThan(0);
+    expect([...worn].sort(), 'a shape can be sold but not worn').toEqual([...flat].sort());
+  });
+
+  test('and every shape a cell sells is one of those cuts', () => {
+    // content/product.js decides what a cell sells; this module decides what
+    // can be drawn. A shape named there and missing here draws the fallback.
+    expect([...GARMENT_SHAPES].sort()).toEqual([...keysOf('SHAPES')].sort());
+  });
+
+  test('three builds, because the page says three body types', () => {
+    const builds = body.match(/const BUILDS = Object\.freeze\(\[([^\]]*)\]/);
+    expect(builds, 'the builds were not found').toBeTruthy();
+    const values = builds[1].split(',').map((v) => Number(v.trim())).filter((v) => !Number.isNaN(v));
+    expect(values, 'the page promises three and must draw three').toHaveLength(3);
+    // And they must actually differ, or three thumbnails show one body thrice.
+    expect(new Set(values).size).toBe(3);
+  });
+
+  test('the thumbnails hold a body rather than standing in for one', () => {
+    // They were `el('span', 'yad-thumb')` with a background colour and nothing
+    // inside. Each must now be given a drawing.
+    expect(body).toMatch(/for \(const build of BUILDS\)/);
+    expect(body).toMatch(/cell\.append\(body\(shape, build\)\)/);
+  });
+
+  test('and the hero is worn from that rung up, not just lit', () => {
+    expect(body).toMatch(/worn:\s*drawn\.bodies/);
+  });
+});
+
 describe('what the drawn page shows', () => {
   const drawnAt = (game, week) => read(game, week).page.drawn;
   const weeks = (game, key) => Array.from({ length: TOTAL_ROUNDS }, (_, i) => drawnAt(game, i + 1)[key]);

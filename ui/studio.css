@@ -596,7 +596,15 @@ body.studio .yad-play {
   background: rgba(240, 237, 232, 0.92);
 }
 body.studio .yad-thumbs { display: flex; align-items: center; gap: 5px; margin-top: 3px; }
-body.studio .yad-thumb { width: 22px; height: 26px; border-radius: 4px; background: #35313A; }
+/* A thumbnail holds a body now (2026-09-25) rather than being a coloured box
+   standing in for one. The fill is the plate the little figure sits on. */
+body.studio .yad-thumb { width: 22px; height: 26px; border-radius: 4px; background: #35313A; overflow: hidden; display: block; }
+body.studio .yad-thumb svg { display: block; width: 100%; height: 100%; }
+/* A lit page lights its gallery too: the thumbnails are the same shoot. The
+   selector is the real structure — the thumbs are the shot's next sibling in
+   the picture column — rather than a descendant catch-all that would also
+   paint any thumbnail added elsewhere later. */
+body.studio .yad-shotcol .yad-shot.lit + .yad-thumbs .yad-thumb { background: #DAD5CE; }
 body.studio .yad-thumb.film { position: relative; background: #4A454F; }
 body.studio .yad-thumb.film::after {
   content: ''; position: absolute; inset: 0; margin: auto;
