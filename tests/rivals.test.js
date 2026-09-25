@@ -5,7 +5,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { FORBIDDEN_IN_PUBLIC_VIEW } from '../engine/insights.js';
+import { FORBIDDEN_IN_PUBLIC_VIEW, getPublicView } from '../engine/insights.js';
 import { rivalCards, marketFigures } from '../ui/rivals/read.js';
 
 const ME = 'me';
@@ -82,50 +82,42 @@ describe('the market\'s public figures', () => {
 });
 
 /**
- * A DISCOUNTING RIVAL SAYS SO, AND THE PLAYER CAN READ IT (2026-09-25).
+ * THE CARD IS HANDED THE PUBLIC VIEW, AND THAT IS ALL IT HAS (2026-09-25).
  *
- * Rivals have offered prepaid discounts since the C9 fix — measured at 2 of 8
- * from week 2, the same in every seed tried — and nothing ever told the player.
- * So the one lever open after round 5 was contested INVISIBLY: you could not
- * tell whether ₹50 matched the field or was being paid alone, which teaches
- * worse than no contest at all, because your own restraint looks like skill.
+ * `ui/dashboard.js` sets `advertisers: view.advertisers`, so a rival reaches
+ * this module as `{id, name, domain, ads}` and nothing else. Anything a card
+ * wants about a rival that is not one of those four does not exist to read.
  *
- * It rides in the AD rather than in a panel of its own. A prepaid discount is
- * not a bid — it is a thing a shop advertises — so a player finds it the way
- * they find everything else about a rival, by reading. R3 is untouched: no
- * controller sees this, and nothing here reaches a bid, a budget, or anything
- * 16.1 withholds.
+ * Written after a card read `who.campaign.prepaidDiscountPaise` to show a
+ * rival's prepaid offer, passed a test that spread a `campaign` onto this
+ * file's fixture, and drew nothing in a real game because the public view has
+ * no `campaign` on it. The fixture above is the public view's shape on
+ * purpose; this locks that to the engine so it cannot drift, and so the next
+ * field a card wants fails here rather than silently reading `undefined`.
  */
-describe('a rival\'s public offer', () => {
-  const withOffer = (paise) => ADVERTISERS.map((a) => (
-    a.id === 'kestrel' ? { ...a, campaign: { prepaidDiscountPaise: paise } } : a));
-  const cardFor = (advertisers) => rivalCards(
-    [week({ kestrel: r(0.5), marlow: r(0.3) })], ME, advertisers,
-  ).met.find((c) => c.id === 'kestrel');
+describe('the shape a card is really handed', () => {
+  const publicAdvertiser = () => getPublicView({
+    advertisers: [{
+      id: 'kestrel', name: 'Kestrel', domain: 'kestrel.in',
+      campaign: { prepaidDiscountPaise: 5000, bidPaise: 1200 },
+      adGroups: [{ ad: { headlines: ['Athleisure For All Day'], descriptions: ['Everyday athleisure.'] } }],
+    }],
+    querySet: { queries: [], weeklyVolume: 430000 },
+  }, ME).advertisers[0];
 
-  test('a rival offering nothing carries no offer', () => {
-    expect(cardFor(ADVERTISERS).offerPaise).toBe(0);
+  test('a rival in the public view carries four keys, and a campaign is not one', () => {
+    expect(Object.keys(publicAdvertiser()).sort()).toEqual(['ads', 'domain', 'id', 'name']);
   });
 
-  test('a rival offering one carries it, in paise', () => {
-    expect(cardFor(withOffer(5000)).offerPaise).toBe(5000);
+  test('so a card reading a rival\'s campaign reads nothing at all', () => {
+    // The exact mistake this guards: the engine holds the offer, the view does
+    // not carry it, and `?? 0` turns the gap into a confident "no offer".
+    expect(publicAdvertiser().campaign?.prepaidDiscountPaise ?? 0).toBe(0);
   });
 
-  test('and it never reaches for a bid, a budget or a cost while it is there', () => {
-    // The whole card, not just the new field: R3's rule is that no advertiser
-    // reads another's bid, budget or costs, and this reads a rival's campaign.
-    const card = cardFor(withOffer(5000));
-    const seen = JSON.stringify(card);
-    for (const forbidden of ['bidPaise', 'budgetPaise', 'costPaise', 'dailyBudget']) {
-      expect(seen.includes(forbidden), `the card carries ${forbidden}`).toBe(false);
+  test('and this file\'s own fixture is that same shape, so its tests mean something', () => {
+    for (const a of ADVERTISERS) {
+      expect(Object.keys(a).sort()).toEqual(['ads', 'domain', 'id', 'name']);
     }
-    for (const name of FORBIDDEN_IN_PUBLIC_VIEW) {
-      expect(seen.includes(name), `the card carries ${name}`).toBe(false);
-    }
-  });
-
-  test('an advertiser with no campaign at all does not throw', () => {
-    // Round 1 draws cards before anyone has decided anything.
-    expect(cardFor(ADVERTISERS.map(({ campaign, ...rest }) => rest)).offerPaise).toBe(0);
   });
 });

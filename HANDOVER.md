@@ -569,9 +569,35 @@ F13's rejected volume option has to come back.
   chosen. ~~And no rival has ever pulled it (I34, open).~~ **Corrected
   2026-09-25:** rivals have pulled it since the C9 fix — measured on the
   committed harness, two of eight offer ₹50, live from week 3, in every seed
-  tried (20260901, 20260902, 7, 12). Since 2026-09-25 a discounting rival says
-  so in its ad copy, so the player can read the offer the way they read
-  anything else about a rival.
+  tried (20260901, 20260902, 7, 12). **Nothing on any screen says so** — see
+  the next two entries, which are why.
+
+- **A rival's prepaid offer cannot reach the player today, and the reason is
+  a design decision nobody has taken (open, 2026-09-25).** The Rivals card is
+  handed `view.advertisers` (`ui/dashboard.js`), and `getPublicView` builds a
+  rival as `{id, name, domain, ads}` — no `campaign`, so no
+  `prepaidDiscountPaise`. The field is not in `FORBIDDEN_IN_PUBLIC_VIEW`, but
+  the view is a WHITELIST, so being absent from the blacklist grants nothing.
+  Two ways in, both needing a decision first because both change a contract:
+  **(a) add the field to the public view** — defensible, because everything the
+  blacklist withholds is genuinely private operating data (bids, budgets,
+  affinities, negatives) while a retail discount is advertised to customers,
+  but it also hands the field to every rival controller, so it is a 16.1
+  change with a DECISIONS entry; or **(b) put the offer in the rival's own ad
+  copy** at the point the policy sets it, which needs no R3 change at all
+  because ads are already public, but means a decision can carry creative,
+  which today it cannot. Until one is chosen the lever stays contested
+  invisibly, and a player cannot tell whether their ₹50 matches the field.
+
+- **A UI test that spreads an engine field onto a view fixture proves
+  nothing (2026-09-25).** A card read `who.campaign.prepaidDiscountPaise`, a
+  test built `{...advertiser, campaign: {...}}` to check it, the suite went
+  green, and the card drew nothing in a real game because the public view has
+  no `campaign` — `?? 0` turned the missing shape into a confident "no offer".
+  Same shape as the three rival rules that read `report` for returns. The
+  fixture in `tests/rivals.test.js` is the public view's four keys on purpose,
+  and `the shape a card is really handed` now locks it to `getPublicView`, so
+  the next field a card wants fails there instead of reading `undefined`.
 
 - **Only two of six characters ever consider the prepaid lever, and every
   rival is over the line that says they should (open, found 2026-09-25).**

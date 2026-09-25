@@ -42,6 +42,64 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-25, later: the rivals' discount, and a test that proved nothing
+
+**Asked to show the player that rivals discount, and found three things, only
+the first of which was the job.**
+
+**One: the documentation was a fix behind.** `HANDOVER.md` said "no rival has
+ever pulled it (I34, open)". That has been false since the C9 fix. Measured on
+the committed harness, two of eight rivals offer ₹50, live from week 3, in
+every seed tried — 20260901, 20260902, 7 and 12, the same two brands and the
+same rung each time. The first measurement said 0 of 8 and said it
+confidently, because it called `submitRound` where the harness calls
+`playRound(state, controllers, {mode: 'expected'})`; nobody acted, and a
+market where nobody acts reports no discounts. Fourth throwaway harness in
+this project to measure a market that was not being played. The rule about
+using `scripts/market-harness.js` exists for exactly this and was not followed
+until the answer looked wrong.
+
+**Two: the lever is offered to two characters of six.** `prepaidNudge` is a
+shared helper, but only `disciplinedAccount` and `grossOptimiserAccount` call
+it; `spender`, `cautious`, `automator` and `brandDefender` never do, and
+`withCapital` adds only capex. On the last played week of seed 20260901 all
+eight rivals sit between 12.2% and 18.6% weighted refusal, against a 12% line
+that buys ₹50 — so the four silent characters are not declining the lever on
+their own numbers, they were never handed it. Recorded open rather than
+fixed: six rivals taking a +1.7% to +4.7% profit lever moves the market, and
+that needs gates agreed first. It is also not clearly a character choice,
+since every deliberate omission in `agents/policies.js` is documented in its
+policy's header and none of the four mentions prepaid, and the cast's own
+standard is that each character is wrong about one thing **legibly**, while a
+rival's refusal rate appears on no screen.
+
+**Three: the feature was built, committed, and drew nothing.** The card read
+`who.campaign.prepaidDiscountPaise`; `ui/dashboard.js` hands the section
+`view.advertisers`, and `getPublicView` builds a rival as
+`{id, name, domain, ads}`. There is no `campaign`, so `?? 0` turned a missing
+shape into a confident "no offer" — in every game, for every rival. The suite
+was green because the new test spread a `campaign` onto this file's fixture,
+which is otherwise the public view's four keys on purpose. Same shape as the
+three rival rules that read `report` for returns and read zero for months.
+Green tests, and the browser showed Nira and Halcyon with their ordinary ad
+copy and nothing else.
+
+Found by opening the page, which is the only reason it was found. Backed out
+in the same session; `c070a50` is the commit that did not work. What replaced
+it is a guard — `the shape a card is really handed` in `tests/rivals.test.js`
+— that locks the fixture to `getPublicView`, so the next field a card wants
+off a rival fails there instead of reading `undefined`.
+
+**And the reason it cannot simply be wired up** is a decision nobody has
+taken. `prepaidDiscountPaise` is not in `FORBIDDEN_IN_PUBLIC_VIEW`, but the
+view is a whitelist, so that grants nothing. Either the field joins the public
+view — defensible, because everything the blacklist withholds is genuinely
+private operating data while a retail discount is advertised to customers, but
+it hands the field to every rival controller too and so is a 16.1 change — or
+the offer goes into the rival's own ad copy when the policy sets it, which
+needs no R3 change because ads are already public, but means a decision can
+carry creative, which today it cannot. Left for the owner.
+
 ## 2026-09-25: round 0 got a budget, and the preview aliases would not die
 
 **The density pass merged and went live** as `f184a91`, tagged `playtest-8`.

@@ -39,16 +39,6 @@ export function rivalCards(insights, playerId, advertisers) {
         name: who?.name ?? id,
         domain: who?.domain ?? '',
         ad: ad ? { headlines: [...ad.headlines], descriptions: [...ad.descriptions] } : null,
-        // WHAT THIS RIVAL IS PUBLICLY OFFERING (2026-09-25). A prepaid discount
-        // is not a bid: it is a thing a shop advertises, so a player finds out
-        // the way they find out anything about a rival — by reading the ad.
-        //
-        // Rivals have discounted since the C9 fix, and until now nothing told
-        // the player, so the lever was contested INVISIBLY: you could not tell
-        // whether ₹50 matched the field or was paid alone, which is worse than
-        // no contest at all. R3 is untouched — no controller reads this, and
-        // nothing here reaches for a bid, a budget or anything 16.1 withholds.
-        offerPaise: who?.campaign?.prepaidDiscountPaise ?? 0,
         overlap: row.overlapRate,
         above: row.positionAboveRate,
         beat: row.outrankingShare,

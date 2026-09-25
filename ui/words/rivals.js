@@ -15,12 +15,6 @@ const listOf = (names) => (names.length < 2
   : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`);
 
 export const RIVALS = Object.freeze({
-  // A DISCOUNTING RIVAL SAYS SO IN ITS AD (2026-09-25), because that is what a
-  // shop does with an offer. Rivals have offered prepaid discounts since the C9
-  // fix and nothing ever told the player, so the one lever open after round 5
-  // was contested invisibly. Read in the ad, not reported in a panel: finding
-  // it is the same reading step 2 teaches.
-  offersPrepaid: line('label', ({ amount }) => `${amount} off when you pay online.`),
   // The market, this week against last.
   marketSpend: line('label', 'Market spend'),
   medianClick: line('label', 'Median click'),
