@@ -6674,6 +6674,38 @@ it points at — a keyword list being exactly what a Performance Max campaign
 does not have. Performance Max is added to spec 20's omissions with its
 reasoning.
 
+#### The chapter got the rest of the picture on 2026-09-25
+
+The owner asked to teach PMax better rather than model it, which is this entry's
+answer carried further. Three things went into chapter 24, all fetched from
+Google rather than written from memory:
+
+**THE BEST OF THEM CONNECTS WHAT IS TAUGHT TO WHAT IS MISSING.** When a Performance
+Max campaign and a search campaign want the same query, Google's own page on the
+interaction says a search campaign whose keyword *"exactly matches or is
+spell-corrected to a person's query will be preferred"*, and that otherwise
+*"the campaign with the higher Ad Rank will serve"*. **Both of those are what
+this game spends twelve weeks on.** The boundary chapter now says so: the
+player is not learning a museum piece, they are learning the two things that
+decide the contest at the boundary.
+
+**AI MAX IS THE MORE RELEVANT FIND, AND IT IS NEWER THAN PMAX.** It is not a
+campaign type but a set of features layered on a SEARCH campaign — which is
+what this game models — letting Google match, write and land the click. Google
+says keywords still exist there and do less. That is the Phase 5 concern in
+Google's own words, inside the campaign type this game teaches, so it is named
+in the chapter and in its departures.
+
+**ONE CLAIM WAS FOUND AND NOT USED.** A search summary asserted that a
+budget-limited search campaign lets PMax serve on exact-match terms anyway.
+Google's own interaction page does not say it, and the caveat would have been
+load-bearing here because this game models budget pacing. Unsourced, so
+unused — F21's rule applied before it could become F21 again.
+
+The guide's own guards did the editing: the first draft ran to 174 words
+against the chapter limit of 120, with a 31-word sentence against a limit of
+25. Both bounds held and the text was cut, not the bounds.
+
 **What would reopen this.** Phase 0. What a beginner says they learned is the
 evidence for which game this actually is, and nobody has finished it yet.
 
