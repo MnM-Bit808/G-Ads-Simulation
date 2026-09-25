@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Motion with a job</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --page:#0D0C0E; --card:#17161A; --raised:#221F25; --line:#2A272D; --line-strong:#3A363E;
+    --text:#EDE8E3; --soft:#CFC9C3; --muted:#A19A94; --faint:#8A847E;
+    --red:#D7262F; --red-text:#FF6166; --on-red:#FFF5F4; --amber:#F2A53A; --mint:#9FD3B5;
+    --panel:#1A0C0F; --panel-edge:#4A1A1F;
+    --disp:'Bricolage Grotesque','Avenir Next','Segoe UI',sans-serif;
+    --body:'Instrument Sans','Segoe UI','Helvetica Neue',Arial,sans-serif;
+    /* One curve. Everything in the Studio already uses it; the proposal is to
+       stop there rather than add a second. */
+    --ease:cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--body);padding:28px 24px 90px}
+  .wrap{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:36px}
+  h1{font-family:var(--disp);font-size:30px;font-weight:800;letter-spacing:-.01em;margin:0 0 6px}
+  h2{font-family:var(--disp);font-size:20px;font-weight:800;margin:0}
+  .lede{color:var(--muted);font-size:14px;margin:0;max-width:78ch;line-height:1.6}
+  .note{color:var(--faint);font-size:12.5px;margin:0;line-height:1.65;max-width:84ch}
+  .pill{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;
+    border-radius:999px;background:var(--raised);color:var(--soft)}
+  .tag{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .opt{display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 20px}
+  .play{padding:8px 16px;border-radius:999px;border:1px solid var(--line-strong);background:none;
+    color:var(--text);font:600 13px var(--body);cursor:pointer}
+  .play:hover{border-color:var(--soft)}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* --- the figure strip, as the Studio draws it --- */
+  .figs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+  .fig{display:flex;flex-direction:column;gap:4px}
+  .fig .k{font-size:12px;color:var(--muted)}
+  .fig .v{font-family:var(--disp);font-size:28px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .fig .s{font-size:12px;color:var(--faint)}
+
+  /* --- bars --- */
+  .chart{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:26px}
+  .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end;position:relative}
+  .bar{width:100%;background:var(--soft);border-radius:4px 4px 0 0;height:0}
+  .col.you .bar{background:var(--red)}
+  .tick{position:absolute;left:0;right:0;border-top:1px dashed var(--faint);opacity:0}
+  .wk{font-size:11px;color:var(--faint)}
+  .val{position:absolute;top:-22px;font-size:11px;font-weight:700;color:var(--soft);white-space:nowrap}
+
+  /* ===== PROPOSED MOTION ===== */
+  /* 1. a value counts to its new reading */
+  /* 2. a bar grows from the axis */
+  .bar.grow{transition:height 420ms var(--ease)}
+  /* 3. a section arrives: 10px and a fade, staggered */
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .arrive > *{animation:rise 300ms var(--ease) both}
+  .arrive > *:nth-child(2){animation-delay:40ms}
+  .arrive > *:nth-child(3){animation-delay:80ms}
+  .arrive > *:nth-child(4){animation-delay:120ms}
+  .arrive > *:nth-child(5){animation-delay:160ms}
+  .arrive > *:nth-child(6){animation-delay:200ms}
+  /* 4. a revised figure marks itself, briefly */
+  @keyframes mark{0%{background:rgba(159,211,181,.22)}100%{background:transparent}}
+  .marked{animation:mark 900ms var(--ease) both;border-radius:6px;margin:0 -6px;padding:0 6px}
+  /* 5. the material: a hairline that catches light along the top edge */
+  .lit{position:relative;overflow:hidden}
+  .lit::before{content:'';position:absolute;top:0;left:12px;right:12px;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(237,232,227,.16),transparent)}
+
+  @media (prefers-reduced-motion: reduce){
+    .bar.grow{transition:none}
+    .arrive > *{animation:none}
+    .marked{animation:none}
+  }
+  .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  @media (max-width:820px){.two{grid-template-columns:minmax(0,1fr)}.figs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div>
+    <h1>Motion with a job</h1>
+    <p class="lede">Every demo below runs on click, because motion cannot be judged from a picture.
+      Nothing here is decoration: each one exists to say what changed, or where something came from.
+      One curve, nothing further than 10px, nothing longer than 420ms.</p>
+  </div>
+
+  <div class="card" style="border-color:var(--panel-edge);background:var(--panel)">
+    <strong style="font-family:var(--disp);font-size:17px">Why you have not noticed any</strong>
+    <p class="note" style="color:var(--soft);margin-top:8px">Counted in <code>ui/studio.css</code>: nineteen
+      <code>animation</code> declarations. <strong>Thirteen are in the first run</strong> — the one-minute
+      explainer before round 0. Two are in Your ad, one is round 0's ring.</p>
+    <p class="note" style="margin-top:8px"><strong style="color:var(--soft)">Your week, Your money, What people typed,
+      Where and when, Returns, Rivals and Results have none at all.</strong> The whole motion budget went into
+      the screen a player sees once, and none into the twelve weeks they spend.</p>
+  </div>
+
+  <div class="opt">
+    <div class="tag"><span class="pill">One</span><h2>The week lands</h2></div>
+    <p class="note">The moment of the game. Today the numbers simply differ. Proposed: each figure counts to its
+      new reading and the new bar grows from the axis — so you see <em>what moved</em> rather than being handed
+      a new page. 420ms, once, on the week you just ran.</p>
+    <div class="card lit">
+      <div class="figs" id="w-figs"></div>
+      <div class="chart" id="w-chart" style="margin-top:18px"></div>
+      <div style="margin-top:14px"><button class="play" onclick="runWeek()">Run week 4</button></div>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="tag"><span class="pill">Two</span><h2>A revision moves, and the tick stays</h2></div>
+    <p class="note">The claim the whole simulation rests on is that a week's numbers are unfinished — sales keep
+      arriving, returns come back. Today that is a dashed tick and a sentence. Proposed: the earlier bar
+      <em>rises to its new height</em> and leaves the tick where it was first reported. The motion is the lesson,
+      which is the only reason to spend it.</p>
+    <div class="card lit">
+      <div class="chart" id="r-chart"></div>
+      <div style="margin-top:14px"><button class="play" onclick="revise()">Let week 2 settle</button></div>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="tag"><span class="pill">Three</span><h2>Arriving somewhere</h2></div>
+    <p class="note">Sections swap instantly today. Proposed: 10px and a fade, staggered 40ms per part — enough
+      to say the page changed and in what order to read it, gone before you could describe it.</p>
+    <div class="card lit">
+      <div class="figs" id="a-figs"></div>
+      <div style="margin-top:14px"><button class="play" onclick="arrive()">Open the section</button></div>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="tag"><span class="pill">Four</span><h2>The material, not a shadow</h2></div>
+    <p class="note">The precision half. A card today is a flat fill inside a 1px line. Proposed: a hairline along
+      the top edge that fades at both ends, as though light fell on it — depth with no shadow, no gradient and
+      no extra colour. It is the difference between a box and an object.</p>
+    <div class="two">
+      <div class="card"><strong style="font-size:13px;color:var(--muted)">Today</strong>
+        <div class="figs" style="grid-template-columns:minmax(0,1fr);margin-top:10px">
+          <div class="fig"><span class="k">Net profit</span><span class="v num">₹7,189</span><span class="s">returns not in yet</span></div>
+        </div></div>
+      <div class="card lit"><strong style="font-size:13px;color:var(--muted)">Lit edge</strong>
+        <div class="figs" style="grid-template-columns:minmax(0,1fr);margin-top:10px">
+          <div class="fig"><span class="k">Net profit</span><span class="v num">₹7,189</span><span class="s">returns not in yet</span></div>
+        </div></div>
+    </div>
+  </div>
+
+  <div class="opt">
+    <div class="tag"><span class="pill">Rules</span><h2>What would keep it quiet</h2></div>
+    <div class="card">
+      <ul class="note" style="margin:0;padding-left:18px;line-height:1.9">
+        <li><strong style="color:var(--soft)">One curve.</strong> <code>cubic-bezier(.23,1,.32,1)</code>, the one the Studio already uses. No second easing.</li>
+        <li><strong style="color:var(--soft)">One reason.</strong> Motion says what changed or where a thing came from. Nothing moves to be interesting.</li>
+        <li><strong style="color:var(--soft)">10px and 420ms are the ceilings.</strong> Most things get 300ms and a fade.</li>
+        <li><strong style="color:var(--soft)">Once.</strong> Nothing loops. The only looping animation in the game today is round 0's ring, and it marks an unanswered step.</li>
+        <li><strong style="color:var(--soft)">Every one has a <code>prefers-reduced-motion</code> answer</strong>, as the eight blocks in the stylesheet already do.</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const FIGS=[['Spend','₹8,379','640 clicks',8379],['Avg CPC','₹13','10,105 impressions',13],['Conversions','12.8','10.4 still to arrive',12.8],
+  ['Net profit','₹7,189','returns not in yet',7189],['Net ROAS','3.57','gross 3.57',3.57],['CPA','₹656','per conversion',656]];
+const el=(t,c,x)=>{const n=document.createElement(t); if(c)n.className=c; if(x!=null)n.textContent=x; return n;};
+function figs(host,vals){host.replaceChildren(...vals.map(([k,v,s])=>{const f=el('div','fig');
+  f.append(el('span','k',k),el('span','v num',v),el('span','s',s)); return f;}));}
+figs(document.getElementById('w-figs'),FIGS);
+figs(document.getElementById('a-figs'),FIGS);
+
+function bars(host,data){host.replaceChildren(...data.map(d=>{const c=el('div',d.you?'col you':'col');
+  const v=el('span','val num',d.label||''); const b=el('div','bar'); const t=el('div','tick');
+  c.append(t,v,b,el('span','wk',d.wk)); c._b=b; c._t=t; c._v=v; return c;}));}
+
+const WEEKS=[{wk:'1',h:38,label:'₹5,731'},{wk:'2',h:40,label:'₹5,937'},{wk:'3',h:74,label:'₹10,980'},
+  {wk:'4',h:0,label:'',you:true},{wk:'5',h:0},{wk:'6',h:0},{wk:'7',h:0},{wk:'8',h:0}];
+const wChart=document.getElementById('w-chart');
+function resetWeek(){bars(wChart,WEEKS); [...wChart.children].forEach((c,i)=>{c._b.style.height=(WEEKS[i].h)+'%'; c._v.textContent=WEEKS[i].label||'';});}
+resetWeek();
+
+const fmt=(n,pre='₹')=>pre+Math.round(n).toLocaleString('en-IN');
+function countTo(node,from,to,dp,pre){const t0=performance.now(); const dur=420;
+  const step=(t)=>{const p=Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-p,3); const v=from+(to-from)*e;
+    node.textContent = dp!=null ? (pre||'')+v.toFixed(dp) : fmt(v,pre===''?'':'₹');
+    if(p<1) requestAnimationFrame(step);}; requestAnimationFrame(step);}
+
+function runWeek(){
+  resetWeek();
+  const host=document.getElementById('w-figs'); const vs=[...host.querySelectorAll('.v')];
+  const targets=[[9210,null,'₹'],[14,null,'₹'],[15.2,1,''],[8640,null,'₹'],[3.81,2,''],[602,null,'₹']];
+  const froms=[8379,13,12.8,7189,3.57,656];
+  vs.forEach((n,i)=>countTo(n,froms[i],targets[i][0],targets[i][1],targets[i][2]));
+  const c=[...wChart.children][3]; c._b.classList.add('grow');
+  requestAnimationFrame(()=>{c._b.style.height='58%'; c._v.textContent='₹8,640';});
+}
+
+const RW=[{wk:'1',h:38,label:'₹5,731'},{wk:'2',h:40,label:'₹5,937'},{wk:'3',h:74,label:'₹10,980'},{wk:'4',h:58,label:'₹8,640'}];
+const rChart=document.getElementById('r-chart');
+function resetRev(){bars(rChart,RW); [...rChart.children].forEach((c,i)=>{c._b.style.height=RW[i].h+'%'; c._v.textContent=RW[i].label;});}
+resetRev();
+function revise(){
+  resetRev();
+  const c=[...rChart.children][1];
+  // The tick stays where the week was first reported.
+  c._t.style.bottom='40%'; c._t.style.opacity='1'; c._t.style.transition='opacity 200ms var(--ease)';
+  c._b.classList.add('grow');
+  requestAnimationFrame(()=>{c._b.style.height='62%'; countTo(c._v,5937,9184,null,'₹');});
+  c._v.parentElement.classList.add('marked');
+  setTimeout(()=>c._v.parentElement.classList.remove('marked'),1000);
+}
+
+function arrive(){const h=document.getElementById('a-figs'); h.classList.remove('arrive');
+  void h.offsetWidth; h.classList.add('arrive');}
+arrive();
+</script>
+</body>
+</html>

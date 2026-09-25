@@ -484,9 +484,20 @@ describe('a phone can reach and read everything', () => {
     expect(rule[0]).toMatch(/min-width: 24px/);
     expect(rule[0]).toMatch(/min-height: 24px/);
     // Every control the playthrough measured under 24px is in the list.
-    for (const sel of ['button.why', '.wt-act', '.rs-next', '.ktoggle', '.guide-sources a', '.wm-line']) {
+    for (const sel of ['button.why', '.wt-act', '.rs-next', '.ktoggle', '.guide-sources a']) {
       expect(rule[0], `${sel} is not covered`).toContain(sel);
     }
+    /**
+     * `.wm-line` MEETS THE SAME MINIMUM THE OTHER WAY, and must not be added
+     * to the list above. It already draws its grip with `::after` — a 4px
+     * seam — so the min-width/min-height there overrode it into a 24px block
+     * with a halo: a cube where a seam belongs, which the owner found live.
+     * A control that owns its `::after` widens itself instead.
+     */
+    expect(css, 'the budget seam is back in the pseudo-element rule')
+      .not.toMatch(/:is\(button\.why[^)]*\.wm-line[^)]*\)::after/);
+    expect(css, 'the budget seam no longer meets 24px on its own')
+      .toMatch(/body\.studio \.wm-line \{[^}]*width: 24px/);
   });
 
   test('and the grown area is the pseudo-element, so no word moves', () => {
@@ -503,5 +514,63 @@ describe('a phone can reach and read everything', () => {
     expect(block).toMatch(/\.r0-mini-cell \{ width: 34px; height: 26px; \}/);
     // The desktop rule is untouched: there they are a diagram, not a target.
     expect(css).toMatch(/body\.studio \.r0-mini-cell \{ width: 26px; height: 20px;/);
+  });
+});
+
+/**
+ * MOTION WITH A JOB (I52, 2026-09-25).
+ *
+ * The makeover capped the app at five to seven motions and kept a rejected
+ * list with the test each candidate failed. Two of these were on it, so the
+ * guards hold what was decided ABOUT them as much as the code.
+ */
+describe('the motions added after playing it', () => {
+  const css = read('ui/studio.css');
+  const shell = read('ui/shell/shell.js');
+
+  test('a section settles on every visit, not only its first', () => {
+    expect(shell, 'the shell still only arrives on a first visit').toMatch(/else settle\(shown\)/);
+    expect(css).toMatch(/@keyframes studio-settle/);
+    expect(css).toMatch(/body\.studio \.settling \{ animation: studio-settle 300ms/);
+  });
+
+  test('the revision tint runs WITH the play, not on every redraw', () => {
+    // `.moved` is a standing fact about a week; `.was` is the play. Binding the
+    // animation to `.moved` alone would replay it on every render.
+    expect(css).toMatch(/body\.studio \.yw-chart\.was \.yw-col\.moved \{ animation: studio-moved/);
+    expect(css).not.toMatch(/^body\.studio \.yw-col\.moved \{ animation:/m);
+  });
+
+  test('both have a reduced-motion answer', () => {
+    const reduce = css.match(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n\}/g) ?? [];
+    expect(reduce.some((b) => /\.settling \{ animation: none/.test(b))).toBe(true);
+    expect(reduce.some((b) => /\.yw-col\.moved \{ animation: none/.test(b))).toBe(true);
+  });
+
+  test('the lit edge is a hairline, not a shadow or a gradient behind the content', () => {
+    const rule = css.match(/body\.studio :is\(\.rs-card[^)]*\)::before \{[^}]*\}/);
+    expect(rule, 'no lit edge').toBeTruthy();
+    expect(rule[0]).toMatch(/height: 1px/);
+    expect(rule[0]).toMatch(/linear-gradient\(90deg, transparent/);
+    expect(rule[0], 'a card must not catch clicks on its edge').toMatch(/pointer-events: none/);
+    expect(rule[0]).not.toMatch(/box-shadow/);
+  });
+
+  /**
+   * THE ONE THAT WAS ASKED FOR AND NOT BUILT. Counting a figure up to its new
+   * reading shows in-between numbers the engine never reported, and this
+   * simulation is worth something only while every figure on screen is one it
+   * actually produced. The rule is older than the request:
+   * plans/2026-09-13-studio-makeover.md motion row 2, and
+   * plans/2026-09-19-first-run-and-ground-floor.md.
+   */
+  test('no figure counts up to its value, anywhere', () => {
+    for (const path of ['ui/week/render.js', 'ui/results/render.js', 'ui/money/render.js',
+      'ui/kit/figure.js', 'ui/returns/render.js']) {
+      const body = read(path);
+      expect(body, `${path} animates a number`).not.toMatch(/requestAnimationFrame[\s\S]{0,200}textContent\s*=/);
+    }
+    // And the rule itself is still written down where the next person looks.
+    expect(read('plans/2026-09-13-studio-makeover.md')).toMatch(/never a counting ticker/);
   });
 });

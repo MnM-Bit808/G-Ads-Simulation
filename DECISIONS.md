@@ -7287,3 +7287,71 @@ pane is evidence of how something looks, never of how wide it is.**
 
 **Replayed after the fix**, the same route at 375px: every screen reports no
 sideways scroll, no clipped text and no control under 24x24.
+
+### I52. Three motions and a material, and the one that was refused — `FIXED` (2026-09-25)
+
+**The owner asked for Apple's precision, more motion, and the cube taken off
+Your money's slider.** Three of the four proposals are built; one is refused,
+and the refusal is the point of this entry.
+
+**THE CUBE WAS I51's, one hour old.** `.wm-line` already draws its grip with
+`::after` — a 4px seam, 55% tall. I51's tap-target rule set
+`min-width/min-height: 24px` on that same `::after` and turned it into a
+**24x24 solid block with a halo**. The handle is 24px wide itself now and the
+seam is back; a control that owns its `::after` widens itself instead, and
+`tests/sections.test.js` holds both halves of that.
+
+**WHY THE MOTION WAS SPARSE, which the request did not know.** The makeover
+(`plans/2026-09-13-studio-makeover.md`) designed six motions, capped the app at
+five to seven, and kept **a rejected list with the test each candidate
+failed**. Two of the four asked for were already on it:
+
+- *section and area switching* — **frequency**: it is core navigation, so it is
+  instant;
+- *the spend bar drawing in and stats rolling up* — **function, and the
+  honesty rule**.
+
+Counted before building: nineteen `animation` declarations, **thirteen in the
+first run**, two in Your ad, one in round 0's ring, and **none at all** in the
+seven sections of a played week. The budget had gone to the screen a player
+sees once.
+
+**BUILT.**
+
+- **A section settles on every visit** — 300ms, a 10px rise, once per switch.
+  This overturns the frequency rejection at the owner's word, after they had
+  played the built game. The test it failed is still a fair test; the answer is
+  that 300ms reads as the page settling rather than as a wait. The first visit
+  keeps its staggered per-card entrance, which is teaching what the section
+  holds.
+- **The revision is marked while it plays** — the weeks that moved tint amber
+  for the 900ms the ghost holds. Row 2 gave the lesson 250ms of opacity on bars
+  nobody was looking at, which is why the owner never saw the one motion that
+  *is* the teaching. Scoped to `.was`, the class the play adds and drops:
+  `.moved` is a standing fact about a week, not a cue, and binding to it would
+  replay the tint on every redraw.
+- **The lit edge** — a hairline along a card's top that fades at both ends, as
+  though light fell on it. Depth with no shadow, no gradient behind the
+  content, no new colour. The only part of the pass about the object rather
+  than the motion, and the most Apple-like thing in it.
+
+**REFUSED: a figure counting up to its new reading.** The rule is older than
+the request and its reason is this project's spine — *"Every rupee figure
+appears at its true value, because a ticker shows in-between numbers the
+engine never reported"* (`plans/2026-09-19-first-run-and-ground-floor.md`;
+motion row 2 says *never a counting ticker*). A count from ₹7,189 to ₹8,640
+puts ₹8,028 on screen, and the engine never said ₹8,028. A simulator worth
+using is one where every figure is one it actually produced.
+
+**What was delivered instead, for the same purpose.** The week landing already
+plays the revision automatically, once, the first time Your week is opened
+after a week runs — so with the tint, *that* is the beat when a week lands, and
+it shows what moved without inventing a number. A guard now fails on any
+`requestAnimationFrame` writing to `textContent` in the five modules that draw
+figures.
+
+**A mistake worth recording because it is the second time today.** The tint did
+nothing at first: its explanatory comment was pasted **outside** the comment
+block, which silently killed every declaration after it — the same fault as
+I48's. Both times it was found by measuring the computed style rather than by
+reading the file.

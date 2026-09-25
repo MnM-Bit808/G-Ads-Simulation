@@ -45,6 +45,8 @@ const UNDO_FADE_MS = 150;
 /** A first visit's cards arrive 40ms apart, and are done well inside 600ms (row 3). */
 const ARRIVE_STAGGER_MS = 40;
 const ARRIVE_DONE_MS = 600;
+/** How long a returning section takes to settle (I52). */
+const SETTLE_MS = 320;
 /** Where studio.css puts the section list behind the menu. */
 const LIST_BEHIND_MENU = '(max-width: 900px)';
 
@@ -298,7 +300,15 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
     // Every section draws itself (tests/sections.test.js); one that did not
     // would otherwise show the word "undefined".
     if (!shown) throw new RangeError(s.key);
+    // EVERY VISIT, NOT ONLY THE FIRST (the owner, 2026-09-25). The makeover's
+    // motion table rejected section switching on frequency — "it is core
+    // navigation, so it is instant" — and the owner has asked for it back
+    // after playing the built game. Recorded as I52 rather than quietly
+    // reversed, because the test it failed is still a fair test: the answer
+    // is that 300ms of a 10px rise, once per switch, reads as the page
+    // settling rather than as a wait.
     if (view.firstOpen === s.key) arrive(s, shown);
+    else settle(shown);
     content.replaceChildren(shown);
     body.scrollTop = 0;
   }
@@ -328,6 +338,21 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
       card.classList.remove('arriving');
       card.style.transitionDelay = '';
     }), ARRIVE_DONE_MS);
+  }
+
+  /**
+   * A section that is not its first visit settles in: the whole panel, once,
+   * rather than its cards one by one. The first visit keeps the staggered
+   * entrance, because that one is teaching you what the section contains.
+   *
+   * The class is removed on the next frame's timer rather than on
+   * `animationend`, which never fires in a background tab — a section opened
+   * and left would keep it for ever (`ui/studio.css` has the same reasoning
+   * for the revision's hold).
+   */
+  function settle(root) {
+    root.classList.add('settling');
+    setTimeout(() => root.classList.remove('settling'), SETTLE_MS);
   }
 
   function makeChip(line) {

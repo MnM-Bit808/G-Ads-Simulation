@@ -190,8 +190,13 @@ body.studio :is(button.why, button.guide-next, .guide-sources a):hover { color: 
    control reaches 24px without moving a single word, which matters because
    `why?` sits inline inside a label: padding there would re-space the figure
    above it on every screen in the game. */
-body.studio :is(button.why, .wt-act, .rs-next, .ktoggle, .guide-sources a, .studio-menu, .wm-line) { position: relative; }
-body.studio :is(button.why, .wt-act, .rs-next, .ktoggle, .guide-sources a, .studio-menu, .wm-line)::after {
+/* NOT `.wm-line`. It already draws its grip with `::after` — a 4px line, 55%
+   tall — and the min-width/min-height below overrode that into a 24px block
+   with a halo: a cube where a seam belongs. Found by the owner, live, an hour
+   after I shipped it. A control that already uses its own `::after` widens
+   itself instead; that one is 24px wide now and its handles sit 78px apart. */
+body.studio :is(button.why, .wt-act, .rs-next, .ktoggle, .guide-sources a, .studio-menu) { position: relative; }
+body.studio :is(button.why, .wt-act, .rs-next, .ktoggle, .guide-sources a, .studio-menu)::after {
   content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 100%; height: 100%; min-width: 24px; min-height: 24px;
 }
@@ -477,6 +482,43 @@ body.studio .kslider-was { position: absolute; top: 7px; width: 12px; height: 12
 body.studio .kstats { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid #232026; }
 body.studio .kstat-value { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 body.studio .kstat-label { font-size: var(--t-small); color: var(--studio-muted); }
+
+/* --- I52: two more motions, and a material (the owner, 2026-09-25) --------
+   The makeover capped the app at five to seven motions and rejected section
+   switching on frequency. The owner asked for it back having played the built
+   game; the answer to the frequency test is that this is 300ms of a 10px
+   rise, once per switch, which reads as the page settling rather than a wait.
+   Nothing here invents a figure: the honesty rule stands, and no number
+   counts up to anything. */
+@keyframes studio-settle { from { opacity: 0; transform: translateY(10px); } }
+body.studio .settling { animation: studio-settle 300ms var(--studio-ease) both; }
+
+/* THE LIT EDGE. A card is a flat fill inside a 1px line; this is a hairline
+   along its top that fades at both ends, as though light fell on it. Depth
+   with no shadow, no gradient behind the content and no new colour — the one
+   thing in the pass that is about the object rather than the motion. It sits
+   on ::before because every card that needed ::after already has one. */
+body.studio :is(.rs-card, .rv-card, .wm-card, .wr-card, .yw-card, .yad-card, .gb-card, .kfigs.carded) { position: relative; }
+body.studio :is(.rs-card, .rv-card, .wm-card, .wr-card, .yw-card, .yad-card, .gb-card, .kfigs.carded)::before {
+  content: ''; position: absolute; top: 0; left: 14px; right: 14px; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(237, 232, 227, 0.14), transparent);
+}
+
+/* The weeks a revision moved, marked as the ghost gives way (I52). The
+   revision is the lesson and it was 250ms of opacity on a bar nobody was
+   looking at; this puts the eye on the right column without touching a
+   figure. Amber, because a correction is not money and not the player.
+
+   Scoped to `.was`, which the play adds and drops again after HOLD_MS, so it
+   runs WITH the revision and not on every redraw of a week that once moved —
+   `.moved` is a standing fact about the week, not a cue. */
+@keyframes studio-moved { from { background: rgba(242, 165, 58, 0.20); } to { background: transparent; } }
+body.studio .yw-chart.was .yw-col.moved { animation: studio-moved 900ms var(--studio-ease) both; border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  body.studio .settling { animation: none; }
+  body.studio .yw-chart.was .yw-col.moved { animation: none; }
+}
 
 /* The figure every section shows: a label, the number, a quieter line (I49).
    Sentence case, because uppercase marks a COLUMN here — the books' header,
@@ -1225,7 +1267,7 @@ body.studio .wm-seg.planned { background-color: #5E5963; color: var(--studio-tex
    does not read as a week. */
 body.studio .wm-seg.unplanned { outline: 1.5px dashed var(--studio-amber); outline-offset: -1.5px; color: var(--studio-amber); }
 body.studio .wm-lines { position: absolute; inset: 0; pointer-events: none; }
-body.studio .wm-line { position: absolute; top: -4px; bottom: -4px; width: 18px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: ew-resize; pointer-events: auto; touch-action: none; transform: translateX(calc(-50% - 1.5px)); }
+body.studio .wm-line { position: absolute; top: -4px; bottom: -4px; width: 24px; padding: 0; border: 0; border-radius: 8px; background: none; cursor: ew-resize; pointer-events: auto; touch-action: none; transform: translateX(calc(-50% - 1.5px)); }
 body.studio .wm-line::after { content: ''; position: absolute; top: 50%; left: 50%; width: 4px; height: 55%; border-radius: 2px; background: var(--studio-text); box-shadow: 0 0 0 2px var(--studio-card); transform: translate(-50%, -50%); }
 body.studio .wm-line:hover::after, body.studio .wm-line:focus-visible::after { width: 6px; }
 body.studio .wm-line:focus-visible { outline: 2px solid var(--studio-red-text); outline-offset: 0; }
