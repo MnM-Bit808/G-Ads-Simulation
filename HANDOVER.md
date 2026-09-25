@@ -1117,11 +1117,27 @@ Preview URLs → Disable**, which turns previews off wholesale. Per Cloudflare's
 documentation there is **no way to delete a single alias** — they persist until
 a thousand newer ones push them out.
 
-**It is PARKED, not fixed (2026-09-20)**, and that was a judgement about
-proportion rather than a failure to try: the site is public anyway so a public
-preview leaks nothing new, and the only real cost — a tester playing a stale
-build — needs somebody to send them that link. Nobody will. **The defence that
-works is the sentence below.**
+**AND DISABLING PREVIEW URLS DOES NOT RETIRE THE ALIASES ALREADY ISSUED
+(measured 2026-09-25).** The setting above was turned off, with no branches left
+in the repository at all — and `polish-…` and `makeover-…` both went on
+answering `200`, each still serving its own old build (`7913880` and
+`e312519`), through thirteen checks over six minutes. So it is not propagation
+delay. Production was unaffected throughout.
+
+**What that leaves, stated plainly because the next person will try the same
+things:** deleting the branch does not remove the alias; the alias is not in
+the Deployments tab; Cloudflare documents no way to delete one; and disabling
+the feature appears to stop new ones without withdrawing old ones. **There may
+be no way to take an issued alias down.** Anything left untried is in the
+Worker's Deployments tab, looking for those two versions by name.
+
+**It is PARKED, not fixed (2026-09-20, re-parked 2026-09-25)**, and that was a
+judgement about proportion rather than a failure to try: the site is public
+anyway so a public preview leaks nothing new, and the only real cost — a tester
+playing a stale build — needs somebody to send them that link. Nobody will.
+**The defence that works is the sentence below.** Two sessions have now gone at
+this; a third would be spending real time on a thing whose whole cost is one
+sentence of discipline.
 
 **Why it matters for a playtest:** a tester sent a preview link plays a stale
 build and reports defects that were fixed weeks ago. Send the bare

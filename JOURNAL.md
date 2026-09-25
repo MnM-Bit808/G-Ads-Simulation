@@ -42,6 +42,57 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-25: round 0 got a budget, and the preview aliases would not die
+
+**The density pass merged and went live** as `f184a91`, tagged `playtest-8`.
+Seven commits over two days, from `plans/2026-09-24-density-and-polish.md`.
+Round 0 had gone from 781 rendered words to 1,675 in the ten days to the 24th
+because nothing was holding it; the first run had been bounded to 80 words a
+beat since it was built. Step 1 is now 342 rendered, step 2 299 against 612,
+step 5 271 against 353, and step 2 shows one rival ad instead of eight.
+
+**Four guards exist now that did not**, and they matter more than the counts,
+because the counts drift back without them: a 150-word per-step budget set on
+evidence, `adStage` holding step 2 to one ad, step 1's city names held behind
+the tap, and step 1's three kinds of box held apart.
+
+**Three defects came out of the work that were not about density.** "Tap a
+place to name its cities" was false — every row named them from the moment the
+step drew, so the step's only interactive thing did nothing visible, and the
+2026-09-14 design had measured its own intent rather than the code. Two of step
+1's card treatments were byte-identical, so nothing on the screen read as more
+important than anything else. And `hiredNote` and `diyNote` ended with the same
+sixteen-word sentence, which `twoParts` and `lpNote` each said again.
+
+**Two findings in that design were withdrawn as not real**, and the second is
+the one worth remembering. A rail contrast "failure" at 3.47:1 turned out to be
+`.studio-area:disabled`, which the owner tuned deliberately on 2026-09-14 and a
+test already holds at both ends. And a map called "small, dim, decorative" is
+560×585 and reads well — **described from its top edge in a screenshot cropped
+at 500px**. A screenshot is not the screen, which this file's own handover had
+already said.
+
+**THE PREVIEW ALIASES SURVIVED EVERYTHING, and that is the finding to keep.**
+`polish` was merged and deleted; `makeover` had been deleted on the 20th. Then
+Preview URLs was turned off in the Worker's settings, with no branches left in
+the repository at all. Both aliases went on answering `200`, each still serving
+its own old build — `7913880` and `e312519` — through thirteen checks over six
+minutes. Not propagation delay. Production was unaffected throughout.
+
+So: deleting the branch does not remove the alias, the alias is not in the
+Deployments tab, Cloudflare documents no way to delete one, and disabling the
+feature appears to stop new ones without withdrawing old ones. **There may be
+no way to take an issued alias down.** Parked a second time on the same
+reasoning as the first: the site is public anyway, and the only real cost needs
+somebody to send a tester that link.
+
+**And the thing none of it touched.** Five testers had the link for seven days
+and returned nothing. Every measurement behind every commit above is of the
+artefact; nobody has watched a person use any of it. The merge commit says so
+and `playtest-8`'s tag message ends on it.
+
+---
+
 ## 2026-09-20, later: the sign-in came off, and four documents were wrong about it
 
 **The Cloudflare Access application was deleted by the owner**, closing item 0.1
