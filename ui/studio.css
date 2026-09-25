@@ -179,6 +179,23 @@ body.studio tr.you td { background: rgba(215, 38, 47, 0.12); }
 body.studio button.why { border-bottom-color: rgba(255, 97, 102, 0.6); }
 body.studio :is(button.why, button.guide-next, .guide-sources a):hover { color: #FF8A8E; }
 
+/* A FINGER IS WIDER THAN THE INK (I51, 2026-09-25). Played on a phone, these
+   measured 13 to 21 pixels tall against WCAG 2.5.8's 24x24 minimum: `why?` on
+   every screen, `block` on What people typed, the Running toggle, each
+   section's "Next:" link, and the guide's sources.
+   https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
+   (fetched 2026-09-25).
+
+   The hit area grows, the ink does not. A pseudo-element centred on the
+   control reaches 24px without moving a single word, which matters because
+   `why?` sits inline inside a label: padding there would re-space the figure
+   above it on every screen in the game. */
+body.studio :is(button.why, .wt-act, .rs-next, .ktoggle, .guide-sources a, .studio-menu, .wm-line) { position: relative; }
+body.studio :is(button.why, .wt-act, .rs-next, .ktoggle, .guide-sources a, .studio-menu, .wm-line)::after {
+  content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 100%; height: 100%; min-width: 24px; min-height: 24px;
+}
+
 /* Where "Show me" lands. style.css rings only the classic cards
    (.card[data-slot]), and every Studio section draws its own parts, so the mark
    reached nothing here (found drawing the Guide as a page, 2026-09-15). The same
@@ -538,6 +555,24 @@ body.studio .kplanner-name span { font-size: 12px; color: var(--studio-faint); }
 body.studio .kplanner-add, body.studio .kplanner-held { justify-self: end; padding: 5px 12px; border-radius: 999px; font-size: 12px; }
 body.studio .kplanner-add { background: var(--studio-red); color: var(--studio-on-red); }
 body.studio .kplanner-held { border: 1px solid var(--studio-line-strong); background: none; color: var(--studio-faint); }
+
+/* ON A PHONE THE KEYWORD GETS ITS OWN LINE (I51, 2026-09-25). The row's three
+   fixed columns take 226px and the gaps another 30 out of 326, which left the
+   name 70px against the 95-134px its text wants: every keyword ellipsised to
+   "cheap g...", "gym we...". Choosing a keyword by reading it is the whole of
+   what this drawer is for, so on a phone it could not be done.
+
+   The same fold What people typed already uses: the words on the first line,
+   the figures and the button under them. */
+@media (max-width: 560px) {
+  body.studio :is(.kplanner-cols, .kplanner-row) {
+    grid-template-columns: minmax(0, 1fr) 64px 86px; row-gap: 4px;
+  }
+  body.studio .kplanner-row > .kplanner-name,
+  body.studio .kplanner-cols > :first-child { grid-column: 1 / -1; }
+  body.studio .kplanner-cols > :first-child:empty { display: none; }
+  body.studio .kplanner-name strong { white-space: normal; overflow: visible; }
+}
 body.studio .kplanner-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
 
 body.studio .kserp { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 16px; background: var(--studio-card); }
@@ -946,6 +981,10 @@ body.studio .ww.dragging :is(.ww-bar, .ww-read, .ww-fill, .ww-knob) { transition
    the setting, and the block names move into a grid under the chart. */
 @container (max-width: 560px) {
   body.studio .ww-day { grid-template-columns: 38px minmax(0, 1fr); padding: 14px 12px 12px 4px; }
+  /* The cities a tier stands for wrap rather than ellipsise (I51): at 242px
+     against the 246-312 they want, the cut fell inside "and 4 more", so a
+     phone lost the count of how many places a tier covers. */
+  body.studio .ww-cities { white-space: normal; overflow: visible; text-overflow: clip; }
   body.studio .ww-yscale, body.studio .ww-plot { height: 220px; }
   body.studio .ww-yscale span { right: 6px; }
   body.studio .ww-yscale .ww-y-hourly { display: none; }
@@ -1743,6 +1782,14 @@ body.studio .r0-ask { max-width: 720px; margin: -10px 0 18px; font-size: 13px; c
    more, and an outline of 3.33:1 against the page. */
 body.studio .r0-mini { display: grid; grid-template-columns: repeat(3, 26px); grid-template-rows: repeat(2, 20px); gap: 4px; align-self: flex-start; }
 body.studio .r0-mini-cell { width: 26px; height: 20px; padding: 0; border: 1px solid #68636B; border-radius: 4px; background: none; }
+/* Where they sat is forty-eight of these, and on a phone it is the whole of
+   what that screen asks you to do (I51). They grow to a finger there rather
+   than everywhere, because on a desktop they are a diagram you click, and at
+   26x20 the six of them read as one small grid — which is the point. */
+@media (max-width: 560px) {
+  body.studio .r0-mini { grid-template-columns: repeat(3, 34px); grid-template-rows: repeat(2, 26px); gap: 5px; }
+  body.studio .r0-mini-cell { width: 34px; height: 26px; }
+}
 body.studio .r0-mini-cell.on { border-color: var(--studio-text); background: var(--studio-text); }
 body.studio .r0-readout { margin: 0 0 10px; font-size: 14px; color: var(--studio-soft); }
 body.studio .r0-diagram { display: grid; grid-template-columns: 150px repeat(3, minmax(0, 1fr)); gap: 6px; align-items: stretch; }

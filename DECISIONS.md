@@ -7238,3 +7238,52 @@ does not move — that is the design, and its own comment says so.
 `document.documentElement.scrollWidth > clientWidth`.** Anything narrower
 than that reports a scrolling chart as a defect, which is how a correct piece
 of design spent an afternoon in *Still open*.
+
+### I51. What a phone playthrough found — `FIXED` (2026-09-25)
+
+**Played end to end at 375px on the live build**: the front door, round 0's
+five steps, twelve weeks, the week-5 capital decision made and committed, all
+seven in-play sections, the guide drawer, and all four Results sections. It
+plays. Two things it could not do well, and both were measured rather than
+eyeballed.
+
+**THE KEYWORD PLANNER WAS UNREADABLE.** Its row gives three fixed columns 226px
+and the gaps another 30 out of 326, leaving the keyword name **70px** against
+the **95-134px** its text wants. So every keyword ellipsised — *"cheap g…",
+"gym we…", "cheap at…"* — and choosing a keyword by reading it is the whole of
+what that drawer is for. On a phone the words now take a line of their own and
+the figures and the Add button sit under them, the same fold What people typed
+already uses.
+
+**SEVERAL CONTROLS WERE UNDER WCAG 2.5.8's 24x24 MINIMUM**
+(https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html, fetched
+2026-09-25): `why?` at **32x13** on every screen, the Where they sat quiz's
+**forty-eight** cells at 26x20, *block* at 31x18, the Running toggle at 88x20,
+each section's *Next:* link at 171x21, the guide's sources at 327x18, and the
+budget slider's drag handle at **18px wide**.
+
+**The ink does not grow; the hit area does.** A transparent pseudo-element
+centred on the control reaches 24px without moving a word — which matters
+because `why?` sits inline inside a figure's label, where padding would
+re-space the number above it on every screen in the game. Verified by
+hit-testing: the 13px-tall `why?` now takes a tap ±12px from its centre, and
+the label text beside it is still reachable. On desktop the ink is unchanged
+at 32x18 and the added area is transparent.
+
+**The quiz cells grow outright, and only on a phone**: 26x20 to **34x26** below
+560px. On a desktop they are a diagram you click, and at 26x20 the six of them
+read as one small grid, which is the point of drawing them that way.
+
+**Also fixed:** Where and when's city lists were cut inside *"and 4 more"* at
+242px against the 246-312 they want, so a phone lost the count of how many
+places a tier covers. They wrap there now.
+
+**TWO THINGS THE MEASUREMENTS STOPPED ME REPORTING.** A tap on a quiz cell
+looked like it did nothing — it had worked, and the check had re-queried a
+re-rendered list and looked for the wrong class; `aria-pressed="true"` settled
+it. And several screenshots looked cut off at the right edge, which was the
+browser pane rendering at 2x rather than the page. **A screenshot from that
+pane is evidence of how something looks, never of how wide it is.**
+
+**Replayed after the fix**, the same route at 375px: every screen reports no
+sideways scroll, no clipped text and no control under 24x24.

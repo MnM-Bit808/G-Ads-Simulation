@@ -450,3 +450,58 @@ describe('a phone never scrolls sideways because of the tray', () => {
       .toMatch(/\.studio-exit, \.studio-run\)?[\s\S]{0,120}flex: 1 1 auto/);
   });
 });
+
+/**
+ * WHAT A PHONE PLAYTHROUGH FOUND (I51, 2026-09-25).
+ *
+ * Played end to end at 375px on the live build: round 0's five steps, twelve
+ * weeks, the week-5 capital decision, every section, the guide drawer and all
+ * four Results sections. Two things it could not do well.
+ *
+ * The keyword planner's row gave its three fixed columns 226px and the gaps
+ * another 30 out of 326, leaving the name 70px against the 95-134 its text
+ * wants — so every keyword ellipsised to "cheap g...". Reading a keyword is
+ * the whole of what that drawer is for.
+ *
+ * And several controls measured 13 to 21px tall against WCAG 2.5.8's 24x24
+ * minimum, including the forty-eight cells of the Where they sat quiz.
+ */
+describe('a phone can reach and read everything', () => {
+  const css = read('ui/studio.css');
+
+  test('the planner gives a keyword its own line on a phone', () => {
+    const block = (css.match(/@media \(max-width: 560px\) \{[\s\S]*?\n\}/g) ?? [])
+      .find((b) => b.includes('.kplanner-row'));
+    expect(block, 'no phone rule for the planner row').toBeTruthy();
+    expect(block, 'the name does not take the row').toMatch(/\.kplanner-name[\s\S]{0,80}grid-column: 1 \/ -1/);
+    // An ellipsis is what hid the words; on a phone it wraps instead.
+    expect(block).toMatch(/\.kplanner-name strong \{ white-space: normal/);
+  });
+
+  test('the small controls carry a hit area of at least 24px', () => {
+    const rule = css.match(/body\.studio :is\(button\.why,[^)]*\)::after \{[^}]*\}/);
+    expect(rule, 'no grown hit area').toBeTruthy();
+    expect(rule[0]).toMatch(/min-width: 24px/);
+    expect(rule[0]).toMatch(/min-height: 24px/);
+    // Every control the playthrough measured under 24px is in the list.
+    for (const sel of ['button.why', '.wt-act', '.rs-next', '.ktoggle', '.guide-sources a', '.wm-line']) {
+      expect(rule[0], `${sel} is not covered`).toContain(sel);
+    }
+  });
+
+  test('and the grown area is the pseudo-element, so no word moves', () => {
+    // Padding on `why?` would re-space the figure above it on every screen.
+    const rule = css.match(/body\.studio :is\(button\.why,[^)]*\)::after \{[^}]*\}/)[0];
+    expect(rule).toMatch(/position: absolute/);
+    expect(rule).not.toMatch(/padding/);
+  });
+
+  test('the quiz cells grow to a finger on a phone, and only there', () => {
+    const block = (css.match(/@media \(max-width: 560px\) \{[\s\S]*?\n\}/g) ?? [])
+      .find((b) => b.includes('.r0-mini-cell'));
+    expect(block, 'the quiz cells do not grow on a phone').toBeTruthy();
+    expect(block).toMatch(/\.r0-mini-cell \{ width: 34px; height: 26px; \}/);
+    // The desktop rule is untouched: there they are a diagram, not a target.
+    expect(css).toMatch(/body\.studio \.r0-mini-cell \{ width: 26px; height: 20px;/);
+  });
+});

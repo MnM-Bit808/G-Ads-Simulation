@@ -42,6 +42,32 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-25, actually last: played it on a phone, end to end
+
+**I51.** The whole route at 375px on the live build — door, round 0's five
+steps, twelve weeks, the week-5 capital decision made and committed, every
+section, the guide drawer, all four Results sections. **It plays.** Two things
+it could not do well.
+
+**The keyword planner was unreadable**: its row left the keyword name 70px
+against the 95-134 its text wants, so every one ellipsised to "cheap g...".
+Reading a keyword is the whole of what that drawer does. It folds now, the way
+What people typed already did.
+
+**And a handful of controls were 13 to 21px tall** against WCAG's 24x24,
+including the forty-eight cells of the Where they sat quiz. The ink stays the
+size it was; a transparent pseudo-element grows the hit area, because `why?`
+sits inline in a figure's label and padding there would re-space the number
+above it on every screen in the game. The quiz cells grow outright, and only on
+a phone — on a desktop they are a diagram, and being small is the point.
+
+**Two things measurement stopped me reporting as defects.** A tap on a quiz
+cell looked inert; it had worked, and my check had re-queried a re-rendered
+list and looked for the wrong class. And several screenshots looked cut off at
+the right, which was the browser pane rendering at 2x. **A screenshot from that
+pane is evidence of how something looks, never of how wide it is** — that one
+has now cost me two wrong readings in a day, the other being `.rs-chart`.
+
 ## 2026-09-25, the last thing: the tray stopped pushing the page
 
 **I50.** On a 375px phone the document scrolled to 467px on every Results
