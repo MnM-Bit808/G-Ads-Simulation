@@ -18,11 +18,18 @@ import {
 } from './rules.js';
 
 const PART = { base: R0.partBase, writer: R0.partWriter, kept: R0.capitalKept };
+/**
+ * A name and one sentence, since 2026-09-25. Each card carried a third line,
+ * `moves: …`, naming the number the purchase moves — and for three of the four
+ * it restated the sentence beneath it ("how many visitors buy" over "More
+ * visitors buy"). Only the landing page's said something its sentence did not,
+ * so that is folded into the sentence instead.
+ */
 const TARGET = {
-  landingPage: [R0.targetPage, R0.movesPage, R0.whyPage],
-  sizeGuide: [R0.targetSize, R0.movesSize, R0.whySize],
-  photography: [R0.targetPhoto, R0.movesPhoto, R0.whyPhoto],
-  orderConfirmation: [R0.targetConfirm, R0.movesConfirm, R0.whyConfirm],
+  landingPage: [R0.targetPage, R0.whyPage],
+  sizeGuide: [R0.targetSize, R0.whySize],
+  photography: [R0.targetPhoto, R0.whyPhoto],
+  orderConfirmation: [R0.targetConfirm, R0.whyConfirm],
 };
 const GRADE_SCALE = 10;
 /** Whether Advanced is open, per round 0: a redraw keeps it. */
@@ -94,10 +101,9 @@ export function renderMoneyStep({ draft, openGuide, changed, redraw }) {
 
   const targets = el('div', 'r0-targets');
   for (const key of CAPEX_ORDER) {
-    const [label, moves, why] = TARGET[key];
+    const [label, why] = TARGET[key];
     const card = el('div', draft.capex[key] > 0 ? 'r0-target on' : 'r0-target');
-    card.append(el('strong', null, label()), el('span', 'r0-moves', R0.moves({ what: moves() })),
-      el('p', 'r0-small', why()));
+    card.append(el('strong', null, label()), el('p', 'r0-small', why()));
     const rungs = el('div', 'r0-rungs');
     for (const rung of capexRungs(draft, key)) {
       const chip = el('button', rung.on ? 'r0-rung on' : 'r0-rung',

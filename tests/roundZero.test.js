@@ -26,6 +26,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 // Straight from the rules both looks read. They used to come through
 // ui/round-zero.js, which re-exported them for this test alone; the switch-over's
@@ -34,6 +35,7 @@ import {
   openingReserve, submittedAd, gradeAsSubmitted, monthlyBudget,
   positionMatrix, splitShares, adStage,
 } from '../ui/roundzero/rules.js';
+import { R0 } from '../ui/words/roundZero.js';
 import { openingCopyGrades } from '../content/writers.js';
 import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
@@ -563,5 +565,122 @@ describe('the tags round 0 shows are the tags the account will be given (stage A
   test('the chips come from the tagger, handed the query set', () => {
     expect(source).toMatch(/tagKeywordOffline\(keyword, querySet\)/);
     expect(source).not.toMatch(/heuristicTags\(/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The reading load of a step, bounded
+// ---------------------------------------------------------------------------
+
+/**
+ * ROUND 0 HAS A WORD BUDGET NOW, AND UNTIL 2026-09-25 IT HAD NONE.
+ *
+ * The first run has been held to 80 words a beat since it was built, by
+ * `tests/firstRun.test.js`, whose comment says why: **a beginner drowns on a
+ * SCREEN**. Round 0 — the screen a stranger actually gave up inside — was held
+ * to nothing, and went from 781 rendered words to 1,675 in the ten days to
+ * 2026-09-24. Nothing was watching, so nothing said.
+ *
+ * WHY 150, MEASURED RATHER THAN PICKED. The design first proposed 120
+ * (plans/2026-09-24-density-and-polish.md, section 6.1) and that was a guess:
+ * four of the five steps failed it, including step 1 at 115, the lightest step
+ * that carries a real decision. A bound that the work has to move to meet is
+ * not a bound. 150 leaves step 1 its room, sits at roughly twice the first
+ * run's 80 — fair, because a beat teaches one idea and a step asks for a
+ * decision — and still required cuts to steps 2, 4 and 5 on the day it was set.
+ *
+ * WHAT IT COUNTS, AND WHAT IT CANNOT. It counts AUTHORED words: every `R0.*`
+ * line a step's module mentions, found by reading the module as text so the
+ * count cannot drift when a line is added. It deliberately over-counts, because
+ * a line behind a condition still counts — a bound should err strict.
+ *
+ * IT DOES NOT COUNT DATA, and on round 0 data is more than half of what is
+ * read: 788 authored words across the five steps render as 1,675. Rival names,
+ * ad copy, place names and figures are not in this number. The structural half
+ * of the budget is held elsewhere and per-step — `adStage` above is step 2's,
+ * holding it to one rival ad on screen instead of eight.
+ *
+ * IF THIS FAILS, CUT THE STEP. Do not raise the bound: it was set on evidence
+ * once, and a number that gets nudged upward is the thing the first run's test
+ * refuses to have.
+ */
+describe('a round 0 step does not out-talk its budget', () => {
+  const STEP_MODULES = {
+    'step 1 · the market': 'ui/roundzero/market.js',
+    'step 2 · where you sit': 'ui/roundzero/position.js',
+    'step 3 · your keywords': 'ui/roundzero/keywords.js',
+    'step 4 · your ad': 'ui/roundzero/ad.js',
+    'step 5 · your money': 'ui/roundzero/money.js',
+  };
+  const BUDGET = 150;
+
+  /**
+   * Lines that are alternatives to each other: exactly one of a group is ever
+   * drawn, so the group costs what its LONGEST member costs, not the sum.
+   *
+   * This is not leniency. The bound is on what a beginner meets ON A SCREEN,
+   * and `readoutNone` is the sentence shown when `readoutPlaced` is not. Adding
+   * them would be measuring a screen that cannot exist, and would spend the
+   * budget cutting sentences nobody reads together.
+   *
+   * EVERY GROUP HAS TO BE TRUE OF THE DRAWING. If a module changes so that two
+   * of these can appear at once, the group is a lie and belongs deleted rather
+   * than kept for the headroom.
+   */
+  const ALTERNATES = [
+    // ui/roundzero/position.js: the readout under the grid, and the note
+    // beside the rival list, each have an empty state and a filled one.
+    ['readoutNone', 'readoutPlaced'],
+    ['otherRivals', 'stillUnread'],
+    ['unreadLeft', 'guessNote'],
+    // ui/roundzero/ad.js:134 — `graded.byWriter ? hiredNote() : diyNote()`.
+    // You either hired or you did not, so the reader meets one of these.
+    ['hiredNote', 'diyNote'],
+    // ui/roundzero/money.js — the weekly split is even until it is not.
+    ['splitEven', 'splitCustom'],
+  ];
+
+  // One bag of figures that every line can be called with. A line reads only
+  // the keys it wants, so a superset is safe and keeps this from needing a
+  // bespoke call per line.
+  const FIGURES = {
+    rivals: 8, n: 8, count: 3, name: 'Nira', names: ['Nira'], cell: 'Value · Performance',
+    placed: 2, total: 8, query: 'gym leggings with pockets', volume: '1,849', week: 5,
+    order: '₹2,400', margin: '52%', searches: '1,20,400', need: '₹17', grade: 6, of: 10,
+    paise: 1000, rupees: '₹1,000', pct: '52%', text: 'gym leggings', tier: 'mid',
+  };
+  const words = (value) => String(value).trim().split(/\s+/).filter(Boolean).length;
+
+  const wordsOf = (name) => {
+    const entry = R0[name];
+    if (typeof entry !== 'function') return 0;
+    // A line this bag cannot satisfy is skipped rather than counted wrong.
+    try { return words(entry(FIGURES)); } catch { return 0; }
+  };
+
+  const authored = (path) => {
+    const source = readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
+    const names = new Set([...source.matchAll(/R0\.([A-Za-z0-9_]+)/g)].map((m) => m[1]));
+    let total = 0;
+    for (const group of ALTERNATES) {
+      const present = group.filter((name) => names.has(name));
+      if (present.length === 0) continue;
+      total += Math.max(...present.map(wordsOf));
+      for (const name of present) names.delete(name);
+    }
+    for (const name of names) total += wordsOf(name);
+    return total;
+  };
+
+  test.each(Object.entries(STEP_MODULES))(`%s stays inside ${BUDGET} words`, (label, path) => {
+    const count = authored(path);
+    expect(count, `${label} authors ${count} words`).toBeLessThanOrEqual(BUDGET);
+  });
+
+  test('every step module was actually found and read', () => {
+    // The guard against a renamed module quietly measuring zero and passing.
+    for (const path of Object.values(STEP_MODULES)) {
+      expect(authored(path), path).toBeGreaterThan(0);
+    }
   });
 });

@@ -1642,7 +1642,6 @@ body.studio .r0-lp-parts .r0-small { margin: 0; }
 body.studio .r0-targets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 body.studio .r0-target { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--studio-line); border-radius: 16px; }
 body.studio .r0-target.on { border-color: var(--studio-red); }
-body.studio .r0-moves { font-size: 12px; font-weight: 700; color: var(--studio-soft); }
 body.studio .r0-rungs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 body.studio .r0-rung { padding: 5px 10px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; }
 body.studio .r0-rung.on { border-color: var(--studio-red); background: var(--studio-red); color: var(--studio-on-red); }

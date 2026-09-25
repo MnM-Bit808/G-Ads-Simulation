@@ -361,6 +361,14 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
    * The bar that moved says which purchase moved it (the owner, 2026-09-18), in
    * the same words Your ad's total uses, and the size guide card no longer names
    * returns alone when its chart earns a grade point too.
+   *
+   * THE SECOND HALF MOVED HOUSE ON 2026-09-25 AND THE GUARD HAD TO FOLLOW IT.
+   * The card used to carry a separate `movesSize` line, which this test read;
+   * the word budget folded that line into the sentence beneath it, because for
+   * three of the four capital targets it only restated it. The size guide was
+   * the one where it did not, so the claim this test exists to hold — that the
+   * card names BOTH the parcels and the grade — is now made by `whySize`.
+   * The line moved; the guard did not weaken.
    */
   test('the landing page grade names the purchases that earned it, and the size guide says both things it moves', () => {
     expect(R0.lpParts({ start: 5, parts: [{ target: 'sizeGuide', points: 1 }] }))
@@ -368,8 +376,14 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
     expect(R0.lpParts({ start: 5, parts: [{ target: 'landingPage', points: 4 }, { target: 'sizeGuide', points: 1 }] }))
       .toBe('5 to start, +4 the page itself, +1 a size chart');
     expect(R0.lpStops({ top: 10 })).toBe('the grade stops at 10');
-    expect(R0.movesSize()).toBe('parcels sent back, and the landing page grade');
-    expect(R0.whySize()).toMatch(/earns a point of the landing page grade/);
+    // ROUND 0 SAYS IT SHORTER THAN THE ACCOUNT DOES, SINCE 2026-09-25, and the
+    // difference is the word budget. Round 0's step 5 is held to 150 authored
+    // words (tests/roundZero.test.js); the account's money screen is not, so it
+    // keeps the precise mechanism — a POINT of the grade. Both still make the
+    // claim the owner asked for on 2026-09-18: the size guide moves parcels AND
+    // the grade, not parcels alone.
+    expect(R0.whySize(), 'round 0, the parcels half').toMatch(/sent back/);
+    expect(R0.whySize(), 'round 0, the grade half').toMatch(/grade/);
     expect(MONEY.targetWhy.sizeGuide()).toMatch(/earns a point of the landing page grade/);
   });
 
