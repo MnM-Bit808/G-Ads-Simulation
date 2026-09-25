@@ -506,6 +506,38 @@ describe('rivals pull the prepaid discount too (DECISIONS I34, R6)', { timeout: 
     // Applied, not only logged.
     expect(offered.some((a) => a.campaign.prepaidDiscountPaise > 0)).toBe(true);
   });
+
+  /**
+   * EVERY CHARACTER, NOT JUST THE TWO THAT HAD THE HELPER (I46, 2026-09-25).
+   *
+   * `prepaidNudge` was called by `disciplinedAccount` and
+   * `grossOptimiserAccount` only, so two of eight rivals ever discounted —
+   * while all eight sat between 12.2% and 18.6% refusal, over the 12% line
+   * that buys ₹50. The C8 shape: a decision written into some policies and
+   * not the rest.
+   *
+   * In play, through the door, because that is the only place the gap was
+   * visible — every unit test of `prepaidNudge` passed throughout, since the
+   * helper was never the broken part.
+   */
+  test('through the door, every character offers one, not just the two that had the helper', async () => {
+    const { state } = await playMarket({ seed: 2, cell: 'mid|performance' });
+    const rivals = state.advertisers.filter((a) => a.policyId);
+    expect(new Set(rivals.map((a) => a.policyId)).size, 'the cast is not all here').toBeGreaterThan(4);
+
+    const everOffered = (a) => state.decisionLog.some((e) => e.advertiserId === a.id
+      && (e.decision?.campaign?.prepaidDiscountPaise ?? 0) > 0);
+    const silent = rivals.filter((a) => !everOffered(a)).map((a) => `${a.name} (${a.policyId})`);
+    expect(silent, 'a character never reached for the lever in a whole game').toEqual([]);
+
+    // And each of the four I46 handed it to is in this game under its own name,
+    // so a regression naming one of them says which.
+    for (const policyId of ['spender', 'cautious', 'automator', 'brandDefender']) {
+      const who = rivals.filter((a) => a.policyId === policyId);
+      expect(who.length, `${policyId} is not in this market`).toBeGreaterThan(0);
+      expect(who.some(everOffered), `${policyId} never offered a discount`).toBe(true);
+    }
+  });
 });
 
 describe('a rival steps its discount down only once refusals are clearly lighter (I34)', () => {

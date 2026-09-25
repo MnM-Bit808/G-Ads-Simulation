@@ -4,9 +4,11 @@
  *
  * After C8's fix, rivals carry their second capital allocation through month 2
  * and fall back to rank-based budgets when month 3 begins: the whole market
- * spends a median 26% less that week, and rivals move 3.53 times an ordinary
- * week in the player's Auction Insights (4.19 before C9, on the market as it is
- * since F17). The rule is public
+ * spends a median 26% less that week, and rivals move 3.97 times an ordinary
+ * week in the player's Auction Insights (3.78 before I46, 3.53 when C9 landed,
+ * 4.19 before it). Every figure clears D12's gate of double. The sentences
+ * below quote none of them: they carry the week's live figures. The rule is
+ * public
  * (announced at round 1, D4); who ranked where and anyone's budget are not
  * (R3), so these name the rule and the public figures, and never a rival's
  * money.

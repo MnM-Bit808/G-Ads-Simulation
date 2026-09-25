@@ -559,8 +559,11 @@ F13's rejected volume option has to come back.
 
 - **The prepaid discount is a real lever and a modest one.** Since the round
   takes its refusals off at the sourced rate (I34, 2026-09-15), ₹50 is best in
-  five cells and ₹70 in the sixth, for +1.7% to +4.7% of final profit on the
-  committed harness (`node scripts/market-harness.js prepaid <label>`). ₹100 is
+  **all six cells, for +1.1% to +3.4% of final profit** on the committed
+  harness (`node scripts/market-harness.js prepaid <label>`). ~~five cells and
+  ₹70 in the sixth, for +1.7% to +4.7%~~ — that range predates F17 and C9 and
+  was already wrong before I46 re-measured it on 2026-09-25; the figures move
+  with the market, so **re-measure rather than quote this line**. ₹100 is
   worse than ₹50 everywhere and no longer worse than nothing, so the penalty the
   lever used to teach is now only the diminishing return. If the modesty is a
   problem, the lever to pull is letting it lift conversion rate — excluded on
@@ -595,24 +598,18 @@ F13's rejected volume option has to come back.
   and `the shape a card is really handed` now locks it to `getPublicView`, so
   the next field a card wants fails there instead of reading `undefined`.
 
-- **Only two of six characters ever consider the prepaid lever, and every
-  rival is over the line that says they should (open, found 2026-09-25).**
-  `prepaidNudge` is shared, but only `disciplinedAccount` and
-  `grossOptimiserAccount` call it; `spender`, `cautious`, `automator` and
-  `brandDefender` never do, and `withCapital` adds only capex. Measured on the
-  last played week of seed 20260901, **all eight rivals sit between 12.2% and
-  18.6% refusal**, above the 12% line that buys ₹50 — so the four silent
-  characters are not declining the lever on the numbers, they were never
-  offered it. This is the C8 shape: a decision added to some policies and not
-  the rest. It is not obviously a character choice either, because every
-  deliberate omission in this file is documented in its policy's header
-  (`spenderAccount`: "Negatives stay empty, every round. That is the whole
-  character.") and none of the four mentions prepaid; and the cast's own
-  standard is that each character is "wrong about one thing **in a legible
-  way**", while a rival's refusal rate is on no screen, so this one cannot be
-  read. **Fixing it moves the market** — six rivals taking a +1.7% to +4.7%
-  profit lever makes the board harder — so it needs gates agreed and a
-  before/after harness run, and is deliberately not done.
+- **All six characters call `prepaidNudge` since I46 (2026-09-25), so eight of
+  eight rivals discount** — ₹50 from week 3. Four of them never had the lever
+  before; all eight had always been over the 12% line that buys it, which is
+  what said the silence was the C8 shape rather than a character choice.
+  Gates agreed first and all passed: no rival dark, median rank still 5,
+  losing money in 0 of 72, the player's own lever unmoved, D12's week-9 gate
+  3.97× against a gate of double, cast spread 8.21× → 7.99×. **Two things I46
+  recorded rather than hid:** the rank tail worsened (8th place in 2 games of
+  72, from 0; 9th still never), and the lever is now UNIFORM — all eight land
+  on ₹50 because all eight clear 12% and `PREPAID_RUNGS` has two steps, so no
+  rival is told apart by it any more. **If that wants fixing, change the rung
+  table, not who calls the helper.**
 
 - ~~The two positioning axes have swapped.~~ **Settled as F13, below.** Kept for
   the measurements, which are the reason the decision could be made.

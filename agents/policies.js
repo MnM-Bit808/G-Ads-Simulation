@@ -249,6 +249,20 @@ const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
  * One rung, not a search. A policy that hill-climbed the curve every week would
  * out-optimise a player who gets one look at it, and 5.2 wants a competent
  * operator rather than a solver.
+ *
+ * ALL SIX CHARACTERS CALL THIS, since 2026-09-25. Until then only
+ * `disciplinedAccount` and `grossOptimiserAccount` did, so two of eight rivals
+ * ever discounted — while every one of the eight sat between 12.2% and 18.6%
+ * refusal, above the 12% line that buys ₹50. The four silent ones were not
+ * declining the lever on their own numbers, they had never been handed it: the
+ * C8 shape, a decision written into some policies and not the rest. Nothing in
+ * their headers claimed the silence either, and every other deliberate
+ * omission in this file is stated in the header that owns it.
+ *
+ * What still differs between them is what they are reading. This takes the
+ * refusal rate off the account's own location report, so a character that
+ * spends little, or churns its strategy and judges on half-settled numbers,
+ * reaches a different rung from the same rule.
  */
 function prepaidNudge(self, report) {
   const rows = Object.values(report?.breakdown?.byLocation ?? {})
@@ -614,12 +628,15 @@ function spenderAccount(self, report, view, history = []) {
   // better informed, it is less patient.
   const locationAdjustments = locationTilt(self, history, SPENDER_LOCATION_LEAN);
 
+  const prepaid = prepaidNudge(self, report);
+
   return {
     // Negatives stay empty, every round. That is the whole character.
     campaign: {
       strategy: 'maxClicks',
       negatives: [],
       ...(locationAdjustments ? { locationAdjustments } : {}),
+      ...(prepaid === null ? {} : { prepaidDiscountPaise: prepaid }),
     },
     adGroups: self.adGroups.map((group) => ({
       ...group,
@@ -674,10 +691,12 @@ function cautiousAccount(self, report, view, history = []) {
   // half of what it can afford.
   const desperate = report.share.lostToRank > CAUTIOUS_RANK_PANIC;
   const ceiling = Math.round(affordable * CAUTIOUS_CEILING);
+  const prepaid = prepaidNudge(self, report);
   return {
     campaign: {
       strategy: 'manual',
       ...(locationAdjustments ? { locationAdjustments } : {}),
+      ...(prepaid === null ? {} : { prepaidDiscountPaise: prepaid }),
     },
     adGroups: withBids(self.adGroups, (keyword) => (desperate
       ? Math.min(Math.round(keyword.bidPaise * (1 + CAUTIOUS_CREEP)), ceiling)
@@ -722,15 +741,23 @@ function automatorAccount(self, report, view, history = []) {
   }
 
   const current = self.campaign.strategy;
+  // On BOTH paths, not just the switching one: a refusal rate does not stop
+  // moving in the weeks this account happens to be satisfied with its ROAS,
+  // and a lever it could only reach while changing strategy would be a rule
+  // about the code rather than about the character.
+  const prepaid = prepaidNudge(self, report);
+  const offer = prepaid === null ? {} : { prepaidDiscountPaise: prepaid };
   if (report.money.netRoas >= AUTOMATOR_ROAS_TARGET) {
-    return { campaign: { strategy: current } };
+    return { campaign: { strategy: current, ...offer } };
   }
 
   const next = AUTOMATION_CYCLE[
     (AUTOMATION_CYCLE.indexOf(current) + 1) % AUTOMATION_CYCLE.length
   ];
   return {
-    campaign: { strategy: next, strategyParams: paramsFor(next, self, affordable, report) },
+    campaign: {
+      strategy: next, strategyParams: paramsFor(next, self, affordable, report), ...offer,
+    },
   };
 }
 
@@ -899,8 +926,13 @@ function brandDefenderAccount(self, report, view, history = []) {
     });
   }
 
+  const prepaid = prepaidNudge(self, report);
+
   return {
-    campaign: { strategy: 'manual' },
+    campaign: {
+      strategy: 'manual',
+      ...(prepaid === null ? {} : { prepaidDiscountPaise: prepaid }),
+    },
     adGroups: [
       {
         ...first,

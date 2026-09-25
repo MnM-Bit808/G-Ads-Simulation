@@ -142,9 +142,11 @@ export function isMove(from, to) {
  * The rivals whose presence in the player's auctions moved most since last week.
  *
  * Read at week 9, when month 3's budgets take effect (DECISIONS D12, C8): rivals
- * then move 3.53 times an ordinary week (4.19 before C9 made ordinary weeks
- * busier; the week-9 move itself did not change), measured on the market as it
- * is since F17. It says who moved and by how much, from the overlap rate Auction
+ * then move 3.97 times an ordinary week, measured on the market as it is since
+ * I46 (3.78 before it, 3.53 when C9 landed on 2026-09-18, 4.19 before C9 made
+ * ordinary weeks busier; the week-9 move itself did not change). D12's gate is
+ * double, which every one of those figures clears. It says who moved and by how
+ * much, from the overlap rate Auction
  * Insights shows, and never why a particular rival did: whose budget grew is
  * private (R3).
  *

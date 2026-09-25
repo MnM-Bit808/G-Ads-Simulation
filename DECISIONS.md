@@ -6936,3 +6936,81 @@ by calling `getPublicView` rather than by hand.
 The question to ask is this entry's: is it something the advertiser tells
 customers, or something it tells Google? The first is public. The second is
 not.
+
+### I46. Four of six characters were never handed the prepaid lever — `FIXED` (2026-09-25)
+
+**The finding.** `prepaidNudge` is a shared helper, but only
+`disciplinedAccount` and `grossOptimiserAccount` called it. `spender`,
+`cautious`, `automator` and `brandDefender` never did, and `withCapital` adds
+only capex — so **two of eight rivals ever discounted**, in every seed.
+
+**They were not declining it on their numbers.** Measured on the last played
+week of seed 20260901, **all eight rivals sit between 12.2% and 18.6%**
+weighted refusal, against a 12% line that buys ₹50. Every one of them was over
+the line their own rule uses.
+
+**So this was the C8 shape** — a decision written into some policies and not
+the rest — rather than a character choice. Two things say so. Every other
+deliberate omission in `agents/policies.js` is stated in the header that owns
+it (`spenderAccount`: "Negatives stay empty, every round. That is the whole
+character."), and none of the four mentions prepaid. And the cast's standard
+is that each character is wrong about one thing **legibly**, while a rival's
+refusal rate appears on no screen, so this one could not be read.
+
+**`automator` gets it on both paths, not just the switching one.** Its
+satisfied path returns `{ campaign: { strategy: current } }`, and a lever it
+could only reach in the weeks it happened to be changing strategy would be a
+rule about the code rather than about the character. `applyDecision` merges
+rather than replaces, so omitting the field keeps the last value — the C8 trap
+does not apply here, and was checked rather than assumed.
+
+**GATES, agreed with the owner before measuring, all passed.** 72 whole games
+before and after.
+
+| gate | before | after |
+|---|---|---|
+| rivals offering | 2 of 8 | **8 of 8**, from week 3, ₹50 |
+| any rival dark in any week | none | **none** |
+| player's median final rank | 5 | **5** (gate: may slip to 6) |
+| player loses money | 0 of 72 | **0 of 72** |
+| player's own ₹50 lever, six cells | 2.6/3.4/2.7/2.9/1.1/1.4% | **2.6/3.4/2.7/2.8/1.1/1.4%** |
+| D12's week-9 move (gate: double) | 3.78× | **3.97×** |
+| cast's best/worst profit spread | 8.21× | **7.99×** |
+| I3 worst deviation (bound 15%) | 11.2% | **11.2%** |
+
+**What moved, and it is the right shape.** Rivals' returns fall 40.5% → 39.6%
+and their profit per rupee rises 2.05 → 2.09. Taken by character, the four
+that gained the lever each gain — `spender` +2.6%, `brandDefender` +1.2%,
+`automator` +0.9%, `cautious` +0.9% — while the two that already had it dip
+slightly, `disciplined` −0.1% and `grossOptimiser` −0.5%, because their rivals
+got stronger. The player's own profit is not harmed: median ₹11,67,463 →
+₹11,82,637.
+
+**Two things recorded rather than hidden.**
+
+- **The rank tail got worse** while the median held. Eighth place went from 0
+  games of 72 to 2. Ninth is still never reached. The agreed gate was on the
+  median and passes, but the worst case for a player is now slightly worse.
+- **The lever is uniform across the cast.** All eight land on ₹50, because all
+  eight are over 12% and `PREPAID_RUNGS` has only two steps. That is honest —
+  everyone has a refusal problem, so everyone should discount — but it means
+  no rival is distinguishable by this lever any more, where two of eight used
+  to be. If that matters, the thing to change is the rung table, not who calls
+  the helper.
+
+**Calibration is unaffected by construction**, and that is worth stating
+plainly rather than claiming a re-derivation: `tests/calibration.test.js`
+drives `disciplined` alone, which this did not touch. Its 22 figures are
+identical, I3's worst deviation 11.2% against a 15% bound.
+
+**A stale figure this turned up.** `HANDOVER.md` gave the player's prepaid
+lever as "+1.7% to +4.7% of final profit". On today's market it was already
++1.1% to +3.4% BEFORE this change. The quoted range predates F17 and C9.
+`ui/chart.js` and `ui/words/market.js` also carried 3.53× for D12's week-9
+move in their headers, measured 3.78× before this change. Both are comments,
+not player-facing sentences — the screens carry the week's live figures — but
+both are corrected.
+
+**What would reopen this.** A character that should visibly NOT use the lever.
+That is a legitimate design, and the way to build it is a documented rule in
+that policy's header saying so, not silence in the code.

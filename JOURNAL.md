@@ -42,6 +42,39 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-25, last: four characters got the lever they had never been handed
+
+**I46, and the gates were agreed before anything was measured**, which is the
+only reason the result means anything. Eight of eight rivals now discount, ₹50
+from week 3, against two of eight before.
+
+**Every gate passed**, 72 whole games either side: no rival dark, median rank
+still 5, losing money in 0 of 72, the player's own ₹50 lever unmoved
+(2.6/3.4/2.7/2.8/1.1/1.4% against 2.6/3.4/2.7/2.9/1.1/1.4%), D12's week-9 move
+3.97× against a gate of double, cast spread 8.21× → 7.99×. Taken by character
+the shape is right: the four that gained the lever each gain, `spender` most at
++2.6%, and the two that already had it dip slightly because their rivals got
+stronger.
+
+**Two things recorded rather than hidden**, because neither failed a gate and
+both are true: the rank tail worsened — eighth place in 2 games of 72, from 0 —
+and the lever is now uniform, all eight landing on ₹50 because all eight clear
+12% and there are only two rungs. Where two of eight used to be distinguishable
+by it, none is. The rung table is the thing to change if that matters.
+
+**The test was checked against the old code before it was believed.** It names
+six silent rivals starting with `Kestrel (spender)` when run without the fix.
+Every unit test of `prepaidNudge` passed throughout this, before and after,
+because the helper was never the broken part — which is the whole argument for
+testing a rival rule in play.
+
+**A stale figure fell out of it.** HANDOVER gave the player's prepaid lever as
+"+1.7% to +4.7% of final profit"; on today's market it was already +1.1% to
++3.4% before this change, the quoted range predating F17 and C9. `ui/chart.js`
+and `ui/words/market.js` carried 3.53× for D12's week-9 move in their headers
+and it measured 3.78× before the change. Comments, not sentences — the screens
+carry live figures — but corrected.
+
 ## 2026-09-25, later still: the offer went into the public view
 
 **The decision the entry below left for the owner was taken the same day.**
