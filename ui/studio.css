@@ -70,6 +70,35 @@ body.studio {
      curve, the one motion not on --studio-ease; kept by the owner, 2026-09-14. */
   --studio-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 
+  /* --- ONE CARD, ONE LABEL, ONE EDGE (2026-09-25) ---------------------------
+     The Studio's sections were each rebuilt beside the classic page, one at a
+     time, so each grew its own copy of the same five objects: ten card
+     classes, twenty bar tracks, twenty-nine figure and label classes. Four of
+     the ten cards were byte-identical and the rest differed only in padding —
+     `16px 20px`, `16px 18px`, `14px 12px 12px` — for no reason anyone could
+     state. Near-consistency is what reads as homemade; these names are so the
+     next section cannot drift by two pixels without saying why.
+
+     A section that genuinely needs a tighter card says so by reaching for
+     `--studio-card-pad-tight` rather than by inventing a fourth padding. */
+  --studio-card-pad: 16px 20px;
+  --studio-card-pad-tight: 14px 12px 12px;
+  --studio-card-gap: 10px;
+  --studio-card-edge: 1px solid var(--studio-line);
+  --studio-radius: 20px;
+  /* The uppercase micro-label over a figure: identical in Results, Rivals and
+     Your money, and the same plus one property in Returns and What people
+     typed. It is one object.
+
+     NOT a `font` shorthand. The shorthand sets line-height too, and these
+     rules never did — they inherited it. Writing `font: 700 11px/1.2 ...`
+     here took every one of these labels from 16.5px of line box to 13.2px,
+     which is a redesign wearing a refactor's clothes. Measured and reverted
+     the same minute. Separate properties leave the line box alone. */
+  --studio-micro-size: 11px;
+  --studio-micro-weight: 700;
+  --studio-micro-track: 0.06em;
+
   /* Today's cards read these names. Restating them re-themes every card that
      has not been rebuilt yet, with no change to style.css. Losses are amber:
      red is the player's colour in Red signal, so it cannot also mean "bad". */
@@ -956,7 +985,7 @@ body.studio .wt-range { display: flex; flex-wrap: wrap; gap: 6px; }
 body.studio .wt-chip { padding: 5px 12px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; font-weight: 600; }
 body.studio .wt-chip[aria-pressed="true"] { border-color: var(--studio-text); background: var(--studio-text); color: var(--studio-page); }
 body.studio .wt-split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-body.studio .wt-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 14px 12px 12px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .wt-card { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: var(--studio-card-pad-tight); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .wt-blocker { gap: 10px; padding: 16px 18px; }
 
 /* the list: one row a search, the money down it */
@@ -1003,7 +1032,7 @@ body.studio .wt-caught { display: flex; flex-direction: column; gap: 4px; }
 body.studio .wt-hit { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; }
 body.studio .wt-hit .wt-text { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; color: var(--studio-soft); }
 body.studio .wt-go { align-self: flex-start; padding: 7px 14px; border: 1px solid #4A454F; border-radius: 999px; background: none; color: var(--studio-text); font-size: 13px; font-weight: 600; }
-body.studio .wt-label { margin: 4px 0 0; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .wt-label { margin: 4px 0 0; padding-top: 10px; border-top: var(--studio-card-edge); font-size: var(--studio-micro-size); font-weight: var(--studio-micro-weight); letter-spacing: var(--studio-micro-track); text-transform: uppercase; color: var(--studio-faint); }
 body.studio .wt-blocks { display: flex; flex-direction: column; gap: 6px; }
 body.studio .wt-block { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 12px; border-radius: 12px; background: #1F1C22; }
 body.studio .wt-block .wt-text { flex: 1; min-width: 0; }
@@ -1026,7 +1055,7 @@ body.studio .wt-remove { display: grid; flex-shrink: 0; place-items: center; wid
 body.studio .wm { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
 body.studio .wm h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
 body.studio .wm p { margin: 0; }
-body.studio .wm-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .wm-card { display: flex; flex-direction: column; gap: var(--studio-card-gap); min-width: 0; padding: var(--studio-card-pad); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .wm-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
 body.studio .wm-titles { display: flex; flex-direction: column; gap: 2px; }
 body.studio .wm-card[data-slot="budget"] h3 { font-size: 20px; }
@@ -1034,7 +1063,7 @@ body.studio .wm-read { font-size: 13px; line-height: 1.45; color: var(--studio-s
 body.studio .wm-read strong { color: var(--studio-text); }
 body.studio .wm-small { font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
 body.studio .wm-warn { font-size: 12px; line-height: 1.45; color: var(--studio-amber); }
-body.studio .wm-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .wm-label { font-size: var(--studio-micro-size); font-weight: var(--studio-micro-weight); letter-spacing: var(--studio-micro-track); text-transform: uppercase; color: var(--studio-faint); }
 body.studio .wm-num { font-variant-numeric: tabular-nums; }
 body.studio .wm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 body.studio .wm-chip { padding: 5px 12px; border: 1px solid var(--studio-line-strong); border-radius: 999px; background: none; color: var(--studio-soft); font-size: 12px; font-weight: 600; white-space: nowrap; }
@@ -1126,7 +1155,7 @@ body.studio .wm-rung.you .wm-track span { background: var(--studio-red); }
 body.studio .wr { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
 body.studio .wr h3 { margin: 0; font: 700 18px/1.2 var(--studio-display); }
 body.studio .wr p { margin: 0; }
-body.studio .wr-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .wr-card { display: flex; flex-direction: column; gap: var(--studio-card-gap); min-width: 0; padding: var(--studio-card-pad); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .wr-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
 body.studio .wr-small { font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
 body.studio .wr-read, body.studio .wr-reading p { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
@@ -1142,7 +1171,7 @@ body.studio .wr-swatch.still { background: var(--studio-muted); opacity: 0.32; }
 /* the five figures */
 body.studio .wr-figures { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px 18px; }
 body.studio .wr-figure { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-body.studio .wr-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .wr-label { display: flex; align-items: center; gap: 6px; font-size: var(--studio-micro-size); font-weight: var(--studio-micro-weight); letter-spacing: var(--studio-micro-track); text-transform: uppercase; color: var(--studio-faint); }
 /* The why link is a line taller than the label; held to the label's height, so
    the five figures below stay on one line (measured 18.3px against 16.5). */
 body.studio .wr-label { min-height: 17px; }
@@ -1216,10 +1245,10 @@ body.studio .wr-go::after { content: ' →'; }
 body.studio .rv { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
 body.studio .rv h3 { margin: 0; font: 800 20px/1.1 var(--studio-display); }
 body.studio .rv p { margin: 0; }
-body.studio .rv-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
+body.studio .rv-card { display: flex; flex-direction: column; gap: var(--studio-card-gap); min-width: 0; padding: var(--studio-card-pad); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); }
 body.studio .rv-small { font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
 body.studio .rv-read { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
-body.studio .rv-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .rv-label { font-size: var(--studio-micro-size); font-weight: var(--studio-micro-weight); letter-spacing: var(--studio-micro-track); text-transform: uppercase; color: var(--studio-faint); }
 body.studio .rv-num { font-variant-numeric: tabular-nums; }
 body.studio .rv-value { font: 800 26px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 
@@ -1263,8 +1292,8 @@ body.studio .rv-track span { display: block; height: 100%; border-radius: 3px; b
 body.studio .rs { display: flex; flex-direction: column; gap: 16px; container-type: inline-size; }
 body.studio .rs h3 { margin: 0; font: 700 20px/1.2 var(--studio-display); }
 body.studio .rs h4 { margin: 0; font: 800 20px/1.15 var(--studio-display); }
-body.studio .rs-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 16px 20px; border: 1px solid var(--studio-line); border-radius: 20px; background: var(--studio-card); }
-body.studio .rs-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--studio-faint); }
+body.studio .rs-card { display: flex; flex-direction: column; gap: var(--studio-card-gap); min-width: 0; padding: var(--studio-card-pad); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); }
+body.studio .rs-label { font-size: var(--studio-micro-size); font-weight: var(--studio-micro-weight); letter-spacing: var(--studio-micro-track); text-transform: uppercase; color: var(--studio-faint); }
 body.studio .rs-sub { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }
 body.studio .rs-faint { font-size: 11px; color: var(--studio-faint); }
 body.studio .rs-read { margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }

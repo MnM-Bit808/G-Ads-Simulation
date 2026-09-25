@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Studio's scale — three depths</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --page:#0D0C0E; --card:#17161A; --raised:#221F25; --line:#2A272D; --line-strong:#3A363E;
+    --text:#EDE8E3; --soft:#CFC9C3; --muted:#A19A94; --faint:#8A847E;
+    --red:#D7262F; --red-text:#FF6166; --on-red:#FFF5F4; --panel:#1A0C0F; --panel-edge:#4A1A1F;
+    --disp:'Bricolage Grotesque','Avenir Next','Segoe UI',sans-serif;
+    --body:'Instrument Sans','Segoe UI','Helvetica Neue',Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--text);font-family:var(--body);padding:28px 24px 90px}
+  .wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:38px}
+  h1{font-family:var(--disp);font-size:30px;font-weight:800;letter-spacing:-.01em;margin:0 0 6px}
+  h2{font-family:var(--disp);font-size:21px;font-weight:800;margin:0}
+  .lede{color:var(--muted);font-size:14px;margin:0;max-width:80ch;line-height:1.55}
+  .note{color:var(--faint);font-size:12.5px;margin:0;line-height:1.6;max-width:86ch}
+  .pill{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;
+    border-radius:999px;background:var(--raised);color:var(--soft)}
+  .tag{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .stack{display:flex;flex-direction:column;gap:14px}
+  .inv{display:flex;flex-wrap:wrap;gap:6px}
+  .inv b{font-weight:600;font-size:11.5px;padding:3px 8px;border-radius:999px;background:var(--raised);color:var(--soft);font-variant-numeric:tabular-nums}
+  .inv b.drift{background:#2A1416;color:#FFB4B7}
+  .cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  @media (max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}}
+
+  /* ---- the specimen, parameterised by the variant ---- */
+  .demo{--c-pad:16px 20px;--c-gap:10px;--c-rad:20px;--lab:11px;--fig:26px;--read:13px;--sub:12px;--head:18px;--rowgap:18px}
+  .demo.b{--c-pad:16px 20px;--c-gap:12px;--c-rad:16px;--lab:11px;--fig:26px;--read:13px;--sub:12px;--head:18px;--rowgap:20px}
+  .demo.c{--c-pad:20px 22px;--c-gap:14px;--c-rad:16px;--lab:11px;--fig:32px;--read:13px;--sub:12px;--head:20px;--rowgap:22px}
+  .dcard{display:flex;flex-direction:column;gap:var(--c-gap);padding:var(--c-pad);
+    border:1px solid var(--line);border-radius:var(--c-rad);background:var(--card)}
+  .dhead{font-family:var(--disp);font-size:var(--head);font-weight:800;letter-spacing:-.005em;margin:0}
+  .dfigs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--rowgap)}
+  .dfig{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .dlab{font-size:var(--lab);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  .dval{font-family:var(--disp);font-size:var(--fig);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .dsub{font-size:var(--sub);color:var(--muted)}
+  .dread{font-size:var(--read);color:var(--soft);line-height:1.55;margin:0}
+  .demo.c .dread{color:var(--muted)}
+  .dtrack{position:relative;height:18px;border-radius:4px;background:var(--raised);overflow:hidden}
+  .dtrack i{position:absolute;inset:0 auto 0 0;background:var(--soft);border-radius:4px}
+  .demo.c .dtrack{height:20px}
+  .drow{display:grid;grid-template-columns:24px minmax(0,1fr) minmax(0,1.6fr) 110px;gap:14px;align-items:center;
+    padding:10px 0;border-top:1px solid var(--line)}
+  .drank{font-family:var(--disp);font-weight:800;color:var(--muted);font-size:16px}
+  .dname{font-size:14px;font-weight:600}
+  .dmoney{text-align:right;font-weight:800;font-size:14px;font-variant-numeric:tabular-nums}
+  .demo.c .dmoney{font-size:15px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div>
+    <h1>The Studio&rsquo;s scale &mdash; three depths</h1>
+    <p class="lede">The same two cards, drawn four ways. Real figures from the saved game at week 4.
+      Nothing here is a new visual language &mdash; it is the one already in the Studio, with the
+      accidents taken out of it.</p>
+  </div>
+
+  <div class="dcard" style="border-color:var(--panel-edge);background:var(--panel);gap:12px">
+    <strong style="font-family:var(--disp);font-size:17px">What the measurement found</strong>
+    <p class="note" style="color:var(--soft)"><strong>25 distinct font sizes.</strong> The ones in red appear once or twice
+      each &mdash; they are drift, not decisions:</p>
+    <div class="inv">
+      <b>10&times;10</b><b class="drift">10.5&times;1</b><b>11&times;52</b><b>12&times;91</b><b class="drift">12.5&times;1</b>
+      <b>13&times;61</b><b class="drift">13.5&times;2</b><b>14&times;41</b><b>15&times;13</b><b>16&times;4</b>
+      <b class="drift">17&times;3</b><b class="drift">18&times;1</b><b class="drift">19&times;1</b><b>20&times;2</b>
+      <b class="drift">22&times;1</b><b>24&times;3</b><b>30&times;2</b><b class="drift">34&times;1</b>
+    </div>
+    <p class="note">Display sizes add nine more: 16, 17, 18, 19, 20, 22, 24, 26, 28, 30, 40, 48 &mdash; with
+      <strong style="color:var(--soft)">the same size carrying three different line-heights</strong> (20px/1.1, /1.15, /1.2).
+      Eight non-pill corner radii: 2, 3, 4, 9, 12, 14, 20. Eight card paddings.</p>
+  </div>
+
+  <div class="stack">
+    <div class="tag"><span class="pill">Today</span><h2>As it is now</h2></div>
+    <p class="note">Card padding 16&times;20, radius 20, figures 26px, headings 18px. Nothing wrong with any one
+      value &mdash; the problem is the neighbours it does not match elsewhere.</p>
+    <div class="cols demo" id="d-now"></div>
+  </div>
+
+  <div class="stack">
+    <div class="tag"><span class="pill">Option A</span><h2>Tighten the scale, change nothing else</h2></div>
+    <p class="note">The 25 sizes collapse onto eight steps &mdash; 10, 11, 12, 13, 14, 16, 20, 24 &mdash; and
+      the one-offs move to their nearest neighbour (10.5&rarr;11, 12.5&rarr;13, 13.5&rarr;13, 17&rarr;16, 19&rarr;20).
+      One line-height per step. Eight radii become four: 4, 12, 20, 999. Spacing, layout and colour are untouched.
+      Every individual move is one or two pixels; the whole is what stops reading as homemade.</p>
+    <div class="cols demo" id="d-a"></div>
+  </div>
+
+  <div class="stack">
+    <div class="tag"><span class="pill">Option B</span><h2>Scale, plus one rhythm inside every card</h2></div>
+    <p class="note">A, and then every card gets the same internal rhythm: heading, then figures, then the reading,
+      on a 4px spacing scale, with a slightly tighter corner. Cards stop being nine arrangements of the same parts
+      and become one arrangement. Layout and type sizes are otherwise A&rsquo;s.</p>
+    <div class="cols demo b" id="d-b"></div>
+  </div>
+
+  <div class="stack">
+    <div class="tag"><span class="pill">Option C</span><h2>Scale, rhythm, and a real focal point</h2></div>
+    <p class="note">B, and then the hierarchy is pushed: the figure that matters grows to 32px, the heading to 20px,
+      and the supporting reading drops to a quieter grey. Each screen gets one thing the eye lands on first.
+      This is the only option that changes how loud the page is &mdash; and the one most likely to need a second pass
+      on screens with six figures competing.</p>
+    <div class="cols demo c" id="d-c"></div>
+  </div>
+
+</div>
+
+<script>
+const el=(t,c,x)=>{const n=document.createElement(t); if(c)n.className=c; if(x!=null)n.textContent=x; return n;};
+function fig(lab,val,sub){const f=el('div','dfig'); f.append(el('span','dlab',lab), el('span','dval',val)); if(sub) f.append(el('span','dsub',sub)); return f;}
+function weekCard(){
+  const c=el('div','dcard');
+  c.append(el('h3','dhead','Your week'));
+  const g=el('div','dfigs');
+  g.append(fig('Spent','₹8,379','640 clicks'), fig('Avg CPC','₹13','10,105 impressions'), fig('Conversions','12.8','10.4 still to arrive'),
+           fig('Net profit','₹7,189','returns not in yet'), fig('Net ROAS','3.57','gross 3.57'), fig('CPA','₹656','per conversion'));
+  c.append(g);
+  c.append(el('p','dread','While week 4 ran, week 3 rose ₹8,170 as 7 more conversions landed, and weeks 1 to 2 fell ₹5,035 between them as returns came back.'));
+  return c;
+}
+function marketCard(){
+  const c=el('div','dcard');
+  c.append(el('h3','dhead','The market'));
+  const g=el('div','dfigs');
+  g.append(fig('Market spend','₹4,45,563','last week ₹4,21,982'), fig('Median click','₹10.57','last week ₹10.04'), fig('Advertisers','9','last week 9'));
+  c.append(g);
+  const rows=[[1,'Satva','₹15,42,714',100],[2,'Lumen','₹15,08,378',97],[3,'Halcyon','₹13,23,086',85]];
+  for(const [r,n,m,w] of rows){
+    const row=el('div','drow');
+    const t=el('div','dtrack'); const i=el('i'); i.style.width=w+'%'; t.append(i);
+    row.append(el('span','drank',String(r)), el('span','dname',n), t, el('span','dmoney',m));
+    c.append(row);
+  }
+  return c;
+}
+for(const id of ['d-now','d-a','d-b','d-c']){
+  const host=document.getElementById(id);
+  host.append(weekCard(), marketCard());
+}
+// Option A differs from Today only in type and radius; set those here so the
+// difference is exactly the one described rather than a redrawn mock.
+const a=document.getElementById('d-a');
+a.style.setProperty('--c-rad','16px');
+a.style.setProperty('--fig','24px');
+a.style.setProperty('--head','20px');
+a.style.setProperty('--sub','12px');
+</script>
+</body>
+</html>
