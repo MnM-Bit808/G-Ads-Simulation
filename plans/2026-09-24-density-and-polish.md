@@ -143,10 +143,27 @@ Once density is fixed, four specific treatments, all measured:
   and does not read as such.
 - **The red panel shouts three ways** — red tint, red border, red text. Keep
   one, at most two.
-- **The India map is decorative.** Small, dim, and carrying a real idea
-  (where the searches are) that it barely communicates.
-- **The rail labels fail contrast** at 3.47:1. One fix, and the only measured
-  accessibility failure on the screen.
+- ~~**The India map is decorative.** Small, dim, and carrying a real idea
+  (where the searches are) that it barely communicates.~~ **WRONG, WITHDRAWN
+  2026-09-25.** Measured on the running game it is **560 × 585**, fills its
+  container exactly, and draws a dot per city scaled by how often that kind of
+  place is searched, beside three rows giving 20% / 36% / 44%. It communicates
+  the idea well. This entry was written from a screenshot cropped at 500px, in
+  which the map begins at y≈410 — I described its top edge and called it the
+  map. **The lesson is the one this project keeps relearning: a screenshot is
+  not the screen.** Its column was widened from 1.1fr to 1.45fr anyway, kept
+  because a card titled *Where the searches are* reads better with the picture
+  leading — but that is a preference, not the defect this bullet claimed.
+- ~~**The rail labels fail contrast** at 3.47:1. One fix, and the only measured
+  accessibility failure on the screen.~~ **WRONG, WITHDRAWN 2026-09-25.** The
+  3.47:1 is `.studio-area:disabled` — *Market* and *Results*, greyed out for the
+  whole of round 0 because they are not reachable yet. The owner raised them
+  from 2.18:1 to about 3.5:1 on 2026-09-14 **and no further, deliberately**, so
+  they still read as off; `tests/roundZeroLook.test.js` holds both ends of that,
+  requiring at least 3:1 AND at least 1.5 less than an active area. WCAG 1.4.3
+  exempts inactive components from contrast minimums. Nothing to fix: the
+  sampling script found a disabled control and this document called it a
+  failure without checking which control it was.
 
 ## 8. What would make this wrong
 
