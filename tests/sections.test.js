@@ -416,3 +416,37 @@ describe('the kit owns the figure and the meter', () => {
     }
   });
 });
+
+/**
+ * THE TRAY WRAPS BEFORE IT PUSHES THE PAGE (I50, 2026-09-25).
+ *
+ * `.studio-tray` is a nowrap flex row, and a finished game puts two
+ * `flex-shrink: 0` buttons in it: "Back to the menu" at 180px and "See your
+ * results" at 198px, which want 420px with the gap and padding against a
+ * 375px phone. Measured: the document scrolled to 467px on all four Results
+ * sections. The last screen of a finished game is the one a playtester is
+ * most likely to reach on a phone.
+ *
+ * The deadline tray already wrapped for exactly this reason. The fix is that
+ * rule made general, and this holds both halves of it.
+ */
+describe('a phone never scrolls sideways because of the tray', () => {
+  const css = read('ui/studio.css');
+  const phone = css.match(/@media \(max-width: 560px\) \{[\s\S]*?\n\}/g) ?? [];
+  const trayBlock = phone.find((b) => b.includes('.studio-tray'));
+
+  test('there is a narrow rule for the tray at all', () => {
+    expect(trayBlock, 'no phone rule for .studio-tray').toBeTruthy();
+  });
+
+  test('it lets the tray wrap and grow instead of overflowing', () => {
+    expect(trayBlock).toMatch(/flex-wrap: wrap/);
+    // A fixed 76px row cannot hold a second line.
+    expect(trayBlock).toMatch(/height: auto/);
+  });
+
+  test('and lets the two buttons shrink, which is what actually overflowed', () => {
+    expect(trayBlock, 'the buttons still refuse to shrink')
+      .toMatch(/\.studio-exit, \.studio-run\)?[\s\S]{0,120}flex: 1 1 auto/);
+  });
+});

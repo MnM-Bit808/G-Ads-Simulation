@@ -7208,3 +7208,33 @@ two at 560 as the rules they replaced did.
 figure reads `--studio-figure` — named `.yw-big`, which this step deleted. It
 was rewritten to hold the kit's `.kfig-value` plus the two figures that are
 still a section's own, rather than deleted.
+
+### I50. The tray wraps before it pushes the page — `FIXED` (2026-09-25)
+
+**On a 375px phone the document scrolled to 467px on every Results section.**
+`.studio-tray` is a nowrap flex row, and a finished game puts two
+`flex-shrink: 0` buttons in it: *Back to the menu* at 180px and *See your
+results* at 198px, which want **420px** with the gap and the padding. So the
+last screen of a finished game — the one a playtester is most likely to reach
+on a phone, and the one asking them to go and look at their results — pushed
+the whole page 92px sideways.
+
+**The fix is a rule the file already had.** `.studio-tray.deadline` wrapped for
+exactly this reason. Below 560px every tray now does: `height: auto`,
+`flex-wrap: wrap`, whatever the tray is saying takes the first row whole, and
+the two buttons share the second at `flex: 1 1 auto` with smaller padding.
+Measured after: 375px on all four Results sections, round 0's five steps, the
+front door and every in-play section. Nothing above 560px changes — the tray
+is still one 76px nowrap row at 1200.
+
+**A CORRECTION TO I47, WHICH REPORTED TWO CAUSES.** It named `.rs-chart` on
+Twelve weeks as the second. That was wrong, and the way it was wrong is worth
+keeping: the check compared every element's right edge against its SECTION's
+right edge, which flags anything inside a deliberately scrolling container.
+`.rs-chart` is 640px inside a 313px `overflow-x: auto` scroller and the page
+does not move — that is the design, and its own comment says so.
+
+**The only measurement that answers "does the page scroll sideways" is
+`document.documentElement.scrollWidth > clientWidth`.** Anything narrower
+than that reports a scrolling chart as a defect, which is how a correct piece
+of design spent an afternoon in *Still open*.

@@ -354,6 +354,29 @@ body.studio .studio-ask-run { flex-shrink: 0; height: 44px; padding: 0 18px; bor
   body.studio .studio-section > h2.studio-title { font-size: 34px; }
 }
 
+/* ON A PHONE THE TRAY WRAPS (2026-09-25). It is a nowrap flex row whose two
+   end-of-game buttons are `flex-shrink: 0`: "Back to the menu" at 180px and
+   "See your results" at 198px want 420px with the gap and padding, against a
+   375px screen. So the last screen of a finished game — the one a playtester
+   is most likely to reach on a phone, and the one that asks them to look at
+   their results — pushed the whole page 92px sideways.
+
+   The deadline tray already wrapped for the same reason; this is that rule
+   made general. The pair keeps its order and its colours: Run is still the
+   red one, the way out still quieter. */
+@media (max-width: 560px) {
+  body.studio .studio-tray {
+    height: auto; min-height: 76px; padding-top: 10px; padding-bottom: 10px;
+    flex-wrap: wrap; row-gap: 10px;
+  }
+  /* Whatever the tray is saying takes the first row, so the buttons get the
+     second one whole rather than a sliver of the first. */
+  body.studio .studio-tray :is(.studio-empty, .studio-lines, .studio-notice) { flex: 1 0 100%; }
+  body.studio .studio-tray :is(.studio-exit, .studio-run) {
+    flex: 1 1 auto; min-width: 0; padding: 0 14px; font-size: 15px;
+  }
+}
+
 /* The field guide's contents, numbered, one chapter to a row (the owner, 2026-09-15). */
 body.studio .guide-contents { counter-reset: chapter; gap: 0; }
 body.studio .guide-contents li { counter-increment: chapter; display: flex; align-items: baseline; gap: 4px; border-bottom: 1px solid var(--studio-line); }

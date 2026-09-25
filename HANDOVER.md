@@ -419,11 +419,15 @@ records twice already.
   nothing but playing it will catch this class. A text guard now fails on any
   rule that hides `.rs-track`, which is the most the suite can do.
 
-- **The page scrolls sideways at 375px, in at least two Results sections.**
-  On Everyone's books it is the shell's end-of-game footer, whose two buttons
-  do not wrap; on Twelve weeks it is `.rs-chart`, deliberately 640px inside a
-  sideways-scrolling container but overflowing the page too. Found while
-  building I47 and deliberately left, being neither's doing.
+- ~~**The page scrolls sideways at 375px, in at least two Results sections.**~~
+  **FIXED as I50 (2026-09-25), and the second half of that sentence was
+  wrong.** There was one cause, not two: the shell's tray, whose two
+  end-of-game buttons are `flex-shrink: 0` and want 420px on a 375px screen.
+  `.rs-chart` never moved the page — it sits in its own `overflow-x: auto`
+  scroller, which is the design. **The claim came from a check that compared
+  every element against its section's right edge without asking whether an
+  ancestor scrolls**; the only measurement that answers this question is
+  `document.documentElement.scrollWidth > clientWidth`.
 
 **A playtest is where I would start.** The site is live and **open to anyone with
 the link since 2026-09-20**, F14 and F13 are both settled, and the thing only

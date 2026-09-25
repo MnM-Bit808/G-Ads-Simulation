@@ -42,6 +42,22 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-25, the last thing: the tray stopped pushing the page
+
+**I50.** On a 375px phone the document scrolled to 467px on every Results
+section. One cause: `.studio-tray` is a nowrap flex row and a finished game
+puts two `flex-shrink: 0` buttons in it wanting 420px. Below 560px every tray
+wraps now, the way the deadline tray already did — the same rule made general.
+
+**And it corrected I47, which had reported two causes.** `.rs-chart` was named
+as the second and was never one: it is 640px inside a 313px `overflow-x: auto`
+scroller, which is the design, and the page never moved because of it. The bad
+check compared every element against its SECTION's right edge rather than
+asking whether an ancestor scrolls. **The only measurement that answers the
+question is `document.documentElement.scrollWidth > clientWidth`** — anything
+narrower reports a working chart as a defect, which is how a correct piece of
+design spent an afternoon listed as broken.
+
 ## 2026-09-25, after that: the figure and the meter became components
 
 **I49, the step I48 scoped and left.** The figure — a label, the number, the
