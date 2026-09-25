@@ -84,14 +84,25 @@ export const R0 = Object.freeze({
 
   // Step 2, where you sit
   brandTitle: line('label', 'Your brand'),
-  brandNote: line('instruction', 'one of the nine · the other eight are your rivals'),
-  ownSearch: line('reading', ({ query, volume }) => `Your name brings a search of its own: “${query}”, `
-    + `about ${volume} a week. Any rival may bid on it.`, { why: 'ownName' }),
+  brandNote: line('instruction', 'one of nine · the rest are your rivals'),
+  ownSearch: line('reading', ({ query, volume }) => `Your name is a search too: “${query}”, `
+    + `about ${volume} a week. Any rival can bid on it.`, { why: 'ownName' }),
   positionIntro: line('reading', ({ rivals }) => `Nobody tells you where the other ${rivals} sit. `
-    + 'Their ads are the only evidence before the first auction.'),
+    + 'Their ads are the only evidence.'),
+  // ONE AD AT A TIME, since 2026-09-24. The step drew all eight at once and
+  // measured 612 words; the ask below is what replaced the old `guessNote`,
+  // which told a beginner to tap a grid under each of eight ads they had not
+  // read yet. `adStage` in ./rules.js holds the bound.
+  positionAsk: line('instruction', 'Open an ad to see where it belongs.'),
   otherRivals: line('label', ({ n }) => `The other ${n}`),
-  guessNote: line('instruction', ({ placed, total }) => 'tap the small grid to note where each sits · '
-    + `${placed} of ${total} placed, if you like`),
+  stillUnread: line('label', 'Still unread'),
+  unreadLeft: line('instruction', ({ n }) => (n === 1 ? 'one left · stop whenever you like' : `${n} left · stop whenever you like`)),
+  readAd: line('label', 'read ad'),
+  adOf: line('label', ({ name }) => `${name}’s ad`),
+  adOnly: line('instruction', 'All anyone sees of them.'),
+  closeAd: line('label', 'Close'),
+  reopenAd: line('label', ({ name }) => `Read ${name}’s ad again`),
+  guessNote: line('instruction', ({ placed, total }) => `${placed} of ${total} placed · none required`),
   sponsored: line('label', 'Sponsored'),
   guessFor: line('label', ({ name }) => `Where you think ${name} sits`),
   guessCell: line('label', ({ name, cell }) => `${name}: ${cell}`),
@@ -101,8 +112,9 @@ export const R0 = Object.freeze({
   // in the chapter the why? opens.
   pickSquare: line('label', 'Brand positioning', { why: 'position' }),
   fixedUntil: line('label', ({ week }) => `fixed until week ${week}`),
-  readoutNone: line('reading', 'Price sets what a click can be worth to you. Purpose sets which searches '
-    + 'are yours. You haven’t placed any rival here.'),
+  // The third sentence went on 2026-09-25: the grid already shows an empty
+  // cell, so saying it was spending the step's budget on a fact on screen.
+  readoutNone: line('reading', 'Price sets what a click can be worth. Purpose sets which searches are yours.'),
   readoutPlaced: line('reading', ({ names }) => `You’ve placed ${listed(names)} here. If you’re right, `
     + 'you’ll be competing for exactly the same searches.'),
   whoValuePerformance: line('label', 'An affordable gym-wear brand'),
@@ -122,8 +134,7 @@ export const R0 = Object.freeze({
     + 'bid on, and how loosely each one matches', { why: 'keywords' }),
 
   // Step 4, your ad
-  adIntro: line('reading', 'The only thing your rivals can see about you. Hire a writer, or write it '
-    + 'yourself.', { why: 'writers' }),
+  adIntro: line('reading', 'The only thing your rivals can see about you.', { why: 'writers' }),
   // No why? of its own: the intro right above it already opens "Who writes the
   // ad", and two links to one chapter within a line of each other is noise.
   whoWrites: line('label', 'Who writes it'),
@@ -146,35 +157,33 @@ export const R0 = Object.freeze({
   descriptionN: line('label', ({ n }) => `Description ${n}`),
   charCount: line('label', ({ n, max }) => `${n}/${max}`),
   namesRival: line('reading', ({ name }) => `It names ${name}. Bidding on a rival’s name is allowed; `
-    + 'naming them in your ad is not, and it costs ad relevance.'),
+    + 'naming them in your ad costs ad relevance.'),
   howItRuns: line('label', ({ week }) => `How it runs, from week ${week}`),
-  twoParts: line('label', 'two of Quality Score’s three parts · the grade the auction uses'),
+  twoParts: line('label', 'two of Quality Score’s three parts'),
   expectedCtr: line('label', 'Expected click-through'),
   adRelevance: line('label', 'Ad relevance'),
   byWriter: line('label', ({ writer }) => `written by the ${writer}`),
   byYou: line('label', 'written by you'),
   outOf: line('label', ({ value, scale }) => `${value}/${scale}`),
-  hiredNote: line('disclosure', 'A hired writer’s ad runs at the writer’s level whatever the words say: '
-    + 'this game cannot judge professional writing, so it takes the writer’s level as the grade. The '
-    + 'landing page, the third part, is your site: you build it in the next step.', { why: 'writers' }),
-  diyNote: line('disclosure', 'The game’s own grader scores your words as you type, and that score runs '
-    + 'from the first week. It checks rules, not taste: echoing your keywords counts for more than '
-    + 'reading well. The landing page, the third part, is your site: you build it in the next step.',
-    { why: 'writers' }),
+  hiredNote: line('disclosure', 'A hired ad runs at the writer’s level whatever the words say: '
+    + 'this game cannot judge professional writing.', { why: 'writers' }),
+  // "from the first week", not "from week 1": a digit typed into a sentence is
+  // a figure the game cannot re-render, and tests/words.test.js refuses them.
+  diyNote: line('disclosure', 'The grader scores your words as you type, from the first week. '
+    + 'It checks rules, not taste: echoing your keywords beats reading well.', { why: 'writers' }),
 
   // Step 5, your money
   moneyIntro: line('reading', ({ month, capital }) => `Month ${month}’s budget, and ${capital} of capital: `
-    + 'build the site your clicks land on, or keep it as ad money.'),
-  monthTitle: line('label', ({ month }) => `Month ${month}, to spend on clicks`, { why: 'budget' }),
-  monthNote: line('label', ({ weeks }) => `over ${weeks} weeks · unspent money is lost at the month’s end`),
+    + 'build the site, or keep it as ad money.'),
+  monthTitle: line('label', ({ month }) => `Month ${month}, for clicks`, { why: 'budget' }),
+  monthNote: line('label', ({ weeks }) => `over ${weeks} weeks · unspent is lost`),
   partBase: line('label', 'the month'),
   partWriter: line('label', 'left from the writer'),
   capitalTitle: line('label', 'Capital', { why: 'capital' }),
-  capitalWhen: line('label', ({ week }) => `site work goes live at week ${week} · until then the money is `
-    + 'spent and the site unchanged'),
+  capitalWhen: line('label', ({ week }) => `live at week ${week} · spent now either way`),
   notCommitted: line('label', 'not committed'),
   lpTitle: line('label', 'Landing page grade', { why: 'landingPage' }),
-  lpNote: line('label', ({ step }) => `the third part of Quality Score · the ad’s two are in ${step}`),
+  lpNote: line('label', 'Quality Score’s third part'),
   lpFrom: line('label', ({ value, scale, week }) => `${value}/${scale} from week ${week}`),
   // Where the bar came from, in the words Your ad's total uses (design/grade-breakdown/,
   // B): the start, then each purchase that earned points, by name. A purchase that
@@ -187,22 +196,20 @@ export const R0 = Object.freeze({
   targetSize: line('label', 'Size guide'),
   targetPhoto: line('label', 'Photography'),
   targetConfirm: line('label', 'Order confirmation'),
-  moves: line('label', ({ what }) => `moves: ${what}`),
-  movesPage: line('label', 'the landing page grade'),
-  // BOTH THINGS IT MOVES (the owner, 2026-09-18). It said parcels alone, while the
-  // grade bar above it rose when a chart was picked: the chart's sentence earns the
-  // grader's sizing point. Photography and order confirmation move no grade at all
-  // since I38, so their cards are the whole truth as they stand.
-  movesSize: line('label', 'parcels sent back, and the landing page grade'),
-  movesPhoto: line('label', 'how many visitors buy'),
-  movesConfirm: line('label', 'parcels refused'),
-  whyPage: line('reading', 'Better quality, so a cheaper click. Worth most in the middle.'),
-  whySize: line('reading', 'Fewer parcels sent back after delivery. Worth most at the cheap end, and to '
-    + 'anything sold on how it looks. The chart it puts on the page earns a point of the landing page '
-    + 'grade too.'),
-  whyPhoto: line('reading', 'More of your visitors buy. Worth most where the decision is considered.'),
-  whyConfirm: line('reading', 'Fewer parcels refused at the door. Worth most where cash on delivery is '
-    + 'commonest, which is the cheap end and the small towns.'),
+  // ONE SENTENCE A CARD SINCE 2026-09-25, saying what moves and why together.
+  // Each card used to carry a separate "moves: …" line, and for three of the
+  // four it restated the sentence under it — `movesPhoto` "how many visitors
+  // buy" against `whyPhoto` "More visitors buy". Only the page's named a thing
+  // its why did not (the grade), so that is folded into the first clause here.
+  //
+  // BOTH THINGS THE SIZE GUIDE MOVES (the owner, 2026-09-18) survives the fold:
+  // it earns a page-grade point as well as taking parcels off, because the
+  // chart's sentence earns the grader's sizing point. Photography and order
+  // confirmation move no grade at all since I38.
+  whyPage: line('reading', 'Lifts the page grade: better quality, cheaper clicks. Worth most in the middle.'),
+  whySize: line('reading', 'Fewer parcels sent back, and a better page grade. Worth most at the cheap end.'),
+  whyPhoto: line('reading', 'More visitors buy. Worth most where the decision is considered.'),
+  whyConfirm: line('reading', 'Fewer parcels refused at the door. Worth most where cash on delivery is commonest.'),
   rung: line('label', ({ label, price }) => `${label} · ${price}`),
   tooDear: line('label', 'more than the capital left'),
   advanced: line('instruction', 'Advanced'),

@@ -361,6 +361,14 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
    * The bar that moved says which purchase moved it (the owner, 2026-09-18), in
    * the same words Your ad's total uses, and the size guide card no longer names
    * returns alone when its chart earns a grade point too.
+   *
+   * THE SECOND HALF MOVED HOUSE ON 2026-09-25 AND THE GUARD HAD TO FOLLOW IT.
+   * The card used to carry a separate `movesSize` line, which this test read;
+   * the word budget folded that line into the sentence beneath it, because for
+   * three of the four capital targets it only restated it. The size guide was
+   * the one where it did not, so the claim this test exists to hold — that the
+   * card names BOTH the parcels and the grade — is now made by `whySize`.
+   * The line moved; the guard did not weaken.
    */
   test('the landing page grade names the purchases that earned it, and the size guide says both things it moves', () => {
     expect(R0.lpParts({ start: 5, parts: [{ target: 'sizeGuide', points: 1 }] }))
@@ -368,8 +376,14 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
     expect(R0.lpParts({ start: 5, parts: [{ target: 'landingPage', points: 4 }, { target: 'sizeGuide', points: 1 }] }))
       .toBe('5 to start, +4 the page itself, +1 a size chart');
     expect(R0.lpStops({ top: 10 })).toBe('the grade stops at 10');
-    expect(R0.movesSize()).toBe('parcels sent back, and the landing page grade');
-    expect(R0.whySize()).toMatch(/earns a point of the landing page grade/);
+    // ROUND 0 SAYS IT SHORTER THAN THE ACCOUNT DOES, SINCE 2026-09-25, and the
+    // difference is the word budget. Round 0's step 5 is held to 150 authored
+    // words (tests/roundZero.test.js); the account's money screen is not, so it
+    // keeps the precise mechanism — a POINT of the grade. Both still make the
+    // claim the owner asked for on 2026-09-18: the size guide moves parcels AND
+    // the grade, not parcels alone.
+    expect(R0.whySize(), 'round 0, the parcels half').toMatch(/sent back/);
+    expect(R0.whySize(), 'round 0, the grade half').toMatch(/grade/);
     expect(MONEY.targetWhy.sizeGuide()).toMatch(/earns a point of the landing page grade/);
   });
 
@@ -384,6 +398,28 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
     // and the weekly card for it shows what came back from each place.
     const market = readFileSync(fileURLToPath(new URL('../ui/roundzero/market.js', import.meta.url)), 'utf8');
     expect(market).not.toMatch(/returnsVaryByLocation/);
+  });
+
+  /**
+   * "TAP A PLACE TO NAME ITS CITIES" HAS TO BE TRUE (2026-09-25).
+   *
+   * It was not. Every place row named its cities from the moment step 1 drew,
+   * with that sentence directly beneath them — so the instruction described
+   * something the player could not make happen, the tap produced no visible
+   * result, and 33 of the step's 375 rendered words were spent giving away the
+   * thing it offered to reveal. The 2026-09-14 design measured the labels as
+   * "shown only when a place is lit", which was the intent and never the code.
+   *
+   * This is the same fault class as a mark that reads already-done on something
+   * still open: the words and the drawing telling different stories, with only
+   * the words under test.
+   */
+  test('the cities are named on tap, because that is what the step promises', () => {
+    const market = readFileSync(fileURLToPath(new URL('../ui/roundzero/market.js', import.meta.url)), 'utf8');
+    expect(R0.pulseNote(), 'the promise').toMatch(/tap a place/i);
+    // The examples are appended behind the lit test, not unconditionally.
+    expect(market, 'the cities are drawn only for the lit row')
+      .toMatch(/if \(lit === place\.id\) row\.append\([^)]*examples/);
   });
 });
 

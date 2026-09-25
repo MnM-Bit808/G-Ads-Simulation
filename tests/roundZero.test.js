@@ -26,14 +26,16 @@
 
 import { describe, test, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 // Straight from the rules both looks read. They used to come through
 // ui/round-zero.js, which re-exported them for this test alone; the switch-over's
 // part 2 deleted that page, and the rules never lived in it.
 import {
   openingReserve, submittedAd, gradeAsSubmitted, monthlyBudget,
-  positionMatrix, splitShares,
+  positionMatrix, splitShares, adStage,
 } from '../ui/roundzero/rules.js';
+import { R0 } from '../ui/words/roundZero.js';
 import { openingCopyGrades } from '../content/writers.js';
 import { startGame } from '../setup.js';
 import { submitRound } from '../game.js';
@@ -457,6 +459,78 @@ describe('the positioning grid means what its position says', () => {
   });
 });
 
+/**
+ * WHAT STEP 2 SHOWS AT ONCE, which is the whole of the density fix
+ * (plans/2026-09-24-density-and-polish.md, option B).
+ *
+ * The step used to draw all eight rival ads in full, simultaneously: measured
+ * on the live site at `aa97790`, 612 words, against 119 on 2026-09-14. Roughly
+ * 500 of those were the eight ads. It asked a beginner on the second of five
+ * screens to read eight competitors' copy, infer each one's tier and purpose,
+ * place all eight, and then choose their own cell.
+ *
+ * `adStage` is the rule, and it lives here rather than in the drawing module
+ * for the reason `CLAUDE.md` gives: round 0's rules are testable and a drawing
+ * module is not. **The bound it exists to hold is ONE AD ON SCREEN AT A TIME.**
+ */
+describe('step 2 stages the rival ads instead of dealing them all at once', () => {
+  const ads = ['Nira', 'Torvi', 'Kestrel', 'Halcyon', 'Satva', 'Auren', 'Lumen', 'Vella & Co.']
+    .map((name) => ({ name, domain: `${name.toLowerCase()}.in`, ad: { headlines: [], descriptions: [] } }));
+  const draftWith = (guesses) => ({ guesses: { ...guesses }, cell: 'mid|lifestyle' });
+
+  test('nothing is open to begin with, and all eight are waiting', () => {
+    const stage = adStage(ads, draftWith({}), null);
+    expect(stage.open).toBe(null);
+    expect(stage.unread).toHaveLength(8);
+    expect(stage.placed).toHaveLength(0);
+  });
+
+  test('AT MOST ONE AD IS OPEN, whatever the player has done', () => {
+    // The bound. Every reachable combination of opened and placed still shows
+    // one ad, because `open` is a single rival and never a list.
+    for (const name of ads.map((a) => a.name)) {
+      for (const placedCount of [0, 3, 8]) {
+        const guesses = Object.fromEntries(
+          ads.slice(0, placedCount).map((a) => [a.name, 'value|performance']),
+        );
+        const stage = adStage(ads, draftWith(guesses), name);
+        expect(Array.isArray(stage.open), `${name}, ${placedCount} placed`).toBe(false);
+        expect(stage.open?.name).toBe(name);
+      }
+    }
+  });
+
+  test('placing a rival takes it out of the waiting list', () => {
+    const stage = adStage(ads, draftWith({ Nira: 'value|performance', Torvi: 'value|performance' }), null);
+    expect(stage.unread.map((r) => r.name)).not.toContain('Nira');
+    expect(stage.unread).toHaveLength(6);
+    expect(stage.placed.map((r) => r.name).sort()).toEqual(['Nira', 'Torvi']);
+  });
+
+  test('the open one is never also in the waiting list, so it cannot be drawn twice', () => {
+    const stage = adStage(ads, draftWith({}), 'Kestrel');
+    expect(stage.unread.map((r) => r.name)).not.toContain('Kestrel');
+    expect(stage.unread).toHaveLength(7);
+  });
+
+  test('a rival already placed can be opened again, and is still counted as placed', () => {
+    // The chip on the grid is the way back in: a player who placed Nira early
+    // and wants to check it against a later ad must be able to re-read it.
+    const stage = adStage(ads, draftWith({ Nira: 'value|performance' }), 'Nira');
+    expect(stage.open?.name).toBe('Nira');
+    expect(stage.placed.map((r) => r.name)).toEqual(['Nira']);
+    expect(stage.unread.map((r) => r.name)).not.toContain('Nira');
+  });
+
+  test('a name that is not a rival opens nothing rather than throwing', () => {
+    // The open name is UI state and survives a redraw; a brand change swaps the
+    // whole cast, so a stale name must fail soft.
+    const stage = adStage(ads, draftWith({}), 'Marlow');
+    expect(stage.open).toBe(null);
+    expect(stage.unread).toHaveLength(8);
+  });
+});
+
 describe('the month split has a shape, not just four amounts', () => {
   test('shares are the amounts as fractions of what is planned', () => {
     const shares = splitShares([100, 100, 100, 100]);
@@ -491,5 +565,122 @@ describe('the tags round 0 shows are the tags the account will be given (stage A
   test('the chips come from the tagger, handed the query set', () => {
     expect(source).toMatch(/tagKeywordOffline\(keyword, querySet\)/);
     expect(source).not.toMatch(/heuristicTags\(/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The reading load of a step, bounded
+// ---------------------------------------------------------------------------
+
+/**
+ * ROUND 0 HAS A WORD BUDGET NOW, AND UNTIL 2026-09-25 IT HAD NONE.
+ *
+ * The first run has been held to 80 words a beat since it was built, by
+ * `tests/firstRun.test.js`, whose comment says why: **a beginner drowns on a
+ * SCREEN**. Round 0 — the screen a stranger actually gave up inside — was held
+ * to nothing, and went from 781 rendered words to 1,675 in the ten days to
+ * 2026-09-24. Nothing was watching, so nothing said.
+ *
+ * WHY 150, MEASURED RATHER THAN PICKED. The design first proposed 120
+ * (plans/2026-09-24-density-and-polish.md, section 6.1) and that was a guess:
+ * four of the five steps failed it, including step 1 at 115, the lightest step
+ * that carries a real decision. A bound that the work has to move to meet is
+ * not a bound. 150 leaves step 1 its room, sits at roughly twice the first
+ * run's 80 — fair, because a beat teaches one idea and a step asks for a
+ * decision — and still required cuts to steps 2, 4 and 5 on the day it was set.
+ *
+ * WHAT IT COUNTS, AND WHAT IT CANNOT. It counts AUTHORED words: every `R0.*`
+ * line a step's module mentions, found by reading the module as text so the
+ * count cannot drift when a line is added. It deliberately over-counts, because
+ * a line behind a condition still counts — a bound should err strict.
+ *
+ * IT DOES NOT COUNT DATA, and on round 0 data is more than half of what is
+ * read: 788 authored words across the five steps render as 1,675. Rival names,
+ * ad copy, place names and figures are not in this number. The structural half
+ * of the budget is held elsewhere and per-step — `adStage` above is step 2's,
+ * holding it to one rival ad on screen instead of eight.
+ *
+ * IF THIS FAILS, CUT THE STEP. Do not raise the bound: it was set on evidence
+ * once, and a number that gets nudged upward is the thing the first run's test
+ * refuses to have.
+ */
+describe('a round 0 step does not out-talk its budget', () => {
+  const STEP_MODULES = {
+    'step 1 · the market': 'ui/roundzero/market.js',
+    'step 2 · where you sit': 'ui/roundzero/position.js',
+    'step 3 · your keywords': 'ui/roundzero/keywords.js',
+    'step 4 · your ad': 'ui/roundzero/ad.js',
+    'step 5 · your money': 'ui/roundzero/money.js',
+  };
+  const BUDGET = 150;
+
+  /**
+   * Lines that are alternatives to each other: exactly one of a group is ever
+   * drawn, so the group costs what its LONGEST member costs, not the sum.
+   *
+   * This is not leniency. The bound is on what a beginner meets ON A SCREEN,
+   * and `readoutNone` is the sentence shown when `readoutPlaced` is not. Adding
+   * them would be measuring a screen that cannot exist, and would spend the
+   * budget cutting sentences nobody reads together.
+   *
+   * EVERY GROUP HAS TO BE TRUE OF THE DRAWING. If a module changes so that two
+   * of these can appear at once, the group is a lie and belongs deleted rather
+   * than kept for the headroom.
+   */
+  const ALTERNATES = [
+    // ui/roundzero/position.js: the readout under the grid, and the note
+    // beside the rival list, each have an empty state and a filled one.
+    ['readoutNone', 'readoutPlaced'],
+    ['otherRivals', 'stillUnread'],
+    ['unreadLeft', 'guessNote'],
+    // ui/roundzero/ad.js:134 — `graded.byWriter ? hiredNote() : diyNote()`.
+    // You either hired or you did not, so the reader meets one of these.
+    ['hiredNote', 'diyNote'],
+    // ui/roundzero/money.js — the weekly split is even until it is not.
+    ['splitEven', 'splitCustom'],
+  ];
+
+  // One bag of figures that every line can be called with. A line reads only
+  // the keys it wants, so a superset is safe and keeps this from needing a
+  // bespoke call per line.
+  const FIGURES = {
+    rivals: 8, n: 8, count: 3, name: 'Nira', names: ['Nira'], cell: 'Value · Performance',
+    placed: 2, total: 8, query: 'gym leggings with pockets', volume: '1,849', week: 5,
+    order: '₹2,400', margin: '52%', searches: '1,20,400', need: '₹17', grade: 6, of: 10,
+    paise: 1000, rupees: '₹1,000', pct: '52%', text: 'gym leggings', tier: 'mid',
+  };
+  const words = (value) => String(value).trim().split(/\s+/).filter(Boolean).length;
+
+  const wordsOf = (name) => {
+    const entry = R0[name];
+    if (typeof entry !== 'function') return 0;
+    // A line this bag cannot satisfy is skipped rather than counted wrong.
+    try { return words(entry(FIGURES)); } catch { return 0; }
+  };
+
+  const authored = (path) => {
+    const source = readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
+    const names = new Set([...source.matchAll(/R0\.([A-Za-z0-9_]+)/g)].map((m) => m[1]));
+    let total = 0;
+    for (const group of ALTERNATES) {
+      const present = group.filter((name) => names.has(name));
+      if (present.length === 0) continue;
+      total += Math.max(...present.map(wordsOf));
+      for (const name of present) names.delete(name);
+    }
+    for (const name of names) total += wordsOf(name);
+    return total;
+  };
+
+  test.each(Object.entries(STEP_MODULES))(`%s stays inside ${BUDGET} words`, (label, path) => {
+    const count = authored(path);
+    expect(count, `${label} authors ${count} words`).toBeLessThanOrEqual(BUDGET);
+  });
+
+  test('every step module was actually found and read', () => {
+    // The guard against a renamed module quietly measuring zero and passing.
+    for (const path of Object.values(STEP_MODULES)) {
+      expect(authored(path), path).toBeGreaterThan(0);
+    }
   });
 });

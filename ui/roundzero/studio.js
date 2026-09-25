@@ -86,8 +86,20 @@ export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, 
   node.append(rail, list, main);
 
   const at = (key) => STEPS.findIndex((s) => s.key === key);
+  /**
+   * Transient state a step owns between redraws — which rival's ad is open on
+   * step 2, and nothing else so far.
+   *
+   * NOT THE DRAFT, deliberately. The draft is what round 0 decides and what Go
+   * sends (`startChoices`); an ad being open is neither, and putting it there
+   * would travel into the save and the reveal. It is not a module variable
+   * either, because that would outlive the game. It lives on the context, which
+   * is built once per round 0 and dies with it.
+   */
+  const stepUi = {};
+
   const ctx = {
-    draft, brief, querySet, rootSeed, openGuide,
+    draft, brief, querySet, rootSeed, openGuide, ui: stepUi,
     // A step's change moves the ticks and the tray, never the step under the cursor.
     changed: () => { drawList(); drawTray(); },
     // A change that does redraw the step keeps the reader's place: the scroll,

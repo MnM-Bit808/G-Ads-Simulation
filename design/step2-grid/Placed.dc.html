@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="./_board.css">
+  <style> body { margin: 0; } </style>
+</helmet>
+
+<div class="b">
+
+  <div class="rail">
+    <div class="mark">M</div>
+    <div class="ico on">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 7h12l-1 12H7L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+      <span>Brand</span>
+    </div>
+    <div class="ico">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.2"/><path d="M4 19c0-3 2.2-5 5-5s5 2 5 5M15 19c0-2 1-3.4 3-3.4s2.6 1 2.6 3"/></svg>
+      <span>Market</span>
+    </div>
+    <div class="ico">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 5h10a3 3 0 0 1 3 3v11H8a3 3 0 0 1-3-3V5z"/><path d="M9 9h6M9 13h6"/></svg>
+      <span>Guide</span>
+    </div>
+    <div class="ico">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 20V11M12 20V5M16 20v-6"/></svg>
+      <span>Results</span>
+    </div>
+  </div>
+
+  <div class="page">
+
+    <div class="top">
+      <span class="r0">Round 0</span>
+      <span>before the first auction</span>
+      <span class="dots">
+        <span class="dot done"></span><span class="dot on"></span><span class="dot"></span>
+        <span class="dot"></span><span class="dot"></span>
+      </span>
+      <span class="right">Step 2 of 5</span>
+    </div>
+
+    <div class="body">
+      <h1 class="disp">Where you sit</h1>
+      <p class="lede">Nine brands, six places to stand. Nobody tells you where the other eight are.</p>
+      <p class="ask">Six read, two left. Move yourself if the picture has changed.</p>
+
+      <div class="stage">
+
+        <div class="gridwrap">
+          <div class="axis-top">
+            <div></div><div>Value</div><div>Mid</div><div>Premium</div>
+          </div>
+          <div class="grid">
+            <div class="rowlab">Performance</div>
+            <div class="cell">
+              <span class="chip read"><span class="av">N</span>Nira</span>
+              <span class="chip read"><span class="av">T</span>Torvi</span>
+            </div>
+            <div class="cell">
+              <span class="chip read"><span class="av">H</span>Halcyon</span>
+            </div>
+            <div class="cell">
+              <span class="chip read"><span class="av">L</span>Lumen</span>
+            </div>
+
+            <div class="rowlab">Lifestyle</div>
+            <div class="cell">
+              <span class="chip read"><span class="av">K</span>Kestrel</span>
+            </div>
+            <div class="cell you">
+              <span class="hint" style="color:#FF6166;">you are here</span>
+              <span class="chip mine"><span class="av">M</span>Marlow</span>
+              <span class="chip read"><span class="av">S</span>Satva</span>
+            </div>
+            <div class="cell"></div>
+          </div>
+        </div>
+
+        <div class="tray">
+          <h2>Still unread</h2>
+          <p class="sub">Two left. You can stop here if you like.</p>
+          <div class="stack">
+            <div class="card"><span class="av">A</span><span><span class="who">Auren</span><br><span class="dom">auren.in</span></span><span class="go">read ad &rarr;</span></div>
+            <div class="card"><span class="av">V</span><span><span class="who">Vella &amp; Co.</span><br><span class="dom">vellaandco.in</span></span><span class="go">read ad &rarr;</span></div>
+          </div>
+
+          <h2 style="margin-top:26px;">What the grid says</h2>
+          <p class="sub" style="margin-bottom:10px;">So far, from six ads.</p>
+          <div class="ad" style="border-left-color:#3A363E; background:linear-gradient(90deg,#16151A 0%,#121116 60%);">
+            <div class="tell" style="margin:0; padding:0; border:0;">
+              Three brands are crowded into <em>Value</em>. Only one sells
+              <em>Premium&nbsp;&middot;&nbsp;Performance</em>. Your cell has one rival in it.
+            </div>
+          </div>
+
+          <div class="place">
+            <span class="pbtn">Move me to Premium &middot; Lifestyle</span>
+            <span class="pbtn hot">Stay where I am</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="foot">
+      <span class="meter">
+        <span class="pips">
+          <span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span>
+          <span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span>
+        </span>
+        <span class="num">6 of 8 placed &middot; none of it is required</span>
+      </span>
+      <button class="cta">Next: your keywords</button>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

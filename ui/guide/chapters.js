@@ -194,6 +194,14 @@ const GOOGLE = {
     label: 'Google Ads Help: About Performance Max campaigns',
     url: 'https://support.google.com/google-ads/answer/10724817',
   },
+  pmaxWithSearch: {
+    label: 'Google Ads Help: How Performance Max interacts with other campaigns in your account',
+    url: 'https://support.google.com/google-ads/answer/13810170',
+  },
+  aiMax: {
+    label: 'Google Ads Help: How AI Max for Search campaigns works',
+    url: 'https://support.google.com/google-ads/answer/15910187',
+  },
   simulators: {
     label: 'Google Ads Help: Estimate your results with bid, budget and target simulators',
     url: 'https://support.google.com/google-ads/answer/2470105',
@@ -567,12 +575,18 @@ export const CHAPTERS = Object.freeze({
   whatIsNotHere: chapter({
     title: 'What this game leaves out',
     real: () => 'Google Ads is bigger than search, and one campaign type is most of why. '
-      + 'Performance Max reaches all of Google’s inventory from a single campaign: '
+      + 'Performance Max reaches all of Google’s inventory from one campaign: '
       + 'YouTube, Display, Search, Discover, Gmail and Maps. '
-      + 'You give it images, a feed and a goal. '
-      + 'It decides where the money goes and which of your assets to show. '
-      + 'A real account today may be mostly that, with search campaigns beside it.',
-    realSources: [GOOGLE.performanceMax],
+      + 'You give it assets and a goal. It decides the rest. '
+      + 'A real account today may be mostly that. '
+      + 'When both want the same search, Google is precise. '
+      + 'A search campaign whose keyword “exactly matches or is spell-corrected to a '
+      + 'person’s query will be preferred”. '
+      + 'Otherwise “the campaign with the higher Ad Rank will serve”. '
+      + 'Those two things are what this game teaches. '
+      + 'Even inside search the keyword is giving ground. '
+      + 'AI Max lets Google match, write and land the click for you.',
+    realSources: [GOOGLE.performanceMax, GOOGLE.pmaxWithSearch, GOOGLE.aiMax],
     game: () => 'This game is one search campaign, and nothing else. '
       + 'Every search here is a query somebody typed. '
       + 'Every click comes from a keyword you chose, at a bid you set. '
@@ -583,6 +597,7 @@ export const CHAPTERS = Object.freeze({
       'Performance Max is not here. Modelling it means five more inventories, and its one decision is handing the decisions over.',
       'Shopping, display and video are absent for the same reason: this engine resolves search auctions and nothing else.',
       'One campaign, one ad group. A real account has many, and budget moves between them.',
+      'AI Max is not here either. Your keywords match what you wrote, and nothing rewrites your ad for you.',
     ],
     cites: ['I43'],
     yourAccount: 'keywords',

@@ -1,0 +1,135 @@
+/* Shared by every step-2 artboard. The Studio's own tokens (ui/studio.css).
+   Option B from plans/2026-09-24-density-and-polish.md: the grid leads and the
+   ads are evidence fetched on demand. */
+
+.b {
+  width: 1440px;
+  height: 900px;
+  background: #0D0C0E;
+  color: #EDE8E3;
+  font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  box-sizing: border-box;
+  display: flex;
+}
+.disp { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- the rail, borrowed from the live shell so the board reads true ---------- */
+.rail {
+  width: 74px; background: #060507; flex: none;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 14px 0; gap: 18px; border-right: 1px solid #17161A;
+}
+.rail .mark {
+  width: 40px; height: 40px; border-radius: 12px; background: #D7262F;
+  color: #FFF5F4; display: grid; place-items: center;
+  font-weight: 800; font-size: 17px;
+}
+.rail .ico { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #8A847E; }
+.rail .ico.on { color: #EDE8E3; }
+.rail .ico span { font-size: 10px; font-weight: 600; letter-spacing: 0.02em; }
+.rail .glyph { width: 20px; height: 20px; opacity: 0.9; }
+
+/* ---------- the page ---------- */
+.page { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.top {
+  height: 52px; flex: none; display: flex; align-items: center; gap: 14px;
+  padding: 0 34px; border-bottom: 1px solid #17161A; color: #8A847E; font-size: 13px;
+}
+.top .r0 { color: #EDE8E3; font-weight: 700; font-size: 14px; }
+.dots { display: flex; gap: 5px; margin-left: 4px; }
+.dot { width: 5px; height: 5px; border-radius: 50%; background: #2A272D; }
+.dot.on { background: #D7262F; }
+.dot.done { background: #4A1A1F; }
+.top .right { margin-left: auto; }
+
+.body { flex: 1; padding: 30px 46px 0; display: flex; flex-direction: column; min-height: 0; }
+h1.disp { font-size: 42px; line-height: 1.04; margin: 0 0 10px; letter-spacing: -0.022em; }
+.lede { font-size: 15px; color: #CFC9C3; margin: 0 0 4px; max-width: 62ch; }
+.ask { font-size: 13.5px; color: #8A847E; margin: 0 0 22px; }
+
+/* ---------- the grid: the one dominant object on the screen ---------- */
+.stage { display: flex; gap: 34px; flex: 1; min-height: 0; }
+.gridwrap { flex: none; width: 700px; }
+
+.axis-top { display: grid; grid-template-columns: 96px repeat(3, 1fr); margin-bottom: 7px; }
+.axis-top div { font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #8A847E; font-weight: 700; }
+.axis-top div + div { text-align: center; }
+
+/* The rows are deep because the grid is the subject of this screen, not a
+   legend beside it. Two rows at 205 bring its foot within ~150px of the tray's
+   instead of leaving 280px of dead space under the one object that matters. */
+.grid { display: grid; grid-template-columns: 96px repeat(3, 1fr); grid-auto-rows: 205px; gap: 0; }
+.rowlab {
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 13px;
+  font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: #8A847E; font-weight: 700;
+  text-align: right;
+}
+.cell {
+  border: 1px solid #222026; margin: -1px 0 0 -1px; background: #111015;
+  padding: 11px; display: flex; flex-direction: column; gap: 7px;
+  position: relative;
+}
+.cell .hint { font-size: 11px; color: #8A847E; letter-spacing: 0.04em; }
+.cell.you { background: #17090C; border-color: #4A1A1F; }
+.cell.drop { border-color: #3A363E; border-style: dashed; background: #131217; }
+
+/* a brand sitting in a cell */
+.chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #221F25; border: 1px solid #2E2B33; border-radius: 999px;
+  padding: 5px 11px 5px 6px; font-size: 12.5px; color: #EDE8E3; width: fit-content;
+}
+.chip .av { width: 18px; height: 18px; border-radius: 50%; background: #3A363E; display: grid; place-items: center; font-size: 9px; font-weight: 800; color: #CFC9C3; }
+.chip.mine { background: #D7262F; border-color: #D7262F; color: #FFF5F4; font-weight: 700; }
+.chip.mine .av { background: #FFF5F4; color: #D7262F; }
+.chip.read .av { background: #4A1A1F; color: #FF6166; }
+
+/* ---------- the tray of brands not yet placed ---------- */
+.tray { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tray h2 { font-size: 12px; letter-spacing: 0.09em; text-transform: uppercase; color: #8A847E; margin: 0 0 4px; font-weight: 700; }
+.tray .sub { font-size: 12.5px; color: #8A847E; margin: 0 0 14px; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.card {
+  border: 1px solid #222026; border-radius: 12px; background: #141318;
+  padding: 11px 13px; display: flex; align-items: center; gap: 10px; cursor: pointer;
+}
+.card:hover { border-color: #3A363E; }
+.card .av { width: 26px; height: 26px; border-radius: 8px; background: #221F25; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #CFC9C3; flex: none; }
+.card .who { font-size: 13.5px; font-weight: 600; }
+.card .dom { font-size: 11.5px; color: #8A847E; }
+.card .go { margin-left: auto; font-size: 11.5px; color: #8A847E; }
+.card.done { opacity: 0.4; }
+
+/* ---------- the evidence panel: a different surface, not another card ---------- */
+.ad {
+  border-left: 2px solid #D7262F; background: linear-gradient(90deg, #17090C 0%, #121116 60%);
+  padding: 15px 18px; border-radius: 0 12px 12px 0;
+}
+.ad .tagline { display: flex; align-items: baseline; gap: 8px; font-size: 11.5px; color: #8A847E; margin-bottom: 6px; }
+.ad .tagline b { color: #CFC9C3; font-weight: 600; }
+.ad .head { font-size: 16px; line-height: 1.32; color: #EDE8E3; font-weight: 600; margin-bottom: 7px; }
+.ad .desc { font-size: 13px; line-height: 1.5; color: #A19A94; }
+.ad .tell { margin-top: 12px; padding-top: 11px; border-top: 1px solid #2A272D; font-size: 12.5px; color: #CFC9C3; }
+.ad .tell em { color: #FF6166; font-style: normal; font-weight: 600; }
+
+.place { display: flex; gap: 7px; margin-top: 13px; flex-wrap: wrap; }
+.pbtn { font-size: 12px; padding: 6px 11px; border-radius: 8px; border: 1px solid #2E2B33; background: #1B191F; color: #CFC9C3; cursor: pointer; }
+.pbtn.hot { border-color: #D7262F; background: #D7262F; color: #FFF5F4; font-weight: 600; }
+
+/* ---------- the foot ---------- */
+.foot {
+  height: 64px; flex: none; display: flex; align-items: center; gap: 12px;
+  padding: 0 46px; border-top: 1px solid #17161A;
+}
+.meter { display: flex; align-items: center; gap: 9px; font-size: 12.5px; color: #8A847E; }
+.pips { display: flex; gap: 3px; }
+.pip { width: 15px; height: 4px; border-radius: 2px; background: #2A272D; }
+.pip.on { background: #D7262F; }
+.cta {
+  margin-left: auto; background: #D7262F; color: #FFF5F4; border: 0;
+  border-radius: 999px; padding: 11px 22px; font-size: 15px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+}
+.cta.quiet { background: #221F25; color: #8A847E; }
