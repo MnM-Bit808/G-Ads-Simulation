@@ -15,6 +15,7 @@ import { blockedBy } from '../../engine/matching.js';
 import { NEGATIVE_TYPES, addNegative, dropNegative, termsOutlook } from '../decisions.js';
 import { whyButton } from '../guide/drawer.js';
 import { TYPED } from '../words/typed.js';
+import { meter } from '../kit/meter.js';
 import { termRows, blockPreview } from './read.js';
 
 /** The preview lists at most this many searches a block would catch, of each kind. */
@@ -106,12 +107,8 @@ export function renderTypedSection({ game, ctx, openGuide, refreshTray }) {
     term.append(el('span', 'wt-text', r.text));
     if (r.brand) term.append(el('span', 'wt-tag', r.brand.own ? TYPED.yourName() : TYPED.rivalName({ name: r.brand.name })));
     const spent = el('div', 'wt-spent');
-    const track = el('span', 'wt-track');
-    track.setAttribute('aria-hidden', 'true');
-    const fill = el('span');
-    fill.style.width = `${Math.max(2, (100 * r.spendPaise) / maxSpend)}%`;
-    track.append(fill);
-    spent.append(track, el('span', 'wt-num', rupees(r.spendPaise)));
+    spent.append(meter(r.spendPaise / maxSpend, { tone: r.blockedBy ? 'blocked' : null }),
+      el('span', 'wt-num', rupees(r.spendPaise)));
     const perSale = el('span', 'wt-num', r.perSalePaise === null ? '—' : rupees(r.perSalePaise));
     if (r.dear) {
       perSale.classList.add('mark');

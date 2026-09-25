@@ -15,6 +15,8 @@ import { TOTAL_ROUNDS, ROUNDS_PER_MONTH } from '../../engine/constants.js';
 import { marketOutlook, insightMovers, marketChange } from '../chart.js';
 import { whyButton } from '../guide/drawer.js';
 import { serp } from '../kit/serp.js';
+import { figure as kitFigure, figures } from '../kit/figure.js';
+import { meter } from '../kit/meter.js';
 import { AD } from '../words/ad.js';
 import { MARKET } from '../words/market.js';
 import { RIVALS } from '../words/rivals.js';
@@ -33,11 +35,7 @@ const BAR_PX = 30;
 export function renderRivalsSection({ game, ctx, openGuide }) {
   const node = el('div', 'rv');
 
-  function figure(label, value, sub) {
-    const box = el('div', 'rv-figure');
-    box.append(el('span', 'rv-label', label), el('strong', 'rv-value', value), el('span', 'rv-small', sub));
-    return box;
-  }
+  const figure = (label, value, sub) => kitFigure({ label, value, sub });
 
   /** The week month 3's budgets take effect (D12, C8), whose rule is public (D4). */
   function reSplitWeek() {
@@ -52,14 +50,13 @@ export function renderRivalsSection({ game, ctx, openGuide }) {
     if (m) {
       const last = (value) => (value === null ? RIVALS.firstWeek() : RIVALS.lastWeek({ value }));
       const cents = (paise) => formatINR(paise, { decimals: 2 });
-      const row = el('div', 'rv-figures');
-      row.append(
+      const row = figures([
         figure(RIVALS.marketSpend(), rupees(m.spendPaise), last(m.lastSpendPaise === null ? null : rupees(m.lastSpendPaise))),
         // A click costs paise: Rs 9.68 against Rs 9.40 is not a rupee's rise.
         figure(RIVALS.medianClick(), cents(m.medianCpcPaise), last(m.lastMedianCpcPaise === null ? null : cents(m.lastMedianCpcPaise))),
         figure(RIVALS.advertisersRunning(), String(m.advertisers), last(m.lastAdvertisers === null ? null : String(m.lastAdvertisers))),
         figure(RIVALS.searchesWeek(), whole(m.weeklySearches), RIVALS.sameEveryWeek()),
-      );
+      ]);
       card.append(row);
       const change = marketChange(game.state.marketContext);
       if (reSplitWeek() && change) {
@@ -117,12 +114,7 @@ export function renderRivalsSection({ game, ctx, openGuide }) {
 
   function line(label, value) {
     const row = el('div', 'rv-line');
-    const track = el('span', 'rv-track');
-    track.setAttribute('aria-hidden', 'true');
-    const fill = el('span');
-    fill.style.width = pct(value);
-    track.append(fill);
-    row.append(el('span', 'rv-small', label), track, el('strong', 'rv-num', pct(value)));
+    row.append(el('span', 'rv-small', label), meter(value), el('strong', 'rv-num', pct(value)));
     return row;
   }
 
@@ -135,8 +127,9 @@ export function renderRivalsSection({ game, ctx, openGuide }) {
       head.append(el('span', 'rv-small', said({ from: pct(c.was) })));
     }
     const meet = el('div', 'rv-meet');
-    const big = el('div', 'rv-big');
-    big.append(el('strong', 'rv-value', pct(c.overlap)), el('span', 'rv-small', RIVALS.showedIn()));
+    // The card's headline: the number and the sentence under it, with the
+    // brand name above doing the work a label would.
+    const big = kitFigure({ value: pct(c.overlap), sub: RIVALS.showedIn() });
     meet.append(big, weekBars(c.weeks));
     card.append(head, meet);
     if (c.ad) {

@@ -19,6 +19,7 @@ import { SETTLES_AFTER_ROUNDS, allocationWindowPhrase } from '../dashboard.js';
 import { prepaidRungs, setPrepaidDiscount } from '../decisions.js';
 import { featureAt } from '../../content/landingPage.js';
 import { whyButton } from '../guide/drawer.js';
+import { figure as kitFigure, figures } from '../kit/figure.js';
 import { SECTIONS } from '../shell/sections.js';
 import { RETURNS, RETURNS_STUDIO as W } from '../words/returns.js';
 import {
@@ -56,28 +57,22 @@ function swatch(kind) {
 export function renderReturnsSection({ game, ctx, openGuide, openSection, refreshTray }) {
   const node = el('div', 'wr');
 
-  function figure(label, value, sub, { kind = null, why = null } = {}) {
-    const box = el('div', 'wr-figure');
-    const head = el('div', 'wr-label');
-    if (kind) head.append(swatch(kind));
-    head.append(el('span', null, label));
-    add(head, why ? whyButton(why, openGuide) : null);
-    box.append(head, el('strong', 'wr-value', value), el('span', 'wr-small', sub));
-    return box;
-  }
+  const figure = (label, value, sub, { kind = null, why = null } = {}) => kitFigure({
+    label, value, sub, why, openGuide, lead: kind ? swatch(kind) : null,
+  });
 
   function figuresCard(r) {
     const card = el('div', 'wr-card');
     card.dataset.slot = 'returns-figures';
     const rate = (n) => (r.orders > 0 ? n / r.orders : 0);
     const back = r.refused + r.sentBack;
-    const row = el('div', 'wr-figures');
-    add(row,
+    const row = figures([
       figure(RETURNS.cameBack(), pct(rate(back), 1), RETURNS.cameBackSub({ returned: whole(back), orders: whole(r.orders) })),
       figure(W.refusedAtDoor(), pct(rate(r.refused), 1), RETURNS.refusedSub({ refused: whole(r.refused) }), { kind: 'refused' }),
       figure(RETURNS.sentBack(), pct(rate(r.sentBack), 1), RETURNS.sentBackSub({ sentBack: whole(r.sentBack) }), { kind: 'sent' }),
       figure(RETURNS.freight(), rupees(r.freightPaise), W.freightSub({ perParcel: rupees(RTO_FREIGHT_PAISE) })),
-      r.codShare == null ? null : figure(W.paidAtDoor(), pct(r.codShare), W.paidAtDoorSub(), { why: W.paidAtDoor }));
+      r.codShare == null ? null : figure(W.paidAtDoor(), pct(r.codShare), W.paidAtDoorSub(), { why: W.paidAtDoor }),
+    ].filter(Boolean));
     const counted = el('p', 'wr-small', W.counted({ from: r.countedFrom, to: r.countedTo, settlesAfter: SETTLES_AFTER_ROUNDS }));
     add(counted, whyButton(W.counted, openGuide));
     card.append(row, counted);

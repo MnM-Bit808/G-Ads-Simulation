@@ -436,7 +436,35 @@ body.studio .kslider-floor { position: absolute; top: 5px; left: var(--kslider-f
 body.studio .kslider-was { position: absolute; top: 7px; width: 12px; height: 12px; margin-left: -6px; border: 2px dashed var(--studio-faint); border-radius: 50%; box-sizing: border-box; pointer-events: none; }
 body.studio .kstats { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid #232026; }
 body.studio .kstat-value { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-body.studio .kstat-label { font-size: 12px; color: var(--studio-muted); }
+body.studio .kstat-label { font-size: var(--t-small); color: var(--studio-muted); }
+
+/* The figure every section shows: a label, the number, a quieter line (I49).
+   Sentence case, because uppercase marks a COLUMN here — the books' header,
+   What people typed's — and one style cannot mean both. */
+body.studio .kfigs { display: grid; grid-template-columns: repeat(var(--kfigs-count, 4), minmax(0, 1fr)); gap: 14px 18px; }
+body.studio .kfigs.carded { gap: 18px; padding: var(--studio-card-pad); border: var(--studio-card-edge); border-radius: var(--studio-radius); background: var(--studio-card); }
+body.studio .kfig { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+body.studio .kfig-label { display: flex; align-items: center; gap: 6px; font-size: var(--t-small); color: var(--studio-muted); }
+body.studio .kfig-value { font: 800 var(--studio-figure)/1 var(--studio-display); font-variant-numeric: tabular-nums; }
+/* Amber, not red: red is the player's colour in Red signal, so it cannot also
+   mean "bad" — and a loss carries a minus sign, never a hyphen. */
+body.studio .kfig-value.loss { color: var(--studio-amber); }
+body.studio .kfig-sub { font-size: var(--t-small); color: var(--studio-faint); font-variant-numeric: tabular-nums; }
+
+/* A thin meter: the ground, and the fill along it (I49). */
+body.studio .kmeter { display: block; height: 6px; overflow: hidden; border-radius: 3px; background: var(--studio-raised); }
+body.studio .kmeter > span { display: block; height: 100%; background: var(--studio-text); }
+body.studio .kmeter.blocked > span { background: #68636B; }
+/* A why-button sits in a figure's label and must not inherit its type. */
+body.studio .kfig-label .why { line-height: 1; letter-spacing: 0; text-transform: none; }
+/* The four strips each folded at their own width — 760 for Your week, 900 and
+   560 for the rest. One object folds one way (I49). */
+@container (max-width: 900px) { body.studio .kfigs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@container (max-width: 560px) {
+  body.studio .kfigs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.studio .kfigs.carded { padding: 14px 16px; }
+  body.studio .kfig-value { font-size: 24px; }
+}
 body.studio .ktoggle { display: flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--studio-red-text); font-size: 12px; font-weight: 600; }
 body.studio .ktoggle-track { position: relative; flex-shrink: 0; width: 34px; height: 20px; border-radius: 999px; background: var(--studio-red); }
 body.studio .ktoggle-knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #F3EEEA; transform: translateX(14px); }
@@ -920,13 +948,7 @@ body.studio .yw-sub { margin: 0; font-size: 12px; color: var(--studio-muted); }
 body.studio .yw-note { max-width: 760px; margin: 0; font-size: 13px; line-height: 1.5; color: var(--studio-soft); }
 
 /* the week's six figures */
-body.studio .yw-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: var(--studio-card-pad); border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
-body.studio .yw-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-body.studio .yw-label { font-size: 12px; color: var(--studio-muted); }
-body.studio .yw-big { font: 800 var(--studio-figure)/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 /* Money lost is amber, with its minus sign, everywhere in the Studio. */
-body.studio .yw-big.loss { color: var(--studio-amber); }
-body.studio .yw-stat .yw-sub { font-variant-numeric: tabular-nums; }
 body.studio .yw-landed { display: flex; height: 6px; margin: 2px 0; overflow: hidden; border-radius: 3px; }
 body.studio .yw-landed span:first-child { background: var(--studio-text); }
 body.studio .yw-landed span:last-child { flex: 1; box-sizing: border-box; border: 1px dashed #68636B; border-left: none; border-radius: 0 3px 3px 0; }
@@ -996,12 +1018,9 @@ body.studio .yw-posfig b { font-weight: 700; color: var(--studio-text); }
 
 /* A section under 1000px wide: the impressions go under the chart. */
 @container (max-width: 1000px) { body.studio .yw-row { grid-template-columns: minmax(0, 1fr); } }
-@container (max-width: 760px) { body.studio .yw-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 /* On a phone: two figures to a row, and the chart scrolls sideways at a
    width where every week's figures fit. */
 @container (max-width: 560px) {
-  body.studio .yw-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
-  body.studio .yw-big { font-size: 24px; }
   body.studio .yw-card { padding: 14px 14px 12px; }
   body.studio .yw-head { flex-wrap: wrap; }
   body.studio .yw-scroll { padding-bottom: 8px; }
@@ -1028,8 +1047,7 @@ body.studio .wt-term { display: flex; flex-wrap: wrap; align-items: baseline; ga
 body.studio .wt-text { font-size: 13px; }
 body.studio .wt-tag { padding: 1px 7px; border: 1px solid #6A646E; border-radius: 999px; font-size: 10px; font-weight: 700; white-space: nowrap; color: var(--studio-soft); }
 body.studio .wt-spent { display: flex; align-items: center; gap: 8px; }
-body.studio .wt-track { flex: 1; height: 6px; overflow: hidden; border-radius: 3px; background: var(--studio-raised); }
-body.studio .wt-track span { display: block; height: 100%; background: var(--studio-text); }
+body.studio .wt-spent .kmeter { flex: 1; }
 body.studio .wt-num { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; color: var(--studio-soft); }
 body.studio .wt-spent .wt-num { width: 58px; color: var(--studio-text); }
 /* Where to look (I13): a sale costing over twice the account's average, or
@@ -1042,7 +1060,6 @@ body.studio span.wt-act { color: var(--studio-muted); cursor: default; }
    rather than faded: at the planned 0.45 opacity its figures measured 3.21:1
    on the card; muted is 6.49:1. */
 body.studio .wt-row.blocked :is(.wt-text, .wt-num, .wt-tag) { font-weight: 400; color: var(--studio-muted); }
-body.studio .wt-row.blocked .wt-track span { background: #68636B; }
 body.studio .wt-row.blocked .wt-text { text-decoration: line-through; }
 /* The rows the block being typed would catch. */
 body.studio .wt-row.caught { background: #1F1C22; box-shadow: inset 0 0 0 1px var(--studio-muted); }
@@ -1078,7 +1095,7 @@ body.studio .wt-remove { display: grid; flex-shrink: 0; place-items: center; wid
   body.studio .wt-row { grid-template-columns: minmax(0, 1.3fr) repeat(3, minmax(0, 1fr)) auto; row-gap: 4px; }
   body.studio .wt-row > :first-child { grid-column: 1 / -1; }
   body.studio .wt-cols { font-size: 10px; letter-spacing: 0.02em; white-space: normal; }
-  body.studio .wt-track { display: none; }
+  body.studio .wt-spent .kmeter { display: none; }
   body.studio .wt-spent .wt-num { width: auto; text-align: left; }
   body.studio .wt-blocker { padding: 14px; }
 }
@@ -1162,13 +1179,12 @@ body.studio .wm-ladder { display: flex; flex-direction: column; gap: 4px; }
 body.studio .wm-rung { display: grid; grid-template-columns: 34px minmax(0, 1fr) 80px 56px; gap: 8px; align-items: center; font-size: 12px; font-variant-numeric: tabular-nums; }
 body.studio .wm-rung > :first-child { color: var(--studio-muted); }
 body.studio .wm-rung > :nth-child(3), body.studio .wm-rung > :last-child { text-align: right; }
-body.studio .wm-track { height: 8px; overflow: hidden; border-radius: 4px; background: var(--studio-raised); }
-body.studio .wm-track span { display: block; height: 100%; border-radius: 4px; background: #7A7480; }
+body.studio .wm-rung .kmeter > span { background: #7A7480; }
 body.studio .wm-rung.average { font-weight: 700; }
-body.studio .wm-rung.average .wm-track span { background: var(--studio-muted); }
+body.studio .wm-rung.average .kmeter > span { background: var(--studio-muted); }
 body.studio .wm-rung.you { font-weight: 700; color: var(--studio-text); }
 body.studio .wm-rung.you > :first-child { color: var(--studio-red-text); }
-body.studio .wm-rung.you .wm-track span { background: var(--studio-red); }
+body.studio .wm-rung.you .kmeter > span { background: var(--studio-red); }
 
 /* A section under 900px wide: one column. */
 @container (max-width: 900px) {
@@ -1201,14 +1217,8 @@ body.studio .wr-swatch.sent { background: #7A7480; }
 body.studio .wr-swatch.still { background: var(--studio-muted); opacity: 0.32; }
 
 /* the five figures */
-body.studio .wr-figures { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px 18px; }
-body.studio .wr-figure { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-body.studio .wr-label { display: flex; align-items: center; gap: 6px; font-size: var(--studio-micro-size); font-weight: var(--studio-micro-weight); letter-spacing: var(--studio-micro-track); text-transform: uppercase; color: var(--studio-faint); }
 /* The why link is a line taller than the label; held to the label's height, so
    the five figures below stay on one line (measured 18.3px against 16.5). */
-body.studio .wr-label { min-height: 17px; }
-body.studio .wr-label .why { line-height: 1; letter-spacing: 0; text-transform: none; }
-body.studio .wr-value { font: 800 var(--studio-figure)/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 
 /* week by week */
 body.studio .wr-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12px; color: var(--studio-muted); }
@@ -1261,12 +1271,10 @@ body.studio .wr-go::after { content: ' →'; }
 /* A section under 900px wide: the discount and the levers stack. */
 @container (max-width: 900px) {
   body.studio .wr-row { grid-template-columns: minmax(0, 1fr); }
-  body.studio .wr-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 /* A phone: the weeks scroll sideways in their own box, as Your week's do. */
 @container (max-width: 560px) {
   body.studio .wr-card { padding: 14px; }
-  body.studio .wr-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.studio .wr-chart { min-width: 560px; }
   body.studio .wr-rungs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   body.studio .wr-trade { grid-template-columns: minmax(0, 1fr); }
@@ -1282,11 +1290,8 @@ body.studio .rv-small { font-size: 12px; line-height: 1.45; color: var(--studio-
 body.studio .rv-read { font-size: 13px; line-height: 1.45; color: var(--studio-soft); }
 body.studio .rv-label { font-size: var(--studio-micro-size); font-weight: var(--studio-micro-weight); letter-spacing: var(--studio-micro-track); text-transform: uppercase; color: var(--studio-faint); }
 body.studio .rv-num { font-variant-numeric: tabular-nums; }
-body.studio .rv-value { font: 800 var(--studio-figure)/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 
 /* the market, and you */
-body.studio .rv-figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 18px; }
-body.studio .rv-figure { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 body.studio .rv-you { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; padding-top: 10px; border-top: 1px solid var(--studio-line); font-size: 13px; font-variant-numeric: tabular-nums; }
 body.studio .rv-pair { display: inline-flex; align-items: baseline; gap: 5px; }
 
@@ -1294,12 +1299,10 @@ body.studio .rv-pair { display: inline-flex; align-items: baseline; gap: 5px; }
 body.studio .rv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 body.studio .rv-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 body.studio .rv-meet { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: end; }
-body.studio .rv-big { display: flex; flex-direction: column; gap: 2px; }
 /* The rival card's headline overlap. It was 30px against the market strip's
    26 — two pixels of difference says nothing to anyone, so it joins the one
    figure size. If this card's subject should outrank a strip figure, that is a
    hierarchy decision and wants a real step, not a near-miss. */
-body.studio .rv-big .rv-value { font-size: var(--studio-figure); }
 /* How often you met, a bar a week: past weeks grey, this week bone, weeks to
    come a bare line. */
 body.studio .rv-bars { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; align-items: end; height: 34px; border-bottom: 1px solid var(--studio-line-strong); }
@@ -1311,13 +1314,11 @@ body.studio .rv-card .kserp-head { font-size: 14px; }
 body.studio .rv-card .kserp-desc { font-size: 12px; }
 body.studio .rv-line { display: grid; grid-template-columns: 150px minmax(0, 1fr) 44px; gap: 10px; align-items: center; }
 body.studio .rv-line strong { text-align: right; font-size: 12px; }
-body.studio .rv-track { display: block; height: 6px; overflow: hidden; border-radius: 3px; background: var(--studio-raised); }
-body.studio .rv-track span { display: block; height: 100%; border-radius: 3px; background: var(--studio-muted); }
+body.studio .rv-line .kmeter > span { background: var(--studio-muted); }
 
 /* A section under 900px wide: the cards one to a row, the figures two. */
 @container (max-width: 900px) {
   body.studio .rv-grid { grid-template-columns: minmax(0, 1fr); }
-  body.studio .rv-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @container (max-width: 560px) {
   body.studio .rv-card { padding: 14px; }
@@ -1351,10 +1352,6 @@ body.studio .rs-pairs { display: grid; grid-template-columns: repeat(2, minmax(0
 body.studio .rs-pairs.wide { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
 
 /* Twelve weeks: the figures, then every week against its first report. */
-body.studio .rs-figures { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 18px; padding: var(--studio-card-pad); border: 1px solid var(--studio-line); border-radius: var(--studio-radius); background: var(--studio-card); }
-body.studio .rs-stat { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-body.studio .rs-stat .rs-label { font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--studio-muted); }
-body.studio .rs-stat .rs-sub { font-variant-numeric: tabular-nums; }
 body.studio .rs-scroll { overflow-x: auto; }
 body.studio .rs-chart { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; }
 body.studio :is(.rs-brackets, .rs-cols) { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; }
@@ -1491,7 +1488,6 @@ body.studio .rs-answer::placeholder { color: var(--studio-muted); }
 @container (max-width: 900px) {
   body.studio .rs-lessons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.studio .rs-rivals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  body.studio .rs-figures { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   body.studio :is(.rs-moments, .rs-pairs, .rs-pairs.wide) { grid-template-columns: minmax(0, 1fr); }
   body.studio .rs-strip { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   body.studio .rs-brand { grid-template-columns: 24px minmax(0, 1fr) minmax(0, 1.4fr) 104px 64px; }
@@ -1501,7 +1497,6 @@ body.studio .rs-answer::placeholder { color: var(--studio-muted); }
    width where every week's figures fit, as Your week's does. */
 @container (max-width: 560px) {
   body.studio :is(.rs-lessons, .rs-rivals) { grid-template-columns: minmax(0, 1fr); }
-  body.studio .rs-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px 16px; }
   body.studio .rs-big { font-size: 24px; }
   body.studio :is(.rs-card, .rs-lesson) { padding: 14px; }
   body.studio .rs-head { flex-wrap: wrap; }

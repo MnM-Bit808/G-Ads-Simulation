@@ -1135,9 +1135,14 @@ describe('a why? is only real once something draws it', () => {
   // click, cost per click and conversion. The button is drawn by `stat`, which
   // is handed the line itself, so this reads the drawing rather than the data.
   const weekBody = readFileSync(fileURLToPath(new URL('../ui/week/render.js', import.meta.url)), 'utf8');
+  // Since I49 the button is drawn by the kit's figure, not by a `stat` of Your
+  // week's own. The guarantee is unchanged and in two halves: Your week hands
+  // the line down, and the kit turns a line into a button.
+  const kitFigureBody = readFileSync(fileURLToPath(new URL('../ui/kit/figure.js', import.meta.url)), 'utf8');
 
-  test('Your week draws its buttons from the line it is handed', () => {
-    expect(weekBody).toMatch(/function stat\([\s\S]*?whyButton\(/);
+  test('Your week hands its lines down, and the kit draws the button', () => {
+    expect(weekBody, 'Your week no longer passes the line itself').toMatch(/why: said/);
+    expect(kitFigureBody, 'the kit does not draw a why').toMatch(/whyButton\(why, openGuide\)/);
   });
 
   test('all six of Your week’s figures carry a why', () => {
@@ -1153,6 +1158,8 @@ describe('a why? is only real once something draws it', () => {
     const drawn = [
       ...(weekBody.match(/whyButton\([^;]*?\)/g) ?? []),
       ...(weekBody.match(/stat\(\s*WEEK\.\w+/g) ?? []),
+      // A figure built straight from the kit names its line as `why:`.
+      ...(weekBody.match(/why: WEEK\.\w+/g) ?? []),
     ];
     const missing = [];
     for (const [name, entry] of Object.entries(WEEK)) {
@@ -1171,7 +1178,8 @@ describe('a why? is only real once something draws it', () => {
   // each. Without the figure in the label a screen reader cannot tell them
   // apart (ui/words/guide.js, whyForFigure).
   test('a figure sharing its chapter still says which figure it is', () => {
-    expect(weekBody).toContain('GUIDE.whyForFigure(');
+    // In the kit since I49, which is where every section's figures get it.
+    expect(kitFigureBody).toContain('GUIDE.whyForFigure(');
     const sharing = ['netProfit', 'netRoas', 'cpa'].map((n) => WEEK[n].why);
     expect(new Set(sharing).size, `expected one shared chapter, got ${sharing.join(', ')}`).toBe(1);
   });

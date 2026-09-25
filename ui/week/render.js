@@ -18,10 +18,9 @@
 import { el, add, rupees, whole, ratio, pct } from '../dom.js';
 import { TOTAL_ROUNDS } from '../../engine/constants.js';
 import { whyButton } from '../guide/drawer.js';
+import { figure as kitFigure, figures } from '../kit/figure.js';
 import { creativeOutlook } from '../dashboard.js';
 import { WEEK } from '../words/week.js';
-import { GUIDE } from '../words/guide.js';
-import { CHAPTERS } from '../guide/chapters.js';
 import {
   weekFigures, weekBars, revision, chartRange, barPlace, impressions,
 } from './read.js';
@@ -42,46 +41,33 @@ const percent = (fraction) => `${100 * fraction}%`;
  * figure: without that a screen reader hears "open the field guide: what your
  * week's figures mean" three times and cannot tell which is which.
  */
-function stat(said, value, sub, extra = null, openGuide = null) {
-  const box = el('div', 'yw-stat');
-  const label = el('span', 'yw-label', said());
-  const why = whyButton(said, openGuide);
-  if (why) {
-    why.setAttribute('aria-label', GUIDE.whyForFigure({
-      figure: said(), title: CHAPTERS[said.why].title,
-    }));
-    add(label, why);
-  }
-  add(box, label, value, extra, sub ? el('span', 'yw-sub', sub) : null);
-  return box;
-}
-const big = (text) => el('strong', 'yw-big', text);
+const stat = (said, value, sub, extra = null, openGuide = null) => kitFigure({
+  label: said(), value, sub, extra, why: said, openGuide,
+});
 
 function sixFigures(row, openGuide) {
   const f = weekFigures(row);
-  const box = el('div', 'yw-figures');
-  box.dataset.slot = 'headline';
-  const net = big(money(f.netProfitPaise));
-  net.classList.toggle('loss', f.netProfitPaise < 0);
   // The week's conversions, landed against still to arrive (outlined).
   const landed = el('span', 'yw-landed');
   const fill = el('span');
   fill.style.width = percent(f.landedShare);
   landed.append(fill, el('span'));
-  box.append(
-    stat(WEEK.spend, big(rupees(f.spendPaise)),
+  return figures([
+    stat(WEEK.spend, rupees(f.spendPaise),
       WEEK.clicks({ clicks: whole(f.clicks), n: f.clicks }), null, openGuide),
-    stat(WEEK.cpc, big(rupees(f.cpcPaise)),
+    stat(WEEK.cpc, rupees(f.cpcPaise),
       WEEK.impressions({ impressions: whole(f.impressions), n: f.impressions }), null, openGuide),
-    stat(WEEK.conversions, big(f.conversions.toFixed(1)),
+    stat(WEEK.conversions, f.conversions.toFixed(1),
       f.pending > 0 ? WEEK.toArrive({ pending: f.pending.toFixed(1) }) : null, landed, openGuide),
-    stat(WEEK.netProfit, net, f.conversions > 0 ? WEEK.returnsNotIn() : null, null, openGuide),
-    stat(WEEK.netRoas, big(ratio(f.netRoas)),
+    kitFigure({
+      label: WEEK.netProfit(), value: money(f.netProfitPaise), loss: f.netProfitPaise < 0,
+      sub: f.conversions > 0 ? WEEK.returnsNotIn() : null, why: WEEK.netProfit, openGuide,
+    }),
+    stat(WEEK.netRoas, ratio(f.netRoas),
       WEEK.gross({ roas: ratio(f.grossRoas) }), null, openGuide),
-    stat(WEEK.cpa, big(f.cpaPaise == null ? '—' : rupees(f.cpaPaise)),
+    stat(WEEK.cpa, f.cpaPaise == null ? '—' : rupees(f.cpaPaise),
       WEEK.perConversion(), null, openGuide),
-  );
-  return box;
+  ], { carded: true, slot: 'headline' });
 }
 
 /** An old save's own words, still to land or just landed (I11, as today's card says it). */

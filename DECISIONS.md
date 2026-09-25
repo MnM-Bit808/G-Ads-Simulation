@@ -7145,3 +7145,66 @@ classes are still twenty and twenty-nine. Consolidating them means moving card,
 figure strip and bar into `ui/kit/` as components every section calls, which
 touches all nine sections and needs each replayed. That is the next step and
 was scoped as such, not forgotten.
+
+### I49. The figure and the meter became components — `FIXED` (2026-09-25)
+
+**I48 gave the Studio one scale; this gives it shared parts.** I48 stopped at
+naming values because moving the objects touches every section and each needs
+replaying. This is that step.
+
+**Two objects moved into `ui/kit/`.**
+
+- **`figure({label, value, sub, loss, why, openGuide, lead, extra})`** — the
+  label, the number under it, the quieter line under that. Your week, Returns,
+  Rivals and Results each built it themselves, and had drifted to four sizes of
+  the same number (settled by I48) and, less visibly, to **two label styles**.
+- **`meter(fraction, {tone, label})`** — a thin horizontal readout. Rivals and
+  What people typed were identical at 6px with a 3px corner; Your money was 8px
+  with a 4px corner. Six won on the count.
+
+**WHY SENTENCE CASE WON FOR A FIGURE'S LABEL, and it is not taste.** Your week
+and Results labelled figures in sentence case; Rivals and Returns used the
+uppercase micro. Two against two, so the tie broke on **role**: the uppercase
+micro is also the table column-heading style — the books' header, What people
+typed's columns. One style meaning two things is the same conflation that let a
+read-only answer wear a text input's border (`.rs-answer`, I48). Uppercase
+marks a column; sentence case labels a figure.
+
+**What did NOT move, and why that matters more than what did.** Three classes
+share the word "track" and are different objects: `rs-track` draws two bars,
+a gross outline with a net fill inside it, and the gap between them is the
+point; `ww-track` is a drag target with a cursor and `touch-action`; `yad-track`
+is the bid slider's rail, which paints from custom properties so a drag
+repaints without touching the DOM. Where and when keeps its own figure too: its
+is inline and reversed, the number then the word on one baseline inside a table
+row. Folding any of these in would have been worse than the duplication.
+
+**The kit gives the shape; the section keeps its tint.** Your money's rungs are
+three colours — the field, the average, and you — and a single-colour meter
+would have erased the two that carry meaning. The tints are section rules over
+`.kmeter > span`, so every one of them is unchanged to the byte.
+
+| | before | after |
+|---|---|---|
+| bar and track classes | 20 | **17** |
+| figure, label and value classes | 29 | **17** |
+| sections importing from `ui/kit/` | 4 of 9 | **8 of 9** |
+
+Twenty-eight dead rules came out of the stylesheet with them. The four strips
+also folded at three different widths — 760 for Your week, 900 and 560 for the
+rest — and fold one way now.
+
+**Played, not just tested.** A game from week 4 to the end: Your week's six
+figures with their why-buttons and the landed-against-pending bar; Returns'
+five with the refused and sent-back swatches; Rivals' four plus each card's
+headline; Results' six including the loss, which still reads **−₹17,690** in
+amber with a minus sign rather than a hyphen; Everyone's books untouched with
+its bars and your own row open; What people typed's spend bar the same white it
+was; Your money's ladder with the average rung still lighter than the rest. No
+section overflows at any width, and the strips fold to three columns at 900 and
+two at 560 as the rules they replaced did.
+
+**One guard failed the way it should.** The check I48 left — that every strip's
+figure reads `--studio-figure` — named `.yw-big`, which this step deleted. It
+was rewritten to hold the kit's `.kfig-value` plus the two figures that are
+still a section's own, rather than deleted.

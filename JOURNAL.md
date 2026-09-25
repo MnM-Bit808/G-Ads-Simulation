@@ -42,6 +42,35 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-25, after that: the figure and the meter became components
+
+**I49, the step I48 scoped and left.** The figure — a label, the number, the
+quieter line — moved into `ui/kit/figure.js`, and the thin meter into
+`ui/kit/meter.js`. Bar and track classes went 20 to 17, figure and label
+classes 29 to 17, and sections importing from the kit 4 of 9 to 8 of 9.
+Twenty-eight dead rules came out of the stylesheet.
+
+**The interesting decisions were about what NOT to fold in.** Three classes
+share the word "track" and are different objects: the books' two stacked bars,
+Where and when's drag target, and the bid slider's rail. Where and when's
+figure is inline and reversed — the number then the word, on one baseline in a
+table row. Forcing those together would have been worse than the duplication,
+and saying so is most of what the entry is for.
+
+**A tie broken on role rather than taste.** Two sections labelled figures in
+sentence case and two in uppercase. The uppercase micro is also the table
+column-heading style, and one style meaning two things is exactly what let a
+read-only answer wear a text input's border the same afternoon. So uppercase
+marks a column; sentence case labels a figure.
+
+**The thing that nearly got erased:** Your money tints its rungs three ways —
+the field, the average, and you — and a single-colour meter would have taken
+the two that carry meaning. The kit gives the shape; the section keeps the
+tint, and all three are unchanged to the byte.
+
+**Played from week 4 to the end** to see all four migrated sections, including
+Results' loss still reading −₹17,690 in amber with a minus sign.
+
 ## 2026-09-25, last of the day: the Studio got one scale
 
 **I48.** "Make it look more sophisticated" turned out to be measurable, and the

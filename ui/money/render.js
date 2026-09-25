@@ -18,6 +18,7 @@ import { whyButton } from '../guide/drawer.js';
 import { setCapex, setPosition, setStrategy, setStrategyParam } from '../decisions.js';
 import { CAPITAL } from '../words/capital.js';
 import { MONEY } from '../words/money.js';
+import { meter } from '../kit/meter.js';
 import {
   monthModel, moveLine, capitalModel, positionModel, biddingModel, deadlineModel, STRATEGY_ORDER,
 } from './read.js';
@@ -429,11 +430,7 @@ export function renderMoneySection({ game, ctx, openGuide, refreshTray }) {
       const row = el('div', 'wm-rung');
       if (rung.multiplier === 1) row.classList.add('average');
       if (d.rank?.position === rung.finish) row.classList.add('you');
-      const track = el('span', 'wm-track');
-      track.setAttribute('aria-hidden', 'true');
-      const fill = el('span');
-      fill.style.width = `${(100 * rung.budgetPaise) / top}%`;
-      track.append(fill);
+      const track = meter(rung.budgetPaise / top);
       const percent = pct(Math.abs(rung.multiplier - 1));
       row.append(el('span', null, MONEY.finish({ n: rung.finish })), track, el('span', 'wm-num', rupees(rung.budgetPaise)),
         el('span', 'wm-small', rung.multiplier === 1 ? MONEY.average() : MONEY.versus({ percent, up: rung.multiplier > 1 })));

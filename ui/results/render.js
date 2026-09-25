@@ -23,6 +23,7 @@
 import { el, add, rupees, whole, pct, ratio } from '../dom.js';
 import { button } from '../kit/controls.js';
 import { serp } from '../kit/serp.js';
+import { figure as kitFigure, figures as kitFigures } from '../kit/figure.js';
 import { whyButton } from '../guide/drawer.js';
 import { replayRound } from '../../game.js';
 import { AD } from '../words/ad.js';
@@ -135,12 +136,7 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
 
   // --- Twelve weeks -----------------------------------------------------------
 
-  function stat(name, value, sub, loss = false) {
-    const box = el('div', 'rs-stat');
-    const big = el('strong', loss ? 'rs-big loss' : 'rs-big', value);
-    box.append(el('span', 'rs-label', name), big, el('span', 'rs-sub', sub));
-    return box;
-  }
+  const stat = (name, value, sub, loss = false) => kitFigure({ label: name, value, sub, loss });
 
   function weekColumn(b, range) {
     const col = button(b.round === view.week ? 'rs-col on' : 'rs-col');
@@ -217,8 +213,7 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
     const f = seasonFigures(history, playerId);
     const capital = capitalReading(me, allocationRounds);
     const madePaise = f.netProfitPaise - capital.committedPaise;
-    const figures = card('rs-figures', 'results-figures');
-    figures.append(
+    const figures = kitFigures([
       stat(RESULTS.netProfit(), money(f.netProfitPaise), RESULTS.gross({ amount: money(f.grossProfitPaise) }), f.netProfitPaise < 0),
       stat(RESULTS.spend(), money(f.costPaise), RESULTS.clicks({ n: whole(f.clicks) })),
       stat(RESULTS.conversions(), one(f.conversions), RESULTS.cameBack({ n: one(f.returned) })),
@@ -228,7 +223,7 @@ export function renderResults({ game, openGuide, openSection, onRestart = null, 
       stat(RESULTS.made(), money(madePaise), capital.committedPaise > 0
         ? RESULTS.madeSub({ amount: money(capital.committedPaise) })
         : RESULTS.madeNothingBuilt(), madePaise < 0),
-    );
+    ], { carded: true, slot: 'results-figures' });
 
     const chart = card('rs-card', 'results-weeks');
     const head = el('div', 'rs-head');

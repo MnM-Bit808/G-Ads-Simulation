@@ -325,8 +325,11 @@ describe('the Studio keeps one scale', () => {
 
   test('the big figure is one size, named once', () => {
     expect(css).toMatch(/--studio-figure:\s*\d+px/);
-    // Every strip's figure reads the name rather than a number of its own.
-    for (const sel of ['.ww-figure strong', '.yw-big', '.wr-value', '.rv-value', '.rs-big']) {
+    // I48 held five per-section rules here. I49 replaced four of them with the
+    // kit's one figure, so what is left to hold is the kit's — plus the two
+    // that are still a section's own: Where and when's inline baseline figure,
+    // and Results' ordinal, which is a figure with no strip around it.
+    for (const sel of ['.kfig-value', '.ww-figure strong', '.rs-big']) {
       const rule = css.split('\n').find((l) => l.startsWith(`body.studio ${sel} {`));
       expect(rule, `${sel} has no rule`).toBeTruthy();
       expect(rule, `${sel} sets its own figure size`).toContain('var(--studio-figure)');
@@ -362,6 +365,54 @@ describe('the Studio keeps one scale', () => {
     for (const [, name, body] of rules) {
       expect(body, `.${name} sets its own padding`).toMatch(/padding: var\(--studio-card-pad(-tight)?\)/);
       expect(body, `.${name} sets its own corner`).toMatch(/border-radius: var\(--studio-radius\)/);
+    }
+  });
+});
+
+/**
+ * THE FIGURE AND THE METER ARE COMPONENTS NOW (I49).
+ *
+ * Four sections built the same figure themselves and had already drifted to
+ * four sizes of the same number (I48) and two label styles. Three built the
+ * same thin meter at two heights. They call `ui/kit/` for both now.
+ *
+ * Text, because this suite cannot render — but a section reaching for its own
+ * `-figure`/`-value` class again is exactly how the last set drifted.
+ */
+describe('the kit owns the figure and the meter', () => {
+  const USERS = {
+    'ui/week/render.js': 'Your week',
+    'ui/returns/render.js': 'Returns',
+    'ui/rivals/render.js': 'Rivals',
+    'ui/results/render.js': 'Results',
+  };
+
+  test.each(Object.entries(USERS))('%s asks the kit for its figures', (path) => {
+    expect(read(path)).toMatch(/from '\.\.\/kit\/figure\.js'/);
+  });
+
+  test('and none of them builds one of its own again', () => {
+    const GONE = ['yw-stat', 'yw-big', 'yw-label', 'rs-stat', 'rv-figure', 'rv-value',
+      'rv-big', 'wr-figure', 'wr-label', 'wr-value'];
+    const css = read('ui/studio.css');
+    for (const cls of GONE) {
+      expect(css.includes(`body.studio .${cls} {`), `.${cls} is back in the stylesheet`).toBe(false);
+      for (const path of Object.keys(USERS)) {
+        expect(read(path).includes(`'${cls}'`), `${path} draws .${cls} again`).toBe(false);
+      }
+    }
+  });
+
+  test('the meter is one height, and the three that are not meters keep their own', () => {
+    const css = read('ui/studio.css');
+    expect(css).toMatch(/body\.studio \.kmeter \{[^}]*height: 6px/);
+    // Each of these shares the word "track" and is a different object: two
+    // stacked bars, a drag target, and the bid slider's rail.
+    for (const cls of ['rs-track', 'ww-track', 'yad-track']) {
+      expect(css.includes(`body.studio .${cls} {`), `.${cls} should keep its own rule`).toBe(true);
+    }
+    for (const cls of ['rv-track', 'wt-track', 'wm-track']) {
+      expect(css.includes(`body.studio .${cls} {`), `.${cls} should be the kit's meter now`).toBe(false);
     }
   });
 });
