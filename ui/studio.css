@@ -320,9 +320,59 @@ body.studio .kbid-row { display: flex; align-items: center; gap: 8px; height: 30
 body.studio .klabel { font-size: 12px; color: var(--studio-muted); }
 body.studio .kbid { margin-left: auto; padding: 0; border: 0; border-bottom: 1px dashed #4A454F; border-radius: 0; background: none; color: var(--studio-text); font: 800 22px/28px var(--studio-display); font-variant-numeric: tabular-nums; }
 body.studio .kbid-input { width: 84px; height: 30px; margin-left: auto; text-align: right; font-weight: 700; }
-body.studio .kslider { position: relative; height: 18px; }
-body.studio .kslider input[type="range"] { width: 100%; margin: 0; accent-color: var(--studio-red); }
-body.studio .kslider-was { position: absolute; top: 3px; width: 12px; height: 12px; margin-left: -6px; border: 2px dashed var(--studio-faint); border-radius: 50%; box-sizing: border-box; pointer-events: none; }
+/* A DRAWN TRACK THAT CARRIES THE RESERVE (2026-09-25, design option C).
+   This was the browser's own control with accent-color set, so it looked
+   different on every machine and said nothing about the bid. The rail, the
+   filled part and the hatched stretch below the reserve are painted from two
+   custom properties the component sets, so a drag repaints without touching
+   the DOM. The input itself keeps the keyboard, the focus ring and the
+   accessible name; only the paint is ours. */
+body.studio .kslider { position: relative; height: 26px; --kslider-fill: 0%; --kslider-floor: 0%; }
+body.studio .kslider input[type="range"] {
+  width: 100%; height: 26px; margin: 0; padding: 0;
+  -webkit-appearance: none; appearance: none; background: none; cursor: pointer;
+}
+/* The rail, the dead stretch and the fill, in one background on the track. */
+body.studio .kslider input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 2px;
+  background:
+    linear-gradient(var(--studio-red), var(--studio-red)) 0 / var(--kslider-fill) 100% no-repeat,
+    var(--studio-line);
+}
+body.studio .kslider input[type="range"]::-moz-range-track {
+  height: 4px; border-radius: 2px;
+  background:
+    linear-gradient(var(--studio-red), var(--studio-red)) 0 / var(--kslider-fill) 100% no-repeat,
+    var(--studio-line);
+}
+body.studio .kslider.has-floor input[type="range"]::-webkit-slider-runnable-track {
+  background:
+    linear-gradient(var(--studio-red), var(--studio-red)) 0 / var(--kslider-fill) 100% no-repeat,
+    repeating-linear-gradient(115deg, #3A2226 0 4px, #241417 4px 8px) 0 / var(--kslider-floor) 100% no-repeat,
+    var(--studio-line);
+}
+body.studio .kslider.has-floor input[type="range"]::-moz-range-track {
+  background:
+    linear-gradient(var(--studio-red), var(--studio-red)) 0 / var(--kslider-fill) 100% no-repeat,
+    repeating-linear-gradient(115deg, #3A2226 0 4px, #241417 4px 8px) 0 / var(--kslider-floor) 100% no-repeat,
+    var(--studio-line);
+}
+body.studio .kslider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 18px; height: 18px; margin-top: -7px; border: 0; border-radius: 50%;
+  background: var(--studio-text); box-shadow: 0 0 0 4px rgba(215, 38, 47, 0.22);
+}
+body.studio .kslider input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border: 0; border-radius: 50%;
+  background: var(--studio-text); box-shadow: 0 0 0 4px rgba(215, 38, 47, 0.22);
+}
+body.studio .kslider input[type="range"]:focus-visible { outline: none; }
+body.studio .kslider input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--studio-page), 0 0 0 6px var(--studio-text); }
+body.studio .kslider input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px var(--studio-page), 0 0 0 6px var(--studio-text); }
+/* The reserve itself: a rule the eye can land on, in the colour the game already
+   uses for "something is wrong here" (red is the player's own). */
+body.studio .kslider-floor { position: absolute; top: 5px; left: var(--kslider-floor); width: 2px; height: 16px; margin-left: -1px; background: var(--studio-amber); border-radius: 1px; pointer-events: none; }
+body.studio .kslider-was { position: absolute; top: 7px; width: 12px; height: 12px; margin-left: -6px; border: 2px dashed var(--studio-faint); border-radius: 50%; box-sizing: border-box; pointer-events: none; }
 body.studio .kstats { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid #232026; }
 body.studio .kstat-value { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 body.studio .kstat-label { font-size: 12px; color: var(--studio-muted); }

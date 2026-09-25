@@ -39,15 +39,49 @@ export function keywordCards({ draft, byKeyword, quality = {}, grades = null, re
   // the hour and place adjustments this week will run. Manual bidding only:
   // under a strategy the keyword's bid is not what it bids, and the strategy's
   // own warning (`bidOutlook`) says whether its bid shows.
-  const underReserve = (keyword) => {
+  /**
+   * The reserve for this keyword, WHATEVER THE BID IS — the bid below which the
+   * ad enters every auction and shows in none.
+   *
+   * Split out of `underReserve` on 2026-09-25 so the slider can draw it. The
+   * warning only ever needed the number when the bid was already under it; the
+   * track needs it always, because the whole point of drawing it is to be seen
+   * BEFORE the bid goes there. Null when there is no bid to set: Smart Bidding
+   * is not bidding by hand, and a paused keyword is not in the auction.
+   */
+  /**
+   * The raw reserve in paise, or null when there is no bid to set: Smart
+   * Bidding is not bidding by hand, and a paused keyword is not in the auction.
+   *
+   * RAW, AND THE WARNING COMPARES AGAINST IT RAW. `wholeRupeeBid` rounds UP to
+   * the rupee a player could actually set, so comparing a bid against the
+   * ROUNDED figure warns a bid that in fact clears — ₹16.50 against a floor of
+   * ₹16.24 would be told it needs ₹17. A first draft of this split did exactly
+   * that, and `tests/keywords.test.js` caught it on the paise.
+   */
+  const reserveRawPaise = (keyword) => {
     if (draft.strategy !== 'manual' || keyword.active === false) return null;
-    const need = lowestBidToShowPaise({
+    return lowestBidToShowPaise({
       grade: grades,
       keyword,
       querySet,
       daypartAdjustments: draft.daypartAdjustments,
       locationAdjustments: draft.locationAdjustments,
     });
+  };
+
+  /**
+   * The reserve as a bid, WHATEVER THE CURRENT BID IS — what the slider draws
+   * on its track. Rounded up, because the track is in whole rupees and the
+   * marker means "at or above here shows".
+   */
+  const reservePaise = (keyword) => {
+    const need = reserveRawPaise(keyword);
+    return need === null ? null : wholeRupeeBid(need);
+  };
+
+  const underReserve = (keyword) => {
+    const need = reserveRawPaise(keyword);
     return need !== null && keyword.bidPaise < need ? wholeRupeeBid(need) : null;
   };
 
@@ -81,6 +115,7 @@ export function keywordCards({ draft, byKeyword, quality = {}, grades = null, re
       },
       quality: qualitySummary(quality?.[keyword.id] ?? null, grades),
       needPaise: underReserve(keyword),
+      floorPaise: reservePaise(keyword),
     };
   });
 }

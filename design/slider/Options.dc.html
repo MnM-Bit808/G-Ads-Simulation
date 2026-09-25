@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="./_board.css">
+  <style> body { margin: 0; } </style>
+</helmet>
+
+<div class="b">
+  <h1 class="disp">The bid slider, four ways</h1>
+  <p class="lede">
+    Every figure is the game&rsquo;s own. &#8377;30 is round 0&rsquo;s default bid; &#8377;16.24 is what a
+    self-written ad needs to clear the reserve on this query set, and &#8377;6.87 is what a hired
+    6/6 needs. The track runs &#8377;1 to &#8377;45, which is half again the highest bid.
+  </p>
+
+  <div class="grid">
+
+    <!-- A ---------------------------------------------------------------- -->
+    <div class="opt now">
+      <span class="opt-tag">Today</span>
+      <p class="opt-name">A &middot; The browser&rsquo;s own control</p>
+      <p class="opt-why">
+        One line of CSS: <code>accent-color</code>. The track, the thumb and the focus ring are
+        whatever the operating system draws, so it looks different on every machine and says
+        nothing about the bid.
+      </p>
+      <div class="card">
+        <div class="card-top">
+          <span class="kw">gym leggings</span><span class="mt">phrase</span>
+          <span class="bid num">&#8377;30</span>
+        </div>
+        <p class="meta">was &#8377;24 &middot; 1,849 searches a week</p>
+        <div class="plain">
+          <input type="range" min="1" max="45" value="30">
+          <span class="plain-was" style="left: 52%;"></span>
+        </div>
+      </div>
+      <p class="note">The dashed ring is &ldquo;was&rdquo;. It is the only thing drawn here.</p>
+    </div>
+
+    <!-- B ---------------------------------------------------------------- -->
+    <div class="opt">
+      <span class="opt-tag">Option B</span>
+      <p class="opt-name">B &middot; Drawn, and nothing more</p>
+      <p class="opt-why">
+        The same control, drawn by us: a hairline rail, the spent part in the player&rsquo;s red, a
+        thumb with a soft ring. Identical on every machine. Says exactly what the default says.
+      </p>
+      <div class="card">
+        <div class="card-top">
+          <span class="kw">gym leggings</span><span class="mt">phrase</span>
+          <span class="bid num">&#8377;30</span>
+        </div>
+        <p class="meta">was &#8377;24 &middot; 1,849 searches a week</p>
+        <div class="track">
+          <span class="rail"></span>
+          <span class="fill" style="width: 66%;"></span>
+          <span class="was" style="left: 52%;"></span>
+          <span class="thumb" style="left: 66%;"></span>
+        </div>
+        <div class="ends num"><span>&#8377;1</span><span>&#8377;45</span></div>
+      </div>
+      <p class="note">Consistent, and still silent about whether &#8377;30 is a good number.</p>
+    </div>
+
+    <!-- C ---------------------------------------------------------------- -->
+    <div class="opt">
+      <span class="opt-tag pick">Option C &middot; recommended</span>
+      <p class="opt-name">C &middot; The track carries the floor</p>
+      <p class="opt-why">
+        B, plus the one number the card already knows and only says afterwards: the reserve. Below
+        it the ad shows in nothing. The hatched zone is unreachable, so a player sees the danger
+        <em>before</em> dragging into it rather than reading a warning after.
+      </p>
+      <div class="card">
+        <div class="card-top">
+          <span class="kw">gym leggings</span><span class="mt">phrase</span>
+          <span class="bid num">&#8377;30</span>
+        </div>
+        <p class="meta">was &#8377;24 &middot; 1,849 searches a week</p>
+        <div class="track">
+          <span class="rail"></span>
+          <span class="dead" style="width: 34%;"></span>
+          <span class="fill" style="left: 34%; width: 32%;"></span>
+          <span class="floor" style="left: 34%;"></span>
+          <span class="floor-tag" style="left: 34%;">&#8377;16 to show</span>
+          <span class="was" style="left: 52%;"></span>
+          <span class="thumb" style="left: 66%;"></span>
+        </div>
+        <div class="ends num"><span>&#8377;1</span><span>&#8377;45</span></div>
+      </div>
+      <p class="note">The warning stays for the moment someone drags under it anyway.</p>
+    </div>
+
+    <!-- D ---------------------------------------------------------------- -->
+    <div class="opt">
+      <span class="opt-tag">Option D</span>
+      <p class="opt-name">D &middot; Ticks and a value bubble</p>
+      <p class="opt-why">
+        C, plus a bubble on the thumb and ticks every &#8377;5. The bubble repeats the figure already
+        shown large at the top right of the card, and the ticks imply the rupee is a coarse step
+        when the control moves in ones.
+      </p>
+      <div class="card">
+        <div class="card-top">
+          <span class="kw">gym leggings</span><span class="mt">phrase</span>
+          <span class="bid num">&#8377;30</span>
+        </div>
+        <p class="meta">was &#8377;24 &middot; 1,849 searches a week</p>
+        <div class="track" style="margin-top: 14px;">
+          <span class="rail"></span>
+          <span class="dead" style="width: 34%;"></span>
+          <span class="fill" style="left: 34%; width: 32%;"></span>
+          <span class="ticks">
+            <span class="tick" style="left: 11%;"></span><span class="tick" style="left: 22%;"></span>
+            <span class="tick" style="left: 33%;"></span><span class="tick" style="left: 44%;"></span>
+            <span class="tick" style="left: 55%;"></span><span class="tick" style="left: 66%;"></span>
+            <span class="tick" style="left: 77%;"></span><span class="tick" style="left: 88%;"></span>
+          </span>
+          <span class="floor" style="left: 34%;"></span>
+          <span class="was" style="left: 52%;"></span>
+          <span class="thumb" style="left: 66%;"></span>
+          <span class="bubble num" style="left: 66%;">&#8377;30</span>
+        </div>
+        <div class="ends num"><span>&#8377;1</span><span>&#8377;45</span></div>
+      </div>
+      <p class="note">More furniture, no more meaning. Shown so the extra can be refused on sight.</p>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

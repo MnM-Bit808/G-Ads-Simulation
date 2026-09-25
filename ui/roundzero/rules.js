@@ -645,6 +645,12 @@ export function setupKeywordCards(draft, querySet) {
       quality: { value: null, ratings: [] },
       active: null,
       needPaise: reserve.rows[i].clears ? null : wholeRupeeBid(reserve.rows[i].needPaise),
+      // THE SAME NUMBER, KEPT WHETHER THE BID CLEARS IT OR NOT (2026-09-25).
+      // `needPaise` is the warning's trigger and is null once the bid is high
+      // enough; the slider draws the reserve on its track, so it needs the
+      // figure always. Round 0 is where it matters most — it is where a
+      // beginner sets a first bid, which is why the reserve warning exists.
+      floorPaise: wholeRupeeBid(reserve.rows[i].needPaise),
     };
   });
 }

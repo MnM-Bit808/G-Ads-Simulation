@@ -175,6 +175,9 @@ export function keywordCard({
       minRupees: 1,
       maxRupees,
       valueRupees: Math.min(maxRupees, Math.round(model.bidPaise / 100)),
+      // The reserve, drawn on the track rather than only named in the warning
+      // below it once the bid is already under it.
+      floorRupees: model.floorPaise == null ? null : Math.round(model.floorPaise / 100),
       label: KEYWORDS.sliderLabel({ keyword: model.text }),
       onInput: (value) => onBid(value, false),
       onSettle: onDragEnd,

@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Instrument+Sans:wght@400..700&display=swap">
+  <link rel="stylesheet" href="./_board.css">
+  <style> body { margin: 0; } </style>
+</helmet>
+
+<div class="b">
+  <h1 class="disp">The page your clicks land on, three ways</h1>
+  <p class="lede">
+    Vella &amp; Co., mid-price performance, &#8377;55,000 on the page and &#8377;25,000 on the size guide —
+    the same game the current design was drawn from. Only the SHEET differs; the column beside it
+    and the worth chart below are unchanged and left out so the three compare on the one thing.
+    Every garment is drawn, never photographed.
+  </p>
+
+  <div class="row">
+
+    <!-- A · today ------------------------------------------------------- -->
+    <div>
+      <span class="col-tag">Today</span>
+      <p class="col-name">A &middot; A card with a thumbnail</p>
+      <p class="col-why">
+        A 124px picture beside a short column, then the size guide as five bars. It reads as a
+        <em>card about a product</em> rather than a page someone would buy from, and the bars are a
+        chart where every real size guide is a table.
+      </p>
+      <div class="sheet">
+        <div class="bar"><span class="dots"><i></i><i></i><i></i></span>vellaandco.in/leggings</div>
+        <div class="a-hero">
+          <div class="garment" style="aspect-ratio: 3/4;">
+            <svg width="62" height="82" viewBox="0 0 62 82" fill="none"><path d="M12 8h38l6 14-10 4v48H18V26L8 22z" fill="#2E2B33"/><circle cx="31" cy="70" r="2.5" fill="#D7262F"/></svg>
+          </div>
+          <div class="a-detail">
+            <div class="product">High-waisted training leggings</div>
+            <div class="price num">&#8377;2,400</div>
+            <div class="stars"><b>&#9733;&#9733;&#9733;&#9733;&#9734;</b>412 reviews</div>
+            <div class="sizes"><span class="sz">XS</span><span class="sz">S</span><span class="sz on">M</span><span class="sz">L</span><span class="sz">XL</span></div>
+            <button class="cta" style="margin-top:4px;">Add to bag</button>
+          </div>
+        </div>
+        <div class="a-chart">
+          <div class="a-chart-head"><span>Size chart</span><span>waist, in inches</span></div>
+          <div class="a-bars"><span></span><span></span><span class="on"></span><span></span><span></span></div>
+          <div class="a-nums num"><span>24</span><span>26</span><span>28</span><span>31</span><span>34</span></div>
+        </div>
+      </div>
+      <p class="note">What it gets right: every purchase is visibly on the page.</p>
+    </div>
+
+    <!-- B · the buy box -------------------------------------------------- -->
+    <div>
+      <span class="col-tag pick">Option B &middot; recommended</span>
+      <p class="col-name">B &middot; The buy box</p>
+      <p class="col-why">
+        The layout every real product page uses: a large image with its gallery on the left, and
+        everything you decide with boxed on the right — price, size, the button, and what the brand
+        promises. The size guide becomes a table.
+      </p>
+      <div class="sheet">
+        <div class="bar"><span class="dots"><i></i><i></i><i></i></span>vellaandco.in/leggings</div>
+        <div class="b-top">
+          <div class="b-shot">
+            <div class="garment">
+              <svg width="88" height="116" viewBox="0 0 62 82" fill="none"><path d="M12 8h38l6 14-10 4v48H18V26L8 22z" fill="#33303A"/><path d="M18 40h26" stroke="#413D48" stroke-width="1.5"/><circle cx="31" cy="70" r="2.5" fill="#D7262F"/></svg>
+            </div>
+            <div class="b-thumbs"><i class="on"></i><i></i><i></i><i></i></div>
+          </div>
+          <div class="b-buy">
+            <div class="product">High-waisted training leggings</div>
+            <div class="stars"><b>&#9733;&#9733;&#9733;&#9733;&#9734;</b>412 reviews</div>
+            <div class="price num">&#8377;2,400</div>
+            <div class="sizes"><span class="sz">XS</span><span class="sz">S</span><span class="sz on">M</span><span class="sz">L</span><span class="sz">XL</span></div>
+            <button class="cta">Add to bag</button>
+            <div class="b-trust">
+              <span><b>&#10003;</b>Free delivery over &#8377;799</span>
+              <span><b>&#10003;</b>15-day returns</span>
+              <span><b>&#10003;</b>Cash on delivery</span>
+            </div>
+          </div>
+        </div>
+        <div class="b-table">
+          <div class="b-table-head"><span>Size chart</span><span>inches</span></div>
+          <div class="b-tr hd"><span>Size</span><span>Waist</span><span>Inseam</span></div>
+          <div class="b-tr"><span>XS</span><span>24</span><span>27</span></div>
+          <div class="b-tr"><span>S</span><span>26</span><span>27</span></div>
+          <div class="b-tr on"><span>M</span><span>28</span><span>28</span></div>
+          <div class="b-tr"><span>L</span><span>31</span><span>28</span></div>
+        </div>
+      </div>
+      <p class="note">The trust row is where order confirmation and the prepaid discount could finally become visible.</p>
+    </div>
+
+    <!-- C · editorial ---------------------------------------------------- -->
+    <div>
+      <span class="col-tag">Option C</span>
+      <p class="col-name">C &middot; Editorial</p>
+      <p class="col-why">
+        A premium D2C look: a wide hero with the name over it, a short blurb, and the numbers as a
+        strip. It is the handsomest of the three and the worst at its job — the purchases stop being
+        separately visible, which is the whole reason this page is drawn.
+      </p>
+      <div class="sheet">
+        <div class="bar"><span class="dots"><i></i><i></i><i></i></span>vellaandco.in/leggings</div>
+        <div class="c-hero">
+          <div class="garment">
+            <svg width="96" height="80" viewBox="0 0 62 82" fill="none"><path d="M12 8h38l6 14-10 4v48H18V26L8 22z" fill="#33303A"/><circle cx="31" cy="70" r="2.5" fill="#D7262F"/></svg>
+          </div>
+          <div class="c-over">
+            <div class="product">High-waisted training leggings</div>
+            <div class="price num">&#8377;2,400</div>
+          </div>
+        </div>
+        <div class="c-body">
+          <div class="c-split">
+            <p class="c-blurb">Squat-proof, four-way stretch, and a high waist that stays put through a session. Made to hold its shape wash after wash.</p>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <div class="sizes" style="flex-wrap:wrap;"><span class="sz">S</span><span class="sz on">M</span><span class="sz">L</span></div>
+              <button class="cta">Add to bag</button>
+            </div>
+          </div>
+          <div class="c-strip">
+            <div><b>412</b>reviews</div>
+            <div><b>28&Prime;</b>waist, size M</div>
+            <div><b>15 days</b>to return</div>
+          </div>
+        </div>
+      </div>
+      <p class="note">Shown so the trade is explicit: prettier, and it hides what the money bought.</p>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

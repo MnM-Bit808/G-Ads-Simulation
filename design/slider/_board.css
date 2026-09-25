@@ -1,0 +1,76 @@
+/* Shared by the bid-slider artboards. The Studio's own tokens (ui/studio.css). */
+
+.b {
+  width: 1440px; height: 900px; background: #0D0C0E; color: #EDE8E3;
+  font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  box-sizing: border-box; padding: 40px 56px; overflow: hidden;
+}
+.disp { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+.num { font-variant-numeric: tabular-nums; }
+h1.disp { font-size: 34px; margin: 0 0 6px; letter-spacing: -0.02em; }
+.lede { font-size: 14px; color: #A19A94; margin: 0 0 26px; max-width: 78ch; }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+
+/* One option, presented as the keyword card it would live in. */
+.opt { border: 1px solid #222026; border-radius: 16px; background: #141318; padding: 18px 20px; }
+.opt.now { border-style: dashed; border-color: #3A363E; background: #111015; }
+.opt-tag {
+  display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: #8A847E; margin-bottom: 3px;
+}
+.opt-tag.pick { color: #FF6166; }
+.opt-name { font: 700 17px/1.2 var(--d, 'Bricolage Grotesque'), sans-serif; margin: 0 0 4px; }
+.opt-why { font-size: 12.5px; line-height: 1.45; color: #A19A94; margin: 0 0 18px; min-height: 36px; }
+
+/* The card the slider sits in, drawn as the game draws it. */
+.card { border: 1px solid #2A272D; border-radius: 12px; background: #17161A; padding: 14px 16px; }
+.card-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 3px; }
+.kw { font-size: 14px; font-weight: 600; }
+.mt { font-size: 11px; color: #8A847E; border: 1px solid #2E2B33; border-radius: 999px; padding: 1px 8px; }
+.bid { margin-left: auto; font: 800 22px/1 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; }
+.meta { font-size: 11.5px; color: #8A847E; margin-bottom: 14px; }
+
+/* ---------- A: the browser default, which is what ships today ---------- */
+.plain { position: relative; height: 18px; }
+.plain input[type="range"] { width: 100%; margin: 0; accent-color: #D7262F; }
+.plain-was {
+  position: absolute; top: 3px; width: 12px; height: 12px; margin-left: -6px;
+  border: 2px dashed #8A847E; border-radius: 50%; box-sizing: border-box;
+}
+
+/* ---------- the drawn track, shared by B, C and D ---------- */
+.track { position: relative; height: 34px; }
+.rail { position: absolute; top: 15px; left: 0; right: 0; height: 4px; border-radius: 2px; background: #2A272D; }
+.fill { position: absolute; top: 15px; left: 0; height: 4px; border-radius: 2px; background: #D7262F; }
+.thumb {
+  position: absolute; top: 8px; width: 18px; height: 18px; margin-left: -9px;
+  border-radius: 50%; background: #F3EEEA; box-shadow: 0 0 0 4px rgba(215, 38, 47, 0.22);
+}
+.was {
+  position: absolute; top: 11px; width: 12px; height: 12px; margin-left: -6px;
+  border: 2px dashed #8A847E; border-radius: 50%; box-sizing: border-box;
+}
+.ends { display: flex; justify-content: space-between; font-size: 11px; color: #68636B; margin-top: 2px; }
+
+/* C's floor zone and marker */
+.dead { position: absolute; top: 15px; left: 0; height: 4px; border-radius: 2px 0 0 2px; background: repeating-linear-gradient(115deg, #3A2226 0 4px, #241417 4px 8px); }
+.floor { position: absolute; top: 9px; width: 2px; height: 16px; background: #F2A53A; }
+.floor-tag {
+  position: absolute; top: -4px; transform: translateX(-50%);
+  font-size: 10.5px; font-weight: 700; color: #F2A53A; white-space: nowrap;
+}
+
+/* D's ticks and value bubble */
+.ticks { position: absolute; top: 21px; left: 0; right: 0; height: 5px; }
+.tick { position: absolute; top: 0; width: 1px; height: 5px; background: #2E2B33; }
+.bubble {
+  position: absolute; top: -16px; transform: translateX(-50%);
+  background: #221F25; border: 1px solid #3A363E; border-radius: 6px;
+  padding: 1px 7px; font-size: 11px; font-weight: 700; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.warn { display: flex; align-items: center; gap: 7px; margin-top: 12px; font-size: 12px; color: #F2A53A; }
+.warn .dot { width: 5px; height: 5px; border-radius: 50%; background: #F2A53A; flex: none; }
+.note { margin-top: 12px; font-size: 12px; color: #68636B; }

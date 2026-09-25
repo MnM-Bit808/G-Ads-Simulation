@@ -1,0 +1,79 @@
+/* The landing page, three ways. Studio tokens (ui/studio.css).
+   Only the SHEET is redrawn here — what the clicks land on. The column beside
+   it (what you bought) and the worth chart below it are unchanged and left out,
+   so the three can be compared on the one thing that differs. */
+
+.b {
+  width: 1440px; height: 900px; background: #0D0C0E; color: #EDE8E3;
+  font-family: 'Instrument Sans', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  box-sizing: border-box; padding: 34px 40px; overflow: hidden;
+}
+.disp { font-family: 'Bricolage Grotesque', 'Avenir Next', 'Segoe UI', sans-serif; }
+.num { font-variant-numeric: tabular-nums; }
+h1.disp { font-size: 30px; margin: 0 0 4px; letter-spacing: -0.02em; }
+.lede { font-size: 13px; color: #8A847E; margin: 0 0 20px; max-width: 96ch; }
+
+.row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.col-tag { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #8A847E; margin-bottom: 2px; }
+.col-tag.pick { color: #FF6166; }
+.col-name { font: 700 16px/1.2 'Bricolage Grotesque', sans-serif; margin: 0 0 4px; }
+.col-why { font-size: 12px; line-height: 1.45; color: #8A847E; margin: 0 0 12px; min-height: 48px; }
+
+/* ---------- the sheet, shared shell ---------- */
+.sheet { overflow: hidden; border: 1px solid #3A363E; border-radius: 14px; background: #141216; }
+.bar { display: flex; align-items: center; gap: 7px; padding: 7px 11px; background: #221F25; font-size: 11px; color: #A19A94; }
+.dots { display: flex; gap: 3px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: #3A363E; }
+
+.garment { background: #1B1920; border-radius: 8px; display: grid; place-items: center; }
+.product { font-size: 13.5px; font-weight: 700; line-height: 1.25; }
+.price { font: 800 20px/1 'Bricolage Grotesque', sans-serif; font-variant-numeric: tabular-nums; }
+.stars { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8A847E; }
+.stars b { color: #F2A53A; letter-spacing: 1px; font-size: 12px; }
+.sizes { display: flex; gap: 4px; }
+.sz { padding: 2px 7px; border: 1px solid #3A363E; border-radius: 999px; font-size: 10px; color: #CFC9C3; }
+.sz.on { border-color: #EDE8E3; color: #EDE8E3; }
+.cta { display: block; width: 100%; padding: 9px 0; border: 0; border-radius: 9px; background: #D7262F; color: #FFF5F4; font: 700 13px/1 inherit; text-align: center; }
+
+/* ---------- A: today ---------- */
+.a-hero { display: grid; grid-template-columns: 124px minmax(0, 1fr); gap: 14px; padding: 14px; }
+.a-detail { display: flex; flex-direction: column; gap: 7px; }
+.a-chart { margin: 0 14px 14px; padding: 10px 12px; border: 1px solid #2A272D; border-radius: 9px; }
+.a-chart-head { display: flex; justify-content: space-between; font-size: 10.5px; color: #8A847E; margin-bottom: 7px; }
+.a-bars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; align-items: end; }
+.a-bars span { display: block; height: 20px; border-radius: 3px; background: #2E2B33; }
+.a-bars span.on { background: #EDE8E3; }
+.a-nums { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; font-size: 9.5px; color: #68636B; text-align: center; margin-top: 3px; }
+
+/* ---------- B: the buy box ---------- */
+.b-top { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 0; }
+.b-shot { padding: 14px; display: flex; flex-direction: column; gap: 7px; }
+.b-shot .garment { aspect-ratio: 4 / 5; }
+.b-thumbs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+.b-thumbs i { aspect-ratio: 1; border-radius: 5px; background: #1B1920; border: 1px solid #262329; }
+.b-thumbs i.on { border-color: #6C666E; }
+.b-buy { padding: 16px 16px 14px; border-left: 1px solid #262329; background: #16141A; display: flex; flex-direction: column; gap: 9px; }
+.b-trust { display: flex; flex-direction: column; gap: 5px; margin-top: 2px; padding-top: 9px; border-top: 1px solid #262329; font-size: 10.5px; color: #8A847E; }
+.b-trust span { display: flex; gap: 6px; }
+.b-trust b { color: #9FD3B5; font-weight: 700; }
+.b-table { margin: 0 14px 14px; border: 1px solid #262329; border-radius: 9px; overflow: hidden; }
+.b-table-head { padding: 7px 10px; background: #1B1920; font-size: 10.5px; color: #A19A94; display: flex; justify-content: space-between; }
+.b-tr { display: grid; grid-template-columns: 52px repeat(2, minmax(0, 1fr)); font-size: 11px; }
+.b-tr > span { padding: 5px 10px; border-top: 1px solid #221F25; color: #CFC9C3; }
+.b-tr.hd > span { color: #68636B; font-size: 10px; border-top: 0; }
+.b-tr.on { background: #1E1C22; }
+.b-tr.on > span { color: #EDE8E3; font-weight: 600; }
+
+/* ---------- C: editorial ---------- */
+.c-hero { position: relative; }
+.c-hero .garment { aspect-ratio: 16 / 9; border-radius: 0; }
+.c-over { position: absolute; left: 14px; bottom: 12px; right: 14px; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.c-over .product { font-size: 16px; text-shadow: 0 1px 8px rgba(0,0,0,0.7); }
+.c-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.c-split { display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 12px; align-items: start; }
+.c-blurb { font-size: 11.5px; line-height: 1.5; color: #A19A94; }
+.c-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding-top: 10px; border-top: 1px solid #262329; }
+.c-strip div { text-align: center; font-size: 10px; color: #8A847E; }
+.c-strip b { display: block; color: #EDE8E3; font-size: 11px; font-weight: 700; margin-bottom: 1px; }
+
+.note { margin-top: 10px; font-size: 11.5px; color: #68636B; line-height: 1.45; }
