@@ -1131,7 +1131,7 @@ describe('a why? is only real once something draws it', () => {
 
   // THE SAME RULE, ON THE FIRST SCREEN AFTER ROUND 0 (2026-09-19). Playing it
   // showed Your week carried two why? links on the whole page and none on the
-  // six figures — while the first run before it spends seven beats teaching
+  // six figures — while the first run before it spends nine beats teaching
   // click, cost per click and conversion. The button is drawn by `stat`, which
   // is handed the line itself, so this reads the drawing rather than the data.
   const weekBody = readFileSync(fileURLToPath(new URL('../ui/week/render.js', import.meta.url)), 'utf8');

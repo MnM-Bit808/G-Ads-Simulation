@@ -1,6 +1,6 @@
 /**
  * What the first run shows, read without a page (plans/2026-09-19-first-run-plan.md,
- * Task 3): the seven beats, where you are in them, and every figure their
+ * Task 3): the nine beats, where you are in them, and every figure their
  * sentences quote.
  *
  * IT HOLDS NO DOM, like every other `read.js` in the Studio. The whole
@@ -20,6 +20,7 @@ import { briefing } from '../../setup.js';
 import { QUERY_SET } from '../../content/querySet.js';
 import {
   MAX_SLOTS, TOTAL_ROUNDS, ADVERTISER_COUNT, RTO_FREIGHT_PAISE,
+  MONTHLY_BUDGET_PAISE, ROUNDS_PER_MONTH,
 } from '../../engine/constants.js';
 import { RETURNS_RESOLVE_AFTER_ROUNDS } from '../dashboard.js';
 import { rupees, whole, pct } from '../dom.js';
@@ -27,18 +28,23 @@ import { FIRST_RUN as W } from '../words/firstrun.js';
 import { DEMO_HOUR } from './auction.js';
 
 /**
- * The seven beats, in order. `trail` is the one quiet line the beat leaves
+ * The nine beats, in order. `trail` is the one quiet line the beat leaves
  * behind it once it has been played; the last beat leaves none, because there
  * is nothing after it to leave it above.
  */
 export const BEATS = Object.freeze([
   { key: 'search', trail: W.b1Trail, next: W.next1 },
   { key: 'serp', trail: W.b2Trail, next: W.next2 },
-  { key: 'ladder', trail: W.b3Trail, next: W.next3 },
-  { key: 'click', trail: W.b4Trail, next: W.next4 },
-  { key: 'delay', trail: W.b5Trail, next: W.next5 },
-  { key: 'refused', trail: W.b6Trail, next: W.next6 },
-  { key: 'yours', trail: null, next: W.next7 },
+  // Split from the ladder and the click (I55): each of those taught three of
+  // the run's fifteen terms on one screen, which is where a tester said it
+  // went too fast.
+  { key: 'auction', trail: W.b3Trail, next: W.next3 },
+  { key: 'ladder', trail: W.b4Trail, next: W.next4 },
+  { key: 'click', trail: W.b5Trail, next: W.next5 },
+  { key: 'budget', trail: W.b6Trail, next: W.next6 },
+  { key: 'delay', trail: W.b7Trail, next: W.next7 },
+  { key: 'refused', trail: W.b8Trail, next: W.next8 },
+  { key: 'yours', trail: null, next: W.next9 },
 ].map(Object.freeze));
 
 /**
@@ -76,6 +82,7 @@ export function figuresFor(demo) {
   const brief = briefing(QUERY_SET);
   const mid = brief.economicsByTier.mid;
   const buyWeek = CLICK_WEEK + BUY_AFTER;
+  const weekBudgetPaise = Math.round(MONTHLY_BUDGET_PAISE / ROUNDS_PER_MONTH);
   return Object.freeze({
     // The auction's own.
     query: demo.query.text,
@@ -88,6 +95,17 @@ export function figuresFor(demo) {
     runnerUpPays: rupees(demo.runnerUp.cpcPaise),
     entered: whole(demo.entered),
     of: whole(demo.of),
+
+    // BEAT 6'S BUDGET, from the engine's own month and its own weeks (I55) —
+    // the figure round 0 will hand the player, not a number written for a
+    // story. The bar is the click against that week, which is a small bite
+    // and is meant to look like one.
+    weekBudget: rupees(weekBudgetPaise),
+    // A BAR WAS WRONG HERE. Rs25 against a Rs42,000 week is 0.06% — three
+    // pixels of a 762px track, which draws as "nothing happened" and teaches
+    // nothing. The same fact said as a COUNT is the intuition the beat is
+    // for: a budget is a number of clicks, and it runs out.
+    budgetClicks: whole(Math.floor(weekBudgetPaise / demo.winner.cpcPaise)),
 
     // The market's.
     where: cityFor(brief.locations),
@@ -165,8 +183,13 @@ export function back(at) {
 export const TERMS = Object.freeze({
   search: [[W.termSearch, W.glossSearch], [W.termVolume, W.glossVolume]],
   serp: [[W.termAd, W.glossAd], [W.termPosition, W.glossPosition], [W.termImpression, W.glossImpression]],
-  ladder: [[W.termBid, W.glossBid], [W.termAuction, W.glossAuction], [W.termRank, W.glossRank]],
-  click: [[W.termClick, W.glossClick], [W.termCpc, W.glossCpc], [W.termBudget, W.glossBudget]],
+  // Two terms a beat at most, since I55. The auction is its own idea; the bid
+  // and where it lands you are the next one; and the budget the click came
+  // out of is a third, not a clause on the click's screen.
+  auction: [[W.termAuction, W.glossAuction]],
+  ladder: [[W.termBid, W.glossBid], [W.termRank, W.glossRank]],
+  click: [[W.termClick, W.glossClick], [W.termCpc, W.glossCpc]],
+  budget: [[W.termBudget, W.glossBudget]],
   delay: [[W.termConversion, W.glossConversion], [W.termDelay, W.glossDelay]],
   refused: [[W.termReturn, W.glossReturn], [W.termRefused, W.glossRefused]],
   yours: [],

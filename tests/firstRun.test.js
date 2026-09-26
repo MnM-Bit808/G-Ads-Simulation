@@ -137,15 +137,42 @@ describe('the demonstration is a real auction, not a written one', () => {
 });
 
 describe('the run moves one beat at a time, and the player holds the clock', () => {
-  test('there are seven beats, each with its own key', () => {
-    expect(BEATS).toHaveLength(7);
-    expect(new Set(BEATS.map((b) => b.key)).size).toBe(7);
+  /**
+   * NINE SINCE I55, AND THE NUMBER IS STILL THE RATCHET. This assertion is
+   * what stops the run growing — the comment below the word bound says so,
+   * and says a total-word bound "would only be a number to nudge upward".
+   * It was moved from seven deliberately, once, on a tester's report that the
+   * run went too fast: the auction was split from the ladder and the budget
+   * from the click, because each of those screens taught THREE of the run's
+   * fifteen terms. No beat teaches more than two now. Moving it again wants
+   * the same standard of evidence.
+   */
+  test('there are nine beats, each with its own key', () => {
+    expect(BEATS).toHaveLength(9);
+    expect(new Set(BEATS.map((b) => b.key)).size).toBe(9);
+  });
+
+  /**
+   * WHAT THE SPLIT WAS FOR. The ladder taught bid, auction and ad rank on one
+   * screen and the click taught click, cost per click and budget — three
+   * abstractions each, on the screens a beginner has least to hang them on.
+   *
+   * `serp` still teaches three and is meant to: an ad, its position and the
+   * fact it was shown are one picture, and the beat is 29 words. Three names
+   * for what is on screen is not the same as three ideas to hold.
+   */
+  test('only the results page teaches three terms; the abstract beats teach two', () => {
+    const f = figuresFor(demonstration());
+    for (const beat of BEATS) {
+      const most = beat.key === 'serp' ? 3 : 2;
+      expect(termsFor(beat.key, f).length, beat.key).toBeLessThanOrEqual(most);
+    }
   });
 
   test('it opens on the first, carrying the statement of what this is', () => {
     const view = runView(0);
     expect(view.at).toBe(0);
-    expect(view.total).toBe(7);
+    expect(view.total).toBe(9);
     expect(view.showsOpener, 'beat 1 carries the opening statement').toBe(true);
     expect(view.canBack).toBe(false);
     expect(view.isLast).toBe(false);
@@ -156,23 +183,23 @@ describe('the run moves one beat at a time, and the player holds the clock', () 
   // re-reader can scroll back rather than pressing Back.
   test('the trail grows behind you, numbered from one', () => {
     expect(runView(3).trail.map((row) => row.n)).toEqual([1, 2, 3]);
-    for (const row of runView(6).trail) {
+    for (const row of runView(BEATS.length - 1).trail) {
       expect(typeof row.text, `trail ${row.n}`).toBe('string');
       expect(row.text.trim(), `trail ${row.n}`).not.toBe('');
     }
   });
 
   test('only the first beat shows the statement, and only the last drops Skip', () => {
-    for (let at = 0; at < 7; at += 1) {
+    for (let at = 0; at < BEATS.length; at += 1) {
       expect(runView(at).showsOpener, `beat ${at + 1}`).toBe(at === 0);
-      expect(runView(at).showsSkip, `beat ${at + 1}`).toBe(at !== 6);
+      expect(runView(at).showsSkip, `beat ${at + 1}`).toBe(at !== BEATS.length - 1);
       expect(runView(at).canBack, `beat ${at + 1}`).toBe(at > 0);
     }
-    expect(runView(6).isLast).toBe(true);
+    expect(runView(BEATS.length - 1).isLast).toBe(true);
   });
 
   test('every beat names where its button goes, never just “next”', () => {
-    for (let at = 0; at < 7; at += 1) {
+    for (let at = 0; at < BEATS.length; at += 1) {
       const { next } = runView(at);
       expect(next, `beat ${at + 1}`).toBeTruthy();
       expect(next.toLowerCase(), `beat ${at + 1}`).not.toBe('next');
@@ -181,9 +208,9 @@ describe('the run moves one beat at a time, and the player holds the clock', () 
 
   test('forward walks to the end and then says the run is over', () => {
     let at = 0;
-    for (let i = 0; i < 6; i += 1) at = forward(at);
-    expect(at).toBe(6);
-    expect(forward(6), 'the last beat finishes the run').toBe(null);
+    for (let i = 0; i < BEATS.length - 1; i += 1) at = forward(at);
+    expect(at).toBe(BEATS.length - 1);
+    expect(forward(BEATS.length - 1), 'the last beat finishes the run').toBe(null);
   });
 
   test('back walks home and stops there', () => {
@@ -217,7 +244,7 @@ describe('every figure the run quotes is the engine’s own', () => {
   // Drop either price and "buying your way up costs you every click" has
   // nothing to stand on.
   test('beat 3’s callout quotes both bids and both prices', () => {
-    const said = FIRST_RUN.b3Callout(f);
+    const said = FIRST_RUN.b4Callout(f);
     for (const figure of [f.winnerBid, f.winnerPays, f.runnerUpBid, f.runnerUpPays]) {
       expect(said, figure).toContain(figure);
     }
@@ -228,7 +255,7 @@ describe('every figure the run quotes is the engine’s own', () => {
   // this is the one screen where a beginner has met none of the words yet, so
   // it has no business being longer than a chapter.
   test('beat 3’s callout says it in short sentences', () => {
-    for (const sentence of FIRST_RUN.b3Callout(f).split(/(?<=\.)\s+/)) {
+    for (const sentence of FIRST_RUN.b4Callout(f).split(/(?<=\.)\s+/)) {
       const words = sentence.trim().split(/\s+/).filter(Boolean).length;
       expect(words, sentence).toBeLessThanOrEqual(19);
     }
@@ -381,14 +408,16 @@ describe('no beat drowns the reader, which is the whole argument', () => {
   const ON_SCREEN = {
     search: ['b1Kicker', 'b1Where', 'b1Say'],
     serp: ['b2Kicker', 'b2Say', 'b2Sponsored', 'b2Organic'],
-    ladder: ['b3Kicker', 'b3Say', 'b3Cut', 'b3ReadAgain', 'b3Callout', 'b3Cost',
+    auction: ['b3Kicker', 'b3Say', 'b3Again', 'b3Wanted', 'b3OfBrands', 'b3Cut', 'b3Shown'],
+    ladder: ['b4Kicker', 'b4Say', 'b4Cut', 'b4ReadAgain', 'b4Callout', 'b4Cost',
       'colBrand', 'colBid', 'colFits', 'colRank', 'colPays'],
-    click: ['b4Kicker', 'b4Pays', 'b4Sold', 'b4When', 'b4Looking', 'b4Say', 'b4Note'],
-    delay: ['b5Kicker', 'b5Say', 'b5Note', 'b5Report', 'b5Then', 'b5Later',
+    click: ['b5Kicker', 'b5Pays', 'b5Sold', 'b5When', 'b5Looking', 'b5Say', 'b5Note'],
+    budget: ['b6Kicker', 'b6Say', 'b6Note', 'b6Week', 'b6ToSpend', 'b6Buys', 'b6Gone'],
+    delay: ['b7Kicker', 'b7Say', 'b7Note', 'b7Report', 'b7Then', 'b7Later',
       'repThen', 'repLater', 'wkClick', 'wkThinks', 'wkBuys', 'wkShips', 'wkRefused'],
-    refused: ['b6Kicker', 'b6Say', 'b6Note', 'b6Report3', 'b6Latest',
+    refused: ['b8Kicker', 'b8Say', 'b8Note', 'b8Report3', 'b8Latest',
       'repThen', 'repLater', 'repLatest', 'wkClick', 'wkThinks', 'wkBuys', 'wkShips', 'wkRefused'],
-    yours: ['b7Kicker', 'b7Hero', 'b7Say', 'b7Note'],
+    yours: ['b9Kicker', 'b9Hero', 'b9Say', 'b9Note'],
   };
   const OPENER = ['openTitle', 'openTypes', 'openLength', 'openNoNeed'];
 
@@ -407,10 +436,16 @@ describe('no beat drowns the reader, which is the whole argument', () => {
     expect(count, `${key} says ${count} words`).toBeLessThanOrEqual(80);
   });
 
-  // There is no bound on the run's total, deliberately: seven beats at eighty
-  // already bound it more tightly than a total ever did, and "there are seven
+  // There is no bound on the run's total, deliberately: nine beats at eighty
+  // already bound it more tightly than a total ever did, and "there are nine
   // beats" above is what stops it growing. A total bound would only be a number
   // to nudge upward, which is how the first one got to be wrong.
+  //
+  // THE COUNT ABOVE WENT FROM SEVEN TO NINE ON 2026-09-26 (I55), which is the
+  // thing this comment warned about, done deliberately and once. What was
+  // nudged was the count, not the eighty: two beats each taught three of the
+  // fifteen terms, and splitting them left every beat at two or fewer. The
+  // eighty is the guard that matters, and it did not move.
   test('every line belongs to a beat, so nothing is written and never shown', () => {
     const drawn = new Set([...Object.values(ON_SCREEN).flat(), ...OPENER]);
     const terms = new Set(Object.values(TERMS).flat(2).map((entry) => entry.name));

@@ -7435,3 +7435,55 @@ returns whoever asked to round 0 or to the week they were reading from.
 **What is deliberately unchanged:** it still marks itself seen, so a first-time
 player still meets it automatically and exactly once. Replaying is idempotent —
 it takes nothing away and starts nothing.
+
+### I55. The opening minute goes slower: seven beats become nine — `FIXED` (2026-09-26)
+
+**A tester told the owner the explainer should be more granular.** It teaches
+what Google Ads is, before round 0, to someone who has never bought an ad.
+
+**The first thing measured was whether anything was MISSING, and nothing was.**
+All fifteen world terms the run names are taught in it. So the complaint was
+not coverage — it was **pace**, and the measurement that found it was terms per
+screen:
+
+| beat | terms taught | words |
+| --- | --- | --- |
+| `ladder` | bid, ad rank, auction | 50 |
+| `click` | click, cost per click, budget | 54 |
+
+**Three new ideas on one screen is the failure.** Every other beat carried one
+or two. A beginner meeting *bid*, *ad rank* and *auction* in fifty words has
+not been taught three things; they have been shown three words.
+
+**So those two beats were split, and the two new ones take the idea each was
+carrying as a passenger.**
+
+- **Beat 3, `auction`** — that the four slots were not bought, and that the
+  question is asked again for every single search. It now precedes the ladder,
+  so by the time ad rank appears the reader knows what it is ranking *in*.
+- **Beat 6, `budget`** — where the money comes from and what it buys. It
+  follows the click, so a budget is met as *the thing a click spends from*.
+
+**Every beat now teaches two terms or fewer.** `serp` keeps three and is the
+deliberate exception: an ad, its position and the fact it was shown are one
+picture, and the beat is 29 words.
+
+**THIS OVERTURNS A GUARD THAT EXISTED TO STOP EXACTLY THIS.**
+`expect(BEATS).toHaveLength(7)` is described in its own test as the thing that
+stops the run growing — *"a total bound would only be a number to nudge
+upward, which is how the first one got to be wrong."* It reads 9 now. The
+comment records that it was nudged, by whom and why, so the next person to
+reach for it meets the argument rather than just a number.
+
+**What was NOT nudged is the eighty.** The per-beat 80-word bound is the guard
+that does the work, and every one of the nine still passes under it. The run
+went from 299 words to 403 — but the widest screen is unchanged, because the
+new words are on new screens.
+
+**One thing the build got wrong, found by drawing it.** The budget beat was
+first built as a bar: spent against budget. At ₹25 of ₹42,000 the spent bar was
+**three pixels of seven hundred and sixty-two** — technically correct and
+visually a blank track. **A proportion is the wrong picture when the
+proportion is 0.06%.** It is two figures now: a week's budget, and *1,671
+clicks at ₹25, then nothing shows*. That is what a budget actually means to
+someone who has never had one, and it is the same arithmetic.

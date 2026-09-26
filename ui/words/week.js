@@ -28,7 +28,7 @@ export const WEEK = Object.freeze({
   // EVERY ONE OF THE SIX CARRIES A why?, added 2026-09-19. Played from a
   // cleared browser, this is the first screen after round 0 and it had two
   // links on the whole page, beside none of the figures — while the first run
-  // that precedes it spends seven beats teaching click, cost per click and
+  // that precedes it spends nine beats teaching click, cost per click and
   // conversion. Net profit, ROAS and cost per conversion had no chapter at all
   // until `readingTheWeek`, which is why three of the six open the same one.
   spend: line('label', 'Spend', { why: 'budget' }),

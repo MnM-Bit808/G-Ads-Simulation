@@ -42,6 +42,34 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-26, last: the opening minute slowed down, from seven beats to nine
+
+**I55.** A tester told the owner the explainer should explain more. The first
+thing I measured was whether anything was **missing**, and nothing was — all
+fifteen world terms are taught in it. The fault was pace: two beats carried
+**three new terms each** (bid / ad rank / auction in fifty words; click / cost
+per click / budget in fifty-four) while every other beat carried one or two.
+
+Split into nine. The new beat 3 is the auction — nobody bought those slots, and
+the question is asked again for every search — placed *before* the ladder so ad
+rank has something to rank in. The new beat 6 is the budget, placed *after* the
+click so a budget is met as the thing a click spends from. Every beat now
+teaches two terms or fewer; `serp` keeps three deliberately, at 29 words.
+
+**This overturned a guard written to stop it.** `toHaveLength(7)` is described
+in its own test as the ratchet — *"a total bound would only be a number to
+nudge upward, which is how the first one got to be wrong."* The owner's call,
+done once, and the comment now records who nudged it and why. **The eighty did
+not move**, and that is the guard doing the work: 299 words became 403, but the
+widest screen is unchanged, because the new words are on new screens.
+
+**Found by drawing it, not by reading it.** The budget beat started as a
+spent-against-budget bar. At ₹25 of ₹42,000 the fill was **three pixels of
+762** — correct, and a blank track. A proportion is the wrong picture when the
+proportion is 0.06%. It reads *1,671 clicks at ₹25, then nothing shows* now:
+the same arithmetic, and the thing a budget actually means to someone who has
+never had one.
+
 ## 2026-09-26, later: the opening minute stopped being a one-off
 
 **I54.** The owner asked why the explainer that teaches what Google Ads *is*

@@ -122,7 +122,7 @@ function ladder(f, table) {
       cut = true;
       const line = el('div', 'fr-cut');
       line.style.animationDelay = `${i * STAGGER}ms`;
-      add(line, el('i', null), el('span', null, W.b3Cut(f)), el('i', null));
+      add(line, el('i', null), el('span', null, W.b4Cut(f)), el('i', null));
       add(node, line);
     }
     const line = el('div', row.shown ? 'fr-lrow shown' : 'fr-lrow out');
@@ -145,10 +145,25 @@ function ladder(f, table) {
   return node;
 }
 
+/**
+ * Beat 3: the auction, before any of its machinery (I55). It shows the same
+ * count the ladder will rank — how many wanted the search against how many
+ * slots there are — so the ladder that follows is read as the answer to a
+ * question this beat has already asked.
+ */
+function beatAuction(f) {
+  const strip = el('div', 'fr-strip');
+  add(strip,
+    cell(W.b3Wanted(f), String(f.entered), W.b3OfBrands({ of: f.of }), null),
+    el('span', 'fr-arrow', '→'),
+    cell(W.b3Cut(f), String(f.slots), W.b3Shown(f), 'red'));
+  return [kicker(W.b3Kicker(f)), strip, say(W.b3Say(f)), note(W.b3Again(f))];
+}
+
 function beatLadder(f, parts) {
   const callout = el('div', 'fr-callout');
-  add(callout, kicker(W.b3ReadAgain(f)), say(W.b3Callout(f)), note(W.b3Cost(f)));
-  return [kicker(W.b3Kicker(f)), say(W.b3Say(f)), ladder(f, parts.table), callout];
+  add(callout, kicker(W.b4ReadAgain(f)), say(W.b4Callout(f)), note(W.b4Cost(f)));
+  return [kicker(W.b4Kicker(f)), say(W.b4Say(f)), ladder(f, parts.table), callout];
 }
 
 /** One figure with its label, as beat 4's pair of cells. */
@@ -162,10 +177,10 @@ function cell(label, value, sub, tone) {
 function beatClick(f) {
   const strip = el('div', 'fr-strip');
   add(strip,
-    cell(W.b4Pays(f), f.winnerPays, W.b4When(f), 'red'),
+    cell(W.b5Pays(f), f.winnerPays, W.b5When(f), 'red'),
     el('span', 'fr-arrow', '→'),
-    cell(W.b4Sold(f), f.zero, W.b4Looking(f), 'dim'));
-  return [kicker(W.b4Kicker(f)), strip, say(W.b4Say(f)), note(W.b4Note(f))];
+    cell(W.b5Sold(f), f.zero, W.b5Looking(f), 'dim'));
+  return [kicker(W.b5Kicker(f)), strip, say(W.b5Say(f)), note(W.b5Note(f))];
 }
 
 /** The five weeks a click takes to settle, with the ones that matter lit. */
@@ -202,43 +217,59 @@ function rewrite(title, rows) {
 function beatDelay(f, parts) {
   const { weeks: list, reports } = parts.tail;
   return [
-    kicker(W.b5Kicker(f)),
+    kicker(W.b7Kicker(f)),
     weeks(list, 'delay'),
-    rewrite(W.b5Report(f), [[W.b5Then(f), reports.then], [W.b5Later(f), reports.later, 'up']]),
-    say(W.b5Say(f)),
-    note(W.b5Note(f)),
+    rewrite(W.b7Report(f), [[W.b7Then(f), reports.then], [W.b7Later(f), reports.later, 'up']]),
+    say(W.b7Say(f)),
+    note(W.b7Note(f)),
   ];
 }
 
 function beatRefused(f, parts) {
   const { weeks: list, reports } = parts.tail;
   return [
-    kicker(W.b6Kicker(f)),
+    kicker(W.b8Kicker(f)),
     weeks(list, 'refused'),
-    say(W.b6Say(f)),
-    rewrite(W.b6Report3(f), [
-      [W.b5Then(f), reports.then],
-      [W.b5Later(f), reports.later, 'up'],
-      [W.b6Latest(f), reports.latest, 'down'],
+    say(W.b8Say(f)),
+    rewrite(W.b8Report3(f), [
+      [W.b7Then(f), reports.then],
+      [W.b7Later(f), reports.later, 'up'],
+      [W.b8Latest(f), reports.latest, 'down'],
     ]),
-    note(W.b6Note(f)),
+    note(W.b8Note(f)),
   ];
 }
 
 function beatYours(f) {
   return [
-    kicker(W.b7Kicker(f)),
-    el('div', 'fr-hero', W.b7Hero(f)),
-    say(W.b7Say(f)),
-    note(W.b7Note(f)),
+    kicker(W.b9Kicker(f)),
+    el('div', 'fr-hero', W.b9Hero(f)),
+    say(W.b9Say(f)),
+    note(W.b9Note(f)),
   ];
+}
+
+/**
+ * Beat 6: the budget the click came out of (I55). One bar, spent against
+ * left, because the point is proportion — a click is a small bite of a week,
+ * and the week stops when the bites add up.
+ */
+function beatBudget(f) {
+  const strip = el('div', 'fr-strip');
+  add(strip,
+    cell(W.b6Week(f), f.weekBudget, W.b6ToSpend(f), null),
+    el('span', 'fr-arrow', '→'),
+    cell(W.b6Buys(f), f.budgetClicks, W.b6Gone(f), 'red'));
+  return [kicker(W.b6Kicker(f)), strip, say(W.b6Say(f)), note(W.b6Note(f))];
 }
 
 const BODIES = {
   search: beatSearch,
   serp: beatSerp,
+  auction: beatAuction,
   ladder: beatLadder,
   click: beatClick,
+  budget: beatBudget,
   delay: beatDelay,
   refused: beatRefused,
   yours: beatYours,

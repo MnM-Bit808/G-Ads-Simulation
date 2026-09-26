@@ -2359,6 +2359,7 @@ body.studio .fr-k {
   text-transform: uppercase; color: var(--studio-faint);
 }
 body.studio .fr-v { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
 body.studio .fr-v.red { color: var(--studio-red-text); }
 body.studio .fr-v.dim { color: var(--studio-faint); }
 body.studio .fr-s { font-size: 12px; color: var(--studio-muted); }
