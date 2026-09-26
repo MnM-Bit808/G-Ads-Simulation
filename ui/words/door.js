@@ -44,4 +44,9 @@ export const DOOR = Object.freeze({
   failedNote: line('reading', 'Opening it fails on this version, and would fail the same way every time. It stays in '
     + 'this browser until you start a new game, so a later version may open it.'),
   playtestOnly: line('label', 'on the playtest link only'),
+  // THE MINUTE, OFFERED AGAIN (I54). It used to play once per browser and
+  // then be unreachable, which made the one screen that says what the game is
+  // about the only one a player could not go back to.
+  watchIntro: line('label', 'How Google Ads works'),
+  watchIntroWhy: line('label', 'one minute, from a search to a sale'),
 });

@@ -140,6 +140,7 @@ function button(className, label, onClick, iconPaths = null, iconAfter = false) 
  */
 export function createGuide({
   figures, reveal: revealCard = null, canShowCard = () => true, inStudio = () => false, contentsPage = () => false,
+  onWatchIntro = null,
 }) {
   const node = el('aside', 'card guide');
   node.id = 'field-guide';
@@ -265,7 +266,18 @@ export function createGuide({
       item.append(button(null, CHAPTERS[id].title, () => open(id)));
       list.append(item);
     }
-    body.replaceChildren(heading(GUIDE.contents()), list);
+    const parts = [heading(GUIDE.contents()), list];
+    // The minute about how Google Ads works, offered here too (I54). The
+    // drawer is round 0's only way into the guide — there is no Guide area
+    // yet and no door behind it — so without this a second fresh start could
+    // not reach the one screen that says what the game is.
+    if (onWatchIntro) {
+      const again = el('p', 'gb-again');
+      const watch = button('gb-watch', GUIDE.watchIntro(), () => onWatchIntro());
+      again.append(watch, el('span', 'gb-again-why', GUIDE.watchIntroWhy()));
+      parts.push(again);
+    }
+    body.replaceChildren(...parts);
     foot.replaceChildren();
     foot.hidden = true;
     reveal(opener);

@@ -42,6 +42,25 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-26, later: the opening minute stopped being a one-off
+
+**I54.** The owner asked why the explainer that teaches what Google Ads *is*
+plays once and then can never be found again. It was worse than
+once-per-browser: the block sat inside `if (!game)`, so it could only ever
+have appeared before a game existed. **The one screen that says what the whole
+game is about was the only one a player could not go back to** — and a beginner
+loses the thread in week 4, not at the door.
+
+Three ways in now, all quiet: the door, the Guide page above the chapters, and
+the guide drawer, which is round 0's only route into the guide.
+
+**Two faults found by clicking it, neither visible in the code.** From the
+door, finishing the intro dropped you into round 0 — the save was untouched but
+the offer to resume was gone. And the page went blank on the way out of the
+Guide's copy: `replayFirstRun` is passed straight to `addEventListener`, so its
+argument arrived as a **MouseEvent** — truthy, not callable. A handler is handed
+an event, and a parameter with a default is exactly where that hides.
+
 ## 2026-09-26: a tablet, and three fixes that had only ever been phone-shaped
 
 **I53.** Played end to end at 768x1024 — the band where the shell's ≤900px

@@ -115,6 +115,18 @@ export function renderDoor(view) {
 
   const column = el('div', 'door-column');
   column.append(head, card);
+  // A quiet way back to the minute about how Google Ads works (I54). Text, not
+  // a choice: someone at the door came to resume or to start, and this must
+  // not compete with either. It is under the card rather than in it, so it
+  // reads as an aside to the whole screen and not as a third option.
+  if (view.onWatchIntro) {
+    const aside = el('p', 'door-aside');
+    const watch = button('door-intro', DOOR.watchIntro());
+    watch.addEventListener('click', view.onWatchIntro);
+    aside.append(watch, el('span', 'door-aside-why', DOOR.watchIntroWhy()));
+    column.append(aside);
+  }
+
   const node = el('div', 'door');
   node.append(column);
   return { node, progress };

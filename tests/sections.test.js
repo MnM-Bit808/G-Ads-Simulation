@@ -599,3 +599,60 @@ describe('the motions added after playing it', () => {
     expect(read('plans/2026-09-13-studio-makeover.md')).toMatch(/never a counting ticker/);
   });
 });
+
+/**
+ * THE MINUTE CAN BE ASKED FOR AGAIN (I54, the owner 2026-09-26).
+ *
+ * The first run played once per browser and was reachable from nowhere
+ * afterwards, so the one screen that says what the game is about was the only
+ * one a player could not go back to. It now has three ways in — the door, the
+ * Guide page, and the guide drawer, which is round 0's only route — and each
+ * returns whoever asked to exactly where they were.
+ */
+describe('how Google Ads works can be watched again', () => {
+  const app = read('ui/app.js');
+
+  test('the intro is no longer trapped inside the no-game branch', () => {
+    // It used to sit inside `if (!game)`, which is why a player in week 4 had
+    // no way back to it. The replay flag is checked before that branch.
+    const before = app.indexOf('if (replayIntro ||');
+    const noGame = app.indexOf('if (!game) {');
+    expect(before, 'no replay flag').toBeGreaterThan(-1);
+    expect(before, 'the intro is still behind the no-game branch').toBeLessThan(noGame);
+  });
+
+  test('all three ways in are wired', () => {
+    expect(app, 'the door does not offer it').toMatch(/onWatchIntro: \(\) => replayFirstRun\(\(\) => offerResume\(saved\)\)/);
+    expect(app, 'the Studio does not offer it').toMatch(/onWatchIntro: replayFirstRun/);
+    expect(app, 'the drawer does not offer it').toMatch(/onWatchIntro: \(\) => replayFirstRun\(\)/);
+    expect(read('ui/door/render.js')).toContain('view.onWatchIntro');
+    expect(read('ui/guide/page.js')).toContain('onWatchIntro');
+    expect(read('ui/guide/drawer.js')).toContain('onWatchIntro');
+  });
+
+  /**
+   * A CLICK HANDLER IS HANDED AN EVENT. The Guide passes `replayFirstRun`
+   * straight to `addEventListener`, so its argument arrived as a MouseEvent —
+   * truthy, not callable — and the page went blank on the way out of the
+   * intro. Found by clicking it, not by reading it.
+   */
+  test('the return path refuses anything that is not a function', () => {
+    expect(app).toMatch(/introReturn = typeof back === 'function' \? back : null/);
+  });
+
+  test('the door comes back to the door, so an offer to resume is not lost', () => {
+    // `render()` with no game opens round 0, which is why the door needs its
+    // own way back rather than the default.
+    expect(app).toMatch(/const back = introReturn;[\s\S]{0,80}if \(back\) back\(\); else render\(\);/);
+  });
+
+  test('both words exist and the drawing modules hold no sentence of their own', () => {
+    for (const mod of ['ui/words/door.js', 'ui/words/guide.js']) {
+      expect(read(mod), `${mod} has no watchIntro`).toMatch(/watchIntro: line\(/);
+      expect(read(mod), `${mod} has no reason line`).toMatch(/watchIntroWhy: line\(/);
+    }
+    for (const mod of ['ui/door/render.js', 'ui/guide/page.js', 'ui/guide/drawer.js']) {
+      expect(read(mod), `${mod} writes its own words`).toMatch(/(DOOR|GUIDE)\.watchIntro\(\)/);
+    }
+  });
+});

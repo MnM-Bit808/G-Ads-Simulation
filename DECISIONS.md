@@ -7394,3 +7394,44 @@ fixed only at the width where it was noticed is a clip that is still there. Ask
 what the rule is *about*: a keyword needs room for its longest term, a tier
 needs room for its places, and a target needs room for whatever is touching it.
 None of those three is a screen width.
+
+### I54. The minute about how Google Ads works can be asked for again — `FIXED` (2026-09-26)
+
+**The owner, having run the tests clean, asked why the opening explainer is
+only ever seen once.** It plays before round 0 for someone who has never
+bought an ad, marks itself seen, and was then reachable from nowhere.
+
+**It was worse than once-per-browser.** The block sat inside `if (!game)`, so
+even clearing the flag could only have shown it before a game existed. **The
+one screen that says what the whole game is about was the only screen a player
+could not go back to** — and a beginner who loses the thread does so in week 4,
+not at the door.
+
+**Three ways in, all quiet, all returning you where you were.**
+
+- **The door**, under the card rather than in it: someone there came to resume
+  or to start, and this must not compete with either.
+- **The Guide page**, above the chapters — it is the frame they sit in, and a
+  player who is lost looks there, not at a door they can no longer see.
+- **The guide drawer**, which is round 0's only route into the guide: there is
+  no Guide area yet and no door behind it, so without this a second fresh
+  start could not reach it at all.
+
+**The block moved out of `if (!game)`**, and `onDone` calls `render()`, which
+returns whoever asked to round 0 or to the week they were reading from.
+
+**TWO THINGS FOUND BY CLICKING IT, NEITHER VISIBLE IN THE CODE.**
+
+- **From the door, `render()` opened round 0.** A returning player who watched
+  a minute lost the offer to resume — the save was untouched, but the flow was
+  gone. The door now passes its own way back, and the restoring door offers
+  nothing at all, being transient.
+- **The page went blank on the way out.** The Guide passes `replayFirstRun`
+  straight to `addEventListener`, so its argument arrived as a **MouseEvent**:
+  truthy, not callable, and `back()` threw. The return path now takes only a
+  function. A handler is handed an event, and a parameter with a default is
+  exactly where that hides.
+
+**What is deliberately unchanged:** it still marks itself seen, so a first-time
+player still meets it automatically and exactly once. Replaying is idempotent —
+it takes nothing away and starts nothing.

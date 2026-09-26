@@ -68,6 +68,7 @@ let studio = null;
  */
 const GUIDE_FIGURES = guideFigures();
 const guide = createGuide({
+  onWatchIntro: () => replayFirstRun(),
   figures: GUIDE_FIGURES,
   reveal: (slot) => studio?.reveal(slot) ?? false,
   canShowCard: (slot) => Boolean(game) && (studio ? studio.canReveal(slot) : true),
@@ -118,6 +119,15 @@ let roundZeroTouched = false;
  * a click in it must not mark round 0 as touched.
  */
 let inFirstRun = false;
+/** Set when the intro is asked for again, from the door or the Guide (I54). */
+let replayIntro = false;
+/**
+ * Where to go when a replayed intro finishes. The Guide's caller wants
+ * `render()`, which puts the player back in the week they were reading from.
+ * THE DOOR'S DOES NOT: `render()` with no game opens round 0, so watching a
+ * minute cost a returning player the offer to resume — found by clicking it.
+ */
+let introReturn = null;
 
 /**
  * The game being rewound, while round 0 is on screen for a second time (17.3).
@@ -297,33 +307,47 @@ function screenName() {
 
 function render() {
   recorder?.phase(screenName());
+
+  /**
+   * THE MINUTE BEFORE ROUND 0, for someone who has never bought an ad
+   * (plans/2026-09-19-first-run-and-ground-floor.md). It plays once per
+   * browser, and never on a redo: a player rewinding round 0 has already met
+   * all of it.
+   *
+   * IT CAN ALSO BE ASKED FOR, from the door and from the Guide (I54, the
+   * owner 2026-09-26). That is why this sits OUTSIDE `if (!game)`: the one
+   * screen that teaches what the game is about could only be reached before
+   * a game existed, so a player who got lost in week 4 had no way back to it.
+   * `onDone` calls `render()`, which returns whoever asked to exactly where
+   * they were — round 0, or the week they were playing.
+   */
+  if (replayIntro || (!game && !rewinding && !seenFirstRun(storage))) {
+    inFirstRun = true;
+    recorder?.phase(screenName());
+    const demo = demonstration();
+    const figures = figuresFor(demo);
+    app.replaceChildren(createFirstRun({
+      figures,
+      parts: partsFor(demo, figures),
+      onDone: () => {
+        markFirstRunSeen(storage);
+        replayIntro = false;
+        inFirstRun = false;
+        const back = introReturn;
+        introReturn = null;
+        if (back) back(); else render();
+      },
+    }).node);
+    window.scrollTo(0, 0);
+    return;
+  }
+
   if (!game) {
     roundZeroTouched = false;
     // The drawer belongs to a game: its chapters point at parts of the account,
     // and round 0 has none yet. Closing it here is what the header's own
     // bookkeeping used to do before the switch-over took the header away.
     guide.close();
-
-    // THE MINUTE BEFORE ROUND 0, for someone who has never bought an ad
-    // (plans/2026-09-19-first-run-and-ground-floor.md). Once per browser, and
-    // never on a redo: a player rewinding round 0 has already met all of it.
-    if (!rewinding && !seenFirstRun(storage)) {
-      inFirstRun = true;
-      recorder?.phase(screenName());
-      const demo = demonstration();
-      const figures = figuresFor(demo);
-      app.replaceChildren(createFirstRun({
-        figures,
-        parts: partsFor(demo, figures),
-        onDone: () => {
-          markFirstRunSeen(storage);
-          inFirstRun = false;
-          render();
-        },
-      }).node);
-      window.scrollTo(0, 0);
-      return;
-    }
     inFirstRun = false;
     // Round 0 in the sidebar layout (plans/2026-09-14-round-zero-redesign.md).
     // Round 0 starts on the brand the seed draws, and step 2 lets the player
@@ -348,6 +372,7 @@ function render() {
     figures: GUIDE_FIGURES,
     onPlaytest: recorder ? sendPlaytestFile : null,
     onExit: backToMenu,
+    onWatchIntro: replayFirstRun,
   });
   // After the last week the shell draws Results itself (ui/results/render.js,
   // the owner's choice 2026-09-15); it is handed only what it cannot reach:
@@ -469,6 +494,21 @@ function startAfresh() {
 }
 
 /**
+ * Play the minute about how Google Ads works again, from wherever it was
+ * asked for (I54). It throws nothing away: `onDone` returns to the same
+ * screen, whether that is the door, round 0 or week 7.
+ */
+function replayFirstRun(back = null) {
+  // A CLICK HANDLER IS HANDED AN EVENT, not the argument you meant. The Guide
+  // passes this function straight to `addEventListener`, so `back` arrived as
+  // a MouseEvent — truthy, not callable, and the page went blank on the way
+  // out of the intro. Anything that is not a function means "just re-render".
+  introReturn = typeof back === 'function' ? back : null;
+  replayIntro = true;
+  render();
+}
+
+/**
  * Out of a finished game and back to the front door, which is the nearest thing
  * this has to a main menu (the owner, 2026-09-19: after the last week the tray
  * offered "See your results" and nothing else, and no screen led anywhere out).
@@ -498,13 +538,16 @@ function offerResume(saved) {
     onResume: () => resume(saved),
     onStartAfresh: startAfresh,
     onPlaytest: recorder ? sendPlaytestFile : null,
+    onWatchIntro: () => replayFirstRun(() => offerResume(saved)),
   });
 }
 
 async function resume(saved) {
   recorder?.phase('restoring');
   const base = {
-    ...doorFacts(saved), onStartAfresh: startAfresh, onPlaytest: recorder ? sendPlaytestFile : null,
+    ...doorFacts(saved),
+    onStartAfresh: startAfresh,
+    onPlaytest: recorder ? sendPlaytestFile : null,
   };
   const door = showDoor({ ...base, state: 'restoring' });
 

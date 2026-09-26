@@ -23,7 +23,7 @@ const ARROWS = { back: ['M15 5l-7 7 7 7'], on: ['M9 5l7 7-7 7'] };
  *   while the section holding the slot is locked
  * @returns {{node: (id: string) => HTMLElement}}
  */
-export function renderGuidePage({ figures, onOpen, showSlot, canShow }) {
+export function renderGuidePage({ figures, onOpen, showSlot, canShow, onWatchIntro = null }) {
   const cards = contentsCards(figures);
 
   /** One group of the contents, under its own heading. */
@@ -50,6 +50,17 @@ export function renderGuidePage({ figures, onOpen, showSlot, canShow }) {
     // the frame for every chapter below, and a note under 23 cards is a note
     // nobody reads.
     node.append(el('p', 'gb-real', GUIDE.whatIsReal()));
+    // The minute that plays before round 0, offered again (I54). It belongs
+    // above the chapters because it is the frame they sit in — one search,
+    // start to finish — and because a player who is lost in week 4 comes
+    // here, not to a front door they can no longer see.
+    if (onWatchIntro) {
+      const again = el('p', 'gb-again');
+      const watch = button('gb-watch', GUIDE.watchIntro());
+      watch.addEventListener('click', onWatchIntro);
+      again.append(watch, el('span', 'gb-again-why', GUIDE.watchIntroWhy()));
+      node.append(again);
+    }
     // Start here, then Going deeper. The split is itself teaching: what a
     // control IS, before why it behaves oddly.
     node.append(...group(cards.filter((c) => c.group === 'start'), GUIDE.startHere()));

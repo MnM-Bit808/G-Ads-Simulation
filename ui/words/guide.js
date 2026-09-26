@@ -69,5 +69,10 @@ export const GUIDE = Object.freeze({
   chapterOf: line('label', ({ n, of }) => `Chapter ${n} of ${of}`),
   explains: line('label', 'Explains:'),
   readBeside: line('label', 'Read beside it:'),
+  // THE MINUTE, OFFERED AGAIN (I54). It played once per browser and could
+  // then be reached from nowhere, so the one screen that says what the game
+  // is about was the only one a player could not go back to.
+  watchIntro: line('label', 'How Google Ads works'),
+  watchIntroWhy: line('label', 'one minute, from a search to a sale'),
   numbered: line('label', ({ n, title }) => `${n} · ${title}`),
 });

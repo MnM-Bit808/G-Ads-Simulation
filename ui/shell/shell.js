@@ -60,7 +60,10 @@ const LIST_BEHIND_MENU = '(max-width: 900px)';
  * @param {Readonly<Record<string, string>>} deps.figures - from `guideFigures()`
  * @param {(() => void)|null} [deps.onPlaytest]
  */
-export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPlaytest = null, onExit = null }) {
+export function createStudio({
+  onRun, onRedo, openGuide, showCard, figures,
+  onPlaytest = null, onExit = null, onWatchIntro = null,
+}) {
   const view = {
     area: 'brand', section: 'week', seen: {}, order: [], menuOpen: false,
     resultsShown: false, firstOpen: null, dotsShown: new Set(),
@@ -114,6 +117,7 @@ export function createStudio({ onRun, onRedo, openGuide, showCard, figures, onPl
   // puts focus at the top, where a turned page starts.
   const guidePage = renderGuidePage({
     figures, onOpen: (id) => openChapter(id, { focus: true }), showSlot: showCard, canShow: canReveal,
+    onWatchIntro,
   });
 
   const tray = el('div', 'studio-tray');
