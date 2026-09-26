@@ -7487,3 +7487,57 @@ visually a blank track. **A proportion is the wrong picture when the
 proportion is 0.06%.** It is two figures now: a week's budget, and *1,671
 clicks at ₹25, then nothing shows*. That is what a budget actually means to
 someone who has never had one, and it is the same arithmetic.
+
+### I56. The revision mark stops being amber, and starts being visible — `FIXED` (2026-09-26)
+
+**The owner played it and said the revision tint still felt too quiet.** I52
+had made it 900ms of amber on the columns a revision moved. Measured, it was
+not one fault but three, and the third is the one neither of us had seen.
+
+**1. The shape was backwards.** The animation ran `rgba(242,165,58,0.20)` to
+transparent across 900ms, and `HOLD_MS` was **also** 900ms. So the mark was
+brightest for a single frame and had decayed to nothing at the exact moment the
+revision ended. Against the card it peaked at **1.49:1** and averaged
+**1.18:1** over the hold. It was dying while the thing it marked was still on
+screen.
+
+**2. A wash was the wrong instrument.** A non-text mark needs **3:1** to be
+reliably seen. Getting a fill there needs alpha **0.49** — a solid brown block
+behind the figure. Raising the alpha could not have worked; the widest, softest
+mark available was being asked to carry the signal.
+
+**3. THE COLOUR WAS ALREADY TAKEN, ON THE SAME CHART.** `--studio-amber` is
+`#F2A53A`. The tint was `rgba(242, 165, 58, 0.20)` — the same colour to the
+byte. And `.yw-bar.loss`, three inches away on the same chart, is
+`var(--studio-amber)`. **So the mark said "a bad week" where it meant "a
+corrected one".** I52's reasoning — *"amber, because a correction is not money
+and not the player"* — is sound about the Studio's palette and wrong about this
+chart, where amber is money. It is the general failure of choosing a colour
+from the palette rather than from the picture it lands in.
+
+**What it is now.** The chart already says *where it stood* in the ghost bar's
+grey, `#7A7480`. The mark says it in the same grey:
+
+- a **wash** at `rgba(122, 116, 128, 0.26)`, which only says WHICH column;
+- a **3px rule** in `--studio-faint` inset along the column's bottom, at
+  **4.87:1**, which is the signal;
+- **held** for the whole revision instead of decaying, snapping on with the
+  ghost bars and fading out with them.
+
+**There is room for the rule** because `.yw-change` is set to `opacity: 0` for
+exactly as long as the mark is shown. The column's foot is full at rest and
+empty during the play, which is the only reason "under the column" was
+available at all.
+
+**`HOLD_MS` 900 → 1400.** A revision can move five columns at once — the
+six-week game used to check this moves weeks 1 to 5 in week 6 — and 900ms is
+not long enough to look along five and take in that they changed.
+
+**Reduced motion now KEEPS the mark.** It used to set `animation: none`, which
+removed it outright: the one reader who most needs a landmark got no mark at
+all. Holding a colour still is not motion. Only the fade goes.
+
+**The test that would have caught the colour** did not exist, so it does now:
+it reads `.yw-bar.yw-was`'s own hex out of the stylesheet and requires the wash
+to be that grey, and refuses `--studio-amber` by name and by value. Proven to
+bite by putting amber back — one test failed, and only that one.

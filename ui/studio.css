@@ -519,20 +519,45 @@ body.studio :is(.rs-card, .rv-card, .wm-card, .wr-card, .yw-card, .yad-card, .gb
   background: linear-gradient(90deg, transparent, rgba(237, 232, 227, 0.14), transparent);
 }
 
-/* The weeks a revision moved, marked as the ghost gives way (I52). The
-   revision is the lesson and it was 250ms of opacity on a bar nobody was
-   looking at; this puts the eye on the right column without touching a
-   figure. Amber, because a correction is not money and not the player.
+/* The weeks a revision moved, marked in the chart's own language (I56, which
+   overturns I52's amber). The owner played it and said it was still too
+   quiet; measured, it was three faults, and the colour was the worst of them.
 
-   Scoped to `.was`, which the play adds and drops again after HOLD_MS, so it
+   AMBER IS ALREADY SPOKEN FOR ON THIS CHART. `--studio-amber` is #F2A53A and
+   so was the tint, to the byte — and `.yw-bar.loss` is the same colour three
+   inches away. So the mark said "a bad week" where it meant "a corrected
+   one". The chart already says "where it stood" in the ghost bar's grey; the
+   mark says it in that grey now, and amber is left to mean money.
+
+   IT HOLDS, rather than fading across the play. The old shape ran 0.20 to
+   transparent over the whole of HOLD_MS, so it was brightest for a single
+   frame and gone by the moment the revision ended: 1.18:1 averaged over the
+   hold, against the 3:1 a non-text mark needs to be seen at all.
+
+   THE WASH IS NOT THE SIGNAL, THE RULE IS. A wash cannot carry this at any
+   honest alpha — 3:1 would need 0.49, which is a block behind the figure —
+   so the wash only says WHICH column, and the rule does the work at 4.87:1.
+   There is room for it under the foot because `.yw-change` is hidden for
+   exactly as long as the mark is shown (the revision rules, further down).
+
+   Bound to `.was`, which the play adds and drops again after HOLD_MS, so it
    runs WITH the revision and not on every redraw of a week that once moved —
    `.moved` is a standing fact about the week, not a cue. */
-@keyframes studio-moved { from { background: rgba(242, 165, 58, 0.20); } to { background: transparent; } }
-body.studio .yw-chart.was .yw-col.moved { animation: studio-moved 900ms var(--studio-ease) both; border-radius: 6px; }
+body.studio .yw-col.moved {
+  border-radius: 6px;
+  transition: background 250ms var(--studio-ease), box-shadow 250ms var(--studio-ease);
+}
+body.studio .yw-chart.was .yw-col.moved {
+  background: rgba(122, 116, 128, 0.26);
+  box-shadow: inset 0 -3px 0 var(--studio-faint);
+}
 
 @media (prefers-reduced-motion: reduce) {
   body.studio .settling { animation: none; }
-  body.studio .yw-chart.was .yw-col.moved { animation: none; }
+  /* The mark STAYS here, where it used to be removed outright. Holding a
+     colour still is not motion, and taking it away left the one reader who
+     most needs a landmark with no mark at all. Only the fade goes. */
+  body.studio .yw-col.moved { transition: none; }
 }
 
 /* The figure every section shows: a label, the number, a quieter line (I49).

@@ -260,6 +260,15 @@ number in the simulation without ever throwing an error.
   the guide's "Show me in your account" finds one (`sectionOf`) and how a first
   visit knows what to bring in (`entranceSlots`). Show me rings any part
   carrying a `data-slot` and focuses its own heading, an h3.
+- **A colour is chosen from the picture it lands in, not from the palette.**
+  The revision tint was amber "because a correction is not money and not the
+  player" — sound about the Studio, and wrong about the chart it sat on, where
+  `.yw-bar.loss` is that same `--studio-amber` a few pixels away, so the mark
+  said *a bad week* where it meant *a corrected one* (I56). Before giving a new
+  mark a colour, list what that colour already means **on that screen**. The
+  same entry carries the other half: a **wash is the weakest instrument there
+  is** — 3:1 wants alpha 0.49, a block behind the figure — so a thin solid rule
+  does the signalling and the wash only says which thing is meant.
 - **It was built beside the classic page, and that shaped everything.** Worth
   knowing before you wonder why the screens are put together as they are: the
   decision form redraws every card it owns into its own region on each change,

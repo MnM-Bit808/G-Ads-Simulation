@@ -25,8 +25,15 @@ import {
   weekFigures, weekBars, revision, chartRange, barPlace, impressions,
 } from './read.js';
 
-/** How long each week that moved shows where it stood, before it gives way. */
-export const HOLD_MS = 900;
+/**
+ * How long each week that moved shows where it stood, before it gives way.
+ *
+ * 900ms until I56. A revision can move five columns at once — this game moves
+ * weeks 1 to 5 in week 6 — and 900ms is not long enough to look along a row of
+ * five and take in that they changed, which is half of why the mark read as a
+ * flicker rather than a statement.
+ */
+export const HOLD_MS = 1400;
 /** Grades run from 1 to 10 (the grader's scale, agents/grader.js). */
 const GRADE_SCALE = 10;
 

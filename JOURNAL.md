@@ -42,6 +42,40 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-26, after that: the revision mark was amber, and amber was taken
+
+**I56.** The owner played it and said the tint I52 added still felt too quiet.
+Measuring it found three faults, and the third was the one worth the trip.
+
+The **shape** was backwards: the animation decayed from 0.20 to transparent
+over 900ms while `HOLD_MS` was also 900ms, so the mark peaked for one frame and
+was gone the instant the revision ended — 1.49:1 at best, 1.18:1 averaged, on a
+3:1 floor. A **wash** was the wrong instrument anyway: 3:1 needs alpha 0.49,
+which is a brown block behind the figure, so more alpha was never the answer.
+
+And the **colour was already spoken for on the same chart**. `--studio-amber`
+is `#F2A53A`; the tint was `rgba(242, 165, 58, 0.20)`, the same colour to the
+byte; and `.yw-bar.loss` is `var(--studio-amber)` a few pixels away. The mark
+said *a bad week* where it meant *a corrected one*. I52's note — "amber,
+because a correction is not money and not the player" — was reasoning about the
+palette when it needed to reason about the picture the colour lands in.
+
+It speaks the chart's own grey now: the ghost bar's `#7A7480` as a wash that
+says which column, and a 3px rule at 4.87:1 that does the work, held for the
+whole revision rather than decaying. `HOLD_MS` went to 1400ms, because a
+revision can move five columns at once and 900ms is not long enough to look
+along five. Reduced motion **keeps** the mark now — it used to remove it
+outright, leaving the reader who most needs a landmark with none.
+
+**Two things about the checking, both worth keeping.** Judging this needed a
+PLAYED game, so one was built with the committed harness's own `harnessPlayer`
+and served into `localStorage` — hand-building that player shape is the trap
+CLAUDE.md already names, and it threw on the first try. And the mark appeared
+to be stuck on with `.was` gone, which looked exactly like a leak: it was the
+browser pane freezing transitions on a hidden page, and `getAnimations()
+.forEach((a) => a.finish())` cleared it to transparent. The pane's own trap,
+read correctly only because the note about it was there.
+
 ## 2026-09-26, last: the opening minute slowed down, from seven beats to nine
 
 **I55.** A tester told the owner the explainer should explain more. The first

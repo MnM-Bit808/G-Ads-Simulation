@@ -559,17 +559,39 @@ describe('the motions added after playing it', () => {
     expect(css).toMatch(/body\.studio \.settling \{ animation: studio-settle 300ms/);
   });
 
-  test('the revision tint runs WITH the play, not on every redraw', () => {
-    // `.moved` is a standing fact about a week; `.was` is the play. Binding the
-    // animation to `.moved` alone would replay it on every render.
-    expect(css).toMatch(/body\.studio \.yw-chart\.was \.yw-col\.moved \{ animation: studio-moved/);
-    expect(css).not.toMatch(/^body\.studio \.yw-col\.moved \{ animation:/m);
+  test('the revision mark runs WITH the play, not on every redraw', () => {
+    // `.moved` is a standing fact about a week; `.was` is the play. Putting the
+    // lit state on `.moved` alone would leave every revised week marked for
+    // ever. The mark is held state now rather than an animation (I56), so what
+    // is checked is WHICH selector carries the colour, not what it is made of.
+    const lit = css.match(/body\.studio \.yw-chart\.was \.yw-col\.moved \{[^}]*\}/);
+    expect(lit, 'nothing marks a moved week during the play').toBeTruthy();
+    expect(lit[0]).toMatch(/background:/);
+    expect(lit[0]).toMatch(/box-shadow: inset/);
+    // The resting rule may set shape and timing; it may not set the colour.
+    const resting = css.match(/^body\.studio \.yw-col\.moved \{[^}]*\}/m);
+    expect(resting[0], 'a revised week is marked outside the play').not.toMatch(/background:|box-shadow:/);
+  });
+
+  test('the mark does not borrow a colour that already means something here', () => {
+    // I52 tinted it #F2A53A, which is `--studio-amber` — and `.yw-bar.loss` on
+    // this same chart. The mark said "a bad week" where it meant "a corrected
+    // one". Amber stays money; the mark speaks the ghost bar's grey.
+    const lit = css.match(/body\.studio \.yw-chart\.was \.yw-col\.moved \{[^}]*\}/)[0];
+    expect(lit).not.toMatch(/242, ?165, ?58|--studio-amber|#[Ff]2[Aa]5/);
+    const ghost = css.match(/\.yw-bar\.yw-was \{[^}]*background: (#[0-9A-Fa-f]{6})/);
+    expect(ghost, 'the ghost bar has no colour to borrow').toBeTruthy();
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(ghost[1].slice(i, i + 2), 16));
+    expect(lit, 'the wash is not the ghost bar\'s own grey').toContain(`rgba(${r}, ${g}, ${b},`);
   });
 
   test('both have a reduced-motion answer', () => {
     const reduce = css.match(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n\}/g) ?? [];
     expect(reduce.some((b) => /\.settling \{ animation: none/.test(b))).toBe(true);
-    expect(reduce.some((b) => /\.yw-col\.moved \{ animation: none/.test(b))).toBe(true);
+    // The MARK survives reduced motion and only the fade goes (I56). Asserting
+    // it is switched off, as this did, is what let it be removed outright.
+    expect(reduce.some((b) => /\.yw-col\.moved \{ transition: none/.test(b))).toBe(true);
+    expect(reduce.some((b) => /\.yw-col\.moved \{ (animation|background): none/.test(b))).toBe(false);
   });
 
   test('the lit edge is a hairline, not a shadow or a gradient behind the content', () => {
