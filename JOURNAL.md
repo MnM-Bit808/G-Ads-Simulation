@@ -42,6 +42,32 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-26: a tablet, and three fixes that had only ever been phone-shaped
+
+**I53.** Played end to end at 768x1024 — the band where the shell's ≤900px
+rules apply and the ≤560px ones do not. Three findings, and **every one was a
+general defect that a phone-shaped fix had hidden**:
+
+- the planner's 480px drawer left the keyword 165px, and **eight of the forty**
+  terms need 167 to 174, so they ellipsised at every width **including
+  desktop**;
+- a tier's places were nowrap everywhere but a phone, so a tablet read
+  *"12 · Guwa…"*, 73 pixels of 264 — and under it, the tier's name took 215px
+  of a 297px cell, leaving the places six wrapped lines;
+- the quiz cells stayed 26x20, because I51 grew them below 560px.
+
+**A tablet is a finger at 768px and a small desktop window is a mouse at
+768px.** Only `pointer: coarse` asks which, so that is the rule now, with the
+width arm kept because the browser pane emulates a size but not a touch screen
+— at a custom 768 it reports `maxTouchPoints: 0`, which is precisely how this
+was missed.
+
+**The pattern is worth more than the three bugs.** Each was found on a phone,
+fixed with a phone-shaped rule, and left broken everywhere else. A keyword
+needs room for its longest term, a tier needs room for its places, a target
+needs room for whatever is touching it — and none of those three is a screen
+width.
+
 ## 2026-09-25, actually last: played it on a phone, end to end
 
 **I51.** The whole route at 375px on the live build — door, round 0's five

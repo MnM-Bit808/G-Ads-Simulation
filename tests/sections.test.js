@@ -507,13 +507,38 @@ describe('a phone can reach and read everything', () => {
     expect(rule).not.toMatch(/padding/);
   });
 
-  test('the quiz cells grow to a finger on a phone, and only there', () => {
-    const block = (css.match(/@media \(max-width: 560px\) \{[\s\S]*?\n\}/g) ?? [])
+  /**
+   * A TABLET IS A FINGER AT 768px, AND A SMALL DESKTOP WINDOW IS A MOUSE AT
+   * 768px (I53). The first version grew these below 560px, so a tablet kept
+   * 26x20 — found by testing one. Only `pointer: coarse` asks what is
+   * touching the glass. The width arm stays because the browser pane
+   * emulates a size but not a touch screen, which is exactly how it was
+   * missed: at a custom 768 it reports `maxTouchPoints: 0`.
+   */
+  test('the quiz cells grow for a finger, not for a narrow window', () => {
+    const block = (css.match(/@media \(pointer: coarse\), \(max-width: 560px\) \{[\s\S]*?\n\}/g) ?? [])
       .find((b) => b.includes('.r0-mini-cell'));
-    expect(block, 'the quiz cells do not grow on a phone').toBeTruthy();
+    expect(block, 'the quiz cells do not follow the pointer').toBeTruthy();
     expect(block).toMatch(/\.r0-mini-cell \{ width: 34px; height: 26px; \}/);
-    // The desktop rule is untouched: there they are a diagram, not a target.
+    // The mouse rule is untouched: there they are a diagram, not a target.
     expect(css).toMatch(/body\.studio \.r0-mini-cell \{ width: 26px; height: 20px;/);
+  });
+
+  /**
+   * TWO CLIPS THAT HAD BEEN FIXED ONLY WHERE THEY WERE FIRST SEEN (I53). The
+   * planner's drawer was 480px, leaving the keyword 165px while eight of the
+   * forty need 167 to 174 — so they ellipsised at every width above the phone
+   * rule, desktop included. And a tier's places were nowrap with an ellipsis
+   * everywhere but a phone: a tablet showed "12 · Guwa…", 73px of 264.
+   */
+  test('a keyword and a tier\'s places are readable at every width', () => {
+    expect(css, 'the planner drawer is too narrow for its own rows')
+      .toMatch(/body\.studio \.kplanner \{[^}]*width: min\(560px, 100vw\)/);
+    const cities = css.split('\n').find((l) => l.startsWith('body.studio .ww-cities {'));
+    expect(cities, 'no rule for a tier\'s places').toBeTruthy();
+    expect(cities, 'the places ellipsise again').not.toMatch(/text-overflow: ellipsis|white-space: nowrap/);
+    expect(css, 'the tier name and its places share a line again')
+      .toMatch(/body\.studio \.ww-named \{[^}]*flex-wrap: wrap/);
   });
 });
 

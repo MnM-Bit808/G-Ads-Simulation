@@ -577,7 +577,13 @@ body.studio .kfield { height: 34px; padding: 0 10px; border: 1px solid #68636B; 
 body.studio .knum { font-variant-numeric: tabular-nums; }
 
 body.studio .kplanner-overlay { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, 0.55); }
-body.studio .kplanner { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; display: flex; flex-direction: column; gap: 12px; width: min(480px, 100vw); padding: 24px; box-sizing: border-box; border-left: 1px solid #26232A; background: #141216; box-shadow: -12px 0 32px rgba(0, 0, 0, 0.5); }
+/* 560, not 480 (I53, found testing a tablet). The row's three fixed columns
+   take 226px and the gaps 30, so a 480px drawer left the keyword 165px — and
+   EIGHT of the forty in the set need 167 to 174, so they ellipsised at every
+   width above the phone rule: "budget gym wear wome…". Nine pixels short, on
+   the screen whose whole job is choosing a keyword by reading it. 560 gives
+   the name 245px, against the longest term's 174. */
+body.studio .kplanner { position: fixed; top: 0; right: 0; bottom: 0; z-index: 41; display: flex; flex-direction: column; gap: 12px; width: min(560px, 100vw); padding: 24px; box-sizing: border-box; border-left: 1px solid #26232A; background: #141216; box-shadow: -12px 0 32px rgba(0, 0, 0, 0.5); }
 body.studio .kplanner-head { display: flex; align-items: center; justify-content: space-between; }
 body.studio .kplanner-head h3 { margin: 0; font: 800 26px/1 var(--studio-display); }
 body.studio .kplanner-close { width: 34px; height: 34px; padding: 0; border-radius: 10px; background: none; color: var(--studio-text); font-size: 20px; }
@@ -943,9 +949,18 @@ body.studio .ww-left, body.studio .ww-rows { display: flex; flex-direction: colu
 body.studio .ww-row { display: flex; flex-direction: column; gap: 8px; padding: 14px 18px 10px; border: 1px solid var(--studio-line); border-radius: 18px; background: var(--studio-card); transition: border-color 150ms ease; }
 body.studio .ww-row.lit { border-color: #4A454F; }
 body.studio .ww-row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-body.studio .ww-named { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+/* The tier's name and the places it stands for stack at every width (I53).
+   On one line the name takes what it needs first - "Smaller cities and
+   towns" is 215px of a 297px cell - and left the places 73, which wrapped
+   to six lines once they stopped ellipsising. Each gets the cell now. */
+body.studio .ww-named { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; min-width: 0; }
 body.studio .ww-named strong { font: 700 18px/1.2 var(--studio-display); white-space: nowrap; }
-body.studio .ww-cities { overflow: hidden; font-size: 12px; color: var(--studio-muted); text-overflow: ellipsis; white-space: nowrap; }
+/* The cities a tier stands for WRAP, at every width (I53). This was
+   nowrap with an ellipsis, and the phone rule below was the only place it
+   wrapped — so a tablet showed "12 · Guwa…", 73 pixels of the 264 the line
+   wants, and lost both the places and the count of them. Fixing a clip only
+   where it was first noticed leaves it everywhere else. */
+body.studio .ww-cities { flex: 1 0 100%; font-size: var(--t-small); color: var(--studio-muted); }
 body.studio .ww-now { display: flex; flex-shrink: 0; align-items: baseline; gap: 8px; }
 body.studio .ww-setting { font: 800 18px/1 var(--studio-display); font-variant-numeric: tabular-nums; }
 body.studio .ww-times { font-size: 12px; color: var(--studio-soft); font-variant-numeric: tabular-nums; }
@@ -1023,10 +1038,6 @@ body.studio .ww.dragging :is(.ww-bar, .ww-read, .ww-fill, .ww-knob) { transition
    the setting, and the block names move into a grid under the chart. */
 @container (max-width: 560px) {
   body.studio .ww-day { grid-template-columns: 38px minmax(0, 1fr); padding: 14px 12px 12px 4px; }
-  /* The cities a tier stands for wrap rather than ellipsise (I51): at 242px
-     against the 246-312 they want, the cut fell inside "and 4 more", so a
-     phone lost the count of how many places a tier covers. */
-  body.studio .ww-cities { white-space: normal; overflow: visible; text-overflow: clip; }
   body.studio .ww-yscale, body.studio .ww-plot { height: 220px; }
   body.studio .ww-yscale span { right: 6px; }
   body.studio .ww-yscale .ww-y-hourly { display: none; }
@@ -1037,7 +1048,6 @@ body.studio .ww.dragging :is(.ww-bar, .ww-read, .ww-fill, .ww-knob) { transition
   body.studio .ww-label { position: static; width: auto; padding: 0; }
   body.studio .ww-label strong { white-space: normal; }
   body.studio .ww-figures .ww-small { text-align: left; }
-  body.studio .ww-named { flex-wrap: wrap; }
 }
 @media (prefers-reduced-motion: reduce) {
   body.studio :is(.ww-bar, .ww-read, .ww-fill, .ww-knob, .ww-row) { transition: none; }
@@ -1824,11 +1834,18 @@ body.studio .r0-ask { max-width: 720px; margin: -10px 0 18px; font-size: 13px; c
    more, and an outline of 3.33:1 against the page. */
 body.studio .r0-mini { display: grid; grid-template-columns: repeat(3, 26px); grid-template-rows: repeat(2, 20px); gap: 4px; align-self: flex-start; }
 body.studio .r0-mini-cell { width: 26px; height: 20px; padding: 0; border: 1px solid #68636B; border-radius: 4px; background: none; }
-/* Where they sat is forty-eight of these, and on a phone it is the whole of
-   what that screen asks you to do (I51). They grow to a finger there rather
-   than everywhere, because on a desktop they are a diagram you click, and at
-   26x20 the six of them read as one small grid — which is the point. */
-@media (max-width: 560px) {
+/* Where they sat is forty-eight of these, and on a touch screen it is the
+   whole of what that screen asks you to do (I51, widened by I53). They grow
+   to a finger there rather than everywhere: on a desktop they are a diagram
+   you click, and at 26x20 the six of them read as one small grid, which is
+   the point of drawing them that way.
+
+   `pointer: coarse` AND NOT A WIDTH, because a tablet is a finger at 768px
+   and a small desktop window is a mouse at 768px — the question is what is
+   touching the glass, and only this query asks it. The width arm stays so the
+   phone case is still testable in a pane that emulates a size but not a
+   touch screen, which is how this was missed: a tablet at 768 kept 26x20. */
+@media (pointer: coarse), (max-width: 560px) {
   body.studio .r0-mini { grid-template-columns: repeat(3, 34px); grid-template-rows: repeat(2, 26px); gap: 5px; }
   body.studio .r0-mini-cell { width: 34px; height: 26px; }
 }

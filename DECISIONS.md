@@ -7355,3 +7355,42 @@ nothing at first: its explanatory comment was pasted **outside** the comment
 block, which silently killed every declaration after it — the same fault as
 I48's. Both times it was found by measuring the computed style rather than by
 reading the file.
+
+### I53. What a tablet found, and the reason it was there to find — `FIXED` (2026-09-26)
+
+**Played end to end at 768x1024**, the band where the shell's ≤900px rules
+apply and the ≤560px ones do not: the first run's seven beats, round 0's five
+steps, twelve weeks, every section, all four Results sections. Three findings,
+and **all three were general defects that a phone-shaped fix had hidden.**
+
+**The planner's drawer was 480px.** Its row gives three fixed columns 226px and
+the gaps 30, so the keyword got **165px** — and **eight of the forty** terms in
+the set need 167 to 174. They ellipsised at *every* width above the phone rule,
+desktop included: *"budget gym wear wome…"*. Nine pixels short, on the screen
+whose whole job is choosing a keyword by reading it. The drawer is 560px now
+and the name gets 245 against the longest term's 174; nothing clips at 375,
+768 or 1280.
+
+**A tier's places were nowrap with an ellipsis everywhere but a phone.** A
+tablet showed *"12 · Guwa…"* — **73 pixels of the 264** the line wants, losing
+both the places and the count of them. They wrap at every width now. That
+exposed the layer under it: the tier's name and its places shared a line, and
+"Smaller cities and towns" is 215px of a 297px cell, so the places had 73 to
+wrap into and took six lines. Name and places stack, and each gets the cell.
+
+**The quiz cells stayed 26x20 on a tablet**, because I51 grew them below 560px.
+**A tablet is a finger at 768px and a small desktop window is a mouse at
+768px**, and only `pointer: coarse` asks which. The rule is
+`@media (pointer: coarse), (max-width: 560px)`: coarse catches a touch screen
+at any size, and the width arm stays because the browser pane emulates a size
+but not a touch screen — at a custom 768 it reports `maxTouchPoints: 0`, which
+is exactly how this was missed. Measured after: **34x26 with a coarse pointer,
+26x20 with a mouse.**
+
+**THE LESSON IS THE PATTERN, NOT THE THREE BUGS.** Each of these was found on a
+phone first and fixed with a phone-shaped rule, and each was still broken
+everywhere else — one of them on the desktop that gets the most use. A clip
+fixed only at the width where it was noticed is a clip that is still there. Ask
+what the rule is *about*: a keyword needs room for its longest term, a tier
+needs room for its places, and a target needs room for whatever is touching it.
+None of those three is a screen width.
