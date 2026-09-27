@@ -108,12 +108,18 @@ function beatSerp(f, parts) {
   return [kicker(W.b2Kicker(f)), searchBox(f, stack), say(W.b2Say(f))];
 }
 
-/** The ladder: one row a brand, revealed in rank order. */
+/**
+ * The ladder: one row a brand, revealed in rank order.
+ *
+ * WITHOUT ITS PAYS COLUMN SINCE I57. Six columns was two too many, and the
+ * sixth contradicted the beat's own opening sentence. The class goes on the
+ * node so the stylesheet lays out five columns rather than six.
+ */
 function ladder(f, table) {
-  const node = el('div', 'fr-ladder');
+  const node = el('div', 'fr-ladder nopays');
   const head = el('div', 'fr-lhd');
   add(head, el('span', null), el('span', null, W.colBrand(f)), el('span', null, W.colBid(f)),
-    el('span', null, W.colFits(f)), el('span', null, W.colRank(f)), el('span', null, W.colPays(f)));
+    el('span', null, W.colFits(f)), el('span', null, W.colRank(f)));
   add(node, head);
 
   let cut = false;
@@ -138,7 +144,37 @@ function ladder(f, table) {
       el('span', 'fr-brand', row.name),
       el('span', 'fr-num', row.bid),
       fit,
-      rank,
+      rank);
+    add(node, line);
+  });
+  return node;
+}
+
+/**
+ * Beat 5: what each of the four actually paid (I57).
+ *
+ * Only the brands that showed. The two below the line pay nothing, and a row
+ * of dashes under a column headed "pays" is the kind of near-miss this run
+ * cannot afford — the screen exists to make one rule legible.
+ *
+ * Two plain figures and an arrow, with no bar on it: the ladder's bars are
+ * about the ORDER, which is settled by the time a reader arrives here.
+ */
+function prices(f, table) {
+  const node = el('div', 'fr-prices');
+  const head = el('div', 'fr-phd');
+  add(head, el('span', null), el('span', null, W.b5Bid(f)), el('span', null), el('span', null, W.b5Paid(f)));
+  add(node, head);
+  table.filter((row) => row.shown).forEach((row, i) => {
+    const line = el('div', 'fr-prow');
+    line.style.animationDelay = `${i * STAGGER}ms`;
+    add(line,
+      el('span', 'fr-brand', row.name),
+      el('span', 'fr-num', row.bid),
+      // Its own class, not `fr-arrow`: that one is hidden below 560px, where
+      // the two-cell strips stack and an arrow pointing sideways would lie.
+      // This row stays a row at every width, so its arrow stays.
+      el('span', 'fr-then', '→'),
       el('span', 'fr-num pays', row.pays));
     add(node, line);
   });
@@ -161,9 +197,12 @@ function beatAuction(f) {
 }
 
 function beatLadder(f, parts) {
-  const callout = el('div', 'fr-callout');
-  add(callout, kicker(W.b4ReadAgain(f)), say(W.b4Callout(f)), note(W.b4Cost(f)));
-  return [kicker(W.b4Kicker(f)), say(W.b4Say(f)), ladder(f, parts.table), callout];
+  return [kicker(W.b4Kicker(f)), say(W.b4Say(f)), ladder(f, parts.table), note(W.b4Callout(f))];
+}
+
+function beatPrice(f, parts) {
+  return [kicker(W.b5Kicker(f)), say(W.b5Say(f)), prices(f, parts.table),
+    note(W.b5Note(f)), note(W.b5Cost(f))];
 }
 
 /** One figure with its label, as beat 4's pair of cells. */
@@ -177,10 +216,10 @@ function cell(label, value, sub, tone) {
 function beatClick(f) {
   const strip = el('div', 'fr-strip');
   add(strip,
-    cell(W.b5Pays(f), f.winnerPays, W.b5When(f), 'red'),
+    cell(W.b6Pays(f), f.winnerPays, W.b6When(f), 'red'),
     el('span', 'fr-arrow', '→'),
-    cell(W.b5Sold(f), f.zero, W.b5Looking(f), 'dim'));
-  return [kicker(W.b5Kicker(f)), strip, say(W.b5Say(f)), note(W.b5Note(f))];
+    cell(W.b6Sold(f), f.zero, W.b6Looking(f), 'dim'));
+  return [kicker(W.b6Kicker(f)), strip, say(W.b6Say(f)), note(W.b6Note(f))];
 }
 
 /** The five weeks a click takes to settle, with the ones that matter lit. */
@@ -217,35 +256,35 @@ function rewrite(title, rows) {
 function beatDelay(f, parts) {
   const { weeks: list, reports } = parts.tail;
   return [
-    kicker(W.b7Kicker(f)),
+    kicker(W.b8Kicker(f)),
     weeks(list, 'delay'),
-    rewrite(W.b7Report(f), [[W.b7Then(f), reports.then], [W.b7Later(f), reports.later, 'up']]),
-    say(W.b7Say(f)),
-    note(W.b7Note(f)),
+    rewrite(W.b8Report(f), [[W.b8Then(f), reports.then], [W.b8Later(f), reports.later, 'up']]),
+    say(W.b8Say(f)),
+    note(W.b8Note(f)),
   ];
 }
 
 function beatRefused(f, parts) {
   const { weeks: list, reports } = parts.tail;
   return [
-    kicker(W.b8Kicker(f)),
+    kicker(W.b9Kicker(f)),
     weeks(list, 'refused'),
-    say(W.b8Say(f)),
-    rewrite(W.b8Report3(f), [
-      [W.b7Then(f), reports.then],
-      [W.b7Later(f), reports.later, 'up'],
-      [W.b8Latest(f), reports.latest, 'down'],
+    say(W.b9Say(f)),
+    rewrite(W.b9Report3(f), [
+      [W.b8Then(f), reports.then],
+      [W.b8Later(f), reports.later, 'up'],
+      [W.b9Latest(f), reports.latest, 'down'],
     ]),
-    note(W.b8Note(f)),
+    note(W.b9Note(f)),
   ];
 }
 
 function beatYours(f) {
   return [
-    kicker(W.b9Kicker(f)),
-    el('div', 'fr-hero', W.b9Hero(f)),
-    say(W.b9Say(f)),
-    note(W.b9Note(f)),
+    kicker(W.b10Kicker(f)),
+    el('div', 'fr-hero', W.b10Hero(f)),
+    say(W.b10Say(f)),
+    note(W.b10Note(f)),
   ];
 }
 
@@ -257,10 +296,10 @@ function beatYours(f) {
 function beatBudget(f) {
   const strip = el('div', 'fr-strip');
   add(strip,
-    cell(W.b6Week(f), f.weekBudget, W.b6ToSpend(f), null),
+    cell(W.b7Week(f), f.weekBudget, W.b7ToSpend(f), null),
     el('span', 'fr-arrow', '→'),
-    cell(W.b6Buys(f), f.budgetClicks, W.b6Gone(f), 'red'));
-  return [kicker(W.b6Kicker(f)), strip, say(W.b6Say(f)), note(W.b6Note(f))];
+    cell(W.b7Buys(f), f.budgetClicks, W.b7Gone(f), 'red'));
+  return [kicker(W.b7Kicker(f)), strip, say(W.b7Say(f)), note(W.b7Note(f))];
 }
 
 const BODIES = {
@@ -268,6 +307,7 @@ const BODIES = {
   serp: beatSerp,
   auction: beatAuction,
   ladder: beatLadder,
+  price: beatPrice,
   click: beatClick,
   budget: beatBudget,
   delay: beatDelay,

@@ -2361,6 +2361,37 @@ body.studio .fr-cut {
 }
 body.studio .fr-cut i { flex-grow: 1; height: 1px; background: var(--studio-line); }
 
+/* The ladder without its price column (I57). The order is settled here and
+   the price on the beat after, so the bid, the fit and the rank get the width
+   the sixth column used to take. */
+body.studio .fr-ladder.nopays .fr-lrow,
+body.studio .fr-ladder.nopays .fr-lhd { grid-template-columns: 30px 110px 60px 104px minmax(0, 1fr); }
+
+/* Beat 5's table: what each of the four actually paid. Two figures and an
+   arrow, deliberately without a bar — the bars next door are about the ORDER,
+   which is decided before a reader gets here. */
+/* Narrower than the ladder beside it, because it has four columns rather than
+   six: at the card's full width the brand column ran to 399px and left the two
+   figures stranded 200px from the name they belong to. The pair is the point
+   of the screen, so it is read across a short distance. */
+body.studio .fr-prices { display: flex; flex-direction: column; gap: 2px; max-width: 440px; }
+body.studio .fr-prow,
+body.studio .fr-phd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px 24px 72px;
+  align-items: center; gap: 12px;
+}
+body.studio .fr-phd {
+  padding: 0 12px 6px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .fr-prow {
+  padding: 9px 12px; border-radius: 10px; font-size: 13px;
+  background: var(--studio-raised);
+  animation: fr-rise 240ms var(--studio-ease) both;
+}
+body.studio .fr-then { color: var(--studio-faint); text-align: center; }
+
 body.studio .fr-callout {
   background: var(--studio-panel); border: 1px solid var(--studio-panel-edge);
   border-radius: 14px; padding: 16px 18px;
@@ -2439,6 +2470,10 @@ body.studio .fr-rw .down { color: var(--studio-amber); }
      673px, 2026-09-19). */
   body.studio .fr-lrow,
   body.studio .fr-lhd { grid-template-columns: 22px minmax(0, 1fr) 46px 56px minmax(0, 1fr) 62px; }
+  body.studio .fr-ladder.nopays .fr-lrow,
+  body.studio .fr-ladder.nopays .fr-lhd { grid-template-columns: 22px minmax(0, 1fr) 50px 60px minmax(0, 1fr); }
+  body.studio .fr-prow,
+  body.studio .fr-phd { grid-template-columns: minmax(0, 1fr) 56px 20px 56px; }
   body.studio .fr-say { font-size: 17px; }
   body.studio .fr-rw { flex-direction: column; gap: 2px; }
   body.studio .fr-rw > span:first-child { width: auto; }

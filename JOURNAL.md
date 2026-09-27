@@ -42,6 +42,44 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-26, last: the bidding got two screens, and the run got a proofread
+
+**I57.** A second tester said the bidding was the hardest thing in the run. The
+ladder beat had three faults, and the first made the other two unreadable: it
+called a bid **"a price it will pay"** directly above a `PAYS` column where all
+four brands paid something else. ₹30 → ₹25, ₹19 → ₹17, ₹17 → ₹13, ₹16 → ₹9 —
+four contradictions of its own opening sentence. A bid is a ceiling, and
+everything else on that screen went wrong downstream of calling it a price.
+
+The rule behind `PAYS` was never stated; the one explanation given covered the
+runner-up and nobody else. And six columns, two of them bars, asked the reader
+to check ₹30 × 0.625 > ₹16 × 1.000 by eye.
+
+**The screen was already telling us.** Its callout was headed *"Read those two
+rows again"*. A screen that asks the reader to go round again is reporting a
+fault, not helping.
+
+Split on I55's pattern: beat 4 settles the ORDER (five columns, no price, and a
+callout that finally answers why the best-fitting ad is second), beat 5 settles
+the PRICE (bid → pays, no bars, the rule said plainly). `cost per click` moved
+to beat 5, where a click's price is actually set, leaving the click beat one
+term. Ten beats, all under the 80-word bound, 451 words.
+
+**The ratchet has now moved twice**, which is a habit forming, so the guard's
+comment records both moves and what a third would have to show: a named reader
+who could not follow a specific screen, and a fault on it that splitting fixes.
+
+**Two claims on screen got tests**, because a different demonstration could
+falsify either with everything else green: that the runner-up really does have
+the best-fitting ad **of all six**, and that nobody shown paid their bid. The
+second is why the kicker says "nobody **here**" — the engine prices at
+`min(bid, …)`, so the minimum can bind and someone CAN pay their bid.
+
+**The proofread found four punctuation errors**, the worst of which was also a
+clarity bug: *"She pays cash on delivery, and doesn't take it"* — a comma on a
+compound predicate, and an "it" standing for a parcel named only in the next
+sentence.
+
 ## 2026-09-26, after that: the revision mark was amber, and amber was taken
 
 **I56.** The owner played it and said the tint I52 added still felt too quiet.

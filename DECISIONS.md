@@ -7541,3 +7541,79 @@ all. Holding a colour still is not motion. Only the fade goes.
 it reads `.yw-bar.yw-was`'s own hex out of the stylesheet and requires the wash
 to be that grey, and refuses `--studio-amber` by name and by value. Proven to
 bite by putting amber back — one test failed, and only that one.
+
+### I57. The bidding gets two screens, because one was answering two questions — `FIXED` (2026-09-26)
+
+**A second tester told the owner the bidding was the hardest thing in the
+run.** The ladder beat — the run's centre — had three faults at once, and the
+first is the one that made the other two unreadable.
+
+**1. IT CALLED A BID A PRICE, ABOVE A COLUMN WHERE NOBODY PAID IT.** *"Each
+brand names a price it will pay for a click"* — and then `PAYS` read ₹25 on a
+₹30 bid, ₹17 on ₹19, ₹13 on ₹17, ₹9 on ₹16. Four contradictions of the opening
+sentence, on the same screen, to a reader who has been advertising for ninety
+seconds. A bid is a **ceiling**, and every later confusion on that screen
+follows from calling it a price.
+
+**2. The rule behind `PAYS` was never given.** The one explanation offered —
+*"Its better ad means ₹9 a click"* — accounts for the runner-up and for
+nobody else.
+
+**3. Six columns, two of them bars to be multiplied by eye.** The winner's
+`AD FITS` bar is SHORTER than the runner-up's while its `RANK` bar is LONGER.
+That is correct — ₹30 × 0.625 beats ₹16 × 1.000 — and no reader can confirm it
+by looking.
+
+**The screen was already telling us.** Its callout was headed **"Read those two
+rows again"**. A screen that asks the reader to go round again is reporting a
+fault, not helping; it is gone.
+
+**Split, on the I55 pattern.**
+
+- **Beat 4, "How the four were chosen"** — the ORDER only. Five columns; `PAYS`
+  gone. The sentence now says *the most it will pay*, and the callout answers
+  the question the table actually raises: *the runner-up's ad fits this search
+  best of all, and it still sits second, because its bid is not enough.*
+- **Beat 5, "Nobody here paid their bid"** — the PRICE. Four brands, bid → pays,
+  no bars, and the rule said plainly: *a bid is a ceiling, not a price; you pay
+  just enough to hold the place you won.*
+
+**`cost per click` moved to beat 5**, since that is the screen where a click's
+price is settled and shown — "one word, one home". The click beat is left
+teaching one term, which is what it is about.
+
+**THE KICKER IS A CLAIM ABOUT THE TABLE, NOT ABOUT AUCTIONS.** The engine
+prices at `min(bid, ceil(beatRank / qualitySignal) + MIN_INCREMENT_PAISE)`
+(`engine/auction.js`), so the minimum CAN bind and an advertiser CAN pay its
+bid exactly. *"Nobody ever pays their bid"* would be false. *"Nobody **here**
+paid their bid"* is true of these four, and a test now holds it true — as does
+a second test for the callout's claim that the runner-up fits best of all six.
+Both are claims a different demonstration could falsify with every other test
+still green.
+
+**Ten beats, and the ratchet moved for the second time.** The guard's comment
+now records both moves and what would make a third legitimate: a named reader
+who could not follow a specific screen, and a fault on that screen that
+splitting fixes. Wanting to say more is not one. **The 80-word bound has never
+moved**; all ten come in under it, and the run is 451 words.
+
+**No beat was redundant.** The owner offered removal as an option and there was
+nothing to remove — all nine carried a distinct idea. What went was the "Read
+those two rows again" callout, which existed only because the table was
+overloaded.
+
+**Four punctuation errors, found reading the run as prose:**
+
+- *"She pays cash on delivery, and doesn't take it"* — one subject, two verbs,
+  so "and" joins a predicate and takes no comma. **And "it" stood for a parcel
+  the reader had not been shown**: the ₹2,400 is named in the NEXT sentence. It
+  reads *"…and refuses the parcel"* now.
+- *"runs its own auction, the moment it is typed"* — the comma cut off an
+  adverbial that says WHEN, making it an afterthought.
+- *"whether one is yours, and what you pay"* — a comma between two noun clauses
+  governed by one verb.
+- *"Nothing is refunded and nothing carries over"* — the only "X, and Y" in the
+  file missing its comma; beats 2, 3 and 10 all take one.
+
+**And one figure leaning on its heading:** *"There are 4,30,000 a week"* had no
+noun — the kicker above supplied it. It says *searches* now.

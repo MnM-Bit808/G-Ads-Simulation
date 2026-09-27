@@ -138,18 +138,23 @@ describe('the demonstration is a real auction, not a written one', () => {
 
 describe('the run moves one beat at a time, and the player holds the clock', () => {
   /**
-   * NINE SINCE I55, AND THE NUMBER IS STILL THE RATCHET. This assertion is
+   * TEN SINCE I57, AND THE NUMBER IS STILL THE RATCHET. This assertion is
    * what stops the run growing — the comment below the word bound says so,
    * and says a total-word bound "would only be a number to nudge upward".
-   * It was moved from seven deliberately, once, on a tester's report that the
-   * run went too fast: the auction was split from the ladder and the budget
-   * from the click, because each of those screens taught THREE of the run's
-   * fifteen terms. No beat teaches more than two now. Moving it again wants
-   * the same standard of evidence.
+   *
+   * It has been moved twice, both times on a tester's report and never to make
+   * room for something new. Seven to nine (I55): the ladder and the click each
+   * taught THREE of the run's fifteen terms. Nine to ten (I57): the ladder
+   * settled the order AND the price on one screen, and called a bid "a price
+   * it will pay" above a column where nobody paid it.
+   *
+   * WHAT WOULD MAKE A MOVE LEGITIMATE, since twice is a habit forming: a named
+   * reader who could not follow a specific screen, and a fault on that screen
+   * that splitting fixes. Wanting to say more is not one.
    */
-  test('there are nine beats, each with its own key', () => {
-    expect(BEATS).toHaveLength(9);
-    expect(new Set(BEATS.map((b) => b.key)).size).toBe(9);
+  test('there are ten beats, each with its own key', () => {
+    expect(BEATS).toHaveLength(10);
+    expect(new Set(BEATS.map((b) => b.key)).size).toBe(10);
   });
 
   /**
@@ -172,7 +177,7 @@ describe('the run moves one beat at a time, and the player holds the clock', () 
   test('it opens on the first, carrying the statement of what this is', () => {
     const view = runView(0);
     expect(view.at).toBe(0);
-    expect(view.total).toBe(9);
+    expect(view.total).toBe(10);
     expect(view.showsOpener, 'beat 1 carries the opening statement').toBe(true);
     expect(view.canBack).toBe(false);
     expect(view.isLast).toBe(false);
@@ -236,17 +241,53 @@ describe('every figure the run quotes is the engine’s own', () => {
 
   // WHAT THE CALLOUT HAS TO CARRY, after it was caught leaving a beginner with
   // "better ad, lower place" and no way to resolve it (2026-09-20). Prose
-  // quality is not testable; these two things are, and they are the two the
-  // faulty version got wrong.
+  // quality is not testable; these things are, and they are what the faulty
+  // version got wrong.
   //
-  // BOTH BIDS, BOTH PRICES. Drop the winner's BID and nothing on screen
-  // explains why it is on top, which is exactly how the contradiction got in.
-  // Drop either price and "buying your way up costs you every click" has
-  // nothing to stand on.
-  test('beat 3’s callout quotes both bids and both prices', () => {
+  // SPLIT ACROSS TWO BEATS BY I57, and so is the guarantee. The ladder now
+  // answers the PLACE and needs both bids; the price beat answers the PRICE
+  // and needs both bids and both prices. The old single test asked one screen
+  // for all four figures, which is the density that made it hard to read.
+  test('the ladder’s callout quotes both bids, so the order is explained', () => {
     const said = FIRST_RUN.b4Callout(f);
+    for (const figure of [f.winnerBid, f.runnerUpBid]) {
+      expect(said, figure).toContain(figure);
+    }
+    // And it must NOT reach for a price: that column is not on this screen,
+    // which is the whole point of the split.
+    for (const figure of [f.winnerPays, f.runnerUpPays]) {
+      expect(said, `${figure} belongs to beat 5`).not.toContain(figure);
+    }
+  });
+
+  test('the price beat quotes both bids and both prices', () => {
+    const said = FIRST_RUN.b5Note(f);
     for (const figure of [f.winnerBid, f.winnerPays, f.runnerUpBid, f.runnerUpPays]) {
       expect(said, figure).toContain(figure);
+    }
+  });
+
+  // TWO CLAIMS THE SCREENS MAKE ABOUT THE DATA, which a different seed could
+  // falsify while every other test stayed green.
+  //
+  // The ladder says the runner-up's ad "fits this search best of all" — of ALL
+  // six rows, not just the four shown, because two of the six are on screen
+  // under the line with their fit bars drawn.
+  test('the runner-up really does have the best-fitting ad of the six', () => {
+    const table = tableFor(demonstration());
+    const best = [...table].sort((a, b) => b.fitShare - a.fitShare)[0];
+    expect(best.name, 'the ladder’s callout claims this brand fits best').toBe(f.runnerUp);
+  });
+
+  // And the price beat's kicker says nobody HERE paid their bid. The engine
+  // prices at `min(bid, ceil(beatRank / quality) + MIN_INCREMENT)`, so the
+  // minimum can bind and an advertiser can pay its bid exactly — the claim is
+  // true of this table, not of auctions, and only a test keeps it that way.
+  test('nobody shown in the demonstration paid their bid', () => {
+    const shown = tableFor(demonstration()).filter((row) => row.shown);
+    expect(shown.length).toBeGreaterThan(0);
+    for (const row of shown) {
+      expect(row.pays, `${row.name} bid ${row.bid} and pays ${row.pays}`).not.toBe(row.bid);
     }
   });
 
@@ -409,15 +450,16 @@ describe('no beat drowns the reader, which is the whole argument', () => {
     search: ['b1Kicker', 'b1Where', 'b1Say'],
     serp: ['b2Kicker', 'b2Say', 'b2Sponsored', 'b2Organic'],
     auction: ['b3Kicker', 'b3Say', 'b3Again', 'b3Wanted', 'b3OfBrands', 'b3Cut', 'b3Shown'],
-    ladder: ['b4Kicker', 'b4Say', 'b4Cut', 'b4ReadAgain', 'b4Callout', 'b4Cost',
-      'colBrand', 'colBid', 'colFits', 'colRank', 'colPays'],
-    click: ['b5Kicker', 'b5Pays', 'b5Sold', 'b5When', 'b5Looking', 'b5Say', 'b5Note'],
-    budget: ['b6Kicker', 'b6Say', 'b6Note', 'b6Week', 'b6ToSpend', 'b6Buys', 'b6Gone'],
-    delay: ['b7Kicker', 'b7Say', 'b7Note', 'b7Report', 'b7Then', 'b7Later',
+    ladder: ['b4Kicker', 'b4Say', 'b4Cut', 'b4Callout',
+      'colBrand', 'colBid', 'colFits', 'colRank'],
+    price: ['b5Kicker', 'b5Say', 'b5Note', 'b5Cost', 'b5Bid', 'b5Paid'],
+    click: ['b6Kicker', 'b6Pays', 'b6Sold', 'b6When', 'b6Looking', 'b6Say', 'b6Note'],
+    budget: ['b7Kicker', 'b7Say', 'b7Note', 'b7Week', 'b7ToSpend', 'b7Buys', 'b7Gone'],
+    delay: ['b8Kicker', 'b8Say', 'b8Note', 'b8Report', 'b8Then', 'b8Later',
       'repThen', 'repLater', 'wkClick', 'wkThinks', 'wkBuys', 'wkShips', 'wkRefused'],
-    refused: ['b8Kicker', 'b8Say', 'b8Note', 'b8Report3', 'b8Latest',
+    refused: ['b9Kicker', 'b9Say', 'b9Note', 'b9Report3', 'b9Latest',
       'repThen', 'repLater', 'repLatest', 'wkClick', 'wkThinks', 'wkBuys', 'wkShips', 'wkRefused'],
-    yours: ['b9Kicker', 'b9Hero', 'b9Say', 'b9Note'],
+    yours: ['b10Kicker', 'b10Hero', 'b10Say', 'b10Note'],
   };
   const OPENER = ['openTitle', 'openTypes', 'openLength', 'openNoNeed'];
 

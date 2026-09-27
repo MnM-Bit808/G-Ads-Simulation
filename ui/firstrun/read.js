@@ -40,11 +40,16 @@ export const BEATS = Object.freeze([
   // went too fast.
   { key: 'auction', trail: W.b3Trail, next: W.next3 },
   { key: 'ladder', trail: W.b4Trail, next: W.next4 },
-  { key: 'click', trail: W.b5Trail, next: W.next5 },
-  { key: 'budget', trail: W.b6Trail, next: W.next6 },
-  { key: 'delay', trail: W.b7Trail, next: W.next7 },
-  { key: 'refused', trail: W.b8Trail, next: W.next8 },
-  { key: 'yours', trail: null, next: W.next9 },
+  // Split from the ladder (I57): that screen carried six columns, and the one
+  // headed PAYS contradicted its own opening sentence — a bid was called "a
+  // price it will pay" and then nobody paid it. The order is settled here; the
+  // price is settled on the screen after.
+  { key: 'price', trail: W.b5Trail, next: W.next5 },
+  { key: 'click', trail: W.b6Trail, next: W.next6 },
+  { key: 'budget', trail: W.b7Trail, next: W.next7 },
+  { key: 'delay', trail: W.b8Trail, next: W.next8 },
+  { key: 'refused', trail: W.b9Trail, next: W.next9 },
+  { key: 'yours', trail: null, next: W.next10 },
 ].map(Object.freeze));
 
 /**
@@ -188,7 +193,12 @@ export const TERMS = Object.freeze({
   // out of is a third, not a clause on the click's screen.
   auction: [[W.termAuction, W.glossAuction]],
   ladder: [[W.termBid, W.glossBid], [W.termRank, W.glossRank]],
-  click: [[W.termClick, W.glossClick], [W.termCpc, W.glossCpc]],
+  // COST PER CLICK MOVED HERE FROM THE CLICK (I57). This is the screen where
+  // the price of a click is actually settled and shown, and naming it beside
+  // the thing that sets it is the whole point of "one word, one home". It
+  // leaves the click teaching one term, which is what that beat is about.
+  price: [[W.termCpc, W.glossCpc]],
+  click: [[W.termClick, W.glossClick]],
   budget: [[W.termBudget, W.glossBudget]],
   delay: [[W.termConversion, W.glossConversion], [W.termDelay, W.glossDelay]],
   refused: [[W.termReturn, W.glossReturn], [W.termRefused, W.glossRefused]],

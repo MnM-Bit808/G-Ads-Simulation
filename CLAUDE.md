@@ -260,6 +260,14 @@ number in the simulation without ever throwing an error.
   the guide's "Show me in your account" finds one (`sectionOf`) and how a first
   visit knows what to bring in (`entranceSlots`). Show me rings any part
   carrying a `data-slot` and focuses its own heading, an h3.
+- **A screen that tells the reader to go round again is reporting a fault.**
+  The ladder beat's callout was headed *"Read those two rows again"*, and it was
+  there because the screen said a bid was "a price it will pay" above a column
+  where nobody paid it (I57). Copy that coaches the reader through a screen is
+  the screen asking to be split. The same entry carries the narrower rule: **a
+  word used loosely in a sentence becomes a contradiction the moment a column
+  shows the exact number** — a bid is a ceiling, and every confusion on that
+  screen followed from calling it a price.
 - **A colour is chosen from the picture it lands in, not from the palette.**
   The revision tint was amber "because a correction is not money and not the
   player" — sound about the Studio, and wrong about the chart it sat on, where

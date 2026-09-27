@@ -28,7 +28,8 @@ import { line } from './line.js';
 export const FIRST_RUN = Object.freeze({
   // The opening statement, shown above beat 1 only.
   openTitle: line('label', 'You’re buying the ads above Google’s search results.'),
-  openTypes: line('reading', 'Four ads sit above Google’s results. You decide whether one is yours, '
+  // No comma before "and": both halves are objects of "decide", not clauses.
+  openTypes: line('reading', 'Four ads sit above Google’s results. You decide whether one is yours '
     + 'and what you pay.'),
   openLength: line('reading', ({ weeks, rivals }) => `${weeks} weeks. ${rivals} rival brands. `
     + 'You’re ranked on what your business made.'),
@@ -61,60 +62,74 @@ export const FIRST_RUN = Object.freeze({
   b3Kicker: line('label', 'Nobody bought those slots'),
   b3Say: line('reading', ({ of, entered, slots }) => `${of} brands sell here, and ${entered} wanted `
     + `this search. There are ${slots} slots, so most of them get nothing.`),
-  b3Again: line('reading', 'Every search runs its own auction, the moment it is typed.'),
+  // No comma: "the moment it is typed" says WHEN the auction runs, so it is
+  // part of the sentence rather than an aside hung off the end of it.
+  b3Again: line('reading', 'Every search runs its own auction the moment it is typed.'),
   b3Wanted: line('label', 'wanted this search'),
   b3OfBrands: line('label', ({ of }) => `of the ${of} selling here`),
   b3Cut: line('label', 'can be shown'),
   b3Shown: line('label', 'the rest show nothing'),
   b3Trail: line('label', ({ entered, slots }) => `${entered} wanted it · ${slots} slots`),
 
-  // Beat 4, the ladder: how those slots were handed out. The run's centre.
+  // BEAT 4, THE ORDER ALONE (I57, split from the price 2026-09-26). A tester
+  // said the bidding was the hardest thing in the run, and the screen had
+  // three faults at once: it called a bid "a price it will pay" and then
+  // showed a PAYS column where nobody paid it; it never said what decided
+  // PAYS; and it asked the reader to multiply two bar charts by eye across six
+  // columns. The price and its column moved to beat 5. This one answers one
+  // question — how the four were picked — and the question the table itself
+  // raises, which is why the best-fitting ad is not first.
   b4Kicker: line('label', 'How the four were chosen'),
-  b4Say: line('reading', 'Each brand names a price it will pay for a click. '
-    + 'The order is that bid times how well the ad fits.'),
+  // "The most it will pay", never "a price it will pay". A bid is a ceiling,
+  // and calling it a price is what made the next column unreadable.
+  b4Say: line('reading', 'Each brand names the most it will pay for one click. '
+    + 'The order is that bid multiplied by how well the ad fits.'),
   // The line drawn across the table where the slots run out. Beat 3 has
   // already said how many there are; here it marks who fell below it.
   b4Cut: line('label', ({ slots }) => `only ${slots} slots`),
-  b4ReadAgain: line('label', 'Read those two rows again'),
-  // IT USED TO LEAVE A CONTRADICTION STANDING (2026-09-20, found by playing
-  // it). The old telling was "X bid ₹30, pays ₹25. Y bid ₹16, sits below, pays
-  // ₹9 — its ad fits better", which hands a true beginner *better ad, lower
-  // place* and never says why. The reader is left to resolve it, and the whole
-  // point of the run is that they cannot yet.
+  // THE ANSWER TO THE QUESTION THE TABLE ASKS. The runner-up's ad fits best of
+  // all six, and it still sits second — so a reader who noticed that is told
+  // why here rather than left to resolve it, which is the fault the 2026-09-20
+  // rewrite fixed for the price and left standing for the place.
   //
-  // THE PAIR IS RIGHT AND STAYS. `tests/firstRun.test.js` calls it THE LESSON
-  // and says the artboards in design/first-run/ are drawn to it: the runner-up
-  // bids less, pays less, and has the better-fitting ad. What was wrong was the
-  // telling, not the rows.
+  // Both halves are checked against the auction in tests/firstRun.test.js: a
+  // seed where the runner-up did not have the best fit would make this false
+  // on screen with every other test still green.
+  b4Callout: line('reading', ({ runnerUp, runnerUpBid, winnerBid }) =>
+    `${runnerUp}’s ad fits this search best of all. `
+    + `It still sits second: ${runnerUpBid} is not enough to beat ${winnerBid}.`),
+  b4Trail: line('label', ({ winner, winnerBid }) => `${winner} top on ${winnerBid}`),
+
+  // BEAT 5, THE PRICE (I57). Everything the ladder used to say about money,
+  // on a screen with room to say the rule rather than one worked example.
   //
-  // So the top place is now explained by the bid that bought it, and the fit is
-  // spent where it is actually spent — on the PRICE, not the place. That is
-  // also what makes b4Cost land: buying your way up costs you every click.
-  // AND IT HAD TO FIT THE BEAT'S WORD BUDGET. The ladder beat was at 78 of its
-  // 80, and the first rewrite took the screen to 87. The bound is not the thing
-  // to move — the run was cut twice on 2026-09-19 to come in under it — so this
-  // says the same thing in three short sentences instead of two long ones,
-  // which a beginner wants anyway. It now leaves the beat at 79.
-  //
-  // The bound counts words of two letters or more, so the figures and "a" are
-  // free and the SENTENCES are what cost: that is the budget to think in.
-  b4Callout: line('reading', ({ winner, winnerBid, winnerPays, runnerUp, runnerUpBid, runnerUpPays }) =>
-    `${winner}’s ${winnerBid} bid buys top place at ${winnerPays}. `
-    + `${runnerUp} bid ${runnerUpBid}. Its better ad means ${runnerUpPays} a click.`),
-  b4Cost: line('reading', 'Buying your way up costs you every click.'),
-  b4Trail: line('label', ({ winner, winnerPays }) => `${winner} first at ${winnerPays}`),
+  // THE KICKER IS A CLAIM ABOUT THE TABLE, NOT ABOUT AUCTIONS. The engine
+  // prices at `min(bid, ceil(beatRank / quality) + MIN_INCREMENT)`
+  // (engine/auction.js), so the minimum CAN bind and an advertiser CAN pay its
+  // bid exactly. "Nobody ever pays their bid" would be false; "nobody here
+  // paid their bid" is true of these four, and a test holds it true.
+  b5Kicker: line('label', 'Nobody here paid their bid'),
+  b5Say: line('reading', 'A bid is a ceiling, not a price. '
+    + 'You pay just enough to hold the place you won, and never more than you bid.'),
+  b5Note: line('reading', ({ winner, winnerBid, winnerPays, runnerUp, runnerUpBid, runnerUpPays }) =>
+    `${winner} bid ${winnerBid} and pays ${winnerPays}. `
+    + `${runnerUp} bid ${runnerUpBid} and pays ${runnerUpPays}: a better-fitting ad is cheaper to run.`),
+  b5Cost: line('reading', 'Buying your way up costs you every click.'),
+  b5Bid: line('label', 'bid'),
+  b5Paid: line('label', 'pays'),
+  b5Trail: line('label', ({ winner, winnerPays }) => `${winner} first at ${winnerPays}`),
 
   // Beat 4, the click. Where the money goes and the sale does not.
-  b5Kicker: line('label', 'She clicks the first one'),
-  b5Pays: line('label', ({ winner }) => `${winner} pays`),
-  b5Sold: line('label', ({ winner }) => `${winner} has sold`),
-  b5When: line('label', 'the moment she clicks'),
-  b5Looking: line('label', 'she is only looking'),
-  b5Say: line('reading', ({ winner, winnerPays }) => 'You pay for the visit, not the sale. '
+  b6Kicker: line('label', 'She clicks the first one'),
+  b6Pays: line('label', ({ winner }) => `${winner} pays`),
+  b6Sold: line('label', ({ winner }) => `${winner} has sold`),
+  b6When: line('label', 'the moment she clicks'),
+  b6Looking: line('label', 'she is only looking'),
+  b6Say: line('reading', ({ winner, winnerPays }) => 'You pay for the visit, not the sale. '
     + `She may buy nothing. ${winner} still paid ${winnerPays}.`),
-  b5Note: line('reading', 'A cheap click on the wrong search is expensive. '
+  b6Note: line('reading', 'A cheap click on the wrong search is expensive. '
     + 'A dear one on the right search is a bargain.'),
-  b5Trail: line('label', ({ winnerPays }) => `she clicked · ${winnerPays} gone · nothing sold`),
+  b6Trail: line('label', ({ winnerPays }) => `she clicked · ${winnerPays} gone · nothing sold`),
 
   // BEAT 6, THE BUDGET (I55, split from the click 2026-09-26). It used to be
   // the third term on the click's screen — a word smuggled in beside click
@@ -122,48 +137,55 @@ export const FIRST_RUN = Object.freeze({
   // what you buy, the budget is what you are buying it out of, and it is the
   // one that stops the ads. Round 0's last step asks for it, so it gets a
   // screen rather than a clause.
-  b6Kicker: line('label', 'Where that money came from'),
-  b6Say: line('reading', ({ winnerPays }) => `That ${winnerPays} came out of a budget set for the week. `
+  b7Kicker: line('label', 'Where that money came from'),
+  b7Say: line('reading', ({ winnerPays }) => `That ${winnerPays} came out of a budget set for the week. `
     + 'When the week’s money is gone, the ads stop showing.'),
-  b6Note: line('reading', 'Nothing is refunded and nothing carries over. '
+  // The comma every other "X, and Y" in this file takes: two whole clauses.
+  b7Note: line('reading', 'Nothing is refunded, and nothing carries over. '
     + 'A week you underspend is a week you bought less than you could have.'),
-  b6Week: line('label', 'a week’s budget'),
-  b6ToSpend: line('label', 'to spend on clicks'),
-  b6Buys: line('label', ({ winnerPays }) => `clicks at ${winnerPays}`),
-  b6Gone: line('label', 'then nothing shows'),
-  b6Trail: line('label', ({ winnerPays }) => `${winnerPays} of the week’s budget`),
+  b7Week: line('label', 'a week’s budget'),
+  b7ToSpend: line('label', 'to spend on clicks'),
+  b7Buys: line('label', ({ winnerPays }) => `clicks at ${winnerPays}`),
+  b7Gone: line('label', 'then nothing shows'),
+  b7Trail: line('label', ({ winnerPays }) => `${winnerPays} of the week’s budget`),
 
   // Beat 7, the delay.
-  b7Kicker: line('label', 'The same click, weeks on'),
-  b7Say: line('reading', 'The sale counts in the week she clicked, not the week she bought.'),
-  b7Note: line('reading', 'A week you already read is rewritten. '
+  b8Kicker: line('label', 'The same click, weeks on'),
+  b8Say: line('reading', 'The sale counts in the week she clicked, not the week she bought.'),
+  b8Note: line('reading', 'A week you already read is rewritten. '
     + 'Judging a week early is expensive.'),
-  b7Report: line('label', ({ clickWeek }) => `What week ${clickWeek} said`),
-  b7Then: line('label', 'when it happened'),
-  b7Later: line('label', 'two weeks later'),
-  b7Trail: line('label', ({ order, buyWeek }) => `she buys ${order} in week ${buyWeek}`),
+  b8Report: line('label', ({ clickWeek }) => `What week ${clickWeek} said`),
+  b8Then: line('label', 'when it happened'),
+  b8Later: line('label', 'two weeks later'),
+  b8Trail: line('label', ({ order, buyWeek }) => `she buys ${order} in week ${buyWeek}`),
 
-  // Beat 6, the return.
-  b8Kicker: line('label', 'Two weeks after that'),
-  b8Say: line('reading', ({ order, freight }) => 'She pays cash on delivery, and doesn’t take it. '
+  // Beat 9, the return.
+  b9Kicker: line('label', 'Two weeks after that'),
+  // TWO FIXES, 2026-09-26. The comma was wrong — one subject, two verbs, so
+  // "and" joins a predicate and takes none. And "it" pointed at nothing a
+  // reader had been shown: the parcel is named in the NEXT sentence, so the
+  // pronoun arrived before the noun it stood for.
+  b9Say: line('reading', ({ order, freight }) => 'She pays cash on delivery and refuses the parcel. '
     + `The ${order} goes back; the ${freight} freight does not.`),
-  b8Note: line('reading', ({ returnShare }) => `Roughly ${returnShare} come back — `
+  b9Note: line('reading', ({ returnShare }) => `Roughly ${returnShare} come back — `
     + 'the gap between revenue and profit.'),
-  b8Report3: line('label', ({ clickWeek }) => `What week ${clickWeek} said, again`),
-  b8Latest: line('label', 'four weeks later'),
-  b8Trail: line('label', ({ freight }) => `refused at the door · ${freight} of freight gone`),
+  b9Report3: line('label', ({ clickWeek }) => `What week ${clickWeek} said, again`),
+  b9Latest: line('label', 'four weeks later'),
+  b9Trail: line('label', ({ freight }) => `refused at the door · ${freight} of freight gone`),
 
   // Beat 7, the handover into round 0.
-  b9Kicker: line('label', 'That was one search'),
-  b9Hero: line('label', ({ weekly, of }) => `There are ${weekly} a week, and ${of} brands want them.`),
-  b9Say: line('reading', ({ weeks }) => `One of those brands is you. For ${weeks} weeks you decide `
+  b10Kicker: line('label', 'That was one search'),
+  // "searches", not a bare figure leaning on the kicker above it for its noun.
+  b10Hero: line('label', ({ weekly, of }) => `There are ${weekly} searches a week, `
+    + `and ${of} brands want them.`),
+  b10Say: line('reading', ({ weeks }) => `One of those brands is you. For ${weeks} weeks you decide `
     + 'which searches are worth being in, what to pay, and what your ad says.'),
   // IT PROMISES THE GUIDE, NOT A LINK BESIDE EVERY WORD. It used to say every
   // word met here has a "why?" from here on; playing it showed the first screen
   // after round 0 carries two, beside none of impressions, clicks, cost per
   // click or conversions. A beginner who checks a promise and finds it false
   // has been taught to stop trusting the screen.
-  b9Note: line('reading', 'The guide is in the strip on the left, '
+  b10Note: line('reading', 'The guide is in the strip on the left, '
     + 'and a “why?” anywhere opens it at the right page.'),
 
   // One week's report, said once for each time it was rewritten. "One", never
@@ -218,14 +240,15 @@ export const FIRST_RUN = Object.freeze({
   next1: line('instruction', 'What she sees'),
   next2: line('instruction', 'Why only four'),
   next3: line('instruction', 'How those four were chosen'),
-  next4: line('instruction', 'She clicks one'),
-  next5: line('instruction', 'Where that money came from'),
-  next6: line('instruction', 'Three weeks later'),
-  next7: line('instruction', 'Two weeks after that'),
-  next8: line('instruction', 'And that is the whole job'),
+  next4: line('instruction', 'What they actually paid'),
+  next5: line('instruction', 'She clicks one'),
+  next6: line('instruction', 'Where that money came from'),
+  next7: line('instruction', 'Three weeks later'),
+  next8: line('instruction', 'Two weeks after that'),
+  next9: line('instruction', 'And that is the whole job'),
   // Where it actually goes: round 0's step 1, the market, which is read-only.
   // It used to promise "pick where your brand sits", which is step 2.
-  next9: line('instruction', 'Start — meet the market'),
+  next10: line('instruction', 'Start — meet the market'),
   skip: line('instruction', 'Skip this, take me to the game'),
   back: line('instruction', 'Back'),
   again: line('instruction', 'Watch that again'),
