@@ -52,6 +52,15 @@ export const R0 = Object.freeze({
   needSplit: line('instruction', 'the weekly split asks for more than the month'),
   redoNote: line('reading', ({ round, week }) => `You can redo round ${round} once, until the end of week ${week}.`),
   go: line('instruction', ({ week }) => `Open the account and run week ${week}`),
+  // WHAT GO SAYS WHILE IT CANNOT RUN (I59). It used to say the same thing at
+  // 45% opacity, disabled, with the reason in 13px beside it — so the one
+  // recorded stranger sat on this screen for three and a half active minutes
+  // and never started the game. It names the missing thing now, and pressing
+  // it opens the step that holds it.
+  // The NEED lines are written lower-case for the checklist, where they follow
+  // a label ("Keywords · add a keyword"). Standing alone on a button they take
+  // a capital: phrasing, which a line may do, not a figure, which it may not.
+  goNeeds: line('instruction', ({ need }) => `${need.charAt(0).toUpperCase()}${need.slice(1)} first`),
   running: line('label', ({ hours }) => `running ${hours} hours…`),
 
   // The squares' names

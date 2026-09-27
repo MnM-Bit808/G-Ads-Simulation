@@ -611,6 +611,17 @@ body.studio .kback { align-self: flex-start; margin-top: auto; padding: 0; backg
 body.studio .kadd { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 280px; border: 2px dashed var(--studio-line-strong); border-radius: var(--studio-radius); background: none; color: var(--studio-muted); }
 body.studio .kadd strong { color: var(--studio-text); font: 700 16px/1.2 var(--studio-display); }
 body.studio .kadd span { font-size: 12px; font-weight: 400; }
+/* EMPTY, IT IS THE ONLY THING THIS STEP NEEDS (I59). A dashed transparent box
+   in muted grey is the language of absence, and it was the quietest thing on a
+   screen whose one filled button said "Next: your ad". Solid while there is
+   nothing in it; the moment a keyword lands it goes back to being a placeholder
+   beside the cards, which is all it is then. */
+body.studio .kadd.wanted {
+  border-style: solid; border-color: var(--studio-red);
+  background: var(--studio-red); color: var(--studio-on-red);
+}
+body.studio .kadd.wanted strong { color: var(--studio-on-red); }
+body.studio .kadd.wanted span { color: var(--studio-on-red); opacity: 0.86; }
 
 /* Outlined 3:1 or more on the page, a card and the planner (tests/kit.test.js). */
 body.studio .kfield { height: 34px; padding: 0 10px; border: 1px solid #68636B; border-radius: 10px; background: #141216; color: var(--studio-text); font: inherit; font-size: 14px; }
@@ -1759,6 +1770,19 @@ body.studio .r0-checks li.need { color: var(--studio-amber); }
 body.studio .r0-need { display: block; font-size: 11px; }
 body.studio .r0-redo { max-width: 200px; margin: 0; font-size: 12px; line-height: 1.35; color: var(--studio-muted); }
 body.studio .r0-go:disabled { opacity: 0.45; }
+/* GO, WHILE IT IS STILL WAITING FOR SOMETHING (I59). Not disabled and not red:
+   it says what is missing and opens the step that holds it, so it has to look
+   like a way onward rather than a dead end OR a finished account. Outlined in
+   the amber this Studio already uses for "your attention, not your money". */
+body.studio .r0-go.waiting {
+  background: none; color: var(--studio-amber);
+  box-shadow: inset 0 0 0 1px var(--studio-amber);
+}
+/* The step's own Next, where it competes with the one thing the step needs. */
+body.studio .r0-next.quiet {
+  background: none; color: var(--studio-soft);
+  box-shadow: inset 0 0 0 1px var(--studio-line-strong);
+}
 
 body.studio .r0-intro { max-width: 720px; margin: 0 0 18px; font-size: 16px; line-height: 1.5; color: var(--studio-soft); }
 body.studio .r0-small { margin: 0; font-size: 12px; line-height: 1.45; color: var(--studio-muted); }

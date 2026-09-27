@@ -69,6 +69,11 @@ export function renderKeywordsStep({ draft, querySet, openGuide, changed, redraw
   const plus = el('button', 'kadd');
   plus.type = 'button';
   plus.dataset.key = 'add';
+  // THE ONLY THING THIS STEP NEEDS, DRAWN AS THE THING IT NEEDS (I59). Empty,
+  // it was a dashed transparent box in muted grey — the visual language of
+  // absence — while the one filled red button on screen said "Next: your ad".
+  // A beginner reads the hierarchy, not the requirement, and leaves.
+  if (draft.keywords.length === 0) plus.classList.add('wanted');
   plus.append(el('strong', null, KEYWORDS.addTitle()), el('span', null, KEYWORDS.addHow()));
   plus.addEventListener('click', () => openPlanner({
     trigger: { focus: focusAdd },

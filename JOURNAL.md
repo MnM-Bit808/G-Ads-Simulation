@@ -42,6 +42,37 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-28: round 0 stopped being a dead end
+
+**I59.** The Go gate, which is the reason the only person who ever sent a
+playtest file never reached week 1.
+
+`checklist`'s `keywords` item wants a keyword ADDED, not visited, and it is the
+only item that can block a fresh round 0 — `square` is always true, `ad` is
+valid because a writer is hired for you, `money` passes with nothing planned. A
+test holds that now, so a second blocker cannot appear without the button
+naming it.
+
+**Measured on the empty step, and this is the whole thing:** the required
+action was transparent, dashed, muted grey, 14px; the optional one was solid
+brand red, white, 18px, weight 700. The screen drew the thing you must do in
+the language of absence and the thing you need not do as the primary call to
+action. Three seconds is a rational response to that.
+
+Two halves, neither refusing anybody. At the step, the add box goes solid red
+and Next goes to an outlined ghost while there is nothing there — and Next
+still works, because someone looking ahead should be able to. At the end, the
+blocked Go stops being disabled: it reads **"Add a keyword first"** and opens
+the step that holds it. `canGo` stays the authority; the checklist only
+supplies the label.
+
+**The part worth keeping is how it was found.** I had explained this file twice
+already — once that they could not find the button (measured: findable, and I
+said so), once that it was lack of interest. Both times I stopped at a
+plausible answer. It turned up only because I stepped through round 0 the way
+their click log did, while building something else. **Findable is not usable,
+and I had checked the first and called it done.**
+
 ## 2026-09-27: the first playtest file, and what it turned out to say
 
 **Somebody finally sent one.** `playtest-2026-09-27-1620`, on `f65a3d7`. It

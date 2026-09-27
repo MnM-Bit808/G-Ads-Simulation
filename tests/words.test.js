@@ -335,6 +335,9 @@ describe('round 0 in the Studio (plans/2026-09-14-round-zero-redesign.md)', () =
     month: 1, capital: '₹1,20,000', what: 'parcels refused', label: 'a chart',
     weekly: '₹77,000', planned: '₹3,00,000', query: 'nira joggers', volume: '2,838',
     start: 5, top: 10, parts: [{ target: 'landingPage', points: 4 }, { target: 'sizeGuide', points: 1 }],
+    // What Go says it is waiting for (I59). It is one of the `NEED` lines,
+    // handed in already said, so the fixture carries one of those.
+    need: 'add a keyword',
   };
 
   test('every entry is a line of a kind the screen may carry', () => {

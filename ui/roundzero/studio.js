@@ -198,11 +198,27 @@ export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, 
       if (!item.done) li.append(el('span', 'r0-need', NEED[item.need]()));
       checks.append(li);
     }
-    const go = button('studio-run r0-go', R0.go({ week: 1 }));
+    // `canGo` stays the authority on whether the week may run; `missing` only
+    // supplies the LABEL. Deriving "may I go" from the checklist here would
+    // put the rule in two places. `checklist` keeps its own keys: `square` is
+    // settled on the position step, the rest share a name with theirs.
+    const blocked = !canGo(draft);
+    const missing = blocked ? (checklist(draft).find((item) => !item.done) ?? null) : null;
+    const go = button('studio-run r0-go',
+      missing ? R0.goNeeds({ need: NEED[missing.need]() }) : R0.go({ week: 1 }));
     go.classList.add('press');
-    go.disabled = going || !canGo(draft);
+    // NOT DISABLED WHEN SOMETHING IS MISSING (I59). A dead button is a dead
+    // end: the one recorded stranger sat here for 3:35 of active time, made no
+    // click at all, and never started the game — the reason was 13px of amber
+    // beside a 343x52 red button at 45% opacity. It now says what it wants and
+    // takes you to the step that holds it.
+    if (blocked) go.classList.add('waiting');
+    go.disabled = going;
     go.addEventListener('click', async () => {
-      if (going || !canGo(draft)) return;
+      if (going) return;
+      // Blocked and nothing named cannot happen — `canGo` is false only when an
+      // item is not done — but it must not fall through into running the week.
+      if (blocked) { if (missing) open(missing.key === 'square' ? 'position' : missing.key); return; }
       going = true;
       go.disabled = true;
       go.textContent = R0.running({ hours: HOURS_PER_WEEK });
@@ -223,6 +239,11 @@ export function createRoundZero({ querySet, rootSeed, playerBrandId, openGuide, 
     const nextStep = STEPS[at(view.step) + 1];
     const next = button('studio-run r0-next', R0.next({ step: nextStep.label() }));
     next.classList.add('press');
+    // IT GOES QUIET WHERE IT COMPETES WITH THE STEP'S OWN JOB (I59). Nothing is
+    // held: someone who wants to look at the ad and the money first still can,
+    // and the Go button will send them back. The screen simply stops being the
+    // loudest argument for leaving the one step that can block the game.
+    if (view.step === 'keywords' && draft.keywords.length === 0) next.classList.add('quiet');
     next.addEventListener('click', () => open(nextStep.key));
     tray.replaceChildren(soFar(), next);
   }

@@ -260,6 +260,16 @@ number in the simulation without ever throwing an error.
   the guide's "Show me in your account" finds one (`sectionOf`) and how a first
   visit knows what to bring in (`entranceSlots`). Show me rings any part
   carrying a `data-slot` and focuses its own heading, an h3.
+- **A step's required action must not be quieter than its exit.** Round 0's
+  empty keywords step drew "Add a keyword" transparent, dashed and muted at
+  14px, and "Next: your ad" solid brand red at 18px — the language of ABSENCE
+  on the thing you must do, the primary call to action on the thing you need
+  not (I59). A beginner reads the hierarchy, not the requirement. The same
+  entry carries the other half: **a disabled button is a dead end.** Go sat at
+  45% opacity with its reason in 13px beside it, and the only person who ever
+  sent a playtest file spent 3:35 of active time in front of it without
+  starting the game. A blocked control should name what it wants and open the
+  step that holds it.
 - **A screen that tells the reader to go round again is reporting a fault.**
   The ladder beat's callout was headed *"Read those two rows again"*, and it was
   there because the screen said a bid was "a price it will pay" above a column

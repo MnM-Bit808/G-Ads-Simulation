@@ -7698,3 +7698,68 @@ copy of the same week reads smaller and eventually zero. Building the figures
 in `runWeek` rather than in `render()` is what keeps that honest; *watch the
 week* replays the LATEST week for the same reason, since that is the one report
 nothing has been taken out of yet.
+
+### I59. Round 0 says what it is waiting for, where it is waiting for it — `FIXED` (2026-09-28)
+
+**The one person who has ever sent a playtest file could not start the game**,
+and neither they nor I noticed. They were not bored; the button was dead.
+
+**HOW IT WAS FOUND.** I had already explained their file twice — first that
+they could not find Go (measured: 343 × 52, red, in view — wrong), then that it
+was plain lack of interest (the owner's reading, and better supported than
+mine). Building something else, I stepped through round 0 the way their click
+log did and Go would not press. **Findable is not usable, and I had checked the
+first and called it done.**
+
+**THE GATE.** `checklist`'s `keywords` item is `draft.keywords.length > 0` — a
+keyword must be ADDED, not visited. It is the ONLY item that can be false at
+the start: `square` is always true, `ad` is valid because a writer is hired by
+default, and `money` passes with nothing planned. A test now holds that, so a
+second blocker cannot appear unnamed.
+
+**THEIR FILE, AS EVIDENCE:** zero keystrokes in the whole session, **three
+seconds** on Your keywords, and five clicks in round 0 of which every one was a
+tray *Next*. So `draft.keywords.length` was 0, and `go.disabled` was true for
+all **3:35** of active time they spent on the last screen before sending the
+file.
+
+**WHAT THEY HAD TO NOTICE.** A `343 × 52` button in 18px type at
+`opacity: 0.45`, compositing to `rgb(104, 24, 29)` — a dark red that still
+reads as a button — and the reason in **13px** amber, in a 230 × 53 tray beside
+it.
+
+**AND THE STEP ITSELF ARGUED FOR LEAVING.** Measured on the empty keywords
+step:
+
+| | Add a keyword *(required)* | Next: your ad *(optional)* |
+| --- | --- | --- |
+| background | **transparent** | solid `#D7262F` |
+| border | **dashed** `#3A363E` | none |
+| text | `#A19A94`, 14px | white, **18px**, weight 700 |
+
+The thing you must do was drawn in the language of ABSENCE — dashed,
+transparent, muted, the universal "nothing here yet" — and the thing you need
+not do was drawn as the brand's primary call to action. A beginner reads the
+hierarchy, not the requirement.
+
+**THE FIX IS IN TWO HALVES, AND NEITHER REFUSES ANYBODY.**
+
+- **At the step.** While there are no keywords, the add box is solid red and
+  *Next: your ad* is an outlined ghost. The moment a keyword lands, both go
+  back to what they were. **Next still works** — someone who wants to look
+  ahead at the ad and the money can, and the Go button will send them back.
+- **At the end.** The blocked Go is no longer disabled. It reads **"Add a
+  keyword first"** and pressing it opens the step that holds it. `canGo`
+  remains the authority on whether the week may run; the checklist only
+  supplies the label, so the rule does not live in two places.
+
+**THIS IS THE WEEK-5 SHAPE AGAIN** (*"it asks, it does not refuse"*): ask what
+is actually lost first, and it decides whether you block, ask, or only say.
+Here a block already existed and was invisible, so the work was saying it in
+the right place, not blocking harder.
+
+**Why not seed a keyword instead:** that would tick a step the player has not
+been to, which is the fault class this project has now found three times — the
+week-5 capital chip, round 0's ad step, and it would have been this. Choosing
+keywords is the game; a default would remove the decision rather than surface
+it.

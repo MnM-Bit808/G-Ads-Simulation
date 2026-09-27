@@ -33,7 +33,7 @@ import { fileURLToPath } from 'node:url';
 // part 2 deleted that page, and the rules never lived in it.
 import {
   openingReserve, submittedAd, gradeAsSubmitted, monthlyBudget,
-  positionMatrix, splitShares, adStage,
+  positionMatrix, splitShares, adStage, createSetupDraft, checklist, syncWriterCopy,
 } from '../ui/roundzero/rules.js';
 import { R0 } from '../ui/words/roundZero.js';
 import { openingCopyGrades } from '../content/writers.js';
@@ -682,5 +682,68 @@ describe('a round 0 step does not out-talk its budget', () => {
     for (const path of Object.values(STEP_MODULES)) {
       expect(authored(path), path).toBeGreaterThan(0);
     }
+  });
+});
+
+/**
+ * WHAT STOPPED THE ONE PERSON WHO EVER SENT A PLAYTEST FILE (I59).
+ *
+ * `checklist`'s `keywords` item is the only one that can be false at the
+ * start: `square` is always true, `ad` is valid because a writer is hired by
+ * default, and `money` passes with nothing planned. So round 0 had exactly one
+ * way to block — and it blocked SILENTLY, four screens after the step that
+ * caused it, with the reason in 13px beside a disabled button.
+ *
+ * Their file: zero keystrokes, three seconds on Your keywords, five clicks in
+ * round 0 and every one a tray Next. They added no keyword, so Go was dead for
+ * the 3:35 of active time they spent on the last screen.
+ */
+describe('round 0 says what it is waiting for, where it is waiting for it', () => {
+  const src = (path) => readFileSync(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
+
+  test('keywords is still the only thing that can block a fresh round 0', () => {
+    const fresh = createSetupDraft({ playerBrandId: 'marlow', rootSeed: 20260902 });
+    // A hired writer's copy is dealt on the way in, as round 0 deals it.
+    syncWriterCopy(fresh, 20260902);
+    const blocked = checklist(fresh).filter((item) => !item.done).map((item) => item.key);
+    expect(blocked, 'if another item can block, the Go button must name it too')
+      .toEqual(['keywords']);
+  });
+
+  // It reads "add a keyword" in the checklist, where it follows a label, and
+  // "Add a keyword first" on a button, where it stands alone.
+  test('the blocked Go names the missing thing, capitalised', () => {
+    expect(R0.goNeeds({ need: R0.needKeyword() })).toBe('Add a keyword first');
+    expect(R0.goNeeds({ need: R0.needAd() })).toBe('Finish the ad first');
+  });
+
+  // A DEAD BUTTON IS A DEAD END. It stays pressable while something is
+  // missing, and pressing it opens the step that holds it.
+  test('Go is not disabled for being blocked, only for already running', () => {
+    const body = src('ui/roundzero/studio.js');
+    expect(body, 'a blocked Go must still be pressable').toMatch(/go\.disabled = going;/);
+    expect(body, 'it must not go back to disabling on canGo').not.toMatch(/go\.disabled = going \|\| !canGo/);
+    expect(body, 'pressing it opens the step that is missing').toMatch(/if \(blocked\) \{ if \(missing\) open\(/);
+  });
+
+  // `canGo` stays the authority; the checklist only supplies the label.
+  test('whether it may run is still asked of canGo, not re-derived', () => {
+    expect(src('ui/roundzero/studio.js')).toMatch(/const blocked = !canGo\(draft\);/);
+  });
+
+  // THE STEP'S OWN HIERARCHY. Empty, the add box was dashed, transparent and
+  // muted — the language of absence — while the one filled red button on the
+  // screen said "Next: your ad". The emphasis swaps while there is nothing in
+  // it, and nothing is blocked.
+  test('the add box is the loud one while the step is empty', () => {
+    expect(src('ui/roundzero/keywords.js'))
+      .toMatch(/draft\.keywords\.length === 0\) plus\.classList\.add\('wanted'\)/);
+    expect(src('ui/studio.css')).toMatch(/\.kadd\.wanted \{[^}]*background: var\(--studio-red\)/);
+  });
+
+  test('and Next goes quiet there, without being held', () => {
+    const body = src('ui/roundzero/studio.js');
+    expect(body).toMatch(/view\.step === 'keywords' && draft\.keywords\.length === 0\) next\.classList\.add\('quiet'\)/);
+    expect(body, 'Next must still work: it asks, it does not refuse').not.toMatch(/next\.disabled = /);
   });
 });
