@@ -2462,6 +2462,122 @@ body.studio .fr-rw .down { color: var(--studio-amber); }
 @keyframes fr-grow { from { width: 0; } }
 @keyframes fr-fade { from { opacity: 0; } to { opacity: 1; } }
 
+/* --- The week playing out (plans/2026-09-27-week-playout.md) --------------
+   The same board as the first run, because it is the same KIND of screen: one
+   idea at a time, in the page's own space, with a way out. It reuses the run's
+   `fr-rise` rather than inventing a second entrance — two nearly-identical
+   rises is exactly the near-consistency that reads as careless.
+
+   NOTHING COUNTS UP. A bar grows, because a bar is a shape; every figure is
+   painted at its true value. */
+/* CENTRED, AND A FIXED HEIGHT FOR THE CARD. The first run's board is top-
+   aligned because it carries a growing trail above the card; this carries one
+   card and nothing else, so top-aligned left it stranded against a screen of
+   empty page. Centring alone would have made it jump, because the seven steps
+   are different heights — the ladder is four rows and the last is two lines —
+   so the card holds a floor and centres its own content inside it. */
+body.studio .po-board {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding-block: 44px 72px; padding-left: 20px; padding-right: 20px;
+  background: var(--studio-page);
+}
+body.studio .po-top {
+  width: min(720px, 100%);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 10px; flex-wrap: wrap;
+}
+body.studio .po-slot { width: min(720px, 100%); }
+body.studio .po-dots { display: flex; gap: 6px; }
+body.studio .po-dot {
+  width: 26px; height: 3px; border-radius: 2px;
+  background: var(--studio-line);
+  transition: background 240ms var(--studio-ease);
+}
+body.studio .po-dot.done { background: var(--studio-panel-edge); }
+body.studio .po-dot.on { background: var(--studio-red); }
+body.studio .po-skip {
+  font-size: 13px; color: var(--studio-faint);
+  background: none; border: 0; cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 4px;
+}
+body.studio .po-skip:hover { color: var(--studio-soft); }
+
+body.studio .po-live {
+  background: var(--studio-card);
+  border: 1px solid var(--studio-line);
+  border-radius: 18px; padding: 26px 28px;
+  display: flex; flex-direction: column; justify-content: center; gap: 16px;
+  min-height: 300px; box-sizing: border-box;
+  animation: fr-rise 240ms var(--studio-ease) both;
+}
+body.studio .po-kicker {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .po-say { font-size: 20px; line-height: 1.55; margin: 0; text-wrap: pretty; }
+body.studio .po-note { font-size: var(--t-lead); line-height: 1.6; color: var(--studio-soft); margin: 0; }
+
+body.studio .po-strip { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+body.studio .po-cell {
+  flex: 1; min-width: 160px;
+  background: var(--studio-raised); border: 1px solid var(--studio-line);
+  border-radius: 14px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 5px;
+  animation: fr-rise 240ms var(--studio-ease) both;
+}
+body.studio .po-k {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--studio-faint);
+}
+body.studio .po-v {
+  font-family: var(--studio-display); font-weight: 800;
+  font-size: clamp(28px, 5vw, 40px); letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; line-height: 1.05;
+}
+body.studio .po-v.lit { color: var(--studio-text); }
+/* Amber, not red: red is the player's colour in the Studio, and a cost is not
+   a loss. The same rule the losing-week figures follow. */
+body.studio .po-v.warn { color: var(--studio-amber); }
+body.studio .po-of {
+  font-size: 15px; font-weight: 700; color: var(--studio-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The ladder, as the first run draws it: one row a slot, revealed in order. */
+body.studio .po-ladder { display: flex; flex-direction: column; gap: 4px; }
+body.studio .po-lrow {
+  display: grid; grid-template-columns: 26px minmax(0, 1fr) 76px;
+  align-items: center; gap: 12px;
+  animation: fr-rise 240ms var(--studio-ease) both;
+}
+body.studio .po-pos { font-weight: 800; font-size: 15px; color: var(--studio-faint); }
+body.studio .po-track {
+  height: 10px; border-radius: 5px; background: var(--studio-line); overflow: hidden;
+}
+body.studio .po-track i {
+  display: block; height: 100%; background: var(--studio-text);
+  animation: fr-grow 420ms var(--studio-ease) both; animation-delay: inherit;
+}
+body.studio .po-num {
+  font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 700;
+  text-align: right;
+}
+
+body.studio .po-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+body.studio .po-go {
+  background: var(--studio-red); color: var(--studio-on-red);
+  border: 0; border-radius: 12px; padding: 12px 22px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  transition: transform 160ms ease-out;
+}
+body.studio .po-go:active { transform: scale(0.97); }
+
+@media (max-width: 560px) {
+  body.studio .po-live { padding: 20px 18px; }
+  body.studio .po-lrow { grid-template-columns: 20px minmax(0, 1fr) 62px; gap: 8px; }
+}
+
 @media (max-width: 720px) {
   /* The fit bar stays, narrowed. It used to be the column that went here, and
      beat 3 is where the run makes its whole point: Halcyon bids less than Auren
@@ -2516,4 +2632,12 @@ body.studio .fr-rw .down { color: var(--studio-amber); }
   body.studio .fr-fit i,
   body.studio .fr-rank { animation: none; }
   body.studio .fr-go:active { transform: none; }
+  /* The playout keeps its fades and drops every translate and every growing
+     bar, exactly as the first run does — the steps still arrive, and a reader
+     who asked for less motion still sees all seven. */
+  body.studio .po-live,
+  body.studio .po-cell,
+  body.studio .po-lrow { animation: fr-fade 200ms linear both; }
+  body.studio .po-track i { animation: none; }
+  body.studio .po-go:active { transform: none; }
 }

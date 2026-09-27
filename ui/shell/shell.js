@@ -62,7 +62,7 @@ const LIST_BEHIND_MENU = '(max-width: 900px)';
  */
 export function createStudio({
   onRun, onRedo, openGuide, showCard, figures,
-  onPlaytest = null, onExit = null, onWatchIntro = null,
+  onPlaytest = null, onExit = null, onWatchIntro = null, onWatchWeek = null,
 }) {
   const view = {
     area: 'brand', section: 'week', seen: {}, order: [], menuOpen: false,
@@ -272,7 +272,7 @@ export function createStudio({
     } else if (s.area === 'results') shown = results ? results.node(s.key) : el('p', 'studio-panel', SHELL.resultsLocked());
     else if (s.key === 'ad') shown = renderAdSection({ game, openGuide }).node;
     else if (s.key === 'week') {
-      const week = renderWeekSection({ game, openGuide });
+      const week = renderWeekSection({ game, openGuide, onWatchWeek });
       shown = week.node;
       // Once a week: the first time the section is seen after a week has run,
       // however many redraws come after it.

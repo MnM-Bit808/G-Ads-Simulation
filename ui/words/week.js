@@ -48,6 +48,9 @@ export const WEEK = Object.freeze({
   weeksSub: line('label', ({ week }) => `net profit by week · the dashed tick is where it stood before week ${week} ran`),
   weeksSubFirst: line('label', 'net profit by week'),
   replay: line('instruction', 'replay the revision'),
+  // The week playing out, once it has stopped playing itself (I58). It sits
+  // beside the revision replay because both replay something about this card.
+  watchWeek: line('instruction', 'watch the week'),
   thisWeek: line('label', 'this week'),
   // Each "as" only when its count moved (ui/week/read.js): a rise or a fall
   // on its own proves nothing about why.

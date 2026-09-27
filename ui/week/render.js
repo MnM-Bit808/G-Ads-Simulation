@@ -197,7 +197,7 @@ function reading(said, openGuide) {
   return p;
 }
 
-function weeksCard(game, openGuide) {
+function weeksCard(game, openGuide, onWatchWeek) {
   const bars = weekBars(game.state.history, game.historyBefore, game.playerId);
   const range = chartRange(bars);
   const said = revision(bars);
@@ -215,6 +215,15 @@ function weeksCard(game, openGuide) {
     replay = el('button', 'yw-replay', WEEK.replay());
     replay.type = 'button';
     head.append(replay);
+  }
+  // WATCH THE WEEK (plans/2026-09-27-week-playout.md). It plays itself for the
+  // first two weeks and then lives here, on the card about the weeks, next to
+  // the other thing on this screen that replays something.
+  if (onWatchWeek) {
+    const watch = el('button', 'yw-replay', WEEK.watchWeek());
+    watch.type = 'button';
+    watch.addEventListener('click', onWatchWeek);
+    head.append(watch);
   }
 
   const chart = el('div', 'yw-chart');
@@ -281,13 +290,13 @@ function shareCard(row, openGuide) {
  * @returns {{node: HTMLElement, play: () => void}} `play` shows each week that
  *   moved where it stood, then lets it give way; it does nothing when none moved
  */
-export function renderWeekSection({ game, openGuide }) {
+export function renderWeekSection({ game, openGuide, onWatchWeek = null }) {
   const node = el('div', 'yw');
   const latest = game.state.history.at(-1);
   if (!latest) return { node, play: () => {} };
   const row = latest.byAdvertiser[game.playerId];
 
-  const weeks = weeksCard(game, openGuide);
+  const weeks = weeksCard(game, openGuide, onWatchWeek);
   const split = el('div', 'yw-row');
   split.append(weeks.card, shareCard(row, openGuide));
   add(node, sixFigures(row, openGuide), copyNote(game, openGuide), split);

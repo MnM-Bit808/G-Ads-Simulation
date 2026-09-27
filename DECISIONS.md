@@ -7617,3 +7617,84 @@ overloaded.
 
 **And one figure leaning on its heading:** *"There are 4,30,000 a week"* had no
 noun — the kicker above supplied it. It says *searches* now.
+
+### I58. The week plays out, because the auction was never seen twice — `BUILT` (2026-09-27)
+
+**The first playtest file anyone has ever sent** (`playtest-2026-09-27-1620`,
+recorded on `f65a3d7`) showed a stranger reading the opening minute properly —
+114 seconds, nothing hidden, nothing idle, all ten beats — and then never
+finishing round 0. The design is `plans/2026-09-27-week-playout.md`.
+
+**THE THESIS: the most interesting thing in this simulator is the auction, and
+after the opening minute you never see one again.** Beats 4 and 5 teach the
+ladder. Then every week for twelve weeks is a form you submit and a table you
+read. So *Run week N* stops being a form submit; the week plays out in seven
+steps, and step 4 is the ladder again with the player's own numbers in it.
+
+**A CLOCK WAS THE FIRST SHAPE, AND THE DATA REFUSED IT.** `acc.hourlyClicks`
+and `acc.hourlyConv` are `new Array(HOURS_PER_DAY)` — 24 buckets summed across
+seven days. Impressions, cost, position, who was above you and the budget
+running out are week totals, and the DAY is thrown away entirely. A
+Monday-to-Sunday playout would have meant reconstructing days from
+`DAY_OF_WEEK_CURVE` and presenting the result as what happened. There is a
+design reason too: **the player has a lever on hour of day and none on day of
+week**, so a seven-day chronology puts drama on something that is not a
+decision.
+
+**What the week keeps is far richer**, and all of it was already in the report:
+
+| step | shows | reads |
+| --- | --- | --- |
+| 1 | the auctions you could have been in | `traffic.eligibleAuctions` |
+| 2 | how many you appeared in | `traffic.impressions`, `share.impressionShare` |
+| 3 | **why you missed the rest** | `share.lostToBudget`, `share.lostToRank` |
+| 4 | **the ladder, and who was above you** | `positions.counts`, `insights.rivals` |
+| 5 | who clicked, and the cost | `traffic.clicks`, `traffic.costPaise` |
+| 6 | who bought | `conversions.asFirstReported` |
+| 7 | **who has not decided yet** | `conversions.stillPending` |
+
+**Step 3 earns the sequence.** Lost-to-budget is a figure on the dashboard
+nobody reads, and it was **34%** of the measured week — a third of the
+account's reach, gone to a number the player set.
+
+**Step 7 is a relocation, not an addition.** The attribution delay is the first
+run's beat 8, which the recorded stranger gave 4.3 seconds ninety seconds
+before clicking anything. Here it is true of them, and it is what the revision
+mark (I56) shows next.
+
+**NAMING A RIVAL IS WHERE THIS COULD HAVE TAUGHT SOMETHING FALSE, twice over.**
+
+- `positionAboveRate` reads 0 both when a rival was never above you AND when
+  you never met it: the guard is `both > 0 ? above / both : 0`, so a rival in
+  another corner of the market divides by nothing. Name it and the screen says
+  you beat someone you never ran against. Only rivals with a real overlap are
+  considered, filtered once in `metRivals` rather than in a sentence.
+- **The most-MET rival is often one you comfortably beat.** Week 1 of the
+  measured game met Auren in 66% of its impressions and was behind it in 7% of
+  those, while Lumen was met half as often and was above it in 96%. Naming the
+  most-met would have pointed the player at the wrong brand. It names by
+  `aboveShare` — `overlapRate × positionAboveRate`, which is exact rather than
+  an estimate, the `both` cancelling to give `above / aShown`.
+
+**TWO AUTOMATIC PLAYS, THEN ONLY WHEN ASKED** (the owner, 2026-09-27). Fifteen
+seconds twelve times is ninety, and ninety seconds is where the recorded
+stranger's attention ran out. It is always skippable, a skip is remembered
+(`PLAYOUT_KEY`, beside the save), and after that *watch the week* lives on Your
+week's card beside *replay the revision*. `prefers-reduced-motion` keeps every
+step and drops the translates and the growing bars.
+
+**No number counts up to anything** (I52's rule). A bar grows, because a bar is
+a shape; every figure is painted at its true value.
+
+**ONE FAULT FOUND BY READING IT ON SCREEN, in all five steps that had a big
+figure: the sentence said the number again.** "75,508" over *"Your keywords
+matched 75,508 searches this week"* is a wordier screen saying less. The big
+figure carries the number; the sentence now carries the meaning, and a test
+holds each sentence to not containing its own figure.
+
+**And the playout is handed the report the round JUST produced.**
+`reviseReports` drains `stillPending` over the following weeks, so a revised
+copy of the same week reads smaller and eventually zero. Building the figures
+in `runWeek` rather than in `render()` is what keeps that honest; *watch the
+week* replays the LATEST week for the same reason, since that is the one report
+nothing has been taken out of yet.

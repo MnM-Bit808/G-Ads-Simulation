@@ -39,6 +39,12 @@ const GROUPS = [
   // ten-minute gate it was added to protect, and nobody could tell whether it
   // had worked.
   ['first run', (name) => name === 'first run'],
+  // The week playing out (I58), for the same reason and beside it: both are
+  // screens that TEACH rather than screens the game is played on, and a row
+  // each is what lets a file say whether either held anyone. Left in `other`
+  // it would have been totalled with the playtest questions, and the one
+  // thing it was built to find out — watched, or skipped — would not show.
+  ['week playing out', (name) => name === 'the week playing out'],
   ['round 0', (name) => name.startsWith('round 0')],
   ['weeks 1-4', (name) => /^week [1-4]$/.test(name)],
   ['weeks 5-11', (name) => /^week (5|6|7|8|9|10|11)$/.test(name)],

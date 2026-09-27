@@ -1052,7 +1052,7 @@ describe('the first run says nothing undefined, and stays inside its budget', ()
 describe('the new screens draw, and do not write', () => {
   // A "word" here must hold two letters in a row, so icon paths and class
   // lists are not counted.
-  const drawing = ['ui/firstrun/render.js',
+  const drawing = ['ui/firstrun/render.js', 'ui/playout/render.js',
     'ui/shell/shell.js', 'ui/kit/controls.js', 'ui/kit/card.js', 'ui/kit/planner.js', 'ui/kit/serp.js',
     'ui/map/india.js', 'ui/roundzero/studio.js', 'ui/roundzero/market.js', 'ui/roundzero/position.js',
     'ui/roundzero/keywords.js', 'ui/roundzero/ad.js', 'ui/roundzero/money.js', 'ui/keywords/render.js',

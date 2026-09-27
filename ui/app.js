@@ -33,6 +33,8 @@ import {
 import { createGuide } from './guide/drawer.js';
 import { guideFigures } from './guide/figures.js';
 import { createStudio } from './shell/shell.js';
+import { createPlayout, playoutSkipped, markPlayoutSkipped } from './playout/render.js';
+import { figuresFor as figuresForWeek, playsAutomatically } from './playout/read.js';
 import { createRoundZero } from './roundzero/studio.js';
 import { notesFor } from './roundzero/rules.js';
 import { renderDoor } from './door/render.js';
@@ -138,6 +140,17 @@ let introReturn = null;
  * different set of rivals.
  */
 let rewinding = null;
+
+/**
+ * The week waiting to play out, or null (plans/2026-09-27-week-playout.md).
+ *
+ * Held as FIGURES rather than as a report, so `render()` cannot re-read a week
+ * that has since been revised. What it draws is what the round produced.
+ */
+let playout = null;
+
+/** What the recorder calls this screen, so the next playtest file can judge it. */
+const PLAYOUT_PHASE = 'the week playing out';
 
 async function begin({ playerBrandId, player, guesses = null }) {
   const state = rewinding
@@ -342,6 +355,32 @@ function render() {
     return;
   }
 
+  /**
+   * THE WEEK PLAYING OUT (plans/2026-09-27-week-playout.md), between pressing
+   * Run and reading the dashboard.
+   *
+   * The opening minute teaches the ladder and then the game never shows one
+   * again: every week was a form you submitted and a table you read. This is
+   * the auction coming back, weekly, with the player's own numbers in it. It
+   * reads the report the round JUST produced — `reviseReports` drains
+   * `stillPending` over the following weeks, so a revised copy of the same
+   * week reads a smaller number than the week ever showed.
+   */
+  if (playout) {
+    recorder?.phase(PLAYOUT_PHASE);
+    const live = createPlayout({
+      figures: playout,
+      onDone: ({ skipped }) => {
+        if (skipped) markPlayoutSkipped(storage);
+        playout = null;
+        render();
+      },
+    });
+    app.replaceChildren(live.node);
+    window.scrollTo(0, 0);
+    return;
+  }
+
   if (!game) {
     roundZeroTouched = false;
     // The drawer belongs to a game: its chapters point at parts of the account,
@@ -373,6 +412,7 @@ function render() {
     onPlaytest: recorder ? sendPlaytestFile : null,
     onExit: backToMenu,
     onWatchIntro: replayFirstRun,
+    onWatchWeek: watchLatestWeek,
   });
   // After the last week the shell draws Results itself (ui/results/render.js,
   // the owner's choice 2026-09-15); it is handed only what it cannot reach:
@@ -458,6 +498,11 @@ async function runWeek() {
   game.insights.push(out.insights);
   persist();
   recorder?.week(game.reports.length, computeMs);
+  // Built HERE, from the round's own output, and not in `render()`: by the time
+  // a later week is drawn this week's report has been revised and its pending
+  // queue drained. Names are public (`getPublicView`'s whitelist), so reading
+  // them off the account is not a leak.
+  playout = startPlayout(out, game.reports.length);
   // Rebuilt from the account the round produced, so what the form shows is
   // what the engine now holds — staged changes have become real ones.
   // `game.opening` is deliberately NOT refreshed: it is the round 0 snapshot
@@ -465,6 +510,45 @@ async function runWeek() {
   // round would make every week's diff empty.
   refreshDraft();
   render();
+}
+
+/**
+ * The figures for the week just run, or null when it should not play.
+ *
+ * @param {object} out - `playRound`'s return
+ * @param {number} week - 1-based, the week just played
+ * @returns {object|null} `figuresFor()`, or null
+ */
+function startPlayout(out, week) {
+  if (!playsAutomatically(week, playoutSkipped(storage))) return null;
+  return playoutFigures(out.report, out.insights);
+}
+
+/**
+ * @param {object} report - a round report, `{byAdvertiser}`
+ * @param {object} insights - that round's, keyed by advertiser id
+ * @returns {object|null} `figuresFor()` for the player's row, or null when
+ *   there is nothing to show
+ */
+function playoutFigures(report, insights) {
+  const row = report?.byAdvertiser?.[game.playerId];
+  const rivals = insights?.[game.playerId]?.rivals;
+  if (!row || !rivals) return null;
+  const names = Object.fromEntries(game.state.advertisers.map((a) => [a.id, a.name]));
+  return figuresForWeek(row, rivals, names);
+}
+
+/**
+ * Play the latest week again, from Your week's own card.
+ *
+ * THE LATEST WEEK IS THE ONE SAFE WEEK TO REPLAY. `reviseReports` edits
+ * EARLIER weeks as late sales land, so an older report's `stillPending` has
+ * been drained and reads smaller than that week ever showed. The newest report
+ * has had nothing taken out of it yet.
+ */
+function watchLatestWeek() {
+  playout = playoutFigures(game.reports.at(-1), game.insights.at(-1));
+  if (playout) render();
 }
 
 // ---------------------------------------------------------------------------

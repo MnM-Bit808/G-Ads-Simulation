@@ -42,6 +42,58 @@ nothing in a 3,400-line file makes a stale line visible.
 
 ---
 
+## 2026-09-27: the first playtest file, and what it turned out to say
+
+**Somebody finally sent one.** `playtest-2026-09-27-1620`, on `f65a3d7`. It
+says the opening minute works — **114 seconds, nothing hidden, nothing idle,
+all ten beats** — and that reading collapses at beat 6, from 1.2–4.1 words a
+second to 9.7–13.5. It also says they never reached week 1.
+
+**I read it wrong twice before reading it right.**
+
+First I guessed they could not find the Go button on round 0's last step.
+Measured: 343 × 52, red, in view. Wrong, and I said so.
+
+Then I accepted the owner's reading — plain lack of interest — and started
+building for appeal. **That is when I found it by accident.** Round 0's Go waits
+on a checklist, and one item is `keywords: draft.keywords.length > 0`: a
+keyword must be ADDED, not visited. Their file has **zero keystrokes**, **three
+seconds on Your keywords**, and **five clicks in round 0, every one a tray
+Next**. So they added none, and `go.disabled` was true for all 3:35 they sat on
+Your money. I reproduced it exactly. **They were not bored. They could not
+start.** What they had to notice was a 13px amber line in a busy tray, beside a
+343 × 52 red button at `opacity: 0.45` that composites to a dark red still
+reading as a button.
+
+**The lesson is not the bug.** It is that a hypothesis I had already corrected
+once ("the button was findable") was *true and not the point*. Findable is not
+usable, and I had checked the first and called it done.
+
+## 2026-09-27, and what got built: the week plays out
+
+**I58.** The auction is the most interesting thing in this simulator and after
+the opening minute you never see one again — every week is a form you submit
+and a table you read. So *Run week N* now plays the week out in seven steps,
+and step 4 is beat 4's ladder with the player's own numbers in it.
+
+A clock was the first shape and the data refused it: hourly buckets carry only
+clicks and conversions, days are summed away entirely, and the player has a
+lever on hour and none on day. What the week DOES keep is richer — 2,45,745
+auctions, 1,55,771 impressions, 34% lost to budget, the four slot counts, the
+clicks, the cost, and **who has not decided yet**, which is the first run's
+beat 8 arriving when it is finally true of them.
+
+**Naming a rival was where this could have taught something false, twice.**
+`positionAboveRate` reads zero both for a rival that never beat you and one you
+never met, so only real overlaps are considered. And the most-MET rival is
+often one you beat comfortably — week 1 met Auren 66% of the time and was
+behind it in 7%, while Lumen was met half as often and was above it in 96%. It
+names by the product of the two rates, which is exact.
+
+**Found by reading it on screen:** all five figure-steps said their number
+twice, once big and once in the sentence. The figure carries the number now and
+the sentence carries the meaning.
+
 ## 2026-09-26, last: the bidding got two screens, and the run got a proofread
 
 **I57.** A second tester said the bidding was the hardest thing in the run. The
